@@ -1065,6 +1065,26 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 201
 
+# Add test-consumer access to TestService
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/{{ss1_test-consumer_id}}/access-rights
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "items": [
+    {
+      "service_code": "getRandom"
+    },
+    {
+      "service_code": "helloService"
+    },
+    {
+      "service_code": "listPeople"
+    },
+    {
+      "service_code": "personDetails"
+    }
+  ]
+}
+
 # Enable soap service on ss0
 PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_service_service_id}}/enable
 X-XSRF-TOKEN: {{ss0_xsrf_token}}

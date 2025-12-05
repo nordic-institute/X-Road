@@ -27,6 +27,7 @@ package org.niis.xroad.e2e.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
 import org.niis.xroad.e2e.CustomProperties;
@@ -43,8 +44,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.awaitility.Awaitility.await;
+import static org.niis.xroad.e2e.container.EnvSetup.Feature.BATCH_SIGNATURES;
+import static org.niis.xroad.e2e.container.EnvSetup.Feature.HSM;
+import static org.niis.xroad.e2e.container.EnvSetup.Feature.MESSAGE_LOG_ENCRYPTION;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 
 @Primary
@@ -58,6 +63,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String COMPOSE_SS_E2E_FILE = "build/resources/intTest/compose.e2e.yaml";
     private static final String COMPOSE_SS_HSM_FILE = "build/resources/intTest/compose.ss-hsm.e2e.yaml";
     private static final String COMPOSE_SS_BATCH_SIGNATURES_FILE = "build/resources/intTest/compose.ss-batch-signature-enabled.e2e.yaml";
+    private static final String COMPOSE_SS_MSGLOG_ENCRYPTION = "build/resources/intTest/compose.ss-msglog-encryption.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String OPENBAO = "openbao";
@@ -81,9 +87,9 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         if (customProperties.isUseCustomEnv()) {
             log.warn("Using custom environment. Docker compose is not used.");
         } else {
-            envSs0 = createSSEnvironment("ss0", false, true);
+            envSs0 = createSSEnvironment("ss0", Set.of(BATCH_SIGNATURES));
 
-            envSs1 = createSSEnvironment("ss1", true, false);
+            envSs1 = createSSEnvironment("ss1", Set.of(HSM, MESSAGE_LOG_ENCRYPTION));
 
             envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE))
                     .withLocalCompose(true)
@@ -122,16 +128,10 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         }
     }
 
-    private ComposeContainer createSSEnvironment(String name, boolean enableHsm, boolean enableBatchSignatures) {
+    private ComposeContainer createSSEnvironment(String name, Set<Feature> features) {
         var files = new ArrayList<>(List.of(new File(COMPOSE_SS_FILE), new File(COMPOSE_SS_E2E_FILE)));
 
-        if (enableHsm) {
-            files.add(new File(COMPOSE_SS_HSM_FILE));
-        }
-
-        if (enableBatchSignatures) {
-            files.add(new File(COMPOSE_SS_BATCH_SIGNATURES_FILE));
-        }
+        features.forEach(f -> files.add(f.getComposeFile()));
 
         var env = new ComposeContainer(name + "-", files)
                 .withLocalCompose(true)
@@ -147,7 +147,18 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         env.start();
         connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
 
+        if (features.contains(MESSAGE_LOG_ENCRYPTION)) {
+            importPublicKeysToBao(env);
+        }
+
         return env;
+    }
+
+    @SneakyThrows
+    private void importPublicKeysToBao(ComposeContainer env) {
+        var container = env.getContainerByServiceName(OPENBAO).orElseThrow();
+        container.execInContainer("bao", "write", "xrd-secret/message-log/archival/pgp/public-keys",
+                "payload=@/gpg-keys/public-keys.asc");
     }
 
     private String getContainerName(ComposeContainer env, String container) {
@@ -221,5 +232,21 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     }
 
     public record ContainerMapping(String host, int port) {
+    }
+
+    enum Feature {
+        HSM(COMPOSE_SS_HSM_FILE),
+        BATCH_SIGNATURES(COMPOSE_SS_BATCH_SIGNATURES_FILE),
+        MESSAGE_LOG_ENCRYPTION(COMPOSE_SS_MSGLOG_ENCRYPTION);
+
+        private final String composeFile;
+
+        Feature(String composeFile) {
+            this.composeFile = composeFile;
+        }
+
+        File getComposeFile() {
+            return new File(composeFile);
+        }
     }
 }
