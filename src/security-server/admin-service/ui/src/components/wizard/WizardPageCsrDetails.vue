@@ -67,6 +67,7 @@
           :items="filteredServiceList"
           item-title="name"
           item-value="name"
+          @update:model-value="onCertServiceChange"
           class="wizard-form-input"
           data-test="csr-certification-service-select"
           variant="outlined"
@@ -81,6 +82,7 @@
         <v-select
           v-bind="csrFormatRef"
           :items="csrFormatList"
+          :disabled="isCsrFormatReadOnly"
           class="wizard-form-input"
           data-test="csr-format-select"
           variant="outlined"
@@ -218,6 +220,12 @@ export default defineComponent({
     showClient(): boolean {
       return this.values.csr.usage === this.usageTypes.SIGNING;
     },
+    isCsrFormatReadOnly(): boolean {
+      return !!this.filteredServiceList.find(
+        (certificateAuthority) =>
+          certificateAuthority.name == this.values.csr.certificationService,
+      )?.default_csr_format;
+    },
   },
 
   watch: {
@@ -279,6 +287,14 @@ export default defineComponent({
     },
     cancel(): void {
       this.$emit('cancel');
+    },
+    onCertServiceChange(): void {
+      const ca = this.filteredServiceList.find((ca) => {
+        return ca.name == this.values.csr.certificationService;
+      });
+      if (ca?.default_csr_format) {
+        this.setFieldValue('csr.csrFormat', ca.default_csr_format);
+      }
     },
   },
 });

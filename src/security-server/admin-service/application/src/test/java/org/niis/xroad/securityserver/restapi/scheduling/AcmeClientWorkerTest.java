@@ -44,7 +44,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
-import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -84,6 +83,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockSignCsrBytes;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
 
 public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
@@ -102,7 +102,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     public void setUp() throws Exception {
         when(globalConfProvider.isValid()).thenReturn(true);
         when(globalConfProvider.getApprovedCA(any(), any()))
-                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", "http://test-ca/acme", "123.4.5.6", "5", "6"));
+                .thenReturn(approvedCaWithAcme("testca", false, "ee.test.Profile"));
 
         CertificateInfo signCertInfo = createCertificateInfo("sign_cert_id", "M1", new KeyUsage(KeyUsage.nonRepudiation),
                 Date.from(TimeUtils.now().minus(360, ChronoUnit.DAYS)), Date.from(TimeUtils.now().plus(5, ChronoUnit.DAYS)), null);

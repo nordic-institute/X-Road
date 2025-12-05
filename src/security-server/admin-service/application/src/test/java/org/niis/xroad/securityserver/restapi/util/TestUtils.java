@@ -32,7 +32,9 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.collect.Ordering;
 import org.niis.xroad.common.core.exception.WarningDeviation;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -384,5 +386,24 @@ public final class TestUtils {
      */
     public static <T> boolean isSortOrderCorrect(Set<T> set, Comparator<? super T> comparator) {
         return Ordering.from(comparator).isOrdered(set);
+    }
+
+    public static ApprovedCAInfo approvedCa(String name, boolean authenticationOnly, String certificateProfileInfo) {
+        return approvedCa(name, authenticationOnly, certificateProfileInfo, CsrFormat.PEM, null, null, null, null);
+    }
+
+    public static ApprovedCAInfo approvedCaWithAcme(String name, boolean authenticationOnly, String certificateProfileInfo) {
+        return approvedCa(name, authenticationOnly, certificateProfileInfo, CsrFormat.PEM, "http://test-ca/acme", "123.4.5.6", "5", "6");
+    }
+
+    public static ApprovedCAInfo approvedCaWithoutDefaultCsrFormat(String name, boolean authenticationOnly, String certificateProfileInfo) {
+        return approvedCa(name, authenticationOnly, certificateProfileInfo, null, null, null, null, null);
+    }
+
+    private static ApprovedCAInfo approvedCa(String name, boolean authenticationOnly, String certificateProfileInfo,
+                                             CsrFormat csrFormat, String acmeServerDirectoryUrl, String acmeServerIpAddress,
+                                             String retryDelay, String renewalInterval) {
+        return new ApprovedCAInfo(name, authenticationOnly, certificateProfileInfo, csrFormat,
+                acmeServerDirectoryUrl, acmeServerIpAddress, retryDelay, renewalInterval);
     }
 }
