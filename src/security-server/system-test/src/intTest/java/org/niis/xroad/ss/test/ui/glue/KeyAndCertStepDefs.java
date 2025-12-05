@@ -171,12 +171,14 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         setAuthCsrDetails(usage, client, certificationService, csrFormat, false);
     }
 
-    @Step("CSR details Usage is set to {string}, Client set to {string}, Certification Service to {string} and CSR format {string} preselected")
+    @Step("CSR details Usage is set to {string}, Client set to {string}, "
+            + "Certification Service to {string} and CSR format {string} preselected")
     public void setAuthCsrDetailsCsrPreselected(String usage, String client, String certificationService, String csrFormat) {
         setAuthCsrDetails(usage, client, certificationService, csrFormat, true);
     }
 
-    private void setAuthCsrDetails(String usage, String client, String certificationService, String csrFormat, boolean csrFormatPreselected) {
+    private void setAuthCsrDetails(String usage, String client, String certificationService,
+                                   String csrFormat, boolean csrFormatPreselected) {
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(disabled);
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrUsage().click();

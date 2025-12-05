@@ -83,8 +83,8 @@ public class ConnectionTestingStepDefs extends BaseUiStepDefs {
 
     @Step("Service type is set to REST")
     public void selectServiceType() {
-       page.radioRestPath().shouldBe(visible, enabled).click();
-       vRadio(page.radioSoapPath()).shouldBeUnChecked();
+        page.radioRestPath().shouldBe(visible, enabled).click();
+        vRadio(page.radioSoapPath()).shouldBeUnChecked();
     }
 
     @Step("Target instance is prefilled with {}")
