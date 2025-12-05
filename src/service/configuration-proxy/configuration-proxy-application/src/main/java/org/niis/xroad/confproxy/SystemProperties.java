@@ -23,11 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.confproxy;
 
+import ee.ria.xroad.common.DefaultFilepaths;
+import ee.ria.xroad.common.GlobalConfVersion;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import java.util.Optional;
+
+import static ee.ria.xroad.common.FilePaths.BASE_CONF_PATH;
+import static ee.ria.xroad.common.FilePaths.CONF_D_PATH;
 
 /**
  * Contains system-wide constants for system properties.
@@ -58,11 +63,6 @@ public final class SystemProperties {
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
-    // Misc -------------------------------------------------------------------
-
-    /** Property name of the configuration files path. */
-    public static final String CONF_PATH = PREFIX + "conf.path";
-
     // Configuration proxy ------------------------------------------------- //
 
     /** Property name of the confproxy download script path. */
@@ -91,41 +91,24 @@ public final class SystemProperties {
 
     // Configuration file names and section names -------------------------- //
 
-    public static final String CONF_FILE_COMMON =
-            getConfPath() + "conf.d/common.ini";
+    public static final String CONF_FILE_COMMON = CONF_D_PATH.resolve("common.ini").toString();
 
-    public static final String CONF_FILE_NODE =
-            getConfPath() + "conf.d/node.ini";
+    public static final String CONF_FILE_CONFPROXY = CONF_D_PATH.resolve("confproxy.ini").toString();
 
-    public static final String CONF_FILE_CENTER =
-            getConfPath() + "conf.d/center.ini";
+    public static final String CONF_FILE_USER_LOCAL = CONF_D_PATH.resolve("local.ini").toString();
 
-    public static final String CONF_FILE_CONFPROXY =
-            getConfPath() + "conf.d/confproxy.ini";
-
-    public static final String CONF_FILE_USER_LOCAL =
-            getConfPath() + "conf.d/local.ini";
-
-    public static final String CONF_FILE_ADDON_PATH =
-            getConfPath() + "conf.d/addons/";
+    public static final String CONF_FILE_ADDON_PATH = CONF_D_PATH.resolve("addons").toString();
 
     // --------------------------------------------------------------------- //
 
     public static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
 
     /**
-     * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
-     */
-    public static String getConfPath() {
-        return getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
-    }
-
-    /**
      * @return path to the directory where the downloaded global configuration is placed,
      * '/etc/xroad/globalconf/' by default.
      */
     public static String getConfigurationPath() {
-        return getProperty(CONFIGURATION_PATH, getConfPath() + DefaultFilepaths.CONFIGURATION_PATH);
+        return getProperty(CONFIGURATION_PATH, BASE_CONF_PATH.resolve(DefaultFilepaths.CONFIGURATION_PATH).toString());
     }
 
     /**
@@ -140,7 +123,7 @@ public final class SystemProperties {
      * '/etc/xroad/confproxy' by default.
      */
     public static String getConfigurationProxyConfPath() {
-        return getProperty(CONFIGURATION_PROXY_CONF_PATH, getConfPath() + "confproxy/");
+        return getProperty(CONFIGURATION_PROXY_CONF_PATH, BASE_CONF_PATH.resolve("confproxy").toString());
     }
 
     /**

@@ -46,7 +46,6 @@ logging:
     org.springframework: INFO
 
 xroad:
-  common-root-conf-path: /etc/xroad/
   common-rpc:
     certificate-provisioning:
       common-name: ${XROAD_HOST:localhost}

@@ -26,6 +26,10 @@ die () {
     exit 1
 }
 
+get_prop() {
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+}
+
 check_user () {
   if [ "$(id -nu )" != "xroad" ] ; then
     echo "This script (${THIS_FILE}) must be run by the xroad user"
@@ -45,9 +49,10 @@ check_instance_id () {
 }
 
 check_central_ha_node_name () {
+  CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
   local node_name=""
-  if [ -f /etc/xroad/local.ini ]; then
-    node_name=$(crudini --get /etc/xroad/local.ini 'center' 'ha-node-name')
+  if [ -f "$CONFIG_FILE" ]; then
+    node_name=get_prop "$CONFIG_FILE" "xroad.admin-service.ha-node-name"
   fi
   if [[ $USE_BASE_64 = true ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=$(echo "$CENTRAL_SERVER_HA_NODE_NAME" | base64 --decode)

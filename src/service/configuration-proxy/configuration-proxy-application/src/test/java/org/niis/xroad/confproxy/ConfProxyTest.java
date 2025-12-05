@@ -41,14 +41,14 @@ import org.niis.xroad.signer.client.SignerSignClient;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PATH;
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_CONF_PATH;
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_GENERATED_CONF_PATH;
-import static ee.ria.xroad.common.SystemProperties.TEMP_FILES_PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.confproxy.SystemProperties.CONFIGURATION_PATH;
+import static org.niis.xroad.confproxy.SystemProperties.CONFIGURATION_PROXY_CONF_PATH;
+import static org.niis.xroad.confproxy.SystemProperties.CONFIGURATION_PROXY_GENERATED_CONF_PATH;
+import static org.niis.xroad.confproxy.SystemProperties.TEMP_FILES_PATH;
 
 /**
  * Test program for the configuration proxy,

@@ -21,6 +21,7 @@ spring:
       - classpath:/xroad-common.yaml
       - optional:file:/etc/xroad/conf.d/local-tls.yaml
       - optional:file:/etc/xroad/conf.d/local.yaml
+      - optional:file:/etc/xroad/db.properties
   jackson:
     default-property-inclusion: NON_NULL
   liquibase:
@@ -104,7 +105,7 @@ file-upload-endpoints:
 
 xroad:
   admin-service:
-    database-properties: /etc/xroad/db.properties
+    ha-node-name:
     global-conf-generator:
       minimum-global-configuration-version: 2
       internal-directory: internalconf

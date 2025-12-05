@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.api.globalconf;
 
+import ee.ria.xroad.common.FilePaths;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
@@ -38,6 +40,8 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -83,17 +87,18 @@ public class OptionalPartsConf {
 
     private final Set<String> existingPartFileNames = new HashSet<>();
 
+    public static OptionalPartsConf getOptionalPartsConf() {
+        return new OptionalPartsConf(FilePaths.CONFIGURATION_PARTS_PATH);
+    }
+
     /**
      * Creates optional parts configuration.
-     *
      * @param confDir - directory, where optional part files are in.
      */
-    public OptionalPartsConf(String confDir) {
-        File optionalPartsDir = new File(confDir);
+    public OptionalPartsConf(Path confDir) {
+        final String optionalPartsPath = confDir.toAbsolutePath().toString();
 
-        final String optionalPartsPath = optionalPartsDir.getAbsolutePath();
-
-        if (!optionalPartsDir.isDirectory()) {
+        if (!Files.isDirectory(confDir)) {
             log.warn("Optional configuration parts directory '{}' "
                             + "either does not exist or is regular file",
                     optionalPartsPath);
@@ -103,7 +108,7 @@ public class OptionalPartsConf {
         log.debug("Getting optional conf parts from directory '{}'", confDir);
 
         File[] optionalPartFiles =
-                optionalPartsDir.listFiles(getIniFileFilter());
+                confDir.toFile().listFiles(getIniFileFilter());
 
         if (optionalPartFiles == null) {
             log.warn("Optional part files list in directory '{}' "

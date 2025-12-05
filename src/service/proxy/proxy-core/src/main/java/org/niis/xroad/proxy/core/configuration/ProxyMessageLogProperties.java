@@ -75,6 +75,22 @@ public interface ProxyMessageLogProperties {
     @WithDefault("NONE")
     ServicePrioritizationStrategy timestampingPrioritizationStrategy();
 
+    @WithName("enabled-body-logging-local-producer-subsystems")
+    @WithDefault("")
+    Optional<String> enabledBodyLoggingLocalProducerSubsystems();
+
+    @WithName("enabled-body-logging-remote-producer-subsystems")
+    @WithDefault("")
+    Optional<String> enabledBodyLoggingRemoteProducerSubsystems();
+
+    @WithName("disabled-body-logging-local-producer-subsystems")
+    @WithDefault("")
+    Optional<String> disabledBodyLoggingLocalProducerSubsystems();
+
+    @WithName("disabled-body-logging-remote-producer-subsystems")
+    @WithDefault("")
+    Optional<String> disabledBodyLoggingRemoteProducerSubsystems();
+
     default DigestAlgorithm hashAlg() {
         return Optional.ofNullable(hashAlgoIdStr())
                 .map(DigestAlgorithm::ofName)

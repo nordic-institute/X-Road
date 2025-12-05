@@ -23,7 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.confproxy;
+
+import ee.ria.xroad.common.FilePaths;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -151,7 +153,6 @@ public class SystemPropertiesLoader {
 
     /**
      * Creates a new instance using the default prefix.
-     *
      * @return new loader instance
      */
     public static SystemPropertiesLoader create() {
@@ -160,7 +161,6 @@ public class SystemPropertiesLoader {
 
     /**
      * Creates a new instance using the specified prefix.
-     *
      * @param prefix the prefix
      * @return new loader instance
      */
@@ -171,7 +171,6 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system common INI file should be included when
      * loading.
-     *
      * @return this instance
      */
     public SystemPropertiesLoader withCommon() {
@@ -182,7 +181,6 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system override INI files should not be included when
      * loading.
-     *
      * @return this instance
      */
     public SystemPropertiesLoader withoutOverrides() {
@@ -193,7 +191,6 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system local INI file should be included when
      * loading.
-     *
      * @return this instance
      */
     public SystemPropertiesLoader withLocal() {
@@ -204,7 +201,6 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the addon INI files should be included when
      * loading.
-     *
      * @return this instance
      */
     public SystemPropertiesLoader withAddOn() {
@@ -215,7 +211,6 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system common and local INI files should be included
      * when loading.
-     *
      * @return this instance
      */
     public SystemPropertiesLoader withCommonAndLocal() {
@@ -224,7 +219,6 @@ public class SystemPropertiesLoader {
 
     /**
      * Specifies the ini file to be loaded.
-     *
      * @param fileName     the file name of the INI.
      * @param sectionNames optional section names to be parsed from the INI.
      *                     If not specified, all sections are parsed.
@@ -238,7 +232,6 @@ public class SystemPropertiesLoader {
 
     /**
      * Specifies the optional local ini file to be loaded.
-     *
      * @param fileName     the file name of the INI.
      * @param sectionNames optional section names to be parsed from the INI.
      *                     If not specified, all sections are parsed.
@@ -256,7 +249,6 @@ public class SystemPropertiesLoader {
      * are found or loaded, a FileNotFoundException is produced listing the files that could not be loaded.
      * Built to handle alternative module configurations in installations that consist of different components
      * (i.e. configuring Signer in proxy installation or in center installation)
-     *
      * @param filePaths file paths to be loaded alternatively to each other
      * @return this instance for chaining
      */
@@ -318,8 +310,7 @@ public class SystemPropertiesLoader {
     private void loadOverrideConfFiles() {
         if (withOverrides) {
             try {
-                Path overrideDir = Paths.get(SystemProperties.getConfPath(), "conf.d");
-                loadFilesInOrder(overrideDir, OVERRIDE_GLOB, LOADING_ORDER_COMPARATOR);
+                loadFilesInOrder(FilePaths.CONF_D_PATH, OVERRIDE_GLOB, LOADING_ORDER_COMPARATOR);
             } catch (NoSuchFileException e) {
                 log.warn(CONF_FILE_DOES_NOT_EXIST_WARN, e.getFile());
             } catch (IOException e) {

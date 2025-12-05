@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -125,8 +124,6 @@ public abstract class AbstractProxyIntegrationTest {
     @BeforeAll
     public static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
-
-        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
 
         final String serverPort = String.valueOf(getFreePort());
 

@@ -26,7 +26,6 @@
 package org.niis.xroad.confproxy;
 
 import ee.ria.xroad.common.GlobalConfVersion;
-import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

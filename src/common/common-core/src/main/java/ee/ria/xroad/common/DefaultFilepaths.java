@@ -47,11 +47,11 @@ public final class DefaultFilepaths {
 
     static final String CONF_PATH = "/etc/xroad/";
 
-    static final String CONFIGURATION_PATH = "globalconf";
+    public static final String CONFIGURATION_PATH = "globalconf";
 
-    static final String DISTRIBUTED_GLOBALCONF_PATH = "/var/lib/xroad/public";
+    public static final String DISTRIBUTED_GLOBALCONF_PATH = "/var/lib/xroad/public";
 
-    static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
+    public static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
 
     private static final FileAttribute<Set<PosixFilePermission>> PERMISSIONS =
             PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));

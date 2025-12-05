@@ -31,7 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
-import org.niis.xroad.cs.admin.api.service.config.ConfigurationPartsConfig;
 import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
@@ -79,7 +78,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         UserAuthenticationConfig,
         FederationConfig,
         BackupConfig,
-        ConfigurationPartsConfig,
         AllowListConfig {
 
     /**
@@ -185,8 +183,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private boolean trustedAnchorsAllowed;
     /** path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default. */
     private String confBackupPath;
-
-    private String configurationPartsPath;
 
     /** Default whitelist for key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";
