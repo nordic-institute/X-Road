@@ -1,6 +1,10 @@
 spring:
+  config:
+    import:
+      - classpath:/xroad-common.yaml
   servlet:
-    multipart.enabled: false
+    multipart:
+      enabled: false
 server:
   error:
     whitelabel:
@@ -16,8 +20,14 @@ server:
       registered: false
     session:
       tracking-modes:
-  port: 8084
-  address: 127.0.0.1
+  port: 4001
+  ssl:
+    enabled: true
+    ciphers: TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    protocol: TLS
+    enabled-protocols: TLSv1.2,TLSv1.3
+    bundle: management-service # Use TLS key & certificate provided by ManagementServiceSslBundleRegistrar
+  address: 0.0.0.0
   forward-headers-strategy: native
 
 xroad:
@@ -27,6 +37,9 @@ xroad:
     rate-limit-requests-per-minute: 10
     rate-limit-cache-size: 10_000
     rate-limit-expire-after-access-minutes: 2
-    api-trust-store: ${xroad.conf.path:/etc/xroad}/ssl/center-admin-service.p12
-    api-trust-store-password: center-admin-service
     api-base-url: https://127.0.0.1:4000/api/v1
+    tls:
+      certificate-provisioning:
+        common-name: ${XROAD_HOST:localhost}
+        ip-subject-alt-names:
+          - 127.0.0.1

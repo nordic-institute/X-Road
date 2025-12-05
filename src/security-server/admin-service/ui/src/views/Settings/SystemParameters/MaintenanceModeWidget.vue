@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,11 +32,15 @@
           <v-switch
             :key="'maintenance-mode-switch' + key"
             data-test="maintenance-mode-switch"
+            class="xrd"
+            density="compact"
+            false-icon="close"
+            true-icon="check"
+            inset
+            hide-details
             :model-value="enabled"
             :loading="pending"
             :disabled="pending || isManagementServiceProvider"
-            hide-details
-            density="compact"
             @update:model-value="showConfirm = true"
           >
             <template #prepend>
@@ -46,7 +51,7 @@
       </template>
       {{ statusText }}
     </v-tooltip>
-    <xrd-confirm-dialog
+    <XrdConfirmDialog
       v-if="showConfirm && enabled"
       title="diagnostics.maintenanceMode.disableTitle"
       data-test="disable-maintenance-mode-dialog"
@@ -59,15 +64,14 @@
       @accept="changeMode(false)"
     />
 
-    <xrd-simple-dialog
+    <XrdSimpleDialog
       v-if="showConfirm && !enabled"
       title="diagnostics.maintenanceMode.enableTitle"
       data-test="enable-maintenance-mode-dialog"
       save-button-text="action.confirm"
-      :scrollable="false"
-      :show-close="true"
       :loading="updating"
       :disable-save="!meta.valid"
+      submittable
       @save="changeMode(true)"
       @cancel="
         showConfirm = false;
@@ -78,26 +82,27 @@
         {{ $t('diagnostics.maintenanceMode.enableConfirm') }}
       </template>
       <template #content>
-        <v-text-field
-          v-model="noticeMessage"
-          data-test="enable-maintenance-mode-message"
-          :label="$t('fields.maintenanceModeMessage')"
-          autofocus
-          variant="outlined"
-          class="dlg-row-input"
-          name="securityServerAddress"
-          :error-messages="errors"
-        />
+        <XrdFormBlock>
+          <XrdFormBlockRow full-length>
+            <v-text-field
+              v-model="noticeMessage"
+              data-test="enable-maintenance-mode-message"
+              class="xrd"
+              autofocus
+              :label="$t('fields.maintenanceModeMessage')"
+              :error-messages="errors"
+            />
+          </XrdFormBlockRow>
+        </XrdFormBlock>
       </template>
-    </xrd-simple-dialog>
+    </XrdSimpleDialog>
   </div>
 </template>
 <script lang="ts" setup>
 import { useSystem } from '@/store/modules/system';
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { useNotifications } from '@/store/modules/notifications';
 import { MaintenanceModeStatus } from '@/openapi-types';
-import { XrdConfirmDialog } from '@niis/shared-ui';
+import { XrdConfirmDialog, XrdFormBlock, XrdFormBlockRow, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
 import { useField } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
 import { useUser } from '@/store/modules/user';
@@ -113,40 +118,29 @@ const isManagementServiceProvider = ref(false);
 const statusText = ref(undefined as string | undefined);
 let refreshHandle = 0;
 
-const {
-  meta,
-  errors,
-  value: noticeMessage,
-  resetField,
-} = useField('message', 'max:255', { initialValue: '' });
+const { meta, errors, value: noticeMessage, resetField } = useField('message', 'max:255', { initialValue: '' });
 
 const { hasPermission } = useUser();
-const {
-  fetchMaintenanceModeState,
-  enableMaintenanceMode,
-  disableMaintenanceMode,
-} = useSystem();
-const { showError, showSuccess } = useNotifications();
+const { fetchMaintenanceModeState, enableMaintenanceMode, disableMaintenanceMode } = useSystem();
+const { addError, addSuccessMessage } = useNotifications();
 const { t } = useI18n();
 
-const canToggleMaintenanceMode = computed(() =>
-  hasPermission(Permissions.TOGGLE_MAINTENANCE_MODE),
-);
+const canToggleMaintenanceMode = computed(() => hasPermission(Permissions.TOGGLE_MAINTENANCE_MODE));
 
 async function changeMode(enable: boolean) {
   updating.value = true;
   if (enable) {
     return enableMaintenanceMode(noticeMessage.value)
-      .then(() => showSuccess(t('diagnostics.maintenanceMode.enableSuccess')))
+      .then(() => addSuccessMessage('diagnostics.maintenanceMode.enableSuccess'))
       .then(() => update())
-      .catch((error) => showError(error))
+      .catch((error) => addError(error))
       .finally(() => (updating.value = false))
       .finally(() => close());
   } else {
     return disableMaintenanceMode()
-      .then(() => showSuccess(t('diagnostics.maintenanceMode.disableSuccess')))
+      .then(() => addSuccessMessage('diagnostics.maintenanceMode.disableSuccess'))
       .then(() => update())
-      .catch((error) => showError(error))
+      .catch((error) => addError(error))
       .finally(() => close())
       .finally(() => (updating.value = false));
   }
@@ -159,31 +153,25 @@ async function update() {
       if (mode.is_management_services_provider) {
         statusText.value = t('diagnostics.maintenanceMode.forbiddenEnable');
       } else {
-        statusText.value = t(
-          'diagnostics.maintenanceMode.status.' + mode.status,
-        );
+        statusText.value = t('diagnostics.maintenanceMode.status.' + mode.status);
       }
       isManagementServiceProvider.value = mode.is_management_services_provider;
       switch (mode.status) {
         case MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE:
         case MaintenanceModeStatus.ENABLED_MAINTENANCE_MODE:
-          pending.value =
-            mode.status ===
-            MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE;
+          pending.value = mode.status === MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE;
           enabled.value = true;
           break;
         case MaintenanceModeStatus.PENDING_DISABLE_MAINTENANCE_MODE:
         case MaintenanceModeStatus.DISABLED_MAINTENANCE_MODE:
-          pending.value =
-            mode.status ===
-            MaintenanceModeStatus.PENDING_DISABLE_MAINTENANCE_MODE;
+          pending.value = mode.status === MaintenanceModeStatus.PENDING_DISABLE_MAINTENANCE_MODE;
           enabled.value = false;
           break;
         default:
       }
       return mode;
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (updating.value = false))
     .finally(() => {
       if (pending.value && !refreshHandle) {

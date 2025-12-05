@@ -26,18 +26,19 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
@@ -57,6 +58,7 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,19 +69,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.SystemProperties.NODE_TYPE;
-import static ee.ria.xroad.common.SystemProperties.NodeType.MASTER;
-import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
 /**
  * Test GlobalConfChecker
@@ -98,6 +99,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private GlobalConfService globalConfService;
     @MockitoBean
     private MailNotificationHelper mailNotificationHelper;
+    @MockitoSpyBean
+    private AdminServiceProperties adminServiceProperties;
 
     private static final ClientId.Conf OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
@@ -176,12 +179,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
         when(signerRpcClient.getAuthKey(any())).thenReturn(new AuthKeyInfo(
-                KEY_AUTH_ID, null, null, certificateInfo));
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        System.clearProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE);
+                KEY_AUTH_ID, null, certificateInfo));
     }
 
     @Test
@@ -311,7 +309,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         tokens.put(tokenInfo.getId(), tokenInfo);
         when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
 
-        System.setProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE, "true");
+        when(adminServiceProperties.isAutomaticActivateAuthCertificate()).thenReturn(true);
         globalConfChecker.checkGlobalConf();
 
         verify(signerRpcClient).setCertStatus(any(), any());
@@ -331,8 +329,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes, timestampingServices);
         assertEquals(1, approvedTSATypes.size());
         assertEquals(1, timestampingServices.size());
-        assertEquals(approvedTSATypes.get(0).getName(), timestampingServices.get(0).getName());
-        assertEquals(approvedTSATypes.get(0).getUrl(), timestampingServices.get(0).getUrl());
+        assertEquals(approvedTSATypes.getFirst().getName(), timestampingServices.getFirst().getName());
+        assertEquals(approvedTSATypes.getFirst().getUrl(), timestampingServices.getFirst().getUrl());
         assertEquals(approvedTSATypes.get(0).getCostType().name(), timestampingServices.get(0).getCostType());
 
         // test the normal update case
@@ -348,8 +346,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes1, tspTypes1);
         assertEquals(2, approvedTSATypes1.size());
         assertEquals(2, tspTypes1.size());
-        assertEquals(approvedTSATypes1.get(0).getName(), tspTypes1.get(0).getName());
-        assertEquals(approvedTSATypes1.get(0).getUrl(), tspTypes1.get(0).getUrl());
+        assertEquals(approvedTSATypes1.getFirst().getName(), tspTypes1.getFirst().getName());
+        assertEquals(approvedTSATypes1.getFirst().getUrl(), tspTypes1.getFirst().getUrl());
         assertEquals(approvedTSATypes1.get(0).getCostType().name(), tspTypes1.get(0).getCostType());
         assertEquals(approvedTSATypes1.get(1).getName(), tspTypes1.get(1).getName());
         assertEquals(approvedTSATypes1.get(1).getUrl(), tspTypes1.get(1).getUrl());
@@ -370,8 +368,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes2, tspTypes2);
         assertEquals(3, approvedTSATypes2.size());
         assertEquals(3, tspTypes2.size());
-        assertEquals(approvedTSATypes2.get(0).getName(), tspTypes2.get(0).getName());
-        assertNotEquals(approvedTSATypes2.get(0).getUrl(), tspTypes2.get(0).getUrl());
+        assertEquals(approvedTSATypes2.getFirst().getName(), tspTypes2.getFirst().getName());
+        assertNotEquals(approvedTSATypes2.getFirst().getUrl(), tspTypes2.getFirst().getUrl());
         assertEquals(approvedTSATypes2.get(0).getCostType().name(), tspTypes2.get(0).getCostType());
         assertEquals(approvedTSATypes2.get(1).getName(), tspTypes2.get(1).getName());
         assertEquals(approvedTSATypes2.get(1).getUrl(), tspTypes2.get(1).getUrl());
@@ -382,15 +380,15 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     @Test
-    public void doNotUpdateServerConfOnSlave() {
-        System.setProperty(NODE_TYPE, SLAVE.toString());
+    public void doNotUpdateServerConfOnSecondary() {
+        try (MockedStatic<NodeProperties> nodePropertiesMock = mockStatic(NodeProperties.class)) {
+            nodePropertiesMock.when(NodeProperties::getServerNodeType).thenReturn(SECONDARY);
+            globalConfChecker.checkGlobalConf();
 
-        globalConfChecker.checkGlobalConf();
-
-        verify(globalConfProvider).reload();
-        verify(globalConfProvider).verifyValidity();
-        verifyNoMoreInteractions(globalConfProvider);
-
-        System.setProperty(NODE_TYPE, MASTER.toString());
+            verify(globalConfProvider).reload();
+            verify(globalConfProvider).verifyValidity();
+            verifyNoMoreInteractions(globalConfProvider);
+        }
     }
+
 }

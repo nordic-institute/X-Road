@@ -36,6 +36,8 @@ import org.hibernate.Hibernate;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -44,9 +46,7 @@ import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 import org.niis.xroad.serverconf.impl.mapper.LocalGroupMapper;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -162,6 +162,7 @@ public class LocalGroupService {
         if (clientEntity == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + id + NOT_FOUND);
         }
+        localGroupToAddEntity.setClient(clientEntity);
         Optional<LocalGroupEntity> existingLocalGroupEntity = clientEntity.getLocalGroups().stream()
                 .filter(localGroupEntity -> localGroupEntity.getGroupCode().equals(localGroupToAddEntity.getGroupCode())).findFirst();
         if (existingLocalGroupEntity.isPresent()) {

@@ -1,6 +1,8 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
+  alias(libs.plugins.shadow)
+  alias(libs.plugins.allure)
 }
 
 configurations {
@@ -16,20 +18,35 @@ configurations {
 dependencies {
   intTestImplementation(project(path = ":central-server:admin-service:infra-jpa", configuration = "changelogJar"))
   intTestImplementation(project(":central-server:openapi-model"))
-  intTestImplementation(project(":common:common-core"))
 
-  intTestImplementation(libs.bundles.testAutomation)
-  intTestImplementation(libs.testAutomation.assert)
   intTestImplementation(libs.liquibase.core)
   intTestImplementation(libs.postgresql)
   intTestImplementation(libs.lombok)
+  intTestImplementation(libs.bouncyCastle.bcpkix)
+  intTestImplementation(project(":tool:test-framework-core"))
+}
+
+intTestComposeEnv {
+  images(
+    "CS_IMG" to "central-server-dev"
+  )
 }
 
 tasks.test {
   useJUnitPlatform()
 }
 
+allure {
+  adapter {
+    frameworks {
+      cucumber7Jvm
+    }
+  }
+}
+
 tasks.register<Test>("intTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+
   useJUnitPlatform()
 
   description = "Runs integration tests."
@@ -38,17 +55,6 @@ tasks.register<Test>("intTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  val intTestArgs = mutableListOf<String>()
-
-  if (project.hasProperty("intTestTags")) {
-    intTestArgs += "-Dtest-automation.cucumber.filter.tags=${project.property("intTestTags")}"
-  }
-  if (project.hasProperty("intTestProfilesInclude")) {
-    intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
-  }
-
-  jvmArgs(intTestArgs)
-
   testLogging {
     showStackTraces = true
     showExceptions = true
@@ -56,16 +62,47 @@ tasks.register<Test>("intTest") {
     showStandardStreams = true
   }
 
-  reports {
-    junitXml.required.set(false) // equivalent to includeSystemOutLog = false
-  }
-
-  dependsOn(":central-server:admin-service:application:bootJar")
-  shouldRunAfter(tasks.test)
 }
 
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
+tasks.jar {
+  enabled = false
+}
+
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+}
+
+tasks.shadowJar {
+  archiveBaseName.set("central-server-admin-int-test")
+  archiveClassifier.set("")
+  isZip64 = true
+
+  from(sourceSets["intTest"].output.classesDirs)
+
+  from("${layout.buildDirectory.get().asFile}/resources/intTest") {
+    into("")
+  }
+  from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
+    into("")
+  }
+  from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
+
+  mergeServiceFiles()
+  exclude("**/module-info.class")
+
+  manifest {
+    attributes(
+      "Main-Class" to "org.niis.xroad.cs.test.ConsoleIntTestRunner"
+    )
+  }
+
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+  dependsOn(tasks.named("intTestClasses"))
+  dependsOn(tasks.named("processIntTestResources"))
+}
+
+tasks.build {
+  dependsOn(tasks.shadowJar)
 }
 
 archUnit {

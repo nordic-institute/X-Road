@@ -23,11 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.globalconf.util;
-
-import ee.ria.xroad.common.SystemProperties;
+package org.niis.xroad.confclient.core;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,18 +34,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.ALL;
-import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.CUSTOM;
-import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.NONE;
+import static org.niis.xroad.confclient.core.config.ConfigurationClientProperties.AllowedFederationMode.ALL;
+import static org.niis.xroad.confclient.core.config.ConfigurationClientProperties.AllowedFederationMode.CUSTOM;
+import static org.niis.xroad.confclient.core.config.ConfigurationClientProperties.AllowedFederationMode.NONE;
 
-/** Implementation of the {@link FederationConfigurationSourceFilter}.
- * Looks at {@link SystemProperties#getConfigurationClientAllowedFederations()} (a comma-separated list of allowed
+/**
+ * Implementation of the {@link FederationConfigurationSourceFilter}.
+ * Looks at {@link ConfigurationClientProperties#allowedFederations()} (a comma-separated list of allowed
  * instances).
  * <ol>
- * <li>If it contains {@link ee.ria.xroad.common.SystemProperties.AllowedFederationMode#NONE}, it will return
+ * <li>If it contains {@link ConfigurationClientProperties.AllowedFederationMode#NONE}, it will return
  * {@code false} for all {@link #shouldDownloadConfigurationFor(String)} queries.</li>
  * <li>If previous is untrue but the string contains
- * {@link ee.ria.xroad.common.SystemProperties.AllowedFederationMode#ALL}, it will return {@code true} for all
+ * {@link ConfigurationClientProperties.AllowedFederationMode#ALL}, it will return {@code true} for all
  * queries.</li>
  * <li>If previous are untrue, it will return {@code true} if the list contains the (case-insensitive) X-Road instance
  * name</li>
@@ -54,24 +54,24 @@ import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.NONE;
  *
  */
 @Slf4j
-public class FederationConfigurationSourceFilter {
+public class FederationConfigurationSourceFilterImpl implements FederationConfigurationSourceFilter {
 
     private static final String COMMA_SEPARATOR = "\\s*,\\s*";
 
     private final String ownInstance;
 
-    private SystemProperties.AllowedFederationMode allowedFederationMode = null;
+    private ConfigurationClientProperties.AllowedFederationMode allowedFederationMode = null;
     private Set<String> allowedFederationPartners = null;
 
-    public FederationConfigurationSourceFilter(String ownInstance) {
+    FederationConfigurationSourceFilterImpl(String ownInstance, String filterString) {
         this.ownInstance = ownInstance;
-        String filterString = SystemProperties.getConfigurationClientAllowedFederations();
         log.info("The federation filter system property value is: '{}'", filterString);
         parseAndSetAllowedInstances(Arrays.asList(filterString.split(COMMA_SEPARATOR)));
         log.info("Allowed federation mode {} allows specific X-Road instances: {} ",
                 allowedFederationMode, allowedFederationPartners);
     }
 
+    @Override
     public boolean shouldDownloadConfigurationFor(String instanceIdentifier) {
         if (ownInstance.equalsIgnoreCase(instanceIdentifier)) {
             return true;

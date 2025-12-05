@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.test.glue;
 
-
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.apache.commons.io.IOUtils;
@@ -43,9 +42,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.ClassLoader.getSystemResourceAsStream;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.notNullAssertion;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")

@@ -57,10 +57,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.niis.xroad.common.core.dto.ConnectionStatus;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
-import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
@@ -94,6 +94,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
@@ -118,82 +119,56 @@ public class DiagnosticConnectionService {
     private final TokenService tokenService;
     private final AuthCertVerifier authCertVerifier;
     private final ManagementRequestSenderService managementRequestSenderService;
+    private final ConfClientRpcClient confClientRpcClient;
     private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
     private final ServerConfProvider serverConfProvider;
 
     public List<DownloadUrlConnectionStatus> getGlobalConfStatus() {
-        List<URL> downloadUrls = new ArrayList<>(getDownloadUrls(
-                globalConfProvider.getSourceAddresses(globalConfProvider.getInstanceIdentifier()),
-                getCenterInternalDirectory()
-        ));
+        return globalConfProvider.findSourceAddresses().stream()
+                .flatMap(this::configsForAddress)
+                .distinct()
+                .map(this::checkConnection)
+                .map(this::toDownloadStatus)
+                .toList();
+    }
 
-        var allowedFederationInstances = globalConfProvider.getAllowedFederationInstances();
-        allowedFederationInstances.forEach(allowedFederationInstance ->
-                downloadUrls.addAll(
-                        getDownloadUrls(
-                                globalConfProvider.getSourceAddresses(allowedFederationInstance),
-                                globalConfProvider.getConfigurationDirectoryPath(allowedFederationInstance)
-                        )
-                )
+    private Stream<ConnectionConfig> configsForAddress(String address) {
+        return Stream.of(HTTP, HTTPS)
+                .map(protocol -> new ConnectionConfig(protocol, address, portFor(protocol)));
+    }
+
+    private int portFor(String protocol) {
+        return HTTP.equals(protocol) ? PORT_80 : PORT_443;
+    }
+
+    private org.niis.xroad.rpc.common.DownloadUrlConnectionStatus checkConnection(ConnectionConfig c) {
+        return confClientRpcClient.checkAndGetConnectionStatus(
+                CheckAndGetConnectionStatusRequest.newBuilder()
+                        .setProtocol(c.protocol())
+                        .setAddress(c.address())
+                        .setPort(c.port())
+                        .build()
         );
-
-        return downloadUrls.stream()
-                .map(this::checkAndGetConnectionStatus)
-                .toList();
     }
 
-    private static List<URL> getDownloadUrls(Set<String> addresses, String configurationDirectory) {
-        return addresses.stream()
-                .flatMap(address -> Stream.of(
-                        getUrl(HTTP, address, PORT_80, configurationDirectory),
-                        getUrl(HTTPS, address, PORT_443, configurationDirectory)
-                ))
-                .toList();
-    }
-
-    private static String getCenterInternalDirectory() {
-        return SystemProperties.getCenterInternalDirectory();
-    }
-
-    private static URL getUrl(String protocol, String address, int port, String directory) {
-        try {
-            return URI.create(getDownloadUrl(protocol, address, port, directory)).toURL();
-        } catch (MalformedURLException e) {
-            log.error("Could not create URL from address {}", address, e);
+    private DownloadUrlConnectionStatus toDownloadStatus(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus status) {
+        if (!status.getErrorCode().isEmpty()) {
+            return DownloadUrlConnectionStatus.error(
+                    status.getDownloadUrl(),
+                    status.getErrorCode(),
+                    List.of(status.getErrorDetails())
+            );
         }
-        return null;
+        return verifyAndWrap(status.getDownloadUrl());
     }
 
-    private static String getDownloadUrl(String protocol, String address, int port, String directory) {
-        return String.format("%s://%s:%d/%s", protocol, address, port, directory);
-    }
-
-    private static String getDownloadUrl(URL url) {
-        return getDownloadUrl(url.getProtocol(), url.getHost(), url.getPort(), url.getPath().replaceFirst("^/", ""));
-    }
-
-    private DownloadUrlConnectionStatus checkAndGetConnectionStatus(URL url) {
-        HttpURLConnection connection = null;
+    private DownloadUrlConnectionStatus verifyAndWrap(String downloadUrl) {
         try {
-            connection = (HttpURLConnection) url.openConnection();
-            connectionConfigurer.apply(connection);
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                globalConfProvider.verifyValidity();
-                return DownloadUrlConnectionStatus.ok(getDownloadUrl(url));
-            } else {
-                var responseMessage = connection.getResponseMessage() != null ? connection.getResponseMessage() : "";
-                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_GET_VERSION_FAILED)
-                        .details(String.format("%s — HTTP %d %s", getDownloadUrl(url), responseCode, responseMessage))
-                        .build();
-            }
+            globalConfProvider.verifyValidity();
+            return DownloadUrlConnectionStatus.ok(downloadUrl);
         } catch (Exception e) {
-            XrdRuntimeException result = XrdRuntimeException.systemException(e);
-            return DownloadUrlConnectionStatus.error(getDownloadUrl(url), result.getErrorCode(), List.of(result.getDetails()));
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
+            XrdRuntimeException x = XrdRuntimeException.systemException(e);
+            return DownloadUrlConnectionStatus.error(downloadUrl, x.getErrorCode(), List.of(x.getDetails()));
         }
     }
 
@@ -204,25 +179,23 @@ public class DiagnosticConnectionService {
             managementRequestSenderService.sendAuthCertRegisterRequest(null, new byte[0], true);
             throw new IllegalStateException("should not get here");
         } catch (XrdRuntimeException e) {
-            return ConnectionStatus.fromErrorAndValidation(
-                    e.getErrorCode(),
-                    listOrEmpty(e.getDetails()),
-                    certValidation.errorCode, certValidation.metadata);
-        } catch (CodedException e) {
             // when certificate or address validation error, the error is expected,
             // and we return only certificate validation exceptions (if any)
+
             if (isExpectedInvalidRequest(e)) {
                 return certValidation.isOk() ? ConnectionStatus.ok()
                         : ConnectionStatus.error(certValidation.errorCode, certValidation.metadata);
             }
-            return certValidation.isOk() ? ConnectionStatus.error(e.getFaultString(), listOrEmpty(e.getFaultString()))
+            return certValidation.isOk() ? ConnectionStatus.error(e.getErrorCode(), listOrEmpty(e.getDetails()))
                     : ConnectionStatus.fromErrorAndValidation(
-                    e.getFaultCode(),
-                    listOrEmpty(e.getFaultString()),
+                    e.getErrorCode(),
+                    listOrEmpty(e.getDetails()),
                     certValidation.errorCode, certValidation.metadata);
         }
     }
 
+    private boolean isExpectedInvalidRequest(XrdRuntimeException e) {
+        return INVALID_REQUEST.code().equals(e.getErrorCode());
     public ConnectionStatus getOtherSecurityServerStatus(ServiceProtocolType protocolType, ClientId clientId,
                                                          ClientId targetClientId,
                                                          SecurityServerId securityServerId) {
@@ -467,5 +440,8 @@ public class DiagnosticConnectionService {
         boolean isOk() {
             return errorCode == null;
         }
+    }
+
+    record ConnectionConfig(String protocol, String address, int port) {
     }
 }

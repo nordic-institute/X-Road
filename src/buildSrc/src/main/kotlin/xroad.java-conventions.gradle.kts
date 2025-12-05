@@ -5,15 +5,9 @@ plugins {
   `java-library`
   jacoco
   checkstyle
-  id("com.github.hierynomus.license")
   id("com.societegenerale.commons.plugin.gradle.ArchUnitGradlePlugin")
+  id("xroad.java-config-conventions")
   id("xroad.module-conventions")
-}
-
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(21))
-  }
 }
 
 val mockitoAgent = configurations.maybeCreate("mockitoAgent")
@@ -23,12 +17,6 @@ dependencies {
   testImplementation(libs.findLibrary("junit-jupiterEngine").get())
   testImplementation(libs.findLibrary("junit-vintageEngine").get())
 
-  compileOnly(libs.findLibrary("lombok").get())
-  annotationProcessor(libs.findLibrary("lombok").get())
-
-  testCompileOnly(libs.findLibrary("lombok").get())
-  testAnnotationProcessor(libs.findLibrary("lombok").get())
-
   testImplementation(libs.findLibrary("mockito-core").get())
   testImplementation(libs.findLibrary("mockito-jupiter").get())
 
@@ -37,29 +25,6 @@ dependencies {
   mockitoAgent(libs.findLibrary("mockito-core").get()) { isTransitive = false }
 
   "archUnitExtraLib"(project(":arch-rules"))
-}
-
-tasks.withType<JavaCompile>() {
-  options.encoding = "UTF-8"
-  options.compilerArgs.addAll(
-    listOf(
-//            "-Xlint:unchecked",
-//            "-Xlint:deprecation",
-//            "-Xlint:rawtypes",
-      "-Xlint:fallthrough",
-      "-Xlint:finally",
-      "-parameters"
-    )
-  )
-}
-
-tasks.withType<Javadoc>() {
-  options.encoding = "UTF-8"
-}
-
-tasks.withType<Jar>() {
-  from(rootProject.file("LICENSE.txt")) { into("META-INF") }
-  duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
 tasks.withType<Test>() {
@@ -98,30 +63,6 @@ tasks.named<Checkstyle>("checkstyleTest") {
   configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
 }
 
-license {
-  header = rootProject.file("LICENSE.txt")
-  include("**/*.java")
-  mapping("java", "SLASHSTAR_STYLE")
-  strictCheck = true
-  skipExistingHeaders = true
-}
-
-tasks.named<com.hierynomus.gradle.license.tasks.LicenseCheck>("licenseMain") {
-  source = fileTree("src/main")
-}
-
-tasks.named<com.hierynomus.gradle.license.tasks.LicenseCheck>("licenseTest") {
-  source = fileTree("src/test")
-}
-
-tasks.named<com.hierynomus.gradle.license.tasks.LicenseFormat>("licenseFormatMain") {
-  source = fileTree("src/main")
-}
-
-tasks.named<com.hierynomus.gradle.license.tasks.LicenseFormat>("licenseFormatTest") {
-  source = fileTree("src/test")
-}
-
 tasks.withType(JacocoReport::class) {
   executionData(tasks.withType<Test>())
   reports {
@@ -143,8 +84,8 @@ archUnit {
   preConfiguredRules = listOf(
 // These rules are disabled in preparation for X-Road 8
 //    "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
-//    "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
-//    "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
+    "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
+    "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
     "org.niis.xroad.arch.rule.NoVanillaExceptions",
   )
 }

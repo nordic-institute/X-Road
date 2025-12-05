@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -35,6 +35,7 @@ import org.mockito.Mockito;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
@@ -54,10 +55,10 @@ import org.niis.xroad.securityserver.restapi.service.AnchorFileNotFoundException
 import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
+import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -117,7 +118,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.STANDALONE);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.STANDALONE);
     }
 
     @Test(expected = AccessDeniedException.class)
@@ -129,7 +130,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"GENERATE_INTERNAL_TLS_CSR"})
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
-        when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
+        when(internalTlsCertificateService.generateInternalCsr(any())).thenReturn("foo".getBytes());
         ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
                 new DistinguishedNameDto().name("foobar"));
         assertNotNull(result);
@@ -165,7 +166,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
             x509Certificate = CryptoUtils.readCertificate(stream);
         }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
+        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
 
         CertificateDetailsDto certificate =
                 systemApiController.getSystemCertificate().getBody();
@@ -206,7 +207,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getTimestampingPrioritizationStrategy() {
         when(systemService.getTimestampingPrioritizationStrategy())
-                .thenReturn(SystemProperties.ServicePrioritizationStrategy.FREE_FIRST);
+                .thenReturn(ServicePrioritizationStrategy.FREE_FIRST);
 
         ResponseEntity<ServicePrioritizationStrategyDto> response = systemApiController.getTimestampingPrioritizationStrategy();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -346,8 +347,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void replaceAnchor() throws IOException {
-        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<Void> response = systemApiController.replaceAnchor(anchorResource);
+        var body = CertificateTestUtils.getMultipartFile("anchor", FileUtils.readFileToByteArray(ANCHOR_FILE), "anchor.xml");
+        ResponseEntity<Void> response = systemApiController.replaceAnchor(body);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("/api/system/anchor", response.getHeaders().getLocation().getPath());
     }
@@ -355,8 +356,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void previewAnchor() throws IOException {
-        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<AnchorDto> response = systemApiController.previewAnchor(true, anchorResource);
+        var body = CertificateTestUtils.getMultipartFile("anchor", FileUtils.readFileToByteArray(ANCHOR_FILE), "anchor.xml");
+        ResponseEntity<AnchorDto> response = systemApiController.previewAnchor(body, true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         AnchorDto anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
@@ -373,7 +374,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypePrimary() {
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.MASTER);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.PRIMARY);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
         assertEquals(NodeTypeDto.PRIMARY, response.getBody().getNodeType());
     }
@@ -381,7 +382,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeSecondary() {
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.SECONDARY);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
         assertEquals(NodeTypeDto.SECONDARY, response.getBody().getNodeType());
     }

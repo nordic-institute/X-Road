@@ -25,16 +25,14 @@
  */
 package org.niis.xroad.common.mail;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -42,8 +40,6 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -52,18 +48,22 @@ import java.util.Properties;
 public class MailConfig {
 
     @Bean
-    public MailNotificationProperties mailNotificationProperties() {
-        Resource resource = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/mail.yml");
-        if (!resource.exists()) {
-            log.warn("Configuration {} not exists", resource);
+    public MailNotificationProperties mailNotificationProperties(@Value("${xroad.mail-notification:}") String mailConfig) {
+        if (StringUtils.isBlank(mailConfig)) {
+            log.warn("Configuration 'xroad.mail-notification' property not set");
             return new MailNotificationProperties();
         }
         Constructor constructor = createMailYamlConstructor();
         Yaml yaml = new Yaml(constructor);
-        try (InputStream input = Files.newInputStream(resource.getFile().toPath())) {
-            return yaml.loadAs(input, MailNotificationProperties.class);
+        try {
+            MailNotificationProperties properties = yaml.loadAs(mailConfig, MailNotificationProperties.class);
+            if (properties == null) {
+                log.error("Failed to load email notification yaml configuration, result is null");
+                return new MailNotificationProperties();
+            }
+            return properties;
         } catch (Exception e) {
-            log.warn("Failed to load yaml configuration from {}", resource, e);
+            log.warn("Failed to load mail yaml configuration from 'xroad.mail-notification' property", e);
             return new MailNotificationProperties();
         }
     }
@@ -117,8 +117,9 @@ public class MailConfig {
     }
 
     @Bean
-    public MessageSourceAccessor notificationMessageSourceAccessor() {
-        String mailNotificationLocale = SystemProperties.getMailNotificationLocale();
+    public MessageSourceAccessor notificationMessageSourceAccessor(NotificationConfig notificationConfig) {
+        String mailNotificationLocale = notificationConfig.getMailNotificationLocale();
+
         return mailNotificationLocale != null
                 ? new MessageSourceAccessor(notificationMessageSource(), Locale.of(mailNotificationLocale))
                 : new MessageSourceAccessor(notificationMessageSource());

@@ -30,6 +30,7 @@ import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.Key;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import jakarta.xml.bind.DatatypeConverter;
+import org.apache.commons.lang3.RandomUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -37,6 +38,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -45,7 +47,6 @@ import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Random;
 
 /**
  * Collection of various utility methods.
@@ -127,9 +128,7 @@ public final class SignerUtil {
      * @return an array of random bytes
      */
     public static byte[] generateId() {
-        byte[] id = new byte[RANDOM_ID_LENGTH];
-        new Random().nextBytes(id);
-        return id;
+        return RandomUtils.secure().randomBytes(RANDOM_ID_LENGTH);
     }
 
     /**
@@ -169,5 +168,22 @@ public final class SignerUtil {
         }
     }
 
+    public static String getDefaultFriendlyName(TokenDefinition tokenDefinition) {
+        String name = tokenDefinition.moduleType();
+
+        if (tokenDefinition.serialNumber() != null) {
+            name += "-" + tokenDefinition.serialNumber();
+        }
+
+        if (tokenDefinition.label() != null) {
+            name += "-" + tokenDefinition.label();
+        }
+
+        if (tokenDefinition.slotIndex() != null) {
+            name += "-" + tokenDefinition.slotIndex();
+        }
+
+        return name;
+    }
 }
 

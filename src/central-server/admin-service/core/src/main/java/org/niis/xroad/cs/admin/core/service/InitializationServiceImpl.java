@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
@@ -35,6 +33,7 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
@@ -142,8 +141,8 @@ public class InitializationServiceImpl implements InitializationService {
             try {
                 signerProxyFacade.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
             } catch (Exception e) {
-                if (e instanceof CodedException ce
-                        && ce.getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
+                if (e instanceof XrdRuntimeException ce
+                        && ce.getErrorCode().contains(ErrorCode.TOKEN_PIN_POLICY_FAILURE.code())) {
                     log.warn("Signer saw Token pin policy failure, remember to restart also the central server after "
                             + "configuring policy enforcement", e);
                     throw new BadRequestException(INIT_SIGNER_PIN_POLICY_FAILED.build());

@@ -27,7 +27,6 @@ package ee.ria.xroad.common.conf;
 
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.SchemaValidator;
 
 import jakarta.xml.bind.JAXBContext;
@@ -37,7 +36,11 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.ChangeChecker;
+import org.niis.xroad.common.core.FileSource;
+import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.util.InMemoryFileSourceChangeChecker;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -49,6 +52,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardCopyOption;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -75,7 +79,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     @Getter
     protected T confType;
 
-    private FileContentChangeChecker confFileChecker;
+    private FileSource<InMemoryFile> confFileSource;
+    private ChangeChecker confFileChecker;
 
     // For subclasses to use only default parameters if no valid serverconf present.
     protected AbstractXmlConf() {
@@ -97,6 +102,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     protected AbstractXmlConf(AbstractXmlConf<T> original) {
         schemaValidator = original.schemaValidator;
+        confFileSource = original.confFileSource;
         confFileName = original.confFileName;
         root = original.root;
         confType = original.confType;
@@ -165,6 +171,23 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(e);
         }
+    }
+
+    public void load(FileSource<InMemoryFile> fileSource) {
+        if (fileSource == null) {
+            return;
+        }
+
+        this.confFileSource = fileSource;
+        fileSource.getFile()
+                .ifPresentOrElse(file -> {
+                    try {
+                        load(file.content().getBytes(StandardCharsets.UTF_8));
+                        confFileChecker = new InMemoryFileSourceChangeChecker(fileSource, file.checksum());
+                    } catch (Exception e) {
+                        throw translateException(e);
+                    }
+                }, () -> log.warn("File not found: {}", fileSource));
     }
 
     /**
@@ -271,11 +294,11 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
      *
      */
     public void reload() {
-        load(confFileName);
-    }
-
-    protected String getConfFileDir() {
-        return ResourceUtils.getFullPathFromFileName(confFileName);
+        if (confFileSource != null) {
+            load(confFileSource);
+        } else {
+            load(confFileName);
+        }
     }
 
     private void validateSchemaWithValidator(InputStream in) throws IllegalAccessException {

@@ -78,7 +78,6 @@ class TokenInfoMapperTest {
         assertThat(result.getFriendlyName()).isEqualTo("TOKEN_FRIENDLY_NAME");
         assertThat(result.getSerialNumber()).isEqualTo("TOKEN_SERIAL_NUMBER");
         assertThat(result.getLabel()).isEqualTo("label");
-        assertThat(result.getSlotIndex()).isEqualTo(13);
         assertThat(result.getStatus()).isEqualTo(TokenStatus.OK);
         assertThat(result.isReadOnly()).isFalse();
         assertThat(result.isAvailable()).isTrue();
@@ -97,7 +96,6 @@ class TokenInfoMapperTest {
                 .setActive(false)
                 .setSerialNumber("TOKEN_SERIAL_NUMBER")
                 .setLabel("label")
-                .setSlotIndex(13)
                 .setStatus(OK)
                 .addAllKeyInfo(List.of(createKeyInfo().getMessage()))
                 .putAllTokenInfo(Map.of("key", "value"))

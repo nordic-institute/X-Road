@@ -40,6 +40,8 @@ import java.util.UUID;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
@@ -64,13 +66,16 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + certificationServiceName);
 
         testCertificate = CertificateUtils.readCertificate(certificate);
-
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
         trustServicesPageObj.addDialog.inputFile().uploadFile(CertificateUtils.getAsFile(certificate));
-        commonPageObj.dialog.btnSave().click();
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+        trustServicesPageObj.addDialog.btnUpload().click();
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
         vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile())
                 .setValue(CERTIFICATE_PROFILE);
         vSelect(trustServicesPageObj.addCaSettingsDialog.selectDefaultCsrFormat())
                 .clickAndSelect(CsrFormat.DER.name());
+        commonPageObj.dialog.btnSave().shouldBe(enabled);
         commonPageObj.dialog.btnSave().click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
@@ -84,7 +89,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + certificationServiceName);
         testCertificate = CertificateUtils.readCertificate(certificate);
         trustServicesPageObj.addDialog.inputFile().uploadFile(CertificateUtils.getAsFile(certificate));
-        commonPageObj.dialog.btnSave().click();
+        trustServicesPageObj.addDialog.uploadBtn().click();
     }
 
     @Step("new acme certification service fields dont allow invalid values")
@@ -145,13 +150,13 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-up"))
+                .shouldHave(cssClass("arrow_upward"))
                 .click();
 
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-down"))
+                .shouldHave(cssClass("arrow_downward"))
                 .click();
     }
 
@@ -190,9 +195,9 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
     @Step("user can change the certificate profile")
     public void userCanChangeTheCertificateProfile() {
-        trustServicesPageObj.certServiceDetails.caSettings.btnEditCertProfile().click();
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
 
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputCertProfile())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputCertProfile())
                 .clear()
                 .setValue(NEW_CERTIFICATE_PROFILE);
 
@@ -206,9 +211,9 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
     @Step("user can change the default CSR format")
     public void userCanChangeTheDefaultCsrFormat() {
-        trustServicesPageObj.certServiceDetails.caSettings.btnEditDefaultCsrFormat().click();
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
 
-        vSelect(trustServicesPageObj.certServiceDetails.caSettings.selectDefaultCsrFormat())
+        vSelect(trustServicesPageObj.certServiceDetails.editCaSettings.selectDefaultCsrFormat())
                 .clickAndSelect(CsrFormat.PEM.name());
 
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
@@ -221,8 +226,8 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
     @Step("user can change the TLS Auth setting")
     public void userCanChangeTheTLSAuthSetting() {
-        trustServicesPageObj.certServiceDetails.caSettings.btnEditTlsAuth().click();
-        vCheckbox(trustServicesPageObj.certServiceDetails.caSettings.checkboxTlsAuth())
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditCa().click();
+        vCheckbox(trustServicesPageObj.certServiceDetails.editCaSettings.checkboxTlsAuth())
                 .click();
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
@@ -240,16 +245,16 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         String newIpAddress = "198.7.6.5";
         String newAuthCertProfileId = "10";
         String newSignCertProfileId = "11";
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerDirectoryUrl())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerDirectoryUrl())
                 .clear()
                 .setValue(newDirectoryUrl);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerIpAddress())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerIpAddress())
                 .clear()
                 .setValue(newIpAddress);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAuthCertProfileId())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAuthCertProfileId())
                 .clear()
                 .setValue(newAuthCertProfileId);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputSignCertProfileId())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputSignCertProfileId())
                 .clear()
                 .setValue(newSignCertProfileId);
 
@@ -270,10 +275,10 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
         String newDirectoryUrl = "httpss://new-test-ca/acme";
         String newIpAddress = "198.7.6.X";
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerDirectoryUrl())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerDirectoryUrl())
                 .clear()
                 .setValue(newDirectoryUrl);
-        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerIpAddress())
+        vTextField(trustServicesPageObj.certServiceDetails.editCaSettings.inputAcmeServerIpAddress())
                 .clear()
                 .setValue(newIpAddress);
 

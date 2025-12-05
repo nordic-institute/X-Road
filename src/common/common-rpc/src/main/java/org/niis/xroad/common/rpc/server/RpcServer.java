@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.common.rpc.server;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.CustomForkJoinWorkerThreadFactory;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -35,17 +35,10 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -68,20 +61,19 @@ public class RpcServer {
                 .channelFactory(NioServerSocketChannel::new)
                 .bossEventLoopGroup(new NioEventLoopGroup(1, bossGroupThreadFactory))
                 .workerEventLoopGroup(new NioEventLoopGroup(0, workerGroupThreadFactory))
-                .executor(ForkJoinPool.commonPool());
+                .executor(new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+                        new CustomForkJoinWorkerThreadFactory(), null, true));
 
         configFunc.accept(builder);
         server = builder.build();
     }
 
-    @PostConstruct
-    public void afterPropertiesSet() throws IOException {
+    public void init() throws IOException {
         server.start();
 
         log.info("RPC server has started, listening on {}", server.getListenSockets());
     }
 
-    @PreDestroy
     public void destroy() throws InterruptedException {
         if (server != null) {
             log.info("Shutting down RPC server..");
@@ -94,15 +86,5 @@ public class RpcServer {
             log.info("Shutting down RPC server.. Success!");
         }
     }
-
-    public static RpcServer newServer(String host, int port, Consumer<ServerBuilder<?>> configFunc)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        var serverCredentials = SystemProperties.isGrpcInternalTlsEnabled()
-                ? RpcCredentialsConfigurer.createServerCredentials() : InsecureRpcCredentialsConfigurer.createServerCredentials();
-        log.info("Initializing RPC server with {} credentials..", serverCredentials.getClass().getSimpleName());
-
-        return new RpcServer(host, port, serverCredentials, configFunc);
-    }
-
 
 }

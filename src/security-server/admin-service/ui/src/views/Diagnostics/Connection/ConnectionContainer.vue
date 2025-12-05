@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +25,35 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView title-key="tab.diagnostics.connectionTesting">
-
-    <ConnectionCentralServerView class="mt-0" />
-
-    <XrdEmptyPlaceholder
-      :data="xRoadInstances"
-      :loading="loading"
-      :no-items-text="$t('noData.noData')"
-      skeleton-type="table-heading"
-      :skeleton-count="2"
-    />
-
-    <template v-if="!loading">
-      <ConnectionSecurityServerView class="mt-0" />
-      <ConnectionManagementView class="mt-0" />
+  <XrdView data-test="diagnostics-view" title="tab.main.diagnostics">
+    <template #tabs>
+      <DiagnosticsTabs />
     </template>
 
-  </XrdTitledView>
+    <XrdSubView>
+      <ConnectionCentralServerView class="mt-0" />
+
+      <XrdEmptyPlaceholder
+        :data="xRoadInstances"
+        :loading="loading"
+        :no-items-text="$t('noData.noData')"
+        skeleton-type="table-heading"
+        :skeleton-count="2"
+      />
+
+      <template v-if="!loading">
+        <ConnectionSecurityServerView class="mt-0" />
+        <ConnectionManagementView class="mt-0" />
+      </template>
+    </XrdSubView>
+  </XrdView>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { XrdTitledView } from '@niis/shared-ui';
-import ConnectionCentralServerView from "@/views/Diagnostics/Connection/ConnectionCentralServerView.vue";
+<script setup lang="ts">
+import { XrdSubView, XrdView } from '@niis/shared-ui';
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
+import ConnectionCentralServerView from '@/views/Diagnostics/Connection/ConnectionCentralServerView.vue';
 import ConnectionSecurityServerView from "@/views/Diagnostics/Connection/ConnectionSecurityServerView.vue";
-import ConnectionManagementSSView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
 import ConnectionManagementView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
 import { mapActions, mapState } from "pinia";
 import { useGeneral } from "@/store/modules/general";
@@ -59,7 +63,6 @@ export default defineComponent({
   name: 'ConnectionTestingView',
   components: {
     ConnectionManagementView,
-    ConnectionManagementSSView,
     ConnectionSecurityServerView,
     XrdTitledView,
     ConnectionCentralServerView

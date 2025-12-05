@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
@@ -50,14 +49,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_ACTIVE;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
 
 /**
  * test tokens api
@@ -77,7 +75,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     private List<TokenInfo> allTokens;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().build();
         TokenInfo activeTokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .id(GOOD_TOKEN_ID)
@@ -127,9 +125,9 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
                 ReflectionTestUtils.setField(keyInfo.getMessage(), "label_", keyLabel);
                 return keyInfo;
             } else if (NOT_ACTIVE_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_ACTIVE, null);
+                throw XrdRuntimeException.systemException(TOKEN_NOT_ACTIVE).build();
             } else if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_FOUND, null);
+                throw XrdRuntimeException.systemException(TOKEN_NOT_FOUND).build();
             }
             throw new RuntimeException("given tokenId not supported in mocked method SignerProxyFacade#generateKey");
         }).when(signerRpcClient).generateKey(any(), any(), any());

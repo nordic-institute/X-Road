@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,14 +25,12 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.ConfProvider;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
@@ -40,11 +38,9 @@ import org.niis.xroad.globalconf.model.ConfigurationSource;
 import org.niis.xroad.globalconf.model.ConfigurationUtils;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.PrivateParameters;
-import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -61,7 +57,9 @@ import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.ge
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfigurationClient {
+    private final ConfigurationAnchorProvider configurationAnchorProvider;
     private final String globalConfigurationDir;
+    private final String allowedFederations;
 
     private final ConfigurationDownloader downloader;
 
@@ -70,26 +68,25 @@ public class ConfigurationClient {
     @Getter
     private String lastSuccessfulLocationUrl = "";
 
-    public ConfigurationClient(String globalConfigurationDir, int configurationVersion) {
-        this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir, configurationVersion);
+    public ConfigurationClient(ConfigurationAnchorProvider configurationAnchorProvider, String globalConfigurationDir,
+                               ConfigurationDownloader downloader, String allowedFederations) {
+        this(configurationAnchorProvider, globalConfigurationDir, downloader, null, allowedFederations);
     }
 
-    public ConfigurationClient(String globalConfigurationDir) {
-        this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir);
-    }
-
-    ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader, ConfigurationSource configurationAnchor) {
+    ConfigurationClient(ConfigurationAnchorProvider configurationAnchorProvider, String globalConfigurationDir,
+                        ConfigurationDownloader downloader,
+                        ConfigurationSource configurationAnchor, String allowedFederations) {
+        this.configurationAnchorProvider = configurationAnchorProvider;
         this.globalConfigurationDir = globalConfigurationDir;
         this.downloader = downloader;
         this.configurationAnchor = configurationAnchor;
+        this.allowedFederations = allowedFederations;
     }
 
-    public synchronized DownloadResult execute() throws Exception {
+    public synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
-        if (configurationAnchor == null || (configurationAnchor instanceof ConfProvider cp && cp.hasChanged())) {
+        if (configurationAnchor == null) {
             log.debug("Initializing configuration anchor");
 
             initConfigurationAnchor();
@@ -100,12 +97,11 @@ public class ConfigurationClient {
         var configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
-                new FederationConfigurationSourceFilter(configurationAnchor.getInstanceIdentifier());
+                new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier(), allowedFederations);
 
         deleteExtraConfigurationDirectories(configurationSources, sourceFilter);
 
         downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
-        return downloadResult;
     }
 
     protected List<PrivateParameters.ConfigurationAnchor> getAdditionalConfigurationSources() {
@@ -116,19 +112,24 @@ public class ConfigurationClient {
     private void initConfigurationAnchor() {
         log.trace("initConfigurationAnchor()");
 
-        String anchorFileName = SystemProperties.getConfigurationAnchorFile();
-        if (!Files.exists(Paths.get(anchorFileName))) {
-            log.warn("Cannot download configuration, anchor file {} does not exist", anchorFileName);
-
+        if (configurationAnchorProvider == null || !configurationAnchorProvider.isAnchorPresent()) {
+            String warningMessage;
+            if (configurationAnchorProvider == null) {
+                warningMessage = "Cannot download configuration, no configuration anchor present.";
+            } else {
+                warningMessage = "Cannot download configuration, configuration anchor does not exist (%s)"
+                        .formatted(configurationAnchorProvider.source());
+            }
+            log.warn(warningMessage);
             throw XrdRuntimeException.systemException(ANCHOR_FILE_NOT_FOUND)
-                    .details("Cannot download configuration, anchor file %s does not exist".formatted(anchorFileName))
+                    .details(warningMessage)
                     .build();
         }
 
         try {
-            configurationAnchor = new ConfigurationAnchor(anchorFileName);
+            configurationAnchor = new ConfigurationAnchor(configurationAnchorProvider.get().get());
         } catch (Exception e) {
-            String message = String.format("Failed to load configuration anchor from file %s", anchorFileName);
+            String message = String.format("Failed to load configuration anchor from %s", configurationAnchorProvider.source());
 
             log.error(message, e);
 
@@ -138,7 +139,6 @@ public class ConfigurationClient {
         }
 
         saveInstanceIdentifier();
-
     }
 
     void saveInstanceIdentifier() {

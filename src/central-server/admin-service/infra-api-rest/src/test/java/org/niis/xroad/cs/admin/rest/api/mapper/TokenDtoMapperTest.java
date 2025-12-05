@@ -93,7 +93,6 @@ class TokenDtoMapperTest {
         tokenInfo.setActive(true);
         tokenInfo.setSerialNumber("serialNumber");
         tokenInfo.setLabel("label");
-        tokenInfo.setSlotIndex(123);
         tokenInfo.setStatus(TokenStatus.OK);
         tokenInfo.setPossibleActions(EnumSet.of(LOGIN, LOGOUT));
 
