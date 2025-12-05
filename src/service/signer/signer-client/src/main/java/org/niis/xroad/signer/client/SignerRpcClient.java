@@ -84,6 +84,7 @@ import org.niis.xroad.signer.proto.GetTokenByIdReq;
 import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
+import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyReq;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
@@ -856,6 +857,14 @@ public class SignerRpcClient extends AbstractRpcClient {
                         .setKeyId(keyId)
                         .build()),
                 response -> SignMechanism.valueOf(response.getSignMechanismName())
+        );
+    }
+
+    public Boolean isSoftTokenBased(String keyId) {
+        return exec(
+                () -> blockingKeyService.isSoftwareBasedKey(IsSoftTokenBasedKeyReq.newBuilder()
+                        .setKeyId(keyId)
+                        .build()).getSoftTokenBased()
         );
     }
 

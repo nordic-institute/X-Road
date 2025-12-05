@@ -31,12 +31,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetMemberCertsReq;
 import org.niis.xroad.signer.proto.GetMemberCertsResp;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import java.util.List;
 

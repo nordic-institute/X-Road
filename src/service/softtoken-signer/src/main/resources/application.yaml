@@ -1,0 +1,28 @@
+quarkus:
+  application:
+    name: softtoken-signer
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  scheduler:
+    start-mode: forced
+    enabled: true
+  log:
+    category:
+      "io.grpc":
+        level: "INFO"
+  xroad:
+    signer:
+      rpc:
+        listen-address: 0.0.0.0
+
+"%test":
+  quarkus:
+    log:
+      file:
+        enabled: false
+  xroad:
+    signer:
+      rpc:
+        enabled: false

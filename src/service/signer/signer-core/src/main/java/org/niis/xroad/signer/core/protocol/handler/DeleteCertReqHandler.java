@@ -32,11 +32,11 @@ import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.DeleteCertReq;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound;
 

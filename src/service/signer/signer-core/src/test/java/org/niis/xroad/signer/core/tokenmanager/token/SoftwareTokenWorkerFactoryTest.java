@@ -51,6 +51,7 @@ import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
+import org.niis.xroad.signer.shared.softtoken.SoftwareTokenSigner;
 
 import java.util.List;
 import java.util.Map;
@@ -84,11 +85,11 @@ class SoftwareTokenWorkerFactoryTest {
     private final TokenPinManager pinManager = mock(TokenPinManager.class);
     private final TokenRegistry tokenRegistry = mock(TokenRegistry.class);
     private final TokenInfo tokenInfo = mock(TokenInfo.class);
-
     private final KeyManagers keyManagers = new KeyManagers(2048, "secp256r1");
+    private final SoftwareTokenSigner softwareTokenSigner = mock(SoftwareTokenSigner.class);
 
     private final SoftwareTokenWorkerFactory factory = new SoftwareTokenWorkerFactory(signerProperties, tokenManager, keyManager,
-            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers);
+            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers, softwareTokenSigner);
 
     private static final String TOKEN_ID = "token-id";
     private static final String KEY_ID = "key-id";

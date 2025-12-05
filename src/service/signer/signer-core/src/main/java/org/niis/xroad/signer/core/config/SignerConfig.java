@@ -25,9 +25,6 @@
  */
 package org.niis.xroad.signer.core.config;
 
-
-import ee.ria.xroad.common.crypto.KeyManagers;
-
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
@@ -51,11 +48,6 @@ public class SignerConfig {
         } else {
             return new OcspClientExecuteScheduler.NoopScheduler();
         }
-    }
-
-    @ApplicationScoped
-    KeyManagers keyManagers(SignerProperties signerProperties) {
-        return new KeyManagers(signerProperties.getKeyLength(), signerProperties.keyNamedCurve());
     }
 
 }

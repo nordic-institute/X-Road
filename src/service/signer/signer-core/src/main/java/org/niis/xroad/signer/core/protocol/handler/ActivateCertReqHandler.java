@@ -34,11 +34,11 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.CertOcspManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.ActivateCertReq;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import java.security.cert.X509Certificate;
 

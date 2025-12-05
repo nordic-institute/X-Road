@@ -32,12 +32,12 @@ import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 /**
  * Handles key deletions.

@@ -50,13 +50,13 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.config.SignerProperties;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;

@@ -24,25 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.protocol;
+package org.niis.xroad.signer.softtoken.protocol;
 
-import com.google.protobuf.AbstractMessage;
-import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Singleton;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.server.ManagedRpcServer;
+import org.niis.xroad.signer.softtoken.SoftwareTokenSignerRpcServerProperties;
 
-/**
- * @param <ReqT>
- * @param <RespT>
- */
-@Slf4j
-public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
-    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
+import java.io.IOException;
+import java.util.List;
 
-    protected abstract RespT handle(ReqT request);
+@Startup
+@Singleton
+public class SoftwareTokenSignerRpcServer extends ManagedRpcServer {
 
-    public void processSingle(ReqT request, StreamObserver<RespT> responseObserver) {
-        rpcResponseHandler.handleRequest(responseObserver, () -> handle(request));
+    public SoftwareTokenSignerRpcServer(@All List<BindableService> services,
+                           SoftwareTokenSignerRpcServerProperties rpcServerProperties,
+                           RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        super(services, rpcServerProperties, rpcCredentialsConfigurer);
+    }
+
+    @Override
+    @PostConstruct
+    public void init() throws IOException {
+        super.init();
+    }
+
+    @Override
+    @PreDestroy
+    public void destroy() throws InterruptedException {
+        super.destroy();
     }
 
 }

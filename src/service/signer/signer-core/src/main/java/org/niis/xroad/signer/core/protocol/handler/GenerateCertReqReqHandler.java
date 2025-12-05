@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.protocol.handler.service.CertRequestCreationService;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -40,6 +39,7 @@ import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.GenerateCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateCertRequestResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.WRONG_CERT_USAGE;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;

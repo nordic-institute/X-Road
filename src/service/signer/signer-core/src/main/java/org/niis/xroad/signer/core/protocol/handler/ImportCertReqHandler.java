@@ -45,7 +45,6 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.CertOcspManager;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
@@ -54,6 +53,7 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.ImportCertResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;

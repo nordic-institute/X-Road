@@ -28,9 +28,9 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleManager;
 import org.niis.xroad.signer.proto.GetHSMOperationalInfoResp;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 /**
  * Handles requests for checking HSMs operational status.

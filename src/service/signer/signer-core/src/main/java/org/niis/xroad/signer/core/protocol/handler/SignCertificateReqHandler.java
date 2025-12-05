@@ -29,11 +29,11 @@ package org.niis.xroad.signer.core.protocol.handler;
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
+import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 @ApplicationScoped
 @RequiredArgsConstructor
