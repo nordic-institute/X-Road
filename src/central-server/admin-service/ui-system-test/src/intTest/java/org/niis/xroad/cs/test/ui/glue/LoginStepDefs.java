@@ -37,7 +37,7 @@ public class LoginStepDefs extends BaseUiStepDefs {
 
     @Step("CentralServer login page is open")
     public void openPage() {
-        selenideManager.open(targetHostUrlProvider.getUrl());
+        selenideManager.open("https://cs:4000");
     }
 
     @Step("Login form is visible")

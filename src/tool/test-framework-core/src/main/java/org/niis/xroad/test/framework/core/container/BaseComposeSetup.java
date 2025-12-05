@@ -28,7 +28,7 @@
 package org.niis.xroad.test.framework.core.container;
 
 import lombok.RequiredArgsConstructor;
- import lombok.SneakyThrows;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.logging.ComposeLoggerFactory;
@@ -52,6 +52,10 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     private static final int EXEC_TIMEOUT_SECONDS = 20;
     private static final Duration DEFAULT_GRACE_PERIOD_SECONDS = Duration.ofSeconds(5);
 
+    protected static final String ENV_SELENIUM_IMG = "SELENIUM_IMG";
+    protected static final String BROWSER = "browser";
+    protected static final int PORT_CHROMEDRIVER = 4444;
+
     protected final TestFrameworkCoreProperties coreProperties;
     protected ComposeContainer env;
     private DockerStatsMonitor dockerStatsMonitor;
@@ -64,6 +68,7 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     @SneakyThrows
     protected void init() {
         env = initEnv();
+        env.withEnv(ENV_SELENIUM_IMG, coreProperties.selenide().remoteSeleniumImage());
         env.start();
 
         dockerStatsMonitor = new DockerStatsMonitor();
@@ -123,6 +128,12 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
         } catch (ExecutionException e) {
             throw e.getCause();
         }
+    }
+
+    protected void initSelenideRemoteWebDriver() {
+        var chromeContainer = getContainerMapping(BROWSER, PORT_CHROMEDRIVER);
+        com.codeborne.selenide.Configuration.remote = "http://%s:%d/wd/hub".formatted(
+                chromeContainer.host(), chromeContainer.port());
     }
 
     public record ContainerMapping(String host, int port) {

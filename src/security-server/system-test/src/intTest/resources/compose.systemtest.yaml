@@ -157,3 +157,14 @@ services:
       - xrd-ss-network
     volumes:
       - ./mail-server-container-files:/tls
+  browser:
+    image: ${SELENIUM_IMG}
+    environment:
+      - SE_SCREEN_WIDTH=1920
+      - SE_SCREEN_HEIGHT=1080
+      - TZ=Europe/Vilnius
+    shm_size: 2g
+    ports:
+      - "0:4444"
+    networks:
+      - xrd-ss-network

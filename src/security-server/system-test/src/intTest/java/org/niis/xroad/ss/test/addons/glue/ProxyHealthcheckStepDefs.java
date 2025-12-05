@@ -27,6 +27,7 @@
 
 package org.niis.xroad.ss.test.addons.glue;
 
+import com.codeborne.selenide.Selenide;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
@@ -71,7 +72,7 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
                 throw new IllegalStateException("unexpected state: " + state);
         }
         log.info("Grace period after service {} {}", service, state);
-        Thread.sleep(5000);
+        Selenide.sleep(5000);
     }
 
     @Step("healthcheck has no errors")

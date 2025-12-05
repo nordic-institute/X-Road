@@ -40,7 +40,7 @@ dependencies {
   api(libs.test.allure.cucumber7)
   api(libs.test.allure.selenide)
   api(libs.test.selenide.core)
-  api(libs.test.selenide.proxy)
+  api(libs.test.selenide.grid)
 
   api(libs.assertj.core)
 }

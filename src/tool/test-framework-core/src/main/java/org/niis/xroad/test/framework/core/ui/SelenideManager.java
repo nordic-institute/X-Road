@@ -25,22 +25,16 @@
  */
 package org.niis.xroad.test.framework.core.ui;
 
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.FileDownloadMode;
 import com.codeborne.selenide.Selenide;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
-import org.niis.xroad.test.framework.core.context.ScenarioExecutionContext;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SelenideManager {
-    private static final String TAG_DOWNLOAD = "@Download";
-
-    private final ScenarioExecutionContext scenarioExecutionContext;
 
     public void open(String baseUrl) {
         var stopWatch = StopWatch.createStarted();
@@ -56,21 +50,8 @@ public class SelenideManager {
             log.debug("Clearing Selenide browser cookies and storage took {} ms", stopWatch.getTime());
         }
 
-        if (isDownloadScenario()) {
-            var config = Configuration.config();
-            config.proxyEnabled(true);
-            config.fileDownload(FileDownloadMode.PROXY);
-            Selenide.open(baseUrl, config);
-        } else {
-            Selenide.open(baseUrl);
-        }
-
+        Selenide.open(baseUrl);
         log.info("Opening {} page took {} ms", baseUrl, stopWatch.getTime());
     }
 
-    private boolean isDownloadScenario() {
-        return scenarioExecutionContext.getCucumberScenario().getSourceTagNames()
-                .stream()
-                .anyMatch(TAG_DOWNLOAD::equalsIgnoreCase);
-    }
 }

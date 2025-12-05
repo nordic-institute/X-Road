@@ -37,6 +37,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import java.io.File;
 import java.time.Duration;
 
+import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
+
 @Component
 public class CsSystemTestContainerSetup extends BaseComposeSetup {
     private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(90);
@@ -53,7 +55,13 @@ public class CsSystemTestContainerSetup extends BaseComposeSetup {
     public ComposeContainer initEnv() {
         return new ComposeContainer("cs-", new File(coreProperties.resourceDir() + "/" + COMPOSE_FILE))
                 .withExposedService(CS, Port.UI, Wait.forHealthcheck().withStartupTimeout(STARTUP_TIMEOUT))
+                .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
                 .withLogConsumer(CS, createLogConsumer(CS));
+    }
+
+    @Override
+    protected void onPostStart() {
+        initSelenideRemoteWebDriver();
     }
 
     @UtilityClass

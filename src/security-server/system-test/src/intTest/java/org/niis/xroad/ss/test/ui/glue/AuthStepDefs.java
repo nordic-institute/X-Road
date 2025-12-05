@@ -29,8 +29,6 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
-import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 
 import java.time.Duration;
@@ -45,9 +43,7 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Step("SecurityServer login page is open")
     public void openPage() {
-        var mapping = systemTestContainerSetup.getContainerMapping(SsSystemTestContainerSetup.UI, Port.UI);
-
-        selenideManager.open("https://%s:%d".formatted(mapping.host(), mapping.port()));
+        selenideManager.open("https://ui:4000");
     }
 
     @Step("Login form is visible")

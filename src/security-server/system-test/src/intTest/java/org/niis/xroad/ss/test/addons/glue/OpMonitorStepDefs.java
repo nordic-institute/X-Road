@@ -35,6 +35,7 @@ import ee.ria.xroad.common.message.SoapParser;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
 
+import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import jakarta.xml.soap.SOAPBody;
@@ -83,7 +84,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @SneakyThrows
     @Step("Security Server Operational Data request was sent")
     public void executeGetSecurityServerOperationalData() {
-        Thread.sleep(2000); // make sure that messages are processed
+        Selenide.sleep(2000); // make sure that messages are processed
         InputStream is = classpathFileResolver.getFileAsStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);

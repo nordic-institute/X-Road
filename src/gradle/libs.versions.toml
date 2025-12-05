@@ -40,7 +40,7 @@ feign = "13.6"
 testCucumber = "7.32.0"
 testContainers = "2.0.2"
 testAllure="2.31.0"
-testSelenide="7.12.2"
+testSelenide="7.12.3"
 shadowPlugin = "8.3.9"
 allurePlugin = "3.0.1"
 
@@ -125,7 +125,7 @@ feign-slf4j = { module = "io.github.openfeign:feign-slf4j", version.ref = "feign
 
 # Testing libraries
 test-selenide-core = { module = "com.codeborne:selenide", version.ref = "testSelenide" }
-test-selenide-proxy = { module = "com.codeborne:selenide-proxy", version.ref = "testSelenide" }
+test-selenide-grid = { module = "com.codeborne:selenide-grid", version.ref = "testSelenide" }
 test-allure-selenide = { module = "io.qameta.allure:allure-selenide", version.ref = "testAllure" }
 test-allure-cucumber7 = { module = "io.qameta.allure:allure-cucumber7-jvm", version.ref = "testAllure" }
 test-allure-junitPlatform = { module = "io.qameta.allure:allure-junit-platform", version.ref = "testAllure" }

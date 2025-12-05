@@ -26,6 +26,7 @@
 package org.niis.xroad.test.framework.core.ui;
 
 import com.codeborne.selenide.AssertionMode;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.FileDownloadMode;
 import com.codeborne.selenide.SelectorMode;
 import com.codeborne.selenide.logevents.SelenideLogger;
@@ -34,11 +35,12 @@ import io.qameta.allure.selenide.LogType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
-import org.springframework.context.annotation.Configuration;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.stereotype.Component;
 
 import java.util.logging.Level;
 
-@Configuration
+@Component
 @RequiredArgsConstructor
 public class SelenideConfiguration {
     private final TestFrameworkCoreProperties testFrameworkCoreProperties;
@@ -48,37 +50,39 @@ public class SelenideConfiguration {
         var selenideProperties = testFrameworkCoreProperties.selenide();
 
         if (selenideProperties.enabled()) {
-            setUpSelenide(selenideProperties);
+            setUpSelenide();
         }
     }
 
     @SuppressWarnings("java:S2696")
-    private void setUpSelenide(TestFrameworkCoreProperties.Selenide selenideProperties) {
-        System.setProperty("chromeoptions.args", selenideProperties.chromeOptionsArgs());
+    private void setUpSelenide() {
+        TestFrameworkCoreProperties.Selenide selenideProperties = testFrameworkCoreProperties.selenide();
 
-        com.codeborne.selenide.Configuration.timeout = selenideProperties.timeout();
-        com.codeborne.selenide.Configuration.pollingInterval = selenideProperties.pollingInterval();
-        com.codeborne.selenide.Configuration.reopenBrowserOnFail = selenideProperties.reopenBrowserOnFail();
-        com.codeborne.selenide.Configuration.browser = "chrome";
-
-        com.codeborne.selenide.Configuration.remote = selenideProperties.remote().orElse(null);
-        com.codeborne.selenide.Configuration.browserSize = selenideProperties.browserSize();
-        com.codeborne.selenide.Configuration.pageLoadStrategy = selenideProperties.pageLoadStrategy();
-        com.codeborne.selenide.Configuration.pageLoadTimeout = selenideProperties.pageLoadTimeout();
-        com.codeborne.selenide.Configuration.clickViaJs = selenideProperties.clickViaJs();
-        com.codeborne.selenide.Configuration.screenshots = selenideProperties.screenshots();
-        com.codeborne.selenide.Configuration.savePageSource = selenideProperties.savePageSource();
-        com.codeborne.selenide.Configuration.reportsFolder = selenideProperties.reportsFolder();
-        com.codeborne.selenide.Configuration.downloadsFolder = selenideProperties.downloadsFolder();
-        com.codeborne.selenide.Configuration.fastSetValue = selenideProperties.fastSetValue();
-        com.codeborne.selenide.Configuration.selectorMode = SelectorMode.valueOf(selenideProperties.selectorMode());
-        com.codeborne.selenide.Configuration.assertionMode = AssertionMode.valueOf(selenideProperties.assertionMode());
-        com.codeborne.selenide.Configuration.fileDownload = FileDownloadMode.valueOf(selenideProperties.fileDownload());
-        com.codeborne.selenide.Configuration.proxyEnabled = selenideProperties.proxyEnabled();
-        com.codeborne.selenide.Configuration.proxyHost = selenideProperties.proxyHost();
-        com.codeborne.selenide.Configuration.proxyPort = selenideProperties.proxyPort();
-        com.codeborne.selenide.Configuration.webdriverLogsEnabled = selenideProperties.webdriverLogsEnabled();
-        com.codeborne.selenide.Configuration.headless = selenideProperties.headless();
+        Configuration.browser = "chrome";
+        Configuration.browserCapabilities = new ChromeOptions()
+                .addArguments(
+                        "--headless=new",
+                        "--disable-features=OptimizationGuideModelDownloading,OptimizationHintsFetching",
+                        "--disable-popup-blocking",
+                        "--disable-infobars",
+                        "--allow-running-insecure-content")
+                .setEnableDownloads(true);
+        Configuration.timeout = selenideProperties.timeout();
+        Configuration.pollingInterval = selenideProperties.pollingInterval();
+        Configuration.reopenBrowserOnFail = selenideProperties.reopenBrowserOnFail();
+        Configuration.browserSize = selenideProperties.browserSize();
+        Configuration.pageLoadStrategy = selenideProperties.pageLoadStrategy();
+        Configuration.pageLoadTimeout = selenideProperties.pageLoadTimeout();
+        Configuration.screenshots = selenideProperties.screenshots();
+        Configuration.savePageSource = selenideProperties.savePageSource();
+        Configuration.reportsFolder = testFrameworkCoreProperties.workingDir() + "/selenide-reports";
+        Configuration.downloadsFolder = testFrameworkCoreProperties.workingDir() + "/selenide-downloads";
+        Configuration.fastSetValue = selenideProperties.fastSetValue();
+        Configuration.selectorMode = SelectorMode.valueOf(selenideProperties.selectorMode());
+        Configuration.assertionMode = AssertionMode.valueOf(selenideProperties.assertionMode());
+        Configuration.fileDownload = FileDownloadMode.CDP;
+        Configuration.webdriverLogsEnabled = selenideProperties.webdriverLogsEnabled();
+        Configuration.headless = selenideProperties.headless();
 
         SelenideLogger.addListener("AllureSelenide",
                 new AllureSelenide()

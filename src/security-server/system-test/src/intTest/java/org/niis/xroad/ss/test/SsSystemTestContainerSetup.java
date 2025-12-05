@@ -83,7 +83,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
-
+                .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
@@ -103,6 +103,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
         execInContainer(BACKUP_MANAGER, "/etc/xroad/backup-keys/init_backup_encryption.sh");
 
+        initSelenideRemoteWebDriver();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

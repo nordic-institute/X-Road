@@ -27,7 +27,6 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
 import org.niis.xroad.cs.test.ui.page.CommonPageObj;
 import org.niis.xroad.cs.test.ui.utils.ChromiumDevTools;
 import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
@@ -49,8 +48,6 @@ public abstract class BaseUiStepDefs {
     protected CucumberScenarioProvider scenarioProvider;
     @Autowired
     protected ScenarioContext scenarioContext;
-    @Autowired
-    protected TargetHostUrlProvider targetHostUrlProvider;
     @Autowired
     protected TestReportService testReportService;
     @Autowired
