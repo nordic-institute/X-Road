@@ -77,26 +77,6 @@ public class MessageBodyManipulator {
         public static final String MESSAGE_BODY_LOGGING_ENABLED = PREFIX + "message-body-logging";
 
         /**
-         * Prefix for enable-overriding message body logging
-         **/
-        private static final String MESSAGE_BODY_LOGGING_ENABLE = PREFIX + "enabled-body-logging";
-
-        /**
-         * Prefix for disable-overriding message body logging
-         **/
-        private static final String MESSAGE_BODY_LOGGING_DISABLE = PREFIX + "disabled-body-logging";
-
-        /**
-         * Postfix for overriding message body logging for local producers
-         **/
-        private static final String MESSAGE_BODY_LOGGING_LOCAL_PRODUCER = "-local-producer-subsystems";
-
-        /**
-         * Postfix for overriding message body logging for remote producers
-         **/
-        private static final String MESSAGE_BODY_LOGGING_REMOTE_PRODUCER = "-remote-producer-subsystems";
-
-        /**
          * Returns list of local producer subsystem ClientIds for which global SOAP body logging
          * setting is overridden
          * @return list of ClientId
