@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.niis.xroad.test.framework.core.report.ReportFormatter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -53,7 +54,7 @@ import static feign.Util.valuesOrEmpty;
 @Component
 @RequiredArgsConstructor
 public class FeignReportLogger extends Logger {
-    private final ReportFormatter formatter;
+    private final ObjectProvider<ReportFormatter> formatterProvider;
 
     @Override
     protected void log(String configKey, String format, Object... args) {
@@ -104,12 +105,24 @@ public class FeignReportLogger extends Logger {
             }
             return response;
         } finally {
-            var request = response.request();
-            formatter.formatAndAddToReport(ReportFormatter.Attachment.create()
-                    .setName("Feign request " + request.url())
-                    .addSection("Request:", ReportFormatter.SectionType.BARE, request.toString())
-                    .addSection("Response:", ReportFormatter.SectionType.BARE, responseLog.stream()
-                            .reduce("", (a, b) -> a + b + System.lineSeparator())));
+            tryAddToReport(response, responseLog);
+        }
+    }
+
+    private void tryAddToReport(Response response, List<String> responseLog) {
+        try {
+            ReportFormatter formatter = formatterProvider.getIfAvailable();
+            if (formatter != null) {
+                var request = response.request();
+                formatter.formatAndAddToReport(ReportFormatter.Attachment.create()
+                        .setName("Feign request " + request.url())
+                        .addSection("Request:", ReportFormatter.SectionType.BARE, request.toString())
+                        .addSection("Response:", ReportFormatter.SectionType.BARE, responseLog.stream()
+                                .reduce("", (a, b) -> a + b + System.lineSeparator())));
+            }
+        } catch (IllegalStateException e) {
+            // Cucumber-glue scope is not available - skip report formatting
+            log.trace("Skipping report formatting - cucumber-glue scope not available");
         }
     }
 
