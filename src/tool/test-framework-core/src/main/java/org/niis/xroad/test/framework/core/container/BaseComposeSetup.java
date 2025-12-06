@@ -39,6 +39,7 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -53,6 +54,7 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     private static final Duration DEFAULT_GRACE_PERIOD_SECONDS = Duration.ofSeconds(5);
 
     protected static final String ENV_SELENIUM_IMG = "SELENIUM_IMG";
+    protected static final String ENV_HOST_TZ = "HOST_TZ";
     protected static final String BROWSER = "browser";
     protected static final int PORT_CHROMEDRIVER = 4444;
 
@@ -69,6 +71,7 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     protected void init() {
         env = initEnv();
         env.withEnv(ENV_SELENIUM_IMG, coreProperties.selenide().remoteSeleniumImage());
+        env.withEnv(ENV_HOST_TZ, ZonedDateTime.now().getZone().toString());
         env.start();
 
         dockerStatsMonitor = new DockerStatsMonitor();

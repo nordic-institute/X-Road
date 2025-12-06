@@ -69,12 +69,12 @@ public class TestDatabasePropertyService {
             sql = "INSERT INTO configuration_properties (property_key, property_value, scope) "
                     + "VALUES (:key, :value, NULL) "
                     + "ON CONFLICT (property_key) WHERE scope IS NULL "
-                    + "DO UPDATE SET property_value = :value";
+                    + "DO UPDATE SET property_value = EXCLUDED.property_value";
         } else {
             sql = "INSERT INTO configuration_properties (property_key, property_value, scope) "
                     + "VALUES (:key, :value, :scope) "
                     + "ON CONFLICT (property_key, scope) WHERE scope IS NOT NULL "
-                    + "DO UPDATE SET property_value = :value";
+                    + "DO UPDATE SET property_value = EXCLUDED.property_value";
         }
 
         var params = new MapSqlParameterSource()

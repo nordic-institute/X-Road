@@ -15,6 +15,10 @@ services:
   proxy:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     networks:
       xrd-ss-network:
         aliases:
@@ -162,7 +166,7 @@ services:
     environment:
       - SE_SCREEN_WIDTH=1920
       - SE_SCREEN_HEIGHT=1080
-      - TZ=Europe/Vilnius
+      - TZ=${HOST_TZ}
     shm_size: 2g
     ports:
       - "0:4444"

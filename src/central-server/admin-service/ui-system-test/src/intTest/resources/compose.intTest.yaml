@@ -23,7 +23,7 @@ services:
     environment:
       - SE_SCREEN_WIDTH=1920
       - SE_SCREEN_HEIGHT=1080
-      - TZ=Europe/Vilnius
+      - TZ=${HOST_TZ}
     shm_size: 2g
     ports:
       - "0:4444"

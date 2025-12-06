@@ -22,7 +22,6 @@ xroad:
   proxy:
     ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
     health-check-port: 5558
-    hsm-health-check-enabled: false
     message-log:
       timestamping-prioritization-strategy: PAID_FIRST
       database-encryption:
