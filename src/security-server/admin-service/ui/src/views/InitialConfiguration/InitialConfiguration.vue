@@ -102,8 +102,8 @@
         :dialog="confirmInitWarning"
         :warnings="warningInfo"
         localization-parent="initialConfiguration.warning"
-        @cancel="confirmInitWarning = false"
-        @accept="acceptInitWarning()"
+        @cancel="cancelInitWarning"
+        @accept="acceptInitWarning"
       ></warningDialog>
     </div>
   </v-row>
@@ -197,6 +197,11 @@ export default defineComponent({
       this.requestPayload.ignore_warnings = true;
       this.confirmInitWarning = false;
       this.initServer(this.requestPayload);
+    },
+
+    cancelInitWarning(): void {
+      this.confirmInitWarning = false;
+      this.pinSaveBusy = false;
     },
 
     initServer(payload: InitialServerConf): void {
