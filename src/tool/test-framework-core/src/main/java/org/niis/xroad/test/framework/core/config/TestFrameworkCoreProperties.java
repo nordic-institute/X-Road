@@ -203,5 +203,9 @@ public interface TestFrameworkCoreProperties {
         @WithDefault("build/allure-results")
         @WithName("results-directory")
         String resultsDirectory();
+
+        @WithDefault("true")
+        @WithName("generate-report")
+        boolean generateReport();
     }
 }

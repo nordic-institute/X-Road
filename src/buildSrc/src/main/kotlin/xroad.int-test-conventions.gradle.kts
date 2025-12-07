@@ -4,7 +4,6 @@ import java.time.Instant
 plugins {
   java
   id("com.gradleup.shadow")
-  id("io.qameta.allure")
 }
 
 sourceSets.create("intTest") {
@@ -181,21 +180,6 @@ abstract class IntTestShadowJarExtension {
 
 // Create shadowJar extension
 val intTestShadowJar = project.extensions.create<IntTestShadowJarExtension>("intTestShadowJar")
-
-// Configure Allure for Cucumber 7
-allure {
-  version.set(libs.findVersion("testAllure").get().toString())
-  adapter {
-    allureJavaVersion.set(libs.findVersion("testAllure").get().toString())
-    frameworks {
-      cucumber7Jvm
-    }
-  }
-  report {
-    reportDir.set(layout.buildDirectory.get().asFile.resolve("allure-report"))
-    singleFile = true
-  }
-}
 
 // Disable standard jar task
 tasks.jar {

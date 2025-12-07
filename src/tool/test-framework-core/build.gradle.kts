@@ -39,6 +39,7 @@ dependencies {
 
   api(libs.test.allure.cucumber7)
   api(libs.test.allure.selenide)
+  api(libs.test.allure.commandline)
   api(libs.test.selenide.core)
   api(libs.test.selenide.grid)
 

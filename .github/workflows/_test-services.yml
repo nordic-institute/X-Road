@@ -90,9 +90,9 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: signer-int-test-report
+          name: signer-int-test-report-${{ github.run_number }}
           path: |
-            test-framework-working-dir/allure-results/
+            test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
 
@@ -171,9 +171,9 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: opmonitor-int-test-report
+          name: opmonitor-int-test-report-${{ github.run_number }}
           path: |
-            test-framework-working-dir/allure-results/
+            test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
 
@@ -245,9 +245,9 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cs-admin-int-test-report
+          name: cs-admin-int-test-report-${{ github.run_number }}
           path: |
-            test-framework-working-dir/allure-results/
+            test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
 
@@ -319,9 +319,9 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cs-management-int-test-report
+          name: cs-management-int-test-report-${{ github.run_number }}
           path: |
-            test-framework-working-dir/allure-results/
+            test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
 

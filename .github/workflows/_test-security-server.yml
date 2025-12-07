@@ -90,9 +90,9 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ss-system-test-report
+          name: ss-system-test-report-${{ github.run_number }}
           path: |
-            test-framework-working-dir/allure-results/
+            test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
             test-framework-working-dir/selenide-failures/*.png
