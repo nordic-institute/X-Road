@@ -34,11 +34,11 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -146,8 +146,8 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
-        return globalConfProvider.getOcspResponderAddresses(member);
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
+        return globalConfProvider.getOrderedOcspResponderAddresses(member);
     }
 
     @Override

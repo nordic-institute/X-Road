@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
@@ -44,7 +45,6 @@ import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.CsrFormatDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;

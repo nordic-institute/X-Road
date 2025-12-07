@@ -32,10 +32,10 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
@@ -176,8 +176,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getConfiguredTimestampingServices() {
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(
-                Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE.name()),
-                        TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.PAID.name()))));
+                Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE),
+                        TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.PAID))));
 
         ResponseEntity<Set<TimestampingServiceDto>> response =
                 systemApiController.getConfiguredTimestampingServices();

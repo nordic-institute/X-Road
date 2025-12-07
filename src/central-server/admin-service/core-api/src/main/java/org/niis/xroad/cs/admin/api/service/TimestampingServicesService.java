@@ -27,9 +27,9 @@
 
 package org.niis.xroad.cs.admin.api.service;
 
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
-import org.niis.xroad.globalconf.model.CostType;
 
 import java.util.Set;
 

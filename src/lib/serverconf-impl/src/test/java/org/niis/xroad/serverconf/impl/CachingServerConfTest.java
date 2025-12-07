@@ -325,7 +325,7 @@ public class CachingServerConfTest {
      */
     @Test
     public void getTsps() throws Exception {
-        List<String> tspUrls = serverConfProvider.getTspUrl();
+        List<String> tspUrls = serverConfProvider.getTspUrls();
         assertEquals(NUM_TSPS, tspUrls.size());
     }
 

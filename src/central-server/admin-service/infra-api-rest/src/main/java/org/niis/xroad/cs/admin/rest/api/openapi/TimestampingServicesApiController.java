@@ -28,13 +28,13 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.cs.admin.rest.api.mapper.TimestampingServiceMapper;
 import org.niis.xroad.cs.openapi.TimestampingServicesApi;
 import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.TimestampingServiceDto;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;

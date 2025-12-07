@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v6.SharedParametersTypeV6;
 

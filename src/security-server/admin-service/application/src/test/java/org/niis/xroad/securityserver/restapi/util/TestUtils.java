@@ -31,9 +31,9 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.collect.Ordering;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
@@ -299,7 +299,7 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static TimestampingService createTspType(String url, String name, String costType) {
+    public static TimestampingService createTspType(String url, String name, CostType costType) {
         TimestampingService tsp = new TimestampingService();
         tsp.setUrl(url);
         tsp.setName(name);

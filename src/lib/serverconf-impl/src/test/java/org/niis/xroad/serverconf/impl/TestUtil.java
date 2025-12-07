@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;
-import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -299,7 +299,11 @@ public final class TestUtil {
             tsp.setCostType(CostType.UNDEFINED.name());
             conf.getTimestampingServices().add(tsp);
         }
-        conf.getTimestampingServices().get(2).setCostType(CostType.FREE.name());
+        conf.getTimestampingServices().get(0).setCostType(CostType.PAID.name());
+        conf.getTimestampingServices().get(1).setCostType(CostType.FREE.name());
+        conf.getTimestampingServices().get(2).setCostType(CostType.UNDEFINED.name());
+        conf.getTimestampingServices().get(3).setCostType(CostType.PAID.name());
+        conf.getTimestampingServices().get(4).setCostType(CostType.FREE.name());
     }
 
     static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode) {

@@ -31,13 +31,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
-import org.niis.xroad.globalconf.model.CostType;
 
 import java.util.Optional;
 
