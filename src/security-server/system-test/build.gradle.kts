@@ -15,6 +15,13 @@ dependencies {
   }
   intTestImplementation(libs.feign.hc5)
   intTestImplementation(libs.postgresql)
+
+  testImplementation(project(":common:common-test"))
+  testImplementation(project(":lib:globalconf-core"))
+  // FIXME: move required classes to common
+  testImplementation(project(":central-server:admin-service:core-api"))
+  testImplementation(project(":central-server:admin-service:globalconf-generator"))
+  testImplementation(project(":service:configuration-client:configuration-client-core"))
 }
 
 tasks.register<Test>("systemTest") {
