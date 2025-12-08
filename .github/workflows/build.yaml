@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
@@ -64,7 +64,7 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Build, test and package code setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Build environment setup'
@@ -86,7 +86,7 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
       - name: Build, test and package code execution measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Build, unit tests and packaging'
@@ -130,12 +130,12 @@ jobs:
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Packaging and upload artifacts measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Packaging and upload artifacts'
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'Packaging for arm architecture'
@@ -170,7 +170,7 @@ jobs:
         with:
           name: workspace-for-arm
       - name: Set up measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Set up arm packaging'
@@ -198,12 +198,12 @@ jobs:
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Packaging for arm architecture'
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true
@@ -218,7 +218,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'Central Server system tests'
@@ -255,7 +255,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Central Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
@@ -265,7 +265,7 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test Central Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Test Central Server'
@@ -296,7 +296,7 @@ jobs:
             src/central-server/admin-service/ui-system-test/build/allure-report/
             src/central-server/admin-service/ui-system-test/build/cs-container-logs/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true
@@ -318,7 +318,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'Security Server system tests'
@@ -353,7 +353,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Security Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Set up Security Server tests'
@@ -361,7 +361,7 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test Security Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Test Security Server'
@@ -388,7 +388,7 @@ jobs:
             src/security-server/system-test/build/ca-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true
@@ -403,7 +403,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'E2E tests'
@@ -454,7 +454,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Set up E2E tests'
@@ -466,7 +466,7 @@ jobs:
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
           -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'E2E tests'
@@ -487,7 +487,7 @@ jobs:
           path: |
             src/security-server/e2e-test/build/allure-report/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true
