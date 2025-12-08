@@ -87,24 +87,21 @@ public class CertificationServicesController implements CertificationServicesApi
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE)
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
+                                                                                   CsrFormatDto defaultCsrFormat,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth,
-                                                                                   CsrFormatDto defaultCsrFormat,
                                                                                    String acmeServerDirectoryUrl,
                                                                                    String acmeServerIpAddress,
                                                                                    String authenticationCertificateProfileId,
                                                                                    String signingCertificateProfileId) {
         var isForTlsAuth = parseBoolean(tlsAuth);
-        CsrFormat csrFormat = defaultCsrFormat != null
-                ? CsrFormat.valueOf(defaultCsrFormat.name())
-                : CsrFormat.DER;
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
         fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
         var approvedCa = new ApprovedCertificationService(
                 fileBytes,
                 certificateProfileInfo,
                 isForTlsAuth,
-                csrFormat,
+                CsrFormat.valueOf(defaultCsrFormat.name()),
                 acmeServerDirectoryUrl,
                 acmeServerIpAddress,
                 authenticationCertificateProfileId,
