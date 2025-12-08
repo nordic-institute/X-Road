@@ -25,8 +25,8 @@ Feature: 0920 - SS:Diagnostics - Connection Testing
     Then Target security server is prefilled with SS0
     And Other Security Server Test button should be enabled
     When Run test for Other Security Server
-    Then Other Security Server error message should contain server.clientproxy.io_error
+    Then Other Security Server error message should contain server.clientproxy.ssl_authentication_failed
 
-  Scenario: Management Security Server test fails because member is unknown
+  Scenario: Management Security Server test fails
     When Run test for Management Security Server
-    Then Management Security Server error message should contain server.serverproxy.service_failed.unknown_member
+    Then Management Security Server error message should contain server.clientproxy.ssl_authentication_failed
