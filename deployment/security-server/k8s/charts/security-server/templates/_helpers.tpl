@@ -8,6 +8,13 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 {{- end }}
 
+{{/*
+Generate volume name from path (e.g., /var/log/xroad -> var-log-xroad)
+*/}}
+{{- define "xroad.volumeName" -}}
+{{- . | trimPrefix "/" | replace "/" "-" -}}
+{{- end }}
+
 
 {{/*
 Service template
@@ -64,6 +71,8 @@ spec:
         {{- include "xroad.labels" .root | nindent 8 }}
         app: xroad-{{ .service }}
     spec:
+      securityContext:
+        {{- toYaml .root.Values.securityContext.pod | nindent 8 }}
       serviceAccountName: {{ .service }}-sa
       # Add DNS settings
       dnsPolicy: ClusterFirst
@@ -79,8 +88,10 @@ spec:
       {{- end }}
       containers:
         - name: {{ .service }}
-          image: {{ .config.image }}
-          imagePullPolicy: {{ .config.imagePullPolicy }}
+          image: {{ .root.Values.global.image.registry }}/{{ .config.imageName }}:{{ .root.Values.global.image.tag }}
+          imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .root.Values.securityContext.container | nindent 12 }}
           ports:
             {{- if kindIs "slice" .config.ports }}
             {{- range .config.ports }}
@@ -108,16 +119,22 @@ spec:
                   name: {{ .secretName }}
                   key: {{ .key }}
             {{- end }}
-          {{- if or .config.volumeMounts .config.extraVolumeMounts }}
           volumeMounts:
-            {{- with .config.volumeMounts }}
-            {{- toYaml . | nindent 12 }}
+            - mountPath: /tmp
+              name: tmp-volume
+            {{- $skipMounts := .config.skipDefaultMounts | default list }}
+            {{- range .root.Values.writablePaths }}
+            {{- if not (has . $skipMounts) }}
+            - mountPath: {{ . }}
+              name: {{ include "xroad.volumeName" . }}
             {{- end }}
-            {{/* extraVolumeMounts for not overriding volumeMounts defaults */}}
-            {{- with .config.extraVolumeMounts }}
-            {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- end }}
+            {{- if .config.volumeMounts }}
+            {{- toYaml .config.volumeMounts | nindent 12 }}
+            {{- end }}
+            {{- if .config.extraVolumeMounts }}
+            {{- toYaml .config.extraVolumeMounts | nindent 12 }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: {{ .config.readinessProbe.path }}
@@ -128,8 +145,18 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 3
-      {{- if or .config.volumes .config.extraVolumes }}
+
       volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        {{- $skipMounts := .config.skipDefaultMounts | default list }}
+        {{- range .root.Values.writablePaths }}
+        {{- if not (has . $skipMounts) }}
+        - name: {{ include "xroad.volumeName" . }}
+          emptyDir: {}
+        {{- end }}
+        {{- end }}
+        {{- if .config.volumes }}
         {{- range .config.volumes }}
         {{- if .persistentVolumeClaim }}
         - name: {{ .name }}
@@ -139,7 +166,8 @@ spec:
         - {{ toYaml . | nindent 10 }}
         {{- end }}
         {{- end }}
-        {{/* extraVolumes for not overriding volumes defaults */}}
+        {{- end }}
+        {{- if .config.extraVolumes }}
         {{- range .config.extraVolumes }}
         {{- if .persistentVolumeClaim }}
         - name: {{ .name }}
@@ -149,7 +177,7 @@ spec:
         - {{ toYaml . | nindent 10 }}
         {{- end }}
         {{- end }}
-      {{- end }}
+        {{- end }}
 {{- end }}
 {{- define "xroad.serviceaccount" -}}
 apiVersion: v1
