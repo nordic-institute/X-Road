@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.opmonitoring;
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;

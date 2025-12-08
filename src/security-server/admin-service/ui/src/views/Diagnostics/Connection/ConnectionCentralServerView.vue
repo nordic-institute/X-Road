@@ -140,33 +140,7 @@ export default defineComponent({
     ...mapActions(useDiagnostics, ['fetchAuthCertReqStatus', 'fetchGlobalConfStatuses']),
 
     globalConfErrorMessage(error: CodeWithDetails) {
-      return this.formatErrorForUi(error);
-    },
-
-    formatErrorForUi(err?: { code?: string; metadata?: string[]; validation_errors?: Record<string, string[]> }) {
-      if (!err) return '';
-
-      const { code, metadata = [], validation_errors = {} } = err;
-      const buildKey = (rawKey?: string) => {
-        if (!rawKey) return '';
-        return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`;
-      };
-      const codeKey = buildKey(code);
-      const codeText = codeKey ? this.$t(codeKey) : '';
-      const metaText = metadata.length ? metadata.join(', ') : '';
-      const header = [codeText, metaText].filter(Boolean).join(' : ');
-      const veEntries = Object.entries(validation_errors);
-      const veText = veEntries.length
-        ? veEntries
-            .map(([field, msgs]) => {
-              const labelKey = buildKey(field);
-              const label = this.$te(labelKey) ? (this.$t(labelKey) as string) : field;
-              return `${label}: ${msgs.join(', ')}`;
-            })
-            .join(' | ')
-        : '';
-
-      return [header, veText].filter(Boolean).join(' | ');
+      return formatErrorForUi(error);
     },
 
     testAuthCertRequest() {
@@ -188,19 +162,6 @@ export default defineComponent({
         .finally(() => {
           this.globalConfLoading = false;
         });
-    },
-    statusIconType(status?: string) {
-      if (!status) {
-        return undefined;
-      }
-      switch (status) {
-        case 'OK':
-          return 'ok';
-        case 'FAIL':
-          return 'error';
-        default:
-          return 'error';
-      }
     },
   },
 });

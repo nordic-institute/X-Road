@@ -54,7 +54,7 @@ import static org.niis.xroad.confclient.core.config.ConfigurationClientPropertie
  *
  */
 @Slf4j
-public class FederationConfigurationSourceFilterImpl implements FederationConfigurationSourceFilter {
+public class FederationConfigurationSourceFilter {
 
     private static final String COMMA_SEPARATOR = "\\s*,\\s*";
 
@@ -63,7 +63,7 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
     private ConfigurationClientProperties.AllowedFederationMode allowedFederationMode = null;
     private Set<String> allowedFederationPartners = null;
 
-    FederationConfigurationSourceFilterImpl(String ownInstance, String filterString) {
+    FederationConfigurationSourceFilter(String ownInstance, String filterString) {
         this.ownInstance = ownInstance;
         log.info("The federation filter system property value is: '{}'", filterString);
         parseAndSetAllowedInstances(Arrays.asList(filterString.split(COMMA_SEPARATOR)));
@@ -71,7 +71,6 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
                 allowedFederationMode, allowedFederationPartners);
     }
 
-    @Override
     public boolean shouldDownloadConfigurationFor(String instanceIdentifier) {
         if (ownInstance.equalsIgnoreCase(instanceIdentifier)) {
             return true;

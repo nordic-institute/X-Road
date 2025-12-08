@@ -131,7 +131,7 @@ export const useClient = defineStore('client', {
     },
 
     async fetchSecurityServers(clientId: string) {
-      if (!id) {
+      if (!clientId) {
         throw new Error('Missing id');
       }
 

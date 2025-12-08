@@ -37,6 +37,8 @@ import org.junit.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
 import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
@@ -81,10 +83,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -527,16 +525,23 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getGlobalConfStatus() {
-        when(globalConfProvider.findSourceAddresses()).thenReturn(Set.of("one-host"));
-        when(confClientRpcClient.checkAndGetConnectionStatus(any()))
-                .thenReturn(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
-                        .setDownloadUrl("http://one-host:80/internalconf")
-                        .build())
-                .thenReturn(org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
-                        .setDownloadUrl("https://one-host:443/internalconf")
-                        .build());
-        when(globalConfProvider.getSourceAddresses(globalConfProvider.getInstanceIdentifier())).thenReturn(Set.of("one-host"));
-
+        var request = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setLocalInstance("DEV")
+                .setInstance("DEV")
+                .setAddress("one-host")
+                .setDirectory("internalconf")
+                .build();
+        var status1 = org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                .setDownloadUrl("http://one-host:80/internalconf")
+                .build();
+        var status2 = org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                .setDownloadUrl("https://one-host:443/internalconf")
+                .build();
+        var statusResponse = CheckAndGetConnectionStatusResponse.newBuilder()
+                .addConnectionStatuses(status1)
+                .addConnectionStatuses(status2)
+                .build();
+        when(confClientRpcClient.checkAndGetConnectionStatus(request)).thenReturn(statusResponse);
 
         ResponseEntity<List<GlobalConfConnectionStatusDto>> response = diagnosticsApiController.getGlobalConfStatus();
 

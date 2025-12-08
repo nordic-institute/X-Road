@@ -54,7 +54,6 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersCache;
-import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
 import org.niis.xroad.globalconf.util.GlobalConfUtils;
 
 import java.io.IOException;
@@ -655,18 +654,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public Set<String> getSourceAddresses(String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier).getSources().stream()
                 .map(SharedParameters.ConfigurationSource::getAddress)
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<String> getAllowedFederationInstances() {
-        var localInstance = getInstanceIdentifier();
-        var sourceFilter = new FederationConfigurationSourceFilter(localInstance);
-
-        return getInstanceIdentifiers().stream()
-                .filter(instance -> !localInstance.equals(instance))
-                .filter(sourceFilter::shouldDownloadConfigurationFor)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toSet());
     }

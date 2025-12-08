@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -47,6 +45,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -55,13 +54,16 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.common.core.dto.ConnectionStatus;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
@@ -79,28 +81,24 @@ import javax.net.ssl.X509TrustManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_SECURITY_SERVER;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 @Slf4j
@@ -109,44 +107,57 @@ import static org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleE
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class DiagnosticConnectionService {
-    private static final String HTTP = "http";
-    private static final String HTTPS = "https";
     private static final Integer HTTP_200 = 200;
-    private static final Integer PORT_80 = 80;
-    private static final Integer PORT_443 = 443;
+    private static final String INTERNAL_CONF = "internalconf";
 
     private final GlobalConfProvider globalConfProvider;
     private final TokenService tokenService;
     private final AuthCertVerifier authCertVerifier;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final ConfClientRpcClient confClientRpcClient;
-    private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
     private final ServerConfProvider serverConfProvider;
+    private final AdminServiceProperties adminServiceProperties;
 
     public List<DownloadUrlConnectionStatus> getGlobalConfStatus() {
-        return globalConfProvider.findSourceAddresses().stream()
-                .flatMap(this::configsForAddress)
-                .distinct()
+        var localInstance = globalConfProvider.getInstanceIdentifier();
+        var allInstancesStream = getInstancesStream(localInstance);
+
+        return allInstancesStream
+                .flatMap(instance -> {
+                    var addresses = globalConfProvider.getSourceAddresses(instance);
+                    var confDirectory = localInstance.equals(instance)
+                            ? INTERNAL_CONF
+                            : globalConfProvider.getConfigurationDirectoryPath(instance);
+                    return configsForAddress(localInstance, instance, addresses, confDirectory);
+                })
                 .map(this::checkConnection)
-                .map(this::toDownloadStatus)
+                .map(this::toDownloadStatuses)
+                .flatMap(List::stream)
                 .toList();
     }
 
-    private Stream<ConnectionConfig> configsForAddress(String address) {
-        return Stream.of(HTTP, HTTPS)
-                .map(protocol -> new ConnectionConfig(protocol, address, portFor(protocol)));
+    private @NotNull Stream<String> getInstancesStream(String localInstance) {
+        return Stream.concat(
+                Stream.of(localInstance),
+                globalConfProvider.getInstanceIdentifiers().stream()
+                        .filter(instance -> !localInstance.equals(instance))
+                        .filter(StringUtils::isNotBlank)
+                        .distinct()
+        );
     }
 
-    private int portFor(String protocol) {
-        return HTTP.equals(protocol) ? PORT_80 : PORT_443;
+    private Stream<ConnectionConfig> configsForAddress(String localInstance, String instance, Set<String> addresses, String directory) {
+        return addresses.stream()
+                .map(address -> new ConnectionConfig(localInstance, instance, address, directory));
     }
 
-    private org.niis.xroad.rpc.common.DownloadUrlConnectionStatus checkConnection(ConnectionConfig c) {
+    private CheckAndGetConnectionStatusResponse checkConnection(ConnectionConfig c) {
         return confClientRpcClient.checkAndGetConnectionStatus(
                 CheckAndGetConnectionStatusRequest.newBuilder()
-                        .setProtocol(c.protocol())
+                        .setLocalInstance(c.localInstance())
+                        .setInstance(c.instance)
                         .setAddress(c.address())
-                        .setPort(c.port())
+                        .setDirectory(c.directory)
                         .build()
         );
     }
@@ -160,6 +171,15 @@ public class DiagnosticConnectionService {
             );
         }
         return verifyAndWrap(status.getDownloadUrl());
+    }
+
+    private List<DownloadUrlConnectionStatus> toDownloadStatuses(CheckAndGetConnectionStatusResponse response) {
+        if (!response.getConnectionStatusesList().isEmpty()) {
+            return response.getConnectionStatusesList().stream()
+                    .map(this::toDownloadStatus)
+                    .toList();
+        }
+        return List.of();
     }
 
     private DownloadUrlConnectionStatus verifyAndWrap(String downloadUrl) {
@@ -196,6 +216,8 @@ public class DiagnosticConnectionService {
 
     private boolean isExpectedInvalidRequest(XrdRuntimeException e) {
         return INVALID_REQUEST.code().equals(e.getErrorCode());
+    }
+
     public ConnectionStatus getOtherSecurityServerStatus(ServiceProtocolType protocolType, ClientId clientId,
                                                          ClientId targetClientId,
                                                          SecurityServerId securityServerId) {
@@ -227,7 +249,7 @@ public class DiagnosticConnectionService {
                         SoapMessageImpl soapMessage = buildListMethodsSoapMessage(
                                 clientId, targetClientId, securityServerId);
 
-                        send(sender, new URI(SystemProperties.getProxyUiSecurityServerUrl()), soapMessage);
+                        send(sender, new URI(adminServiceProperties.getManagementProxyServerUrl()), soapMessage);
                     }
                 }
                 default -> throw new IllegalStateException("should not get here");
@@ -245,7 +267,7 @@ public class DiagnosticConnectionService {
         try {
             return createProxyHttpClientWithInternalKey();
         } catch (Exception e) {
-            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
                     .cause(e)
                     .details("Unable to initialize request client")
                     .build();
@@ -274,7 +296,7 @@ public class DiagnosticConnectionService {
         return createHttpClient(new KeyManager[] {new ClientSslKeyManager(serverConfProvider)}, new TrustManager[] {trustManager});
     }
 
-    private static CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
+    private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
             throws NoSuchAlgorithmException, KeyManagementException {
 
         SSLContext sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
@@ -282,12 +304,12 @@ public class DiagnosticConnectionService {
 
         SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
 
-        int timeout = SystemProperties.getClientProxyTimeout();
+        int timeout = adminServiceProperties.getManagementProxyServerConnectTimeout();
 
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout())
+                .setSocketTimeout(adminServiceProperties.getManagementProxyServerSocketTimeout())
                 .build();
 
         return HttpClients.custom()
@@ -297,10 +319,10 @@ public class DiagnosticConnectionService {
                 .build();
     }
 
-    private static HttpSender createSender(CloseableHttpClient client) {
-        HttpSender httpSender = new HttpSender(client);
-        httpSender.setConnectionTimeout(SystemProperties.getClientProxyTimeout());
-        httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+    private HttpSender createSender(CloseableHttpClient client) {
+        HttpSender httpSender = new HttpSender(client, adminServiceProperties.isManagementProxyServerEnableConnectionReuse());
+        httpSender.setConnectionTimeout(adminServiceProperties.getManagementProxyServerConnectTimeout());
+        httpSender.setSocketTimeout(adminServiceProperties.getManagementProxyServerSocketTimeout());
         return httpSender;
     }
 
@@ -310,7 +332,7 @@ public class DiagnosticConnectionService {
 
             Soap response = new SoapParserImpl().parse(getBaseContentType(sender.getResponseContentType()), sender.getResponseContent());
             if (response instanceof SoapFault soapFault) {
-                throw soapFault.toCodedException();
+                throw soapFault.toXrdRuntimeException();
             }
 
         } catch (Exception e) {
@@ -319,7 +341,7 @@ public class DiagnosticConnectionService {
     }
 
     private HttpGet getRestHttpGet(ClientId clientId, ClientId targetClientId, SecurityServerId securityServerId) {
-        HttpGet request = new HttpGet(URI.create(SystemProperties.getProxyUiSecurityServerUrl() + getRestPath(targetClientId)));
+        HttpGet request = new HttpGet(URI.create(adminServiceProperties.getManagementProxyServerUrl() + getRestPath(targetClientId)));
         request.setProtocolVersion(org.apache.http.HttpVersion.HTTP_1_1);
         request.addHeader("accept", "application/json");
         request.addHeader(HEADER_SECURITY_SERVER, String.format("%s/%s/%s/%s",
@@ -370,10 +392,6 @@ public class DiagnosticConnectionService {
                 clientId.getMemberClass(),
                 clientId.getMemberCode(),
                 clientId.getSubsystemCode());
-    }
-
-    private boolean isExpectedInvalidRequest(CodedException e) {
-        return X_INVALID_REQUEST.equals(e.getFaultCode()) || "InvalidRequest".equals(e.getFaultCode());
     }
 
     private CertValidation validateAuthCert() {
@@ -442,6 +460,6 @@ public class DiagnosticConnectionService {
         }
     }
 
-    record ConnectionConfig(String protocol, String address, int port) {
+    record ConnectionConfig(String localInstance, String instance, String address, String directory) {
     }
 }

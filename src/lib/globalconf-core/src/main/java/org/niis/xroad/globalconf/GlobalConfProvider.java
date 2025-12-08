@@ -355,14 +355,6 @@ public interface GlobalConfProvider {
     Set<String> getSourceAddresses(String instanceIdentifier);
 
     /**
-     * Returns all allowed federation instances.
-     * Also taking into account the value of the {@code configuration-client.allowed-federations} property.
-     *
-     * @return a set of allowed federation instances
-     */
-    Set<String> getAllowedFederationInstances();
-
-    /**
      * Returns the configuration directory path for the given instance identifier.
      *
      * @param instanceIdentifier the instance identifier

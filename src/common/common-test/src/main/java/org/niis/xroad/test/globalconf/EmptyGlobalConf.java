@@ -198,11 +198,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> getAllowedFederationInstances() {
-        return Set.of();
-    }
-
-    @Override
     public String getConfigurationDirectoryPath(String instanceIdentifier) {
         return "";
     }
