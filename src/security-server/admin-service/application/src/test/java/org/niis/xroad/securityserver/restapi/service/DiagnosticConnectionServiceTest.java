@@ -67,6 +67,7 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.nio.channels.UnresolvedAddressException;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -112,6 +113,8 @@ class DiagnosticConnectionServiceTest {
 
     @Test
     void getGlobalConfStatusThenReturnHttp200() {
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConfProvider.getSourceAddresses("DEV")).thenReturn(Set.of("valid-host"));
         var request = CheckAndGetConnectionStatusRequest.newBuilder()
                 .setLocalInstance("DEV")
                 .setInstance("DEV")
@@ -147,10 +150,12 @@ class DiagnosticConnectionServiceTest {
 
     @Test
     void getGlobalConfStatusThenReturnUnknownHostErrors() {
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConfProvider.getSourceAddresses("DEV")).thenReturn(Set.of("unknown_host"));
         var request = CheckAndGetConnectionStatusRequest.newBuilder()
                 .setLocalInstance("DEV")
                 .setInstance("DEV")
-                .setAddress("valid-host")
+                .setAddress("unknown_host")
                 .setDirectory("internalconf")
                 .build();
         var status1 = org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()

@@ -525,6 +525,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getGlobalConfStatus() {
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConfProvider.getSourceAddresses("DEV")).thenReturn(Set.of("one-host"));
         var request = CheckAndGetConnectionStatusRequest.newBuilder()
                 .setLocalInstance("DEV")
                 .setInstance("DEV")
