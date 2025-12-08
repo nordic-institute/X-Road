@@ -1,7 +1,9 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.time.Instant
 
 plugins {
   java
+  id("com.gradleup.shadow")
 }
 
 sourceSets.create("intTest") {
@@ -107,13 +109,13 @@ afterEvaluate {
       dependsOn(tasks.named("processIntTestResources"))
 
       val outputEnvFile = file("build/resources/intTest/.env")
-      
+
       // Inputs: track what affects .env generation
       inputs.property("imageTag", provider { resolveIntTestImageTag() })
       inputs.property("imageRegistry", provider { resolveIntTestImageRegistry() })
       inputs.property("images", provider { intTestComposeEnv.images.toString() })
       inputs.property("additionalVars", provider { intTestComposeEnv.additionalVars.toString() })
-      
+
       outputs.file(outputEnvFile)
 
       doLast {
@@ -148,6 +150,80 @@ afterEvaluate {
         outputEnvFile.writeText(envContent)
         logger.lifecycle("Generated: ${outputEnvFile.absolutePath}")
       }
+    }
+  }
+}
+
+/**
+ * Extension for configuring int-test shadow jar
+ */
+abstract class IntTestShadowJarExtension {
+  val archiveBaseName = mutableListOf<String>()
+  val mainClass = mutableListOf<String>()
+
+  /**
+   * Set the archive base name for the shadow jar
+   */
+  fun archiveBaseName(name: String) {
+    archiveBaseName.clear()
+    archiveBaseName.add(name)
+  }
+
+  /**
+   * Set the main class for the shadow jar manifest
+   */
+  fun mainClass(className: String) {
+    mainClass.clear()
+    mainClass.add(className)
+  }
+}
+
+// Create shadowJar extension
+val intTestShadowJar = project.extensions.create<IntTestShadowJarExtension>("intTestShadowJar")
+
+// Disable standard jar task
+tasks.jar {
+  enabled = false
+}
+
+// Connect build to shadowJar
+tasks.build {
+  dependsOn(tasks.named("shadowJar"))
+}
+
+// Configure shadowJar with common settings
+afterEvaluate {
+  if (intTestShadowJar.archiveBaseName.isNotEmpty() && intTestShadowJar.mainClass.isNotEmpty()) {
+    tasks.named<ShadowJar>("shadowJar") {
+      archiveBaseName.set(intTestShadowJar.archiveBaseName.first())
+      archiveClassifier.set("")
+      isZip64 = true
+
+      from(sourceSets["intTest"].output.classesDirs)
+
+      from("${layout.buildDirectory.get().asFile}/resources/intTest") {
+        into("")
+      }
+      from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
+        into("")
+      }
+      from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
+
+      mergeServiceFiles()
+      exclude("**/module-info.class")
+
+      manifest {
+        attributes(
+          "Main-Class" to intTestShadowJar.mainClass.first()
+        )
+      }
+
+      // Add generateIntTestEnv dependency if the task exists
+      if (tasks.names.contains("generateIntTestEnv")) {
+        dependsOn(provider { tasks.named("generateIntTestEnv") })
+      }
+      dependsOn(tasks.named("intTestClasses"))
+      dependsOn(tasks.named("processIntTestResources"))
     }
   }
 }

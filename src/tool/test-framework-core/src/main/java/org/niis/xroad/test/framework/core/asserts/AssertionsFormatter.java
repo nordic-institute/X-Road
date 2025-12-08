@@ -41,10 +41,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AssertionsFormatter {
 
-    // These need to be injected - dependencies from other modules
-    // private final ReportHtmlTableGenerator reportHtmlTableGenerator;
-    // private final ReportFormatter reportFormatter;
-
     private static final List<String> HEADERS = List.of(
             "Status", "Message", "Actual value path", "Operation", "Expected value", "Actual value");
 
@@ -58,19 +54,6 @@ public class AssertionsFormatter {
         completedAssertions.stream()
                 .map(assertion -> convertToTableLine(assertion, validation))
                 .forEach(assertionsTable::add);
-
-        // Implement table generation and report attachment
-        // String formattedAssertionsTable =
-        // reportHtmlTableGenerator.generateTable(assertionsTable, false);
-        // var attachment =
-        // ReportFormatter.Attachment.create().setName(validation.getTitle());
-        // attachment.addSection(validation.getContextDescription() != null ?
-        // validation.getContextDescription() : "",
-        // ReportFormatter.SectionType.COLLAPSIBLE,
-        // JsonFormattingUtils.prettyPrintHtml(validation.getContext()));
-        // attachment.addSection("Assertions", ReportFormatter.SectionType.TABLE,
-        // formattedAssertionsTable);
-        // reportFormatter.formatAndAddToReport(attachment);
     }
 
     /**

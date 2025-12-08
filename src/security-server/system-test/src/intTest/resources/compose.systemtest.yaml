@@ -15,6 +15,10 @@ services:
   proxy:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     networks:
       xrd-ss-network:
         aliases:
@@ -122,16 +126,13 @@ services:
         condition: service_completed_successfully
 
   testca:
-    build:
-      context: ../../../../../common/common-int-test/src/main/resources/META-INF/ca-container
+    image: ${CA_IMG}
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "http://localhost:8888/testca/certs/" ]
     networks:
       - xrd-ss-network
-    volumes:
-      - ../../a2c_logs:/var/www/acme2certifier/logs
 
   nginx:
     image: nginx:latest
@@ -142,7 +143,12 @@ services:
           - mock-server
     volumes:
       - ./nginx-container-files/etc/nginx/conf.d:/etc/nginx/conf.d
-
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 256M
   testmailserver:
     image: axllent/mailpit
     environment:
@@ -154,4 +160,15 @@ services:
     networks:
       - xrd-ss-network
     volumes:
-      - ../../../../../common/common-int-test/src/main/resources/META-INF/mail-server-container:/tls
+      - ./mail-server-container-files:/tls
+  browser:
+    image: ${SELENIUM_IMG}
+    environment:
+      - SE_SCREEN_WIDTH=1920
+      - SE_SCREEN_HEIGHT=1080
+      - TZ=${HOST_TZ}
+    shm_size: 2g
+    ports:
+      - "0:4444"
+    networks:
+      - xrd-ss-network

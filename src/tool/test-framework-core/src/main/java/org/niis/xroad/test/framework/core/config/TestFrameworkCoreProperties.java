@@ -99,9 +99,8 @@ public interface TestFrameworkCoreProperties {
 
     interface Cucumber {
 
-        @WithDefault("")
         @WithName("glue")
-        String glue();
+        Optional<List<String>> glue();
 
         @WithDefault("io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm")
         @WithName("plugin")
@@ -135,9 +134,78 @@ public interface TestFrameworkCoreProperties {
         boolean publishQuiet();
     }
 
+    @WithName("selenide")
+    Selenide selenide();
+
+    interface Selenide {
+        @WithDefault("false")
+        @WithName("enabled")
+        boolean enabled();
+
+        @WithDefault("15000")
+        @WithName("timeout")
+        long timeout();
+
+        @WithDefault("70")
+        @WithName("polling-interval")
+        long pollingInterval();
+
+        @WithDefault("true")
+        @WithName("reopen-browser-on-fail")
+        boolean reopenBrowserOnFail();
+
+        @WithDefault("1920x1080")
+        @WithName("browser-size")
+        String browserSize();
+
+        @WithDefault("normal")
+        @WithName("page-load-strategy")
+        String pageLoadStrategy();
+
+        @WithDefault("20000")
+        @WithName("page-load-timeout")
+        long pageLoadTimeout();
+
+        @WithDefault("true")
+        @WithName("screenshots")
+        boolean screenshots();
+
+        @WithDefault("true")
+        @WithName("save-page-source")
+        boolean savePageSource();
+
+        @WithDefault("false")
+        @WithName("fast-set-value")
+        boolean fastSetValue();
+
+        @WithDefault("CSS")
+        @WithName("selector-mode")
+        String selectorMode();
+
+        @WithDefault("STRICT")
+        @WithName("assertion-mode")
+        String assertionMode();
+
+        @WithDefault("false")
+        @WithName("webdriver-logs-enabled")
+        boolean webdriverLogsEnabled();
+
+        @WithDefault("false")
+        @WithName("headless")
+        boolean headless();
+
+        @WithDefault("selenium/standalone-chromium:142.0")
+        @WithName("remote-selenium-image")
+        String remoteSeleniumImage();
+    }
+
     interface Allure {
         @WithDefault("build/allure-results")
         @WithName("results-directory")
         String resultsDirectory();
+
+        @WithDefault("true")
+        @WithName("generate-report")
+        boolean generateReport();
     }
 }

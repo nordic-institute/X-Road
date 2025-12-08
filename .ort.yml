@@ -49,10 +49,6 @@ excludes:
       reason: "OPTIONAL_COMPONENT_OF"
       comment: "Not included in distributed build artifacts."
 
-    - pattern: "src/common/common-int-test/**"
-      reason: "TEST_OF"
-      comment: "This directory contains tests."
-
     - pattern: "src/common/common-test/**"
       reason: "TEST_OF"
       comment: "This directory contains tests."

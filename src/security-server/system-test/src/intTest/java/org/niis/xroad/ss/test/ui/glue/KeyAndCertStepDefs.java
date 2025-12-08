@@ -47,11 +47,11 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.awaitility.Awaitility.given;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorComboboxOf;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorComboboxOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @Slf4j
 public class KeyAndCertStepDefs extends BaseUiStepDefs {

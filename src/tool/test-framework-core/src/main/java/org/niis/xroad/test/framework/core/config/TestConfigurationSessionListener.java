@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 import org.niis.xroad.test.framework.core.logging.LogbackAppenderFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import static io.cucumber.core.options.Constants.ANSI_COLORS_DISABLED_PROPERTY_NAME;
 import static io.cucumber.core.options.Constants.EXECUTION_DRY_RUN_PROPERTY_NAME;
@@ -70,6 +71,8 @@ public class TestConfigurationSessionListener implements LauncherSessionListener
             setCucumberProperties(props.cucumber());
             setAllureProperties(props.allure());
 
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
             log.info("Test framework configuration loaded successfully");
         } catch (Exception e) {
             log.error("Failed to load test framework configuration", e);
@@ -106,7 +109,10 @@ public class TestConfigurationSessionListener implements LauncherSessionListener
     private void setCucumberProperties(TestFrameworkCoreProperties.Cucumber cucumber) {
         log.debug("Configuring Cucumber properties");
 
-        setProperty(GLUE_PROPERTY_NAME, cucumber.glue());
+        cucumber.glue().ifPresent(glueList -> {
+            String glue = String.join(",", glueList);
+            setProperty(GLUE_PROPERTY_NAME, glue);
+        });
         setProperty(Constants.PLUGIN_PROPERTY_NAME, cucumber.plugin());
         cucumber.filterTags().ifPresent(tags -> setProperty(Constants.FILTER_TAGS_PROPERTY_NAME, tags));
         cucumber.filterName().ifPresent(name -> setProperty(FILTER_NAME_PROPERTY_NAME, name));

@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
-import ee.ria.xroad.common.util.JsonUtils;
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebElementCondition;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.DiagnosticsPageObj;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,7 +53,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.given;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class DiagnosticsStepDefs extends BaseUiStepDefs {
@@ -70,6 +70,9 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "Authentication certificates",
             "Maintenance mode"
     };
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
     @Step("Diagnostics tab is {string}")
@@ -208,7 +211,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                 .hasExtension("json");
 
         try (InputStream in = new FileInputStream(report.get())) {
-            var json = JsonUtils.getObjectReader().readTree(in);
+            var json = objectMapper.readTree(in);
             assertThat(json.isArray()).isTrue();
             assertThat(json.size()).isEqualTo(EXPECTED_REPORT_ITEMS.length);
             var actualItems = new HashSet<String>();

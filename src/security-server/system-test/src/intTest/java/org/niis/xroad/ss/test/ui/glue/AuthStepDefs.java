@@ -29,8 +29,6 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
-import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 
 import java.time.Duration;
@@ -38,16 +36,14 @@ import java.time.Duration;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class AuthStepDefs extends BaseUiStepDefs {
     private final LoginPageObj loginPageObj = new LoginPageObj();
 
     @Step("SecurityServer login page is open")
     public void openPage() {
-        var mapping = envSetup.getContainerMapping(EnvSetup.UI, Port.UI);
-
-        selenideManager.open("https://%s:%d".formatted(mapping.host(), mapping.port()));
+        selenideManager.open("https://ui:4000");
     }
 
     @Step("Login form is visible")

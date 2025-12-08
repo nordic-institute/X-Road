@@ -1,3 +1,9 @@
+quarkus:
+  log:
+    level: INFO
+    category:
+      "org.niis.xroad.proxy.core.healthcheck":
+        level: DEBUG
 xroad:
   common-rpc:
     certificate-provisioning:
@@ -37,8 +43,8 @@ xroad:
   proxy-ui-api:
     enforce-user-password-policy: true
     rate-limit-enabled: true
-    rate-limit-requests-per-second: 100
-    rate-limit-requests-per-minute: 1000
+    rate-limit-requests-per-second: 10000
+    rate-limit-requests-per-minute: 10000
     acme-challenge-port-enabled: true
     automatic-activate-acme-sign-certificate: true
   op-monitor:
