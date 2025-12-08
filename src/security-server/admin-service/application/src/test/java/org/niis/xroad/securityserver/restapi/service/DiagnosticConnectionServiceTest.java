@@ -29,18 +29,12 @@ import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.apache.http.Header;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -349,38 +343,6 @@ class DiagnosticConnectionServiceTest {
             var status = service.getOtherSecurityServerStatus(ServiceProtocolType.REST, CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID);
 
             assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
-            assertThat(status.getErrorCode()).isNull();
-            assertThat(status.getErrorMetadata()).isEmpty();
-        }
-    }
-
-    //@Test
-    void getOtherSecurityServerStatusWithSoapThenReturnHttp200() throws Exception {
-        CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
-        CloseableHttpResponse closeableHttpResponse = mock(CloseableHttpResponse.class);
-        StatusLine statusLine = mock(StatusLine.class);
-
-        when(statusLine.getStatusCode()).thenReturn(200);
-        when(closeableHttpResponse.getStatusLine()).thenReturn(statusLine);
-        when(closeableHttpResponse.getEntity()).thenReturn(new StringEntity(getMockSoapResponse(), ContentType.TEXT_XML));
-
-        Header contentTypeHeader = new BasicHeader("Content-Type", "text/xml; charset=UTF-8");
-        when(closeableHttpResponse.getAllHeaders()).thenReturn(new Header[] {contentTypeHeader});
-
-        when(httpClient.execute(any(HttpUriRequest.class), any(HttpContext.class))).thenReturn(closeableHttpResponse);
-
-        try (MockedStatic<HttpClients> httpClientsMock = org.mockito.Mockito.mockStatic(HttpClients.class)) {
-            HttpClientBuilder builder = mock(HttpClientBuilder.class);
-            httpClientsMock.when(HttpClients::custom).thenReturn(builder);
-
-            doReturn(builder).when(builder).setSSLSocketFactory(any());
-            doReturn(builder).when(builder).setDefaultRequestConfig(any());
-            doReturn(builder).when(builder).disableAutomaticRetries();
-            doReturn(httpClient).when(builder).build();
-
-            var status = service.getOtherSecurityServerStatus(ServiceProtocolType.SOAP, CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID);
-
-            //assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
             assertThat(status.getErrorCode()).isNull();
             assertThat(status.getErrorMetadata()).isEmpty();
         }
