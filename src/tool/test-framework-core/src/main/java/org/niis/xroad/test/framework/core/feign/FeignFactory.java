@@ -44,8 +44,8 @@ import java.util.List;
 public class FeignFactory {
     private final Contract contract;
     private final Client client;
-    private final Encoder encoder;
-    private final Decoder decoder;
+    private final Encoder defaultEncoder;
+    private final Decoder defaultDecoder;
     private final Logger.Level loggerLevel;
     private final List<RequestInterceptor> requestInterceptors;
     private final FeignReportLogger feignReportLogger;
@@ -55,25 +55,16 @@ public class FeignFactory {
     }
 
     public <T> T createClient(Class<T> clientClass, String baseUrl, boolean registerDefaultInterceptors) {
-        return createClient(clientClass, baseUrl,
+        return createClient(clientClass, baseUrl, defaultEncoder,
                 registerDefaultInterceptors ? requestInterceptors : Collections.emptyList());
     }
 
-    /**
-     * Creates a Feign client with the specified interceptors.
-     *
-     * @param clientClass  the API interface class
-     * @param baseUrl      the base URL for the API
-     * @param interceptors list of request interceptors to apply
-     * @param <T>          the type of the API interface
-     * @return a configured Feign client instance
-     */
-    public <T> T createClient(Class<T> clientClass, String baseUrl, List<RequestInterceptor> interceptors) {
+    public <T> T createClient(Class<T> clientClass, String baseUrl, Encoder encoder, List<RequestInterceptor> interceptors) {
         Feign.Builder builder = Feign.builder()
                 .contract(contract)
                 .client(client)
                 .encoder(encoder)
-                .decoder(decoder)
+                .decoder(defaultDecoder)
                 .logger(feignReportLogger)
                 .logLevel(loggerLevel);
 

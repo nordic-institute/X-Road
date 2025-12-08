@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.page.AbstractCommonPageObj;
+import org.niis.xroad.test.framework.core.ui.page.AbstractCommonPageObj;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -45,7 +45,7 @@ public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, Com
         return $x(String.format("//div[@data-test='view-title-text' and text()='%s']", viewTitle));
     }
 
-    public static class Menu extends org.niis.xroad.common.test.ui.page.component.Menu {
+    public static class Menu extends org.niis.xroad.test.framework.core.ui.page.component.Menu {
 
         public SelenideElement memberTab() {
             return $x(getTabXpath("Members"));
@@ -72,7 +72,7 @@ public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, Com
         }
     }
 
-    public static class SubMenu extends org.niis.xroad.common.test.ui.page.component.SubMenu {
+    public static class SubMenu extends org.niis.xroad.test.framework.core.ui.page.component.SubMenu {
         public SelenideElement globalResourcesTab() {
             return $x("//*[@data-test='globalresources-tab-button']");
         }

@@ -49,14 +49,12 @@ import org.niis.xroad.cs.test.api.FeignTokensApi;
 import org.niis.xroad.cs.test.api.FeignTrustedAnchorsApi;
 import org.niis.xroad.test.framework.core.feign.FeignFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import static org.niis.xroad.cs.test.IntTestContainerSetup.CS;
 import static org.niis.xroad.cs.test.IntTestContainerSetup.Port.UI;
 
 @Configuration
-@ComponentScan("org.niis.xroad.cs.test")
 @RequiredArgsConstructor
 public class IntTestConfiguration {
     private final FeignFactory feignFactory;

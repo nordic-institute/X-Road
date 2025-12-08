@@ -5,13 +5,23 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":central-server:openapi-model"))
-  intTestImplementation(project(":common:common-int-test"))
-  intTestImplementation(libs.bundles.testAutomation)
+  intTestImplementation(project(":tool:test-framework-core"))
+
   intTestImplementation(libs.bouncyCastle.bcpkix)
-  intTestImplementation(libs.awaitility)
 }
 
-tasks.register<Test>("systemTest") {
+intTestComposeEnv {
+  images(
+    "CS_IMG" to "central-server-dev"
+  )
+}
+
+intTestShadowJar {
+  archiveBaseName("central-server-system-test")
+  mainClass("org.niis.xroad.cs.test.ui.ConsoleIntTestRunner")
+}
+
+tasks.register<Test>("intTest") {
   useJUnitPlatform()
 
   description = "Runs integration tests."
@@ -20,29 +30,16 @@ tasks.register<Test>("systemTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  val systemTestArgs = mutableListOf<String>()
-
-  if (project.hasProperty("systemTestTags")) {
-    systemTestArgs += "-Dtest-automation.cucumber.filter.tags=${project.property("systemTestTags")}"
-  }
-  if (project.hasProperty("systemTestServeReport")) {
-    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("systemTestServeReport")}"
-  }
-  if (project.hasProperty("systemTestCentralServerUrl")) {
-    systemTestArgs += "-Dtest-automation.custom.central-server-url-override=${project.property("systemTestCentralServerUrl")}"
-  }
-  if (project.hasProperty("systemTestCsImageName")) {
-    systemTestArgs += "-Dtest-automation.custom.image-name=${project.property("systemTestCsImageName")}"
-  }
-
-  jvmArgs(systemTestArgs)
-
   testLogging {
     showStackTraces = true
     showExceptions = true
     showCauses = true
     showStandardStreams = true
   }
+}
+
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
 }
 
 archUnit {

@@ -35,6 +35,6 @@ public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
 
     @Override
     protected String getTestClassName() {
-        return IntTestRunner.class.getName();
+        return CsAdminIntTestRunner.class.getName();
     }
 }

@@ -28,95 +28,94 @@ package org.niis.xroad.ss.test.addons;
 
 import ee.ria.xroad.common.util.MimeTypes;
 
+import feign.Client;
 import feign.Contract;
 import feign.Feign;
 import feign.Logger;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import feign.hc5.ApacheHttp5Client;
 import feign.jackson.JacksonEncoder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
+import org.niis.xroad.ss.test.addons.api.FeignTestCaApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.niis.xroad.ss.test.ui.container.Port;
-import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.niis.xroad.test.framework.core.feign.FeignFactory;
+import org.niis.xroad.test.framework.core.feign.FeignReportLogger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.PROXY;
 
 @Slf4j
 @Configuration
-@Import(FeignClientsConfiguration.class)
+@RequiredArgsConstructor
 public class SsAddonTestConfiguration {
+    private final FeignFactory feignFactory;
+    private final FeignReportLogger feignReportLogger;
+    private final SsSystemTestContainerSetup systemTestContainerSetup;
 
     @Bean
     public FeignXRoadSoapRequestsApi feignManagementRequestsApi(
             Decoder decoder,
-            EnvSetup envSetup,
+            Client client,
             Contract contract) {
+        var container = systemTestContainerSetup.getContainerMapping(PROXY, Port.PROXY_HTTP);
         return Feign.builder()
                 .logLevel(Logger.Level.FULL)
-                .client(new ApacheHttp5Client(HttpClients.createDefault()))
+                .client(client)
                 .encoder(new Encoder.Default())
                 .decoder(decoder)
+                .logger(feignReportLogger)
                 .requestInterceptor(requestTemplate -> requestTemplate
-                        .target(String.format("http://%s:%s".formatted(
-                                envSetup.getContainerMapping(EnvSetup.PROXY, Port.PROXY_HTTP).host(),
-                                envSetup.getContainerMapping(EnvSetup.PROXY, Port.PROXY_HTTP).port()
-                        )))
                         .header("Content-Type", MimeTypes.TEXT_XML_UTF8)
                         .header("x-hash-algorithm", "SHA-512")
                 )
                 .contract(contract)
-                .target(FeignXRoadSoapRequestsApi.class, "http://localhost");
+                .target(FeignXRoadSoapRequestsApi.class, "http://%s:%s".formatted(container.host(), container.port()));
     }
 
     @Bean
     public FeignXRoadRestRequestsApi feignXRoadRestRequestsApi(Decoder decoder,
-                                                               EnvSetup envSetup,
+                                                               Client client,
                                                                Contract contract) {
+        var container = systemTestContainerSetup.getContainerMapping(PROXY, Port.PROXY_HTTP);
         return Feign.builder()
                 .logLevel(Logger.Level.FULL)
-                .client(new ApacheHttp5Client(HttpClients.createDefault()))
+                .client(client)
                 .encoder(new JacksonEncoder())
                 .decoder(decoder)
+                .logger(feignReportLogger)
                 .requestInterceptor(requestTemplate -> {
-                    requestTemplate.target("http://%s:%s".formatted(
-                            envSetup.getContainerMapping(EnvSetup.PROXY, Port.PROXY_HTTP).host(),
-                            envSetup.getContainerMapping(EnvSetup.PROXY, Port.PROXY_HTTP).port()
-                    ));
                     requestTemplate.header("Content-Type", MimeTypes.JSON);
                 })
                 .contract(contract)
-                .target(FeignXRoadRestRequestsApi.class, "http://localhost");
+                .target(FeignXRoadRestRequestsApi.class, "http://%s:%s".formatted(container.host(), container.port()));
     }
 
     @Bean
     @SuppressWarnings("checkstyle:MagicNumber")
     public FeignHealthcheckApi feignHealthcheckApi(
             Decoder decoder,
-            EnvSetup envSetup,
+            Client client,
             Contract contract) {
+        var container = systemTestContainerSetup.getContainerMapping(PROXY, Port.PROXY_HEALTHCHECK);
         return Feign.builder()
                 .logLevel(Logger.Level.FULL)
-                .client(new ApacheHttp5Client(HttpClients.createDefault()))
+                .client(client)
                 .encoder(new Encoder.Default())
                 .decoder(decoder)
-                .requestInterceptor(requestTemplate -> requestTemplate
-                        .target("http://%s:%d".formatted(
-                                envSetup.getContainerMapping(EnvSetup.PROXY, Port.PROXY_HEALTHCHECK).host(),
-                                envSetup.getContainerMapping(EnvSetup.PROXY, Port.PROXY_HEALTHCHECK).port())))
                 .contract(contract)
-                .target(FeignHealthcheckApi.class, "http://localhost");
+                .logger(feignReportLogger)
+                .target(FeignHealthcheckApi.class, "http://%s:%d".formatted(container.host(), container.port()));
     }
 
     @Bean
-    TestCaFeignInterceptor testCaFeignInterceptor(EnvSetup envSetup) {
-        return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(EnvSetup.TESTCA, Port.TEST_CA).port());
+    public FeignTestCaApi testCaFeignApi() {
+        var caContainer = systemTestContainerSetup.getContainerMapping(SsSystemTestContainerSetup.TESTCA, Port.TEST_CA);
+        return feignFactory.createClient(FeignTestCaApi.class, "http://%s:%d/testca".formatted(caContainer.host(), caContainer.port()));
     }
-
 }

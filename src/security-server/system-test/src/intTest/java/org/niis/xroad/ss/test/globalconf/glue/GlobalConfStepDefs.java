@@ -29,7 +29,7 @@ package org.niis.xroad.ss.test.globalconf.glue;
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.utility.MountableFile;
 
@@ -41,13 +41,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GlobalConfStepDefs {
 
     @Autowired
-    private EnvSetup envSetup;
+    private SsSystemTestContainerSetup containerSetup;
 
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("Central Server's global conf is updated by a new active signing key")
     public void centralServersGlobalConfSignKeysAreRotated() {
         var newGlobalConfFiles = MountableFile.forClasspathResource("files/global_conf_signed_with_rotated_keys");
-        envSetup.copyFilesToContainer(EnvSetup.NGINX, newGlobalConfFiles, "/var/lib/xroad/public");
+        containerSetup.copyFilesToContainer(SsSystemTestContainerSetup.NGINX, newGlobalConfFiles, "/var/lib/xroad/public");
 
         // As Security server polls for global conf every 3 secs, ensure that SS has the new global conf loaded
         Selenide.sleep(5000);
@@ -56,8 +56,9 @@ public class GlobalConfStepDefs {
     @Step("Security Server's global conf expiration date is equal to {}")
     public void securityServersGlobalConfExpirationDateIsEqualTo(String expectedExpirationDateTime)
             throws IOException {
-        String metadataJson = envSetup
-                .execInContainer(EnvSetup.CONFIGURATION_CLIENT, "cat", "/etc/xroad/globalconf/DEV/shared-params.xml.metadata").getStdout();
+        String metadataJson = containerSetup
+                .execInContainer(SsSystemTestContainerSetup.CONFIGURATION_CLIENT, "cat",
+                        "/etc/xroad/globalconf/DEV/shared-params.xml.metadata").getStdout();
         var metadata = ConfigurationPartMetadata.read(new ByteArrayInputStream(metadataJson.getBytes()));
         assertThat(metadata.getExpirationDate()).isEqualTo(expectedExpirationDateTime);
     }
