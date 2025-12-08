@@ -30,6 +30,8 @@ spec:
   backoffLimit: 3
   template:
     spec:
+      securityContext:
+        {{- toYaml .root.Values.securityContext.pod | nindent 8 }}
       {{- with .root.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- range . }}
@@ -38,8 +40,10 @@ spec:
       {{- end }}
       containers:
         - name: {{ $name }}-db-init
-          image: {{ $config.image }}
-          imagePullPolicy: {{ $config.imagePullPolicy }}
+          image: {{ .root.Values.global.image.registry }}/{{ .config.imageName }}:{{ .root.Values.global.image.tag }}
+          imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .root.Values.init.securityContext | nindent 12 }}
           resources:
             requests:
               memory: "128Mi"
@@ -69,11 +73,22 @@ spec:
                   name: {{ $name }}-db-init-secret
                   key: proxy_ui_superuser_password
             {{- end }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
       initContainers:
         - name: check-db-ready
           image: "postgres:17"
+          securityContext:
+            {{- toYaml .root.Values.securityContext.container | nindent 12 }}
           command: ['sh', '-c',
                     'until pg_isready -h {{ $config.host }} -p {{ $config.port }}; do echo waiting for database; sleep 1; done;']
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
       restartPolicy: Never
 {{- end }}
 
