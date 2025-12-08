@@ -25,48 +25,46 @@
  */
 package org.niis.xroad.cs.test.ui.api.configuration;
 
-import com.nortal.test.core.services.ScenarioContext;
-import com.nortal.test.feign.interceptor.FeignClientInterceptor;
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
 import lombok.RequiredArgsConstructor;
-import okhttp3.Interceptor;
-import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.cs.test.ui.glue.CommonStepDefs;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import java.util.Collection;
 import java.util.Optional;
 
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.TOKEN_TYPE;
 
+
 @Component
 @RequiredArgsConstructor
-public class AuthenticationFeignClientInterceptor implements FeignClientInterceptor {
-    private static final int EXECUTION_ORDER = 50;
+public class AuthenticationFeignClientInterceptor implements RequestInterceptor {
 
     private final ObjectProvider<ScenarioContext> scenarioContextProvider;
 
     @Override
-    public int getOrder() {
-        return EXECUTION_ORDER;
-    }
-
-    @NotNull
-    @Override
-    public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
-        if (StringUtils.isNotBlank(chain.request().header(HttpHeaders.AUTHORIZATION))) {
-            return chain.proceed(chain.request());
+    public void apply(RequestTemplate template) {
+        // Skip if Authorization header is already set
+        Collection<String> authHeaders = template.headers().get(HttpHeaders.AUTHORIZATION);
+        if (authHeaders != null && !authHeaders.isEmpty()) {
+            String existingAuth = authHeaders.iterator().next();
+            if (StringUtils.isNotBlank(existingAuth)) {
+                return;
+            }
         }
+
+        // Skip if no token is configured for the scenario
         if (!isTokenConfiguredForScenario()) {
-            return chain.proceed(chain.request());
+            return;
         }
 
-        var request = chain.request().newBuilder()
-                .addHeader(HttpHeaders.AUTHORIZATION, getToken());
-        return chain.proceed(request.build());
+        // Add the Authorization header
+        template.header(HttpHeaders.AUTHORIZATION, getToken());
     }
 
     private boolean isTokenConfiguredForScenario() {

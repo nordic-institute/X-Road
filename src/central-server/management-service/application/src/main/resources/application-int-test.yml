@@ -3,6 +3,17 @@ server:
   ssl:
     enabled: false
 
+spring:
+  cloud:
+    vault:
+      enabled: false
+
+xroad:
+  common-rpc:
+    use-tls: false
+  management-service:
+    api-base-url: http://mock-server:1080
+
 logging:
   level:
     ROOT: INFO

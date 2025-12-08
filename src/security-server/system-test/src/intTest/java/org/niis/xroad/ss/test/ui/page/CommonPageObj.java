@@ -25,13 +25,13 @@
 package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.page.AbstractCommonPageObj;
+import org.niis.xroad.test.framework.core.ui.page.AbstractCommonPageObj;
 
 import static com.codeborne.selenide.Selenide.$x;
 
 public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, CommonPageObj.SubMenu> {
 
-    public static class Menu extends org.niis.xroad.common.test.ui.page.component.Menu {
+    public static class Menu extends org.niis.xroad.test.framework.core.ui.page.component.Menu {
         public SelenideElement clientsTab() {
             return $x(getTabXpath("Clients"));
         }
@@ -49,7 +49,7 @@ public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, Com
         }
     }
 
-    public static class SubMenu extends org.niis.xroad.common.test.ui.page.component.SubMenu {
+    public static class SubMenu extends org.niis.xroad.test.framework.core.ui.page.component.SubMenu {
         public SelenideElement backupAndRestoresTab() {
             return $x("//*[@data-test='backup-and-restore-tab-button']");
         }

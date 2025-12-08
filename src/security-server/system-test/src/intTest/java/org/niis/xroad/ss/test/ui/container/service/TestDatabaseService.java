@@ -30,7 +30,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,12 +47,12 @@ public class TestDatabaseService implements DisposableBean {
     private NamedParameterJdbcTemplate serverconfNamedParameterJdbcTemplate;
 
     @Autowired
-    private EnvSetup envSetup;
+    private SsSystemTestContainerSetup systemTestContainerSetup;
 
     @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate() {
         if (messagelogNamedParameterJdbcTemplate == null) {
-            messagelogDataSource = createDataSource(EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog");
+            messagelogDataSource = createDataSource(SsSystemTestContainerSetup.DB_MESSAGELOG, "messagelog", "messagelog");
             messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(messagelogDataSource);
         }
         return messagelogNamedParameterJdbcTemplate;
@@ -61,7 +61,7 @@ public class TestDatabaseService implements DisposableBean {
     @SneakyThrows
     public NamedParameterJdbcTemplate getServerconfTemplate() {
         if (serverconfNamedParameterJdbcTemplate == null) {
-            serverconfDataSource = createDataSource(EnvSetup.DB_SERVERCONF, "serverconf", "serverconf");
+            serverconfDataSource = createDataSource(SsSystemTestContainerSetup.DB_SERVERCONF, "serverconf", "serverconf");
             serverconfNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(serverconfDataSource);
         }
         return serverconfNamedParameterJdbcTemplate;
@@ -79,7 +79,7 @@ public class TestDatabaseService implements DisposableBean {
     }
 
     private String getJdbcUrl(String service, String database) {
-        var mapping = envSetup.getContainerMapping(service, Port.DB);
+        var mapping = systemTestContainerSetup.getContainerMapping(service, Port.DB);
         return String.format("jdbc:postgresql://%s:%d/%s",
                 mapping.host(),
                 mapping.port(),
@@ -87,7 +87,7 @@ public class TestDatabaseService implements DisposableBean {
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         if (messagelogDataSource != null) {
             messagelogDataSource.close();
         }

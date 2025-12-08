@@ -31,9 +31,9 @@ import org.niis.xroad.ss.test.ui.page.ClientPageObj;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.value;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientSubsystemStepDefs extends BaseUiStepDefs {
     private final ClientPageObj clientPageObj = new ClientPageObj();

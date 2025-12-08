@@ -27,53 +27,52 @@
 
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.codeborne.selenide.Selenide;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.core.ThrowingRunnable;
-import org.niis.xroad.common.test.glue.BaseStepDefs;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.niis.xroad.ss.test.ui.glue.BaseUiStepDefs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.testcontainers.shaded.org.awaitility.core.ThrowingRunnable;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.given;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @Slf4j
-@SuppressWarnings("checkstyle:MagicNumber")
-public class ProxyHealthcheckStepDefs extends BaseStepDefs {
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:SneakyThrowsCheck"})
+public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
 
     @Autowired
-    private EnvSetup envSetup;
+    private SsSystemTestContainerSetup systemTestContainerSetup;
 
     @Autowired
     private FeignHealthcheckApi healthcheckApi;
 
+    @SneakyThrows
     @Step("^service \"(.*)\" is \"(stopped|started|restarted)\"$")
     public void stopService(String service, String state) {
         switch (state) {
             case "restarted":
-                envSetup.restartContainer(service);
+                systemTestContainerSetup.restartContainer(service);
                 break;
             case "stopped":
-                envSetup.stop(service);
+                systemTestContainerSetup.stop(service);
                 break;
             case "started":
-                envSetup.start(service, true);
+                systemTestContainerSetup.start(service, true);
                 break;
             default:
                 throw new IllegalStateException("unexpected state: " + state);
         }
+        log.info("Grace period after service {} {}", service, state);
+        Selenide.sleep(5000);
     }
 
     @Step("healthcheck has no errors")
@@ -81,9 +80,10 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
         assertWithWait(() -> {
             log.info("Polling for HealthCheck update..");
             try {
-                ResponseEntity<String> result = healthcheckApi.getHealthcheck();
+                var result = healthcheckApi.getHealthcheck();
                 assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-                log.info("HS had no error. {}. Body {}", result.getStatusCode(), result.getBody());
+                log.info("HS had no error. {}. Body {}", result.getStatusCode(),
+                        result.getBody().getContentAsString(UTF_8));
             } catch (FeignException e) {
                 throw new AssertionError("Healthcheck is in error state: " + e.contentUTF8());
             }
@@ -118,28 +118,13 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
     }
 
     @Step("HSM health check is enabled on proxy")
-    public void hsmHealthCheckIsEnabled() throws IOException {
-        setConfigValue("build/resources/intTest/container-files/etc/xroad/conf.d/local.yaml",
-                "xroad.proxy.hsm-health-check-enabled", true);
+    public void hsmHealthCheckIsEnabled() {
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "true", null);
     }
 
     @Step("HSM health check is disabled on proxy")
-    public void hsmHealthCheckIsDisabled() throws IOException {
-        setConfigValue("build/resources/intTest/container-files/etc/xroad/conf.d/local.yaml",
-                "xroad.proxy.hsm-health-check-enabled", false);
+    public void hsmHealthCheckIsDisabled() {
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "false", null);
     }
 
-    public static void setConfigValue(String fileName, String key, Object value) throws IOException {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-
-        Map<String, Object> data = mapper.readValue(new File(fileName), Map.class);
-
-        String[] keys = key.split("\\.");
-        Map<String, Object> current = data;
-        for (int i = 0; i < keys.length - 1; i++) {
-            current = (Map<String, Object>) current.computeIfAbsent(keys[i], k -> new HashMap<>());
-        }
-        current.put(keys[keys.length - 1], value);
-        mapper.writeValue(new File(fileName), data);
-    }
 }

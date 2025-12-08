@@ -26,10 +26,10 @@
 
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.nortal.test.asserts.Assertion;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.ui.container.service.TestDatabaseService;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
@@ -84,9 +84,9 @@ public class MessagelogStepDefs extends BaseStepDefs {
 
     @Step("verification configuration can be downloaded")
     public void downloadVerificationConfiguration() throws Exception {
-        byte[] response = feignXRoadRestRequestsApi.getVerificationConf();
+        var response = feignXRoadRestRequestsApi.getVerificationConf();
 
-        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(response))) {
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(response.getBody().getContentAsByteArray()))) {
             ZipEntry entry = zip.getNextEntry();
             assertContentName("verificationconf/DEV/shared-params.xml", entry.getName());
 

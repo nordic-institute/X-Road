@@ -26,16 +26,44 @@
  */
 package org.niis.xroad.signer.test.container;
 
-import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
+import org.niis.xroad.signer.test.SignerIntTestContainerSetup;
+import org.niis.xroad.test.framework.core.feign.FeignFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 @Configuration
 public class SignerIntTestConfiguration {
     @Bean
-    TestCaFeignInterceptor testCaFeignInterceptor(SignerIntTestSetup envSetup) {
-        return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(SignerIntTestSetup.TESTCA,
-                SignerIntTestSetup.Port.TEST_CA).port());
+    public FeignTestCaApi testCaFeignApi(SignerIntTestContainerSetup containerSetup, FeignFactory feignFactory) {
+        var caContainer = containerSetup.getContainerMapping(SignerIntTestContainerSetup.TESTCA, SignerIntTestContainerSetup.Port.TEST_CA);
+        return feignFactory.createClient(FeignTestCaApi.class, "http://%s:%d/testca".formatted(
+                caContainer.host(),
+                caContainer.port()));
+    }
+
+    public interface FeignTestCaApi {
+
+        @PostMapping(value = "/sign", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        ResponseEntity<Resource> signCert(
+                @RequestPart("certreq") MultipartFile certReq,
+                @RequestParam("type") CsrType type
+        );
+
+        enum CsrType {
+            SIGN, AUTH, AUTO;
+
+            @Override
+            public String toString() {
+                return name().toLowerCase();
+            }
+        }
     }
 
 }

@@ -28,7 +28,7 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,8 +39,8 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
-import static org.niis.xroad.ss.test.ui.container.EnvSetup.DB_SERVERCONF_INIT;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DB_SERVERCONF_INIT;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
@@ -50,7 +50,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     private String createdBackupName;
 
     @Autowired
-    private EnvSetup envSetup;
+    private SsSystemTestContainerSetup systemTestContainerSetup;
 
     @Step("Configuration backup is created")
     public void configurationBackupIsCreated() {
@@ -74,7 +74,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
 
         //rerun serverconf-inidb container
-        envSetup.start(DB_SERVERCONF_INIT, false);
+        systemTestContainerSetup.start(DB_SERVERCONF_INIT, false);
 
         Selenide.sleep(4000); // wait for the global conf reload (every 3s)
     }

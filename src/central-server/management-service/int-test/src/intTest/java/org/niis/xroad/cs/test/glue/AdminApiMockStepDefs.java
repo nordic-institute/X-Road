@@ -28,8 +28,6 @@ package org.niis.xroad.cs.test.glue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.AssertionOperation;
 import io.cucumber.java.en.Step;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.RequestDefinition;
@@ -46,6 +44,9 @@ import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
+import org.niis.xroad.cs.test.IntTestComposeSetup;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.AssertionOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -55,11 +56,14 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.APPLICATION_JSON;
 import static org.niis.xroad.cs.test.constants.CommonTestData.API_KEY_HEADER_PREFIX;
-import static org.niis.xroad.cs.test.constants.CommonTestData.API_KEY_TOKEN_WITH_ALL_ROLES;
 
 public class AdminApiMockStepDefs extends BaseStepDefs {
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private IntTestComposeSetup composeSetup;
+
+    private String apiToken;
 
     private static final String MOCK_RESPONSE_ID = "MANAGEMENT-REQUESTS-MOCK";
 
@@ -81,7 +85,7 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
         response.setId(id);
         response.setType(type);
 
-        mockServerClient
+        mockServerClient.client()
                 .when(getManagementRequestsDefinition())
                 .withId(MOCK_RESPONSE_ID)
                 .respond(response()
@@ -92,7 +96,7 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
 
     @Step("Admin api has not received any request")
     public void adminApiValidateNoInteraction() {
-        mockServerClient.verifyZeroInteractions();
+        mockServerClient.client().verifyZeroInteractions();
     }
 
     @Step("Admin api has received following request")
@@ -100,7 +104,7 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
         cucumberScenarioProvider.getCucumberScenario()
                 .attach(expectedRequest, MediaType.APPLICATION_JSON_VALUE, "Expected json");
 
-        HttpRequest[] httpRequests = mockServerClient.retrieveRecordedRequests(getManagementRequestsDefinition());
+        HttpRequest[] httpRequests = mockServerClient.client().retrieveRecordedRequests(getManagementRequestsDefinition());
 
         var actualBody = httpRequests[0].getBody().getValue();
         validate(httpRequests)
@@ -120,7 +124,7 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
 
     @Step("Admin api has received following auth cert deletion request")
     public void adminApiValidateAuthCertDeletionMock(String expectedRequest) throws JsonProcessingException {
-        HttpRequest[] httpRequests = mockServerClient.retrieveRecordedRequests(getManagementRequestsDefinition());
+        HttpRequest[] httpRequests = mockServerClient.client().retrieveRecordedRequests(getManagementRequestsDefinition());
 
         var actualBody = httpRequests[0].getBody().getValue();
         validate(httpRequests)
@@ -159,7 +163,16 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
     private RequestDefinition getManagementRequestsDefinition() {
         return request()
                 .withMethod(POST.name())
-                .withHeader(HttpHeaders.AUTHORIZATION, API_KEY_HEADER_PREFIX + API_KEY_TOKEN_WITH_ALL_ROLES)
+                .withHeader(HttpHeaders.AUTHORIZATION, API_KEY_HEADER_PREFIX + getApiToken())
                 .withPath("/management-requests");
+    }
+
+    public String getApiToken() {
+        if (apiToken == null) {
+            var result = composeSetup.execInContainer(IntTestComposeSetup.CS,
+                    "crudini", "--get", "/etc/xroad/conf.d/local.ini", "management-service", "api-token");
+            apiToken = result.getStdout().trim();
+        }
+        return apiToken;
     }
 }

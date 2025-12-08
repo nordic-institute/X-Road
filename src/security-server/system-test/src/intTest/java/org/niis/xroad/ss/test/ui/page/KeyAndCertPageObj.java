@@ -29,7 +29,7 @@ package org.niis.xroad.ss.test.ui.page;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.test.ui.page.component.Dialog;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;

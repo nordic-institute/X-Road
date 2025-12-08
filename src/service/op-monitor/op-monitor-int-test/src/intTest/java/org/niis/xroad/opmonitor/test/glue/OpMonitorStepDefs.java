@@ -30,12 +30,12 @@ package org.niis.xroad.opmonitor.test.glue;
 import io.cucumber.java.en.Step;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorClientHolder;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.ServiceIdConverter;
+import org.niis.xroad.test.framework.core.report.TestReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -45,12 +45,14 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
-public class OpMonitorStepDefs extends BaseStepDefs {
-
+public class OpMonitorStepDefs {
+    private static final String INTERVALS_KEY = "operational-data-intervals";
     @Autowired
-    protected OpMonitorClientHolder clientHolder;
+    private OpMonitorClientHolder clientHolder;
+    @Autowired
+    private TestReportService testReportService;
 
-    protected OpMonitorClient opMonitorClient;
+    private OpMonitorClient opMonitorClient;
 
 
     List<OperationalDataInterval> operationalDataIntervals;
@@ -68,6 +70,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         Long from = now.minus(windowsInHours, ChronoUnit.HOURS).toEpochMilli();
         Long to = now.toEpochMilli();
         operationalDataIntervals = opMonitorClient.getOperationalDataIntervals(from, to, interval, null, null, null);
+        testReportService.attachJson(INTERVALS_KEY, operationalDataIntervals);
     }
 
     @Step("user asks for traffic data of last hour in {int} minute intervals where security server was {string}")
@@ -76,6 +79,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         Long from = now.minus(1, ChronoUnit.HOURS).toEpochMilli();
         Long to = now.toEpochMilli();
         operationalDataIntervals = opMonitorClient.getOperationalDataIntervals(from, to, interval, securityServerType, null, null);
+        testReportService.attachJson(INTERVALS_KEY, operationalDataIntervals);
     }
 
     @Step("user asks for traffic data of last hour in {int} minute intervals where one of the participants was {string}")
@@ -85,6 +89,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         Long to = now.toEpochMilli();
         operationalDataIntervals = opMonitorClient.getOperationalDataIntervals(from, to, interval, null,
                 new ClientIdConverter().convertId(memberId), null);
+        testReportService.attachJson(INTERVALS_KEY, operationalDataIntervals);
     }
 
     @Step("user asks for traffic data of last hour in {int} minute intervals where requested service was {string}")
@@ -94,6 +99,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         Long to = now.toEpochMilli();
         operationalDataIntervals = opMonitorClient.getOperationalDataIntervals(from, to, interval, null, null,
                 new ServiceIdConverter().convertId(serviceId));
+        testReportService.attachJson(INTERVALS_KEY, operationalDataIntervals);
     }
 
     @When("user asks for traffic data of last two hour in {int} minute intervals where {string} was {string}")
@@ -107,6 +113,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                 securityServerType,
                 new ClientIdConverter().convertId(memberId),
                 null);
+        testReportService.attachJson(INTERVALS_KEY, operationalDataIntervals);
     }
 
     @When("user asks for traffic data of last two hour in {int} minute intervals where one of the participants was {string} and requested"
@@ -121,6 +128,8 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                 null,
                 new ClientIdConverter().convertId(memberId),
                 new ServiceIdConverter().convertId(serviceId));
+
+        testReportService.attachJson(INTERVALS_KEY, operationalDataIntervals);
     }
 
     @Step("the query returns {int} successful requests and {int} failed requests")
