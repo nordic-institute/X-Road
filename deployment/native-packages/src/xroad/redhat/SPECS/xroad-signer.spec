@@ -42,7 +42,7 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib/signer-console
 mkdir -p %{buildroot}/usr/share/xroad/lib
 mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/services
-mkdir -p %{buildroot}/etc/xroad/conf.d/addons
+mkdir -p %{buildroot}/etc/xroad/conf.d
 mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/etc/xroad/signer
 mkdir -p %{buildroot}/etc/xroad/backup.d
@@ -74,7 +74,6 @@ rm -rf %{buildroot}
 %attr(0750,xroad,xroad) %dir /etc/xroad/signer
 %dir /etc/xroad/services
 %dir /etc/xroad/conf.d
-%dir /etc/xroad/conf.d/addons
 %config /etc/xroad/services/signer.conf
 %config /etc/xroad/services/signer-console.conf
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-signer
@@ -113,13 +112,8 @@ mkdir -p /var/tmp/xroad
 chmod 1750 /var/tmp/xroad
 chown xroad:xroad /var/tmp/xroad
 
-#local overrides
-test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
-test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
-
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
-
 
 
 %systemd_post xroad-signer.service

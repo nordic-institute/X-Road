@@ -49,7 +49,7 @@ public interface SoftwarePinHasherProperties {
      * @return number of iterations (default: 3)
      */
     @WithName("iterations")
-    @WithDefault("3")
+    @WithDefault("4")
     int iterations();
 
     /**
@@ -62,7 +62,7 @@ public interface SoftwarePinHasherProperties {
      * @return memory usage in kilobytes (default: 12)
      */
     @WithName("memory-kb")
-    @WithDefault("12")
+    @WithDefault("19456")
     int memoryKb();
 
     /**

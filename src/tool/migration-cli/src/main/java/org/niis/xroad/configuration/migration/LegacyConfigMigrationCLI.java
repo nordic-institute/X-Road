@@ -28,8 +28,10 @@ package org.niis.xroad.configuration.migration;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.migration.signer.KeyConfMigrator;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -47,6 +49,7 @@ public class LegacyConfigMigrationCLI {
         CONFIG("config", "Migrate configuration files (INI/properties to DB)"),
         PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
+        KEYCONF("keyconf", "Migrate signer key configuration to DB"),
         HELP("help", "Show this help message");
 
         private final String name;
@@ -62,6 +65,7 @@ public class LegacyConfigMigrationCLI {
                 case "config" -> CONFIG;
                 case "pgp-keys" -> PGP_KEYS;
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
+                case "keyconf" -> KEYCONF;
                 case "help", "-h", "--help" -> HELP;
                 default -> null;
             };
@@ -86,6 +90,7 @@ public class LegacyConfigMigrationCLI {
                 case CONFIG -> migrateConfiguration(shiftArgs(args));
                 case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
+                case KEYCONF -> migrateKeyConf(shiftArgs(args));
                 default -> showHelp();
             }
         } catch (Exception e) {
@@ -113,6 +118,7 @@ public class LegacyConfigMigrationCLI {
                   config                         Migrate configuration files (INI/properties to DB)
                   pgp-keys                       Migrate PGP keys from GPG to Vault
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
+                  keyconf                        Migrate signer key configuration to DB
                   help                           Show this help message
 
                 Configuration Migration:
@@ -131,10 +137,18 @@ public class LegacyConfigMigrationCLI {
                       <password>      Keystore password
                       <key-id>        Key alias/ID to migrate (from messagelog-key-id config)
 
+                Signer keyconf migration:
+                  migration-cli keyconf <keyconf path> <db.properties path>
+                  Migrate signer key configuration from keyconf.xml and keys files to database.
+                  Arguments:
+                    <keyconf path>       Path to directory containing keyconf.xml and softtoken keys
+                    <db.properties path> Path to database properties file (serverconf)
+
                 Examples:
                   migration-cli config /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/local.yaml
                   migration-cli pgp-keys /etc/xroad/conf.d/local.ini
                   migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
+                  migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                 """);
     }
 
@@ -213,6 +227,35 @@ public class LegacyConfigMigrationCLI {
         // );
         // log.info("Migration result: {}", result);
         // log.info("Key stored in Vault");
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static void migrateKeyConf(String[] args) {
+        if (args.length != 2) {
+            log.error("Signer keyconf migration requires 2 arguments");
+            log.error("Usage: migration-cli keyconf <keyconf path> <db.properties path>");
+            log.error("  <keyconf path>       Path to directory containing keyconf.xml and softtoken keys");
+            log.error("  <db.properties path> Path to database properties file (serverconf)");
+            System.exit(1);
+        }
+
+        String keyconfDir = args[0];
+        String dbPropertiesPath = args[1];
+
+        validateFilePath(dbPropertiesPath, "database properties");
+        Path keyconfPath = Paths.get(keyconfDir);
+        if (!(keyconfPath.toFile().exists() && keyconfPath.toFile().isDirectory())) {
+            log.error("Keyconf directory does not exist: {}", keyconfDir);
+            System.exit(1);
+        }
+
+        KeyConfMigrator keyConfMigrator = new KeyConfMigrator();
+        try {
+            keyConfMigrator.migrate(keyconfDir, dbPropertiesPath);
+        } catch (Exception e) {
+            log.error("Error while migrating Signer keyconf", e);
+        }
+
     }
 
     private static void migrateConfiguration(String[] args) {

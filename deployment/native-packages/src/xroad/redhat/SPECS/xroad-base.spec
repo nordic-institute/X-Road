@@ -113,29 +113,6 @@ if ! getent passwd xroad > /dev/null; then
 useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
 fi
 
-if [ $1 -gt 1 ] ; then
-    # upgrade
-    if ! grep -q '\s*JAVA_HOME=' /etc/xroad/services/local.conf; then
-      #6.26.0 migrate "JAVA_HOME" to local.conf
-      java_home=$(grep '^JAVA_HOME=' /etc/xroad/services/global.conf);
-      if [ -n "$java_home" ]; then
-        echo "$java_home" >>/etc/xroad/services/local.conf
-      fi
-    fi
-
-    # 7.4.0 remove JAVA_HOME from local.conf if it points to java < 17
-    if [ -f /etc/xroad/services/local.conf ]; then
-      java_home=$(grep -oP '^\s*JAVA_HOME=\K(.*)' /etc/xroad/services/local.conf | tail -n 1)
-      if [ -n "$java_home" ]; then
-        java_version=$("$java_home"/bin/java -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)
-        if [[ $java_version -lt 17 ]]; then
-          sed -E -i 's/^(\s*JAVA_HOME=)/# \1/g' /etc/xroad/services/local.conf \
-                  && echo "Removed JAVA_HOME from /etc/xroad/services/local.conf" >&2 \
-                  || echo "Failed to remove JAVA_HOME from /etc/xroad/services/local.conf" >&2
-        fi
-      fi
-    fi
-fi
 
 %define set_default_java_version()                                                                                         \
   if [ $1 -ge 1 ] ; then                                                                                                \
@@ -200,7 +177,6 @@ chown xroad:xroad /var/tmp/xroad
 
 #local overrides
 test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties
-test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*

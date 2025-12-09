@@ -84,7 +84,7 @@ public class SignerKeyEntity extends AuditableEntity {
     private byte[] keyStore;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sign_mechanism_name")
+    @Column(name = "sign_mechanism_name", nullable = false)
     private SignMechanism signMechanismName;
 
     @Enumerated(EnumType.STRING)

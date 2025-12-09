@@ -42,7 +42,7 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib/configuration-client
 mkdir -p %{buildroot}/usr/share/xroad/lib
 mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/services
-mkdir -p %{buildroot}/etc/xroad/conf.d/addons
+mkdir -p %{buildroot}/etc/xroad/conf.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
 mkdir -p %{buildroot}/usr/share/xroad/bin
@@ -61,7 +61,6 @@ rm -rf %{buildroot}
 %dir /etc/xroad
 %dir /etc/xroad/services
 %dir /etc/xroad/conf.d
-%dir /etc/xroad/conf.d/addons
 %config /etc/xroad/services/confclient.conf
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-confclient
 
