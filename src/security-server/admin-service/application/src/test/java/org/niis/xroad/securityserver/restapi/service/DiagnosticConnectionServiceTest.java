@@ -356,40 +356,4 @@ class DiagnosticConnectionServiceTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Unsupported protocol type: null");
     }
-
-    private static String getMockSoapResponse() {
-        return """
-                <SOAP-ENV:Envelope
-                    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-                    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
-                    xmlns:id="http://x-road.eu/xsd/identifiers">
-                  <SOAP-ENV:Header>
-                    <xrd:client id:objectType="SUBSYSTEM">
-                      <id:xRoadInstance>DEV</id:xRoadInstance>
-                      <id:memberClass>COM</id:memberClass>
-                      <id:memberCode>4321</id:memberCode>
-                      <id:subsystemCode>SUBSYSTEM</id:subsystemCode>
-                    </xrd:client>
-                    <xrd:service id:objectType="SERVICE">
-                      <id:xRoadInstance>DEV</id:xRoadInstance>
-                      <id:memberClass>COM</id:memberClass>
-                      <id:memberCode>1234</id:memberCode>
-                      <id:subsystemCode>MANAGEMENT</id:subsystemCode>
-                      <id:serviceCode>listMethods</id:serviceCode>
-                    </xrd:service>
-                    <xrd:securityServer id:objectType="SERVER">
-                      <id:xRoadInstance>DEV</id:xRoadInstance>
-                      <id:memberClass>COM</id:memberClass>
-                      <id:memberCode>1234</id:memberCode>
-                      <id:serverCode>SS0</id:serverCode>
-                    </xrd:securityServer>
-                    <xrd:id>12345</xrd:id>
-                    <xrd:protocolVersion>4.0</xrd:protocolVersion>
-                  </SOAP-ENV:Header>
-                  <SOAP-ENV:Body>
-                    <xrd:listMethodsResponse/>
-                  </SOAP-ENV:Body>
-                </SOAP-ENV:Envelope>
-                """;
-    }
 }
