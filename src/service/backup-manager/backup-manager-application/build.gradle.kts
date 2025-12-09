@@ -15,7 +15,4 @@ dependencies {
   implementation(libs.postgresql)
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)
-
-  testImplementation(libs.quarkus.junit5)
-  testImplementation(project(":common:common-test"))
 }
