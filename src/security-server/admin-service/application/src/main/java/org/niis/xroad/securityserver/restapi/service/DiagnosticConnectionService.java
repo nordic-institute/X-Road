@@ -249,7 +249,7 @@ public class DiagnosticConnectionService {
                         SoapMessageImpl soapMessage = buildListMethodsSoapMessage(
                                 clientId, targetClientId, securityServerId);
 
-                        send(sender, new URI(adminServiceProperties.getManagementProxyServerUrl()), soapMessage);
+                        send(sender, new URI(adminServiceProperties.getProxyServerUrl()), soapMessage);
                     }
                 }
                 default -> throw new IllegalStateException("should not get here");
@@ -304,12 +304,12 @@ public class DiagnosticConnectionService {
 
         SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
 
-        int timeout = adminServiceProperties.getManagementProxyServerConnectTimeout();
+        int timeout = adminServiceProperties.getProxyServerConnectTimeout();
 
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(adminServiceProperties.getManagementProxyServerSocketTimeout())
+                .setSocketTimeout(adminServiceProperties.getProxyServerSocketTimeout())
                 .build();
 
         return HttpClients.custom()
@@ -320,9 +320,9 @@ public class DiagnosticConnectionService {
     }
 
     private HttpSender createSender(CloseableHttpClient client) {
-        HttpSender httpSender = new HttpSender(client, adminServiceProperties.isManagementProxyServerEnableConnectionReuse());
-        httpSender.setConnectionTimeout(adminServiceProperties.getManagementProxyServerConnectTimeout());
-        httpSender.setSocketTimeout(adminServiceProperties.getManagementProxyServerSocketTimeout());
+        HttpSender httpSender = new HttpSender(client, adminServiceProperties.isProxyServerEnableConnectionReuse());
+        httpSender.setConnectionTimeout(adminServiceProperties.getProxyServerConnectTimeout());
+        httpSender.setSocketTimeout(adminServiceProperties.getProxyServerSocketTimeout());
         return httpSender;
     }
 
@@ -341,7 +341,7 @@ public class DiagnosticConnectionService {
     }
 
     private HttpGet getRestHttpGet(ClientId clientId, ClientId targetClientId, SecurityServerId securityServerId) {
-        HttpGet request = new HttpGet(URI.create(adminServiceProperties.getManagementProxyServerUrl() + getRestPath(targetClientId)));
+        HttpGet request = new HttpGet(URI.create(adminServiceProperties.getProxyServerUrl() + getRestPath(targetClientId)));
         request.setProtocolVersion(org.apache.http.HttpVersion.HTTP_1_1);
         request.addHeader("accept", "application/json");
         request.addHeader(HEADER_SECURITY_SERVER, String.format("%s/%s/%s/%s",

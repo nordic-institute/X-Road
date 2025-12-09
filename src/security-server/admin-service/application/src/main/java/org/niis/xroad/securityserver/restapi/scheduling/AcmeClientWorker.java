@@ -388,11 +388,11 @@ public class AcmeClientWorker {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, adminServiceProperties.getManagementProxyServerUrl(),
+                signerSignClient, sender, receiver, adminServiceProperties.getProxyServerUrl(),
                 DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()),
-                adminServiceProperties.getManagementProxyServerConnectTimeout(),
-                adminServiceProperties.getManagementProxyServerSocketTimeout(),
-                adminServiceProperties.isManagementProxyServerEnableConnectionReuse());
+                adminServiceProperties.getProxyServerConnectTimeout(),
+                adminServiceProperties.getProxyServerSocketTimeout(),
+                adminServiceProperties.isProxyServerEnableConnectionReuse());
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws CertificateParsingException {
