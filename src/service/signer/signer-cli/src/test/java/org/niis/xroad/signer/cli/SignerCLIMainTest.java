@@ -30,10 +30,12 @@ import io.quarkus.test.junit.main.Launch;
 import io.quarkus.test.junit.main.QuarkusMainLauncher;
 import io.quarkus.test.junit.main.QuarkusMainTest;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusMainTest
+@ArchUnitSuppressed(value = "NoQuarkusTestAnnotations", reason = "CLI tests need QuarkusTest annotations to run")
 @TestProfile(SignerCLITestProfile.class)
 class SignerCLIMainTest {
 
