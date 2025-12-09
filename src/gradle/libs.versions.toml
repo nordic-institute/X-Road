@@ -31,7 +31,7 @@ protobufPlugin = "0.9.5"
 checkstyle = "11.0.1"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
-quarkus = "3.28.5"
+quarkus = "3.30.2"
 quarkus-vault = "4.4.0"
 quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.13.4"
@@ -250,7 +250,7 @@ openapi-generator = { id = "org.openapi.generator", version = "7.16.0" }
 sonarqube = { id = "org.sonarqube", version = "6.3.1.5724" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
-jandex = { id = "org.kordamp.gradle.jandex", version = "2.2.0" }
+jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadowPlugin" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }

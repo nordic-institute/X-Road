@@ -97,9 +97,7 @@ fi
 %post
 
 # create TLS certificate provisioning properties
-CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
-mkdir -p "$(dirname "$CONFIG_FILE")"
-[ ! -f "$CONFIG_FILE" ] && touch "$CONFIG_FILE"
+CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
 HOST=$(hostname -f)
 if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"

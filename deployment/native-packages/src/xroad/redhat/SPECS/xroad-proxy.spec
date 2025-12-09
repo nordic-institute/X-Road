@@ -156,24 +156,10 @@ if [ $1 -gt 1 ] ; then
     if [ ! -e /etc/sysconfig/xroad-proxy ]; then
         echo 'DISABLE_PORT_REDIRECT=false' >>/etc/sysconfig/xroad-proxy
     fi
-
-    prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
-
-    # Keep batch signatures enabled for upgrades from version < 8.0.0
-    if ! echo -e "8.0.0\n$prev_version" | sort -V -C; then
-        CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
-        if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.batch-signing-enabled') ]]; then
-            /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.batch-signing-enabled" "true"
-        fi
-    fi
-
-    rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
 fi
 
 # create TLS certificate provisioning properties
-CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
-mkdir -p "$(dirname "$CONFIG_FILE")"
-[ ! -f "$CONFIG_FILE" ] && touch "$CONFIG_FILE"
+CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
 HOST=$(hostname -f)
 if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"
@@ -209,9 +195,6 @@ mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
 %systemd_postun_with_restart xroad-proxy.service xroad-confclient.service rsyslog.service
 
 %posttrans -p /bin/bash
-# restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
-%systemd_try_restart nginx.service
-
 # RHEL8/9 java-21-* package makes java binaries available since %posttrans scriptlet
 %if 0%{?el8} || 0%{?el9}
 %execute_init_or_update_resources
