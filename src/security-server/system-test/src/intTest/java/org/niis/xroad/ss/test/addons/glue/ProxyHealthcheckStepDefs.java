@@ -119,12 +119,12 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
 
     @Step("HSM health check is enabled on proxy")
     public void hsmHealthCheckIsEnabled() {
-        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "true", null);
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "true", "proxy");
     }
 
     @Step("HSM health check is disabled on proxy")
     public void hsmHealthCheckIsDisabled() {
-        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "false", null);
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "false", "proxy");
     }
 
 }

@@ -30,7 +30,6 @@ X-Road monitoring component
 mkdir -p %{buildroot}%{jlib}
 mkdir -p %{buildroot}%{jlib}/monitor
 mkdir -p %{buildroot}%{_sysconfdir}
-mkdir -p %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/xroad/backup.d

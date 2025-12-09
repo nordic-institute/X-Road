@@ -18,10 +18,6 @@ dependencies {
   implementation(libs.bundles.quarkus.core)
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)
-
-  testImplementation(project(":common:common-db"))
-  testImplementation(libs.quarkus.junit5)
-  testImplementation(libs.hsqldb)
 }
 
 tasks.jar {

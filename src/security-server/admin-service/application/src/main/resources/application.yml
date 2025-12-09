@@ -36,6 +36,7 @@ spring:
     import:
       - classpath:/xroad-common.yaml
       - optional:file:/etc/xroad/db.properties
+      - optional:file:/etc/xroad/conf.d/local-tls.yaml
       - optional:file:/etc/xroad/conf.d/local.yaml
 
 # TLS

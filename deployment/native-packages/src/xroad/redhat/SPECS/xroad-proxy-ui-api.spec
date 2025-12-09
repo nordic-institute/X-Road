@@ -13,7 +13,6 @@ Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           iproute, hostname
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
-Obsoletes:          xroad-nginx, xroad-jetty9
 
 %define src %{_topdir}/..
 
@@ -66,7 +65,6 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
-/usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
 /usr/share/xroad/scripts/archive-http-transporter.sh
 /usr/share/doc/xroad/archive-server/demo-upload.pl
 
@@ -80,33 +78,17 @@ fi
 
 if [ "$1" -gt 1 ]; then
   rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
-
-  systemctl --quiet stop xroad-jetty.service >/dev/null 2>&1 || true
 fi
 
 %post
 %systemd_post xroad-proxy-ui-api.service
 
 if [ $1 -gt 1 ] ; then
-
-  prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
-
-  # disable strict-identifier-checks for upgrades from version < 7.3.0
-  if ! echo -e "7.3.0\n$prev_version" | sort -V -C; then
-      crudini --set /etc/xroad/conf.d/local.ini proxy-ui-api strict-identifier-checks false
-  fi
-
-  if ! echo -e "7.6.0\n$prev_version" | sort -V -C; then
-    /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
-  fi
-
   rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
 fi
 
 # create TLS certificate provisioning properties
-CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
-mkdir -p "$(dirname "$CONFIG_FILE")"
-[ ! -f "$CONFIG_FILE" ] && touch "$CONFIG_FILE"
+CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
 HOST=$(hostname -f)
 if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"

@@ -14,7 +14,6 @@ Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:   xroad-proxy = %version-%release, expect, systemd
-Obsoletes: aux-xroad-autologin < 1.4-1
 
 %description
 Optional utility that automatically enters the software token pin code on xroad-signer start
@@ -46,9 +45,6 @@ if systemctl is-active %{name} &> /dev/null; then
 fi
 
 %post
-if [[ "$1" -eq 1 && -e /etc/aux-xroad-autologin ]]; then
-    mv /etc/aux-xroad-autologin /etc/xroad/autologin
-fi
 
 %systemd_post xroad-autologin.service
 

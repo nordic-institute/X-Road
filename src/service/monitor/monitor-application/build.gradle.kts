@@ -13,8 +13,6 @@ dependencies {
   implementation(libs.quarkus.extension.systemd.notify)
 
   implementation(project(":service:monitor:monitor-core"))
-
-  testImplementation(libs.quarkus.junit5)
 }
 
 tasks.jar {
