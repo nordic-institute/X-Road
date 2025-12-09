@@ -48,7 +48,6 @@ handle_error_retry() {
 
 # setup database and run migrations
 setup_database() {
-    echo "XRD8 start DB"
     /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
 
     local db_properties=/etc/xroad/db.properties
@@ -151,7 +150,6 @@ setup_database() {
         fi
 
         db_password=$(gen_pw)
-        echo "XRD8 creating DB"
         echo "Creating database"
         psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
@@ -196,22 +194,19 @@ EOF
     if [ "$skip_migrations" = true ] ; then
       echo "skipping database migrations"
     else
-      echo "XRD8 migrate DB"
       /usr/share/xroad/db/migrate.sh || abort "Database migration failed. ABORTING."
     fi
-    echo "XRD8 end DB"
 }
 
 split_ip_dns() {
   local input="$1"
   local ip_list dns_list
-  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2- | paste -sd,)
+  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
   dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
   echo "$ip_list" "$dns_list"
 }
 
 prepare_certificates_settings() {
-  echo "XRD8 start TLS"
   CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
   HOST=$(hostname -f)
   if (( ${#HOST} > 64 )); then
@@ -221,9 +216,9 @@ prepare_certificates_settings() {
   for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
   ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
-  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name" 2>/dev/null) && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names" 2>/dev/null) && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names" 2>/dev/null) ]]; then
+  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
 
     log "Preparing center-admin-service certificate properties"
     db_subst xroad-common/admin-subject HOST "$HOST"
@@ -254,12 +249,12 @@ prepare_certificates_settings() {
     log "Center-admin-service certificate properties are set, skipping"
   fi
 
-  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name" 2>/dev/null) && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names" 2>/dev/null) && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names" 2>/dev/null) && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name" 2>/dev/null) && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names" 2>/dev/null) && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names" 2>/dev/null) ]]; then
+  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
 
     log "Preparing management and registration service certificate properties"
     db_subst xroad-common/service-subject HOST "$HOST"
@@ -293,7 +288,6 @@ prepare_certificates_settings() {
   else
     log "Management and registration service certificate properties are set, skipping"
   fi
-  echo "XRD8 end TLS"
 }
 
 
