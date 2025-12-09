@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.e2e;
 
-import com.nortal.test.testcontainers.TestableContainerInitializer;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
@@ -44,11 +42,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.awaitility.Awaitility.await;
-import static org.niis.xroad.e2e.container.EnvSetup.Feature.BATCH_SIGNATURES;
-import static org.niis.xroad.e2e.container.EnvSetup.Feature.HSM;
-import static org.niis.xroad.e2e.container.EnvSetup.Feature.MESSAGE_LOG_ENCRYPTION;
+import static org.niis.xroad.e2e.EnvSetup.Feature.BATCH_SIGNATURES;
+import static org.niis.xroad.e2e.EnvSetup.Feature.HSM;
+import static org.niis.xroad.e2e.EnvSetup.Feature.MESSAGE_LOG_ENCRYPTION;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @Slf4j
 @Component
@@ -87,7 +84,6 @@ public class EnvSetup extends BaseComposeSetup {
         envSs1 = createSSEnvironment("ss1", Set.of(HSM, MESSAGE_LOG_ENCRYPTION));
 
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
-
                 .withExposedService(CS, Port.UI, forListeningPort())
                 .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
                 .withEnv("PROXY_0", getContainerName(envSs0, PROXY))
@@ -125,7 +121,7 @@ public class EnvSetup extends BaseComposeSetup {
     }
 
     private ComposeContainer createSSEnvironment(String name, Set<Feature> features) {
-        var files = new ArrayList<>(List.of(new File(COMPOSE_SS_FILE), new File(COMPOSE_SS_E2E_FILE)));
+        var files = new ArrayList<>(List.of(getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE)));
 
         features.forEach(f -> files.add(getComposeFilePath(f.getComposeFile())));
 
@@ -235,8 +231,8 @@ public class EnvSetup extends BaseComposeSetup {
             this.composeFile = composeFile;
         }
 
-        File getComposeFile() {
-            return new File(composeFile);
+        String getComposeFile() {
+            return composeFile;
         }
     }
 }
