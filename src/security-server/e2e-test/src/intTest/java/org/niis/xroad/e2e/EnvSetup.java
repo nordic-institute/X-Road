@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.awaitility.Awaitility.await;
+import static org.niis.xroad.common.vault.VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH;
 import static org.niis.xroad.e2e.EnvSetup.Feature.BATCH_SIGNATURES;
 import static org.niis.xroad.e2e.EnvSetup.Feature.HSM;
 import static org.niis.xroad.e2e.EnvSetup.Feature.MESSAGE_LOG_ENCRYPTION;
@@ -152,7 +153,7 @@ public class EnvSetup extends BaseComposeSetup {
     @SneakyThrows
     private void importPublicKeysToBao(ComposeContainer env) {
         var container = env.getContainerByServiceName(OPENBAO).orElseThrow();
-        container.execInContainer("bao", "write", "xrd-secret/message-log/archival/pgp/public-keys",
+        container.execInContainer("bao", "write", "xrd-secret/" + MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH,
                 "payload=@/gpg-keys/public-keys.asc");
     }
 
