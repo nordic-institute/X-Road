@@ -129,7 +129,6 @@ xroad:
     certificate-allowed-content-types: application/x-x509-cert,text/plain
     backup-allowed-content-types: application/pgp-encrypted
     conf-backup-path: /var/lib/xroad/backup/
-    configuration-parts-path: ${xroad.common-root-conf-path}configuration-parts
     xml-allowed-extensions: xml
     xml-allowed-content-types: text/xml,application/xml
     strict-identifier-checks: true

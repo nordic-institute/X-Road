@@ -110,8 +110,6 @@ xroad:
     acme-certificate-wait-interval: 5
     acme-certificate-account-key-pair-expiration: 365
     acme-challenge-port: 80
-    acme-account-keystore-path: ${xroad.common-root-conf-path}ssl/acme.p12
-    acme-challenge-path: ${xroad.common-root-conf-path}acme-challenge/
     auth-cert-reg-signature-digest-algorithm-id: SHA-512
     key-management-api-whitelist: 127.0.0.0/8, ::1
     regular-api-whitelist: 0.0.0.0/0, ::/0

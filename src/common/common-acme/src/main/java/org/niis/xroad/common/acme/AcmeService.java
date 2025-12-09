@@ -61,7 +61,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -156,7 +155,7 @@ public final class AcmeService {
     public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
         try {
             Login login = getLogin(memberId, caInfo, keyUsage);
-            File acmeKeystoreFile = new File(acmeConfig.getAcmeAccountKeystorePath());
+            File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
             char[] storePassword = acmeProperties.getAccountKeystorePassword();
             KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
             String alias = getAlias(memberId, keyUsage, caInfo);
@@ -186,7 +185,7 @@ public final class AcmeService {
     private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo)
             throws GeneralSecurityException, IOException, OperatorCreationException {
         String alias = getAlias(memberId, keyUsage, caInfo);
-        File acmeKeystoreFile = new File(acmeConfig.getAcmeAccountKeystorePath());
+        File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
         KeyStore keyStore;
         char[] storePassword = acmeProperties.getAccountKeystorePassword();
         if (isEmpty(storePassword)) {
@@ -322,7 +321,7 @@ public final class AcmeService {
                         .orElseThrow(() -> new AcmeServiceException(HTTP_CHALLENGE_MISSING.build()));
                 String token = httpChallenge.getToken();
                 String content = httpChallenge.getAuthorization();
-                String acmeChallenge = acmeConfig.getAcmeChallengePath() + token;
+                var acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token);
                 try {
                     AtomicSave.execute(acmeChallenge, "tmp_challenge",
                             out -> out.write(content.getBytes(StandardCharsets.UTF_8)));
@@ -336,7 +335,7 @@ public final class AcmeService {
                 }
                 waitForTheChallengeToBeCompleted(httpChallenge);
                 try {
-                    Files.delete(Path.of(acmeChallenge));
+                    Files.delete(acmeChallenge);
                 } catch (IOException e) {
                     throw new AcmeServiceException(e, HTTP_CHALLENGE_FILE_DELETION.build());
                 }
