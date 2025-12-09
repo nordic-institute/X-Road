@@ -47,7 +47,7 @@ import static org.niis.xroad.signer.shared.SigningUtil.checkSignatureAlgorithm;
 
 @ApplicationScoped
 @RequiredArgsConstructor
-public class SoftwareTokenSigner {
+public class SignatureGenerator {
 
     private final KeyManagers keyManagers;
 

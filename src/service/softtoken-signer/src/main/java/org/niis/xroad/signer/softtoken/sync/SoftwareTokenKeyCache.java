@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,41 +23,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.softtoken.protocol;
+package org.niis.xroad.signer.softtoken.sync;
 
-import io.grpc.BindableService;
-import io.quarkus.arc.All;
-import io.quarkus.runtime.Startup;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.inject.Singleton;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.ManagedRpcServer;
-import org.niis.xroad.signer.softtoken.config.SoftwareTokenSignerRpcServerProperties;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
-@Startup
-@Singleton
-public class SoftwareTokenSignerRpcServer extends ManagedRpcServer {
+/**
+ * Thread-safe in-memory cache for synchronized software token keys.
+ * <p>
+ * This cache stores private keys and their metadata synchronized from the signer service.
+ * The entire cache is atomically replaced on each synchronization cycle to ensure consistency.
+ * <p>
+ * <strong>Concurrency Model:</strong>
+ * <ul>
+ *   <li>Read operations (during signing): Lock-free via volatile map reference</li>
+ *   <li>Write operations (during sync): Atomic map replacement, no read blocking</li>
+ *   <li>Thread safety: ConcurrentHashMap handles concurrent reads</li>
+ * </ul>
+ */
+@Slf4j
+@ApplicationScoped
+public class SoftwareTokenKeyCache {
 
-    public SoftwareTokenSignerRpcServer(@All List<BindableService> services,
-                           SoftwareTokenSignerRpcServerProperties rpcServerProperties,
-                           RpcCredentialsConfigurer rpcCredentialsConfigurer) {
-        super(services, rpcServerProperties, rpcCredentialsConfigurer);
+    private volatile Map<String, CachedKeyInfo> keys = new ConcurrentHashMap<>();
+
+    public void updateKeys(Map<String, CachedKeyInfo> newKeys) {
+        this.keys = new ConcurrentHashMap<>(newKeys);
+        log.info("Key cache updated with {} keys", newKeys.size());
     }
 
-    @Override
-    @PostConstruct
-    public void init() throws IOException {
-        super.init();
+    public Optional<CachedKeyInfo> getKey(String keyId) {
+        return Optional.ofNullable(keys.get(keyId));
     }
-
-    @Override
-    @PreDestroy
-    public void destroy() throws InterruptedException {
-        super.destroy();
-    }
-
 }

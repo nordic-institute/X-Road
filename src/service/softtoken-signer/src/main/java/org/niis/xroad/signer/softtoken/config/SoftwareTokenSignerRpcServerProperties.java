@@ -24,41 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.softtoken.protocol;
+package org.niis.xroad.signer.softtoken.config;
 
-import io.grpc.BindableService;
-import io.quarkus.arc.All;
-import io.quarkus.runtime.Startup;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.inject.Singleton;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.ManagedRpcServer;
-import org.niis.xroad.signer.softtoken.config.SoftwareTokenSignerRpcServerProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import java.io.IOException;
-import java.util.List;
-
-@Startup
-@Singleton
-public class SoftwareTokenSignerRpcServer extends ManagedRpcServer {
-
-    public SoftwareTokenSignerRpcServer(@All List<BindableService> services,
-                           SoftwareTokenSignerRpcServerProperties rpcServerProperties,
-                           RpcCredentialsConfigurer rpcCredentialsConfigurer) {
-        super(services, rpcServerProperties, rpcCredentialsConfigurer);
-    }
-
+@ConfigMapping(prefix = "xroad.softtoken-signer.rpc")
+public interface SoftwareTokenSignerRpcServerProperties extends RpcServerProperties {
+    @WithName("enabled")
+    @WithDefault("false")
     @Override
-    @PostConstruct
-    public void init() throws IOException {
-        super.init();
-    }
+    boolean enabled();
 
+    @WithName("listen-address")
+    @WithDefault("127.0.0.1")
     @Override
-    @PreDestroy
-    public void destroy() throws InterruptedException {
-        super.destroy();
-    }
+    String listenAddress();
 
+    @WithName("port")
+    @WithDefault("5561")
+    @Override
+    int port();
 }

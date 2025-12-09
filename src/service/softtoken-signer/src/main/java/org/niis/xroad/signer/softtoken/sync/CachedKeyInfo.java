@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,27 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.softtoken;
+package org.niis.xroad.signer.softtoken.sync;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import java.security.PrivateKey;
+import java.time.Instant;
+import java.util.Objects;
 
-@ConfigMapping(prefix = "xroad.softtoken-signer.rpc")
-public interface SoftwareTokenSignerRpcServerProperties extends RpcServerProperties {
-    @WithName("enabled")
-    @WithDefault("false")
-    @Override
-    boolean enabled();
-
-    @WithName("listen-address")
-    @WithDefault("127.0.0.1")
-    @Override
-    String listenAddress();
-
-    @WithName("port")
-    @WithDefault("5561")
-    @Override
-    int port();
+/**
+ * In-memory representation of a synchronized software token key in the softtoken-signer service.
+ * <p>
+ * This record holds the decrypted private key and metadata required for signing operations,
+ * including token and key availability status from the signer service.
+ */
+public record CachedKeyInfo(
+        String keyId,
+        PrivateKey privateKey,
+        boolean tokenActive,
+        boolean keyAvailable,
+        String keyLabel,
+        String signMechanism,
+        Instant lastSynced
+) {
+    /**
+     * Compact constructor with validation.
+     */
+    public CachedKeyInfo {
+        Objects.requireNonNull(keyId, "keyId cannot be null");
+        Objects.requireNonNull(privateKey, "privateKey cannot be null");
+        Objects.requireNonNull(signMechanism, "signMechanism cannot be null");
+        Objects.requireNonNull(lastSynced, "lastSynced cannot be null");
+    }
 }

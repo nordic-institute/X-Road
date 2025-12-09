@@ -16,6 +16,10 @@ quarkus:
     signer:
       rpc:
         listen-address: 0.0.0.0
+    softtoken:
+      sync:
+        interval-seconds: 30
+        token-pin: "changeit"
 
 "%test":
   quarkus:

@@ -64,7 +64,7 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
-import org.niis.xroad.signer.shared.softtoken.SoftwareTokenSigner;
+import org.niis.xroad.signer.shared.softtoken.SignatureGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -113,7 +113,7 @@ public class SoftwareTokenWorkerFactory {
     private final TokenPinManager pinManager;
     private final TokenRegistry tokenRegistry;
     private final KeyManagers keyManagers;
-    private final SoftwareTokenSigner softwareTokenSigner;
+    private final SignatureGenerator signatureGenerator;
 
     public SoftwareTokenWorker create(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
         return new SoftwareTokenWorker(tokenInfo, tokenDefinition);
@@ -240,7 +240,7 @@ public class SoftwareTokenWorkerFactory {
 
             PrivateKey key = getPrivateKey(keyId);
 
-            return softwareTokenSigner.sign(key, signatureAlgorithmId, data);
+            return signatureGenerator.sign(key, signatureAlgorithmId, data);
         }
 
         @Override

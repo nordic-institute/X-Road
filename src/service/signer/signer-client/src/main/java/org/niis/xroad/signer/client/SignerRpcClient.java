@@ -215,6 +215,31 @@ public class SignerRpcClient extends AbstractRpcClient {
     }
 
     /**
+     * Gets information about all software token keys.
+     * <p>
+     * Retrieves all keys from all software tokens with their private keys
+     * and availability status to softtoken-signer instances.
+     *
+     * @return a List of SoftwareTokenKeyDto objects
+     */
+    public List<SoftwareTokenKeyDto> listSoftwareTokenKeys() {
+        log.debug("Listing software token keys for synchronization");
+        return exec(
+                () -> blockingKeyService.listSoftwareTokenKeys(Empty.newBuilder().build())
+                        .getKeysList().stream()
+                        .map(keyInfo -> new SoftwareTokenKeyDto(
+                                keyInfo.getKeyId(),
+                                keyInfo.toByteArray(),
+                                keyInfo.getTokenActive(),
+                                keyInfo.getKeyAvailable(),
+                                keyInfo.getKeyLabel(),
+                                keyInfo.getSignMechanism()
+                        ))
+                        .toList()
+        );
+    }
+
+    /**
      * Gets information about the token with the specified token ID.
      *
      * @param tokenId ID of the token
@@ -979,6 +1004,16 @@ public class SignerRpcClient extends AbstractRpcClient {
     }
 
     public record KeyIdInfo(String keyId, SignMechanism signMechanismName) {
+    }
+
+    public record SoftwareTokenKeyDto(
+            String keyId,
+            byte[] privateKey,
+            boolean tokenActive,
+            boolean keyAvailable,
+            String keyLabel,
+            String signMechanism
+    ) {
     }
 
 }

@@ -24,41 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.softtoken.protocol;
+package org.niis.xroad.signer.softtoken.config;
 
-import io.grpc.BindableService;
-import io.quarkus.arc.All;
-import io.quarkus.runtime.Startup;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.inject.Singleton;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.ManagedRpcServer;
-import org.niis.xroad.signer.softtoken.config.SoftwareTokenSignerRpcServerProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-import java.io.IOException;
-import java.util.List;
+/**
+ * Configuration properties for softtoken-signer keys' synchronization from signer.
+ */
+@ConfigMapping(prefix = "xroad.softtoken-signer.keys")
+public interface SofttokenSignerKeysProperties {
 
-@Startup
-@Singleton
-public class SoftwareTokenSignerRpcServer extends ManagedRpcServer {
-
-    public SoftwareTokenSignerRpcServer(@All List<BindableService> services,
-                           SoftwareTokenSignerRpcServerProperties rpcServerProperties,
-                           RpcCredentialsConfigurer rpcCredentialsConfigurer) {
-        super(services, rpcServerProperties, rpcCredentialsConfigurer);
-    }
-
-    @Override
-    @PostConstruct
-    public void init() throws IOException {
-        super.init();
-    }
-
-    @Override
-    @PreDestroy
-    public void destroy() throws InterruptedException {
-        super.destroy();
-    }
+    @WithName("refresh-rate")
+    @WithDefault("30")
+    int refreshRate();
 
 }

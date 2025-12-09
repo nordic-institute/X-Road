@@ -30,32 +30,53 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.shared.SignReqHandler;
-import org.niis.xroad.signer.shared.softtoken.SoftwareTokenSigner;
+import org.niis.xroad.signer.shared.softtoken.SignatureGenerator;
+import org.niis.xroad.signer.softtoken.sync.CachedKeyInfo;
+import org.niis.xroad.signer.softtoken.sync.SoftwareTokenKeyCache;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Map;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_AVAILABLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_ACTIVE;
+
+/**
+ * Handles signing requests using synchronized software token keys.
+ * <p>
+ * This implementation retrieves keys from the synchronized cache and validates
+ * their availability status before performing signing operations.
+ */
+@Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class SignReqHandlerImpl extends SignReqHandler {
 
-    private final Map<String, PrivateKey> privateKeyMap;
-
-    private final SoftwareTokenSigner softwareTokenSigner;
+    private final SoftwareTokenKeyCache keyCache;
+    private final SignatureGenerator signatureGenerator;
 
     @Override
     protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data)
             throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
-        var privateKey = privateKeyMap.get(keyId);
-        if (privateKey == null) {
-            throw new IllegalArgumentException("Private key not found for key ID: " + keyId);
+        log.trace("sign({}, {})", keyId, signatureAlgorithmId);
+
+        final CachedKeyInfo cachedKey = keyCache.getKey(keyId)
+                .orElseThrow(() -> XrdRuntimeException.systemException(
+                        ErrorCode.KEY_NOT_FOUND, "Key '%s' not found in cache".formatted(keyId)));
+
+        if (!cachedKey.tokenActive()) {
+            throw XrdRuntimeException.systemException(TOKEN_NOT_ACTIVE, "Token not active for key '%s'".formatted(cachedKey.keyId()));
         }
 
-        return softwareTokenSigner.sign(privateKey, signatureAlgorithmId, data);
+        if (!cachedKey.keyAvailable()) {
+            throw XrdRuntimeException.systemException(KEY_NOT_AVAILABLE, "Key '%s' not available".formatted(keyId));
+        }
+
+        return signatureGenerator.sign(cachedKey.privateKey(), signatureAlgorithmId, data);
     }
 }
