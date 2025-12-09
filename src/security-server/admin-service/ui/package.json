@@ -19,9 +19,9 @@
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
-    "apexcharts": "^5.3.6",
+    "echarts": "^6.0.0",
     "maska": "^3.2.0",
-    "vue3-apexcharts": "^1.10.0"
+    "vue-echarts": "^8.0.1"
   },
   "devDependencies": {
     "@pinia/testing": "^1.0.3",
