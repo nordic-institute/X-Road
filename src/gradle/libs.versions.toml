@@ -19,8 +19,6 @@ junitPlatform = "6.0.0"
 xmlUnit = "2.10.4"
 bouncyCastle = "1.82"
 slf4j = "2.0.17"
-testAutomationFramework = "0.2.21"
-selenide="7.12.0"
 protoc = "4.32.1"
 grpc = "1.76.0"
 swaggerParser = "2.1.34"
@@ -38,11 +36,13 @@ quarkus-vault = "4.4.0"
 quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.13.4"
 microprofile = "3.1"
-feign = "13.1"
-feignForm = "3.8.0"
+feign = "13.6"
 testCucumber = "7.32.0"
 testContainers = "2.0.2"
 testAllure="2.31.0"
+testSelenide="7.12.3"
+shadowPlugin = "8.3.9"
+allurePlugin = "3.0.1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -124,18 +124,13 @@ feign-jackson = { module = "io.github.openfeign:feign-jackson", version.ref = "f
 feign-slf4j = { module = "io.github.openfeign:feign-slf4j", version.ref = "feign" }
 
 # Testing libraries
-testAutomation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
-testAutomation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }
-testAutomation-containers = { module = "com.nortal.test:test-automation-containers", version.ref = "testAutomationFramework" }
-testAutomation-feign = { module = "com.nortal.test:test-automation-feign", version.ref = "testAutomationFramework" }
-testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
-testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
-testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
-test-selenide-core = { module = "com.codeborne:selenide", version.ref = "selenide" }
-test-selenide-proxy = { module = "com.codeborne:selenide-proxy", version.ref = "selenide" }
+test-selenide-core = { module = "com.codeborne:selenide", version.ref = "testSelenide" }
+test-selenide-grid = { module = "com.codeborne:selenide-grid", version.ref = "testSelenide" }
 test-allure-selenide = { module = "io.qameta.allure:allure-selenide", version.ref = "testAllure" }
 test-allure-cucumber7 = { module = "io.qameta.allure:allure-cucumber7-jvm", version.ref = "testAllure" }
 test-allure-junitPlatform = { module = "io.qameta.allure:allure-junit-platform", version.ref = "testAllure" }
+test-allure-commandline = { module = "io.qameta.allure:allure-commandline", version.ref = "testAllure" }
+test-restassured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 
 cucumber-java = { module = "io.cucumber:cucumber-java", version.ref= "testCucumber" }
 cucumber-spring = { module = "io.cucumber:cucumber-spring", version.ref= "testCucumber" }
@@ -233,11 +228,11 @@ licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:li
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
+shadowGradlePlugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadowPlugin" }
 
 [bundles]
 metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
-testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-feign"]
 
 quarkus-core = [
   "quarkus-arc",
@@ -257,6 +252,5 @@ protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.2.0" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
-shadow = { id = "com.gradleup.shadow", version = "8.3.9" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadowPlugin" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
-allure = { id = "io.qameta.allure", version = "3.0.1" }

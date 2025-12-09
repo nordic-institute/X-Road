@@ -155,6 +155,8 @@ public class HealthCheckPortImpl implements HealthCheckPort {
                     response.setStatus(OK_200);
                     callback.succeeded();
                 } else {
+                    log.debug("Health check failed: {}", result.getErrorMessage());
+
                     response.setStatus(INTERNAL_SERVER_ERROR_500);
                     Content.Sink.write(response, true, result.getErrorMessage().concat(System.lineSeparator()), callback);
                 }

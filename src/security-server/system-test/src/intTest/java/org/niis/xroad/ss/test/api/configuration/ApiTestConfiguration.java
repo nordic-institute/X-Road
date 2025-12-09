@@ -25,104 +25,38 @@
  */
 package org.niis.xroad.ss.test.api.configuration;
 
-import feign.Contract;
-import feign.Feign;
-import feign.Logger;
-import feign.RequestInterceptor;
-import feign.codec.Decoder;
-import feign.codec.Encoder;
-import feign.hc5.ApacheHttp5Client;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.api.FeignBackupsApi;
 import org.niis.xroad.ss.test.api.FeignInitializationApi;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.niis.xroad.ss.test.ui.container.Port;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.niis.xroad.test.framework.core.feign.FeignFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import java.security.cert.X509Certificate;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.UI;
 
 @Configuration
 @SuppressWarnings("checkstyle:MagicNumber")
+@RequiredArgsConstructor
 public class ApiTestConfiguration {
+    private final FeignFactory feignFactory;
+    private final SsSystemTestContainerSetup systemTestContainerSetup;
 
-    @Bean
-    public FeignBackupsApi feignBackupsApi(
-            @Qualifier("uiHostInterceptor") RequestInterceptor uiHostInterceptor,
-            Decoder decoder,
-            EnvSetup envSetup,
-            Contract contract) {
-        return Feign.builder()
-                .logLevel(Logger.Level.FULL)
-                .client(insecureClient())
-                .encoder(new Encoder.Default())
-                .decoder(decoder)
-                .requestInterceptor(uiHostInterceptor)
-                .contract(contract)
-                .target(FeignBackupsApi.class, "http://localhost");
+    private String getBaseUIUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(UI, Port.UI);
+
+        return "https://" + container.host() + ":" + container.port() + "/api/v1";
     }
 
     @Bean
-    public FeignInitializationApi feignInitializationApi(
-            @Qualifier("uiHostInterceptor") RequestInterceptor uiHostInterceptor,
-            Decoder decoder,
-            EnvSetup envSetup,
-            Contract contract) {
-        return Feign.builder()
-                .logLevel(Logger.Level.FULL)
-                .client(insecureClient())
-                .encoder(new Encoder.Default())
-                .decoder(decoder)
-                .requestInterceptor(uiHostInterceptor)
-                .contract(contract)
-                .target(FeignInitializationApi.class, "http://localhost");
+    public FeignBackupsApi feignBackupsApi() {
+        return feignFactory.createClient(FeignBackupsApi.class, getBaseUIUrl());
     }
 
-    @Bean("uiHostInterceptor")
-    public RequestInterceptor uiHostInterceptor(EnvSetup envSetup) {
-        return requestTemplate -> requestTemplate
-                .target("https://%s:%d/api".formatted(
-                        envSetup.getContainerMapping(EnvSetup.UI, Port.UI).host(),
-                        envSetup.getContainerMapping(EnvSetup.UI, Port.UI).port()));
+    @Bean
+    public FeignInitializationApi feignInitializationApi() {
+        return feignFactory.createClient(FeignInitializationApi.class, getBaseUIUrl());
     }
 
-    private static ApacheHttp5Client insecureClient() {
-        try {
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{new NoopTrustManager()}, null);
-
-            return new ApacheHttp5Client(HttpClients.custom()
-                    .setConnectionManager(org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder.create()
-                            .setTlsSocketStrategy(new DefaultClientTlsStrategy(sslContext, NoopHostnameVerifier.INSTANCE))
-                            .build())
-                    .build());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @SuppressWarnings("java:S4830")
-    static class NoopTrustManager implements X509TrustManager {
-        @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-            // The method gets never called
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-            // Trust all
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-        }
-    }
 }

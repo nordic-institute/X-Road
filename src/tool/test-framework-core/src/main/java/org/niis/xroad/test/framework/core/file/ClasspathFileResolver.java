@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -49,6 +50,22 @@ public class ClasspathFileResolver {
 
     public String getFileAsString(String filepath) {
         return asString(getResource(filepath));
+    }
+
+    public InputStream getFileAsStream(String filepath) {
+        try {
+            return getResource(filepath).getInputStream();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public byte[] getFileAsBytes(String filepath) {
+        try {
+            return getResource(filepath).getInputStream().readAllBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private String asString(Resource resource) {

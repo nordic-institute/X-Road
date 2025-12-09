@@ -28,7 +28,7 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.page.component.Dialog;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
 
 import java.util.ArrayList;
 import java.util.Optional;
