@@ -130,7 +130,7 @@ public class SoftwareTokenWorkerFactory {
          *
          * @param tokenInfo the token info
          */
-        public SoftwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
+        private SoftwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
             super(tokenInfo,
                     SoftwareTokenWorkerFactory.this.tokenManager,
                     SoftwareTokenWorkerFactory.this.keyManager,

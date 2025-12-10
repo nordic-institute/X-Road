@@ -128,7 +128,7 @@ public class HardwareTokenWorkerFactory {
          * @param tokenInfo       the token info
          * @param tokenDefinition the token type
          */
-        public HardwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
+        private HardwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
             super(tokenInfo,
                     HardwareTokenWorkerFactory.this.tokenManager,
                     HardwareTokenWorkerFactory.this.keyManager,

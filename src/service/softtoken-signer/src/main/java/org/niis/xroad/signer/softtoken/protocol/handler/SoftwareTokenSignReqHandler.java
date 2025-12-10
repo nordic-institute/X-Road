@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.softtoken.protocol.hander;
+package org.niis.xroad.signer.softtoken.protocol.handler;
 
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;

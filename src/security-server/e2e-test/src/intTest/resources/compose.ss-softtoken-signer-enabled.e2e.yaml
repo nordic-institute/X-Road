@@ -1,0 +1,19 @@
+services:
+  proxy:
+    environment:
+      - XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_ENABLED=true
+      - XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_HOST=softtoken-signer
+  softtoken-signer:
+    image: localhost:5555/ss-softtoken-signer
+    pull_policy: always
+    networks:
+      - xrd-ss-network
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=softtoken-signer
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+    ports:
+      - "0:9999" # debug

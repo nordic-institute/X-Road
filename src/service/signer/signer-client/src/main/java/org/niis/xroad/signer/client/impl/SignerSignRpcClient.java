@@ -83,7 +83,7 @@ public class SignerSignRpcClient extends AbstractRpcClient implements SignerSign
 
         log.info("Initializing SoftToken Signer RPC client to {}:{}",
                 softTokenSignerRpcChannelProperties.host(), softTokenSignerRpcChannelProperties.port());
-        softTokenSignerChannel = rpcChannelFactory.createChannel(signerRpcChannelProperties);
+        softTokenSignerChannel = rpcChannelFactory.createChannel(softTokenSignerRpcChannelProperties);
         softTokenSignerSignServiceBlockingStub = SignServiceGrpc.newBlockingStub(softTokenSignerChannel).withWaitForReady();
         this.signerRpcClient = signerRpcClient;
     }

@@ -12,21 +12,15 @@ quarkus:
     category:
       "io.grpc":
         level: "INFO"
+
+"%containerized":
   xroad:
-    signer:
+    softtoken-signer:
       rpc:
         listen-address: 0.0.0.0
-    softtoken:
-      sync:
-        interval-seconds: 30
-        token-pin: "changeit"
 
 "%test":
   quarkus:
     log:
       file:
-        enabled: false
-  xroad:
-    signer:
-      rpc:
         enabled: false

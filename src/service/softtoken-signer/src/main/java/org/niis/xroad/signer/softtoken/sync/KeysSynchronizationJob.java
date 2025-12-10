@@ -28,17 +28,16 @@ package org.niis.xroad.signer.softtoken.sync;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.event.Startup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.softtoken.config.SofttokenSignerKeysProperties;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,21 +56,19 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-public class KeySynchronizationService {
+public class KeysSynchronizationJob {
 
     private final SignerRpcClient signerRpcClient;
     private final SoftwareTokenKeyCache keyCache;
     private final SofttokenSignerKeysProperties properties;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
 
-    /**
-     * Performs initial synchronization on service startup.
-     * Ensures that keys are available before the service starts accepting sign requests.
-     */
-    @PostConstruct
-    public void initialize() {
-        log.info("Performing initial key synchronization on startup");
+    public void startJob(@Observes Startup init) {
+        log.info("Performing initial keys' synchronization on startup");
         synchronizeKeys();
+
+        log.info("Scheduling keys' synchronization at fixed rate: {}", properties.refreshRateInSeconds());
+        scheduler.scheduleAtFixedRate(this::synchronizeKeys, properties.refreshRateInSeconds(), properties.refreshRateInSeconds(), SECONDS);
     }
 
     @PreDestroy
@@ -99,22 +96,20 @@ public class KeySynchronizationService {
             final Map<String, CachedKeyInfo> newKeys = new HashMap<>();
 
             for (var key : softwareTokenKeys) {
-                try (InputStream privateKeyInputstream = new ByteArrayInputStream(key.privateKey())) {
-                    var privateKey = CryptoUtils.getPrivateKey(privateKeyInputstream);
-                    final CachedKeyInfo cachedKey = new CachedKeyInfo(
-                            key.keyId(),
-                            privateKey,
-                            key.tokenActive(),
-                            key.keyAvailable(),
-                            key.keyLabel(),
-                            key.signMechanism(),
-                            syncStart
-                    );
+                var privateKey = CryptoUtils.getPrivateKeyFromPKCS8(key.privateKey());
+                final CachedKeyInfo cachedKey = new CachedKeyInfo(
+                        key.keyId(),
+                        privateKey,
+                        key.tokenActive(),
+                        key.keyAvailable(),
+                        key.keyLabel(),
+                        key.signMechanism(),
+                        syncStart
+                );
 
-                    newKeys.put(key.keyId(), cachedKey);
-                    log.debug("Synchronized key: {} (label: {}, token active: {}, key available: {})",
-                            key.keyId(), key.keyLabel(), cachedKey.tokenActive(), cachedKey.keyAvailable());
-                }
+                newKeys.put(key.keyId(), cachedKey);
+                log.debug("Synchronized key: {} (label: {}, token active: {}, key available: {})",
+                        key.keyId(), key.keyLabel(), cachedKey.tokenActive(), cachedKey.keyAvailable());
             }
 
             keyCache.updateKeys(newKeys);
@@ -123,8 +118,6 @@ public class KeySynchronizationService {
         } catch (Exception e) {
             log.error("Software token key synchronization failed: {}", e.getMessage(), e);
             throw XrdRuntimeException.systemInternalError("Key synchronization failed", e);
-        } finally {
-            scheduler.scheduleAtFixedRate(this::synchronizeKeys, properties.refreshRate(), properties.refreshRate(), SECONDS);
         }
     }
 }

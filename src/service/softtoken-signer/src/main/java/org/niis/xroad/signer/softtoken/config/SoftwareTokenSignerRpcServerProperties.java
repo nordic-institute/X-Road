@@ -34,7 +34,7 @@ import org.niis.xroad.common.rpc.RpcServerProperties;
 @ConfigMapping(prefix = "xroad.softtoken-signer.rpc")
 public interface SoftwareTokenSignerRpcServerProperties extends RpcServerProperties {
     @WithName("enabled")
-    @WithDefault("false")
+    @WithDefault("true")
     @Override
     boolean enabled();
 

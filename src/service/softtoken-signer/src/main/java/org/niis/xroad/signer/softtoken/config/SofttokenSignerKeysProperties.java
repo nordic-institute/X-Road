@@ -38,6 +38,6 @@ public interface SofttokenSignerKeysProperties {
 
     @WithName("refresh-rate")
     @WithDefault("30")
-    int refreshRate();
+    int refreshRateInSeconds();
 
 }

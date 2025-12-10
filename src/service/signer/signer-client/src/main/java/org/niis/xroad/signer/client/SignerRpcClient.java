@@ -135,7 +135,7 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     public static final String SSL_TOKEN_ID = "0";
 
-    private final RpcChannelFactory proxyRpcChannelFactory;
+    private final RpcChannelFactory rpcChannelFactory;
     private final SignerRpcChannelProperties rpcChannelProperties;
 
     private ManagedChannel channel;
@@ -155,7 +155,7 @@ public class SignerRpcClient extends AbstractRpcClient {
     public void init() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
+        channel = rpcChannelFactory.createChannel(rpcChannelProperties);
 
         blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
         blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel).withWaitForReady();
@@ -229,7 +229,7 @@ public class SignerRpcClient extends AbstractRpcClient {
                         .getKeysList().stream()
                         .map(keyInfo -> new SoftwareTokenKeyDto(
                                 keyInfo.getKeyId(),
-                                keyInfo.toByteArray(),
+                                keyInfo.getPrivateKey().toByteArray(),
                                 keyInfo.getTokenActive(),
                                 keyInfo.getKeyAvailable(),
                                 keyInfo.getKeyLabel(),

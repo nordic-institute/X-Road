@@ -28,6 +28,7 @@ package org.niis.xroad.e2e.container;
 import com.nortal.test.testcontainers.TestableContainerInitializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
 import org.niis.xroad.e2e.CustomProperties;
 import org.springframework.beans.factory.DisposableBean;
@@ -57,6 +58,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String COMPOSE_SS_FILE = "build/resources/intTest/compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "build/resources/intTest/compose.e2e.yaml";
     private static final String COMPOSE_SS_HSM_FILE = "build/resources/intTest/compose.ss-hsm.e2e.yaml";
+    private static final String COMPOSE_SS_SOFTTOKEN_SIGNER_FILE = "build/resources/intTest/compose.ss-softtoken-signer-enabled.e2e.yaml";
     private static final String COMPOSE_SS_BATCH_SIGNATURES_FILE = "build/resources/intTest/compose.ss-batch-signature-enabled.e2e.yaml";
 
     private static final String CS = "cs";
@@ -64,6 +66,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String PROXY = "proxy";
     private static final String UI = "ui";
     private static final String SIGNER = "signer";
+    private static final String SOFTTOKEN_SIGNER = "softtoken-signer";
     private static final String CONFIGURATION_CLIENT = "configuration-client";
     private static final String XROAD_NETWORK = "xroad-network";
 
@@ -81,9 +84,9 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         if (customProperties.isUseCustomEnv()) {
             log.warn("Using custom environment. Docker compose is not used.");
         } else {
-            envSs0 = createSSEnvironment("ss0", false, true);
+            envSs0 = createSSEnvironment("ss0", false, true, true);
 
-            envSs1 = createSSEnvironment("ss1", true, false);
+            envSs1 = createSSEnvironment("ss1", true, false, false);
 
             envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE))
                     .withLocalCompose(true)
@@ -122,11 +125,17 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         }
     }
 
-    private ComposeContainer createSSEnvironment(String name, boolean enableHsm, boolean enableBatchSignatures) {
+    private ComposeContainer createSSEnvironment(
+            String name,boolean enableHsm, boolean softtokenSignerEnabled, boolean enableBatchSignatures) {
+
         var files = new ArrayList<>(List.of(new File(COMPOSE_SS_FILE), new File(COMPOSE_SS_E2E_FILE)));
 
         if (enableHsm) {
             files.add(new File(COMPOSE_SS_HSM_FILE));
+        }
+
+        if (softtokenSignerEnabled) {
+            files.add(new File(COMPOSE_SS_SOFTTOKEN_SIGNER_FILE));
         }
 
         if (enableBatchSignatures) {
@@ -144,8 +153,17 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER))
                 .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO));
 
+        if (softtokenSignerEnabled) {
+            env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
+        }
+
         env.start();
-        connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
+
+        String[] serviceNames = {UI, PROXY, CONFIGURATION_CLIENT, SIGNER};
+        if (softtokenSignerEnabled) {
+            serviceNames = ArrayUtils.add(serviceNames, SOFTTOKEN_SIGNER);
+        }
+        connectToExternalNetwork(env, serviceNames);
 
         return env;
     }

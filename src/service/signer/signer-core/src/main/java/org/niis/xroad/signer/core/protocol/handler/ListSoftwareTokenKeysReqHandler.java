@@ -26,11 +26,11 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Empty;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
