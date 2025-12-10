@@ -170,7 +170,11 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
     public String getApiToken() {
         if (apiToken == null) {
             var result = composeSetup.execInContainer(IntTestComposeSetup.CS,
-                    "/usr/share/xroad/scripts/yaml_helper.sh", "get", "/etc/xroad/conf.d/local-tls.yaml", "xroad.management-service.api-token");
+                    "/usr/share/xroad/scripts/yaml_helper.sh",
+                    "get",
+                    "/etc/xroad/conf.d/local-tls.yaml",
+                    "xroad.management-service.api-token"
+            );
             apiToken = result.getStdout().trim();
         }
         return apiToken;
