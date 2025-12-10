@@ -347,9 +347,20 @@ public interface GlobalConfProvider {
     X509Certificate getCentralServerSslCertificate();
 
     /**
-     * @return a set containing all configured source addresses
+     * Returns the set of source addresses for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the set of source addresses for the given instance
      */
-    Set<String> findSourceAddresses();
+    Set<String> getSourceAddresses(String instanceIdentifier);
+
+    /**
+     * Returns the configuration directory path for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the configuration directory path for the given instance
+     */
+    String getConfigurationDirectoryPath(String instanceIdentifier);
 
     /**
      * @return maximum allowed validity time of OCSP responses. If thisUpdate

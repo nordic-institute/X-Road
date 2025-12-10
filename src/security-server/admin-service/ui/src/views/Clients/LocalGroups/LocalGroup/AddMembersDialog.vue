@@ -57,7 +57,7 @@
                   class="xrd"
                   hide-details
                   clearable
-                  :items="xroadInstances"
+                  :items="xRoadInstanceIdentifiers"
                   :label="$t('general.instance')"
                 />
               </v-col>
@@ -172,7 +172,7 @@ export default defineComponent({
     return { ...initialState() };
   },
   computed: {
-    ...mapState(useGeneral, ['xroadInstances', 'memberClasses']),
+    ...mapState(useGeneral, ['xRoadInstanceIdentifiers', 'memberClasses']),
     ...mapState(useClients, ['searchingClients']),
     ...mapState(useLocalGroups, ['addingLocalGroupMembers']),
     canSave(): boolean {
@@ -192,12 +192,12 @@ export default defineComponent({
     },
   },
   created() {
-    this.fetchXroadInstances();
+    this.fetchXRoadInstances();
     this.fetchMemberClasses();
   },
 
   methods: {
-    ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXroadInstances']),
+    ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXRoadInstances']),
     ...mapActions(useClients, ['searchClients']),
     ...mapActions(useLocalGroups, ['addLocalGroupMembers']),
     checkboxChange(id: string, event: unknown): void {

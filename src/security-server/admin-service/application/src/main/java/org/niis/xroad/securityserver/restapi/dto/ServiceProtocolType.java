@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.securityserver.restapi.dto;
 
-import "common_messages.proto";
-
-package org.niis.xroad.confclient.proto;
-
-option java_multiple_files = true;
-
-service AdminService {
-  rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
-  rpc CheckAndGetConnectionStatus(CheckAndGetConnectionStatusRequest) returns (CheckAndGetConnectionStatusResponse) {}
-}
-
-message CheckAndGetConnectionStatusRequest {
-  string local_instance = 1;
-  string instance = 2;
-  string address = 3;
-  string directory = 4;
-}
-
-message CheckAndGetConnectionStatusResponse {
-  repeated DownloadUrlConnectionStatus connection_statuses = 1;
+public enum ServiceProtocolType {
+    REST, SOAP
 }

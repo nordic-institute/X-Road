@@ -97,7 +97,7 @@ public class ConfigurationClient {
         var configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
-                new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier(), allowedFederations);
+                new FederationConfigurationSourceFilter(configurationAnchor.getInstanceIdentifier(), allowedFederations);
 
         deleteExtraConfigurationDirectories(configurationSources, sourceFilter);
 

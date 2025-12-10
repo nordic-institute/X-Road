@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.102  
+Version: 2.103  
 Doc. ID: UG-SS
 
 ---
@@ -131,6 +131,7 @@ Doc. ID: UG-SS
 | 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
 | 11.11.2025 | 2.102   | Drop monitoring JMX interfaces                                                                                                                                                                                                                                                                                                                                                                              | Justas Samuolis      |
+| 01.12.2025 | 2.103   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -248,9 +249,12 @@ Doc. ID: UG-SS
   - [14.1 Diagnostics Overview](#141-diagnostics-overview)
     - [14.1.1 Examine Security Server services status information](#1411-examine-security-server-services-status-information)
     - [14.1.2 Examine Security Server Java version information](#1412-examine-security-server-java-version-information)
-    - [14.3.3 Examine Security Server encryption status information](#1433-examine-security-server-encryption-status-information)
+    - [14.1.3 Examine Security Server encryption status information](#1413-examine-security-server-encryption-status-information)
     - [14.1.4 Download diagnostics report](#1414-download-diagnostics-report)
   - [14.2 Security Server Traffic](#142-security-server-traffic)
+  - [14.3 Security Server Connection Testing](#143-security-server-connection-testing)
+    - [14.3.1 Testing the connection to the Central Server](#1431-testing-the-connection-to-the-central-server)
+    - [14.3.2 Testing the connection to other Security Servers](#1432-testing-the-connection-to-other-security-servers)
 - [15 Operational Monitoring](#15-operational-monitoring)
   - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -2481,6 +2485,7 @@ Click on **DIAGNOSTICS** in the **Navigation tabs**.
 Diangostics view contains the following tabs:
 - **Overview** – overview of the Security Server status information
 - **Traffic** – visual overview of the Security Server traffic
+- **Connection Testing** – test connectivity to the Central Server and other Security Servers
 
 ### 14.1 Diagnostics Overview
 
@@ -2536,7 +2541,7 @@ The status colors indicate the following:
 - **Red indicator** – Security Server's java version number isn't supported
 - **Green indicator** – Security Server's java version number is supported
 
-#### 14.3.3 Examine Security Server encryption status information
+#### 14.1.3 Examine Security Server encryption status information
 
 **Backup encryption status**
 
@@ -2598,6 +2603,72 @@ By default, the page displays all the requests handled during the last 7 days. T
 - **Party** - member, subsystem, or service participating in the message exchange. The service dropdown displays only the services defined by the selected subsystem. If no subsystem is selected or subsystem has no defined services, the service dropdown is disabled.
 - **Exchange role** - the role of this Security Server in the message exchange. The options are "Producer" and "Consumer".
 - **Status** - the status of the message exchange. The options are "Success" and "Failure".
+
+### 14.3 Security Server Connection Testing
+
+The "Connection Testing" tab in the Diagnostics page allows testing connectivity from the Security Server to the Central Server and other Security Servers.
+
+The page is divided into three logical blocks:
+- Central Server
+- Other Security Server 
+- Management Security Server
+
+Each block contains predefined tests that validate communication with the corresponding service. Test results include a status indicator ("Green" or "Red") and a detailed message to assist troubleshooting.
+
+A **Test** button next to each row allows re-running the specific connection test.
+
+## 14.3.1 Testing the connection to the Central Server
+
+This block allows verifying that the Security Server can reach the Central Server and download the configuration necessary for normal operation.
+
+**Global Configuration Download**
+
+Tests ports `80` and `443` to verify that the Global Configuration can be downloaded from the Central Server. If the Central Server is clustered, then all clustered node addresses are included in the test. For federated instances, if the `configuration-client.allowed-federations` property is enabled, the configuration download URLs for the allowed federated instances are also included. Note that even if the global configuration contains multiple federated instances, not all of them may be enabled on the Security Server.
+
+✔ `Everything ok` — indicates that the Central Server global configuration access via `HTTP`/`HTTPS` on ports `80`/`443` is reachable.
+
+Examples of error messages:
+- `Connection error, unknown host - cs: Name or service not known` — the Central Server hostname cannot be resolved. Check DNS configuration.
+- `IO error - (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException...` — the Security Server doesn't trust the CA that issued Central Server's TLS certificate. The root certificate of the CA that was used to issue Central Server's TLS certificate must be added to the Security Server's Java truststore. For the guidelines on Publish global configuration over HTTPS, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+
+**Authentication Certificate Registration Service**
+
+Tests connectivity to the Central Server on port `4001` (used by the registration service and must be accessible by every Security Server registered to the ecosystem).
+
+✔ `Everything ok` — indicates that the Authentication Certificate Registration Service is reachable and that the Security Server’s authentication certificate has been added. However, only the existence of the authentication certificate is checked, not its validity.
+
+Examples of error messages:
+- `Connection error, unknown host - cs: Name or service not known | Certificate not found - No auth cert found` — the Central Server hostname cannot be resolved, and the Security Server has no authentication certificate added.
+- `Certificate not found - No auth cert found` —  there are no connection issues, but the Security Server's authentication certificate has not been added.
+
+## 14.3.2 Testing the connection to other Security Servers
+
+This block enables testing communication with any other Security Server in the same X-Road instance (or federated instances). The functionality uses the `listMethods` meta service to test communication with other Security Servers. Passing the test requires that the target Security Server allows incoming connections to ports `5500` and `5577` from the source Security Server.
+
+Field descriptions:
+- **Source Client** — a list of members and subsystems registered on the client Security Server that can be used as a Source Client. 
+- **REST/SOAP** - the protocol (`REST` or `SOAP`) that's used to complete the connection test. 
+- **Target Instance** - the X-Road instance where the Target Client is registered. This can be the same instance where the Source Client is registered or a federated instance. 
+- **Target Client** - a list of clients registered on other Security Servers. Also, clients registered on the same Security Server with the Source Client are included to allow local testing. If federation is enabled and federated instances exist in the configuration, registered clients of federated instances are included as well. 
+- **Target Security Server** — a list of Security Servers where the Target Client is registered. If the Target Client is registered on multiple Security Servers, all of them are listed for selection.
+
+✔ `Everything ok` — indicates that there are no network, configuration, or certificate issues preventing communication between the two Security Server client.
+
+Examples of error messages:
+- `server.clientproxy.ssl_authentication_failed - Security server has no valid authentication certificate`.
+
+## 14.3.3 Testing the connection to Management Security Server
+
+This block tests communication with the Management Security Server, including capability to send management requests (such as client register, client disable, ...).
+
+Field descriptions:
+- **Source Client** - the owner member of the client Security Server. 
+- **REST/SOAP** - `SOAP` since management services only support `SOAP`. 
+- **Target Instance** - the same instance where the Source Client is registered. 
+- **Target Client** - the subsystem providing the management services. 
+- **Target Security Server** - if management services are registered on multiple Security Servers, the user is able to select the desired target Security Server.
+
+✔ `Everything ok` - indicates that there are no network, configuration, or certificate issues preventing communication with the management Security Server.
 
 ## 15 Operational Monitoring
 

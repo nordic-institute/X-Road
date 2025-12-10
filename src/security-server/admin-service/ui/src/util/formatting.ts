@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+import {
+  type CodeWithDetails,
+} from '@/openapi-types';
+import { i18n, Status } from '@niis/shared-ui';
 
-import "common_messages.proto";
 
-package org.niis.xroad.confclient.proto;
+export function formatErrorForUi(err?: CodeWithDetails): string {
+  if (!err) return '';
 
-option java_multiple_files = true;
+  const { code, metadata = [], validation_errors = {} } = err;
 
-service AdminService {
-  rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
-  rpc CheckAndGetConnectionStatus(CheckAndGetConnectionStatusRequest) returns (CheckAndGetConnectionStatusResponse) {}
+  const buildKey = (rawKey?: string): string => {
+    if (!rawKey) return '';
+    return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`;
+  };
+
+  const t = (key: string) => i18n.global.t(key) as string;
+
+  const codeKey = buildKey(code);
+  const codeText = codeKey ? t(codeKey) : '';
+  const metaText = metadata.length ? metadata.join(', ') : '';
+  const header = [codeText, metaText].filter(Boolean).join(' - ');
+
+  const veEntries = Object.entries(validation_errors);
+  const veText = veEntries.length
+    ? veEntries
+      .map(([field, msgs]) => {
+        const labelKey = buildKey(field);
+        const translated = labelKey ? t(labelKey) : '';
+        const label = translated || field;
+        return `${label}: ${msgs.join(', ')}`;
+      })
+      .join(' | ')
+    : '';
+
+  return [header, veText].filter(Boolean).join(' | ');
 }
 
-message CheckAndGetConnectionStatusRequest {
-  string local_instance = 1;
-  string instance = 2;
-  string address = 3;
-  string directory = 4;
-}
-
-message CheckAndGetConnectionStatusResponse {
-  repeated DownloadUrlConnectionStatus connection_statuses = 1;
+export function statusIconType(status: string | undefined): Status | undefined {
+  if (!status) {
+    return 'progress-register';
+  }
+  switch (status) {
+    case 'OK':
+      return 'ok';
+    case 'FAIL':
+      return 'error';
+    default:
+      return 'progress-register';
+  }
 }

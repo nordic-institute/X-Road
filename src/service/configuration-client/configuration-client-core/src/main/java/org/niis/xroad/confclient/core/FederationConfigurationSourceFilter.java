@@ -25,15 +25,83 @@
  */
 package org.niis.xroad.confclient.core;
 
-/**
- * A small interface for deciding if the additional configuration for a given X-Road instance should be downloaded.
- * Not downloading the configuration prevents federation with that instance for this security server.
- */
-public interface FederationConfigurationSourceFilter {
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 
-    /**
-     * @param instanceIdentifier the instance identifier of an existing federation partner
-     * @return <code>true</code> if the configuration should be downloaded, <code>false</code> otherwise
-     */
-    boolean shouldDownloadConfigurationFor(String instanceIdentifier);
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.niis.xroad.confclient.core.config.ConfigurationClientProperties.AllowedFederationMode.ALL;
+import static org.niis.xroad.confclient.core.config.ConfigurationClientProperties.AllowedFederationMode.CUSTOM;
+import static org.niis.xroad.confclient.core.config.ConfigurationClientProperties.AllowedFederationMode.NONE;
+
+/**
+ * Implementation of the {@link FederationConfigurationSourceFilter}.
+ * Looks at {@link ConfigurationClientProperties#allowedFederations()} (a comma-separated list of allowed
+ * instances).
+ * <ol>
+ * <li>If it contains {@link ConfigurationClientProperties.AllowedFederationMode#NONE}, it will return
+ * {@code false} for all {@link #shouldDownloadConfigurationFor(String)} queries.</li>
+ * <li>If previous is untrue but the string contains
+ * {@link ConfigurationClientProperties.AllowedFederationMode#ALL}, it will return {@code true} for all
+ * queries.</li>
+ * <li>If previous are untrue, it will return {@code true} if the list contains the (case-insensitive) X-Road instance
+ * name</li>
+ * </ol>
+ *
+ */
+@Slf4j
+public class FederationConfigurationSourceFilter {
+
+    private static final String COMMA_SEPARATOR = "\\s*,\\s*";
+
+    private final String ownInstance;
+
+    private ConfigurationClientProperties.AllowedFederationMode allowedFederationMode = null;
+    private Set<String> allowedFederationPartners = null;
+
+    FederationConfigurationSourceFilter(String ownInstance, String filterString) {
+        this.ownInstance = ownInstance;
+        log.info("The federation filter system property value is: '{}'", filterString);
+        parseAndSetAllowedInstances(Arrays.asList(filterString.split(COMMA_SEPARATOR)));
+        log.info("Allowed federation mode {} allows specific X-Road instances: {} ",
+                allowedFederationMode, allowedFederationPartners);
+    }
+
+    public boolean shouldDownloadConfigurationFor(String instanceIdentifier) {
+        if (ownInstance.equalsIgnoreCase(instanceIdentifier)) {
+            return true;
+        }
+        return switch (allowedFederationMode) {
+            case CUSTOM -> allowedFederationPartners.contains(instanceIdentifier);
+            case ALL -> true;
+            default -> false;
+        };
+    }
+
+    private void parseAndSetAllowedInstances(List<String> initial) {
+        if (initial.isEmpty()) {
+            log.warn("Allowed federations list was empty, is the configuration malformed?");
+            allowedFederationMode = NONE;
+            allowedFederationPartners = Collections.emptySet();
+            return;
+        }
+        Set<String> allowedInstances = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for (String allowedInstance : initial) {
+            if (NONE.name().equalsIgnoreCase(allowedInstance)) {
+                allowedFederationMode = NONE;
+                allowedFederationPartners = Collections.emptySet();
+                return;
+            } else if (ALL.name().equalsIgnoreCase(allowedInstance)) {
+                allowedFederationMode = ALL;
+            } else if (allowedFederationMode != ALL) {
+                allowedFederationMode = CUSTOM;
+                allowedInstances.add(allowedInstance);
+            }
+        }
+        allowedFederationPartners = allowedInstances;
+    }
 }

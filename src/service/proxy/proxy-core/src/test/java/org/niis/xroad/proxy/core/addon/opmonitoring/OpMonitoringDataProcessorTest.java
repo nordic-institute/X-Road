@@ -23,26 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import "common_messages.proto";
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 
-package org.niis.xroad.confclient.proto;
+import static org.junit.Assert.assertNotNull;
 
-option java_multiple_files = true;
+@Slf4j
+public class OpMonitoringDataProcessorTest {
+    @Test
+    public void verifyIpAddressIsResolved() {
+        OpMonitoringDataProcessor proc = new OpMonitoringDataProcessor();
 
-service AdminService {
-  rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
-  rpc CheckAndGetConnectionStatus(CheckAndGetConnectionStatusRequest) returns (CheckAndGetConnectionStatusResponse) {}
-}
+        String ip = proc.getIpAddress();
 
-message CheckAndGetConnectionStatusRequest {
-  string local_instance = 1;
-  string instance = 2;
-  string address = 3;
-  string directory = 4;
-}
-
-message CheckAndGetConnectionStatusResponse {
-  repeated DownloadUrlConnectionStatus connection_statuses = 1;
+        assertNotNull(ip);
+    }
 }

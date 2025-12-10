@@ -32,6 +32,7 @@ import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.common.ToolException;
 import org.apache.cxf.tools.validator.internal.WSDL11Validator;
 import org.apache.cxf.transport.http.HTTPConduitConfigurer;
+import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
 

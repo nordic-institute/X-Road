@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,34 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi;
+package org.niis.xroad.securityserver.restapi.converter;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.niis.xroad.common.core.dto.ConnectionStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
+import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import java.util.Optional;
 
-/**
- * controller for xroad instance identifiers
- */
-@Controller
-@RequestMapping(ControllerUtil.API_V1_PREFIX)
-@PreAuthorize("denyAll")
-@RequiredArgsConstructor
-public class XroadInstancesApiController implements XroadInstancesApi {
+@Component
+public class ConnectionStatusConverter {
+    public ConnectionStatusDto convert(ConnectionStatus connectionStatus) {
+        return new ConnectionStatusDto()
+                .error(getCodeWithDetailsDto(connectionStatus))
+                .statusClass(DiagnosticStatusClassMapping.map(connectionStatus.getStatus()));
+    }
 
-    private final GlobalConfProvider globalConfProvider;
-
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_XROAD_INSTANCES')")
-    public ResponseEntity<Set<String>> getXroadInstances() {
-        Set<String> xroadInstances = globalConfProvider.getInstanceIdentifiers();
-        return new ResponseEntity<>(xroadInstances, HttpStatus.OK);
+    private CodeWithDetailsDto getCodeWithDetailsDto(ConnectionStatus connectionStatus) {
+        return Optional.ofNullable(connectionStatus.getErrorCode())
+                .map(errorCode -> new CodeWithDetailsDto(errorCode)
+                        .metadata(connectionStatus.getErrorMetadata())
+                        .validationErrors(connectionStatus.getValidationErrors()))
+                .orElse(null);
     }
 }

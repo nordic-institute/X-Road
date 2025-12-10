@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.securityserver.restapi.openapi.model.XRoadInstanceDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,26 +43,30 @@ import static org.mockito.Mockito.when;
 /**
  * test xroad instances api controller
  */
-public class XroadInstancesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+public class XRoadInstancesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    XroadInstancesApiController xroadInstancesApiController;
+    XRoadInstancesApiController xRoadInstancesApiController;
 
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";
+    private static final XRoadInstanceDto INSTANCE_A_DTO = new XRoadInstanceDto(INSTANCE_A, true);
+    private static final XRoadInstanceDto INSTANCE_B_DTO = new XRoadInstanceDto(INSTANCE_B, false);
+    private static final XRoadInstanceDto INSTANCE_C_DTO = new XRoadInstanceDto(INSTANCE_C, false);
     private static final Set<String> INSTANCE_IDS = new HashSet<>(Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C));
 
     @Before
     public void setup() {
         when(globalConfProvider.getInstanceIdentifiers()).thenReturn(INSTANCE_IDS);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_A);
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_XROAD_INSTANCES"})
-    public void getMemberClassesForInstance() {
-        ResponseEntity<Set<String>> response = xroadInstancesApiController.getXroadInstances();
+    public void getXRoadInstances() {
+        ResponseEntity<Set<XRoadInstanceDto>> response = xRoadInstancesApiController.getXRoadInstances();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(INSTANCE_IDS, response.getBody());
+        assertEquals(Set.of(INSTANCE_A_DTO, INSTANCE_B_DTO, INSTANCE_C_DTO), response.getBody());
     }
 }

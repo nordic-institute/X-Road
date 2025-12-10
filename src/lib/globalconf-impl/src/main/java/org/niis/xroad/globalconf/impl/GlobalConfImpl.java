@@ -54,6 +54,7 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersCache;
+import org.niis.xroad.globalconf.util.GlobalConfUtils;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -650,11 +651,20 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findSourceAddresses() {
-        return getSharedParameters(getInstanceIdentifier()).getSources().stream()
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getSources().stream()
                 .map(SharedParameters.ConfigurationSource::getAddress)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return getPrivateParameters().getConfigurationAnchors().stream()
+                .filter(configurationAnchor -> instanceIdentifier.equals(configurationAnchor.getInstanceIdentifier()))
+                .map(GlobalConfUtils::getConfigurationDirectory)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Configuration directory not found for instance " + instanceIdentifier));
     }
 
     @Override

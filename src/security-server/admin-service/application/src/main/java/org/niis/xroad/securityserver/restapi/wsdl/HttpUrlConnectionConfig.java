@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.wsdl;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.securityserver.restapi.config.CustomClientTlsSSLSocketFactory;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.beans.factory.InitializingBean;

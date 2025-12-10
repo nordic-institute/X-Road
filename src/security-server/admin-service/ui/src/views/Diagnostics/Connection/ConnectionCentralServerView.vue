@@ -38,7 +38,7 @@
       </thead>
       <tbody>
         <tr v-for="(item, index) in globalConfStatuses" :key="item.download_url">
-          <td v-if="index === 0" :rowspan="globalConfStatuses.length">
+          <td v-if="index === 0" :rowspan="globalConfStatuses.length" class="font-weight-bold">
             {{ $t('diagnostics.connection.centralServer.globalConf') }}
           </td>
           <td>
@@ -46,10 +46,10 @@
               {{ item.download_url }}
             </span>
           </td>
-          <td>
+          <td data-test="central-server-global-conf-status">
             <StatusAvatar :status="statusIconType(item.connection_status.status_class)" />
           </td>
-          <td>
+          <td data-test="central-server-global-conf-message">
             <span v-if="globalConfLoading" />
             <span v-if="item.connection_status.status_class === 'OK'">
               {{ $t('diagnostics.connection.ok') }}
@@ -59,23 +59,23 @@
             </span>
           </td>
           <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testGlobalConfDownload()" />
+            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testGlobalConfDownload()" data-test="central-server-global-conf-test-button" />
           </td>
         </tr>
         <XrdEmptyPlaceholderRow
           :colspan="5"
           :loading="globalConfLoading"
           :data="globalConfStatuses"
-          :no-items-text="$t('noData.noTimestampingServices')"
+          :no-items-text="$t('noData.noData')"
         />
         <tr>
-          <td colspan="2">
+          <td colspan="2" class="font-weight-bold">
             {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
           </td>
-          <td>
+          <td data-test="central-server-auth-cert-status">
             <StatusAvatar :status="statusIconType(authCertReqStatus?.status_class)" />
           </td>
-          <td>
+          <td data-test="central-server-auth-cert-message">
             <span v-if="authCertLoading" />
             <span v-if="authCertReqStatus?.status_class === 'OK'">
               {{ $t('diagnostics.connection.ok') }}
@@ -85,14 +85,14 @@
             </span>
           </td>
           <td>
-            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testAuthCertRequest()" />
+            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testAuthCertRequest()" data-test="central-server-auth-cert-test-button" />
           </td>
         </tr>
         <XrdEmptyPlaceholderRow
           :colspan="5"
           :loading="authCertLoading"
           :data="authCertReqStatus"
-          :no-items-text="$t('noData.noTimestampingServices')"
+          :no-items-text="$t('noData.noData')"
         />
       </tbody>
     </v-table>
@@ -105,6 +105,7 @@ import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useNotifications, XrdCard, XrdEmptyPlaceholderRow, XrdBtn } from '@niis/shared-ui';
 import type { CodeWithDetails } from '@/openapi-types';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
+import { formatErrorForUi, statusIconType } from "@/util/formatting";
 
 export default defineComponent({
   name: 'ConnectionCentralServerView',
@@ -127,7 +128,7 @@ export default defineComponent({
 
     authCertErrorMessage() {
       const err = this.authCertReqStatus?.error;
-      return this.formatErrorForUi(err);
+      return formatErrorForUi(err);
     },
   },
   created() {
@@ -135,36 +136,11 @@ export default defineComponent({
     this.testGlobalConfDownload();
   },
   methods: {
+    statusIconType,
     ...mapActions(useDiagnostics, ['fetchAuthCertReqStatus', 'fetchGlobalConfStatuses']),
 
     globalConfErrorMessage(error: CodeWithDetails) {
-      return this.formatErrorForUi(error);
-    },
-
-    formatErrorForUi(err?: { code?: string; metadata?: string[]; validation_errors?: Record<string, string[]> }) {
-      if (!err) return '';
-
-      const { code, metadata = [], validation_errors = {} } = err;
-      const buildKey = (rawKey?: string) => {
-        if (!rawKey) return '';
-        return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`;
-      };
-      const codeKey = buildKey(code);
-      const codeText = codeKey ? this.$t(codeKey) : '';
-      const metaText = metadata.length ? metadata.join(', ') : '';
-      const header = [codeText, metaText].filter(Boolean).join(' : ');
-      const veEntries = Object.entries(validation_errors);
-      const veText = veEntries.length
-        ? veEntries
-            .map(([field, msgs]) => {
-              const labelKey = buildKey(field);
-              const label = this.$te(labelKey) ? (this.$t(labelKey) as string) : field;
-              return `${label}: ${msgs.join(', ')}`;
-            })
-            .join(' | ')
-        : '';
-
-      return [header, veText].filter(Boolean).join(' | ');
+      return formatErrorForUi(error);
     },
 
     testAuthCertRequest() {
@@ -186,19 +162,6 @@ export default defineComponent({
         .finally(() => {
           this.globalConfLoading = false;
         });
-    },
-    statusIconType(status?: string) {
-      if (!status) {
-        return undefined;
-      }
-      switch (status) {
-        case 'OK':
-          return 'ok';
-        case 'FAIL':
-          return 'error';
-        default:
-          return 'error';
-      }
     },
   },
 });

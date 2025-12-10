@@ -268,6 +268,10 @@ public final class VuetifyHelper {
             selectorOptionOf(val).click();
         }
 
+        public void selectCombobox(final String val) {
+            selectorComboboxOf(val).click();
+        }
+
         public Select clickAndSelect(final String val) {
             click().select(val);
             return this;

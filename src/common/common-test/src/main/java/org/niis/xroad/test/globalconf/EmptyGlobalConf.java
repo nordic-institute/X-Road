@@ -193,8 +193,13 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findSourceAddresses() {
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
         return Set.of();
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return "";
     }
 
     @Override

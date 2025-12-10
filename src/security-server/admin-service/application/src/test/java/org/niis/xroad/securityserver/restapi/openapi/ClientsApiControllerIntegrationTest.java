@@ -172,7 +172,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = "VIEW_CLIENTS")
     void getAllClients() {
         ResponseEntity<Set<ClientDto>> response = clientsApiController.findClients(null, null, null, null, null, true,
-                false, null, false);
+                false, null, false, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(12, response.getBody().size());
@@ -185,7 +185,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     void ownerMemberFlag() {
         ResponseEntity<Set<ClientDto>> response =
                 clientsApiController.findClients(null, null, null, null, null, true,
-                        false, null, false);
+                        false, null, false, false);
         assertNotNull(response.getBody());
         assertEquals(12, response.getBody().size());
         List<ClientDto> owners = response.getBody().stream()
@@ -199,7 +199,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = "VIEW_CLIENTS")
     void getAllLocalClients() {
         ResponseEntity<Set<ClientDto>> response = clientsApiController.findClients(null, null, null, null, null, true,
-                true, null, false);
+                true, null, false, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(8, response.getBody().size());
@@ -316,7 +316,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(roles = "WRONG_ROLE")
     void forbidden() {
         assertThrows(AccessDeniedException.class, () -> clientsApiController.findClients(null, null, null, null, null, null,
-                null, null, false));
+                null, null, false, false));
     }
 
     private List<TokenInfo> createMockTokenInfos() {
@@ -451,7 +451,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1,
-                false, false, null, false);
+                false, false, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(1, clientsResponse.getBody().size());
@@ -473,7 +473,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = "VIEW_CLIENTS")
     void findAllClients() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
-                true, false, null, false);
+                true, false, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(12, clientsResponse.getBody().size());
@@ -489,21 +489,21 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
         int clientsWithValidSignCert = 3;
         // search all
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
-                true, false, null, false);
+                true, false, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(clientsTotal, clientsResponse.getBody().size());
 
         // search ones with valid sign cert
         clientsResponse = clientsApiController.findClients(null, null, null, null, null,
-                true, false, true, false);
+                true, false, true, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(clientsWithValidSignCert, clientsResponse.getBody().size());
 
         // search ones without valid sign cert
         clientsResponse = clientsApiController.findClients(null, null, null, null, null,
-                true, false, false, false);
+                true, false, false, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals((clientsTotal - clientsWithValidSignCert), clientsResponse.getBody().size());
@@ -526,7 +526,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = "VIEW_CLIENTS")
     void findAllClientsByMemberCodeIncludeMembers() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(null, null, null,
-                TestUtils.MEMBER_CODE_M1, null, true, false, null, false);
+                TestUtils.MEMBER_CODE_M1, null, true, false, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(5, clientsResponse.getBody().size());
@@ -537,7 +537,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     void findAllClientsByMemberClassIncludeMembers() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(null, null,
                 TestUtils.MEMBER_CLASS_PRO,
-                null, null, true, false, null, false);
+                null, null, true, false, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(3, clientsResponse.getBody().size());
@@ -548,13 +548,13 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     void findAllClientsByNameIncludeMembers() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM2,
-                null, null, null, null, false, true, null, false);
+                null, null, null, null, false, true, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(1, clientsResponse.getBody().size());
         // not found
         clientsResponse = clientsApiController.findClients("DOES_NOT_EXIST", null, null, null, null, true, false,
-                null, false);
+                null, false, false);
         assertNotNull(clientsResponse.getBody());
         assertEquals(0, clientsResponse.getBody().size());
     }
@@ -565,7 +565,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1,
-                false, true, null, false);
+                false, true, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(1, clientsResponse.getBody().size());
@@ -575,13 +575,13 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = "VIEW_CLIENTS")
     void findInternalClientsBySubsystemExcludeMembers() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(null, null, null, null,
-                TestUtils.SUBSYSTEM2, false, true, null, false);
+                TestUtils.SUBSYSTEM2, false, true, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(1, clientsResponse.getBody().size());
         // not found
         clientsResponse = clientsApiController.findClients(null, null, null, null, TestUtils.SUBSYSTEM3, false, true,
-                null, false);
+                null, false, false);
         assertNotNull(clientsResponse.getBody());
         assertEquals(0, clientsResponse.getBody().size());
     }
@@ -644,7 +644,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = {"VIEW_CLIENTS"})
     void findAllClientsByPartialNameIncludeMembers() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(TestUtils.SUBSYSTEM3, null,
-                null, null, null, false, false, null, false);
+                null, null, null, false, false, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(1, clientsResponse.getBody().size());
@@ -654,7 +654,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = {"VIEW_CLIENTS"})
     void findAllClientsByPartialSearchTermsIncludeMembers() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(null, "FI",
-                "OV", "1", "1", false, true, null, false);
+                "OV", "1", "1", false, true, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(1, clientsResponse.getBody().size());
@@ -664,7 +664,7 @@ class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = {"VIEW_CLIENTS"})
     void findAllClientsShouldNotFindByPartialInstance() {
         ResponseEntity<Set<ClientDto>> clientsResponse = clientsApiController.findClients(null, "F",
-                "OV", "1", "1", false, true, null, false);
+                "OV", "1", "1", false, true, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertNotNull(clientsResponse.getBody());
         assertEquals(0, clientsResponse.getBody().size());

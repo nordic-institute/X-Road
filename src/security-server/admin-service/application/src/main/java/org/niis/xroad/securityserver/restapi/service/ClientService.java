@@ -445,22 +445,6 @@ public class ClientService {
     }
 
     /**
-     * Find client by ClientId
-     *
-     * @param clientId
-     * @return
-     */
-    Optional<ClientEntity> findEntityByClientId(ClientId clientId) {
-        List<ClientEntity> localClients = getAllLocalClientEntities();
-        List<ClientEntity> globalClients = getAllGlobalClientEntities();
-        List<ClientEntity> distinctClients = mergeClientEntitiesDistinctively(globalClients, localClients);
-        return distinctClients.stream()
-                .filter(clientType -> clientType.getIdentifier().toShortString().trim()
-                        .equals(clientId.toShortString().trim()))
-                .findFirst();
-    }
-
-    /**
      * Find from all clients (local or global)
      */
     public List<Client> findClients(ClientService.SearchParameters searchParameters) {
