@@ -12,6 +12,10 @@ wait_db() {
   done
 }
 
+get_yaml_prop() {
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+}
+
 log "Starting X-Road central server version $INSTALLED_VERSION"
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -46,7 +50,7 @@ fi
 
 CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
 
-if ! /usr/share/xroad/scripts/yaml_helper.sh get "$CONFIG_FILE" xroad.registration-service.api-token &>/dev/null; then
+if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.api-token") ]]; then
   log "Creating API token for registration service..."
   TOKEN=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
   ENCODED=$(echo -n "$TOKEN" | sha256sum -b | cut -d' ' -f1)
