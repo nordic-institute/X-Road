@@ -173,6 +173,7 @@ public class LegacyConfigPathMapping {
         MAPPING.putAll(addDatabaseMapping("op-monitor"));
 
         // ----- removed keys ------------
+        REMOVED_KEYS.add("conf.path");
         REMOVED_KEYS.add("center.database-properties");
         REMOVED_KEYS.add("proxy-ui-api.ssl-properties");
         REMOVED_KEYS.add("proxy.configuration-anchor-file");
