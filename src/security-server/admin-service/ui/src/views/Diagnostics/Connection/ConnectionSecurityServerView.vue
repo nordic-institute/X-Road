@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,18 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="xrd-card diagnostic-card">
-    <v-card-title class="text-h5">
-      {{ $t('diagnostics.connection.securityServer.title') }}
-    </v-card-title>
+  <XrdCard title="diagnostics.connection.securityServer.title" class="overview-card">
 
     <v-card-text class="xrd-card-text">
       <v-row class="my-2"></v-row>
       <v-row dense>
         <v-col cols="2">
-          <xrd-form-label
-            :label-text="$t('diagnostics.connection.securityServer.sourceClient')"
-          />
+          <XrdFormLabel :label-text="$t('diagnostics.connection.securityServer.sourceClient')" />
         </v-col>
         <v-col cols="7">
           <v-combobox
@@ -69,22 +65,18 @@
           </v-radio-group>
         </v-col>
         <v-col cols="1">
-          <xrd-button
-            large
-            variant="text"
-            :disabled="!selectedClientId || !selectedSecurityServerId || !selectedProtocolType || otherSecurityServerLoading"
-            @click="testOtherSecurityServerStatus()"
-            data-test="other-security-server-test-button"
-          >
-            {{ $t('diagnostics.connection.test') }}
-          </xrd-button>
+          <XrdBtn
+              variant="text"
+              text="diagnostics.connection.test"
+              @click="testOtherSecurityServerStatus()"
+              :disabled="!selectedClientId || !selectedSecurityServerId || !selectedProtocolType || otherSecurityServerLoading"
+              data-test="other-security-server-test-button"
+          />
         </v-col>
       </v-row>
       <v-row dense>
         <v-col cols="2">
-          <xrd-form-label
-            :label-text="$t('diagnostics.connection.securityServer.target')"
-          />
+          <XrdFormLabel :label-text="$t('diagnostics.connection.securityServer.target')" />
         </v-col>
         <v-col cols="2">
           <v-select
@@ -124,16 +116,14 @@
       </v-row>
       <v-row dense>
         <v-col cols="1">
-          <xrd-form-label
-            :label-text="$t('diagnostics.status')"
-          />
+          <XrdFormLabel :label-text="$t('diagnostics.status')" />
         </v-col>
         <v-col cols="1">
           <span v-if="!localOtherStatus">
-            <xrd-status-icon :status="statusIconType(undefined)"/>
+            <StatusAvatar :status="statusIconType(undefined)" />
           </span>
           <span v-else>
-            <xrd-status-icon :status="statusIconType(localOtherStatus?.status_class)"/>
+            <StatusAvatar :status="statusIconType(localOtherStatus?.status_class)" />
           </span>
         </v-col>
         <v-col cols="10" data-test="other-security-server-status-message">
@@ -155,19 +145,20 @@
         </v-col>
       </v-row>
     </v-card-text>
-  </v-card>
+  </XrdCard>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapActions, mapState } from "pinia";
-import { useNotifications } from "@/store/modules/notifications";
-import { useGeneral } from "@/store/modules/general";
-import { useClients } from "@/store/modules/clients";
-import { useClient } from "@/store/modules/client";
-import { useDiagnostics } from "@/store/modules/diagnostics";
-import { formatErrorForUi, statusIconType } from "@/util/formatting";
-import {ConnectionStatus, SecurityServer} from "@/openapi-types";
+import { useNotifications, XrdBtn, XrdCard, XrdFormLabel } from '@niis/shared-ui';
+import { useGeneral } from '@/store/modules/general';
+import { useClients } from '@/store/modules/clients';
+import { useClient } from '@/store/modules/client';
+import { useDiagnostics } from '@/store/modules/diagnostics';
+import { formatErrorForUi, statusIconType } from '@/util/formatting';
+import { ConnectionStatus, SecurityServer } from '@/openapi-types';
+import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 const initialState = () => {
   return {
@@ -183,6 +174,16 @@ const initialState = () => {
 
 export default defineComponent({
   name: 'ConnectionSecurityServerView',
+  components: {
+    XrdFormLabel,
+    StatusAvatar,
+    XrdBtn,
+    XrdCard
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data() {
     return {
       otherSecurityServerLoading: false,
@@ -239,7 +240,6 @@ export default defineComponent({
   },
   methods: {
     statusIconType,
-    ...mapActions(useNotifications, ['showError']),
     ...mapActions(useClients, ['fetchAllSubsystems']),
     ...mapActions(useClient, ['fetchSecurityServers']),
     ...mapActions(useDiagnostics, ['fetchOtherSecurityServerStatus']),
@@ -253,7 +253,7 @@ export default defineComponent({
           this.localOtherStatus = this.otherSecurityServerStatus;
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.otherSecurityServerLoading = false;

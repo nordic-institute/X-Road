@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
@@ -5,19 +7,56 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":security-server:openapi-model"))
-  intTestImplementation(project(":addons:proxymonitor-common"))
-  intTestImplementation(project(":service:op-monitor:op-monitor-core"))
-
-  intTestImplementation(project(":common:common-int-test"))
-  intTestImplementation(libs.testAutomation.assert)
-  intTestImplementation(libs.testAutomation.selenide) {
-    exclude(group = "org.slf4j", module = "*")
+  intTestImplementation(project(":service::proxy:proxy-monitoring-api"))
+  intTestImplementation(project(":service:op-monitor:op-monitor-core")){
+    exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
   }
-  intTestImplementation(libs.feign.hc5)
+  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":common:common-message"))
+  intTestImplementation(project(":lib:globalconf-core"))
   intTestImplementation(libs.postgresql)
 }
 
-tasks.register<Test>("systemTest") {
+intTestComposeEnv {
+  env("XROAD_SECRET_STORE_ROOT_TOKEN", "root-token")
+  env("XROAD_SECRET_STORE_TOKEN", "system-test-xroad-token")
+
+  images(
+    "OPENBAO_DEV_IMG" to "openbao-dev",
+    "POSTGRES_DEV_IMG" to "postgres-dev",
+    "CA_IMG" to "testca-dev",
+    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
+    "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",
+    "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
+    "CONFIGURATION_CLIENT_IMG" to "ss-configuration-client",
+    "MONITOR_IMG" to "ss-monitor",
+    "SIGNER_IMG" to "ss-signer",
+    "PROXY_IMG" to "ss-proxy",
+    "PROXY_UI_IMG" to "ss-proxy-ui-api",
+    "BACKUP_MANAGER_IMG" to "ss-backup-manager",
+    "OP_MONITOR_IMG" to "ss-op-monitor"
+  )
+}
+
+intTestShadowJar {
+  archiveBaseName("security-server-system-test")
+  mainClass("org.niis.xroad.ss.test.ConsoleSystemTestRunner")
+}
+
+val copyMainComposeFile by tasks.registering(Copy::class) {
+  description = "Copies main compose.yaml and required files to build directory"
+  group = "verification"
+
+  from("../../../development/docker/security-server/compose.yaml") {
+    rename { "compose.main.yaml" }
+  }
+  into("build/resources/intTest")
+}
+
+tasks.register<Test>("intTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+  dependsOn(copyMainComposeFile)
+
   useJUnitPlatform()
 
   description = "Runs system ui tests."
@@ -25,20 +64,6 @@ tasks.register<Test>("systemTest") {
 
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
-
-  val systemTestArgs = mutableListOf("-XX:MaxMetaspaceSize=200m")
-
-  if (project.hasProperty("systemTestSsTags")) {
-    systemTestArgs += "-Dtest-automation.cucumber.filter.tags=${project.property("systemTestSsTags")}"
-  }
-  if (project.hasProperty("systemTestSsServeReport")) {
-    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("systemTestSsServeReport")}"
-  }
-  if (project.hasProperty("systemTestSsImageName")) {
-    systemTestArgs += "-Dtest-automation.custom.image-name=${project.property("systemTestSsImageName")}"
-  }
-
-  jvmArgs(systemTestArgs)
 
   maxHeapSize = "256m"
 
@@ -48,6 +73,15 @@ tasks.register<Test>("systemTest") {
     showCauses = true
     showStandardStreams = true
   }
+}
+
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+  dependsOn(provider { tasks.named("copyMainComposeFile") })
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+  dependsOn(provider { tasks.named("copyMainComposeFile") })
 }
 
 archUnit {

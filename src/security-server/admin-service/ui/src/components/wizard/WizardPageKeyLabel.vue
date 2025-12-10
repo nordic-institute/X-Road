@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,53 +25,40 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="wizard-step-form-content pt-6">
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          v-if="tokenType === 'HARDWARE'"
-          :label-text="$t('wizard.signKey.keyLabel')"
-          :help-text="$t('wizard.signKey.info')"
-        />
-        <xrd-form-label
-          v-else
-          :label-text="$t('wizard.signKey.keyLabel')"
-          :help-text="$t('wizard.signKey.info')"
-        />
-
+  <XrdWizardStep sub-title="wizard.signKey.info">
+    <XrdFormBlock>
+      <XrdFormBlockRow description="wizard.signKey.info" adjust-against-content>
         <v-text-field
           v-model="keyLabel"
-          class="wizard-form-input"
-          type="text"
-          variant="outlined"
+          class="xrd"
           data-test="key-label-input"
+          :label="$t('wizard.signKey.keyLabel')"
           maxlength="255"
           autofocus
-        ></v-text-field>
-      </div>
-    </div>
-    <div class="button-footer">
-      <xrd-button
-        outlined
-        :disabled="!disableDone"
-        data-test="cancel-button"
-        @click="cancel"
-        >{{ $t('action.cancel') }}</xrd-button
-      >
-
-      <xrd-button data-test="next-button" @click="done">{{
-        $t('action.next')
-      }}</xrd-button>
-    </div>
-  </div>
+        />
+      </XrdFormBlockRow>
+    </XrdFormBlock>
+    <template #footer>
+      <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" @click="cancel" />
+      <v-spacer />
+      <XrdBtn data-test="next-button" append-icon="arrow_forward" text="action.next" @click="done" />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapWritableState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: {
+    XrdWizardStep,
+    XrdBtn,
+    XrdFormBlock,
+    XrdFormBlockRow,
+  },
   props: {
     tokenType: {
       type: String,
@@ -79,20 +67,8 @@ export default defineComponent({
     },
   },
   emits: ['cancel', 'done'],
-  data() {
-    return {
-      disableDone: true,
-    };
-  },
   computed: {
     ...mapWritableState(useCsr, ['keyLabel']),
-    keyLabelText(): string {
-      if (this.$props.tokenType === 'HARDWARE') {
-        return 'wizard.signKey.keyLabel';
-      } else {
-        return 'keys.keyLabelInput';
-      }
-    },
   },
   methods: {
     cancel(): void {
@@ -105,6 +81,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-</style>
+<style lang="scss" scoped></style>

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,7 @@
 import {
   type CodeWithDetails,
 } from '@/openapi-types';
-import { i18n } from "@niis/shared-ui";
+import { i18n, Status } from '@niis/shared-ui';
 
 
 export function formatErrorForUi(err?: CodeWithDetails): string {
@@ -61,7 +62,7 @@ export function formatErrorForUi(err?: CodeWithDetails): string {
   return [header, veText].filter(Boolean).join(' | ');
 }
 
-export function statusIconType(status: string | undefined): string {
+export function statusIconType(status: string | undefined): Status | undefined {
   if (!status) {
     return 'progress-register';
   }

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
  * Helper wrapper which makes sure correct system properties are initialized (only once)
@@ -49,7 +48,6 @@ public final class CentralServerSystemPropertiesInitializer {
         if (!XROAD_PROPERTIES_INITIALIZED.get()) {
             SystemPropertiesLoader.create().withCommonAndLocal()
                     .with(CONF_FILE_CENTER)
-                    .with(CONF_FILE_SIGNER)
                     .load();
             XROAD_PROPERTIES_INITIALIZED.set(true);
         }

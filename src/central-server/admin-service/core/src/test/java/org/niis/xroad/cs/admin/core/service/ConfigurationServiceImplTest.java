@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +39,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
@@ -135,7 +135,7 @@ class ConfigurationServiceImplTest {
     @Nested
     class GetConfigurationParts {
         @Test
-        void shouldGetInternalConfigurationParts() throws Exception {
+        void shouldGetInternalConfigurationParts() {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL.name().toLowerCase(), HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSource));
             when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
@@ -184,7 +184,7 @@ class ConfigurationServiceImplTest {
         }
 
         @Test
-        void shouldGetExternalConfigurationParts() throws Exception {
+        void shouldGetExternalConfigurationParts() {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL.name().toLowerCase(), HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSource));
             when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
@@ -372,7 +372,7 @@ class ConfigurationServiceImplTest {
         private ArgumentCaptor<DistributedFileEntity> distributedFileCaptor;
 
         @Test
-        void shouldUploadConfigurationPart() throws Exception {
+        void shouldUploadConfigurationPart() {
             try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
                 mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
 
@@ -399,11 +399,11 @@ class ConfigurationServiceImplTest {
         }
 
         @Test
-        void shouldThrowException() throws Exception {
+        void shouldThrowException() {
             try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
                 mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
 
-                assertThrows(CodedException.class, () -> configurationService.uploadConfigurationPart(INTERNAL,
+                assertThrows(XrdRuntimeException.class, () -> configurationService.uploadConfigurationPart(INTERNAL,
                         "NON-EXISTING", "fn", FILE_DATA));
 
                 assertThrows(InternalServerErrorException.class, () -> configurationService.uploadConfigurationPart(EXTERNAL,

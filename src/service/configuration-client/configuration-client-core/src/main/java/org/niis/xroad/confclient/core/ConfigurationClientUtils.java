@@ -25,22 +25,15 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ReturnCodes;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ANCHOR_FILE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_ANCHOR;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_HOST;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_ANCHOR_FILE_NOT_FOUND;
 import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
 import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_DATABASE_ERROR;
 import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_EXPIRED_CONF;
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_INTERNAL;
 import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_MALFORMED_ANCHOR;
 import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_UNKNOWN_HOST;
@@ -55,27 +48,28 @@ public final class ConfigurationClientUtils {
 
     /**
      * Translates exception to error code
+     *
      * @param e exception
      * @return error code
      */
     public static int getErrorCode(Exception e) {
-        CodedException ce = (e instanceof CodedException codedException)
-                ? codedException
-                : translateException(e);
+        XrdRuntimeException ce = (e instanceof XrdRuntimeException xrdRuntimeException)
+                ? xrdRuntimeException
+                : XrdRuntimeException.systemException(e);
         return getErrorCode(ce);
     }
 
-    private static int getErrorCode(CodedException ce) {
-        return switch (ce.getFaultCode()) {
-            case X_HTTP_ERROR, X_NETWORK_ERROR -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
-            case X_OUTDATED_GLOBALCONF -> ERROR_CODE_EXPIRED_CONF;
-            case X_INVALID_SIGNATURE_VALUE -> ERROR_CODE_INVALID_SIGNATURE_VALUE;
-            case X_MALFORMED_ANCHOR -> ERROR_CODE_MALFORMED_ANCHOR;
-            case X_ANCHOR_FILE_NOT_FOUND -> ERROR_CODE_ANCHOR_FILE_NOT_FOUND;
-            case X_UNKNOWN_HOST -> ERROR_CODE_UNKNOWN_HOST;
-            case X_DATABASE_ERROR -> ERROR_CODE_DATABASE_ERROR;
+    private static int getErrorCode(XrdRuntimeException ex) {
+        return switch (ErrorCode.fromCode(ex.getErrorCode())) {
+            case HTTP_ERROR, NETWORK_ERROR, GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
+            case GLOBAL_CONF_OUTDATED -> ERROR_CODE_EXPIRED_CONF;
+            case INVALID_SIGNATURE_VALUE -> ERROR_CODE_INVALID_SIGNATURE_VALUE;
+            case MALFORMED_ANCHOR -> ERROR_CODE_MALFORMED_ANCHOR;
+            case ANCHOR_FILE_NOT_FOUND -> ERROR_CODE_ANCHOR_FILE_NOT_FOUND;
+            case UNKNOWN_HOST -> ERROR_CODE_UNKNOWN_HOST;
+            case DATABASE_ERROR -> ERROR_CODE_DATABASE_ERROR;
 
-            default -> ERROR_CODE_INTERNAL;
+            case null, default -> ReturnCodes.ERROR_CODE_INTERNAL;
         };
     }
 }

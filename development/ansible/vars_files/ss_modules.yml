@@ -1,0 +1,28 @@
+---
+ss_modules:
+  monitor:
+    dir: service/monitor/monitor-application
+    build: build
+    target: /usr/share/xroad/jlib/monitor
+    service: xroad-monitor
+  proxy:
+    dir: service/proxy/proxy-application
+    build: build
+    target: /usr/share/xroad/jlib/proxy
+    service: xroad-proxy
+  configuration-client:
+    dir: service/configuration-client/configuration-client-application
+    build: build
+    target: /usr/share/xroad/jlib/configuration-client
+    service: xroad-confclient
+  backup-manager:
+    dir: service/backup-manager/backup-manager-application
+    build: build
+    target: /usr/share/xroad/jlib/backup-manager
+    service: xroad-backup-manager
+  proxy-ui-api:
+    dir: security-server/admin-service/application
+    build: build
+    lib: proxy-ui-api-1.0.jar
+    target: /usr/share/xroad/jlib
+    service: xroad-proxy-ui-api

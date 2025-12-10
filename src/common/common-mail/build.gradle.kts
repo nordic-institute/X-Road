@@ -10,5 +10,4 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-mail")
 
   testImplementation(project(":common:common-test"))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,27 +25,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="xrd-card diagnostic-card">
-    <v-card-title class="text-h5">
-      {{ $t('diagnostics.connection.centralServer.title') }}
-    </v-card-title>
-
-    <v-card-text class="xrd-card-text">
-      <table class="xrd-table">
-        <thead>
+  <XrdCard title="diagnostics.connection.centralServer.title" class="overview-card">
+    <v-table class="xrd">
+      <thead>
         <tr>
-          <th class="fixed-width-10"/>
-          <th class="fixed-width-30"/>
+          <th class="fixed-width-10" />
+          <th class="fixed-width-30" />
           <th class="status-column">{{ $t('diagnostics.status') }}</th>
           <th class="fixed-width-50">{{ $t('diagnostics.message') }}</th>
-          <th class="fixed-width-5"/>
+          <th class="fixed-width-5" />
         </tr>
-        </thead>
-        <tbody>
-        <tr
-          v-for="(item, index) in globalConfStatuses"
-          :key="item.download_url"
-        >
+      </thead>
+      <tbody>
+        <tr v-for="(item, index) in globalConfStatuses" :key="item.download_url">
           <td v-if="index === 0" :rowspan="globalConfStatuses.length" class="font-weight-bold">
             {{ $t('diagnostics.connection.centralServer.globalConf') }}
           </td>
@@ -54,29 +47,19 @@
             </span>
           </td>
           <td data-test="central-server-global-conf-status">
-            <xrd-status-icon v-if="!globalConfLoading"
-                             :status="statusIconType(item.connection_status.status_class)"
-            />
+            <StatusAvatar :status="statusIconType(item.connection_status.status_class)" />
           </td>
           <td data-test="central-server-global-conf-message">
-            <span v-if="globalConfLoading">
+            <span v-if="globalConfLoading" />
+            <span v-if="item.connection_status.status_class === 'OK'">
+              {{ $t('diagnostics.connection.ok') }}
             </span>
-            <span v-else-if="item.connection_status.status_class === 'OK'">
-            {{ $t('diagnostics.connection.ok') }}
+            <span v-else class="error-text">
+              {{ globalConfErrorMessage(item.connection_status.error) }}
             </span>
-            <span v-else>
-            {{ globalConfErrorMessage(item.connection_status.error) }}
-          </span>
           </td>
           <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-            <xrd-button
-              large
-              variant="text"
-              @click="testGlobalConfDownload()"
-              data-test="central-server-global-conf-test-button"
-            >
-              {{ $t('diagnostics.connection.test') }}
-            </xrd-button>
+            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testGlobalConfDownload()" data-test="central-server-global-conf-test-button" />
           </td>
         </tr>
         <XrdEmptyPlaceholderRow
@@ -90,29 +73,19 @@
             {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
           </td>
           <td data-test="central-server-auth-cert-status">
-            <span v-if="!authCertLoading">
-            <xrd-status-icon :status="statusIconType(authCertReqStatus?.status_class)"/>
-            </span>
+            <StatusAvatar :status="statusIconType(authCertReqStatus?.status_class)" />
           </td>
           <td data-test="central-server-auth-cert-message">
-            <span v-if="authCertLoading">
+            <span v-if="authCertLoading" />
+            <span v-if="authCertReqStatus?.status_class === 'OK'">
+              {{ $t('diagnostics.connection.ok') }}
             </span>
-            <span v-else-if="authCertReqStatus?.status_class === 'OK'">
-            {{ $t('diagnostics.connection.ok') }}
-          </span>
-            <span v-else>
-            {{ authCertErrorMessage }}
-          </span>
+            <span v-else class="error-text">
+              {{ authCertErrorMessage }}
+            </span>
           </td>
           <td>
-            <xrd-button
-              large
-              variant="text"
-              @click="testAuthCertRequest()"
-              data-test="central-server-auth-cert-test-button"
-            >
-              {{ $t('diagnostics.connection.test') }}
-            </xrd-button>
+            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testAuthCertRequest()" data-test="central-server-auth-cert-test-button" />
           </td>
         </tr>
         <XrdEmptyPlaceholderRow
@@ -121,21 +94,31 @@
           :data="authCertReqStatus"
           :no-items-text="$t('noData.noData')"
         />
-        </tbody>
-      </table>
-    </v-card-text>
-  </v-card>
+      </tbody>
+    </v-table>
+  </XrdCard>
 </template>
 <script lang="ts">
 import { mapActions, mapState } from 'pinia';
 import { defineComponent } from 'vue';
-import { useDiagnostics } from "@/store/modules/diagnostics";
-import { useNotifications } from "@/store/modules/notifications";
-import type { CodeWithDetails } from "@/openapi-types";
+import { useDiagnostics } from '@/store/modules/diagnostics';
+import { useNotifications, XrdCard, XrdEmptyPlaceholderRow, XrdBtn } from '@niis/shared-ui';
+import type { CodeWithDetails } from '@/openapi-types';
+import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 import { formatErrorForUi, statusIconType } from "@/util/formatting";
 
 export default defineComponent({
   name: 'ConnectionCentralServerView',
+  components: {
+    XrdCard,
+    StatusAvatar,
+    XrdEmptyPlaceholderRow,
+    XrdBtn,
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data: () => ({
     authCertLoading: false,
     globalConfLoading: false,
@@ -144,8 +127,8 @@ export default defineComponent({
     ...mapState(useDiagnostics, ['authCertReqStatus', 'globalConfStatuses']),
 
     authCertErrorMessage() {
-      const err = this.authCertReqStatus?.error
-      return formatErrorForUi(err)
+      const err = this.authCertReqStatus?.error;
+      return formatErrorForUi(err);
     },
   },
   created() {
@@ -154,18 +137,17 @@ export default defineComponent({
   },
   methods: {
     statusIconType,
-    ...mapActions(useNotifications, ['showError']),
     ...mapActions(useDiagnostics, ['fetchAuthCertReqStatus', 'fetchGlobalConfStatuses']),
 
     globalConfErrorMessage(error: CodeWithDetails) {
-      return formatErrorForUi(error)
+      return formatErrorForUi(error);
     },
 
     testAuthCertRequest() {
       this.authCertLoading = true;
       this.fetchAuthCertReqStatus()
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.authCertLoading = false;
@@ -175,7 +157,7 @@ export default defineComponent({
       this.globalConfLoading = true;
       this.fetchGlobalConfStatuses()
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.globalConfLoading = false;
@@ -185,27 +167,6 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
-}
-
-.status-column {
-  width: 80px;
-}
-
 .fixed-width-5 {
   width: 5%;
   max-width: 5%;
@@ -228,5 +189,8 @@ export default defineComponent({
   width: 50%;
   max-width: 50%;
   word-break: break-word;
+}
+.error-text {
+  color: rgb(var(--v-theme-error)) !important;
 }
 </style>

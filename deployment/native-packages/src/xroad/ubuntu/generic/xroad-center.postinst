@@ -1,0 +1,363 @@
+#!/bin/bash
+# postinst script for xroad-center
+
+. /usr/share/debconf/confmodule
+trap db_stop EXIT
+
+abort() {
+    local rc=$?
+    echo -e "xroad-center: FATAL: $*" >&2
+    exit $rc
+}
+log() { echo "xroad-center: $*" >&2; }
+get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
+
+gen_pw() {
+  head -c 24 /dev/urandom | base64 | tr "/+" "_-"
+}
+
+handle_error() {
+    ERR=$(</tmp/cert.err)
+    db_subst xroad-common/cert-generation-abort ERR "$(printf %s "$ERR" | debconf-escape -e)"
+    db_input critical xroad-common/cert-generation-abort
+    db_go
+    rm -f /tmp/cert.err
+}
+
+handle_error_retry() {
+  ERR=$1
+  db_reset xroad-common/cert-generation-retry
+  db_reset xroad-common/cert-generation-error
+  db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+  db_beginblock
+  db_input critical xroad-common/cert-generation-error || true
+  db_input critical xroad-common/cert-generation-retry || true
+  db_endblock
+  db_go
+
+  db_get xroad-common/cert-generation-retry
+  if [ "$RET" = false ]; then
+    exit 1
+  fi
+
+  echo "Retrying certificate generation"
+}
+
+# setup database and run migrations
+setup_database() {
+    /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
+
+    local db_properties=/etc/xroad/db.properties
+    local root_properties=/etc/xroad.properties
+    RET=
+    db_get xroad-common/database-host || true
+    local -r new_db_host="${RET}"
+    local db_host="${new_db_host:-127.0.0.1:5432}"
+
+    RET=
+    db_get xroad-common/skip-cs-db-migrations || true
+    local skip_migrations="${RET}"
+    crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
+
+    local db_user=$(get_prop ${db_properties} 'spring.datasource.username' 'centerui')
+    local db_schema=$(get_prop ${db_properties} 'spring.datasource.hikari.data-source-properties.currentSchema' "${db_user%%@*}")
+    db_schema=${db_schema%%,*}
+    local db_password=$(get_prop ${db_properties} 'spring.datasource.password' 'centerui')
+    local db_database="centerui_production"
+    local db_master_user=postgres
+
+    local db_url=$(get_prop ${db_properties} 'spring.datasource.url')
+    if [[ -z "$db_url" ]]; then
+      db_url="jdbc:postgresql://$db_host/$db_database"
+      crudini --set "${db_properties}" '' spring.datasource.url "${db_url}"
+    fi
+    pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+    if [[ "$db_url" =~ $pat ]]; then
+      db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      db_database=${BASH_REMATCH[3]:-$db_database}
+    else
+      log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
+    fi
+
+    local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
+    local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
+    if [[ -z "$db_admin_conn_user" && -n "$db_admin_password" ]]; then
+      db_admin_conn_user="${db_user}_admin"
+    else
+      db_admin_conn_user="${db_admin_conn_user:-$db_user}"
+      db_admin_password="${db_admin_password:-$db_password}"
+    fi
+    local db_admin_user="${db_admin_conn_user%%@*}"
+
+    # Reading custom libpq ENV variables
+    if [ -f /etc/xroad/db_libpq.env ]; then
+      source /etc/xroad/db_libpq.env
+    fi
+
+    if [[ ! -z $PGOPTIONS_EXTRA ]]; then
+      PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
+    fi
+
+    export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public${PGOPTIONS_EXTRA-}"
+
+    local hosts
+    IFS=',' read -ra hosts <<<"$db_host"
+    local db_addr=${hosts[0]%%:*}
+    local db_port=${hosts[0]##*:}
+
+    local_psql() { su -l -c "psql -qtA -p ${PGPORT:-$db_port} ${*@Q}" postgres; }
+    remote_psql() { psql -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA "$@"; }
+
+    psql_dbuser() {
+        PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
+    }
+
+    psql_adminuser() {
+        PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
+    }
+
+    if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
+        local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
+        db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+        function psql_master() {
+            PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
+        }
+    else
+        function psql_master() { local_psql "$@"; }
+    fi
+
+    local db_plain_user=${db_user%%@*}
+
+    if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+        log "Database and user exists, skipping database creation."
+    else
+
+        if [[ $(get_prop ${root_properties} 'centerui.database.admin_user' "") == "" ]]; then
+          db_admin_user="${db_user}_admin"
+        fi
+
+        if [[ $(get_prop ${root_properties} 'centerui.database.admin_password' "") == "" ]]; then
+          db_admin_password=$(gen_pw)
+        fi
+
+        if [[ ! -f "$root_properties" ]]; then
+          touch ${root_properties}
+          chown root:root ${root_properties}
+          chmod 600 ${root_properties}
+        fi
+
+        db_password=$(gen_pw)
+        echo "Creating database"
+        psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
+CREATE DATABASE "${db_database}" ENCODING 'UTF8';
+REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
+DO \$\$
+BEGIN
+  CREATE ROLE "${db_admin_user}" LOGIN PASSWORD '${db_admin_password}';
+  GRANT "${db_admin_user}" TO "${db_master_user}";
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'User $db_admin_user already exists';
+END
+\$\$;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
+\c "${db_database}"
+CREATE EXTENSION hstore;
+CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_admin_user}";
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO "${db_admin_user}";
+EOF
+        echo "Creating database plain user"
+        psql_master <<EOF || abort "Creating plain user failed."
+DO \$\$
+BEGIN
+  CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
+  GRANT "${db_plain_user}" TO "${db_master_user}";
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'User $db_plain_user already exists';
+END
+\$\$;
+\c "${db_database}"
+GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
+GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
+EOF
+        crudini --set "${db_properties}" '' spring.datasource.hikari.data-source-properties.currentSchema "${db_schema},public"
+        crudini --set "${db_properties}" '' spring.datasource.username "centerui"
+        crudini --set "${db_properties}" '' spring.datasource.password "${db_password}"
+
+        crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_user' "${db_admin_conn_user}"
+        crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_password' "${db_admin_password}"
+    fi
+
+    if [ "$skip_migrations" = true ] ; then
+      echo "skipping database migrations"
+    else
+      /usr/share/xroad/db/migrate.sh || abort "Database migration failed. ABORTING."
+    fi
+}
+
+split_ip_dns() {
+  local input="$1"
+  local ip_list dns_list
+  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
+  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
+  echo "$ip_list" "$dns_list"
+}
+
+prepare_certificates_settings() {
+  INI_FILE="/etc/xroad/conf.d/local.ini"
+  HOST=$(hostname -f)
+  if (( ${#HOST} > 64 )); then
+    HOST="$(hostname -s)"
+  fi
+  LIST=
+  for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+  ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+  if [[ -z $(crudini --get "$INI_FILE" admin-service.tls.certificate-provisioning common-name 2>/dev/null) && \
+        -z $(crudini --get "$INI_FILE" admin-service.tls.certificate-provisioning alt-names 2>/dev/null) && \
+        -z $(crudini --get "$INI_FILE" admin-service.tls.certificate-provisioning ip-subject-alt-names 2>/dev/null) ]]; then
+
+    log "Preparing center-admin-service certificate properties"
+    db_subst xroad-common/admin-subject HOST "$HOST"
+    db_subst xroad-common/admin-altsubject ALT "$ALT"
+
+    db_get xroad-common/admin-subject
+    [ -z "$RET" ] && db_set xroad-common/admin-subject "$HOST"
+    db_get xroad-common/admin-altsubject
+    [ -z "$RET" ] && db_set xroad-common/admin-altsubject "$ALT"
+
+    db_beginblock
+    db_input critical xroad-common/admin-subject || true
+    db_input critical xroad-common/admin-altsubject || true
+    db_endblock
+    db_go
+
+    db_get xroad-common/admin-subject
+    subj="$RET"
+    db_get xroad-common/admin-altsubject
+    altn="$RET"
+
+    read ip_list dns_list < <(split_ip_dns "$altn")
+    crudini --set "$INI_FILE" admin-service.tls.certificate-provisioning common-name "$subj"
+    crudini --set "$INI_FILE" admin-service.tls.certificate-provisioning alt-names "$dns_list"
+    crudini --set "$INI_FILE" admin-service.tls.certificate-provisioning ip-subject-alt-names "$ip_list"
+  else
+    log "Center-admin-service certificate properties are set, skipping"
+  fi
+
+  if [[ -z $(crudini --get "$INI_FILE" registration-service.tls.certificate-provisioning common-name 2>/dev/null) && \
+        -z $(crudini --get "$INI_FILE" registration-service.tls.certificate-provisioning alt-names 2>/dev/null) && \
+        -z $(crudini --get "$INI_FILE" registration-service.tls.certificate-provisioning ip-subject-alt-names 2>/dev/null) && \
+        -z $(crudini --get "$INI_FILE" management-service.tls.certificate-provisioning common-name 2>/dev/null) && \
+        -z $(crudini --get "$INI_FILE" management-service.tls.certificate-provisioning alt-names 2>/dev/null) && \
+        -z $(crudini --get "$INI_FILE" management-service.tls.certificate-provisioning ip-subject-alt-names 2>/dev/null) ]]; then
+
+    log "Preparing management and registration service certificate properties"
+    db_subst xroad-common/service-subject HOST "$HOST"
+    db_subst xroad-common/service-altsubject ALT "$ALT"
+
+    db_get xroad-common/service-subject
+    [ -z "$RET" ] && db_set xroad-common/service-subject "$HOST"
+    db_get xroad-common/service-altsubject
+    [ -z "$RET" ] && db_set xroad-common/service-altsubject "$ALT"
+
+    db_beginblock
+    db_input critical xroad-common/service-subject || true
+    db_input critical xroad-common/service-altsubject || true
+    db_endblock
+    db_go
+
+    db_get xroad-common/service-subject
+    subj="$RET"
+    db_get xroad-common/service-altsubject
+    altn="$RET"
+
+    read ip_list dns_list < <(split_ip_dns "$altn")
+    crudini --set "$INI_FILE" registration-service.tls.certificate-provisioning common-name "$subj"
+    crudini --set "$INI_FILE" registration-service.tls.certificate-provisioning alt-names "$dns_list"
+    crudini --set "$INI_FILE" registration-service.tls.certificate-provisioning ip-subject-alt-names "$ip_list"
+
+    crudini --set "$INI_FILE" management-service.tls.certificate-provisioning common-name "$subj"
+    crudini --set "$INI_FILE" management-service.tls.certificate-provisioning alt-names "$dns_list"
+    crudini --set "$INI_FILE" management-service.tls.certificate-provisioning ip-subject-alt-names "$ip_list"
+  else
+    log "Management and registration service certificate properties are set, skipping"
+  fi
+}
+
+
+case "$1" in
+configure | reconfigure)
+    prepare_certificates_settings
+    setup_database
+
+    RET=""
+    db_get xroad-common/username
+    AUSER="$RET"
+
+    #add groups
+    groups="xroad-security-officer xroad-system-administrator xroad-registration-officer"
+    usergroups=" $(id -Gn "$AUSER") "
+    for groupname in $groups; do
+        if ! getent group "$groupname" >/dev/null; then
+            groupadd --system "$groupname" || true
+        fi
+        if [[ $usergroups != *" $groupname "* ]]; then
+            usermod -a -G "$groupname" "$AUSER" || true
+        fi
+    done
+
+    chmod 755 /var/lib/xroad/public
+    chown xroad:xroad /var/lib/xroad/public
+
+    test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad
+    chown xroad:xroad /var/cache/xroad
+    test -d /etc/xroad/configuration-parts || mkdir /etc/xroad/configuration-parts
+    chown xroad:xroad /etc/xroad/configuration-parts
+
+    mkdir -p /var/lib/xroad/import
+    chmod 755 /var/lib/xroad/import
+    chown xroad:xroad /var/lib/xroad/import
+
+    #create backups folder
+    mkdir -p /var/lib/xroad/backup
+    chown xroad:xroad /var/lib/xroad/backup
+
+    # generate gpg keypair when needed - directory does not exist and server is initialised
+    if [[ -n "$2" ]]; then
+      if [ ! -d /etc/xroad/gpghome ] ; then
+        ID=$(/usr/share/xroad/scripts/get_central_server_instance_id.sh)
+        if [[ -n "${ID}" ]] ; then
+          /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
+        fi
+      fi
+      # always fix gpghome ownership
+      [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
+    fi
+
+    RET=
+    db_get xroad-common/skip-cs-db-migrations || true
+    skip_migrations="${RET}"
+
+    #create symlink to nginx config
+    if [[ -d /etc/nginx/sites-enabled ]]; then
+      ln -sf /etc/xroad/nginx/xroad-public.conf /etc/nginx/sites-enabled/xroad-public
+    fi
+
+    invoke-rc.d --quiet rsyslog try-restart || true
+    invoke-rc.d --quiet nginx try-restart || true
+    invoke-rc.d --quiet xroad-signer try-restart || true
+    ;;
+
+abort-upgrade | abort-remove | abort-deconfigure)
+    ;;
+
+*)
+    log "postinst called with unknown argument '$1'" >&2
+    exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

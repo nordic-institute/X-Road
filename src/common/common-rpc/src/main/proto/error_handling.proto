@@ -33,5 +33,4 @@ message XrdRuntimeExceptionProto {
   string errorCode = 2;
   repeated string errorMetadata = 3;
   string details = 4;
-  int32 httpStatus = 5;
 }

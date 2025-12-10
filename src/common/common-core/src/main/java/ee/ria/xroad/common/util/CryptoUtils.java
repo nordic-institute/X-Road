@@ -44,14 +44,18 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -61,11 +65,17 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import java.util.Collection;
 
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.crypto.identifier.Providers.SUN_RSA_SIGN;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * This class contains various security and certificate related utility methods.
@@ -167,7 +177,7 @@ public final class CryptoUtils {
      */
     public static CertificateID createCertId(BigInteger subjectSerialNumber,
                                              X509Certificate issuer)
-            throws OCSPException, OperatorCreationException, CertificateEncodingException, IOException {
+            throws OCSPException, CertificateEncodingException, IOException {
         return new CertificateID(Digests.createDigestCalculator(DigestAlgorithm.SHA1),
                 new X509CertificateHolder(issuer.getEncoded()),
                 subjectSerialNumber);
@@ -254,6 +264,36 @@ public final class CryptoUtils {
         }
     }
 
+    public static PrivateKey getPrivateKey(InputStream inputStream)
+            throws IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if ("-----BEGIN PRIVATE KEY-----".equals(line)) {
+                break;
+            }
+        }
+        StringBuilder keyContent = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            if ("-----END PRIVATE KEY-----".equals(line)) {
+                break;
+            }
+            keyContent.append(line);
+        }
+        byte[] decodedKeyBytes = Base64.getDecoder().decode(keyContent.toString());
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedKeyBytes);
+        try {
+            return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+        } catch (InvalidKeySpecException ignore) {
+            try {
+                return KeyFactory.getInstance("EC").generatePrivate(keySpec);
+            } catch (InvalidKeySpecException e) {
+                throw new InvalidKeySpecException("Neither RSA nor EC worked", e);
+            }
+        }
+    }
+
     /**
      * Calculates digest of the certificate and encodes it as lowercase hex.
      *
@@ -291,39 +331,6 @@ public final class CryptoUtils {
      */
     public static String calculateCertHexHash(byte[] bytes) throws IOException {
         return Digests.hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
-    }
-
-    /**
-     * Calculates a sha-1 digest of the given bytes and encodes it
-     * as lowercase hex.
-     *
-     * @param cert the certificate
-     * @return calculated certificate hex hash String
-     * @throws OperatorCreationException    if digest calculator cannot be created
-     * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws IOException                  if an I/O error occurred
-     * @deprecated This method should be applicable until 7.3.x is no longer supported
-     * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(X509Certificate)} instead.
-     */
-    @Deprecated
-    public static String calculateCertSha1HexHash(X509Certificate cert)
-            throws IOException, CertificateEncodingException {
-        return calculateCertSha1HexHash(cert.getEncoded());
-    }
-
-    /**
-     * Calculates a sha-1 digest of the given bytes and encodes it
-     * as lowercase hex.
-     *
-     * @param bytes the bytes
-     * @return calculated certificate hex hash String
-     * @throws IOException if an I/O error occurred
-     * @deprecated This method should be applicable until 7.3.x is no longer supported
-     * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(byte[])} instead.
-     */
-    @Deprecated
-    public static String calculateCertSha1HexHash(byte[] bytes) throws IOException {
-        return Digests.hexDigest(DigestAlgorithm.SHA1, bytes);
     }
 
     /**
@@ -368,17 +375,16 @@ public final class CryptoUtils {
     }
 
     /**
-     * Calculates sha-1 digest of the given certificate bytes.
+     * Loads a pkcs12 keystore from a file.
      *
-     * @param bytes the bytes
-     * @return digest byte array of the certificate
-     * @throws IOException if an I/O error occurred
-     * @deprecated This method should be applicable until 7.3.x is no longer supported
-     * <p> From that point onward its usages should be replaced with {@link #certHash(byte[])} instead.
+     * @param keyStoreInputStream stream that will be read. NOTE: The stream will not be closed.
+     * @param password            the password for the key store
+     * @return the loaded keystore
+     * @throws Exception if any errors occur
      */
-    @Deprecated
-    public static byte[] certSha1Hash(byte[] bytes) throws IOException {
-        return Digests.calculateDigest(DigestAlgorithm.SHA1, bytes);
+    public static KeyStore loadPkcs12KeyStore(InputStream keyStoreInputStream, char[] password)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
+        return loadKeyStore("pkcs12", keyStoreInputStream, password);
     }
 
     /**
@@ -392,6 +398,24 @@ public final class CryptoUtils {
     public static KeyStore loadPkcs12KeyStore(File file, char[] password)
             throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         return loadKeyStore("pkcs12", file, password);
+    }
+
+    /**
+     * Loads a key store from a file.
+     *
+     * @param type                the type of key store to load ("pkcs12" for PKCS12 type)
+     * @param keystoreInputStream stream that will be read. NOTE: The stream will not be closed.
+     * @param password            the password for the key store
+     * @return the loaded keystore
+     * @throws Exception if any errors occur
+     */
+    public static KeyStore loadKeyStore(String type, InputStream keystoreInputStream, char[] password)
+            throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        KeyStore keyStore = KeyStore.getInstance(type);
+
+        keyStore.load(keystoreInputStream, password);
+
+        return keyStore;
     }
 
     /**
@@ -425,5 +449,15 @@ public final class CryptoUtils {
         try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(out))) {
             writer.writeObject(readCertificate(certBytes));
         }
+    }
+
+    public static String signatureHash(String signatureXml,
+                                       ee.ria.xroad.common.crypto.identifier.DigestAlgorithm hashAlg) throws IOException {
+        return encodeBase64(getInputHash(signatureXml, hashAlg));
+    }
+
+    private static byte[] getInputHash(String str,
+                                       ee.ria.xroad.common.crypto.identifier.DigestAlgorithm hashAlg) throws IOException {
+        return calculateDigest(hashAlg, str.getBytes(UTF_8));
     }
 }

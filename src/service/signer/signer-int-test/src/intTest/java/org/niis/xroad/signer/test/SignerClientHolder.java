@@ -27,24 +27,108 @@
 
 package org.niis.xroad.signer.test;
 
-import lombok.experimental.UtilityClass;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
+import org.springframework.stereotype.Component;
+
+import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 
 /**
  * Holder for SignerRpcClient instance. Holds the signerRpcClient instance that is used in the tests. Otherwise, would
  * need to recreate on every feature.
  */
-@UtilityClass
+@Slf4j
+@Component
+@RequiredArgsConstructor
 public class SignerClientHolder {
+    private final SignerIntTestContainerSetup signerIntTestSetup;
 
-    private static SignerRpcClient signerRpcClientInstance;
+    private SignerRpcClient signerRpcClientInstance;
+    private SignerSignRpcClient signerSignClient;
 
-    public static void set(SignerRpcClient signerRpcClient) {
-        signerRpcClientInstance = signerRpcClient;
+    private SignerRpcClient secondarySignerRpcClient;
+    private SignerSignRpcClient secondarySignerSignClient;
+
+    public SignerRpcClient get(NodeProperties.NodeType nodeType) {
+        return switch (nodeType) {
+            case STANDALONE, PRIMARY -> signerRpcClientInstance;
+            case SECONDARY -> secondarySignerRpcClient;
+        };
     }
 
-    public static SignerRpcClient get() {
+    public SignerRpcClient get() {
         return signerRpcClientInstance;
     }
 
+    public SignerSignClient getSignClient(NodeProperties.NodeType nodeType) {
+        return switch (nodeType) {
+            case STANDALONE, PRIMARY -> signerSignClient;
+            case SECONDARY -> secondarySignerSignClient;
+        };
+    }
+
+    @SneakyThrows
+    public SignerRpcClient initWithTimeout(int timeoutMillis) {
+        var properties = new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER, SIGNER_GRPC_PORT).host();
+            }
+
+            @Override
+            public int port() {
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER, SIGNER_GRPC_PORT).port();
+
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return timeoutMillis;
+            }
+        };
+        var secondaryProperties = new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).host();
+            }
+
+            @Override
+            public int port() {
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).port();
+
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return timeoutMillis;
+            }
+        };
+
+        signerRpcClientInstance = new SignerRpcClient(getFactory(), properties);
+        signerRpcClientInstance.init();
+
+        signerSignClient = new SignerSignRpcClient(getFactory(), properties);
+        signerSignClient.init();
+
+        secondarySignerRpcClient = new SignerRpcClient(getFactory(), secondaryProperties);
+        secondarySignerRpcClient.init();
+
+        secondarySignerSignClient = new SignerSignRpcClient(getFactory(), secondaryProperties);
+        secondarySignerSignClient.init();
+
+        log.info("Will use {}:{} (original port {})  for signer RPC connection..", properties.host(), properties.port(), SIGNER_GRPC_PORT);
+        return signerRpcClientInstance;
+    }
+
+    private RpcChannelFactory getFactory() {
+        return new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
+    }
 }

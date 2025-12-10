@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,44 +25,66 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView title-key="tab.diagnostics.connectionTesting">
-
-    <ConnectionCentralServerView class="mt-0" />
-
-    <XrdEmptyPlaceholder
-      :data="xRoadInstances"
-      :loading="loading"
-      :no-items-text="$t('noData.noData')"
-      skeleton-type="table-heading"
-      :skeleton-count="2"
-    />
-
-    <template v-if="!loading">
-      <ConnectionSecurityServerView class="mt-0" />
-      <ConnectionManagementView class="mt-0" />
+  <XrdView data-test="diagnostics-view" title="tab.main.diagnostics">
+    <template #tabs>
+      <DiagnosticsTabs />
     </template>
 
-  </XrdTitledView>
+    <XrdSubView>
+      <ConnectionCentralServerView class="mt-0" />
+    </XrdSubView>
+
+    <XrdSubView>
+      <template v-if="!loading">
+        <ConnectionSecurityServerView class="mt-0" />
+      </template>
+
+      <XrdEmptyPlaceholder
+        :data="xRoadInstances"
+        :loading="loading"
+        :no-items-text="$t('noData.noData')"
+        skeleton-type="table-heading"
+        :skeleton-count="1"
+      />
+    </XrdSubView>
+
+    <XrdSubView>
+      <template v-if="!loading">
+        <ConnectionManagementView class="mt-0" />
+      </template>
+
+      <XrdEmptyPlaceholder
+        :data="xRoadInstances"
+        :loading="loading"
+        :no-items-text="$t('noData.noData')"
+        skeleton-type="table-heading"
+        :skeleton-count="1"
+      />
+    </XrdSubView>
+
+  </XrdView>
 </template>
 
 <script lang="ts">
+import ConnectionCentralServerView from '@/views/Diagnostics/Connection/ConnectionCentralServerView.vue';
+import ConnectionSecurityServerView from '@/views/Diagnostics/Connection/ConnectionSecurityServerView.vue';
+import ConnectionManagementView from '@/views/Diagnostics/Connection/ConnectionManagementView.vue';
+import { mapActions, mapState } from 'pinia';
+import { useGeneral } from '@/store/modules/general';
+import { useClients } from '@/store/modules/clients';
 import { defineComponent } from 'vue';
-import { XrdTitledView } from '@niis/shared-ui';
-import ConnectionCentralServerView from "@/views/Diagnostics/Connection/ConnectionCentralServerView.vue";
-import ConnectionSecurityServerView from "@/views/Diagnostics/Connection/ConnectionSecurityServerView.vue";
-import ConnectionManagementSSView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
-import ConnectionManagementView from "@/views/Diagnostics/Connection/ConnectionManagementView.vue";
-import { mapActions, mapState } from "pinia";
-import { useGeneral } from "@/store/modules/general";
-import { useClients } from "@/store/modules/clients";
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
+import { XrdSubView, XrdEmptyPlaceholder, XrdView } from '@niis/shared-ui';
 
 export default defineComponent({
-  name: 'ConnectionTestingView',
+  name: 'ConnectionContainer',
   components: {
+    XrdEmptyPlaceholder,
+    XrdSubView,
+    DiagnosticsTabs,
+    XrdView,
     ConnectionManagementView,
-    ConnectionManagementSSView,
     ConnectionSecurityServerView,
-    XrdTitledView,
     ConnectionCentralServerView
   },
 

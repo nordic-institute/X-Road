@@ -30,6 +30,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.TrustedAnchorsApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "trustedAnchorsApi", path = "/api/v1")
+@FeignClient
 public interface FeignTrustedAnchorsApi extends TrustedAnchorsApi {
 }

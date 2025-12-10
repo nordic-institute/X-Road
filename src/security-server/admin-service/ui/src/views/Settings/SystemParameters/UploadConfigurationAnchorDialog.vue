@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,121 +26,85 @@
  -->
 <template>
   <div>
-    <xrd-file-upload
-      v-if="showUploadAnchor"
-      v-slot="{ upload }"
-      accepts=".xml"
-      @file-changed="onUploadFileChanged"
-    >
-      <xrd-button
+    <XrdFileUpload v-if="showUploadAnchor" v-slot="{ upload }" accepts=".xml" @file-changed="onUploadFileChanged">
+      <XrdBtn
         data-test="system-parameters-configuration-anchor-upload-button"
-        outlined
+        class="ml-5 font-weight-bold"
+        prepend-icon="upload"
+        text="systemParameters.configurationAnchor.action.upload.button"
+        :variant="initMode ? 'outlined' : 'text'"
+        :color="initMode ? undefined : 'tertiary'"
+        :bold="initMode"
         :loading="previewing"
-        class="ml-5"
         @click="upload"
-      >
-        <xrd-icon-base class="xrd-large-button-icon">
-          <xrd-icon-upload />
-        </xrd-icon-base>
-        {{
-          $t('systemParameters.configurationAnchor.action.upload.button')
-        }}</xrd-button
-      ></xrd-file-upload
-    >
+      />
+    </XrdFileUpload>
 
-    <v-dialog
-      v-if="showPreview"
-      :model-value="showPreview"
-      persistent
+    <XrdConfirmDialog
+      v-if="showPreview && uploadedFile"
+      data-test="system-parameters-upload-configuration-anchor-dialog-confirm"
+      title="systemParameters.configurationAnchor.action.upload.dialog.title"
       max-width="850"
+      persistent
+      accept-button-text="action.confirm"
+      :loading="uploading"
+      @cancel="close"
+      @accept="confirmUpload(uploadedFile)"
     >
-      <v-card class="xrd-card">
-        <v-card-title>
-          <span data-test="dialog-title" class="text-h5">
-            {{
-              $t(
-                'systemParameters.configurationAnchor.action.upload.dialog.title',
-              )
-            }}
-          </span>
-        </v-card-title>
-        <v-card-text class="content-wrapper">
-          <v-container>
-            <v-row class="mb-5">
-              <v-col>
-                {{
-                  $t(
-                    'systemParameters.configurationAnchor.action.upload.dialog.info',
-                  )
-                }}
-              </v-col>
-            </v-row>
-            <v-row no-gutters>
-              <v-col class="font-weight-bold" cols="12" sm="3">
-                {{
-                  $t(
-                    'systemParameters.configurationAnchor.action.upload.dialog.field.hash',
-                  )
-                }}
-              </v-col>
-              <v-col cols="12" sm="9">{{
-                $filters.colonize(anchorPreview.hash)
-              }}</v-col>
-            </v-row>
-            <v-row no-gutters>
-              <v-col class="font-weight-bold" cols="12" sm="3">
-                {{
-                  $t(
-                    'systemParameters.configurationAnchor.action.upload.dialog.field.generated',
-                  )
-                }}
-              </v-col>
-              <v-col cols="12" sm="9">{{
-                $filters.formatDateTime(anchorPreview.created_at)
-              }}</v-col>
-            </v-row>
-            <v-row class="mt-5">
-              <v-col>
-                {{
-                  $t(
-                    'systemParameters.configurationAnchor.action.upload.dialog.confirmation',
-                  )
-                }}
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-card-actions class="xrd-card-actions">
-          <v-spacer></v-spacer>
-          <xrd-button
-            data-test="system-parameters-upload-configuration-anchor-dialog-cancel-button"
-            outlined
-            @click="close"
-            >{{ $t('action.cancel') }}</xrd-button
-          >
-          <xrd-button
-            data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
-            :loading="uploading"
-            @click="confirmUpload"
-            >{{ $t('action.confirm') }}</xrd-button
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <template #text>
+        <v-row>
+          <v-col>
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.info') }}
+          </v-col>
+        </v-row>
+        <v-row class="mt-5" no-gutters>
+          <v-col class="font-weight-bold" cols="auto" sm="3">
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.field.hash') }}
+          </v-col>
+          <v-col sm="9" style="text-wrap: pretty">
+            <XrdHashValue :value="anchorPreview.hash" />
+          </v-col>
+        </v-row>
+        <v-row class="mt-2" no-gutters>
+          <v-col class="font-weight-bold" cols="auto" sm="3">
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.field.generated') }}
+          </v-col>
+          <v-col sm="9">
+            <XrdDateTime :value="anchorPreview.created_at" />
+          </v-col>
+        </v-row>
+        <v-row class="mt-5">
+          <v-col>
+            {{ $t('systemParameters.configurationAnchor.action.upload.dialog.confirmation') }}
+          </v-col>
+        </v-row>
+      </template>
+    </XrdConfirmDialog>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+
+import { mapState } from 'pinia';
+
+import {
+  XrdBtn,
+  XrdConfirmDialog,
+  XrdDateTime,
+  XrdHashValue,
+  useNotifications,
+  FileUploadResult,
+  XrdFileUpload,
+  buildFileFormData,
+  multipartFormDataConfig,
+} from '@niis/shared-ui';
+
 import { Permissions } from '@/global';
-import * as api from '@/util/api';
 import { Anchor } from '@/openapi-types';
-import { PostPutPatch } from '@/util/api';
-import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { FileUploadResult } from '@/ui-types';
-import { XrdIconUpload } from '@niis/shared-ui';
+import * as api from '@/util/api';
+import { PostPutPatch } from '@/util/api';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',
@@ -148,7 +113,13 @@ const EmptyAnchorPreview: Anchor = {
 
 export default defineComponent({
   name: 'UploadConfigurationAnchorDialog',
-  components: { XrdIconUpload },
+  components: {
+    XrdConfirmDialog,
+    XrdHashValue,
+    XrdBtn,
+    XrdDateTime,
+    XrdFileUpload,
+  },
   props: {
     initMode: {
       type: Boolean,
@@ -156,12 +127,16 @@ export default defineComponent({
     },
   },
   emits: ['uploaded'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       previewing: false as boolean,
       uploading: false as boolean,
       anchorPreview: EmptyAnchorPreview,
-      uploadedFile: null as string | ArrayBuffer | null,
+      uploadedFile: null as File | null,
       showPreview: false as boolean,
       permissions: Permissions,
       anchorFile: undefined as string | undefined,
@@ -174,13 +149,9 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     onUploadFileChanged(event: FileUploadResult): void {
       if (this.initMode) {
-        this.previewAnchor(
-          event,
-          '/system/anchor/previews?validate_instance=false',
-        );
+        this.previewAnchor(event, '/system/anchor/previews?validate_instance=false');
       } else {
         this.previewAnchor(event, '/system/anchor/previews');
       }
@@ -189,48 +160,36 @@ export default defineComponent({
     previewAnchor(event: FileUploadResult, query: string): void {
       this.previewing = true;
       api
-        .post<Anchor>(query, event.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        })
+        .post<Anchor>(query, buildFileFormData('anchor', event.file), multipartFormDataConfig())
         .then((resp) => {
-          this.uploadedFile = event.buffer;
+          this.uploadedFile = event.file;
           this.anchorPreview = resp.data;
           this.showPreview = true;
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
           // Clear the anchor file
           this.anchorFile = undefined;
         })
         .finally(() => (this.previewing = false));
     },
 
-    confirmUpload(): void {
+    confirmUpload(anchorFile: File): void {
       if (this.initMode) {
-        this.uploadAnchor(api.post);
+        this.uploadAnchor(api.post, anchorFile);
       } else {
-        this.uploadAnchor(api.put);
+        this.uploadAnchor(api.put, anchorFile);
       }
     },
 
-    uploadAnchor(apiCall: PostPutPatch): void {
+    uploadAnchor(apiCall: PostPutPatch, anchorFile: File): void {
       this.uploading = true;
-      apiCall('/system/anchor', this.uploadedFile, {
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      })
+      apiCall('/system/anchor', buildFileFormData('anchor', anchorFile), multipartFormDataConfig())
         .then(() => {
-          this.showSuccess(
-            this.$t(
-              'systemParameters.configurationAnchor.action.upload.dialog.success',
-            ),
-          );
+          this.addSuccessMessage('systemParameters.configurationAnchor.action.upload.dialog.success');
           this.$emit('uploaded');
         })
-        .catch((error) => this.showError(error))
+        .catch((error) => this.addError(error))
         .finally(() => {
           this.uploading = false;
           this.close();

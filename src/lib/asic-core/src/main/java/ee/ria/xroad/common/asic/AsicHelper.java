@@ -25,12 +25,13 @@
  */
 package ee.ria.xroad.common.asic;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.signature.Signature;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,14 +45,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_HASH_CHAIN_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_INVALID_MIME_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MANIFEST_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MESSAGE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MIME_TYPE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_TIMESTAMP_NOT_FOUND;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ASIC_MANIFEST;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ATTACHMENT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MANIFEST;
@@ -68,6 +61,14 @@ import static ee.ria.xroad.common.asic.AsicContainerEntries.isAttachment;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_HASH_CHAIN_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_HASH_CHAIN_RESULT_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_INVALID_MIME_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_MANIFEST_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_MESSAGE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_MIME_TYPE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_SIGNATURE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_TIMESTAMP_NOT_FOUND;
 
 /**
  * Utility methods for dealing wit ASiC containers.
@@ -166,23 +167,23 @@ final class AsicHelper {
 
     static void verifyMimeType(String mimeType) {
         if (isBlank(mimeType)) {
-            throw fileEmptyException(X_ASIC_MIME_TYPE_NOT_FOUND, ENTRY_MIMETYPE);
+            throw fileEmptyException(ASIC_MIME_TYPE_NOT_FOUND, ENTRY_MIMETYPE);
         }
 
         if (!MIMETYPE.equalsIgnoreCase(mimeType)) {
-            throw new CodedException(X_ASIC_INVALID_MIME_TYPE, "Invalid mime type: %s", mimeType);
+            throw XrdRuntimeException.systemException(ASIC_INVALID_MIME_TYPE, "Invalid mime type: %s", mimeType);
         }
     }
 
     static void verifyMessage(String message) {
         if (isBlank(message)) {
-            throw fileEmptyException(X_ASIC_MESSAGE_NOT_FOUND, ENTRY_MESSAGE);
+            throw fileEmptyException(ASIC_MESSAGE_NOT_FOUND, ENTRY_MESSAGE);
         }
     }
 
     static void verifySignature(String signature, String hashChainResult, String hashChain) {
         if (isBlank(signature)) {
-            throw fileEmptyException(X_ASIC_SIGNATURE_NOT_FOUND, ENTRY_SIGNATURE);
+            throw fileEmptyException(ASIC_SIGNATURE_NOT_FOUND, ENTRY_SIGNATURE);
         }
 
         verifyHashChainEntries(ENTRY_SIG_HASH_CHAIN_RESULT, hashChainResult,
@@ -191,7 +192,7 @@ final class AsicHelper {
 
     static void verifyTimestamp(String timestamp, String hashChainResult, String hashChain) {
         if (isNotNullAndIsBlank(timestamp)) {
-            throw fileEmptyException(X_ASIC_TIMESTAMP_NOT_FOUND, ENTRY_TIMESTAMP);
+            throw fileEmptyException(ASIC_TIMESTAMP_NOT_FOUND, ENTRY_TIMESTAMP);
         }
 
         verifyHashChainEntries(ENTRY_TS_HASH_CHAIN_RESULT, hashChainResult,
@@ -200,11 +201,11 @@ final class AsicHelper {
 
     static void verifyManifest(String manifest, String asicManifest) {
         if (isNotNullAndIsBlank(manifest)) {
-            throw fileEmptyException(X_ASIC_MANIFEST_NOT_FOUND, ENTRY_MANIFEST);
+            throw fileEmptyException(ASIC_MANIFEST_NOT_FOUND, ENTRY_MANIFEST);
         }
 
         if (isNotNullAndIsBlank(asicManifest)) {
-            throw fileEmptyException(X_ASIC_MANIFEST_NOT_FOUND, ENTRY_ASIC_MANIFEST);
+            throw fileEmptyException(ASIC_MANIFEST_NOT_FOUND, ENTRY_ASIC_MANIFEST);
         }
     }
 
@@ -215,11 +216,11 @@ final class AsicHelper {
         }
 
         if (isBlank(hashChainResult)) {
-            throw fileEmptyException(X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND, hashChainResultEntryName);
+            throw fileEmptyException(ASIC_HASH_CHAIN_RESULT_NOT_FOUND, hashChainResultEntryName);
         }
 
         if (isBlank(hashChain)) {
-            throw fileEmptyException(X_ASIC_HASH_CHAIN_NOT_FOUND, hashChainEntryName);
+            throw fileEmptyException(ASIC_HASH_CHAIN_NOT_FOUND, hashChainEntryName);
         }
     }
 
@@ -260,7 +261,7 @@ final class AsicHelper {
         return string != null && isBlank(string);
     }
 
-    private static CodedException fileEmptyException(String errorCode, String fileName) {
-        throw new CodedException(errorCode, "%s not found or is empty", fileName);
+    private static XrdRuntimeException fileEmptyException(ErrorCode errorCode, String fileName) {
+        throw XrdRuntimeException.systemException(errorCode, "%s not found or is empty", fileName);
     }
 }

@@ -1,0 +1,332 @@
+name: Service Integration Tests
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+      image_registry:
+        description: 'Image registry URL'
+        required: true
+        type: string
+      service_image_tag:
+        description: 'Service image tag to use'
+        required: true
+        type: string
+
+jobs:
+  test-signer:
+    name: signer-int-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'signer-int-test'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download signer-int-test
+        uses: actions/download-artifact@v4
+        with:
+          name: signer-int-test-jar
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'signer-int-test setup'
+
+      - name: Run signer-int-test
+        run: java -jar signer-int-test-1.0.jar
+
+      - name: Log storage
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'signer-int-test storage'
+          show-docker-images: 'true'
+
+      - name: Test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'signer-int-test'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: signer-int-test
+          path: test-framework-working-dir/test-results/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload signer-int-test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: signer-int-test-report-${{ github.run_number }}
+          path: |
+            test-framework-working-dir/allure-report/index.html
+            test-framework-working-dir/container-logs/
+            test-framework-working-dir/test-automation-exec.log
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true
+
+  test-opmonitor:
+    name: opmonitor-int-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'opmonitor-int-test'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download opmonitor-int-test
+        uses: actions/download-artifact@v4
+        with:
+          name: opmonitor-int-test-jar
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'opmonitor-int-test setup'
+
+      - name: Run opmonitor-int-test
+        run: java -jar opmonitor-int-test-1.0.jar
+
+      - name: Log storage
+        if: always()
+        uses: ./.github/actions/log-storage
+        with:
+          label: 'opmonitor-int-test storage'
+          show-docker-images: 'true'
+
+      - name: Test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'opmonitor-int-test'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: opmonitor-int-test
+          path: test-framework-working-dir/test-results/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload opmonitor-int-test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: opmonitor-int-test-report-${{ github.run_number }}
+          path: |
+            test-framework-working-dir/allure-report/index.html
+            test-framework-working-dir/container-logs/
+            test-framework-working-dir/test-automation-exec.log
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true
+
+  test-cs-admin:
+    name: cs-admin-int-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'cs-admin-int-test'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download cs-admin-int-test
+        uses: actions/download-artifact@v4
+        with:
+          name: cs-admin-int-test-jar
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'cs-admin-int-test setup'
+
+      - name: Run cs-admin-int-test
+        run: java -jar central-server-admin-int-test-1.0.jar
+
+      - name: Test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'cs-admin-int-test'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: cs-admin-int-test
+          path: test-framework-working-dir/test-results/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload cs-admin-int-test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cs-admin-int-test-report-${{ github.run_number }}
+          path: |
+            test-framework-working-dir/allure-report/index.html
+            test-framework-working-dir/container-logs/
+            test-framework-working-dir/test-automation-exec.log
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true
+
+  test-cs-management:
+    name: cs-management-int-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: start-measurement
+          label: 'cs-management-int-test'
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download cs-management-int-test
+        uses: actions/download-artifact@v4
+        with:
+          name: cs-management-int-test-jar
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'cs-management-int-test setup'
+
+      - name: Run cs-management-int-test
+        run: java -jar central-server-management-int-test-1.0.jar
+
+      - name: Test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: get-measurement
+          label: 'cs-management-int-test'
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: cs-management-int-test
+          path: test-framework-working-dir/test-results/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload cs-management-int-test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cs-management-int-test-report-${{ github.run_number }}
+          path: |
+            test-framework-working-dir/allure-report/index.html
+            test-framework-working-dir/container-logs/
+            test-framework-working-dir/test-automation-exec.log
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        with:
+          task: display-results
+          pr-comment: true

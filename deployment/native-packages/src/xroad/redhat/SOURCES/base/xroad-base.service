@@ -1,0 +1,10 @@
+[Unit]
+Description=X-Road initialization
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/true
+
+[Install]
+WantedBy=multi-user.target

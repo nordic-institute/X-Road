@@ -1,0 +1,77 @@
+quarkus:
+  log:
+    level: INFO
+    category:
+      "org.niis.xroad.proxy.core.healthcheck":
+        level: DEBUG
+xroad:
+  common-rpc:
+    certificate-provisioning:
+      # To ensure vault-powered mTLS certificate rotation
+      ttl: 120S
+      refresh-interval: 60S
+  configuration-client:
+    update-interval: 3
+    global-conf-tls-cert-verification: false
+    global-conf-hostname-verification: false
+  signer:
+    enforce-token-pin-policy: true
+    addon:
+      hwtoken:
+        enabled: true
+  proxy:
+    ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
+    health-check-port: 5558
+    message-log:
+      timestamping-prioritization-strategy: PAID_FIRST
+      database-encryption:
+        enabled: true
+        key-id: default
+      archiver:
+        encryption-enabled: true
+    addon:
+      op-monitor:
+        enabled: true
+        buffer:
+          socket-timeout-seconds: 1
+        connection:
+          host: op-monitor
+          scheme: https
+          socket-timeout-seconds: 1
+    ocsp-responder:
+      ocsp-prioritization-strategy: ONLY_FREE
+  proxy-ui-api:
+    enforce-user-password-policy: true
+    rate-limit-enabled: true
+    rate-limit-requests-per-second: 10000
+    rate-limit-requests-per-minute: 10000
+    acme-challenge-port-enabled: true
+    automatic-activate-acme-sign-certificate: true
+  op-monitor:
+    scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
+  backup-manager:
+    backup-encryption-enabled: true
+    backup-encryption-keyids: [ "backup.key1@example.org", "backup.key2@example.org", "backup.key3@example.org" ]
+  acme: |
+    eab-credentials:
+      certificate-authorities:
+        "Test CA":
+          mac-key-base64-encoded: true
+          members:
+            "DEV:COM:1234":
+              auth-kid: keyid_2
+              auth-mac-key: addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625
+              sign-kid: keyid_3
+              sign-mac-key: 96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde
+    account-keystore-password: testPassword1234
+
+  mail-notification: |
+    host: testmailserver
+    port: 587
+    username: testuser
+    password: passw0rd
+    use-ssl-tls: true
+    contacts:
+      "DEV:COM:1234": member1@example.org
+
+
