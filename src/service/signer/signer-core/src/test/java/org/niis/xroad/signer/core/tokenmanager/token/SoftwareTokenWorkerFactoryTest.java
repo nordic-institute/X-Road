@@ -51,7 +51,7 @@ import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
-import org.niis.xroad.signer.shared.softtoken.SignatureGenerator;
+import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 
 import java.util.List;
 import java.util.Map;

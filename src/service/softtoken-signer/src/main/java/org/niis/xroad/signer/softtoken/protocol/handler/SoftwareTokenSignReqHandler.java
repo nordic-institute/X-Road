@@ -31,8 +31,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignResp;
-import org.niis.xroad.signer.shared.SignReqHandler;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.common.SignReqHandler;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 
 @ApplicationScoped
 @RequiredArgsConstructor

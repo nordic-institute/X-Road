@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.shared.softtoken;
+package org.niis.xroad.signer.common.softtoken;
 
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -43,7 +43,7 @@ import java.security.SignatureException;
 
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNSUPPORTED_SIGN_ALGORITHM;
-import static org.niis.xroad.signer.shared.SigningUtil.checkSignatureAlgorithm;
+import static org.niis.xroad.signer.common.SigningUtil.checkSignatureAlgorithm;
 
 @ApplicationScoped
 @RequiredArgsConstructor

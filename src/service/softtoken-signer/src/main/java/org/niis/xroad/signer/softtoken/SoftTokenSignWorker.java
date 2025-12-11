@@ -33,8 +33,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.signer.shared.SignReqHandler;
-import org.niis.xroad.signer.shared.softtoken.SignatureGenerator;
+import org.niis.xroad.signer.common.SignReqHandler;
+import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 import org.niis.xroad.signer.softtoken.sync.CachedKeyInfo;
 import org.niis.xroad.signer.softtoken.sync.SoftwareTokenKeyCache;
 
@@ -55,7 +55,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_ACTIVE;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-public class SignReqHandlerImpl extends SignReqHandler {
+public class SoftTokenSignWorker extends SignReqHandler {
 
     private final SoftwareTokenKeyCache keyCache;
     private final SignatureGenerator signatureGenerator;

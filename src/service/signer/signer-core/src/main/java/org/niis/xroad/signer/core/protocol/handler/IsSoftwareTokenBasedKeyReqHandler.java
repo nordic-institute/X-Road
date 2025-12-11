@@ -30,11 +30,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.module.SoftwareModuleType;
 import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyReq;
 import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyResp;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 @Slf4j
 @ApplicationScoped

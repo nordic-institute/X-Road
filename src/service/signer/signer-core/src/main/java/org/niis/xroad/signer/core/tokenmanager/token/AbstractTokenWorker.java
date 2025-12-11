@@ -40,6 +40,7 @@ import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.common.SignReqHandler;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -48,7 +49,6 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.SignCertificateReq;
-import org.niis.xroad.signer.shared.SignReqHandler;
 
 import java.io.IOException;
 import java.math.BigInteger;

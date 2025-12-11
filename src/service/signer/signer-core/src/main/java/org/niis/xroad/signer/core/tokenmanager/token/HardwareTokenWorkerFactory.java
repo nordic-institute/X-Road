@@ -115,7 +115,7 @@ public class HardwareTokenWorkerFactory {
         return new HardwareTokenWorker(tokenInfo, tokenDefinition);
     }
 
-    public class HardwareTokenWorker extends AbstractTokenWorker implements HardwareTokenSigner.SignPrivateKeyProvider {
+    public final class HardwareTokenWorker extends AbstractTokenWorker implements HardwareTokenSigner.SignPrivateKeyProvider {
         // maps key id (hex) to PrivateKey
         private final Map<String, PrivateKey> privateKeyCache = new HashMap<>();
         private final Map<String, List<X509PublicKeyCertificate>> certs = new HashMap<>();

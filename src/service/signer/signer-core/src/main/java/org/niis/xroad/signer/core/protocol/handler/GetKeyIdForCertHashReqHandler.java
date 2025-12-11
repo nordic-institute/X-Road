@@ -28,10 +28,10 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithHashNotFound;
 

@@ -36,11 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.CertificationServiceStatus;
 import org.niis.xroad.signer.proto.OcspResponderStatus;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import java.util.Map;
 

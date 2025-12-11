@@ -30,9 +30,9 @@ import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.certmanager.OcspCacheManager;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 

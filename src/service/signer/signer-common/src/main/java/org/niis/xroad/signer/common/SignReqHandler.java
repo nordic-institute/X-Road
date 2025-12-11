@@ -24,42 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.shared;
+package org.niis.xroad.signer.common;
 
-import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-import lombok.experimental.UtilityClass;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.SignReq;
 
-import java.util.Set;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.UNSUPPORTED_SIGN_ALGORITHM;
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
-@UtilityClass
-public class SigningUtil {
+@Slf4j
+public abstract class SignReqHandler {
 
-    public static final Set<SignAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
-            SignAlgorithm.SHA1_WITH_RSA,
-            SignAlgorithm.SHA256_WITH_RSA,
-            SignAlgorithm.SHA384_WITH_RSA,
-            SignAlgorithm.SHA512_WITH_RSA,
+    public byte[] handleSign(SignReq request) {
+        try {
+            var signatureAlgId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
+            byte[] data = SignDataPreparer.of(signatureAlgId).prepare(request.getDigest().toByteArray());
 
-            SignAlgorithm.SHA1_WITH_ECDSA,
-            SignAlgorithm.SHA256_WITH_ECDSA,
-            SignAlgorithm.SHA384_WITH_ECDSA,
-            SignAlgorithm.SHA512_WITH_ECDSA
-    );
-
-    public static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) {
-        if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
-            throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
-                    "Unsupported signature algorithm '%s'".formatted(signatureAlgorithmId.name()));
-        }
-
-        if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
-            throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
-                    "Unsupported signature algorithm '%s' for key algorithm '%s'".formatted(signatureAlgorithmId.name(), algorithm));
+            return sign(request.getKeyId(), signatureAlgId, data);
+        } catch (Exception e) {
+            log.error("Error while signing with key '{}'", request.getKeyId(), e);
+            throw translateException(e).withPrefix(X_CANNOT_SIGN);
         }
     }
+
+    protected abstract byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data)
+            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, UnrecoverableKeyException,
+            CertificateException, IOException, KeyStoreException;
+
 }

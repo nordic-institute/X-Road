@@ -27,10 +27,10 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 /**
  * Handles queries for batch signing capabilities of a token.

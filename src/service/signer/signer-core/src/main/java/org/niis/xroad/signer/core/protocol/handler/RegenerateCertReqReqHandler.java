@@ -35,6 +35,7 @@ import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.protocol.handler.service.CertRequestCreationService;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
@@ -42,7 +43,6 @@ import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.RegenerateCertRequestResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import static java.util.Optional.ofNullable;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.csrWithIdNotFound;

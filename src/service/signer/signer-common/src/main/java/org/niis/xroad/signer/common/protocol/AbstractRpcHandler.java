@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.shared.protocol;
+package org.niis.xroad.signer.common.protocol;
 
 import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;

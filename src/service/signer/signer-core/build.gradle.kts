@@ -11,7 +11,7 @@ dependencies {
   implementation(project(":lib:globalconf-impl"))
 
   implementation(project(":service:signer:signer-api"))
-  implementation(project(":common:common-signer"))
+  implementation(project(":service:signer:signer-common"))
 
   implementation(libs.quarkus.arc)
   implementation(libs.quarkus.scheduler)

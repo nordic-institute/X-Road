@@ -24,29 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.shared.config;
+package org.niis.xroad.signer.common.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import ee.ria.xroad.common.crypto.KeyManagers;
 
-import static java.lang.Math.max;
+import jakarta.enterprise.context.ApplicationScoped;
 
-@ConfigMapping(prefix = "xroad.signer")
-public interface SignerKeyProperties {
+public class SharedSignerConfig {
 
-    int MIN_SIGNER_KEY_LENGTH = 2048;
-
-    @WithName("key-length")
-    @WithDefault("2048")
-    int keyLength();
-
-    default int getKeyLength() {
-        return max(MIN_SIGNER_KEY_LENGTH, keyLength());
+    @ApplicationScoped
+    KeyManagers keyManagers(SignerKeyProperties properties) {
+        return new KeyManagers(properties.getKeyLength(), properties.keyNamedCurve());
     }
-
-    @WithName("key-named-curve")
-    @WithDefault("secp256r1")
-    String keyNamedCurve();
 
 }

@@ -9,7 +9,7 @@ dependencies {
   implementation(project(":lib:bootstrap-quarkus"))
   implementation(project(":service:signer:signer-api"))
   implementation(project(":service:signer:signer-client"))
-  implementation(project(":common:common-signer"))
+  implementation(project(":service:signer:signer-common"))
   implementation(project(":common:common-rpc-quarkus"))
 
   implementation(libs.quarkus.extension.systemd.notify)

@@ -30,9 +30,9 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.proto.IsEnforcedTokenPinPolicyResp;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 @ApplicationScoped
 @RequiredArgsConstructor

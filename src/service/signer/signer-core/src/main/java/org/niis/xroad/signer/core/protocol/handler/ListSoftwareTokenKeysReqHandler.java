@@ -33,13 +33,13 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenPinManager;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil;
 import org.niis.xroad.signer.proto.ListSoftwareTokenKeysResp;
 import org.niis.xroad.signer.proto.SoftwareTokenKeyInfo;
-import org.niis.xroad.signer.shared.protocol.AbstractRpcHandler;
 
 import java.security.PrivateKey;
 import java.util.List;

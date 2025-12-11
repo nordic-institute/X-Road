@@ -52,6 +52,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
@@ -64,7 +65,6 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
-import org.niis.xroad.signer.shared.softtoken.SignatureGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -89,12 +89,12 @@ import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_POLICY_FAILURE;
+import static org.niis.xroad.signer.common.SigningUtil.checkSignatureAlgorithm;
 import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotFound;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.pinIncorrect;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotActive;
-import static org.niis.xroad.signer.shared.SigningUtil.checkSignatureAlgorithm;
 
 /**
  * Encapsulates the software token worker which handles software signing and key
@@ -119,7 +119,7 @@ public class SoftwareTokenWorkerFactory {
         return new SoftwareTokenWorker(tokenInfo, tokenDefinition);
     }
 
-    public class SoftwareTokenWorker extends AbstractTokenWorker {
+    public final class SoftwareTokenWorker extends AbstractTokenWorker {
         private final Map<String, PrivateKey> privateKeys = new ConcurrentHashMap<>();
         private final TokenDefinition tokenDefinition;
 
