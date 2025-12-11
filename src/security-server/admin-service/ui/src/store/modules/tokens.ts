@@ -181,7 +181,7 @@ export const useTokens = defineStore('tokens', {
 
     async tokenLogout(id: string) {
       return api
-        .put(tokenBaseUrl(id, 'logout'), {})
+        .put(tokenBaseUrl(id, '/logout'), {})
         .then(() => {
           // Update tokens
           this.fetchTokens();
