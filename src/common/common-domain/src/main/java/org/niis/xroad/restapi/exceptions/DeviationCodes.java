@@ -55,6 +55,7 @@ public final class DeviationCodes {
     public static final String ERROR_CERTIFICATE_WRONG_USAGE = "cert_wrong_usage";
     public static final String ERROR_CLIENT_ALREADY_EXISTS = "client_already_exists";
     public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
+    public static final String ERROR_INVALID_CSR_FORMAT = "invalid_csr_format";
     public static final String ERROR_DIAGNOSTIC_REQUEST_FAILED = "diagnostic_request_failed";
     public static final String ERROR_DUPLICATE_ACCESSRIGHT = "duplicate_accessright";
     public static final String ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE =

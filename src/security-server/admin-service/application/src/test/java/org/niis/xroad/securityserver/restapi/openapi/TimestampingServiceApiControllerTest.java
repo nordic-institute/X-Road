@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.model.TimestampingService;
@@ -66,8 +66,8 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
 
     @Before
     public void setup() {
-        TimestampingService tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE.name());
-        TimestampingService tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.PAID.name());
+        TimestampingService tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE);
+        TimestampingService tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.PAID);
         APPROVED_TIMESTAMPING_SERVICES.put(tsa1.getName(), tsa1);
         APPROVED_TIMESTAMPING_SERVICES.put(tsa2.getName(), tsa2);
 

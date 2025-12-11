@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
@@ -58,8 +59,8 @@ public class TimestampingServiceDiagnosticConverterTest {
     @Before
     public void setup() {
         ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
-        when(serverConfProvider.getTspCostType(URL_1)).thenReturn(CostTypeDto.PAID.name());
-        when(serverConfProvider.getTspCostType(URL_2)).thenReturn(CostTypeDto.FREE.name());
+        when(serverConfProvider.getTspCostType(URL_1)).thenReturn(CostType.PAID);
+        when(serverConfProvider.getTspCostType(URL_2)).thenReturn(CostType.FREE);
         timestampingServiceDiagnosticConverter = new TimestampingServiceDiagnosticConverter(serverConfProvider);
     }
 

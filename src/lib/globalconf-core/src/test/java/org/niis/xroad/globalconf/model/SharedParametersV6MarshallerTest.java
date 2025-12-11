@@ -27,6 +27,7 @@
 package org.niis.xroad.globalconf.model;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.nio.charset.StandardCharsets;

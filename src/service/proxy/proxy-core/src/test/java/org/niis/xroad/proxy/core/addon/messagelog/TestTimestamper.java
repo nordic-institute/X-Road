@@ -39,7 +39,7 @@ class TestTimestamper extends Timestamper {
 
     @Override
     protected TimestamperWorker getWorkerImpl() {
-        return new TestTimestamperWorker(globalConfProvider, logRecordManager, messageLogProperties, serverConfProvider.getTspUrl());
+        return new TestTimestamperWorker(globalConfProvider, logRecordManager, messageLogProperties, serverConfProvider.getTspUrls());
     }
 
 }

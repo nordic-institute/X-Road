@@ -30,10 +30,12 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
 
 public class KeyAndCertPageObj {
     private static final String X_TOKEN_EXPANDABLE = "//div[@data-test='tokens-table']"
@@ -242,8 +244,8 @@ public class KeyAndCertPageObj {
         }
 
 
-        public SelenideElement csrFormat() {
-            return $x("//div[@data-test='csr-format-select']");
+        public VuetifyHelper.Select csrFormat() {
+            return vSelect($x("//div[@data-test='csr-format-select']"));
         }
 
         public SelenideElement csrClient() {

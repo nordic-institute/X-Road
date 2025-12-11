@@ -27,16 +27,23 @@ package org.niis.xroad.serverconf.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.SortableByCostType;
 
 /**
  * Time stamping provider.
  */
 @Getter
 @Setter
-public class TimestampingService {
+public class TimestampingService implements SortableByCostType {
 
     private Long id;
     private String name;
     private String url;
-    private String costType;
+    private CostType costType;
+
+    @Override
+    public String getSortableValue() {
+        return url;
+    }
 }

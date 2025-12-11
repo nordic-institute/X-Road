@@ -38,18 +38,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
 import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
-import org.niis.xroad.proxy.proto.OcspPrioritizationStrategyResp;
 import org.niis.xroad.proxy.proto.ProxyMemoryStatusResp;
-import org.niis.xroad.proxy.proto.ServicePrioritizationStrategy;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
 import org.niis.xroad.proxy.proto.TimestampingPrioritizationStrategyResp;
 import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.rpc.common.ServicePrioritizationStrategy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -68,7 +66,6 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final ProxyMemoryStatusService proxyMemoryStatusService;
     private final EncryptionConfigProvider encryptionConfigProvider;
     private final ProxyMessageLogProperties messageLogProperties;
-    private final ProxyProperties.OcspResponderProperties ocspResponderProperties;
 
     private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
@@ -101,11 +98,6 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     public void getTimestampingPrioritizationStrategy(
             Empty request, StreamObserver<TimestampingPrioritizationStrategyResp> responseObserver) {
         handleRequest(responseObserver, this::handleGetTimestampingPrioritizationStrategy);
-    }
-
-    @Override
-    public void getOcspPrioritizationStrategy(Empty request, StreamObserver<OcspPrioritizationStrategyResp> responseObserver) {
-        handleRequest(responseObserver, this::handleGetOcspPrioritizationStrategy);
     }
 
     private <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {
@@ -195,24 +187,13 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
                 .toList();
     }
 
-    private OcspPrioritizationStrategyResp handleGetOcspPrioritizationStrategy() {
-        var strategy = ocspResponderProperties.ocspPrioritizationStrategy();
-        return OcspPrioritizationStrategyResp.newBuilder()
-                .setStrategy(getServicePrioritizationStrategy(strategy))
-                .build();
-    }
-
     private TimestampingPrioritizationStrategyResp handleGetTimestampingPrioritizationStrategy() {
         var strategy = messageLogProperties.timestampingPrioritizationStrategy();
         return TimestampingPrioritizationStrategyResp.newBuilder()
-                .setStrategy(getServicePrioritizationStrategy(strategy))
+                .setStrategy(ee.ria.xroad.common.ServicePrioritizationStrategy.NONE.equals(strategy)
+                        ? ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE
+                        : ServicePrioritizationStrategy.valueOf(strategy.name()))
                 .build();
     }
 
-    private static ServicePrioritizationStrategy getServicePrioritizationStrategy(
-            ee.ria.xroad.common.ServicePrioritizationStrategy strategy) {
-        return ee.ria.xroad.common.ServicePrioritizationStrategy.NONE.equals(strategy)
-                ? ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE
-                : ServicePrioritizationStrategy.valueOf(strategy.name());
-    }
 }

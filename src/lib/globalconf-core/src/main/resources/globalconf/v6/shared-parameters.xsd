@@ -293,7 +293,7 @@
         <annotation>
             <documentation>Describes whether the service is free or paid</documentation>
             <appinfo>
-                <jxb:javaType name="org.niis.xroad.globalconf.model.CostType" parseMethod="valueOf" printMethod="name"/>
+                <jxb:javaType name="org.niis.xroad.common.CostType" parseMethod="valueOf" printMethod="name"/>
             </appinfo>
         </annotation>
         <restriction base="string">

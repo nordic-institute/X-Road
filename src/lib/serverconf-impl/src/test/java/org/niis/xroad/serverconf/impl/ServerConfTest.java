@@ -27,6 +27,7 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.ExpectedXrdRuntimeException;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -39,8 +40,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
@@ -50,6 +51,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -257,6 +259,10 @@ public class ServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest));
+
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
     }
 
     /**
@@ -316,7 +322,7 @@ public class ServerConfTest {
      */
     @Test
     public void getTsps() {
-        List<String> tspUrls = serverConfProvider.getTspUrl();
+        List<String> tspUrls = serverConfProvider.getTspUrls();
         assertEquals(NUM_TSPS, tspUrls.size());
         for (int i = 0; i < NUM_TSPS; i++) {
             assertEquals(String.format("tspUrl%d", i), tspUrls.get(i));
@@ -324,11 +330,51 @@ public class ServerConfTest {
     }
 
     @Test
+    public void getOrderedTspUrls() {
+        List<String> tspUrls = serverConfProvider.getOrderedTspUrls(ServicePrioritizationStrategy.ONLY_FREE);
+        assertThat(tspUrls).containsExactly(
+                "tspUrl1",
+                "tspUrl4");
+
+        tspUrls = serverConfProvider.getOrderedTspUrls(ServicePrioritizationStrategy.FREE_FIRST);
+        assertThat(tspUrls).containsExactly(
+                "tspUrl1",
+                "tspUrl4",
+                "tspUrl0",
+                "tspUrl3",
+                "tspUrl2");
+
+        tspUrls = serverConfProvider.getOrderedTspUrls(ServicePrioritizationStrategy.ONLY_PAID);
+        assertThat(tspUrls).containsExactly(
+                "tspUrl0",
+                "tspUrl3");
+
+
+        tspUrls = serverConfProvider.getOrderedTspUrls(ServicePrioritizationStrategy.PAID_FIRST);
+        assertThat(tspUrls).containsExactly(
+                "tspUrl0",
+                "tspUrl3",
+                "tspUrl1",
+                "tspUrl4",
+                "tspUrl2");
+
+        tspUrls = serverConfProvider.getOrderedTspUrls(ServicePrioritizationStrategy.NONE);
+        assertThat(tspUrls).containsExactly(
+                "tspUrl0",
+                "tspUrl1",
+                "tspUrl2",
+                "tspUrl3",
+                "tspUrl4");
+    }
+
+    @Test
     public void getTspCostType() {
-        String costType0 = serverConfProvider.getTspCostType("tspUrl0");
-        String costType2 = serverConfProvider.getTspCostType("tspUrl2");
-        assertEquals(CostType.UNDEFINED.name(), costType0);
-        assertEquals(CostType.FREE.name(), costType2);
+        CostType costType0 = serverConfProvider.getTspCostType("tspUrl0");
+        CostType costType1 = serverConfProvider.getTspCostType("tspUrl1");
+        CostType costType2 = serverConfProvider.getTspCostType("tspUrl2");
+        assertEquals(CostType.PAID, costType0);
+        assertEquals(CostType.FREE, costType1);
+        assertEquals(CostType.UNDEFINED, costType2);
     }
 
     /**

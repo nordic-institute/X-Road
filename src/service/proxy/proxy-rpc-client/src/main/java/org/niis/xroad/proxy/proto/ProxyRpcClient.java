@@ -192,19 +192,10 @@ public class ProxyRpcClient extends AbstractRpcClient {
     public ServicePrioritizationStrategy getTimestampingPrioritizationStrategy() {
         var response = exec(() -> adminServiceBlockingStub
                 .getTimestampingPrioritizationStrategy(Empty.getDefaultInstance()));
-        return getServicePrioritizationStrategy(response.getStrategy());
-    }
-
-    public ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
-        var response = exec(() -> adminServiceBlockingStub
-                .getOcspPrioritizationStrategy(Empty.getDefaultInstance()));
-        return getServicePrioritizationStrategy(response.getStrategy());
-    }
-
-    private static ServicePrioritizationStrategy getServicePrioritizationStrategy(
-            org.niis.xroad.proxy.proto.ServicePrioritizationStrategy strategy) {
-        return org.niis.xroad.proxy.proto.ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE.equals(strategy)
+        org.niis.xroad.rpc.common.ServicePrioritizationStrategy strategy = response.getStrategy();
+        return org.niis.xroad.rpc.common.ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE.equals(strategy)
                 ? ServicePrioritizationStrategy.NONE
                 : ServicePrioritizationStrategy.valueOf(strategy.name());
     }
+
 }

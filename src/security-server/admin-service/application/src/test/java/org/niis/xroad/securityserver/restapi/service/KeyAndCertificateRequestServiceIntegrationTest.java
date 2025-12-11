@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -58,6 +57,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCa;
 
 public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
@@ -134,10 +134,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                     return new SignerRpcClient.GeneratedCertRequestInfo(null, null, null, null, null);
                 });
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(Arrays.asList(
-                new ApprovedCAInfo(MOCK_CA,
-                        false,
-                        "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
-                        null, null, null, null)));
+                approvedCa(MOCK_CA, false, "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider")));
         ClientId.Conf ownerId = ClientId.Conf.create("FI", "GOV", "M1");
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);

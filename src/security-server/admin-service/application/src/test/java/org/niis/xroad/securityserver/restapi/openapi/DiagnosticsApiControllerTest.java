@@ -34,12 +34,12 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.protobuf.Timestamp;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
 import org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember;

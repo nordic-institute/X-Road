@@ -27,7 +27,7 @@
 package org.niis.xroad.globalconf.impl;
 
 import ee.ria.xroad.common.ExpectedXrdRuntimeException;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.TestCertUtil;
 
 import org.apache.commons.io.FileUtils;
@@ -35,10 +35,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
-import org.niis.xroad.globalconf.model.CostType;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,11 +46,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class GlobalConfVer6Test {
@@ -64,13 +65,10 @@ public class GlobalConfVer6Test {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
-
         createConfigurationFiles();
 
-        FileSystemGlobalConfSource globalConfSource = new FileSystemGlobalConfSource(getConfigurationPath());
-        globalConfProvider =
-                new GlobalConfImpl(globalConfSource, new GlobalConfExtensions(globalConfSource, new GlobalConfExtensionFactoryImpl()));
+        var source = new FileSystemGlobalConfSource(GOOD_CONF_DIR);
+        globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
 
     }
 
@@ -111,19 +109,66 @@ public class GlobalConfVer6Test {
     }
 
     @Test
+    public void getOrderedOcspResponderAddresses() throws CertificateEncodingException, IOException {
+        List<String> addresses = globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"),
+                ServicePrioritizationStrategy.ONLY_FREE);
+
+        assertThat(addresses).containsExactly(
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp4");
+
+        addresses = globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"),
+                ServicePrioritizationStrategy.FREE_FIRST);
+
+        assertThat(addresses).containsExactly(
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp4",
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2",
+                "http://www.example.net/ocsp3");
+
+        addresses = globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"),
+                ServicePrioritizationStrategy.ONLY_PAID);
+
+        assertThat(addresses).containsExactly(
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2");
+
+        addresses = globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"),
+                ServicePrioritizationStrategy.PAID_FIRST);
+
+        assertThat(addresses).containsExactly(
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2",
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp4",
+                "http://www.example.net/ocsp3");
+
+        addresses = globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"),
+                ServicePrioritizationStrategy.NONE);
+
+        assertThat(addresses).containsExactly(
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2",
+                "http://www.example.net/ocsp3",
+                "http://www.example.net/ocsp4");
+    }
+
+    @Test
     public void getOcspResponderAddressesAndCostTypes() {
 
         Map<String, CostType> addressesAndCostTypes =
                 globalConfProvider.getOcspResponderAddressesAndCostTypes("EE", TestCertUtil.getCaCert());
 
-        assertEquals(2, addressesAndCostTypes.size());
+        assertEquals(5, addressesAndCostTypes.size());
         assertEquals(CostType.FREE, addressesAndCostTypes.get("http://127.0.0.1:8082/ocsp"));
         assertEquals(CostType.PAID, addressesAndCostTypes.get("http://www.example.net/ocsp"));
     }
 
     @Test
     public void getOcspResponderCostType() {
-        CostType costType = globalConfProvider.getOcspResponderCostType("EE", "http://www.example.net/ocsp2");
+        CostType costType = globalConfProvider.getOcspResponderCostType("EE", "http://www.example.net/ocsp4");
         assertEquals(CostType.FREE, costType);
     }
 }

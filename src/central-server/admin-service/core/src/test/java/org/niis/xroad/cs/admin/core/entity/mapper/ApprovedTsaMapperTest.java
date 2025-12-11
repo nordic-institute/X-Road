@@ -48,9 +48,9 @@ import java.util.Set;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.common.CostType.FREE;
+import static org.niis.xroad.common.CostType.UNDEFINED;
 import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.NON_REPUDIATION;
-import static org.niis.xroad.globalconf.model.CostType.FREE;
-import static org.niis.xroad.globalconf.model.CostType.UNDEFINED;
 
 @ActiveProfiles("test")
 @SpringBootTest(classes = {ApprovedTsaMapperImpl.class, CertificateConverter.class, KeyUsageConverter.class, ApprovedCaRepository.class})

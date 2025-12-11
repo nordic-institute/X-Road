@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.serverconf.impl;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
@@ -50,8 +51,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
+import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.CostTypePrioritizer;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
@@ -86,7 +90,6 @@ import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.io.IOException;
-import java.net.URI;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -360,17 +363,27 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getTspUrl() {
+    public List<String> getTspUrls() {
         return tx(session -> getConf(session).getTimestampingServices().stream()
                 .map(TimestampingService::getUrl)
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toList()));
+                .toList());
     }
 
     @Override
-    public String getTspCostType(String tspUrl) {
+    public List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy) {
+        return tx(session -> {
+            CostTypePrioritizer<TimestampingService> sorter =
+                    new CostTypePrioritizer<>(getConf(session).getTimestampingServices());
+            log.debug("Timestamping urls will be sorted based on prioritization strategy: {}", prioritizationStrategy);
+            return sorter.prioritize(prioritizationStrategy);
+        });
+    }
+
+    @Override
+    public CostType getTspCostType(String tspUrl) {
         return tx(session -> getConf(session).getTimestampingServices().stream()
-                    .filter(t -> StringUtils.equals(t.getUrl(), tspUrl))
+                    .filter(t -> Strings.CS.equals(t.getUrl(), tspUrl))
                     .findFirst()
                     .map(TimestampingService::getCostType)
                     .orElse(null));
@@ -467,7 +480,13 @@ public class ServerConfImpl implements ServerConfProvider {
         if (path == null) {
             normalizedPath = null;
         } else {
-            normalizedPath = UriUtils.uriPathPercentDecode(URI.create(path).normalize().getRawPath(), true);
+            normalizedPath = UriUtils.decodeAndNormalize(path);
+
+            // Explicitly reject any remaining traversal sequences
+            if (normalizedPath.contains("..")) {
+                log.warn("Path traversal detected in request path: {}. Access will be rejected.", path);
+                return false;
+            }
         }
         return getAclEndpoints(session, clientId, serviceId).stream()
                 .anyMatch(ep -> ep.matches(method, normalizedPath));

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,11 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.globalconf.model;
+package org.niis.xroad.signer.core.protocol.handler;
 
-public enum CostType {
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.rpc.common.ServicePrioritizationStrategy;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.proto.OcspPrioritizationStrategyResp;
 
-    FREE,
-    PAID,
-    UNDEFINED
+/**
+ * Handles OCSP requests.
+ */
+@ApplicationScoped
+@RequiredArgsConstructor
+public class GetOcspPrioritizationStrategyReqHandler extends AbstractRpcHandler<Empty, OcspPrioritizationStrategyResp> {
+
+    private final SignerProperties signerProperties;
+
+    @Override
+    protected OcspPrioritizationStrategyResp handle(Empty request) {
+        var strategy = signerProperties.ocspPrioritizationStrategy();
+        return OcspPrioritizationStrategyResp.newBuilder()
+                .setStrategy(ee.ria.xroad.common.ServicePrioritizationStrategy.NONE.equals(strategy)
+                        ? ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE
+                        : ServicePrioritizationStrategy.valueOf(strategy.name()))
+                .build();
+    }
+
 }

@@ -159,6 +159,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 certificate_profile_info: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
 tls_auth: false
+default_csr_format: DER
 acme_server_directory_url: http://{{ca_host}}:8887
 certificate: file,ca/ca.pem;
 

@@ -47,6 +47,7 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
 import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
 import org.niis.xroad.signer.api.dto.OcspResponderStatus;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -91,6 +92,7 @@ public class OcspClientWorker {
     private final OcspCacheManager ocspCacheManager;
     private final TokenLookup tokenLookup;
     private final OcspClient ocspClient;
+    private final SignerProperties signerProperties;
 
     private final GlobalConfChangeChecker changeChecker = new GlobalConfChangeChecker();
 
@@ -256,7 +258,8 @@ public class OcspClientWorker {
         X509Certificate signer = ocspClient.getOcspSignerCert();
         SignAlgorithm signAlgoId = ocspClient.getSignAlgorithmId();
 
-        List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
+        List<String> responderURIs =
+                globalConfProvider.getOrderedOcspResponderAddresses(subject, signerProperties.ocspPrioritizationStrategy());
 
         log.debug("responder URIs: {}", responderURIs);
 

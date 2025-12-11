@@ -41,6 +41,7 @@
           data-test="csr-certification-service-select"
           item-title="name"
           item-value="name"
+          @update:model-value="onCertServiceChange"
           class="xrd"
           :items="filteredServiceList"
           :label="$t('csr.certificationService')"
@@ -54,6 +55,7 @@
           data-test="csr-format-select"
           class="xrd"
           :items="csrFormatList"
+          :disabled="isCsrFormatReadOnly"
           :label="$t('csr.csrFormat')"
         />
       </XrdFormBlockRow>
@@ -143,6 +145,12 @@ export default defineComponent({
     ...mapState(useCsr, ['filteredServiceList', 'usage']),
     ...mapWritableState(useCsr, ['csrFormat', 'certificationService']),
     ...mapState(useAddClient, ['selectedMemberId']),
+    isCsrFormatReadOnly(): boolean {
+      return !!this.filteredServiceList.find(
+        (certificateAuthority) =>
+          certificateAuthority.name == this.values.certificationService,
+      )?.default_csr_format;
+    },
   },
 
   watch: {
@@ -164,6 +172,14 @@ export default defineComponent({
     },
     cancel(): void {
       this.$emit('cancel');
+    },
+    onCertServiceChange(): void {
+      const ca = this.filteredServiceList.find((ca) => {
+        return ca.name == this.values.certificationService;
+      });
+      if (ca?.default_csr_format) {
+        this.setFieldValue('csrFormat', ca.default_csr_format);
+      }
     },
   },
 });

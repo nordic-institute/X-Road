@@ -97,7 +97,7 @@ final class ProxyTestUtil {
     static ServerConfProvider getServerConf() {
         return new EmptyServerConf() {
             @Override
-            public List<String> getTspUrl() {
+            public List<String> getTspUrls() {
                 return List.of("http://iks2-ubuntu.cyber.ee:8080/"
                         + "signserver/tsa?workerName=TimeStampSigner");
             }

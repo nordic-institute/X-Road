@@ -33,6 +33,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.cs.openapi.model.CostTypeDto;
+import org.niis.xroad.cs.openapi.model.CsrFormatDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,13 +178,35 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider");
     }
 
+    @Step("Certification service with certificateProfileInfo {string} and no default csr format is created")
+    public void createCertificationServiceWithoutCsrFormat(String certificateProfileInfo) throws Exception {
+        MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, generateAuthCert("CN=" + "Subject"));
+
+        try {
+            final ResponseEntity<ApprovedCertificationServiceDto> result = certificationServicesApi
+                    .addCertificationService(certificate, null, certificateProfileInfo, null, null, null, null, null);
+
+            validate(result)
+                    .assertion(equalsStatusCodeAssertion(CREATED))
+                    .assertion(notNullAssertion("body.id"))
+                    .execute();
+
+            putStepData(CERTIFICATION_SERVICE_ID, result.getBody().getId());
+            putStepData(RESPONSE, result);
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
     @Step("Certification service with name {string} and certificateProfileInfo {string} is created")
     public void createCertificationService(String name, String certificateProfileInfo) throws Exception {
         MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, generateAuthCert("CN=" + name));
 
         try {
             final ResponseEntity<ApprovedCertificationServiceDto> result = certificationServicesApi
-                    .addCertificationService(certificate, certificateProfileInfo, null, null, null, null, null, null);
+                    .addCertificationService(certificate, CsrFormatDto.DER, certificateProfileInfo, null, null, null, null, null);
 
             validate(result)
                     .assertion(equalsStatusCodeAssertion(CREATED))
@@ -204,7 +227,8 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
         try {
             var request = new CertificationServiceSettingsDto()
                     .tlsAuth(tlsAuth)
-                    .certificateProfileInfo(certificateProfileInfo);
+                    .certificateProfileInfo(certificateProfileInfo)
+                    .defaultCsrFormat(CsrFormatDto.DER);
 
             final ResponseEntity<ApprovedCertificationServiceDto> result = certificationServicesApi
                     .updateCertificationService(id, request);

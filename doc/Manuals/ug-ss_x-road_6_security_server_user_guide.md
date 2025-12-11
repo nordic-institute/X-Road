@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.103  
+Version: 2.104
 Doc. ID: UG-SS
 
 ---
@@ -132,7 +132,7 @@ Doc. ID: UG-SS
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
 | 11.11.2025 | 2.102   | Drop monitoring JMX interfaces                                                                                                                                                                                                                                                                                                                                                                              | Justas Samuolis      |
 | 01.12.2025 | 2.103   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
-
+| 07.12.2025 | 2.104   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -253,8 +253,9 @@ Doc. ID: UG-SS
     - [14.1.4 Download diagnostics report](#1414-download-diagnostics-report)
   - [14.2 Security Server Traffic](#142-security-server-traffic)
   - [14.3 Security Server Connection Testing](#143-security-server-connection-testing)
-    - [14.3.1 Testing the connection to the Central Server](#1431-testing-the-connection-to-the-central-server)
-    - [14.3.2 Testing the connection to other Security Servers](#1432-testing-the-connection-to-other-security-servers)
+- [14.3.1 Testing the connection to the Central Server](#1431-testing-the-connection-to-the-central-server)
+- [14.3.2 Testing the connection to other Security Servers](#1432-testing-the-connection-to-other-security-servers)
+- [14.3.3 Testing the connection to Management Security Server](#1433-testing-the-connection-to-management-security-server)
 - [15 Operational Monitoring](#15-operational-monitoring)
   - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -601,6 +602,8 @@ To generate a Signing key and a Certificate Signing Request, follow these steps.
 
        4. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
 
+          Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
        5. Click **CONTINUE**
 
     3. In the dialog that opens
@@ -707,6 +710,8 @@ The **background colors** of the devices, keys and certificate are explained in 
 
        3. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
 
+          Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
        4. Click **CONTINUE**
 
     3. In the dialog that opens
@@ -730,21 +735,23 @@ To generate a certificate signing request (CSR) for the authentication key, foll
 
 3.  On the row of the desired key, click **Generate CSR**. In the dialog that opens
 
-    2.1  Select the certificate usage policy from the **Usage** drop down list (AUTH for authentication certificates);
+    1.   Select the certificate usage policy from the **Usage** drop down list (AUTH for authentication certificates);
 
-    2.2  select the issuer of the certificate from the **Certification Service** drop-down list;
+    2.  select the issuer of the certificate from the **Certification Service** drop-down list;
 
-    2.3  select the format of the certificate signing request (PEM or DER), according to the certification service provider's requirements
+    3.  select the format of the certificate signing request (PEM or DER), according to the certification service provider's requirements
 
-    2.4  click **CONTINUE**;
+        Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
 
-3.  In the form that opens, review the information that will be included in the CSR and fill in the empty fields, if needed.
+    4.  click **CONTINUE**;
 
-4.  Click **GENERATE CSR** to complete the generation of the CSR and save the prompted file to the local file system.
+4.  In the form that opens, review the information that will be included in the CSR and fill in the empty fields, if needed.
+
+5.  Click **GENERATE CSR** to complete the generation of the CSR and save the prompted file to the local file system.
 
     1. Or click **ORDER CERTIFICATE** to also use the CSR to immediately make an order to the ACME server if the chosen Certification Service supports it.
 
-5. Click **DONE**
+6. Click **DONE**
 
 After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system. (In case of a successful ACME order, the certificate will also be imported to the Security Server and be shown under the key's row instead of the CSR.)
 
@@ -958,6 +965,8 @@ Follow these steps.
     3. Sign key page: Define a label (optional) for the newly created SIGN key and click **NEXT**
 
     4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **NEXT**.
+
+        Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
 
     5. Generate CSR page: Fill in empty CSR fields as needed (like **Organization Name (O)** and **Subject Alternative Name (SAN)**) that are based on the certificate profile that the chosen CA uses, and click **NEXT**
 

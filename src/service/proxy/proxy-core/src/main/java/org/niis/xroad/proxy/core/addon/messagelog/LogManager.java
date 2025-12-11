@@ -370,7 +370,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     private void verifyCanLogMessage(boolean shouldTimestampImmediately) {
-        if (serverConfProvider.getTspUrl().isEmpty()) {
+        if (serverConfProvider.getTspUrls().isEmpty()) {
             throw XrdRuntimeException.systemException(NO_TIMESTAMPING_PROVIDER_FOUND)
                     .details("Cannot time-stamp messages: no timestamping services configured")
                     .build();

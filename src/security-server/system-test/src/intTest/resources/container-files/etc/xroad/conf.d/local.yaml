@@ -19,6 +19,7 @@ xroad:
     addon:
       hwtoken:
         enabled: true
+    ocsp-prioritization-strategy: ONLY_FREE
   proxy:
     ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
     health-check-port: 5558
@@ -38,8 +39,6 @@ xroad:
           host: op-monitor
           scheme: https
           socket-timeout-seconds: 1
-    ocsp-responder:
-      ocsp-prioritization-strategy: ONLY_FREE
   proxy-ui-api:
     enforce-user-password-policy: true
     rate-limit-enabled: true
