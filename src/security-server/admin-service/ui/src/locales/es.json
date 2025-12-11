@@ -405,6 +405,7 @@
     "invalid_init_params": "Los Parámetros de inicialización no son válidos",
     "invalid_instance_identifier": "El identificador de instancia no es válido",
     "invalid_member_class": "La clase de miembro no es válida",
+    "invalid_pem_csr": "El CSR PEM no es válido",
     "invalid_service_client_id": "El ID de cliente del servicio no es válido",
     "invalid_service_url": "La URL del servicio no es válida",
     "invalid_wsdl": "El WSDL no es válido",

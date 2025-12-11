@@ -390,6 +390,7 @@
     "invalid_init_params": "Işe taýýarlygyň parametrleri nädogry",
     "invalid_instance_identifier": "Nusganyň identifikatory nädogry",
     "invalid_member_class": "Agaznyň klassy nädogry",
+    "invalid_pem_csr": "PEM CSR nädogry",
     "invalid_service_client_id": "Gulluk müşderisiniň ID-si nädogry",
     "invalid_service_url": "Gulluk url nädogry",
     "invalid_wsdl": "WSDL nädogry",
