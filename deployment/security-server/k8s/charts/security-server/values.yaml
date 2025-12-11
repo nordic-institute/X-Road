@@ -1,7 +1,14 @@
+global:
+  image:
+    registry: artifactory.niis.org/xroad8-snapshot-image
+    tag: 8.0.0-beta2-SNAPSHOT
+    pullPolicy: IfNotPresent
+
 init:
+  securityContext:
+    runAsUser: 1001
   serverconf:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-db-serverconf-init
     host: "db-serverconf"
     port: "5432"
     database: "serverconf"
@@ -10,16 +17,14 @@ init:
     proxyUiSuperuser: "xrd"
 #    proxyUiSuperuserPassword:
   messagelog:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-db-messagelog-init:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-db-messagelog-init
     host: "db-messagelog"
     port: "5432"
     database: "messagelog"
     username: "messagelog"
     schema: "public"
   opmonitor:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-db-opmonitor-init:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-db-opmonitor-init
     host: "db-opmonitor"
     port: "5432"
     database: "op-monitor"
@@ -28,14 +33,34 @@ init:
 
 imagePullSecrets: []
 
+securityContext:
+  pod:
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+  container:
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+# Default writable paths for rootless containers (mounted as emptyDir)
+writablePaths:
+  - /var/log/xroad
+  - /var/lib/xroad
+  - /var/tmp/xroad
+  - /var/cache/xroad
+  - /etc/xroad
+
 serviceAccount:
   name: "ss-init-sa"
   create: true
 
 services:
   configuration-client:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-configuration-client:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-configuration-client
     resources:
       requests:
         memory: 64Mi
@@ -72,8 +97,7 @@ services:
         key: "password"
 
   signer:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-signer:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-signer
     resources:
       requests:
         memory: 64Mi
@@ -110,8 +134,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   proxy:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-proxy:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-proxy
     resources:
       requests:
         memory: 64Mi
@@ -166,8 +189,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   proxy-ui-api:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-proxy-ui-api:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-proxy-ui-api
     resources:
       requests:
         memory: 64Mi
@@ -197,7 +219,7 @@ services:
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog:5432/messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      XROAD_PROXY_UI_API_MANAGEMENT_PROXY_SERVER_URL: "https://proxy:8443"
+      XROAD_PROXY_UI_API_PROXY_SERVER_URL: "https://proxy:8443"
       DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
@@ -215,8 +237,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   monitor:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-monitor:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-monitor
     resources:
       requests:
         memory: 64Mi
@@ -257,8 +278,7 @@ services:
         key: "password"
   op-monitor:
     enabled: false
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-op-monitor:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-op-monitor
     resources:
       requests:
         memory: 64Mi
@@ -299,8 +319,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   backup-manager:
-    image: artifactory.niis.org/xroad8-snapshot-image/ss-backup-manager:8.0.0-beta1
-    imagePullPolicy: IfNotPresent
+    imageName: ss-backup-manager
     resources:
       requests:
         memory: 64Mi
@@ -324,6 +343,9 @@ services:
       scheme: "HTTP"
     serviceAccount:
       annotations: { }
+    # Skip default emptyDir mounts for paths that use PVCs
+    skipDefaultMounts:
+      - /var/lib/xroad
     env:
       XROAD_HOST: "backup-manager"
       XROAD_SECRET_STORE_HOST: "openbao"
@@ -337,7 +359,7 @@ services:
       XROAD_OPENBAO_DB_DATABASE: "openbao"
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
-      SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta1"
+      SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta2"
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
       PROXY_UI_SUPERUSER: "xrd"
       DB_CONFIG_SOURCE_ENABLED: "true"

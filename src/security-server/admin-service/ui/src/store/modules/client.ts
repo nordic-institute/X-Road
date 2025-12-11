@@ -28,7 +28,7 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
+import { CertificateDetails, Client, SecurityServer, TokenCertificate } from '@/openapi-types';
 import { multipartFormDataConfig, buildFileFormData } from '@niis/shared-ui';
 
 export interface ClientState {
@@ -36,6 +36,7 @@ export interface ClientState {
   signCertificates: TokenCertificate[];
   connection_type: string | null;
   tlsCertificates: CertificateDetails[];
+  securityServers: SecurityServer[];
   ssCertificate: CertificateDetails | undefined;
   clientLoading: boolean;
 }
@@ -52,6 +53,7 @@ export const useClient = defineStore('client', {
       signCertificates: [],
       connection_type: null,
       tlsCertificates: [],
+      securityServers: [],
       ssCertificate: undefined,
       clientLoading: false,
     };
@@ -122,6 +124,21 @@ export const useClient = defineStore('client', {
         .get<CertificateDetails[]>(clientBaseUrl(clientId, '/tls-certificates'))
         .then((res) => {
           this.tlsCertificates = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    async fetchSecurityServers(clientId: string) {
+      if (!clientId) {
+        throw new Error('Missing id');
+      }
+
+      return api
+        .get<SecurityServer[]>(clientBaseUrl(clientId, `/security-servers`))
+        .then((res) => {
+          this.securityServers = res.data;
         })
         .catch((error) => {
           throw error;

@@ -9,6 +9,12 @@ Feature: 0530 - SS: Client internal servers
     And User xrd logs in to SecurityServer with password secret
     And Clients tab is selected
 
+  Scenario: Client Internal server connection type is changed
+    When Client "Test member" is opened
+    And Internal servers sub-tab is selected
+    And Internal server connection type is "HTTPS"
+    Then Internal server connection type is set to "HTTP"
+
   Scenario: Client Internal servers are configured
     When Client "Test service" is opened
     And Internal servers sub-tab is selected
@@ -16,5 +22,5 @@ Feature: 0530 - SS: Client internal servers
     Then Internal server connection type is set to "HTTP"
     When Information System TLS certificate is uploaded
     Then Information System TLS certificate is deleted
-  # todo: no internal server certificate /etc/xroad/ssl/internal.crt in container
-#    And Internal server certificate is exported
+    And Internal server certificate is exported
+

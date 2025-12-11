@@ -267,7 +267,34 @@
       "statusInfo": "Статус обмена сообщениями",
       "success": "Успех",
       "successfulRequests": "Успешные запросы",
-      "time": "Время"
+      "time": "Время",
+      "failedRequests": "Неудачные запросы",
+      "disabledTitle": "Мониторинг операционных данных отключен",
+      "disabledMessage": "Мониторинг операционных данных отключен для данного Сервера Безопасности. Чтобы включить его, установите дополнение для мониторинга операционных данных (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Все в порядке",
+      "test": "Тест",
+      "centralServer": {
+        "authCertRequest": "Сервис регистрации сертификатов аутентификации",
+        "globalConf": "Загрузка глобальной конфигурации",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Центральный сервер"
+      },
+      "management": {
+        "title": "Управляющий сервер безопасности"
+      },
+      "securityServer": {
+        "client": "Клиент",
+        "sourceClient": "Исходный клиент",
+        "rest": "REST",
+        "securityServer": "Сервер безопасности",
+        "soap": "SOAP",
+        "title": "Другой сервер безопасности",
+        "target": "Цель",
+        "targetClient": "Целевой клиент"
+      }
     }
   },
   "endpoints": {

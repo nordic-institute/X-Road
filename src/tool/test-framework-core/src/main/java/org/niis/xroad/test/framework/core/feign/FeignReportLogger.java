@@ -27,14 +27,23 @@
 package org.niis.xroad.test.framework.core.feign;
 
 import feign.Logger;
-import feign.Request;
 import feign.Response;
+import feign.Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.niis.xroad.test.framework.core.report.ReportFormatter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static feign.Util.UTF_8;
+import static feign.Util.decodeOrDefault;
+import static feign.Util.ensureClosed;
+import static feign.Util.valuesOrEmpty;
 
 /**
  * Custom Feign logger that captures HTTP requests and responses and adds them
@@ -45,38 +54,80 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class FeignReportLogger extends Logger {
-    private final ReportFormatter formatter;
+    private final ObjectProvider<ReportFormatter> formatterProvider;
 
     @Override
     protected void log(String configKey, String format, Object... args) {
-        if (log.isDebugEnabled()) {
-            log.debug(String.format(methodTag(configKey) + format, args));
-        }
+        //do nothing
     }
 
     @Override
-    protected void logRequest(String configKey, Level logLevel, Request request) {
+    @SuppressWarnings("squid:S3776")
+    protected Response logAndRebufferResponse(
+            String configKey, Level logLevel, Response response, long elapsedTime) throws IOException {
+        var responseLog = new ArrayList<String>();
         try {
-            formatter.formatAndAddToReport(ReportFormatter.Attachment.create()
-                    .setName("Request: " + request.httpMethod().name() + " " + request.url())
-                    .addSection("Request:", ReportFormatter.SectionType.BARE, request.toString()));
-        } catch (Exception e) {
-            log(configKey, "Failed to capture request for reporting: %s", e.getMessage());
+            String protocolVersion = resolveProtocolVersion(response.protocolVersion());
+            String reason =
+                    response.reason() != null && logLevel.compareTo(Level.NONE) > 0
+                            ? " " + response.reason()
+                            : "";
+            int status = response.status();
+            collectLogRow(responseLog, "<--- %s %s%s (%sms)", protocolVersion, status, reason, elapsedTime);
+            if (logLevel.ordinal() >= Level.HEADERS.ordinal()) {
+
+                for (String field : response.headers().keySet()) {
+                    if (shouldLogResponseHeader(field)) {
+                        for (String value : valuesOrEmpty(response.headers(), field)) {
+                            collectLogRow(responseLog, "%s: %s", field, value);
+                        }
+                    }
+                }
+
+                int bodyLength = 0;
+                if (response.body() != null && !(status == HttpStatus.SC_NO_CONTENT || status == HttpStatus.SC_RESET_CONTENT)) {
+                    // HTTP 204 No Content "...response MUST NOT include a message-body"
+                    // HTTP 205 Reset Content "...response MUST NOT include an entity"
+                    if (logLevel.ordinal() >= Level.FULL.ordinal()) {
+                        collectLogRow(responseLog, ""); // CRLF
+                    }
+                    byte[] bodyData = Util.toByteArray(response.body().asInputStream());
+                    ensureClosed(response.body());
+                    bodyLength = bodyData.length;
+                    if (logLevel.ordinal() >= Level.FULL.ordinal() && bodyLength > 0) {
+                        collectLogRow(responseLog, "%s", decodeOrDefault(bodyData, UTF_8, "Binary data"));
+                    }
+                    collectLogRow(responseLog, "<--- END HTTP (%s-byte body)", bodyLength);
+                    return response.toBuilder().body(bodyData).build();
+                } else {
+                    collectLogRow(responseLog, "<--- END HTTP (%s-byte body)", bodyLength);
+                }
+            }
+            return response;
+        } finally {
+            tryAddToReport(response, responseLog);
         }
     }
 
-    @Override
-    protected Response logAndRebufferResponse(String configKey, Level logLevel, Response response, long elapsedTime)
-            throws IOException {
+    private void tryAddToReport(Response response, List<String> responseLog) {
         try {
-            formatter.formatAndAddToReport(ReportFormatter.Attachment.create()
-                    .setName("Response: " + response.status())
-                    .addSection("Request:", ReportFormatter.SectionType.BARE, response.toString()));
-        } catch (Exception e) {
-            log(configKey, "Failed to capture response for reporting: %s", e.getMessage());
+            ReportFormatter formatter = formatterProvider.getIfAvailable();
+            if (formatter != null) {
+                var request = response.request();
+                formatter.formatAndAddToReport(ReportFormatter.Attachment.create()
+                        .setName("Feign request " + request.url())
+                        .addSection("Request:", ReportFormatter.SectionType.BARE, request.toString())
+                        .addSection("Response:", ReportFormatter.SectionType.BARE, responseLog.stream()
+                                .reduce("", (a, b) -> a + b + System.lineSeparator())));
+            }
+        } catch (IllegalStateException e) {
+            // Cucumber-glue scope is not available - skip report formatting
+            log.trace("Skipping report formatting - cucumber-glue scope not available");
         }
-        return super.logAndRebufferResponse(configKey, logLevel, response, elapsedTime);
     }
 
+    private void collectLogRow(List<String> rows, String format, Object... args) {
+        rows.add(String.format(format, args));
+    }
 
 }

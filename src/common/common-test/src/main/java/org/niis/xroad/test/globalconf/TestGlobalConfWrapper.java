@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.test.globalconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -33,11 +34,11 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -145,8 +146,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
-        return globalConfProvider.getOcspResponderAddresses(member);
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate member, ServicePrioritizationStrategy prioritizationStrategy)
+            throws CertificateEncodingException, IOException {
+        return globalConfProvider.getOrderedOcspResponderAddresses(member, prioritizationStrategy);
     }
 
     @Override
@@ -281,8 +283,13 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findSourceAddresses() {
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
         return Set.of();
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return "";
     }
 
     @Override

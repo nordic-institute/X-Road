@@ -36,8 +36,10 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.core.HttpUrlConnectionChecker;
 import org.niis.xroad.confclient.core.config.ConfClientJobConfig;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
 import org.niis.xroad.rpc.common.DiagnosticsStatus;
 import org.niis.xroad.rpc.common.DownloadUrlConnectionStatus;
 import org.niis.xroad.rpc.common.Empty;
@@ -54,6 +56,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ConfClientJobConfig.ConfigurationClientJobListener listener;
     private final HttpUrlConnectionChecker httpUrlConnectionChecker;
+    private final ConfigurationClientProperties confClientProperties;
 
     @Override
     public void getStatus(Empty request, StreamObserver<DiagnosticsStatus> responseObserver) {
@@ -62,11 +65,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     @Override
     public void checkAndGetConnectionStatus(CheckAndGetConnectionStatusRequest request,
-                                            StreamObserver<DownloadUrlConnectionStatus> responseObserver) {
+                                            StreamObserver<CheckAndGetConnectionStatusResponse> responseObserver) {
         handleRequest(responseObserver,
                 () -> {
                     try {
-                        return this.handleCheckAndGetConnectionStatus(request.getProtocol(), request.getAddress(), request.getPort());
+                        return this.handleCheckAndGetConnectionStatus(request);
                     } catch (Exception e) {
                         log.error("Error in checkAndGetConnectionStatus", e);
                         throw XrdRuntimeException.systemException(e);
@@ -91,11 +94,22 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
         return responseBuilder.build();
     }
 
-    private DownloadUrlConnectionStatus handleCheckAndGetConnectionStatus(String protocol, String address, int port) {
+    private CheckAndGetConnectionStatusResponse handleCheckAndGetConnectionStatus(CheckAndGetConnectionStatusRequest request) {
         log.info("handler /checkAndGetConnectionStatus");
 
-        var status = httpUrlConnectionChecker.getConnectionStatus(protocol, address, port);
+        var connectionStatuses = httpUrlConnectionChecker.getConnectionStatuses(request.getLocalInstance(), request.getInstance(),
+                request.getAddress(), request.getDirectory(), confClientProperties.allowedFederations());
 
+        var builder = CheckAndGetConnectionStatusResponse.newBuilder();
+
+        for (HttpUrlConnectionChecker.ConnectionStatus status : connectionStatuses) {
+            builder.addConnectionStatuses(getDownloadUrlConnectionStatus(status));
+        }
+
+        return builder.build();
+    }
+
+    private DownloadUrlConnectionStatus getDownloadUrlConnectionStatus(HttpUrlConnectionChecker.ConnectionStatus status) {
         var builder = DownloadUrlConnectionStatus.newBuilder()
                 .setDownloadUrl(status.downloadUrl());
 

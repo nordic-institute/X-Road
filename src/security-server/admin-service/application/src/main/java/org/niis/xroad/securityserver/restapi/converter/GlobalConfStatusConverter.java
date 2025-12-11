@@ -34,7 +34,7 @@ import java.util.List;
 
 @Component
 public class GlobalConfStatusConverter {
-    private final AuthCertStatusConverter authCertStatusConverter = new AuthCertStatusConverter();
+    private final ConnectionStatusConverter connectionStatusConverter = new ConnectionStatusConverter();
 
     public List<GlobalConfConnectionStatusDto> convert(List<DownloadUrlConnectionStatus> connectionStatuses) {
         return connectionStatuses.stream()
@@ -45,6 +45,6 @@ public class GlobalConfStatusConverter {
     private GlobalConfConnectionStatusDto convert(DownloadUrlConnectionStatus connectionStatus) {
         return new GlobalConfConnectionStatusDto()
                 .downloadUrl(connectionStatus.getDownloadUrl())
-                .connectionStatus(authCertStatusConverter.convert(connectionStatus.getConnectionStatus()));
+                .connectionStatus(connectionStatusConverter.convert(connectionStatus.getConnectionStatus()));
     }
 }

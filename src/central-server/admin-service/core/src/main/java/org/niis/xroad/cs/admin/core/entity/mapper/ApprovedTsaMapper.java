@@ -31,12 +31,12 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
-import org.niis.xroad.globalconf.model.CostType;
 
 import java.security.cert.X509Certificate;
 

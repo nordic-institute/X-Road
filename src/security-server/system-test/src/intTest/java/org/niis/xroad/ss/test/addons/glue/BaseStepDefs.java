@@ -26,11 +26,13 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.ValidationHelper;
-import com.nortal.test.asserts.ValidationService;
-import com.nortal.test.core.services.ScenarioContext;
+
 import lombok.SneakyThrows;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.ValidationHelper;
+import org.niis.xroad.test.framework.core.asserts.ValidationService;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
+import org.niis.xroad.test.framework.core.file.ClasspathFileResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.xml.SimpleNamespaceContext;
@@ -50,6 +52,9 @@ public abstract class BaseStepDefs {
 
     @Autowired
     protected ValidationService validationService;
+
+    @Autowired
+    protected ClasspathFileResolver classpathFileResolver;
 
     /**
      * Put a value in scenario context. Value can be accessed through getStepData.
@@ -114,6 +119,8 @@ public abstract class BaseStepDefs {
      */
     public enum StepDataKey {
         XROAD_SOAP_RESPONSE,
+        DOWNLOADED_FILE,
+        CERT_FILE
     }
 
 }

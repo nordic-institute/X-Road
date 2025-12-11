@@ -34,48 +34,53 @@ import io.restassured.response.ValidatableResponseOptions;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.niis.xroad.e2e.container.EnvSetup;
-import org.niis.xroad.e2e.container.Port;
-import org.niis.xroad.e2e.container.service.TestDatabaseService;
+import org.niis.xroad.e2e.EnvSetup;
+import org.niis.xroad.e2e.database.TestDatabaseService;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.testcontainers.containers.Container;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.XmlConfig.xmlConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.matchesPattern;
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class ProxyStepDefs extends BaseE2EStepDefs {
-
-    private static final String TMP_DIR = "build/tmp/e2eTest/";
+    private static final String HEADER_CLIENT_ID = "x-road-client";
 
     @Autowired
     private EnvSetup envSetup;
     @Autowired
     private TestDatabaseService testDatabaseService;
+    @Autowired
+    private TestFrameworkCoreProperties coreProperties;
 
     private ValidatableResponseOptions<?, ?> response;
 
     @Step("SOAP request is sent to {string} {string}")
     public void requestSoapIsSentToProxy(String env, String service, DocString docString) {
-        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
 
         response = given()
                 .config(RestAssured.config()
@@ -95,16 +100,16 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .body(path, equalTo(value));
     }
 
-    @Step("response is received with http status code {int} and body path {string} is not empty")
-    public void responseValidated(int httpStatus, String path) {
+    @Step("response is received with http status code {int} and body matches {string}")
+    public void responseValidated(int httpStatus, String pattern) {
         response.assertThat()
                 .statusCode(httpStatus)
-                .body(path, notNullValue());
+                .body(matchesPattern(pattern));
     }
 
     @Step("REST request is sent to {string} {string}")
     public void requestRestIsSentToProxy(String env, String service, DocString docString) {
-        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
 
         response = given()
                 .body(docString.getContent())
@@ -116,7 +121,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("REST request targeted at {string} API endpoint is sent to {string} {string}")
     public void requestOpenapiRestIsSentToProxy(String apiEndpoint, String env, String service) {
-        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
 
         response = given()
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -133,7 +138,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("Global configuration is fetched from {string}'s {string} for messagelog verification")
     public void globalConfIsFetchedForMessagelogValidation(String env, String service) throws IOException {
-        var mapping = envSetup.getContainerMapping(env, service, Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
 
         try (var zis = new ZipInputStream(given()
                 .get("http://%s:%s/verificationconf".formatted(mapping.host(), mapping.port()))
@@ -141,7 +146,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
 
             for (var entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
-                var path = Path.of(TMP_DIR).resolve(entry.getName());
+                var path = Path.of(coreProperties.resourceDir()).resolve(entry.getName());
                 if (!entry.isDirectory()) {
                     Files.createDirectories(path.getParent());
                     Files.copy(zis, path, StandardCopyOption.REPLACE_EXISTING);
@@ -150,14 +155,27 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         }
     }
 
-    @Step("{string}'s {string} service has {int} messagelogs present in the archives and all are cryptographically valid")
-    public void serviceHasMessagelogArchivePresent(String env, String service, int expectedMessagelogCount)
-            throws IOException, InterruptedException {
-        var localCompressedArchivesPath = TMP_DIR + "messagelog-archives.tar.gz";
+    @SneakyThrows
+    private String downloadMessageLogArchives(String env, String service, String serverPath, String localDir) {
+        Files.createDirectories(Paths.get(localDir));
+        var localCompressedArchivesPath = localDir + "/messagelog-archives.tar.gz";
         var container = envSetup.getContainerByServiceName(env, service).orElseThrow();
-        container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", "/var/lib/xroad", ".");
+        container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", serverPath, ".");
         container.copyFileFromContainer("/tmp/messagelog-archives.tar.gz", localCompressedArchivesPath);
         container.execInContainer("rm", "/tmp/messagelog-archives.tar.gz");
+
+        return localCompressedArchivesPath;
+    }
+
+    @Step("messsagelog archives are downloaded from {string} {string}")
+    public void messsagelogArchivesAreDownloadedFrom(String env, String service) {
+        downloadMessageLogArchives(env, service, "/var/lib/xroad", coreProperties.resourceDir()  + env);
+    }
+
+    @Step("{string} has {int} messagelogs present in the archives and all are cryptographically valid")
+    public void serviceHasMessagelogArchivePresent(String env, int expectedMessagelogCount)
+            throws IOException {
+        var localCompressedArchivesPath = coreProperties.resourceDir()  + env + "/messagelog-archives.tar.gz";
 
         try (var tis = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(localCompressedArchivesPath)))) {
             var messagelogCount = 0;
@@ -168,14 +186,15 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 }
                 assertThat(entry.getName()).matches("\\./mlog-.*\\.zip");
                 try (ByteArrayInputStream bais = new ByteArrayInputStream(tis.readAllBytes());
-                        ZipInputStream zis = new ZipInputStream(bais)) {
+                     ZipInputStream zis = new ZipInputStream(bais)) {
                     ZipEntry archiveEntry;
                     while ((archiveEntry = zis.getNextEntry()) != null) {
                         if (archiveEntry.getName().equals("linkinginfo")) {
                             continue;
                         }
                         assertThat(archiveEntry.getName()).endsWith(".asice");
-                        var tmpAsiceContainer = Files.write(Path.of(TMP_DIR + archiveEntry.getName()), zis.readAllBytes());
+                        var tmpAsiceContainer = Files.write(Path.of(coreProperties.resourceDir(), env,
+                                archiveEntry.getName()), zis.readAllBytes());
                         verifyMessagelog(tmpAsiceContainer);
                         Files.delete(tmpAsiceContainer);
                         messagelogCount++;
@@ -189,7 +208,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     @SneakyThrows
     private void verifyMessagelog(Path asiceContainer) {
         new AsicContainerVerifier(
-                TestGlobalConfFactory.create(TMP_DIR + "verificationconf"),
+                TestGlobalConfFactory.create(coreProperties.resourceDir() + "verificationconf"),
                 new OcspVerifierFactory(),
                 asiceContainer.toString()
         ).verify();
@@ -201,6 +220,48 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         final Integer recordsCount = testDatabaseService.getMessagelogTemplate(env)
                 .queryForObject(sql, Map.of(), Integer.class);
         assertThat(recordsCount).isEqualTo(expectedCount);
+    }
+
+    @Step("{string} messsagelog archives {string} can be decrypted using key {string}")
+    public void messsagelogArchivesCanBeDecryptedUsingKey(String env, String filePrefix, String keyId)
+            throws IOException, InterruptedException {
+        String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
+        String outputDir = "/tmp/" + UUID.randomUUID();
+
+        var container = envSetup.getContainerByServiceName(env, "ui").orElseThrow();
+        Container.ExecResult execResult = container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
+                filePrefix, keyfile, "secret", outputDir);
+
+        downloadMessageLogArchives(env, "ui", outputDir, coreProperties.resourceDir()  + env + "/" + keyId);
+
+        int processedFilesCount = getFilesCountFromOutput(execResult.getStdout());
+
+        String decryptedFilesCount = container.execInContainer("/gpg-keys/scripts/count_files.sh", outputDir).getStdout().trim();
+
+        assertThat(Integer.parseInt(decryptedFilesCount)).isEqualTo(processedFilesCount);
+    }
+
+    private int getFilesCountFromOutput(String output) {
+        Matcher matcher = Pattern.compile("Processed (\\d+) files\\.").matcher(output);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        throw new RuntimeException();
+    }
+
+    @Step("{string} messsagelog archives {string} can not be decrypted using key {string}")
+    public void messsagelogArchivesCanNotBeDecryptedUsingKey(String env, String filePrefix, String keyId)
+            throws IOException, InterruptedException {
+        String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
+        String outputDir = "/tmp/" + UUID.randomUUID();
+
+        var container = envSetup.getContainerByServiceName(env, "ui").orElseThrow();
+        container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
+                filePrefix, keyfile, "secret", outputDir);
+
+        String outputFilesCount = container.execInContainer("/gpg-keys/scripts/count_files.sh", outputDir).getStdout().trim();
+
+        assertThat(outputFilesCount).isEqualTo("0");
     }
 
 }

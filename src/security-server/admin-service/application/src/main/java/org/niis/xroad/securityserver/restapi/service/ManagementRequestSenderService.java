@@ -77,7 +77,9 @@ public class ManagementRequestSenderService {
         try {
             return sender.sendAuthCertRegRequest(currentSecurityServerId.getServerId(), address, authCert, dryRun);
         } catch (Exception e) {
-            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            if (!dryRun) {
+                log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            }
             if (e instanceof XrdRuntimeException xrdRuntimeException) {
                 throw xrdRuntimeException;
             }
@@ -235,11 +237,11 @@ public class ManagementRequestSenderService {
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
-                signerSignClient, sender, receiver, adminServiceProperties.getManagementProxyServerUrl(),
+                signerSignClient, sender, receiver, adminServiceProperties.getProxyServerUrl(),
                 DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()),
-                adminServiceProperties.getManagementProxyServerConnectTimeout(),
-                adminServiceProperties.getManagementProxyServerSocketTimeout(),
-                adminServiceProperties.isManagementProxyServerEnableConnectionReuse());
+                adminServiceProperties.getProxyServerConnectTimeout(),
+                adminServiceProperties.getProxyServerSocketTimeout(),
+                adminServiceProperties.isProxyServerEnableConnectionReuse());
     }
 
     public Integer sendMaintenanceModeEnableRequest(String message) {

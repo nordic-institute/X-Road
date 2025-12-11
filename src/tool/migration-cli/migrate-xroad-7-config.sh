@@ -24,7 +24,7 @@ migrate_file() {
   local property_key="$5"
 
   if [[ -f "$file" ]]; then
-    read -p "$description ($file) exists. Migrate? [y/N]" confirm
+    read -p "$description ($file) exists. Migrate? [y/N] " confirm
     case "$confirm" in
       [yY][eE][sS]|[yY])
         java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration."$class" "$file" \
@@ -38,6 +38,25 @@ migrate_file() {
   else
     echo "$file file not found."
   fi
+}
+
+save_value_to_db() {
+  echo "Saving $1 = $2 (scope:'${3:-}') to database."
+  java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.SinglePropertySetter  \
+                  "$DB_PROPERTIES_FILE" "$1" "$2" ${3:+$3}
+}
+
+
+keep_batch_signatures() {
+  read -p "Keep batch signing enabled (disabled by default)? [y/N] " confirm
+  case "$confirm" in
+    [yY][eE][sS]|[yY])
+      save_value_to_db "xroad.proxy.batch-signing-enabled" "true"
+      ;;
+    *)
+      echo "Batch signing disabled."
+      ;;
+  esac
 }
 
 echo "Using database properties: $DB_PROPERTIES_FILE"
@@ -55,3 +74,6 @@ migrate_file "$CONF_ANCHOR_FILE" ConfigurationAnchorMigrator "Configuration anch
 migrate_file "$DEVICES_INI_FILE" DevicesIniToDbMigrator "Signer devices configuration file"
 migrate_file "$ACME_CONFIG_FILE" FileToDbPropertyMigrator "ACME configuration file" "proxy-ui-api" "xroad.acme"
 migrate_file "$MAIL_CONFIG_FILE" FileToDbPropertyMigrator "Mail notification configuration file" "proxy-ui-api" "xroad.mail-notification"
+
+keep_batch_signatures
+

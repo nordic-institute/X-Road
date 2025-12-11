@@ -6,8 +6,7 @@ plugins {
 dependencies {
   intTestImplementation(project(path = ":service:op-monitor:op-monitor-db", configuration = "changelogJar"))
   intTestImplementation(project(":service:op-monitor:op-monitor-client"))
-  intTestImplementation(project(":common:common-test"))
-  intTestImplementation(project(":common:common-int-test"))
+  intTestImplementation(project(":tool:test-framework-core"))
   intTestImplementation(libs.liquibase.core)
 
   intTestRuntimeOnly(libs.postgresql)
@@ -18,6 +17,11 @@ intTestComposeEnv {
     "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
     "OP_MONITOR_IMG" to "ss-op-monitor"
   )
+}
+
+intTestShadowJar {
+  archiveBaseName("opmonitor-int-test")
+  mainClass("org.niis.xroad.opmonitor.test.ConsoleIntTestRunner")
 }
 
 tasks.register<Test>("intTest") {
@@ -38,7 +42,10 @@ tasks.register<Test>("intTest") {
     showCauses = true
     showStandardStreams = true
   }
+}
 
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
 }
 
 archUnit {

@@ -1,4 +1,4 @@
-name: End-to-End Tests
+name: E2E Tests
 
 on:
   workflow_call:
@@ -22,60 +22,61 @@ on:
 
 jobs:
   test-e2e:
-    name: Run E2E tests
+    name: e2e-test
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
-          label: 'E2E tests'
+          label: 'e2e-test'
 
-      # Setup
       - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Setup build environment
-        uses: ./.github/actions/setup-build-env
+      - name: Download e2e-test
+        uses: actions/download-artifact@v4
         with:
-          gradle-cache-read-only: true
+          name: e2e-test-jar
 
-      - name: Login to GitHub Container Registry
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: E2E test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+      - name: Setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
-          label: 'Set up E2E tests'
+          label: 'e2e-test setup'
 
-      # Execute and report
-      - name: Run E2E tests
-        working-directory: ./src
+      - name: Run e2e-test
         run: |
           docker network create xroad-network
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g \
-            :security-server:e2e-test:e2eTest \
-            -PxroadImageRegistry=${{ inputs.image_registry }} \
-            -PxroadImageTag=${{ inputs.service_image_tag }}
+          java -jar e2e-test-1.0.jar
 
-      - name: Log storage after tests
+      - name: Log storage
         if: always()
         uses: ./.github/actions/log-storage
         with:
-          label: 'Storage After E2E Tests'
+          label: 'e2e-test storage'
           show-docker-images: 'true'
 
-      - name: E2E test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+      - name: Test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
-          label: 'E2E tests'
+          label: 'e2e-test'
 
       - name: Test report
         env:
@@ -83,20 +84,22 @@ jobs:
         uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
-          name: E2E tests
-          path: src/security-server/e2e-test/build/test-results/**/TEST-*.xml
+          name: e2e-test
+          path: test-framework-working-dir/test-results/TEST-*.xml
           reporter: java-junit
 
-      - name: Upload E2E report
-        uses: actions/upload-artifact@v5
-        if: failure()
+      - name: Upload e2e-test report
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: E2E report
+          name: e2e-test-report-${{ github.run_number }}
           path: |
-            src/security-server/e2e-test/build/allure-report/
+            test-framework-working-dir/allure-report/index.html
+            test-framework-working-dir/container-logs/
+            test-framework-working-dir/test-automation-exec.log
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true

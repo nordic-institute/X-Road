@@ -83,6 +83,15 @@ Feature: 0300 - SS: Keys and certificates
     And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
     Then Token "softToken-0", key "key for multiple csr" has 4 certificate signing requests
 
+  Scenario: Certificate format is preselected
+    Given Keys and certificates tab is selected
+    And Token: softToken-0 is present and expanded
+    When Token: softToken-0 - Add key wizard is opened
+    And Key Label is set to "csr format fixed to pem"
+    And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "New CA" and CSR format "PEM" preselected
+    And Generate "AUTHENTICATION" CSR is set to DNS "ss0" and Organization "ui-test"
+    And CSR with extension "pem" successfully generated
+
   Scenario: Token PIN can be changed
     Given Keys and certificates tab is selected
     And Token: softToken-0 edit page is opened
@@ -103,4 +112,3 @@ Feature: 0300 - SS: Keys and certificates
     And Keys and certificates tab is selected
     When Token: hsmToken-for-deletion edit page is opened
     Then Inactive token hsmToken-for-deletion is successfully deleted
-

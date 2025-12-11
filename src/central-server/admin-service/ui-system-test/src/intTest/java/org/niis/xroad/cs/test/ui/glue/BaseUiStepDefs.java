@@ -27,15 +27,13 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.nortal.test.core.report.TestReportService;
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.ScenarioContext;
-import org.niis.xroad.common.test.ui.SelenideManager;
-import org.niis.xroad.common.test.ui.utils.SeleniumUtils;
-import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
-import org.niis.xroad.cs.test.ui.configuration.TestProperties;
 import org.niis.xroad.cs.test.ui.page.CommonPageObj;
 import org.niis.xroad.cs.test.ui.utils.ChromiumDevTools;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
+import org.niis.xroad.test.framework.core.report.TestReportService;
+import org.niis.xroad.test.framework.core.ui.SelenideManager;
+import org.niis.xroad.test.framework.core.ui.utils.SeleniumUtils;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -47,13 +45,9 @@ public abstract class BaseUiStepDefs {
     protected final CommonPageObj commonPageObj = new CommonPageObj();
 
     @Autowired
-    protected TestProperties testProperties;
-    @Autowired
     protected CucumberScenarioProvider scenarioProvider;
     @Autowired
     protected ScenarioContext scenarioContext;
-    @Autowired
-    protected TargetHostUrlProvider targetHostUrlProvider;
     @Autowired
     protected TestReportService testReportService;
     @Autowired

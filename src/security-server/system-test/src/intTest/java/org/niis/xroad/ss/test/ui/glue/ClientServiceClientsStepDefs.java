@@ -39,9 +39,9 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj.ServiceClients serviceClients = new ClientInfoPageObj.ServiceClients();

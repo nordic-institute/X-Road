@@ -12,6 +12,12 @@ services:
       test: [ "CMD", "sh", "-c", "bao secrets list -format=json | jq 'has(\"xrd-pki/\")' | grep -q true" ]
     networks:
       - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
   db-serverconf:
     image: ${POSTGRES_DEV_IMG:-postgres-dev}
     pull_policy: always
@@ -195,6 +201,12 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 512M
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -297,7 +309,7 @@ services:
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
-      - XROAD_PROXY_UI_API_MANAGEMENT_PROXY_SERVER_URL=https://proxy:8443
+      - XROAD_PROXY_UI_API_PROXY_SERVER_URL=https://proxy:8443
       - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
@@ -339,6 +351,12 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 512M
     depends_on:
       openbao:
         condition: service_healthy

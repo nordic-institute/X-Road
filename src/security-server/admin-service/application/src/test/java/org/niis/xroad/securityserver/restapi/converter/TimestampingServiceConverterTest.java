@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -66,7 +66,7 @@ public class TimestampingServiceConverterTest {
     @Test
     public void convertSingleTspType() {
         TimestampingServiceDto timestampingService = timestampingServiceConverter.convert(
-                TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE.name()));
+                TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE));
 
         assertEquals(TSA_1_URL, timestampingService.getUrl());
         assertEquals(TSA_1_NAME, timestampingService.getName());
@@ -85,7 +85,7 @@ public class TimestampingServiceConverterTest {
     @Test
     public void convertMultipleTspTypes() {
         List<TimestampingService> tspTypes = new ArrayList<>(Arrays.asList(TestUtils.createTspType(
-                TSA_1_URL, TSA_1_NAME, CostType.PAID.name()), TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.FREE.name())));
+                TSA_1_URL, TSA_1_NAME, CostType.PAID), TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.FREE)));
 
         Set<TimestampingServiceDto> timestampingServices = timestampingServiceConverter.convert(tspTypes);
 
@@ -99,6 +99,6 @@ public class TimestampingServiceConverterTest {
 
         assertEquals(TSA_1_URL, timestampingService.getUrl());
         assertEquals(TSA_1_NAME, timestampingService.getName());
-        assertEquals(CostTypeDto.FREE.name(), timestampingService.getCostType());
+        assertEquals(CostTypeDto.FREE.name(), timestampingService.getCostType().name());
     }
 }

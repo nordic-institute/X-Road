@@ -37,7 +37,6 @@ import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
-import org.niis.xroad.signer.test.container.SignerIntTestSetup;
 import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
@@ -50,7 +49,7 @@ import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 @Component
 @RequiredArgsConstructor
 public class SignerClientHolder {
-    private final SignerIntTestSetup signerIntTestSetup;
+    private final SignerIntTestContainerSetup signerIntTestSetup;
 
     private SignerRpcClient signerRpcClientInstance;
     private SignerSignRpcClient signerSignClient;
@@ -81,12 +80,12 @@ public class SignerClientHolder {
         var properties = new SignerRpcChannelProperties() {
             @Override
             public String host() {
-                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER, SIGNER_GRPC_PORT).host();
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER, SIGNER_GRPC_PORT).host();
             }
 
             @Override
             public int port() {
-                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER, SIGNER_GRPC_PORT).port();
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER, SIGNER_GRPC_PORT).port();
 
             }
 
@@ -98,12 +97,12 @@ public class SignerClientHolder {
         var secondaryProperties = new SignerRpcChannelProperties() {
             @Override
             public String host() {
-                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).host();
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).host();
             }
 
             @Override
             public int port() {
-                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).port();
+                return signerIntTestSetup.getContainerMapping(SignerIntTestContainerSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).port();
 
             }
 

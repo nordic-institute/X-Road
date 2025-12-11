@@ -16,7 +16,8 @@
   "main": "./src/index.ts",
   "dependencies": {
     "@fontsource-variable/open-sans": "^5.2.7",
-    "@fontsource-variable/material-symbols-rounded": "^5.2.28",
+    "@fontsource-variable/material-symbols-rounded": "^5.2.30",
+    "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
     "axios": "~1.13.2",
@@ -25,10 +26,10 @@
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "vee-validate": "^4.15.1",
-    "vue": "^3.5.24",
-    "vue-i18n": "^11.1.12",
+    "vue": "^3.5.25",
+    "vue-i18n": "^11.2.2",
     "vue-router": "^4.6.3",
-    "vuetify": "^3.10.10"
+    "vuetify": "3.11.2"
   },
   "engines": {
     "npm": "use-pnpm",

@@ -66,7 +66,7 @@ public abstract class BaseConsoleTestRunner {
      * and copies the required resources from the classpath.
      * Works both in JAR execution and IDE development.
      */
-    private static void extractTestResources(TestFrameworkCoreProperties coreProperties) {
+    private void extractTestResources(TestFrameworkCoreProperties coreProperties) {
         try {
             Path tempDir = Paths.get(coreProperties.resourceDir()).toAbsolutePath();
 
@@ -92,7 +92,7 @@ public abstract class BaseConsoleTestRunner {
      *
      * @return array of classpath resource paths to extract
      */
-    protected static String[] getResourcesToExtract() {
+    protected String[] getResourcesToExtract() {
         return new String[]{
                 "compose.intTest.yaml",
                 ".env",

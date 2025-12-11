@@ -30,7 +30,7 @@ jobs:
       service_image_tag: ${{ steps.build-config.outputs.service_image_tag }}
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
@@ -56,7 +56,7 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: Build, test and package code setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Build environment setup'
@@ -155,11 +155,53 @@ jobs:
         run: |
           ./build-images.sh --platforms linux/amd64,linux/arm64 --push
 
-      - name: Upload CS Admin int test jar
+      - name: Upload signer-int-test
+        uses: actions/upload-artifact@v4
+        with:
+          name: signer-int-test-jar
+          path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
+          compression-level: '0'
+
+      - name: Upload opmonitor-int-test
+        uses: actions/upload-artifact@v4
+        with:
+          name: opmonitor-int-test-jar
+          path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test-1.0.jar
+          compression-level: '0'
+
+      - name: Upload cs-admin-int-test
         uses: actions/upload-artifact@v4
         with:
           name: cs-admin-int-test-jar
           path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
+          compression-level: '0'
+
+      - name: Upload cs-management-int-test
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs-management-int-test-jar
+          path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test-1.0.jar
+          compression-level: '0'
+
+      - name: Upload ss-system-test
+        uses: actions/upload-artifact@v4
+        with:
+          name: ss-system-test-jar
+          path: src/security-server/system-test/build/libs/security-server-system-test-1.0.jar
+          compression-level: '0'
+
+      - name: Upload cs-system-test
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs-system-test-jar
+          path: src/central-server/admin-service/ui-system-test/build/libs/central-server-system-test-1.0.jar
+          compression-level: '0'
+
+      - name: Upload e2e-test
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-jar
+          path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
       - name: Log storage after build
@@ -181,19 +223,8 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Upload intTest reports
-        uses: actions/upload-artifact@v5
-        if: failure()
-        with:
-          name: Integration Test reports
-          path: |
-            src/service/signer/signer-int-test/build/allure-report/
-            src/service/signer/signer-int-test/build/container-logs/
-            src/service/op-monitor/op-monitor-int-test/build/allure-report/
-            src/service/op-monitor/op-monitor-int-test/build/container-logs/
-
       - name: Build, test and package code execution measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Build, unit tests and packaging'
@@ -265,13 +296,13 @@ jobs:
           show-packages: 'true'
 
       - name: Packaging and upload artifacts measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'Packaging and upload artifacts'
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true

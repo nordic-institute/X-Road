@@ -46,12 +46,13 @@ import java.util.concurrent.TimeUnit;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static org.awaitility.Awaitility.given;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorComboboxOf;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorComboboxOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @Slf4j
 public class KeyAndCertStepDefs extends BaseUiStepDefs {
@@ -169,6 +170,17 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
     @Step("CSR details Usage is set to {string}, Client set to {string}, Certification Service to {string} and CSR format {string}")
     public void setAuthCsrDetails(String usage, String client, String certificationService, String csrFormat) {
+        setAuthCsrDetails(usage, client, certificationService, csrFormat, false);
+    }
+
+    @Step("CSR details Usage is set to {string}, Client set to {string}, "
+            + "Certification Service to {string} and CSR format {string} preselected")
+    public void setAuthCsrDetailsCsrPreselected(String usage, String client, String certificationService, String csrFormat) {
+        setAuthCsrDetails(usage, client, certificationService, csrFormat, true);
+    }
+
+    private void setAuthCsrDetails(String usage, String client, String certificationService,
+                                   String csrFormat, boolean csrFormatPreselected) {
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(disabled);
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrUsage().click();
@@ -182,8 +194,14 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.addKeyWizardCsrDetails.csrService().click();
         selectorOptionOf(certificationService).click();
 
-        keyAndCertPageObj.addKeyWizardCsrDetails.csrFormat().click();
-        selectorOptionOf(csrFormat).click();
+        if (csrFormatPreselected) {
+            keyAndCertPageObj.addKeyWizardCsrDetails.csrFormat()
+                    .shouldBe(disabled)
+                    .shouldBe(value(csrFormat));
+        } else {
+            keyAndCertPageObj.addKeyWizardCsrDetails.csrFormat().click();
+            selectorOptionOf(csrFormat).click();
+        }
 
         keyAndCertPageObj.addKeyWizardCsrDetails.previousButton().shouldBe(visible).click();
         keyAndCertPageObj.addKeyWizardCsrDetails.csrService().shouldNotBe(visible);

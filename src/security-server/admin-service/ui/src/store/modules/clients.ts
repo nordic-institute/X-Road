@@ -43,6 +43,7 @@ export interface ClientsState {
   realMembers: ExtendedClient[]; // local actual real members, owner +1
   subsystems: ExtendedClient[];
   searchingClients: boolean;
+  allSubsystems: Client[];
 }
 
 export const useClients = defineStore('clients', {
@@ -56,6 +57,7 @@ export const useClients = defineStore('clients', {
       subsystems: [],
       realMembers: [],
       searchingClients: false,
+      allSubsystems: [] as Client[],
     };
   },
   getters: {
@@ -87,6 +89,23 @@ export const useClients = defineStore('clients', {
     },
     async addClient(clientAdd: ClientAdd) {
       return api.post<Client>('/clients', clientAdd).then((res) => res.data);
+    },
+    async fetchAllSubsystems(instance: string) {
+      return api
+        .get<Client[]>('/clients', {
+          params: {
+            instance: instance,
+            show_members: false,
+            internal_search: false,
+            include_management_service_check: true,
+          }
+        })
+        .then((res) => {
+          this.allSubsystems = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
     },
     storeClients(clients: Client[]) {
       this.clients = clients;

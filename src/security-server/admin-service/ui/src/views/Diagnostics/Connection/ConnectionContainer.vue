@@ -33,11 +33,87 @@
     <XrdSubView>
       <ConnectionCentralServerView class="mt-0" />
     </XrdSubView>
+
+    <XrdSubView>
+      <template v-if="!loading">
+        <ConnectionSecurityServerView class="mt-0" />
+      </template>
+
+      <XrdEmptyPlaceholder
+        :data="xRoadInstances"
+        :loading="loading"
+        :no-items-text="$t('noData.noData')"
+        skeleton-type="table-heading"
+        :skeleton-count="1"
+      />
+    </XrdSubView>
+
+    <XrdSubView>
+      <template v-if="!loading">
+        <ConnectionManagementView class="mt-0" />
+      </template>
+
+      <XrdEmptyPlaceholder
+        :data="xRoadInstances"
+        :loading="loading"
+        :no-items-text="$t('noData.noData')"
+        skeleton-type="table-heading"
+        :skeleton-count="1"
+      />
+    </XrdSubView>
+
   </XrdView>
 </template>
 
-<script setup lang="ts">
-import { XrdSubView, XrdView } from '@niis/shared-ui';
+<script lang="ts">
+import ConnectionCentralServerView from '@/views/Diagnostics/Connection/ConnectionCentralServerView.vue';
+import ConnectionSecurityServerView from '@/views/Diagnostics/Connection/ConnectionSecurityServerView.vue';
+import ConnectionManagementView from '@/views/Diagnostics/Connection/ConnectionManagementView.vue';
+import { mapActions, mapState } from 'pinia';
+import { useGeneral } from '@/store/modules/general';
+import { useClients } from '@/store/modules/clients';
+import { defineComponent } from 'vue';
 import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
-import ConnectionCentralServerView from '@/views/Diagnostics/Connection/CentralServerConnectionTestingView.vue';
+import { XrdSubView, XrdEmptyPlaceholder, XrdView } from '@niis/shared-ui';
+
+export default defineComponent({
+  name: 'ConnectionContainer',
+  components: {
+    XrdEmptyPlaceholder,
+    XrdSubView,
+    DiagnosticsTabs,
+    XrdView,
+    ConnectionManagementView,
+    ConnectionSecurityServerView,
+    ConnectionCentralServerView
+  },
+
+  data() {
+    return {
+      loading: false
+    }
+  },
+
+  computed: {
+    ...mapState(useGeneral, ['xRoadInstances']),
+  },
+
+  async created() {
+    this.loading = true
+    try {
+      await Promise.all([
+        this.fetchXRoadInstances(),
+        this.fetchClients(),
+      ])
+
+    } finally {
+      this.loading = false
+    }
+  },
+
+  methods: {
+    ...mapActions(useGeneral, ['fetchXRoadInstances']),
+    ...mapActions(useClients, ['fetchClients'])
+  }
+});
 </script>

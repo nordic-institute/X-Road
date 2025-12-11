@@ -237,6 +237,7 @@ for service in "${SERVICES[@]}"; do
   # Build command with ALL contexts
   build_cmd=(
     docker buildx build
+    --no-cache
     --file "${SCRIPT_DIR}/${dockerfile}"
     --build-arg "REGISTRY=${REGISTRY}"
     --build-arg "IMAGE_TAG=${IMAGE_TAG}"

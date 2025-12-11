@@ -11,7 +11,7 @@ source "${ROOT_DIR}/.scripts/base-script.sh"
 SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
 SECRET_STORE_LOCAL="${ROOT_DIR}/deployment/native-packages/src/xroad/common/secret-store-local"
-CA_CONTAINER="${SRC_DIR}/common/common-int-test/src/main/resources/META-INF/ca-container"
+CA_CONTAINER="${ROOT_DIR}/development/docker/testca-dev"
 
 # Show help
 show_help() {

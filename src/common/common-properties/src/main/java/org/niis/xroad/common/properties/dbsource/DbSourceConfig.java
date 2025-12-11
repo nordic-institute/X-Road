@@ -56,7 +56,7 @@ public class DbSourceConfig {
 
     public static DbSourceConfig loadValues(String appName) {
         DbSourceConfig config = new DbSourceConfig();
-        config.appName = "%s-db-props".formatted(appName);
+        config.appName = appName;
         config.url = getenv(ENV_VAR_DB_URL);
         config.username = getenv(ENV_VAR_DB_USERNAME);
         config.password = ofNullable(getenv(ENV_VAR_DB_PASS))

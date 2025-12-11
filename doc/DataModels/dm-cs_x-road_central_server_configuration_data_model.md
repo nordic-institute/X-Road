@@ -1,38 +1,38 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.18
+Version: 1.19
 Doc. ID: DM-CS
 
-| Date       | Version | Description                                                                      | Author               |
-|------------|---------|----------------------------------------------------------------------------------|----------------------|
-| 15.06.2015 | 0.1     | Initial version                                                                  | Martin Lind          |
-| 30.06.2015 | 0.2     | Comments and revisions                                                           | Margus Freudenthal   |
-| 09.07.2015 | 0.3     | Rearrangements for consistency                                                   | Martin Lind          |
-| 28.08.2015 | 0.4     | Corrections according to feedback to first 7 tables                              | Martin Lind          |
-| 01.09.2015 | 0.5     | Better explanations for modifications to all tables                              | Martin Lind          |
-| 09.09.2015 | 0.6     | Made minor editorial changes                                                     | Margus Freudenthal   |
-| 16.09.2015 | 0.7     | Added the descriptions of the fields and procedures related to high availability | Marju Ignatjeva      |
-| 21.09.2015 | 1.0     | Editorial changes made                                                           | Imbi Nõgisto         |
-| 16.10.2015 | 1.1     | Field cert_profile_info for approved CA-s table and one missing index            | Martin Lind          |
-| 17.10.2015 | 1.2     | Clarified description of the cert_profile_info field                             | Margus Freudenthal   |
-| 11.12.2015 | 1.3     | Subsystems can only be clients of security servers                               | Siim Annuk           |
-| 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format                          | Ilkka Seppälä        |
-| 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId*           | Kristo Heero         |
-| 02.03.2018 | 1.6     | Added uniform terms and conditions reference                                     | Tatu Repo            |
-| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                      | Jarkko Hyöty         |
-| 11.08.2021 | 1.8     | Update chapter 1.7 about high availability support                               | Ilkka Seppälä        |
-| 26.09.2022 | 1.9     | Remove Ubuntu 18.04 support                                                      | Andres Rosenthal     |
-| 17.04.2023 | 1.9     | Remove security server category support                                          | Ričardas Bučiūnas    |
-| 17.04.2023 | 1.10    | Remove central services support                                                  | Justas Samuolis      | 
-| 30.05.2023 | 1.11    | Remove security_server_client_names table                                        | Ovidijus Narkevičius | 
-| 14.06.2023 | 1.12    | New Central Server updates                                                       | Eneli Reimets        |
-| 08.12.2023 | 1.13    | Added enabled field to server_clients table                                      | Madis Loitmaa        |
-| 09.01.2025 | 1.14    | Restructure heading levels to work better with the documentation platform        | Raido Kaju           |
-| 21.03.2025 | 1.15    | Syntax dand styling fixes                                                        | Pauline Dimmek       |
-| 30.04.2025 | 1.16    | Added maintenance mode related fields to security_servers table                  | Ovidijus Narkevičius |
-| 28.10.2025 | 1.17    | Added cost type columns to ocsp_infos and approved_tsas                          | Mikk-Erik Bachmann   |
-| 05.11.2025 | 1.18    | Added default csr format column to approved_cas                                  | Mikk-Erik Bachmann   |
-
+| Date       | Version | Description                                                                                    | Author               |
+|------------|---------|------------------------------------------------------------------------------------------------|----------------------|
+| 15.06.2015 | 0.1     | Initial version                                                                                | Martin Lind          |
+| 30.06.2015 | 0.2     | Comments and revisions                                                                         | Margus Freudenthal   |
+| 09.07.2015 | 0.3     | Rearrangements for consistency                                                                 | Martin Lind          |
+| 28.08.2015 | 0.4     | Corrections according to feedback to first 7 tables                                            | Martin Lind          |
+| 01.09.2015 | 0.5     | Better explanations for modifications to all tables                                            | Martin Lind          |
+| 09.09.2015 | 0.6     | Made minor editorial changes                                                                   | Margus Freudenthal   |
+| 16.09.2015 | 0.7     | Added the descriptions of the fields and procedures related to high availability               | Marju Ignatjeva      |
+| 21.09.2015 | 1.0     | Editorial changes made                                                                         | Imbi Nõgisto         |
+| 16.10.2015 | 1.1     | Field cert_profile_info for approved CA-s table and one missing index                          | Martin Lind          |
+| 17.10.2015 | 1.2     | Clarified description of the cert_profile_info field                                           | Margus Freudenthal   |
+| 11.12.2015 | 1.3     | Subsystems can only be clients of security servers                                             | Siim Annuk           |
+| 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format                                        | Ilkka Seppälä        |
+| 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId*                         | Kristo Heero         |
+| 02.03.2018 | 1.6     | Added uniform terms and conditions reference                                                   | Tatu Repo            |
+| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                                    | Jarkko Hyöty         |
+| 11.08.2021 | 1.8     | Update chapter 1.7 about high availability support                                             | Ilkka Seppälä        |
+| 26.09.2022 | 1.9     | Remove Ubuntu 18.04 support                                                                    | Andres Rosenthal     |
+| 17.04.2023 | 1.9     | Remove security server category support                                                        | Ričardas Bučiūnas    |
+| 17.04.2023 | 1.10    | Remove central services support                                                                | Justas Samuolis      | 
+| 30.05.2023 | 1.11    | Remove security_server_client_names table                                                      | Ovidijus Narkevičius | 
+| 14.06.2023 | 1.12    | New Central Server updates                                                                     | Eneli Reimets        |
+| 08.12.2023 | 1.13    | Added enabled field to server_clients table                                                    | Madis Loitmaa        |
+| 09.01.2025 | 1.14    | Restructure heading levels to work better with the documentation platform                      | Raido Kaju           |
+| 21.03.2025 | 1.15    | Syntax dand styling fixes                                                                      | Pauline Dimmek       |
+| 30.04.2025 | 1.16    | Added maintenance mode related fields to security_servers table                                | Ovidijus Narkevičius |
+| 28.10.2025 | 1.17    | Added cost type columns to ocsp_infos and approved_tsas                                        | Mikk-Erik Bachmann   |
+| 05.11.2025 | 1.18    | Added default csr format column to approved_cas                                                | Mikk-Erik Bachmann   |
+| 28.11.2025 | 1.19    | Updated default csr format column to be nullable for approved_cas, reformatted markdown tables | Marc David           |
 
 
 ## Table of Contents
@@ -273,8 +273,8 @@ New record creation process starts when an X-Road system administrator receives 
 
 #### 2.5.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                            |  Columns  |
+|:--------------------------------|:---------:|
 | index_approved_cas_on_top_ca_id | top_ca_id |
 
 #### 2.5.2 Attributes
@@ -288,7 +288,7 @@ New record creation process starts when an X-Road system administrator receives 
 | cert_profile_info   |   character varying(255)    |           | Fully qualified Java class name that implements the CertificateProfileInfoProvider interface. The implementing class is used for extracting subject information from certificates. The implementing class must be present in classpath of both Central Server and securitys servers. Cannot be NULL. |
 | created_at          | timestamp without time zone | NOT NULL  |                                                                                                                             Record creation time, managed automatically.                                                                                                                             |
 | updated_at          | timestamp without time zone | NOT NULL  |                                                                                                                          Record last modified time, managed automatically.                                                                                                                           |
-| default_csr_format  |   character varying(255)    | NOT NULL  |                                                                                                                         The default CSR format (PEM or DER). Cannot be NULL.                                                                                                                         |
+| default_csr_format  |   character varying(255)    |           |                                                                                                                                 The default CSR format (PEM or DER).                                                                                                                                 |
 
 ### 2.6 APPROVED_TSAS
 
@@ -318,19 +318,19 @@ The record is created when X-Road registration officer approves the request in t
 
 #### 2.7.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                                   |      Columns       |
+|:---------------------------------------|:------------------:|
 | index_auth_certs_on_security_server_id | security_server_id |
 
 #### 2.7.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| security_server_id [FK] | integer |  | ID of the Security Server the authentication certificate belongs to. References id attribute of security_servers entity. Cannot be NULL. |
-| cert | bytea |  | Authentication certificate contents (in DER encoding). Cannot be NULL. |
-| created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically. |
-| updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically. |
+| Name                    |            Type             | Modifiers |                                                               Description                                                                |
+|:------------------------|:---------------------------:|:----------|:----------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]                 |           integer           | NOT NULL  |                                                               Primary key                                                                |
+| security_server_id [FK] |           integer           |           | ID of the Security Server the authentication certificate belongs to. References id attribute of security_servers entity. Cannot be NULL. |
+| cert                    |            bytea            |           |                                  Authentication certificate contents (in DER encoding). Cannot be NULL.                                  |
+| created_at              | timestamp without time zone | NOT NULL  |                                               Record creation time, managed automatically.                                               |
+| updated_at              | timestamp without time zone | NOT NULL  |                                            Record last modified time, managed automatically.                                             |
 
 ### 2.8 CA_INFOS
 
@@ -344,21 +344,21 @@ Accordingly, the record is deleted when either the approved CA is deleted (see a
 
 #### 2.8.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                                 |      Columns       |
+|:-------------------------------------|:------------------:|
 | index_ca_infos_on_intermediate_ca_id | intermediate_ca_id |
 
 #### 2.8.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| cert | bytea |  | Contents of the CA certificate (in DER encoding). Cannot be NULL. |
-| intermediate_ca_id [FK] | integer |  | Used to associate the ca_info record with a top-level CA record. This field is present only for intermediate-level CAs (top-level CA is referenced directly by the ca_info table. References to id attribute of approved_cas entity. |
-| valid_from | timestamp without time zone |  | Start of validity period of the CA's certificate. Extracted from the certificate. |
-| valid_to | timestamp without time zone |  | End of validity period of the CA's certificate. Extracted from the certificate. |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
+| Name                    |            Type             | Modifiers |                                                                                                             Description                                                                                                              |
+|:------------------------|:---------------------------:|:----------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]                 |           integer           | NOT NULL  |                                                                                                             Primary key                                                                                                              |
+| cert                    |            bytea            |           |                                                                                  Contents of the CA certificate (in DER encoding). Cannot be NULL.                                                                                   |
+| intermediate_ca_id [FK] |           integer           |           | Used to associate the ca_info record with a top-level CA record. This field is present only for intermediate-level CAs (top-level CA is referenced directly by the ca_info table. References to id attribute of approved_cas entity. |
+| valid_from              | timestamp without time zone |           |                                                                          Start of validity period of the CA's certificate. Extracted from the certificate.                                                                           |
+| valid_to                | timestamp without time zone |           |                                                                           End of validity period of the CA's certificate. Extracted from the certificate.                                                                            |
+| created_at              | timestamp without time zone | NOT NULL  |                                                                                             Record creation time, managed automatically.                                                                                             |
+| updated_at              | timestamp without time zone | NOT NULL  |                                                                                          Record last modified time, managed automatically.                                                                                           |
 
 ### 2.9 CONFIGURATION_SIGNING_KEYS
 
@@ -368,20 +368,20 @@ The record is created when a new key for signing global configuration is needed 
 
 #### 2.9.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                                                        |         Columns         |
+|:------------------------------------------------------------|:-----------------------:|
 | index_configuration_signing_keys_on_configuration_source_id | configuration_source_id |
 
 #### 2.9.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| configuration_source_id [FK] | integer |  | ID of the configuration source that uses this signing key. References id attribute of configuration_sources entity. Cannot be NULL. |
-| key_identifier  | character varying(255) |  | Contents of the configuration signing certificate (in DER encoding).  |
-| cert | bytea |  |  |
-| key_generated_at  | timestamp without time zone |  | The signing key generation time.  |
-| token_identifier  | character varying(255) |  | Unique identifier of hardware or software token used for signing the configuration.  |
+| Name                         |            Type             | Modifiers |                                                             Description                                                             |
+|:-----------------------------|:---------------------------:|:----------|:-----------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]                      |           integer           | NOT NULL  |                                                             Primary key                                                             |
+| configuration_source_id [FK] |           integer           |           | ID of the configuration source that uses this signing key. References id attribute of configuration_sources entity. Cannot be NULL. |
+| key_identifier               |   character varying(255)    |           |                                Contents of the configuration signing certificate (in DER encoding).                                 |
+| cert                         |            bytea            |           |                                                                                                                                     |
+| key_generated_at             | timestamp without time zone |           |                                                  The signing key generation time.                                                   |
+| token_identifier             |   character varying(255)    |           |                         Unique identifier of hardware or software token used for signing the configuration.                         |
 
 ### 2.10 CONFIGURATION_SOURCES
 
@@ -394,21 +394,21 @@ The record is created when the configuration source tab (either for internal or 
 
 #### 2.10.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                                         |    Columns    |
+|:---------------------------------------------|:-------------:|
 | index_configuration_sources_on_active_key_id | active_key_id |
 
 #### 2.10.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| source_type  | character varying(255) |  | Type of the configuration source, can be either 'internal' or 'external'.  |
-| active_key_id [FK] | integer |  | ID of the active key that is used to sign the distributed configuration (all the other keys are only included in the generated configuration anchor).References id attribute of configuration_signing_keys entity.  |
-| anchor_file  | qqbytea |  | Configuration anchor file (in XML format). The anchor is re-generated if any information contained in the anchor is saved. |
-| anchor_file_hash  | text |  | Configuration anchor file hash (for displaying in user interface). Updated when the configuration anchor is re-generated. |
-| anchor_generated_at  | timestamp without time zone |  | Configuration anchor generation time. Updated when the configuration anchor is re-generated. |
-| ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
+| Name                |            Type             | Modifiers |                                                                                                    Description                                                                                                     |
+|:--------------------|:---------------------------:|:----------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]             |           integer           | NOT NULL  |                                                                                                    Primary key                                                                                                     |
+| source_type         |   character varying(255)    |           |                                                                     Type of the configuration source, can be either 'internal' or 'external'.                                                                      |
+| active_key_id [FK]  |           integer           |           | ID of the active key that is used to sign the distributed configuration (all the other keys are only included in the generated configuration anchor).References id attribute of configuration_signing_keys entity. |
+| anchor_file         |           qqbytea           |           |                                             Configuration anchor file (in XML format). The anchor is re-generated if any information contained in the anchor is saved.                                             |
+| anchor_file_hash    |            text             |           |                                             Configuration anchor file hash (for displaying in user interface). Updated when the configuration anchor is re-generated.                                              |
+| anchor_generated_at | timestamp without time zone |           |                                                            Configuration anchor generation time. Updated when the configuration anchor is re-generated.                                                            |
+| ha_node_name        |   character varying(255)    |           |                                                    Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup.                                                    |
 
 ### 2.11 DISTRIBUTED_FILES
 
@@ -427,15 +427,15 @@ The record is always deleted before new record with particular file name is crea
 
 #### 2.11.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| file_name  | character varying(255) |  | Name of the distributed file. Any valid file name. Cannot be NULL. |
-| file_data  | bytea |  | Contents of the distributed file. Cannot be NULL. |
-| content_identifier  | character varying(255) |  | Content identifier of the distributed file. The content identifier is used by Security Server to determine the exact type of the file. Must be unique inside an X-Road instance. Cannot be NULL. |
-| file_updated_at  | timestamp without time zone |  | Time when the distributed file was last updated.  |
-| ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
-| version | integer | NOT NULL | Version of the distributed file. Cannot be NULL. Default is 0 which means it is not versioned and belongs to all versions of global configuration. |
+| Name               |            Type             | Modifiers |                                                                                           Description                                                                                            |
+|:-------------------|:---------------------------:|:----------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]            |           integer           | NOT NULL  |                                                                                           Primary key                                                                                            |
+| file_name          |   character varying(255)    |           |                                                                Name of the distributed file. Any valid file name. Cannot be NULL.                                                                |
+| file_data          |            bytea            |           |                                                                        Contents of the distributed file. Cannot be NULL.                                                                         |
+| content_identifier |   character varying(255)    |           | Content identifier of the distributed file. The content identifier is used by Security Server to determine the exact type of the file. Must be unique inside an X-Road instance. Cannot be NULL. |
+| file_updated_at    | timestamp without time zone |           |                                                                         Time when the distributed file was last updated.                                                                         |
+| ha_node_name       |   character varying(255)    |           |                                           Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup.                                           |
+| version            |           integer           | NOT NULL  |                        Version of the distributed file. Cannot be NULL. Default is 0 which means it is not versioned and belongs to all versions of global configuration.                        |
 
 ### 2.12 GLOBAL_GROUP_MEMBERS
 
@@ -445,20 +445,20 @@ The record is created when a new member needs to be added to a global group. The
 
 #### 2.12.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                                          |     Columns     |
+|:----------------------------------------------|:---------------:|
 | index_global_group_members_on_global_group_id | global_group_id |
 | index_global_group_members_on_group_member_id | group_member_id |
 
 #### 2.12.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| group_member_id [FK] | integer |  | ID of the member identifier that belongs to this global group. References id attribute of identifiers entity. Cannot be NULL. |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
-| global_group_id [FK] | integer |  | ID of the global group the member referenced by group_member_id belongs to. References id attribute of global_groups entity. Cannot be NULL. |
+| Name                 |            Type             | Modifiers |                                                                 Description                                                                  |
+|:---------------------|:---------------------------:|:----------|:--------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]              |           integer           | NOT NULL  |                                                                 Primary key                                                                  |
+| group_member_id [FK] |           integer           |           |        ID of the member identifier that belongs to this global group. References id attribute of identifiers entity. Cannot be NULL.         |
+| created_at           | timestamp without time zone | NOT NULL  |                                                 Record creation time, managed automatically.                                                 |
+| updated_at           | timestamp without time zone | NOT NULL  |                                              Record last modified time, managed automatically.                                               |
+| global_group_id [FK] |           integer           |           | ID of the global group the member referenced by group_member_id belongs to. References id attribute of global_groups entity. Cannot be NULL. |
 
 ### 2.13 GLOBAL_GROUPS
 
@@ -468,13 +468,13 @@ The record is created when a new global group needs to be added to the X-Road in
 
 #### 2.13.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| group_code  | character varying(255) |  | Global group code that is unique inside the X-Road instance. Cannot be modified after the record is created. Cannot be NULL. |
-| description  | character varying(255) |  | Longer, human-readable description of the group. Can be modified after the record is created. |
-| created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically. |
+| Name        |            Type             | Modifiers |                                                         Description                                                          |
+|:------------|:---------------------------:|:----------|:----------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]     |           integer           | NOT NULL  |                                                         Primary key                                                          |
+| group_code  |   character varying(255)    |           | Global group code that is unique inside the X-Road instance. Cannot be modified after the record is created. Cannot be NULL. |
+| description |   character varying(255)    |           |                Longer, human-readable description of the group. Can be modified after the record is created.                 |
+| created_at  | timestamp without time zone | NOT NULL  |                                         Record creation time, managed automatically.                                         |
+| updated_at  | timestamp without time zone | NOT NULL  |                                      Record last modified time, managed automatically.                                       |
 
 ### 2.14 HISTORY
 
@@ -484,18 +484,18 @@ The record is created in the manner described above in this document. The record
 
 #### 2.14.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| operation  | character varying(255) | NOT NULL | Name of the database operation (possible values are 'INSERT', 'UPDATE' and 'DELETE').  |
-| table_name  | character varying(255) | NOT NULL | Name of the table the operation was made on.  |
-| record_id  | integer | NOT NULL | ID of the record that was inserted, updated or deleted, in the original table.  |
-| field_name  | character varying(255) | NOT NULL | Name of the column that was inserted, updated or deleted.   |
-| old_value  | text |  | Previous value of the column if applicable (NULL for INSERT operations).  |
-| new_value  | text |  | New value of the column if applicable (NULL for DELETE operations).  |
-| user_name  | character varying(255) | NOT NULL | Name of either the logged in user of the UI or the database user behind the connection, that initiated the operation.  |
-| timestamp  | timestamp without time zone | NOT NULL | Date and time of the operation.  |
-| ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
+| Name         |            Type             | Modifiers |                                                      Description                                                      |
+|:-------------|:---------------------------:|:----------|:---------------------------------------------------------------------------------------------------------------------:|
+| id [PK]      |           integer           | NOT NULL  |                                                      Primary key                                                      |
+| operation    |   character varying(255)    | NOT NULL  |                 Name of the database operation (possible values are 'INSERT', 'UPDATE' and 'DELETE').                 |
+| table_name   |   character varying(255)    | NOT NULL  |                                     Name of the table the operation was made on.                                      |
+| record_id    |           integer           | NOT NULL  |                    ID of the record that was inserted, updated or deleted, in the original table.                     |
+| field_name   |   character varying(255)    | NOT NULL  |                               Name of the column that was inserted, updated or deleted.                               |
+| old_value    |            text             |           |                       Previous value of the column if applicable (NULL for INSERT operations).                        |
+| new_value    |            text             |           |                          New value of the column if applicable (NULL for DELETE operations).                          |
+| user_name    |   character varying(255)    | NOT NULL  | Name of either the logged in user of the UI or the database user behind the connection, that initiated the operation. |
+| timestamp    | timestamp without time zone | NOT NULL  |                                            Date and time of the operation.                                            |
+| ha_node_name |   character varying(255)    |           |     Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup.      |
 
 ### 2.15 IDENTIFIERS
 
@@ -503,19 +503,19 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 
 #### 2.15.1 Attributes
 
-| Name            | Type                        | Modifiers | Description           |
-|:----------------|:---------------------------:|:--------- |:-----------------:|
-| id [PK]         | integer                     | NOT NULL  | Primary key |
-| object_type     | character varying(255)      |           | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVICE', 'CENTRALSERVICE', 'SERVER'. |
-| xroad_instance  | character varying(255)      |           | X-Road instance identifier. Present (otherwise NULL) in identifiers of all types. |
-| member_class    | character varying(255)      |           | Member class. Present in identifiers of 'MEMBER', 'SUBSYSTEM', 'SERVER' and 'SERVICE' type.  |
-| member_code     | character varying(255)      |           | Member code. Present in identifiers of 'MEMBER', 'SUBSYSTEM, SERVER' and 'SERVICE' type.  |
-| subsystem_code  | character varying(255)      |           | Subsystem code. Present in identifiers of 'SUBSYSTEM' and 'SERVICE' type. |
-| service_code    | character varying(255)      |           | Service code. Present in identifiers of 'SERVICE' type.  |
-| server_code     | character varying(255)      |           | Security Server code. Present in identifiers of 'SERVER' type.  |
-| created_at      | timestamp without time zone | NOT NULL  | Record creation time, managed automatically.  |
-| updated_at      | timestamp without time zone | NOT NULL  | Record last modified time, managed automatically.  |
-| service_version | character varying(255)      |           | X-Road service version. May be present in identifiers of 'SERVICE' type. |
+| Name            |            Type             | Modifiers |                                                                                                     Description                                                                                                     |
+|:----------------|:---------------------------:|:----------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]         |           integer           | NOT NULL  |                                                                                                     Primary key                                                                                                     |
+| object_type     |   character varying(255)    |           | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVICE', 'CENTRALSERVICE', 'SERVER'. |
+| xroad_instance  |   character varying(255)    |           |                                                                  X-Road instance identifier. Present (otherwise NULL) in identifiers of all types.                                                                  |
+| member_class    |   character varying(255)    |           |                                                             Member class. Present in identifiers of 'MEMBER', 'SUBSYSTEM', 'SERVER' and 'SERVICE' type.                                                             |
+| member_code     |   character varying(255)    |           |                                                              Member code. Present in identifiers of 'MEMBER', 'SUBSYSTEM, SERVER' and 'SERVICE' type.                                                               |
+| subsystem_code  |   character varying(255)    |           |                                                                      Subsystem code. Present in identifiers of 'SUBSYSTEM' and 'SERVICE' type.                                                                      |
+| service_code    |   character varying(255)    |           |                                                                               Service code. Present in identifiers of 'SERVICE' type.                                                                               |
+| server_code     |   character varying(255)    |           |                                                                           Security Server code. Present in identifiers of 'SERVER' type.                                                                            |
+| created_at      | timestamp without time zone | NOT NULL  |                                                                                    Record creation time, managed automatically.                                                                                     |
+| updated_at      | timestamp without time zone | NOT NULL  |                                                                                  Record last modified time, managed automatically.                                                                                  |
+| service_version |   character varying(255)    |           |                                                                      X-Road service version. May be present in identifiers of 'SERVICE' type.                                                                       |
 
 ### 2.16 MEMBER_CLASSES
 
@@ -525,13 +525,13 @@ The record is added when the X-Road instance needs new member class. Then an X-R
 
 #### 2.16.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| code  | character varying(255) |  | Member class code, unique inside an X-Road instance. Cannot be NULL. |
-| description  | character varying(255) |  | Member class description.  |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically. |
+| Name        |            Type             | Modifiers |                             Description                              |
+|:------------|:---------------------------:|:----------|:--------------------------------------------------------------------:|
+| id [PK]     |           integer           | NOT NULL  |                             Primary key                              |
+| code        |   character varying(255)    |           | Member class code, unique inside an X-Road instance. Cannot be NULL. |
+| description |   character varying(255)    |           |                      Member class description.                       |
+| created_at  | timestamp without time zone | NOT NULL  |             Record creation time, managed automatically.             |
+| updated_at  | timestamp without time zone | NOT NULL  |          Record last modified time, managed automatically.           |
 
 ### 2.17 OCSP_INFOS
 
@@ -541,8 +541,8 @@ The record is created when a new OCSP responder needs to be registered for eithe
 
 #### 2.17.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                           |  Columns   |
+|:-------------------------------|:----------:|
 | index_ocsp_infos_on_ca_info_id | ca_info_id |
 
 #### 2.17.2 Attributes
@@ -555,7 +555,7 @@ The record is created when a new OCSP responder needs to be registered for eithe
 | ca_info_id [FK] |           integer           |           | ID of the CA info record this OCSP info belongs to. References id attribute of ca_infos entity. Cannot be NULL. |
 | created_at      | timestamp without time zone | NOT NULL  |                                  Record creation time, managed automatically.                                   |
 | updated_at      | timestamp without time zone | NOT NULL  |                                Record last modified time, managed automatically.                                |
-| cost_type       |    character varying(255)   | NOT NULL  |                  Cost type of the OCSP server, either FREE, PAID or UNDEFINED. Cannot be NULL.                  |
+| cost_type       |   character varying(255)    | NOT NULL  |                  Cost type of the OCSP server, either FREE, PAID or UNDEFINED. Cannot be NULL.                  |
 
 ### 2.18 REQUEST_PROCESSINGS
 
@@ -575,13 +575,13 @@ Request processing record is created (registration requests for X-Road client an
 
 #### 2.18.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| type  | character varying(255) |  | Application model class type, managed automatically.  Possible values are 'ClientRegProcessing' and 'AuthCertRegProcessing'. |
-| status | character varying(255) |  | Current status of the request processing. Possible values are 'NEW', 'WAITING', 'EXECUTING', 'SUBMITTED FOR APPROVAL', 'APPROVED', 'DECLINED' and 'REVOKED'.  |
-| created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
+| Name       |            Type             | Modifiers |                                                                         Description                                                                          |
+|:-----------|:---------------------------:|:----------|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]    |           integer           | NOT NULL  |                                                                         Primary key                                                                          |
+| type       |   character varying(255)    |           |                 Application model class type, managed automatically.  Possible values are 'ClientRegProcessing' and 'AuthCertRegProcessing'.                 |
+| status     |   character varying(255)    |           | Current status of the request processing. Possible values are 'NEW', 'WAITING', 'EXECUTING', 'SUBMITTED FOR APPROVAL', 'APPROVED', 'DECLINED' and 'REVOKED'. |
+| created_at | timestamp without time zone | NOT NULL  |                                                         Record creation time, managed automatically.                                                         |
+| updated_at | timestamp without time zone | NOT NULL  |                                                      Record last modified time, managed automatically.                                                       |
 
 ### 2.19 REQUESTS
 
@@ -606,19 +606,19 @@ The record is never deleted.
 
 #### 2.19.2 Attributes
 
-| Name        | Type           | Modifiers        |                                                                                                                                                                              Description                                                                                                                                                                              |
-|:----------- |:-----------------:|:----------- |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| id [PK] | integer | NOT NULL |                                                                                                                                                                              Primary key                                                                                                                                                                              |
-| request_processing_id [FK] | integer |  |                                                                          ID of the registration processing object that manages this request. Applicable if type has value 'AuthCertRegRequest' or 'ClientRegRequest', otherwise NULL. References id attribute of request_processings entity.                                                                          |
-| type  | character varying(255) |  |                                                                                               Application model class type, managed automatically. Possible values are 'AuthCertRegRequest', 'ClientRegRequest', 'AuthCertDeletionRequest' and 'ClientDeletionRequest'.                                                                                               |
-| security_server_id [FK] | integer |  |                                                                                                                           ID of the Security Server related to the request. References id attribute of identifiers entity. Cannot be NULL.                                                                                                                            |
-| sec_serv_user_id [FK] | integer |  |                                                                                ID of the Security Server client related to the request. Applicable when type is client registration request or client deletion request, otherwise NULL. References id attribute of identifiers entity.                                                                                |
-| auth_cert  | bytea |  |                                                                                                       Applicable for authentication certificate registration or deletion request, otherwise NULL. Contents of the authentication certificate (in DER encoding).                                                                                                       |
-| address | character varying(255) |  |                                                  Security Server address for helping X-Road clients to locate the Security Server. Added into the global configuration when authentication certificate registration request is approved. Applicable only for requests of type 'AuthCertRegRequest', otherwise NULL.                                                   |
-| origin | character varying(255) |  |                                                                                                                                              Specifies where the request is from either CENTER or from SECURITY_SERVER.                                                                                                                                               |
-| comments  | text |  |                                                                                                                                                   Comments related to creating this request. Currently not in use.                                                                                                                                                    |
-| created_at  | timestamp without time zone | NOT NULL |                                                                                                                                                             Record creation time, managed automatically.                                                                                                                                                              |
-| updated_at   | timestamp without time zone | NOT NULL |                                                                                                                                                           Record last modified time, managed automatically.                                                                                                                                                           |
+| Name                       |            Type             | Modifiers |                                                                                                                            Description                                                                                                                             |
+|:---------------------------|:---------------------------:|:----------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]                    |           integer           | NOT NULL  |                                                                                                                            Primary key                                                                                                                             |
+| request_processing_id [FK] |           integer           |           |                        ID of the registration processing object that manages this request. Applicable if type has value 'AuthCertRegRequest' or 'ClientRegRequest', otherwise NULL. References id attribute of request_processings entity.                         |
+| type                       |   character varying(255)    |           |                                             Application model class type, managed automatically. Possible values are 'AuthCertRegRequest', 'ClientRegRequest', 'AuthCertDeletionRequest' and 'ClientDeletionRequest'.                                              |
+| security_server_id [FK]    |           integer           |           |                                                                          ID of the Security Server related to the request. References id attribute of identifiers entity. Cannot be NULL.                                                                          |
+| sec_serv_user_id [FK]      |           integer           |           |                              ID of the Security Server client related to the request. Applicable when type is client registration request or client deletion request, otherwise NULL. References id attribute of identifiers entity.                               |
+| auth_cert                  |            bytea            |           |                                                     Applicable for authentication certificate registration or deletion request, otherwise NULL. Contents of the authentication certificate (in DER encoding).                                                      |
+| address                    |   character varying(255)    |           | Security Server address for helping X-Road clients to locate the Security Server. Added into the global configuration when authentication certificate registration request is approved. Applicable only for requests of type 'AuthCertRegRequest', otherwise NULL. |
+| origin                     |   character varying(255)    |           |                                                                                             Specifies where the request is from either CENTER or from SECURITY_SERVER.                                                                                             |
+| comments                   |            text             |           |                                                                                                  Comments related to creating this request. Currently not in use.                                                                                                  |
+| created_at                 | timestamp without time zone | NOT NULL  |                                                                                                            Record creation time, managed automatically.                                                                                                            |
+| updated_at                 | timestamp without time zone | NOT NULL  |                                                                                                         Record last modified time, managed automatically.                                                                                                          |
 
 ### 2.20 SECURITY_SERVER_CLIENTS
 
@@ -638,27 +638,27 @@ The record can be deleted in the user interface by an X-Road registration office
 
 #### 2.20.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
-| index_security_server_clients_on_member_class_id | member_class_id |
+| Name                                              |     Columns      |
+|:--------------------------------------------------|:----------------:|
+| index_security_server_clients_on_member_class_id  | member_class_id  |
 | index_security_server_clients_on_server_client_id | server_client_id |
-| index_security_server_clients_on_xroad_member_id | xroad_member_id |
+| index_security_server_clients_on_xroad_member_id  |  road_member_id  |
 
 #### 2.20.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| member_code  | character varying(255) |  | Member code, unique inside member class. NULL if type is 'Subsystem'. |
-| subsystem_code  | character varying(255) |  | Subsystem code, unique inside member, filled if type is 'Subsystem'. NULL if type is 'XroadMember'. |
-| name  | character varying(255) |  | Member (human-readable) name.  |
-| xroad_member_id [FK] | integer |  | ID of the member the subsystem record belongs to. Filled if type is 'Subsystem'. NULL if type is 'XroadMember'. References id attribute of security_server_clients entity.  |
-| member_class_id [FK] | integer |  | ID of the the member record belongs to. Filled if type is 'XroadMember'.  References id attribute of member_classes entity. Cannot be NULL. |
-| server_client_id [FK] | integer |  | Full identifier of the client. References id attribute of identifiers entity. Cannot be NULL. |
-| type  | character varying(255) |  | Application model class type, managed automatically. Possible values are 'XroadMember' and 'Subsystem'. |
-| administrative_contact  | character varying(255) |  | Administrative contact of the member, may be e-mail, phone etc. NB! Not used at the moment! |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
+| Name                   |            Type             | Modifiers |                                                                                Description                                                                                 |
+|:-----------------------|:---------------------------:|:----------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]                |           integer           | NOT NULL  |                                                                                Primary key                                                                                 |
+| member_code            |   character varying(255)    |           |                                                   Member code, unique inside member class. NULL if type is 'Subsystem'.                                                    |
+| subsystem_code         |   character varying(255)    |           |                                    Subsystem code, unique inside member, filled if type is 'Subsystem'. NULL if type is 'XroadMember'.                                     |
+| name                   |   character varying(255)    |           |                                                                       Member (human-readable) name.                                                                        |
+| xroad_member_id [FK]   |           integer           |           | ID of the member the subsystem record belongs to. Filled if type is 'Subsystem'. NULL if type is 'XroadMember'. References id attribute of security_server_clients entity. |
+| member_class_id [FK]   |           integer           |           |                ID of the the member record belongs to. Filled if type is 'XroadMember'.  References id attribute of member_classes entity. Cannot be NULL.                 |
+| server_client_id [FK]  |           integer           |           |                                       Full identifier of the client. References id attribute of identifiers entity. Cannot be NULL.                                        |
+| type                   |   character varying(255)    |           |                                  Application model class type, managed automatically. Possible values are 'XroadMember' and 'Subsystem'.                                   |
+| administrative_contact |   character varying(255)    |           |                                        Administrative contact of the member, may be e-mail, phone etc. NB! Not used at the moment!                                         |
+| created_at             | timestamp without time zone | NOT NULL  |                                                                Record creation time, managed automatically.                                                                |
+| updated_at             | timestamp without time zone | NOT NULL  |                                                             Record last modified time, managed automatically.                                                              |
 
 ### 2.21 SECURITY_SERVERS
 
@@ -694,10 +694,10 @@ The record is created when a new client is added to the Security Server. It requ
 
 #### 2.22.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                                              |          Columns          |
+|:--------------------------------------------------|:-------------------------:|
 | index_server_clients_on_security_server_client_id | security_server_client_id |
-| index_server_clients_on_security_server_id | security_server_id |
+| index_server_clients_on_security_server_id        |    security_server_id     |
 
 #### 2.22.2 Attributes
 
@@ -729,14 +729,14 @@ Some system parameters can be modified by an X-Road security officer in the user
 
 #### 2.23.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| key | character varying(255) |  | System parameter key. Cannot be NULL. |
-| value  | character varying(255) |  | System parameter value corresponding to the key.  |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
-| ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
+| Name         |            Type             | Modifiers |                                                 Description                                                  |
+|:-------------|:---------------------------:|:----------|:------------------------------------------------------------------------------------------------------------:|
+| id [PK]      |           integer           | NOT NULL  |                                                 Primary key                                                  |
+| key          |   character varying(255)    |           |                                    System parameter key. Cannot be NULL.                                     |
+| value        |   character varying(255)    |           |                               System parameter value corresponding to the key.                               |
+| created_at   | timestamp without time zone | NOT NULL  |                                 Record creation time, managed automatically.                                 |
+| updated_at   | timestamp without time zone | NOT NULL  |                              Record last modified time, managed automatically.                               |
+| ha_node_name |   character varying(255)    |           | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 
 ### 2.24 TRUSTED_ANCHORS
 
@@ -746,15 +746,15 @@ The record is created or modified exactly the same way as described in the docum
 
 #### 2.24.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK]  | integer | NOT NULL | Primary key |
-| instance_identifier | character varying(255) |  | Instance identifier of the trusted anchor. Cannot be NULL. |
-| trusted_anchor_file  | bytea |  | Trusted anchor file (in XML format). Cannot be NULL. |
-| trusted_anchor_hash  | text |  | Hash of the trusted anchor file. Cannot be NULL. |
-| created_at  | timestamp without time zone |  | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone |  | Record last modified time, managed automatically.  |
-| generated_at  | timestamp without time zone |  | Anchor generation time (read from the anchor file).  |
+| Name                |            Type             | Modifiers |                        Description                         |
+|:--------------------|:---------------------------:|:----------|:----------------------------------------------------------:|
+| id [PK]             |           integer           | NOT NULL  |                        Primary key                         |
+| instance_identifier |   character varying(255)    |           | Instance identifier of the trusted anchor. Cannot be NULL. |
+| trusted_anchor_file |            bytea            |           |    Trusted anchor file (in XML format). Cannot be NULL.    |
+| trusted_anchor_hash |            text             |           |      Hash of the trusted anchor file. Cannot be NULL.      |
+| created_at          | timestamp without time zone |           |        Record creation time, managed automatically.        |
+| updated_at          | timestamp without time zone |           |     Record last modified time, managed automatically.      |
+| generated_at        | timestamp without time zone |           |    Anchor generation time (read from the anchor file).     |
 
 ### 2.25 UI_USERS
 
@@ -764,10 +764,10 @@ The record is created when the user is logged in the user interface for the firs
 
 #### 2.25.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| username | character varying(255) |  | User name of the UI user.  |
-| locale  | character varying(255) |  | Current locale of the UI user.  |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
+| Name       |            Type             | Modifiers |                    Description                    |
+|:-----------|:---------------------------:|:----------|:-------------------------------------------------:|
+| id [PK]    |           integer           | NOT NULL  |                    Primary key                    |
+| username   |   character varying(255)    |           |             User name of the UI user.             |
+| locale     |   character varying(255)    |           |          Current locale of the UI user.           |
+| created_at | timestamp without time zone | NOT NULL  |   Record creation time, managed automatically.    |
+| updated_at | timestamp without time zone | NOT NULL  | Record last modified time, managed automatically. |

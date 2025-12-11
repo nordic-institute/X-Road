@@ -267,7 +267,34 @@
       "statusInfo": "Habar alyş-çalyşynyň statusy",
       "success": "Üstünlik",
       "successfulRequests": "Üstünlikli talaplar",
-      "time": "Wagt"
+      "time": "Wagt",
+      "failedRequests": "Şowsuz talaplar",
+      "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
+      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň."
+    },
+    "connection": {
+      "ok": "Her şey yolunda",
+      "test": "Test",
+      "centralServer": {
+        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi",
+        "globalConf": "Küresel yapılandırma indirme",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Merkezi Sunucu"
+      },
+      "management": {
+        "title": "Yönetim Güvenlik Sunucusu"
+      },
+      "securityServer": {
+        "client": "İstemci",
+        "sourceClient": "Kaynak İstemci",
+        "rest": "REST",
+        "securityServer": "Güvenlik Sunucusu",
+        "soap": "SOAP",
+        "title": "Diğer Güvenlik Sunucusu",
+        "target": "Hedef",
+        "targetClient": "Hedef İstemci"
+      }
     }
   },
   "endpoints": {

@@ -27,8 +27,6 @@
 
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.ServicePrioritizationStrategy;
-
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
@@ -227,10 +225,6 @@ public interface ProxyProperties {
         @WithName("jetty-configuration-file")
         @WithDefault("classpath:jetty/ocsp-responder.xml")
         String jettyConfigurationFile();
-
-        @WithName("ocsp-prioritization-strategy")
-        @WithDefault("NONE")
-        ServicePrioritizationStrategy ocspPrioritizationStrategy();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.addon")

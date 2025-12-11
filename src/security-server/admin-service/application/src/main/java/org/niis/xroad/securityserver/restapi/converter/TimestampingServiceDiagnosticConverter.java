@@ -30,6 +30,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
@@ -66,8 +67,8 @@ public class TimestampingServiceDiagnosticConverter {
     }
 
     private CostTypeDto getCostType(DiagnosticsStatus diagnosticsStatus) {
-        String tspCostType = serverConfProvider.getTspCostType(diagnosticsStatus.getDescription());
-        return tspCostType != null ? CostTypeDto.valueOf(tspCostType) : CostTypeDto.UNDEFINED;
+        CostType tspCostType = serverConfProvider.getTspCostType(diagnosticsStatus.getDescription());
+        return tspCostType != null ? CostTypeDto.valueOf(tspCostType.name()) : CostTypeDto.UNDEFINED;
     }
 
     public Set<TimestampingServiceDiagnosticsDto> convert(Iterable<DiagnosticsStatus> statuses) {

@@ -45,9 +45,11 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 public class NoVanillaExceptions implements ArchRuleTest {
     private static final String RULE_NAME = NoVanillaExceptions.class.getSimpleName();
 
-    private static final Set<Class<?>> VANILLA_EXCEPTIONS = Set.of(
-            Exception.class,
-            RuntimeException.class
+    private static final String XML_ADAPTER = "jakarta.xml.bind.annotation.adapters.XmlAdapter";
+
+    private static final Set<String> VANILLA_EXCEPTIONS = Set.of(
+            Exception.class.getName(),
+            RuntimeException.class.getName()
     );
 
     private static final Set<String> EXCLUDED_PACKAGES = Set.of(
@@ -132,10 +134,9 @@ public class NoVanillaExceptions implements ArchRuleTest {
         }
 
         private boolean isGeneratedCode(JavaClass javaClass) {
-
             // Exclude all JAXB adapter classes (both generated and hand-written)
             // since they are required to throw Exception by the JAXB API contract
-            if (javaClass.isAssignableTo(jakarta.xml.bind.annotation.adapters.XmlAdapter.class)) {
+            if (isAssignableToXmlAdapter(javaClass)) {
                 return true;
             }
             if (EXCLUDED_PACKAGES.contains(javaClass.getPackageName())) {
@@ -144,18 +145,27 @@ public class NoVanillaExceptions implements ArchRuleTest {
             return false;
         }
 
-        private boolean isVanillaException(JavaClass javaClass) {
-            // Check if the JavaClass represents exactly one of our vanilla exceptions
-            // We use exact matching to avoid catching custom exceptions that extend vanilla ones
-            String className = javaClass.getFullName();
-            for (Class<?> vanillaException : VANILLA_EXCEPTIONS) {
-                if (className.equals(vanillaException.getName())) {
+        private boolean isAssignableToXmlAdapter(JavaClass javaClass) {
+            // Check if the class or any of its superclasses is XmlAdapter
+            JavaClass current = javaClass;
+            while (current != null) {
+                if (current.getName().equals(XML_ADAPTER)) {
                     return true;
                 }
+                // Check interfaces as well
+                for (JavaClass iface : current.getAllRawInterfaces()) {
+                    if (iface.getName().equals(XML_ADAPTER)) {
+                        return true;
+                    }
+                }
+                current = current.getRawSuperclass().orElse(null);
             }
             return false;
         }
 
-
+        private boolean isVanillaException(JavaClass javaClass) {
+            return VANILLA_EXCEPTIONS.contains(javaClass.getFullName());
+        }
     }
 }
+

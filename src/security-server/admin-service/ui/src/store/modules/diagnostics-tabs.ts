@@ -49,7 +49,7 @@ const tabs = [
     permissions: [Permissions.DIAGNOSTICS],
   },
   {
-    key: 'diagnostics-connection-tab-button',
+    key: 'diagnostics-connection-testing-tab-button',
     name: 'tab.diagnostics.connectionTesting',
     icon: 'network_check',
     to: {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -10,10 +11,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,13 +26,13 @@
 package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.page.AbstractCommonPageObj;
+import org.niis.xroad.test.framework.core.ui.page.AbstractCommonPageObj;
 
 import static com.codeborne.selenide.Selenide.$x;
 
 public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, CommonPageObj.SubMenu> {
 
-    public static class Menu extends org.niis.xroad.common.test.ui.page.component.Menu {
+    public static class Menu extends org.niis.xroad.test.framework.core.ui.page.component.Menu {
         public SelenideElement clientsTab() {
             return $x(getTabXpath("Clients"));
         }
@@ -49,7 +50,7 @@ public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, Com
         }
     }
 
-    public static class SubMenu extends org.niis.xroad.common.test.ui.page.component.SubMenu {
+    public static class SubMenu extends org.niis.xroad.test.framework.core.ui.page.component.SubMenu {
         public SelenideElement backupAndRestoresTab() {
             return $x("//*[@data-test='backup-and-restore-tab-button']");
         }
@@ -73,6 +74,11 @@ public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, Com
         public SelenideElement trafficTab() {
             return $x("//*[@data-test='diagnostics-traffic-tab-button']");
         }
+
+        public SelenideElement connectionTestingTab() {
+            return $x("//*[@data-test='diagnostics-connection-testing-tab-button']");
+        }
+
     }
 
     public CommonPageObj() {

@@ -291,7 +291,34 @@
       "statusInfo": "Estado del intercambio de mensajes",
       "success": "Éxito",
       "successfulRequests": "Solicitudes exitosas",
-      "time": "Hora"
+      "time": "Hora",
+      "failedRequests": "Solicitudes fallidas",
+      "disabledTitle": "La monitorización de datos operativos está deshabilitada",
+      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Ok",
+      "test": "Prueba",
+      "centralServer": {
+        "authCertRequest": "Servicio de registro de certificados de autenticación",
+        "globalConf": "Descarga de configuración global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Servidor Central"
+      },
+      "management": {
+        "title": "Servidor de Seguridad de Gestión"
+      },
+      "securityServer": {
+        "client": "Cliente",
+        "sourceClient": "Cliente de origen",
+        "rest": "REST",
+        "securityServer": "Servidor de Seguridad",
+        "soap": "SOAP",
+        "title": "Otro Servidor de Seguridad",
+        "target": "Destino",
+        "targetClient": "Cliente destino"
+      }
     }
   },
   "endpoints": {

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202511271200-ca-csr-nullable.xml">
+
+    <changeSet author="marc.david" id="202511271200-ca-csr-nullable">
+        <comment>Make default_csr_format nullable and remove default value.</comment>
+
+        <dropDefaultValue
+            tableName="approved_cas"
+            columnName="default_csr_format"
+            columnDataType="VARCHAR(255)"/>
+
+        <dropNotNullConstraint
+            tableName="approved_cas"
+            columnName="default_csr_format"
+            columnDataType="VARCHAR(255)"/>
+
+        <update tableName="approved_cas">
+            <column name="default_csr_format" valueComputed="NULL"/>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

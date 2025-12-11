@@ -27,17 +27,17 @@
 package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.Select;
 
 import static com.codeborne.selenide.Selenide.$x;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
 
 public class TrafficPageObj {
 
     public final Filter filter = new Filter();
 
     public SelenideElement trafficChart() {
-        return $x("//div[@class='vue-apexcharts']");
+        return $x("//x-vue-echarts");
     }
 
     public static class Filter {

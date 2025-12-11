@@ -28,10 +28,10 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 
-import com.nortal.test.core.report.ReportFormatter;
-import com.nortal.test.core.report.html.ReportHtmlTableGenerator;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.test.framework.core.report.ReportFormatter;
+import org.niis.xroad.test.framework.core.report.html.ReportHtmlTableGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.ApplicationContext;
@@ -53,7 +53,7 @@ import java.util.Random;
 import java.util.Set;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ApiSecurityCheckStepDefs extends BaseUiStepDefs {

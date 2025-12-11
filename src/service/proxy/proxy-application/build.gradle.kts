@@ -8,9 +8,6 @@ plugins {
 configurations.named("runtimeClasspath") {
   exclude(group = "xml-apis", module = "xml-apis")
 }
-configurations.named("testRuntimeClasspath") {
-  exclude(group = "xml-apis", module = "xml-apis")
-}
 
 dependencies {
   implementation(platform(libs.quarkus.bom))
@@ -22,16 +19,4 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
 
   implementation(libs.quarkus.extension.systemd.notify)
-
-  testImplementation(libs.quarkus.junit5)
-  testImplementation(project(":common:common-test"))
-  testImplementation(libs.hsqldb)
-  testImplementation(testFixtures(project(":lib:serverconf-impl")))
-}
-
-val runProxyTest by tasks.registering(JavaExec::class) {
-  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
-  group = "verification"
-  logger.warn("WARNING: The 'runProxyTest' task is deprecated and does nothing. It will be removed in the future versions.")
-  enabled = false
 }

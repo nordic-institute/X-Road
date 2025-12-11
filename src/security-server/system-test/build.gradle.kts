@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
@@ -6,11 +8,12 @@ plugins {
 dependencies {
   intTestImplementation(project(":security-server:openapi-model"))
   intTestImplementation(project(":service::proxy:proxy-monitoring-api"))
-  intTestImplementation(project(":service:op-monitor:op-monitor-core"))
-
-  intTestImplementation(project(":common:common-int-test"))
-  intTestImplementation(libs.testAutomation.assert)
-  intTestImplementation(libs.feign.hc5)
+  intTestImplementation(project(":service:op-monitor:op-monitor-core")){
+    exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
+  }
+  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":common:common-message"))
+  intTestImplementation(project(":lib:globalconf-core"))
   intTestImplementation(libs.postgresql)
 }
 
@@ -21,6 +24,7 @@ intTestComposeEnv {
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",
     "POSTGRES_DEV_IMG" to "postgres-dev",
+    "CA_IMG" to "testca-dev",
     "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
     "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",
     "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
@@ -34,6 +38,11 @@ intTestComposeEnv {
   )
 }
 
+intTestShadowJar {
+  archiveBaseName("security-server-system-test")
+  mainClass("org.niis.xroad.ss.test.ConsoleSystemTestRunner")
+}
+
 val copyMainComposeFile by tasks.registering(Copy::class) {
   description = "Copies main compose.yaml and required files to build directory"
   group = "verification"
@@ -44,7 +53,7 @@ val copyMainComposeFile by tasks.registering(Copy::class) {
   into("build/resources/intTest")
 }
 
-tasks.register<Test>("systemTest") {
+tasks.register<Test>("intTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
   dependsOn(copyMainComposeFile)
 
@@ -56,18 +65,6 @@ tasks.register<Test>("systemTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  val systemTestArgs = mutableListOf("-XX:MaxMetaspaceSize=200m")
-
-  if (project.hasProperty("systemTestSsTags")) {
-    systemTestArgs += "-Dtest-automation.cucumber.filter.tags=${project.property("systemTestSsTags")}"
-  }
-  if (project.hasProperty("systemTestSsServeReport")) {
-    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("systemTestSsServeReport")}"
-  }
-
-
-  jvmArgs(systemTestArgs)
-
   maxHeapSize = "256m"
 
   testLogging {
@@ -76,6 +73,15 @@ tasks.register<Test>("systemTest") {
     showCauses = true
     showStandardStreams = true
   }
+}
+
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+  dependsOn(provider { tasks.named("copyMainComposeFile") })
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+  dependsOn(provider { tasks.named("copyMainComposeFile") })
 }
 
 archUnit {

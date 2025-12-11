@@ -238,7 +238,7 @@ public final class PgpKeyManager {
                     .filter(pubKey -> {
                         boolean isEncryption = pubKey.isEncryptionKey();
                         log.debug("Public key {} isEncryptionKey: {}",
-                                Long.toHexString(pubKey.getKeyID()).toUpperCase(), isEncryption);
+                                PgpKeyUtils.formatKeyId(pubKey.getKeyID()), isEncryption);
                         return isEncryption;
                     })
                     .collect(HashMap::new,

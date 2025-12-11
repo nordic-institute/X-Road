@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.domain.AuthCert;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
@@ -56,7 +57,6 @@ import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.globalconf.model.CertHash;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.globalconf.model.SharedParameters;
 

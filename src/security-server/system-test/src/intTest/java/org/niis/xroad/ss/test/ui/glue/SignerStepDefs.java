@@ -25,33 +25,38 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.container.service.TestTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.security.Security;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 @Slf4j
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SignerStepDefs extends BaseUiStepDefs {
 
-    private static final String KEYSTORE_BASE_PATH = "src/intTest/resources/files/keystores";
-    private static final String CERTS_PATH = KEYSTORE_BASE_PATH + "/certs";
+    private static final String KEYSTORE_BASE_PATH = "files/keystores/";
+    private static final String CERTS_PATH = KEYSTORE_BASE_PATH + "certs/";
 
     @Autowired
     private TestTokenService testTokenService;
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     @SneakyThrows
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("signer service is restarted")
     public void signerServiceIsRestarted() {
-        envSetup.restartContainer(EnvSetup.SIGNER);
+        systemTestContainerSetup.restartContainer(SsSystemTestContainerSetup.SIGNER);
     }
 
     @Step("HSM tokens are deleted")
@@ -76,14 +81,14 @@ public class SignerStepDefs extends BaseUiStepDefs {
     @SneakyThrows
     @Step("authentication key {string} named {string} is added to softtoken")
     public void addAuthKey(String externalId, String friendlyName) {
-        byte[] keystore = Files.readAllBytes(Paths.get(KEYSTORE_BASE_PATH, externalId + ".p12"));
+        byte[] keystore = classpathFileResolver.getFileAsBytes(KEYSTORE_BASE_PATH + externalId + ".p12");
         testTokenService.addSoftwareKey(externalId, friendlyName, "AUTHENTICATION", keystore);
     }
 
     @SneakyThrows
     @Step("signing key {string} named {string} is added to softtoken")
     public void addSigningKey(String externalId, String friendlyName) {
-        byte[] keystore = Files.readAllBytes(Paths.get(KEYSTORE_BASE_PATH, externalId + ".p12"));
+        byte[] keystore = classpathFileResolver.getFileAsBytes(KEYSTORE_BASE_PATH + externalId + ".p12");
         testTokenService.addSoftwareKey(externalId, externalId, "SIGNING", keystore);
     }
 
@@ -96,13 +101,18 @@ public class SignerStepDefs extends BaseUiStepDefs {
     @SneakyThrows
     @Step("signing certificate {string} is added for member {string} under key {string}")
     public void addCertificate(String certExternalId, String memberId, String keyExternalId) {
-        var cert = CryptoUtils.readCertificate(Files.newInputStream(Paths.get(CERTS_PATH, certExternalId + ".pem")));
+        var cert = readCertificate(classpathFileResolver.getFileAsStream(CERTS_PATH + certExternalId + ".pem"));
         testTokenService.addCertificate(certExternalId, keyExternalId, cert.getEncoded(), memberId);
     }
 
     @Step("Predefined inactive signer token is inserted")
     public void addInactiveSignerToken() {
         testTokenService.addInactiveSignerToken();
-        envSetup.restartContainer(EnvSetup.SIGNER);
+        systemTestContainerSetup.restartContainer(SsSystemTestContainerSetup.SIGNER);
+    }
+
+    @SneakyThrows
+    private static X509Certificate readCertificate(InputStream is) {
+        return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(is);
     }
 }

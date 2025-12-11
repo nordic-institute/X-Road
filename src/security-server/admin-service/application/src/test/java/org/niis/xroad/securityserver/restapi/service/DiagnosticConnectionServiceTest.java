@@ -26,11 +26,20 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -38,9 +47,13 @@ import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
+import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -51,9 +64,11 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
@@ -61,6 +76,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
 class DiagnosticConnectionServiceTest {
+
+    private static final ClientId CLIENT_ID = ClientId.Conf.create("DEV", "COM", "4321");
+    private static final ClientId TARGET_CLIENT_ID = ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
+    private static final SecurityServerId SECURITY_SERVER_ID = SecurityServerId.Conf.create("DEV", "COM", "1234", "SS0");
 
     @Mock
     GlobalConfProvider globalConfProvider;
@@ -72,36 +91,41 @@ class DiagnosticConnectionServiceTest {
     ManagementRequestSenderService managementRequestSenderService;
     @Mock
     ConfClientRpcClient confClientRpcClient;
+    @Mock
+    ServerConfProvider serverConfProvider;
+    @Mock
+    AdminServiceProperties adminServiceProperties;
 
     DiagnosticConnectionService service;
 
     @BeforeEach
     void setUp() {
         service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService,
-                confClientRpcClient);
+                confClientRpcClient, serverConfProvider, adminServiceProperties);
     }
+
 
     @Test
     void getGlobalConfStatusThenReturnHttp200() {
-        when(globalConfProvider.findSourceAddresses()).thenReturn(Set.of("valid-host"));
-        var requestHttp = CheckAndGetConnectionStatusRequest.newBuilder()
-                .setProtocol("http")
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConfProvider.getSourceAddresses("DEV")).thenReturn(Set.of("valid-host"));
+        var request = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setLocalInstance("DEV")
+                .setInstance("DEV")
                 .setAddress("valid-host")
-                .setPort(80)
+                .setDirectory("internalconf")
                 .build();
-        var requestHttps = CheckAndGetConnectionStatusRequest.newBuilder()
-                .setProtocol("https")
-                .setAddress("valid-host")
-                .setPort(443)
+        var status1 = org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                .setDownloadUrl("http://valid-host:80/internalconf")
                 .build();
-        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
-                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
-                        .setDownloadUrl("http://valid-host:80/internalconf")
-                        .build());
-        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
-                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
-                        .setDownloadUrl("https://valid-host:443/internalconf")
-                        .build());
+        var status2 = org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                .setDownloadUrl("https://valid-host:443/internalconf")
+                .build();
+        var response = CheckAndGetConnectionStatusResponse.newBuilder()
+                .addConnectionStatuses(status1)
+                .addConnectionStatuses(status2)
+                .build();
+        when(confClientRpcClient.checkAndGetConnectionStatus(request)).thenReturn(response);
 
         var statuses = service.getGlobalConfStatus();
 
@@ -120,28 +144,27 @@ class DiagnosticConnectionServiceTest {
 
     @Test
     void getGlobalConfStatusThenReturnUnknownHostErrors() {
-        when(globalConfProvider.findSourceAddresses())
-                .thenReturn(Set.of("unknown-host"));
-        var requestHttp = CheckAndGetConnectionStatusRequest.newBuilder()
-                .setProtocol("http")
-                .setAddress("unknown-host")
-                .setPort(80)
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConfProvider.getSourceAddresses("DEV")).thenReturn(Set.of("unknown_host"));
+        var request = CheckAndGetConnectionStatusRequest.newBuilder()
+                .setLocalInstance("DEV")
+                .setInstance("DEV")
+                .setAddress("unknown_host")
+                .setDirectory("internalconf")
                 .build();
-        var requestHttps = CheckAndGetConnectionStatusRequest.newBuilder()
-                .setProtocol("https")
-                .setAddress("unknown-host")
-                .setPort(443)
+        var status1 = org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                .setDownloadUrl("http://unknown-host:80/internalconf")
+                .setErrorCode("unknown_host")
                 .build();
-        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttp)).thenReturn(
-                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
-                        .setDownloadUrl("http://unknown-host:80/internalconf")
-                        .setErrorCode("unknown_host")
-                        .build());
-        when(confClientRpcClient.checkAndGetConnectionStatus(requestHttps)).thenReturn(
-                org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
-                        .setDownloadUrl("https://unknown-host:443/internalconf")
-                        .setErrorCode("unknown_host")
-                        .build());
+        var status2 = org.niis.xroad.rpc.common.DownloadUrlConnectionStatus.newBuilder()
+                .setDownloadUrl("https://unknown-host:443/internalconf")
+                .setErrorCode("unknown_host")
+                .build();
+        var response = CheckAndGetConnectionStatusResponse.newBuilder()
+                .addConnectionStatuses(status1)
+                .addConnectionStatuses(status2)
+                .build();
+        when(confClientRpcClient.checkAndGetConnectionStatus(request)).thenReturn(response);
 
         var statuses = service.getGlobalConfStatus();
 
@@ -296,5 +319,41 @@ class DiagnosticConnectionServiceTest {
         assertThat(status.getErrorCode()).isEqualTo("certificate_not_found");
         assertThat(status.getErrorMetadata()).isEqualTo(List.of("No auth cert found"));
         assertThat(status.getValidationErrors()).isEmpty();
+    }
+
+    @Test
+    void getOtherSecurityServerStatusWithRestThenReturnHttp200() throws Exception {
+        CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = mock(CloseableHttpResponse.class);
+        StatusLine statusLine = mock(StatusLine.class);
+
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(httpClient.execute(any(HttpGet.class))).thenReturn(httpResponse);
+
+        try (MockedStatic<HttpClients> httpClientsMock = org.mockito.Mockito.mockStatic(HttpClients.class)) {
+            HttpClientBuilder builder = mock(HttpClientBuilder.class);
+            httpClientsMock.when(HttpClients::custom).thenReturn(builder);
+
+            doReturn(builder).when(builder).setSSLSocketFactory(any());
+            doReturn(builder).when(builder).setDefaultRequestConfig(any());
+            doReturn(builder).when(builder).disableAutomaticRetries();
+            doReturn(httpClient).when(builder).build();
+
+            var status = service.getOtherSecurityServerStatus(ServiceProtocolType.REST, CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID);
+
+            assertThat(status.getStatus()).isEqualTo(DiagnosticStatus.OK);
+            assertThat(status.getErrorCode()).isNull();
+            assertThat(status.getErrorMetadata()).isEmpty();
+        }
+    }
+
+    @Test
+    void getOtherSecurityServerStatusWithWrongTypeThenReturnIllegalStateException() {
+        assertThatThrownBy(() ->
+                service.getOtherSecurityServerStatus(null, CLIENT_ID, TARGET_CLIENT_ID, SECURITY_SERVER_ID)
+        )
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Unsupported protocol type: null");
     }
 }

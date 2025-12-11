@@ -30,8 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;

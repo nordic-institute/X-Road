@@ -338,7 +338,34 @@
       "statusInfo": "Edukad või ebaõnnestunud päringud",
       "success": "Edukas",
       "successfulRequests": "Edukad päringud",
-      "time": "Kell"
+      "time": "Kell",
+      "failedRequests": "Ebaõnnestunud päringud",
+      "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
+      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Kõik on korras",
+      "test": "Test",
+      "centralServer": {
+        "authCertRequest": "Autentimise sertifikaadi registreerimise teenus",
+        "globalConf": "Globaalse konfiguratsiooni allalaadimine",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Keskserver"
+      },
+      "management": {
+        "title": "Haldusteenuse pakkuja"
+      },
+      "securityServer": {
+        "client": "Klient",
+        "sourceClient": "Lähteklient",
+        "rest": "REST",
+        "securityServer":  "Turvaserver",
+        "soap": "SOAP",
+        "title": "Teine turvaserver",
+        "target": "Teine klient",
+        "targetClient": "Klient"
+      }
     }
   },
   "endpoints": {

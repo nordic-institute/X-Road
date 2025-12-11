@@ -33,8 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.properties.NodeProperties;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
@@ -325,13 +325,13 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         List<SharedParameters.ApprovedTSA> approvedTSATypes =
                 Collections.singletonList(TestUtils.createApprovedTsaType("http://example.com:8121", "Foo", CostType.FREE));
         List<TimestampingService> timestampingServices =
-                Collections.singletonList(TestUtils.createTspType("http://example.com:8121", "Foo", CostType.FREE.name()));
+                Collections.singletonList(TestUtils.createTspType("http://example.com:8121", "Foo", CostType.FREE));
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes, timestampingServices);
         assertEquals(1, approvedTSATypes.size());
         assertEquals(1, timestampingServices.size());
         assertEquals(approvedTSATypes.getFirst().getName(), timestampingServices.getFirst().getName());
         assertEquals(approvedTSATypes.getFirst().getUrl(), timestampingServices.getFirst().getUrl());
-        assertEquals(approvedTSATypes.get(0).getCostType().name(), timestampingServices.get(0).getCostType());
+        assertEquals(approvedTSATypes.getFirst().getCostType(), timestampingServices.get(0).getCostType());
 
         // test the normal update case
         // the change in approvedTSAType1 URL should be reflected to tspType1 URL
@@ -340,18 +340,18 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
                 TestUtils.createApprovedTsaType("http://example.net", "Bar", CostType.PAID)
         );
         List<TimestampingService> tspTypes1 = Arrays.asList(
-                TestUtils.createTspType("http://example.com:8121", "Foo", CostType.FREE.name()),
-                TestUtils.createTspType("http://example.net", "Bar", CostType.PAID.name())
+                TestUtils.createTspType("http://example.com:8121", "Foo", CostType.FREE),
+                TestUtils.createTspType("http://example.net", "Bar", CostType.PAID)
         );
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes1, tspTypes1);
         assertEquals(2, approvedTSATypes1.size());
         assertEquals(2, tspTypes1.size());
         assertEquals(approvedTSATypes1.getFirst().getName(), tspTypes1.getFirst().getName());
         assertEquals(approvedTSATypes1.getFirst().getUrl(), tspTypes1.getFirst().getUrl());
-        assertEquals(approvedTSATypes1.get(0).getCostType().name(), tspTypes1.get(0).getCostType());
+        assertEquals(approvedTSATypes1.getFirst().getCostType(), tspTypes1.get(0).getCostType());
         assertEquals(approvedTSATypes1.get(1).getName(), tspTypes1.get(1).getName());
         assertEquals(approvedTSATypes1.get(1).getUrl(), tspTypes1.get(1).getUrl());
-        assertEquals(approvedTSATypes1.get(1).getCostType().name(), tspTypes1.get(1).getCostType());
+        assertEquals(approvedTSATypes1.get(1).getCostType(), tspTypes1.get(1).getCostType());
 
         // test the conflicting update case
         // the change in approvedTSAType3 URL should not be reflected to tspType3 URL because of ambiguous names
@@ -361,22 +361,22 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
                 TestUtils.createApprovedTsaType("http://example.org:8080", "Zzz", CostType.UNDEFINED)
         );
         List<TimestampingService> tspTypes2 = Arrays.asList(
-                TestUtils.createTspType("http://example.com:8121", "Foo", CostType.FREE.name()),
-                TestUtils.createTspType("http://example.net", "Foo", CostType.PAID.name()),
-                TestUtils.createTspType("http://example.org:8080", "Zzz", CostType.UNDEFINED.name())
+                TestUtils.createTspType("http://example.com:8121", "Foo", CostType.FREE),
+                TestUtils.createTspType("http://example.net", "Foo", CostType.PAID),
+                TestUtils.createTspType("http://example.org:8080", "Zzz", CostType.UNDEFINED)
         );
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes2, tspTypes2);
         assertEquals(3, approvedTSATypes2.size());
         assertEquals(3, tspTypes2.size());
         assertEquals(approvedTSATypes2.getFirst().getName(), tspTypes2.getFirst().getName());
         assertNotEquals(approvedTSATypes2.getFirst().getUrl(), tspTypes2.getFirst().getUrl());
-        assertEquals(approvedTSATypes2.get(0).getCostType().name(), tspTypes2.get(0).getCostType());
+        assertEquals(approvedTSATypes2.get(0).getCostType(), tspTypes2.get(0).getCostType());
         assertEquals(approvedTSATypes2.get(1).getName(), tspTypes2.get(1).getName());
         assertEquals(approvedTSATypes2.get(1).getUrl(), tspTypes2.get(1).getUrl());
-        assertEquals(approvedTSATypes2.get(1).getCostType().name(), tspTypes2.get(1).getCostType());
+        assertEquals(approvedTSATypes2.get(1).getCostType(), tspTypes2.get(1).getCostType());
         assertEquals(approvedTSATypes2.get(2).getName(), tspTypes2.get(2).getName());
         assertEquals(approvedTSATypes2.get(2).getUrl(), tspTypes2.get(2).getUrl());
-        assertEquals(approvedTSATypes2.get(2).getCostType().name(), tspTypes2.get(2).getCostType());
+        assertEquals(approvedTSATypes2.get(2).getCostType(), tspTypes2.get(2).getCostType());
     }
 
     @Test

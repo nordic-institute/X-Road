@@ -37,18 +37,38 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class HttpUrlConnectionChecker {
-    private static final String INTERNAL_CONF = "internalconf";
-
+    private static final String HTTP = "http";
+    private static final String HTTPS = "https";
+    private static final Integer PORT_80 = 80;
+    private static final Integer PORT_443 = 443;
     private final HttpUrlConnectionConfigurer httpUrlConnectionConfigurer;
 
-    public ConnectionStatus getConnectionStatus(String protocol, String address, int port) {
+    public List<ConnectionStatus> getConnectionStatuses(String localInstance, String instance, String address, String directory,
+            String allowedFederations) {
+
+        if (shouldDownload(localInstance, instance, allowedFederations)) {
+            return getDownloadUrls(address, directory).stream()
+                    .map(this::getConnectionStatus)
+                    .toList();
+        }
+
+        return List.of();
+    }
+
+    private boolean shouldDownload(String localInstance, String instance, String allowedFederations) {
+        return localInstance.equals(instance)
+                || new FederationConfigurationSourceFilter(localInstance, allowedFederations).shouldDownloadConfigurationFor(instance);
+    }
+
+    private ConnectionStatus getConnectionStatus(URL url) {
         HttpURLConnection connection = null;
-        URL url = getUrl(protocol, address, port);
         try {
             assert url != null;
             connection = (HttpURLConnection) url.openConnection();
@@ -72,9 +92,17 @@ public class HttpUrlConnectionChecker {
         }
     }
 
-    private URL getUrl(String protocol, String address, int port) {
+    private List<URL> getDownloadUrls(String address, String configurationDirectory) {
+        return Stream.of(
+                        getUrl(HTTP, address, PORT_80, configurationDirectory),
+                        getUrl(HTTPS, address, PORT_443, configurationDirectory)
+                )
+                .toList();
+    }
+
+    private URL getUrl(String protocol, String address, int port, String directory) {
         try {
-            return URI.create(getDownloadUrl(protocol, address, port)).toURL();
+            return URI.create(getDownloadUrl(protocol, address, port, directory)).toURL();
         } catch (MalformedURLException e) {
             log.error("Could not create URL from address {}", address, e);
         }
@@ -82,11 +110,11 @@ public class HttpUrlConnectionChecker {
     }
 
     private String getDownloadUrl(URL url) {
-        return getDownloadUrl(url.getProtocol(), url.getHost(), url.getPort());
+        return getDownloadUrl(url.getProtocol(), url.getHost(), url.getPort(), url.getPath().replaceFirst("^/", ""));
     }
 
-    private String getDownloadUrl(String protocol, String address, int port) {
-        return String.format("%s://%s:%d/%s", protocol, address, port, INTERNAL_CONF);
+    private String getDownloadUrl(String protocol, String address, int port, String directory) {
+        return String.format("%s://%s:%d/%s", protocol, address, port, directory);
     }
 
     public record ConnectionStatus(String downloadUrl, String errorCode, String errorDetails) {

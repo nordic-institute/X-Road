@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -33,6 +34,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
@@ -111,12 +113,17 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getTspUrl() {
+    public List<String> getTspUrls() {
         return emptyList();
     }
 
     @Override
-    public String getTspCostType(String tspUrl) {
+    public List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy) {
+        return emptyList();
+    }
+
+    @Override
+    public CostType getTspCostType(String tspUrl) {
         return null;
     }
 

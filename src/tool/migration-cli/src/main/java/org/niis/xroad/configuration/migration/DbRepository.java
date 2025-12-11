@@ -29,21 +29,17 @@ package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.migration.utils.DbCredentials;
+import org.niis.xroad.migration.utils.DbPropertiesReader;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.Properties;
 
 @Slf4j
 public class DbRepository implements AutoCloseable {
 
-    private final String jdbcUrl;
-    private final String username;
-    private final String password;
-    private final String schema;
     private Connection connection;
 
     private static final String UPSERT_KEY_VALUE =
@@ -58,27 +54,17 @@ public class DbRepository implements AutoCloseable {
                     + " ON CONFLICT (name) DO UPDATE SET content = EXCLUDED.content";
 
     public DbRepository(String dbPropertiesFilePath) {
-        try (FileInputStream fis = new FileInputStream(dbPropertiesFilePath)) {
-            Properties props = new Properties();
-            props.load(fis);
-
-            this.jdbcUrl = props.getProperty("xroad.db.serverconf.hibernate.connection.url");
-            this.username = props.getProperty("xroad.db.serverconf.hibernate.connection.username");
-            this.password = props.getProperty("xroad.db.serverconf.hibernate.connection.password");
-            this.schema = props.getProperty("xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema");
-        } catch (IOException e) {
-            throw new MigrationException("Failed to read DB credentials from [%s]".formatted(dbPropertiesFilePath), e);
-        }
-        init();
+        DbCredentials dbCredentials = DbPropertiesReader.readDbCredentials(Paths.get(dbPropertiesFilePath), "serverconf");
+        init(dbCredentials);
     }
 
-    private void init() {
+    private void init(DbCredentials dbCredentials) {
         PGSimpleDataSource ds = new PGSimpleDataSource();
-        ds.setURL(jdbcUrl);
-        ds.setUser(username);
-        ds.setPassword(password);
-        if (StringUtils.isNotBlank(schema)) {
-            ds.setCurrentSchema(schema);
+        ds.setURL(dbCredentials.jdbcUrl());
+        ds.setUser(dbCredentials.username());
+        ds.setPassword(new String(dbCredentials.password()));
+        if (StringUtils.isNotBlank(dbCredentials.schema())) {
+            ds.setCurrentSchema(dbCredentials.schema());
         }
         try {
             this.connection = ds.getConnection();
