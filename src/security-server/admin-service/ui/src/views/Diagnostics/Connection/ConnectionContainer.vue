@@ -32,25 +32,10 @@
 
     <XrdSubView>
       <ConnectionCentralServerView class="mt-0" />
-    </XrdSubView>
 
-    <XrdSubView>
       <template v-if="!loading">
-        <ConnectionSecurityServerView class="mt-0" />
-      </template>
-
-      <XrdEmptyPlaceholder
-        :data="xRoadInstances"
-        :loading="loading"
-        :no-items-text="$t('noData.noData')"
-        skeleton-type="table-heading"
-        :skeleton-count="1"
-      />
-    </XrdSubView>
-
-    <XrdSubView>
-      <template v-if="!loading">
-        <ConnectionManagementView class="mt-0" />
+        <ConnectionSecurityServerView class="mt-4" />
+        <ConnectionManagementView class="mt-4" />
       </template>
 
       <XrdEmptyPlaceholder

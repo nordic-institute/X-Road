@@ -35,27 +35,29 @@
         <v-col cols="7">
           <v-combobox
             v-model="selectedClientId"
+            class="xrd"
             :items="clients"
             item-title="id"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.client')"
-            variant="outlined"
             data-test="other-security-server-client-id"
-          ></v-combobox>
+          />
         </v-col>
         <v-col cols="2">
           <v-radio-group v-model="selectedProtocolType" name="protocolType" inline class="dlg-row-input">
             <v-radio
+              class="xrd"
               :label="$t('diagnostics.connection.securityServer.rest')"
               value="REST"
               data-test="other-security-server-rest-radio-button"
-            ></v-radio>
+            />
             <v-radio
+              class="xrd"
               :label="$t('diagnostics.connection.securityServer.soap')"
               value="SOAP"
               data-test="other-security-server-soap-radio-button"
-            ></v-radio>
+            />
           </v-radio-group>
         </v-col>
         <v-col cols="1">
@@ -77,35 +79,34 @@
             v-model="selectedInstance"
             :items="xRoadInstanceIdentifiers"
             :label="$t('general.instance')"
-            class="flex-input"
-            variant="outlined"
+            class="flex-input xrd"
             hide-details
             data-test="other-security-server-target-instance"
-          ></v-select>
+          />
         </v-col>
         <v-col cols="5">
           <v-combobox
             v-model="selectedTargetSubsystemId"
+            class="xrd"
             :items="allSubsystems"
             item-title="id"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.targetClient')"
-            variant="outlined"
             data-test="other-security-server-target-client-id"
-          ></v-combobox>
+          />
         </v-col>
         <v-col cols="2">
           <v-combobox
             v-model="selectedSecurityServerId"
+            class="xrd"
             :items="localSecurityServers"
             item-title="server_code"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.securityServer')"
-            variant="outlined"
             data-test="other-security-server-id"
-          ></v-combobox>
+          />
         </v-col>
       </v-row>
       <v-row dense>

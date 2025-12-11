@@ -35,19 +35,19 @@
         <v-col cols="7">
           <v-combobox
             v-model="selectedClientId"
+            class="xrd"
             :items="clients"
             item-title="id"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.client')"
-            variant="outlined"
             :disabled="true"
-          ></v-combobox>
+          />
         </v-col>
         <v-col cols="2">
           <v-radio-group v-model="selectedProtocolType" name="protocolType" inline class="dlg-row-input" :disabled="true">
-            <v-radio :label="$t('diagnostics.connection.securityServer.rest')" value="REST"></v-radio>
-            <v-radio :label="$t('diagnostics.connection.securityServer.soap')" value="SOAP"></v-radio>
+            <v-radio class="xrd" :label="$t('diagnostics.connection.securityServer.rest')" value="REST" />
+            <v-radio class="xrd" :label="$t('diagnostics.connection.securityServer.soap')" value="SOAP" />
           </v-radio-group>
         </v-col>
         <v-col cols="1">
@@ -69,34 +69,33 @@
             v-model="localInstance"
             :items="xRoadInstanceIdentifiers"
             :label="$t('general.instance')"
-            class="flex-input"
-            variant="outlined"
+            class="flex-input xrd"
             hide-details
             :disabled="true"
-          ></v-select>
+          />
         </v-col>
         <v-col cols="5">
           <v-combobox
             v-model="selectedTargetSubsystemId"
+            class="xrd"
             :items="localAllSubsystems"
             item-title="id"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.targetClient')"
-            variant="outlined"
             :disabled="true"
-          ></v-combobox>
+          />
         </v-col>
         <v-col cols="2">
           <v-combobox
             v-model="selectedSecurityServerId"
+            class="xrd"
             :items="localSecurityServers"
             item-title="server_code"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.securityServer')"
-            variant="outlined"
-          ></v-combobox>
+          />
         </v-col>
       </v-row>
       <v-row dense>
