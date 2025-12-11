@@ -88,11 +88,10 @@ export default defineComponent({
           this.checkOrphans();
         })
         .catch((error) => {
-            this.addError(error);
-            this.confirmDelete = false;
-            this.deleteLoading = false;
-          },
-        );
+          this.addError(error);
+          this.confirmDelete = false;
+          this.deleteLoading = false;
+        });
     },
 
     checkOrphans(): void {
@@ -103,18 +102,17 @@ export default defineComponent({
           this.confirmOrphans = true;
         })
         .catch((error) => {
-            this.confirmDelete = false;
-            this.deleteLoading = false;
-            if (error.response.status === 404) {
-              // No orphans found so exit the view
-              this.$router.replace({ name: RouteName.Clients });
-            } else {
-              // There was some other error, but the client is already deleted so exit the view
-              this.addError(error);
-              this.$router.replace({ name: RouteName.Clients });
-            }
-          },
-        );
+          this.confirmDelete = false;
+          this.deleteLoading = false;
+          if (error.response.status === 404) {
+            // No orphans found so exit the view
+            this.$router.replace({ name: RouteName.Clients });
+          } else {
+            // There was some other error, but the client is already deleted so exit the view
+            this.addError(error);
+            this.$router.replace({ name: RouteName.Clients });
+          }
+        });
     },
 
     deleteOrphans(): void {

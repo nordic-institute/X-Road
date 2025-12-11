@@ -144,7 +144,7 @@
         <span class="pl-4" :class="{ 'opacity-60': !messageLogEnabled }">
           {{ $t('systemParameters.servicePrioritizationStrategy.timestamping.label') }}
           <strong data-test="timestamping-prioritization-strategy">{{ timestampingPrioritizationStrategy }}</strong>
-          {{ ' - ' }}
+          {{ separator }}
           {{ $t(`systemParameters.servicePrioritizationStrategy.timestamping.${timestampingPrioritizationStrategy}`) }}
         </span>
         <v-table class="xrd">
@@ -189,7 +189,7 @@
         <span class="pl-4">
           {{ $t('systemParameters.servicePrioritizationStrategy.ocsp.label') }}
           <strong data-test="ocsp-prioritization-strategy">{{ ocspPrioritizationStrategy }}</strong>
-          {{ ' - ' }}
+          {{ separator }}
           {{ $t(`systemParameters.servicePrioritizationStrategy.ocsp.${ocspPrioritizationStrategy}`) }}
         </span>
         <v-table class="xrd">
@@ -280,8 +280,18 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import {
-  XrdBtn, XrdDateTime, XrdDate, XrdHashValue, XrdView, XrdCard, XrdSubView, XrdStatusChip, useNotifications, XrdEmptyPlaceholderRow,
-  XrdStatusIcon, saveResponseAsFile,
+  XrdBtn,
+  XrdDateTime,
+  XrdDate,
+  XrdHashValue,
+  XrdView,
+  XrdCard,
+  XrdSubView,
+  XrdStatusChip,
+  useNotifications,
+  XrdEmptyPlaceholderRow,
+  XrdStatusIcon,
+  saveResponseAsFile,
 } from '@niis/shared-ui';
 import { Anchor, CertificateAuthority, TimestampingService, ServicePrioritizationStrategy } from '@/openapi-types';
 import { Permissions } from '@/global';
@@ -325,10 +335,8 @@ export default defineComponent({
       fetchSecurityServerAddress,
     } = useSystem();
     const { fetchAddonStatus } = useDiagnostics();
-    const {
-      fetchSortedTimestampingServiced,
-      fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy,
-    } = useTimestampingServices();
+    const { fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy } =
+      useTimestampingServices();
     const { searchCertificateAuthorities, fetchCertificateAuthoritiesPrioritizationStrategy } = useCsr();
     return {
       addError,
@@ -359,6 +367,7 @@ export default defineComponent({
       showEditServerAddressDialog: false,
       addressChangeInProgress: false,
       serverAddress: '',
+      separator: ' - ',
     };
   },
   computed: {
@@ -467,9 +476,5 @@ export default defineComponent({
 
 .settings-block:not(:last-child) {
   margin-bottom: 16px;
-}
-
-.vertical-align-top {
-  vertical-align: top;
 }
 </style>

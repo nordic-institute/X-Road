@@ -131,20 +131,20 @@ export const useTokens = defineStore('tokens', {
 
     tokensFilteredByName:
       (state) =>
-        (search: string | undefined): Token[] => {
-          // Filter term is applied to token name
-          const arr: Token[] = sortTokens(state.tokens);
+      (search: string | undefined): Token[] => {
+        // Filter term is applied to token name
+        const arr: Token[] = sortTokens(state.tokens);
 
-          if (!search || search.length < 1) {
-            return arr;
-          }
+        if (!search || search.length < 1) {
+          return arr;
+        }
 
-          const mysearch = search.toLowerCase();
+        const mysearch = search.toLowerCase();
 
-          return arr.filter((token: Token) => {
-            return token.name.toLowerCase().includes(mysearch);
-          });
-        },
+        return arr.filter((token: Token) => {
+          return token.name.toLowerCase().includes(mysearch);
+        });
+      },
   },
 
   actions: {
@@ -174,10 +174,9 @@ export const useTokens = defineStore('tokens', {
     },
 
     async tokenLogin(tokenId: string, tokenPin: string) {
-      return api
-        .put(`/tokens/${encodePathParameter(tokenId)}/login`, {
-          password: tokenPin,
-        });
+      return api.put(`/tokens/${encodePathParameter(tokenId)}/login`, {
+        password: tokenPin,
+      });
     },
 
     async tokenLogout(id: string) {

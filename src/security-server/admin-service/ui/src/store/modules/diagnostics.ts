@@ -26,8 +26,15 @@
  */
 
 import {
-  AddOnStatus, BackupEncryptionStatus, ConnectionStatus, GlobalConfConnectionStatus, GlobalConfDiagnostics, MessageLogEncryptionStatus,
-  OcspResponderDiagnostics, ProxyMemoryUsageStatus, TimestampingServiceDiagnostics,
+  AddOnStatus,
+  BackupEncryptionStatus,
+  ConnectionStatus,
+  GlobalConfConnectionStatus,
+  GlobalConfDiagnostics,
+  MessageLogEncryptionStatus,
+  OcspResponderDiagnostics,
+  ProxyMemoryUsageStatus,
+  TimestampingServiceDiagnostics,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
@@ -73,8 +80,7 @@ export const useDiagnostics = defineStore('diagnostics', {
   },
   actions: {
     async fetchAddonStatus() {
-      return api.get<AddOnStatus>('/diagnostics/addon-status')
-        .then((res) => (this.addOnStatus = res.data));
+      return api.get<AddOnStatus>('/diagnostics/addon-status').then((res) => (this.addOnStatus = res.data));
     },
     async fetchTimestampingServiceDiagnostics() {
       return api.get<TimestampingServiceDiagnostics[]>(`/diagnostics/timestamping-services`).then((res) => {
@@ -111,8 +117,7 @@ export const useDiagnostics = defineStore('diagnostics', {
         this.authCertReqStatus = res.data;
       });
     },
-    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string,
-                                         securityServerId: string) {
+    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string, securityServerId: string) {
       return api
         .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
           params: {

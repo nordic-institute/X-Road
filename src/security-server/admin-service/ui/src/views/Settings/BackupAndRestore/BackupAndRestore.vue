@@ -99,7 +99,8 @@ export default defineComponent({
     },
     async fetchData() {
       this.loadingBackups = true;
-      return this.backupStore.fetchData()
+      return this.backupStore
+        .fetchData()
         .then((data) => (this.backups = data))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingBackups = false));

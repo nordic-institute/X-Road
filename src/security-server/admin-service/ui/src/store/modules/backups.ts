@@ -37,19 +37,14 @@ export const useBackups = defineStore('backups', {
 
   actions: {
     async fetchData() {
-
-      return api
-        .get<Backup[]>('/backups')
-        .then((res) => res.data
-          .sort((a, b) => {
-            return b.created_at.localeCompare(a.created_at);
-          }),
-        );
+      return api.get<Backup[]>('/backups').then((res) =>
+        res.data.sort((a, b) => {
+          return b.created_at.localeCompare(a.created_at);
+        }),
+      );
     },
     async createBackup() {
-      return api
-        .post<BackupExt>('/backups/ext', null)
-        .then((resp) => resp.data);
+      return api.post<BackupExt>('/backups/ext', null).then((resp) => resp.data);
     },
     async deleteBackup(filename: string) {
       return api.remove(`/backups/${encodePathParameter(filename)}`);

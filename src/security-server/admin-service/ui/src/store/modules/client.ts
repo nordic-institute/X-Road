@@ -198,8 +198,7 @@ export const useClient = defineStore('client', {
     },
 
     async deleteOrphans(clientId: string) {
-      return api
-        .remove(clientBaseUrl(clientId, '/orphans'));
+      return api.remove(clientBaseUrl(clientId, '/orphans'));
     },
 
     async disableClient(clientId: string) {

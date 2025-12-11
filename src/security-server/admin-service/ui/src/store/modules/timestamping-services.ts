@@ -39,19 +39,13 @@ export const useTimestampingServices = defineStore('timestamping-services', {
       return api.post('/system/timestamping-services', service);
     },
     async fetchSortedTimestampingServiced() {
-      return api
-        .get<TimestampingService[]>('/system/timestamping-services')
-        .then((resp) => sortTimestampingServices(resp.data));
+      return api.get<TimestampingService[]>('/system/timestamping-services').then((resp) => sortTimestampingServices(resp.data));
     },
     async fetchApprovedAndSortedTimestampingServices() {
-      return api
-        .get<TimestampingService[]>('/timestamping-services')
-        .then((resp) => sortTimestampingServices(resp.data));
+      return api.get<TimestampingService[]>('/timestamping-services').then((resp) => sortTimestampingServices(resp.data));
     },
     async fetchTimestampingPrioritizationStrategy() {
-      return api
-        .get<ServicePrioritizationStrategy>('/system/timestamping-services/prioritization-strategy')
-        .then((resp) => resp.data);
+      return api.get<ServicePrioritizationStrategy>('/system/timestamping-services/prioritization-strategy').then((resp) => resp.data);
     },
     async deleteTimestampingService(service: TimestampingService) {
       return api.post('/system/timestamping-services/delete', service);

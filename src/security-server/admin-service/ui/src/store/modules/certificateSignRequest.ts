@@ -26,8 +26,20 @@
  */
 import { saveResponseAsFile } from '@niis/shared-ui';
 import {
-  AcmeEabCredentialsStatus, CertificateAuthority, Client, CsrFormat, CsrGenerate, CsrSubjectFieldDescription, Key, KeyLabelWithCsrGenerate,
-  KeyUsageType, KeyWithCertificateSigningRequestId, TokenCertificateSigningRequest, TokenType, KeyAlgorithm, ServicePrioritizationStrategy,
+  AcmeEabCredentialsStatus,
+  CertificateAuthority,
+  Client,
+  CsrFormat,
+  CsrGenerate,
+  CsrSubjectFieldDescription,
+  Key,
+  KeyLabelWithCsrGenerate,
+  KeyUsageType,
+  KeyWithCertificateSigningRequestId,
+  TokenCertificateSigningRequest,
+  TokenType,
+  KeyAlgorithm,
+  ServicePrioritizationStrategy,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
@@ -145,10 +157,9 @@ export const useCsr = defineStore('csr', {
     },
 
     async searchCertificateAuthorities(includeIntermediateCas?: boolean) {
-
-      const params: Record<string, any> = {};
+      const params: Record<string, unknown> = {};
       if (includeIntermediateCas) {
-        params.include_intermediate_cas = true
+        params.include_intermediate_cas = true;
       }
 
       return api
@@ -159,14 +170,11 @@ export const useCsr = defineStore('csr', {
     },
 
     async fetchCertificateAuthorities() {
-      return this.searchCertificateAuthorities()
-        .then((data) => (this.certificationServiceList = sorCertificateAuthorities(data)));
+      return this.searchCertificateAuthorities().then((data) => (this.certificationServiceList = sorCertificateAuthorities(data)));
     },
 
     async fetchCertificateAuthoritiesPrioritizationStrategy() {
-      return api
-        .get<ServicePrioritizationStrategy>('/certificate-authorities/ocsp-prioritization-strategy')
-        .then((resp) => resp.data);
+      return api.get<ServicePrioritizationStrategy>('/certificate-authorities/ocsp-prioritization-strategy').then((resp) => resp.data);
     },
 
     async fetchCsrForm() {

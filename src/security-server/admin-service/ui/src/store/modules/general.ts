@@ -80,9 +80,7 @@ export const useGeneral = defineStore('general', {
         .get('/xroad-instances')
         .then((res) => {
           this.xRoadInstances = res.data as XRoadInstance[];
-          this.xRoadInstanceIdentifiers = this.xRoadInstances.map(
-            (instance) => instance.identifier
-          );
+          this.xRoadInstanceIdentifiers = this.xRoadInstances.map((instance) => instance.identifier);
         })
         .catch((error) => {
           throw error;
