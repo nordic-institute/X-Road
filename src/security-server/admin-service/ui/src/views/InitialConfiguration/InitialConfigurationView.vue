@@ -79,7 +79,6 @@ import { CodeWithDetails, InitialServerConf } from '@/openapi-types';
 import { useAlerts } from '@/store/modules/alerts';
 import { useInitializeServer } from '@/store/modules/initializeServer';
 import { useUser } from '@/store/modules/user';
-import * as api from '@/util/api';
 
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
@@ -133,6 +132,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
     ...mapActions(useUser, ['setInitializationStatus', 'fetchInitializationStatus', 'fetchCurrentSecurityServer']),
+    ...mapActions(useInitializeServer, ['initializeServer']),
     tokenPinReady(pin: string): void {
       this.pinSaveBusy = true;
 
@@ -162,8 +162,7 @@ export default defineComponent({
     },
 
     initServer(payload: InitialServerConf): void {
-      api
-        .post('/initialization', payload)
+      this.initializeServer(payload)
         .then(() => {
           this.addSuccessMessage('initialConfiguration.success');
           // Set init state to done so that the routing goes into "normal" mode

@@ -49,7 +49,7 @@
       accept-button-text="action.confirm"
       :loading="uploading"
       @cancel="close"
-      @accept="confirmUpload(uploadedFile)"
+      @accept="uploadAnchor(uploadedFile)"
     >
       <template #text>
         <v-row>
@@ -88,23 +88,12 @@ import { defineComponent } from 'vue';
 
 import { mapState } from 'pinia';
 
-import {
-  XrdBtn,
-  XrdConfirmDialog,
-  XrdDateTime,
-  XrdHashValue,
-  useNotifications,
-  FileUploadResult,
-  XrdFileUpload,
-  buildFileFormData,
-  multipartFormDataConfig,
-} from '@niis/shared-ui';
+import { XrdBtn, XrdConfirmDialog, XrdDateTime, XrdHashValue, useNotifications, FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
 import { Anchor } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
-import * as api from '@/util/api';
-import { PostPutPatch } from '@/util/api';
+import { useSystem } from '@/store/modules/system';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',
@@ -129,7 +118,8 @@ export default defineComponent({
   emits: ['uploaded'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
+    const { uploadAnchor: apiUploadAnchor, previewAnchor: apiPreviewAnchor } = useSystem();
+    return { addError, addSuccessMessage, apiUploadAnchor, apiPreviewAnchor };
   },
   data() {
     return {
@@ -157,13 +147,12 @@ export default defineComponent({
       }
     },
 
-    previewAnchor(event: FileUploadResult, query: string): void {
+    previewAnchor(initMode: boolean, event: FileUploadResult): void {
       this.previewing = true;
-      api
-        .post<Anchor>(query, buildFileFormData('anchor', event.file), multipartFormDataConfig())
-        .then((resp) => {
+      this.apiPreviewAnchor(initMode, event.file)
+        .then((data) => {
           this.uploadedFile = event.file;
-          this.anchorPreview = resp.data;
+          this.anchorPreview = data;
           this.showPreview = true;
         })
         .catch((error) => {
@@ -174,17 +163,9 @@ export default defineComponent({
         .finally(() => (this.previewing = false));
     },
 
-    confirmUpload(anchorFile: File): void {
-      if (this.initMode) {
-        this.uploadAnchor(api.post, anchorFile);
-      } else {
-        this.uploadAnchor(api.put, anchorFile);
-      }
-    },
-
-    uploadAnchor(apiCall: PostPutPatch, anchorFile: File): void {
+    uploadAnchor(anchorFile: File): void {
       this.uploading = true;
-      apiCall('/system/anchor', buildFileFormData('anchor', anchorFile), multipartFormDataConfig())
+      this.apiUploadAnchor(this.initMode, anchorFile)
         .then(() => {
           this.addSuccessMessage('systemParameters.configurationAnchor.action.upload.dialog.success');
           this.$emit('uploaded');

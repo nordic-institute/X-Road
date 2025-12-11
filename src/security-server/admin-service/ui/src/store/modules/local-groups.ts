@@ -47,6 +47,11 @@ function lgBaseUrl(groupId: string, path = '') {
   return `/local-groups/${encodedId}` + path;
 }
 
+function clientLocalGroupsBaseUrl(clientId: string) {
+  const encodedId = encodePathParameter(clientId);
+  return `/clients/${encodedId}/local-groups`;
+}
+
 export const useLocalGroups = defineStore('local-groups', {
   state: (): State => ({
     clientId: undefined,
@@ -81,12 +86,17 @@ export const useLocalGroups = defineStore('local-groups', {
       if (this.clientId && this.clientId != clientId) {
         this.localGroups = [];
       }
-      const encodedId = encodePathParameter(clientId);
       this.loadingLocalGroups = true;
       return api
-        .get<LocalGroup[]>(`/clients/${encodedId}/local-groups`)
+        .get<LocalGroup[]>(clientLocalGroupsBaseUrl(clientId))
         .then((res) => (this.localGroups = res.data))
         .finally(() => (this.loadingLocalGroups = false));
+    },
+    async addLocalGroup(clientId: string, code: string, description: string) {
+      return api.post(clientLocalGroupsBaseUrl(clientId), {
+        code,
+        description,
+      });
     },
     async fetchLocalGroup(groupId: string) {
       if (this.localGroup && this.localGroup.id != groupId) {

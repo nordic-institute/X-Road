@@ -48,9 +48,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { XrdBtn, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
+import { useClient } from '@/store/modules/client';
 
 export default defineComponent({
   components: { XrdBtn, XrdConfirmDialog },
@@ -63,7 +62,8 @@ export default defineComponent({
   emits: ['done'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
+    const { unregisterClient: apiUnregisterClient } = useClient();
+    return { addError, addSuccessMessage, apiUnregisterClient };
   },
   data() {
     return {
@@ -74,14 +74,9 @@ export default defineComponent({
   methods: {
     unregisterClient(): void {
       this.unregisterLoading = true;
-      api
-        .put(`/clients/${encodePathParameter(this.id)}/unregister`, {})
-        .then(
-          () => {
-            this.addSuccessMessage('client.action.unregister.success');
-          },
-          (error) => this.addError(error),
-        )
+      this.apiUnregisterClient(this.id)
+        .then(() => this.addSuccessMessage('client.action.unregister.success'))
+        .catch((error) => this.addError(error))
         .finally(() => {
           this.$emit('done', this.id);
           this.confirmUnregisterClient = false;

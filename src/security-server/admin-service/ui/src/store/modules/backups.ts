@@ -26,45 +26,52 @@
  */
 
 import { defineStore } from 'pinia';
-import { InitialServerConf } from '@/openapi-types';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
+import { Backup, BackupExt } from '@/openapi-types';
+import { saveResponseAsFile, BackupItem, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
-export const useInitializeServer = defineStore('initializeServer', {
-  state: () => {
-    return {
-      memberClass: undefined as string | undefined,
-      memberCode: undefined as string | undefined,
-      securityServerCode: undefined as string | undefined,
-    };
-  },
-  getters: {
-    initServerMemberClass(): string | undefined {
-      return this.memberClass;
-    },
-    initServerMemberCode(): string | undefined {
-      return this.memberCode;
-    },
-    initServerSSCode(): string | undefined {
-      return this.securityServerCode;
-    },
-  },
+export const useBackups = defineStore('backups', {
+  state: () => ({}),
+  getters: {},
 
   actions: {
-    resetInitServerState() {
-      // Clear the store state
-      this.$reset();
+    async fetchData() {
+
+      return api
+        .get<Backup[]>('/backups')
+        .then((res) => res.data
+          .sort((a, b) => {
+            return b.created_at.localeCompare(a.created_at);
+          }),
+        );
     },
-    storeInitServerMemberCode(memberCode: string | undefined) {
-      this.memberCode = memberCode;
+    async createBackup() {
+      return api
+        .post<BackupExt>('/backups/ext', null)
+        .then((resp) => resp.data);
     },
-    storeInitServerMemberClass(memberClass: string | undefined) {
-      this.memberClass = memberClass;
+    async deleteBackup(filename: string) {
+      return api.remove(`/backups/${encodePathParameter(filename)}`);
     },
-    storeInitServerSSCode(code: string | undefined) {
-      this.securityServerCode = code;
+    async downloadBackup(fileName: string) {
+      return api
+        .get(`/backups/${encodePathParameter(fileName)}/download`, {
+          responseType: 'blob',
+        })
+        .then((resp) => saveResponseAsFile(resp, fileName));
     },
-    async initializeServer(payload: InitialServerConf) {
-      return api.post('/initialization', payload);
+    async restoreBackup(fileName: string) {
+      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
+    },
+    async uploadBackup(backupFile: File, ignoreWarnings = false) {
+      return api
+        .post<BackupItem>(
+          `/backups/upload?ignore_warnings=${ignoreWarnings}`,
+          buildFileFormData('backup', backupFile),
+          multipartFormDataConfig(),
+        )
+        .then((resp) => resp.data);
     },
   },
 });

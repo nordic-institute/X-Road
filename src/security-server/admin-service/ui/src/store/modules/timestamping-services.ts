@@ -26,45 +26,35 @@
  */
 
 import { defineStore } from 'pinia';
-import { InitialServerConf } from '@/openapi-types';
 import * as api from '@/util/api';
+import { TimestampingService, ServicePrioritizationStrategy } from '@/openapi-types';
+import { sortTimestampingServices } from '@/util/sorting';
 
-export const useInitializeServer = defineStore('initializeServer', {
-  state: () => {
-    return {
-      memberClass: undefined as string | undefined,
-      memberCode: undefined as string | undefined,
-      securityServerCode: undefined as string | undefined,
-    };
-  },
-  getters: {
-    initServerMemberClass(): string | undefined {
-      return this.memberClass;
-    },
-    initServerMemberCode(): string | undefined {
-      return this.memberCode;
-    },
-    initServerSSCode(): string | undefined {
-      return this.securityServerCode;
-    },
-  },
+export const useTimestampingServices = defineStore('timestamping-services', {
+  state: () => ({}),
+  getters: {},
 
   actions: {
-    resetInitServerState() {
-      // Clear the store state
-      this.$reset();
+    async addTimestampingService(service: TimestampingService) {
+      return api.post('/system/timestamping-services', service);
     },
-    storeInitServerMemberCode(memberCode: string | undefined) {
-      this.memberCode = memberCode;
+    async fetchSortedTimestampingServiced() {
+      return api
+        .get<TimestampingService[]>('/system/timestamping-services')
+        .then((resp) => sortTimestampingServices(resp.data));
     },
-    storeInitServerMemberClass(memberClass: string | undefined) {
-      this.memberClass = memberClass;
+    async fetchApprovedAndSortedTimestampingServices() {
+      return api
+        .get<TimestampingService[]>('/timestamping-services')
+        .then((resp) => sortTimestampingServices(resp.data));
     },
-    storeInitServerSSCode(code: string | undefined) {
-      this.securityServerCode = code;
+    async fetchTimestampingPrioritizationStrategy() {
+      return api
+        .get<ServicePrioritizationStrategy>('/system/timestamping-services/prioritization-strategy')
+        .then((resp) => resp.data);
     },
-    async initializeServer(payload: InitialServerConf) {
-      return api.post('/initialization', payload);
+    async deleteTimestampingService(service: TimestampingService) {
+      return api.post('/system/timestamping-services/delete', service);
     },
   },
 });

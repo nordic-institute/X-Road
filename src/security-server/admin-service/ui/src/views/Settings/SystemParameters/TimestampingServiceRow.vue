@@ -61,10 +61,10 @@
 import { defineComponent, PropType } from 'vue';
 import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
-import * as api from '@/util/api';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { XrdBtn, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
+import { useTimestampingServices } from '@/store/modules/timestamping-services';
 
 export default defineComponent({
   components: { XrdBtn, XrdConfirmDialog },
@@ -78,7 +78,8 @@ export default defineComponent({
   emits: ['deleted'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
+    const { deleteTimestampingService: apiDeleteTimestampingService } = useTimestampingServices();
+    return { addError, addSuccessMessage, apiDeleteTimestampingService };
   },
   data() {
     return {
@@ -96,8 +97,7 @@ export default defineComponent({
   methods: {
     deleteTimestampingService(): void {
       this.deleting = true;
-      api
-        .post('/system/timestamping-services/delete', this.timestampingService)
+      this.apiDeleteTimestampingService(this.timestampingService)
         .then(() => {
           this.deleting = false;
           this.confirmDeleteDialog = false;

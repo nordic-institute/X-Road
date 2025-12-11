@@ -26,19 +26,8 @@
  */
 import { saveResponseAsFile } from '@niis/shared-ui';
 import {
-  AcmeEabCredentialsStatus,
-  CertificateAuthority,
-  Client,
-  CsrFormat,
-  CsrGenerate,
-  CsrSubjectFieldDescription,
-  Key,
-  KeyLabelWithCsrGenerate,
-  KeyUsageType,
-  KeyWithCertificateSigningRequestId,
-  TokenCertificateSigningRequest,
-  TokenType,
-  KeyAlgorithm,
+  AcmeEabCredentialsStatus, CertificateAuthority, Client, CsrFormat, CsrGenerate, CsrSubjectFieldDescription, Key, KeyLabelWithCsrGenerate,
+  KeyUsageType, KeyWithCertificateSigningRequestId, TokenCertificateSigningRequest, TokenType, KeyAlgorithm, ServicePrioritizationStrategy,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
@@ -155,17 +144,32 @@ export const useCsr = defineStore('csr', {
         });
     },
 
-    fetchCertificateAuthorities() {
+    async searchCertificateAuthorities(includeIntermediateCas?: boolean) {
+
+      const params: Record<string, any> = {};
+      if (includeIntermediateCas) {
+        params.include_intermediate_cas = true
+      }
+
       return api
-        .get<CertificateAuthority[]>('/certificate-authorities')
-        .then((res) => {
-          this.certificationServiceList = sorCertificateAuthorities(res.data);
+        .get<CertificateAuthority[]>('/certificate-authorities', {
+          params,
         })
-        .catch((error) => {
-          throw error;
-        });
+        .then((res) => res.data);
     },
-    fetchCsrForm() {
+
+    async fetchCertificateAuthorities() {
+      return this.searchCertificateAuthorities()
+        .then((data) => (this.certificationServiceList = sorCertificateAuthorities(data)));
+    },
+
+    async fetchCertificateAuthoritiesPrioritizationStrategy() {
+      return api
+        .get<ServicePrioritizationStrategy>('/certificate-authorities/ocsp-prioritization-strategy')
+        .then((resp) => resp.data);
+    },
+
+    async fetchCsrForm() {
       let params = {
         key_usage_type: this.usage,
       } as { [key: string]: unknown };
@@ -258,6 +262,10 @@ export const useCsr = defineStore('csr', {
         });
     },
 
+    async deleteCsrFromKey(keyId: string, csrId: string) {
+      return api.remove(`/keys/${encodePathParameter(keyId)}/csrs/${encodePathParameter(csrId)}`);
+    },
+
     orderAcmeCertificate(csr: TokenCertificateSigningRequest, caName: string, usage?: KeyUsageType) {
       if (!usage) {
         throw new Error('Key usage is missing');
@@ -340,6 +348,10 @@ export const useCsr = defineStore('csr', {
 
     storeKeyId(id: string) {
       this.keyId = id;
+    },
+
+    async registerCertificate(certHash: string, address: string) {
+      return api.put(`/token-certificates/${certHash}/register`, { address });
     },
   },
 });

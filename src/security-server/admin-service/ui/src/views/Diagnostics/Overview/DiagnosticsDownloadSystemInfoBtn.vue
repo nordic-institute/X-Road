@@ -39,10 +39,11 @@
 import { Permissions } from '@/global';
 import { computed, ref } from 'vue';
 import { XrdBtn, useNotifications, saveResponseAsFile } from '@niis/shared-ui';
-import * as api from '@/util/api';
 import { useUser } from '@/store/modules/user';
+import { useDiagnostics } from '@/store/modules/diagnostics';
 
 const { addError } = useNotifications();
+const { downloadReport } = useDiagnostics();
 const { hasPermission } = useUser();
 
 const downloading = ref(false);
@@ -51,8 +52,7 @@ const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_DIAGNOSTIC
 
 function download(): void {
   downloading.value = true;
-  api
-    .get('/diagnostics/info/download', { responseType: 'blob' })
+  downloadReport()
     .then((res) => saveResponseAsFile(res, 'diagnostic-report.json'))
     .catch((error) => addError(error))
     .finally(() => (downloading.value = false));
