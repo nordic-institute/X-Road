@@ -197,7 +197,7 @@ export const useTokens = defineStore('tokens', {
         old_pin: oldPin,
         new_pin: newPin,
       };
-      return api.put(tokenBaseUrl(tokenId, 'pin'), tokenPinUpdate).catch((error) => {
+      return api.put(tokenBaseUrl(tokenId, '/pin'), tokenPinUpdate).catch((error) => {
         throw error;
       });
     },
