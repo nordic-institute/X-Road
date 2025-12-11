@@ -67,7 +67,7 @@ public class ApprovedCaConverter {
                         .toList())
                 .setCreatedAt(entity.getCreatedAt())
                 .setUpdatedAt(entity.getUpdatedAt())
-                .setDefaultCsrFormat(CsrFormat.valueOf(entity.getDefaultCsrFormat()))
+                .setDefaultCsrFormat(entity.getDefaultCsrFormat() != null ? CsrFormat.valueOf(entity.getDefaultCsrFormat()) : null)
                 .setAcmeServerDirectoryUrl(entity.getAcmeServerDirectoryUrl())
                 .setAcmeServerIpAddress(entity.getAcmeServerIpAddress())
                 .setAuthenticationCertificateProfileId(entity.getAuthCertProfileId())
