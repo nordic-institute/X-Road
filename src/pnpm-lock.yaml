@@ -55,8 +55,8 @@ importers:
         specifier: ^2.5.2
         version: 2.5.3(@typescript-eslint/parser@8.49.0(eslint@9.39.1)(typescript@5.8.3))(eslint@9.39.1)(vue-eslint-parser@10.2.0(eslint@9.39.1))(vuetify@3.8.12)
       happy-dom:
-        specifier: ^18.0.1
-        version: 18.0.1
+        specifier: ^20.0.11
+        version: 20.0.11
       license-check-and-add:
         specifier: ~4.0.5
         version: 4.0.5
@@ -89,7 +89,7 @@ importers:
         version: 2.1.2(vite@6.4.1(@types/node@22.19.2)(sass@1.96.0)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.8.3))(vuetify@3.8.12)
       vitest:
         specifier: ^3.2.4
-        version: 3.2.4(@types/node@22.19.2)(happy-dom@18.0.1)(sass@1.96.0)(stylus@0.57.0)(yaml@2.8.2)
+        version: 3.2.4(@types/node@22.19.2)(happy-dom@20.0.11)(sass@1.96.0)(stylus@0.57.0)(yaml@2.8.2)
       vue-eslint-parser:
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.39.1)
@@ -1600,8 +1600,8 @@ packages:
     engines: {node: '>=0.4.7'}
     hasBin: true
 
-  happy-dom@18.0.1:
-    resolution: {integrity: sha512-qn+rKOW7KWpVTtgIUi6RVmTBZJSe2k0Db0vh1f7CWrWclkkc7/Q+FrOfkZIb2eiErLyqu5AXEzE7XthO9JVxRA==}
+  happy-dom@20.0.11:
+    resolution: {integrity: sha512-QsCdAUHAmiDeKeaNojb1OHOPF7NjcWPBR7obdu3NwH2a/oyQaLg5d0aaCy/9My6CdPChYF07dvz5chaXBGaD4g==}
     engines: {node: '>=20.0.0'}
 
   has-flag@4.0.0:
@@ -3943,7 +3943,7 @@ snapshots:
     optionalDependencies:
       uglify-js: 3.19.3
 
-  happy-dom@18.0.1:
+  happy-dom@20.0.11:
     dependencies:
       '@types/node': 20.19.26
       '@types/whatwg-mimetype': 3.0.2
@@ -4618,7 +4618,7 @@ snapshots:
       stylus: 0.57.0
       yaml: 2.8.2
 
-  vitest@3.2.4(@types/node@22.19.2)(happy-dom@18.0.1)(sass@1.96.0)(stylus@0.57.0)(yaml@2.8.2):
+  vitest@3.2.4(@types/node@22.19.2)(happy-dom@20.0.11)(sass@1.96.0)(stylus@0.57.0)(yaml@2.8.2):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/expect': 3.2.4
@@ -4645,7 +4645,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.19.2
-      happy-dom: 18.0.1
+      happy-dom: 20.0.11
     transitivePeerDependencies:
       - jiti
       - less
