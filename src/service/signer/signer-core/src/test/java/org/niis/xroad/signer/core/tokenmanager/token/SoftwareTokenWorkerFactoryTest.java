@@ -40,6 +40,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
@@ -51,7 +52,6 @@ import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
-import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 
 import java.util.List;
 import java.util.Map;
