@@ -140,11 +140,7 @@ export default defineComponent({
   },
   methods: {
     onUploadFileChanged(event: FileUploadResult): void {
-      if (this.initMode) {
-        this.previewAnchor(event, '/system/anchor/previews?validate_instance=false');
-      } else {
-        this.previewAnchor(event, '/system/anchor/previews');
-      }
+      this.previewAnchor(this.initMode, event);
     },
 
     previewAnchor(initMode: boolean, event: FileUploadResult): void {

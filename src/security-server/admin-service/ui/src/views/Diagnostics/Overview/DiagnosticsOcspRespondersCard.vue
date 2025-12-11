@@ -88,7 +88,7 @@
 import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { defineComponent } from 'vue';
-import { DiagnosticStatusClass, type OcspResponder } from '@/openapi-types';
+import { DiagnosticStatusClass, type OcspResponder, OcspResponderDiagnostics } from '@/openapi-types';
 import { XrdCard, Status, useNotifications, XrdEmptyPlaceholderRow, XrdEmptyPlaceholder } from '@niis/shared-ui';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
@@ -136,7 +136,7 @@ export default defineComponent({
           return 'error';
       }
     },
-    statusMessage(ocsp: OcspResponder): string {
+    statusMessage(ocsp: OcspResponderDiagnostics): string {
       if (ocsp.status_class === DiagnosticStatusClass.FAIL) {
         return this.$t(`error_code.${ocsp.error?.code}`, ocsp.error?.metadata);
       } else {

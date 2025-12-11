@@ -35,6 +35,7 @@ import {
   OcspResponderDiagnostics,
   ProxyMemoryUsageStatus,
   TimestampingServiceDiagnostics,
+  CaOcspDiagnostics,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
@@ -43,7 +44,7 @@ export interface DiagnosticsState {
   addOnStatus?: AddOnStatus;
   timestampingServices: TimestampingServiceDiagnostics[];
   globalConf?: GlobalConfDiagnostics;
-  ocspResponderDiagnostics: OcspResponderDiagnostics[];
+  ocspResponderDiagnostics: CaOcspDiagnostics[];
   backupEncryptionDiagnostics?: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
@@ -93,7 +94,7 @@ export const useDiagnostics = defineStore('diagnostics', {
       });
     },
     async fetchOcspResponderDiagnostics() {
-      return api.get<OcspResponderDiagnostics[]>('/diagnostics/ocsp-responders').then((res) => {
+      return api.get<CaOcspDiagnostics[]>('/diagnostics/ocsp-responders').then((res) => {
         this.ocspResponderDiagnostics = res.data;
       });
     },
