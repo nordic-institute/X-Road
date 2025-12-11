@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.globalconf.impl;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -285,9 +285,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate member, ServicePrioritizationStrategy prioritizationStrategy)
+            throws CertificateEncodingException, IOException {
         List<SharedParameters.OcspInfo> sharedParamsOcspResponders = getSharedParamsOcspResponders(member);
-        Stream<String> ocspResponderUrls = getOrderedSharedParamsOcspResponderUrls(sharedParamsOcspResponders);
+        Stream<String> ocspResponderUrls = getOrderedSharedParamsOcspResponderUrls(sharedParamsOcspResponders, prioritizationStrategy);
         String uri = CertUtils.getOcspResponderUriFromCert(member);
         return Stream.concat(
                 ocspResponderUrls,
@@ -318,13 +319,13 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return sharedParamsOcspResponders;
     }
 
-    private Stream<String> getOrderedSharedParamsOcspResponderUrls(List<SharedParameters.OcspInfo> responders) {
+    private Stream<String> getOrderedSharedParamsOcspResponderUrls(List<SharedParameters.OcspInfo> responders,
+                                                                   ServicePrioritizationStrategy prioritizationStrategy) {
         OptionalInt gcVersion = getVersion();
         boolean globalConfSupportsCostTypes = gcVersion.isPresent() && gcVersion.getAsInt() >= GLOBAL_CONF_VERSION_WITH_COST_TYPE;
 
         if (globalConfSupportsCostTypes) {
             CostTypePrioritizer<SharedParameters.OcspInfo> sorter = new CostTypePrioritizer<>(responders);
-            SystemProperties.ServicePrioritizationStrategy prioritizationStrategy = SystemProperties.getOcspPrioritizationStrategy();
             log.debug("OCSP responder urls will be sorted based on prioritization strategy: {}", prioritizationStrategy);
             return sorter.prioritize(prioritizationStrategy).stream();
         } else {

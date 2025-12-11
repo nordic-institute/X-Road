@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.globalconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -155,10 +156,12 @@ public interface GlobalConfProvider {
      * Addresses are ordered based on ocsp-prioritization-strategy system property.
      *
      * @param member the member certificate
+     * @param prioritizationStrategy the strategy that defines the ordering and filtering of OCSP responders
      * @return list of OCSP responder addresses
      *
      */
-    List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException;
+    List<String> getOrderedOcspResponderAddresses(X509Certificate member, ServicePrioritizationStrategy prioritizationStrategy)
+            throws CertificateEncodingException, IOException;
 
 
     /**

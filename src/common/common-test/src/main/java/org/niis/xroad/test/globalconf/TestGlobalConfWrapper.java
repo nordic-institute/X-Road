@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.test.globalconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -145,8 +146,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
-        return globalConfProvider.getOrderedOcspResponderAddresses(member);
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate member, ServicePrioritizationStrategy prioritizationStrategy)
+            throws CertificateEncodingException, IOException {
+        return globalConfProvider.getOrderedOcspResponderAddresses(member, prioritizationStrategy);
     }
 
     @Override

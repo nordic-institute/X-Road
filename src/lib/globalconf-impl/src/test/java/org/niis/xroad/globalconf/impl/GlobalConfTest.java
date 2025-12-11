@@ -26,6 +26,7 @@
 package org.niis.xroad.globalconf.impl;
 
 import ee.ria.xroad.common.ExpectedXrdRuntimeException;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
@@ -260,7 +261,7 @@ public class GlobalConfTest {
         // Does not matter which org exactly as long as CA is adminca1
         X509Certificate orgCert = TestCertUtil.getConsumer().certChain[0];
         List<String> actualAddresses =
-                globalConfProvider.getOrderedOcspResponderAddresses(orgCert);
+                globalConfProvider.getOrderedOcspResponderAddresses(orgCert, ServicePrioritizationStrategy.NONE);
         List<String> expectedAddresses = Arrays.asList(
                 "http://127.0.0.1:8082/ocsp",
                 "http://www.example.net/ocsp");

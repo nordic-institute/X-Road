@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'cs-system-test'
@@ -55,7 +55,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'cs-system-test setup'
@@ -70,7 +70,7 @@ jobs:
           label: 'cs-system-test storage'
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'cs-system-test'
@@ -96,7 +96,7 @@ jobs:
             test-framework-working-dir/test-automation-exec.log
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true

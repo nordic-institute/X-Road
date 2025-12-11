@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.signer.client;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -934,6 +935,14 @@ public class SignerRpcClient extends AbstractRpcClient {
                         .getEnforced()
         );
     }
+
+    public ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        var response = exec(() -> blockingOcspService
+                .getOcspPrioritizationStrategy(Empty.getDefaultInstance()));
+        org.niis.xroad.rpc.common.ServicePrioritizationStrategy strategy = response.getStrategy();
+        return org.niis.xroad.rpc.common.ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE.equals(strategy)
+                ? ServicePrioritizationStrategy.NONE
+                : ServicePrioritizationStrategy.valueOf(strategy.name());    }
 
     private static final class CertificationServiceDiagnosticsMapper {
 

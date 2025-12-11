@@ -41,6 +41,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.GLOBAL_CONF_OUTDATED;
@@ -98,7 +99,8 @@ public class Timestamper {
     }
 
     protected TimestamperWorker getWorkerImpl() {
-        return new TimestamperWorker(globalConfProvider, logRecordManager, messageLogProperties, serverConfProvider.getOrderedTspUrls());
+        List<String> orderedTspUrls = serverConfProvider.getOrderedTspUrls(messageLogProperties.timestampingPrioritizationStrategy());
+        return new TimestamperWorker(globalConfProvider, logRecordManager, messageLogProperties, orderedTspUrls);
     }
 
     public TimestampResult handleTimestampTask(TimestampTask timestampTask) {

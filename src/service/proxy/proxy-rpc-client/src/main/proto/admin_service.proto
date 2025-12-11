@@ -39,7 +39,6 @@ service AdminService {
   rpc ClearConfCache(Empty) returns (Empty) {}
   rpc TriggerDSAssetUpdate(Empty) returns (Empty) {}
   rpc GetTimestampingPrioritizationStrategy(Empty) returns (TimestampingPrioritizationStrategyResp) {}
-  rpc GetOcspPrioritizationStrategy(Empty) returns (OcspPrioritizationStrategyResp) {}
 }
 
 message AddOnStatusResp {
@@ -75,16 +74,4 @@ message ProxyMemoryStatusResp {
 
 message TimestampingPrioritizationStrategyResp {
   ServicePrioritizationStrategy strategy = 1;
-}
-
-message OcspPrioritizationStrategyResp {
-  ServicePrioritizationStrategy strategy = 1;
-}
-
-enum ServicePrioritizationStrategy {
-  SERVICE_PRIORITIZATION_STRATEGY_NONE = 0;
-  ONLY_FREE = 1;
-  ONLY_PAID = 2;
-  FREE_FIRST = 3;
-  PAID_FIRST = 4;
 }

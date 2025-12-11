@@ -46,6 +46,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -67,6 +68,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public final class OcspClient {
     private final GlobalConfProvider globalConfProvider;
+    private final SignerProperties signerProperties;
 
     // TODO make it configurable
     private static final int CONNECT_TIMEOUT_MS = 20000;
@@ -102,7 +104,8 @@ public final class OcspClient {
     OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
                            X509Certificate signer, SignAlgorithm signAlgoId)
             throws CertificateEncodingException, IOException, OCSPException {
-        List<String> responderURIs = globalConfProvider.getOrderedOcspResponderAddresses(subject);
+        List<String> responderURIs =
+                globalConfProvider.getOrderedOcspResponderAddresses(subject, signerProperties.ocspPrioritizationStrategy());
 
         log.trace("responder URIs: {}", responderURIs);
 

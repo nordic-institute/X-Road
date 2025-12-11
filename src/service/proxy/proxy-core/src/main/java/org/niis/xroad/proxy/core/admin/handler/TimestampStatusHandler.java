@@ -118,7 +118,7 @@ public class TimestampStatusHandler {
     private Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl() {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        for (String tspUrl : serverConfProvider.getTspUrl()) {
+        for (String tspUrl : serverConfProvider.getTspUrls()) {
             try {
                 URL url = new URL(tspUrl);
 

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -117,7 +118,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getOrderedTspUrls() {
+    public List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy) {
         return emptyList();
     }
 

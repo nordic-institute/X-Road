@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.serverconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -192,7 +193,7 @@ public interface ServerConfProvider {
      */
     List<String> getTspUrls();
 
-    List<String> getOrderedTspUrls();
+    List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy);
 
     CostType getTspCostType(String tspUrl);
 

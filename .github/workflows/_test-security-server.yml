@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: start-measurement
           label: 'ss-system-test'
@@ -55,7 +55,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'ss-system-test setup'
@@ -71,7 +71,7 @@ jobs:
           show-docker-images: 'true'
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: get-measurement
           label: 'ss-system-test'
@@ -98,7 +98,7 @@ jobs:
             test-framework-working-dir/selenide-failures/*.png
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.0
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
         with:
           task: display-results
           pr-comment: true

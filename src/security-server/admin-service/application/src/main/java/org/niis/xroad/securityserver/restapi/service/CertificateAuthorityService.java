@@ -239,7 +239,7 @@ public class CertificateAuthorityService {
     }
 
     public ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
-        return proxyRpcClient.getOcspPrioritizationStrategy();
+        return signerRpcClient.getOcspPrioritizationStrategy();
     }
 
     public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.serverconf.impl;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
@@ -370,12 +371,10 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getOrderedTspUrls() {
+    public List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy) {
         return tx(session -> {
             CostTypePrioritizer<TimestampingService> sorter =
                     new CostTypePrioritizer<>(getConf(session).getTimestampingServices());
-            SystemProperties.ServicePrioritizationStrategy prioritizationStrategy =
-                    SystemProperties.getTimestampingPrioritizationStrategy();
             log.debug("Timestamping urls will be sorted based on prioritization strategy: {}", prioritizationStrategy);
             return sorter.prioritize(prioritizationStrategy);
         });

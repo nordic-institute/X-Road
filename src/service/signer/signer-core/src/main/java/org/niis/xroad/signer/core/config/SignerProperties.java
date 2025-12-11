@@ -27,6 +27,8 @@
 
 package org.niis.xroad.signer.core.config;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
+
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
@@ -62,6 +64,10 @@ public interface SignerProperties {
     @WithName("ocsp-cache-path")
     @WithDefault("/var/cache/xroad/")
     String ocspCachePath();
+
+    @WithName("ocsp-prioritization-strategy")
+    @WithDefault("NONE")
+    ServicePrioritizationStrategy ocspPrioritizationStrategy();
 
     @WithName("module-manager-update-interval")
     @WithDefault("60")

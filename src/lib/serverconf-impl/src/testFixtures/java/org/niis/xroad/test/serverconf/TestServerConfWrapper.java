@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.test.serverconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -163,8 +164,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getOrderedTspUrls() {
-        return serverConfProvider.getOrderedTspUrls();
+    public List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy) {
+        return serverConfProvider.getOrderedTspUrls(prioritizationStrategy);
     }
 
     @Override

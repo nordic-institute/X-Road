@@ -15,7 +15,8 @@
   },
   "main": "./src/index.ts",
   "dependencies": {
-    "@fontsource/open-sans": "^5.2.7",
+    "@fontsource-variable/open-sans": "^5.2.7",
+    "@fontsource-variable/material-symbols-rounded": "^5.2.30",
     "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",

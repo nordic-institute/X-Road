@@ -27,26 +27,28 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.rpc.common.ServicePrioritizationStrategy;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.proto.GetOcspResponsesReq;
-import org.niis.xroad.signer.proto.GetOcspResponsesResp;
+import org.niis.xroad.signer.proto.OcspPrioritizationStrategyResp;
 
 /**
  * Handles OCSP requests.
  */
 @ApplicationScoped
 @RequiredArgsConstructor
-public class GetOcspPrioritizationStrategyReqHandler extends AbstractRpcHandler<GetOcspResponsesReq, GetOcspResponsesResp> {
+public class GetOcspPrioritizationStrategyReqHandler extends AbstractRpcHandler<Empty, OcspPrioritizationStrategyResp> {
 
-    private final OcspResponseLookup ocspResponseLookup;
+    private final SignerProperties signerProperties;
 
     @Override
-    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) {
-        var response = ocspResponseLookup.handleGetOcspResponses(request.getCertHashList());
-
-        return GetOcspResponsesResp.newBuilder()
-                .putAllBase64EncodedResponses(response)
+    protected OcspPrioritizationStrategyResp handle(Empty request) {
+        var strategy = signerProperties.ocspPrioritizationStrategy();
+        return OcspPrioritizationStrategyResp.newBuilder()
+                .setStrategy(ee.ria.xroad.common.ServicePrioritizationStrategy.NONE.equals(strategy)
+                        ? ServicePrioritizationStrategy.SERVICE_PRIORITIZATION_STRATEGY_NONE
+                        : ServicePrioritizationStrategy.valueOf(strategy.name()))
                 .build();
     }
 

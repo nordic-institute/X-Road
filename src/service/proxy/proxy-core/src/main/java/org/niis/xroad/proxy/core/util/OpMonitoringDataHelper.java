@@ -40,7 +40,6 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
@@ -124,7 +123,8 @@ public class OpMonitoringDataHelper {
     }
 
     private String getNormalizedServicePath(String servicePath) {
-        return Optional.of(UriUtils.uriPathPercentDecode(URI.create(servicePath).normalize().getRawPath(), true))
+        return Optional.ofNullable(servicePath)
+                .map(UriUtils::decodeAndNormalize)
                 .orElse(servicePath);
     }
 

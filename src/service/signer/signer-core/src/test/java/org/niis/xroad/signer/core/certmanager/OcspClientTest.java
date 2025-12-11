@@ -26,6 +26,7 @@
 package org.niis.xroad.signer.core.certmanager;
 
 import ee.ria.xroad.common.OcspTestUtils;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -87,9 +88,9 @@ class OcspClientTest {
 
     private static final Map<String, OCSPResp> OCSP_RESPONSES = new HashMap<>();
     private static X509Certificate ocspResponderCert;
-
+    private final SignerProperties signerProperties = mock(SignerProperties.class);
     private final GlobalConfProvider globalConfProvider = globalConfProvider();
-    private final OcspClient ocspClient = new OcspClient(globalConfProvider);
+    private final OcspClient ocspClient = new OcspClient(globalConfProvider, signerProperties);
     private final TokenLookup tokenManager = mock(TokenLookup.class);
     private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     private final FileBasedOcspCache fileBasedOcspCache =
@@ -97,7 +98,7 @@ class OcspClientTest {
     private final OcspCacheManager ocspResponseManager =
             new OcspCacheManager(ocspClient, fileBasedOcspCache);
     private final OcspClientWorker ocspClientWorker =
-            new TestOcspClient(globalConfProvider, ocspVerifierFactory, ocspResponseManager, tokenManager, ocspClient);
+            new TestOcspClient(globalConfProvider, ocspVerifierFactory, ocspResponseManager, tokenManager, ocspClient, signerProperties);
 
     OcspClientTest() throws Exception {
     }
@@ -112,6 +113,8 @@ class OcspClientTest {
         X509Certificate subject = getDefaultClientCert();
 
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
+
+        when(signerProperties.ocspPrioritizationStrategy()).thenReturn(ServicePrioritizationStrategy.NONE);
 
         responseData = OcspTestUtils.createOCSPResponse(subject, globalConfProvider.getCaCert("EE", subject),
                 ocspResponderCert, getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();
@@ -135,8 +138,11 @@ class OcspClientTest {
     void goodCertificateStatusFromSecondResponder() throws Exception {
         X509Certificate subject = getDefaultClientCert();
 
-        when(globalConfProvider.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
-                Arrays.asList("http://127.0.0.1:1234", RESPONDER_URI));
+        when(globalConfProvider.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class),
+                Mockito.any(ServicePrioritizationStrategy.class)))
+                .thenReturn(Arrays.asList("http://127.0.0.1:1234", RESPONDER_URI));
+        when(signerProperties.ocspPrioritizationStrategy())
+                .thenReturn(ServicePrioritizationStrategy.NONE);
 
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
 
@@ -197,7 +203,8 @@ class OcspClientTest {
         // this certificate does not contain responder URI in AIA extension.
         X509Certificate subject = TestCertUtil.getCertChainCert("user_0.p12");
 
-        when(globalConfProvider.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(new ArrayList<>());
+        when(globalConfProvider.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class),
+                Mockito.any(ServicePrioritizationStrategy.class))).thenReturn(new ArrayList<>());
 
         assertThrows(ConnectException.class, () -> queryAndUpdateCertStatus(ocspClientWorker, subject));
     }
@@ -300,8 +307,8 @@ class OcspClientTest {
 
     private static class TestOcspClient extends OcspClientWorker {
         TestOcspClient(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory, OcspCacheManager cacheManager,
-                       TokenLookup tokenLookup, OcspClient ocspClient) {
-            super(globalConfProvider, ocspVerifierFactory, cacheManager, tokenLookup, ocspClient);
+                       TokenLookup tokenLookup, OcspClient ocspClient, SignerProperties signerProperties) {
+            super(globalConfProvider, ocspVerifierFactory, cacheManager, tokenLookup, ocspClient, signerProperties);
         }
 
         @Override
@@ -335,8 +342,8 @@ class OcspClientTest {
 
         when(testConf.getInstanceIdentifier()).thenReturn("TEST");
 
-        when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
-                List.of(RESPONDER_URI));
+        when(testConf.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class),
+                Mockito.any(ServicePrioritizationStrategy.class))).thenReturn(List.of(RESPONDER_URI));
 
         ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
         when(testConf.getOcspResponderCertificates()).thenReturn(List.of(ocspResponderCert));

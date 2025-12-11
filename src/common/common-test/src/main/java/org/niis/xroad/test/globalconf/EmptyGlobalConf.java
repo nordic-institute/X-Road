@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.test.globalconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -80,7 +81,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getOrderedOcspResponderAddresses(X509Certificate org) {
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate org, ServicePrioritizationStrategy prioritizationStrategy) {
         return Collections.emptyList();
     }
 
