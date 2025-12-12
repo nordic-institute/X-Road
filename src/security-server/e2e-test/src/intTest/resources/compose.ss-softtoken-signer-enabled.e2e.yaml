@@ -4,7 +4,7 @@ services:
       - XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_ENABLED=true
       - XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_HOST=softtoken-signer
   softtoken-signer:
-    image: localhost:5555/ss-softtoken-signer
+    image: ${SOFTTOKEN_SIGNER_IMG}
     pull_policy: always
     networks:
       - xrd-ss-network
