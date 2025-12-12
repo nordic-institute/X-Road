@@ -3525,7 +3525,7 @@ This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_
 Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
-2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server, when communicating with the ACME Server.
+2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is defined and populated manually by the Security Server Administrator.
 
 **Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
 
@@ -3563,9 +3563,9 @@ eab-credentials:
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
 
-# This is a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server.
+# This is the password for the PKCS #12 keystore of the ACME Server account. The password is defined by the Security Server Administrator. The "<PASSWORD_PLACEHOLDER>" value is a placeholder and must be changed.
 # Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password: acmep12Password1234
+account-keystore-password: <PASSWORD_PLACEHOLDER>
 
 ```
 
