@@ -26,8 +26,7 @@
 package org.niis.xroad.signer.softtoken.sync;
 
 import java.security.PrivateKey;
-import java.time.Instant;
-import java.util.Objects;
+import java.util.Arrays;
 
 /**
  * In-memory representation of a synchronized software token key in the softtoken-signer service.
@@ -41,16 +40,24 @@ public record CachedKeyInfo(
         boolean tokenActive,
         boolean keyAvailable,
         String keyLabel,
-        String signMechanism,
-        Instant lastSynced
+        String signMechanism
 ) {
     /**
-     * Compact constructor with validation.
+     * Checks if this cached key is equivalent to another, excluding the lastSynced timestamp.
+     * This is used to determine if a key has actually changed during synchronization.
+     *
+     * @param other the other CachedKeyInfo to compare with
+     * @return true if all fields except lastSynced are equal, false otherwise
      */
-    public CachedKeyInfo {
-        Objects.requireNonNull(keyId, "keyId cannot be null");
-        Objects.requireNonNull(privateKey, "privateKey cannot be null");
-        Objects.requireNonNull(signMechanism, "signMechanism cannot be null");
-        Objects.requireNonNull(lastSynced, "lastSynced cannot be null");
+    public boolean equals(CachedKeyInfo other) {
+        if (other == null) {
+            return false;
+        }
+        return keyId.equals(other.keyId())
+                && Arrays.equals(privateKey.getEncoded(), other.privateKey().getEncoded())
+                && tokenActive == other.tokenActive()
+                && keyAvailable == other.keyAvailable()
+                && keyLabel.equals(other.keyLabel())
+                && signMechanism.equals(other.signMechanism());
     }
 }

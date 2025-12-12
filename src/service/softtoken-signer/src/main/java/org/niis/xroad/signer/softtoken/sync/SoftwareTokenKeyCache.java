@@ -28,8 +28,10 @@ package org.niis.xroad.signer.softtoken.sync;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -51,12 +53,19 @@ public class SoftwareTokenKeyCache {
 
     private volatile Map<String, CachedKeyInfo> keys = new ConcurrentHashMap<>();
 
-    public void updateKeys(Map<String, CachedKeyInfo> newKeys) {
-        this.keys = new ConcurrentHashMap<>(newKeys);
-        log.info("Key cache updated with {} keys", newKeys.size());
+    public void addKey(CachedKeyInfo cachedKeyInfo) {
+        keys.put(cachedKeyInfo.keyId(), cachedKeyInfo);
     }
 
     public Optional<CachedKeyInfo> getKey(String keyId) {
         return Optional.ofNullable(keys.get(keyId));
+    }
+
+    public Set<String> getAllKeyIds() {
+        return new HashSet<>(keys.keySet());
+    }
+
+    public void removeKey(String keyId) {
+        keys.remove(keyId);
     }
 }
