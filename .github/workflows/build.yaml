@@ -259,8 +259,6 @@ jobs:
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
-      - name: Check Chromium version
-        run: chromium --version || chromium-browser --version || google-chrome --version
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
