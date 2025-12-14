@@ -74,7 +74,9 @@ include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
 include("service:configuration-client:configuration-client-model")
 include("service:configuration-client:configuration-client-rpc-client")
-include("service:softtoken-signer")
+
+include("service:softtoken-signer:softtoken-signer-application")
+include("service:softtoken-signer:softtoken-signer-int-test")
 
 include("service:configuration-proxy:configuration-proxy-application")
 
