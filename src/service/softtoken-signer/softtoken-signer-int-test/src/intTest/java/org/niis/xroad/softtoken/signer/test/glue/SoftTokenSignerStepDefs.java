@@ -202,22 +202,19 @@ public class SoftTokenSignerStepDefs extends BaseSoftTokenSignerStepDefs {
         testReportService.attachText("Key deletion", "Key '" + keyLabel + "' deleted from signer");
     }
 
-    @Step("key {string} label is changed to {string} in signer")
-    public void keyLabelIsChangedInSigner(String oldLabel, String newLabel) {
-        log.info("Changing key label from '{}' to '{}'", oldLabel, newLabel);
-        KeyInfo keyInfo = getCreatedKeys().get(oldLabel);
+    @Step("token {string} is deactivated")
+    public void tokenIsDeactivated(String tokenFriendlyName) {
+        log.info("Deactivating token: {}", tokenFriendlyName);
+        TokenInfo token = getTokenByFriendlyName(tokenFriendlyName);
+        getSignerClient().deactivateToken(token.getId());
+        testReportService.attachText("Token deactivation", tokenFriendlyName + " deactivated");
+    }
 
-        if (keyInfo == null) {
-            keyInfo = findKeyInToken("soft-token-000", oldLabel);
-        }
-
-        getSignerClient().setKeyFriendlyName(keyInfo.getId(), newLabel);
-
-        // Update our tracking
-        getCreatedKeys().remove(oldLabel);
-        getCreatedKeys().put(newLabel, keyInfo);
-
-        testReportService.attachText("Key label change",
-                "Changed from '" + oldLabel + "' to '" + newLabel + "'");
+    @Step("token {string} is reactivated with PIN {string}")
+    public void tokenIsReactivatedWithPin(String tokenFriendlyName, String pin) {
+        log.info("Reactivating token: {}", tokenFriendlyName);
+        TokenInfo token = getTokenByFriendlyName(tokenFriendlyName);
+        getSignerClient().activateToken(token.getId(), pin.toCharArray());
+        testReportService.attachText("Token reactivation", tokenFriendlyName + " reactivated");
     }
 }

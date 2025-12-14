@@ -231,7 +231,6 @@ public class SignerRpcClient extends AbstractRpcClient {
                         .map(keyInfo -> new SoftwareTokenKeyDto(
                                 keyInfo.getKeyId(),
                                 keyInfo.getPrivateKey().toByteArray(),
-                                keyInfo.getTokenActive(),
                                 keyInfo.getKeyAvailable(),
                                 keyInfo.getKeyLabel(),
                                 keyInfo.getSignMechanism()
@@ -1018,7 +1017,6 @@ public class SignerRpcClient extends AbstractRpcClient {
     public record SoftwareTokenKeyDto(
             String keyId,
             byte[] privateKey,
-            boolean tokenActive,
             boolean keyAvailable,
             String keyLabel,
             String signMechanism

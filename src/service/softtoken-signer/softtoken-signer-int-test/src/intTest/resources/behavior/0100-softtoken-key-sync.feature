@@ -16,9 +16,9 @@ Feature: 0100 - Softtoken-Signer: Key Synchronization
   Scenario: New key is synchronized after creation
     Given signer has RSA key "existing-key" on token "soft-token-000"
     And key synchronization completes
-    When new RSA key "new-sync-key" generated for token "soft-token-000" in signer
+    When new RSA key "new-key" generated for token "soft-token-000" in signer
     And key synchronization completes
-    Then softtoken-signer can sign with key "new-sync-key"
+    Then softtoken-signer can sign with key "new-key"
 
   Scenario: Key deletion is synchronized
     Given signer has RSA key "key-to-delete" on token "soft-token-000"
@@ -32,3 +32,14 @@ Feature: 0100 - Softtoken-Signer: Key Synchronization
     And key synchronization completes
     When signature is created with softtoken-signer using key "sign-test-key"
     Then signature can be verified with key "sign-test-key" public key
+
+  Scenario: Token deactivation and reactivation restores key availability
+    Given signer has EC key "test-key" on token "soft-token-000"
+    And key synchronization completes
+    And softtoken-signer can sign with key "test-key"
+    When token "soft-token-000" is deactivated
+    And key synchronization completes
+    And softtoken-signer cannot sign with key "test-key"
+    And token "soft-token-000" is reactivated with PIN "1234"
+    And key synchronization completes
+    Then softtoken-signer can sign with key "test-key"

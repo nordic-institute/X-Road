@@ -37,7 +37,6 @@ import java.util.Arrays;
 public record CachedKeyInfo(
         String keyId,
         PrivateKey privateKey,
-        boolean tokenActive,
         boolean keyAvailable,
         String keyLabel,
         String signMechanism
@@ -54,10 +53,13 @@ public record CachedKeyInfo(
             return false;
         }
         return keyId.equals(other.keyId())
-                && Arrays.equals(privateKey.getEncoded(), other.privateKey().getEncoded())
-                && tokenActive == other.tokenActive()
+                && Arrays.equals(getEncoded(privateKey), getEncoded(other.privateKey))
                 && keyAvailable == other.keyAvailable()
                 && keyLabel.equals(other.keyLabel())
                 && signMechanism.equals(other.signMechanism());
+    }
+
+    private byte[] getEncoded(PrivateKey key) {
+        return key != null ? key.getEncoded() : null;
     }
 }

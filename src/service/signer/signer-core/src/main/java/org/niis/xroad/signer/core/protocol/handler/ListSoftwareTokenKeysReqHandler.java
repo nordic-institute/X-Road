@@ -71,17 +71,20 @@ public class ListSoftwareTokenKeysReqHandler extends AbstractRpcHandler<Empty, L
 
         for (TokenInfo softwareToken : softwareTokens) {
             for (KeyInfo key : softwareToken.getKeyInfo()) {
-                PrivateKey privateKey = loadPrivateKey(softwareToken.getId(), key.getId());
 
-                SoftwareTokenKeyInfo softwareTokenKey = SoftwareTokenKeyInfo.newBuilder()
+                SoftwareTokenKeyInfo.Builder keyInfoBuilder = SoftwareTokenKeyInfo.newBuilder()
                         .setKeyId(key.getId())
-                        .setPrivateKey(ByteString.copyFrom(privateKey.getEncoded()))
-                        .setTokenActive(softwareToken.isActive())
                         .setKeyAvailable(key.isAvailable())
                         .setKeyLabel(key.getLabel())
-                        .setSignMechanism(key.getSignMechanismName())
-                        .build();
-                responseBuilder.addKeys(softwareTokenKey);
+                        .setSignMechanism(key.getSignMechanismName());
+
+                // When token is not active then the keystore password is not present in the PasswordStore
+                if (softwareToken.isActive()) {
+                    PrivateKey privateKey = loadPrivateKey(softwareToken.getId(), key.getId());
+                    keyInfoBuilder.setPrivateKey(ByteString.copyFrom(privateKey.getEncoded()));
+                }
+
+                responseBuilder.addKeys(keyInfoBuilder.build());
             }
         }
 

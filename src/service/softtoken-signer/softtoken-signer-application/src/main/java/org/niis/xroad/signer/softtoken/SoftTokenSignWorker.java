@@ -69,7 +69,7 @@ public class SoftTokenSignWorker extends SignReqHandler {
                 .orElseThrow(() -> XrdRuntimeException.systemException(
                         ErrorCode.KEY_NOT_FOUND, "Key '%s' not found in cache".formatted(keyId)));
 
-        if (!cachedKey.tokenActive()) {
+        if (cachedKey.privateKey() == null) {
             throw XrdRuntimeException.systemException(TOKEN_NOT_ACTIVE, "Token not active for key '%s'".formatted(cachedKey.keyId()));
         }
 

@@ -102,11 +102,10 @@ public class KeysSynchronizationJob {
             int unchangedCount = 0;
 
             for (var key : softwareTokenKeys) {
-                var privateKey = CryptoUtils.getPrivateKeyFromPKCS8(key.privateKey());
+                var privateKey = key.privateKey() != null ? CryptoUtils.getPrivateKeyFromPKCS8(key.privateKey()) : null;
                 final CachedKeyInfo newKey = new CachedKeyInfo(
                         key.keyId(),
                         privateKey,
-                        key.tokenActive(),
                         key.keyAvailable(),
                         key.keyLabel(),
                         key.signMechanism()
