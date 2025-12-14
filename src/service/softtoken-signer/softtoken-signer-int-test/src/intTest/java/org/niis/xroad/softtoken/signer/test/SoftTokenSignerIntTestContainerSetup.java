@@ -48,7 +48,6 @@ public class SoftTokenSignerIntTestContainerSetup extends BaseComposeSetup {
 
     public static final String SIGNER = "signer";
     public static final String SOFTTOKEN_SIGNER = "softtoken-signer";
-    public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
 
     private static final String COMPOSE_FILE = "compose.intTest.yaml";
@@ -72,7 +71,6 @@ public class SoftTokenSignerIntTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(SOFTTOKEN_SIGNER, Port.SOFTTOKEN_SIGNER_GRPC,
                         Wait.forHealthcheck().withStartupTimeout(SOFTTOKEN_SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(DB_SERVERCONF, Port.DB, Wait.forListeningPort())
-                .withExposedService(TESTCA, Port.TEST_CA, Wait.forLogMessage(".*nginx entered RUNNING state.*", 1))
                 .withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(SOFTTOKEN_SIGNER));
     }
 
@@ -82,7 +80,6 @@ public class SoftTokenSignerIntTestContainerSetup extends BaseComposeSetup {
     @UtilityClass
     public final class Port {
         public static final int DB = 5432;
-        public static final int TEST_CA = 8888;
         public static final int SOFTTOKEN_SIGNER_GRPC = 5561;
     }
 }

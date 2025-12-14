@@ -17,8 +17,7 @@ intTestComposeEnv {
   images(
     "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
     "SIGNER_IMG" to "ss-signer",
-    "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer",
-    "CA_IMG" to "testca-dev"
+    "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer"
   )
 }
 
@@ -50,10 +49,6 @@ tasks.register<Test>("intTest") {
 
 tasks.named<Checkstyle>("checkstyleIntTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
-}
-
-tasks.named<Copy>("processIntTestResources") {
-  from("../../../../development/docker/testca-dev")
 }
 
 archUnit {
