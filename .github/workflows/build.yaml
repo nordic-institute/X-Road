@@ -240,7 +240,7 @@ jobs:
         with:
           driver-opts: network=host
       - name: Download debian packages
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
@@ -340,7 +340,7 @@ jobs:
         working-directory: ./Docker/securityserver
         run: ./init_context.sh
       - name: Download debian packages
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: debian-packages
           path: ./Docker/securityserver/build/packages/
@@ -427,7 +427,7 @@ jobs:
         working-directory: ./Docker/centralserver
         run: ./init_context.sh
       - name: Download debian packages for CS
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
