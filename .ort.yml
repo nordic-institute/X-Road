@@ -205,6 +205,10 @@ resolutions:
     - message: "copyleft-strong license CC-BY-SA-3.0 in Unmanaged::X-Road:.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The files meant by this license hit are not distributed with X-Road."
+  issues:
+    - message: "ERROR: Timeout after 1200 seconds while scanning file 'package/dist/echarts.esm.mjs.map'."
+      reason: "SCANNER_ISSUE"
+      comment: "Error is caused by the Scanner not being able to scan the JavaScript source map for Apache ECharts’ ES module bundle."
 
 license_choices:
   repository_license_choices:
