@@ -259,9 +259,16 @@ jobs:
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
+      - name: Set up Chrome for CS system tests
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: "137.0.7151.119"
+          install-chromedriver: true
+          install-dependencies: true
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g -Dselenide.browserBinary="${{ steps.chrome.outputs.chrome-path }}" -Dwebdriver.chrome.driver="${{ steps.chrome.outputs.chromedriver-path }}" -Dselenide.headless=true:central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test Central Server measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
@@ -453,10 +460,21 @@ jobs:
           task: get-measurement
           label: 'Set up E2E tests'
       # Execute and report
+      - name: Set up Chrome for E2E system tests
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: "137.0.7151.119"
+          install-chromedriver: true
+          install-dependencies: true
       - name: Run E2E tests
         working-directory: ./src
         run: >
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g 
+          -Dselenide.browserBinary="${{ steps.chrome.outputs.chrome-path }}"
+          -Dwebdriver.chrome.driver="${{ steps.chrome.outputs.chromedriver-path }}"
+          -Dselenide.headless=true:security-server
+          :e2e-test:e2eTest 
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
           -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test measurement
