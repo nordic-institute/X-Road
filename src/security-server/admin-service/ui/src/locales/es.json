@@ -328,6 +328,8 @@
       "account_creation_failure": "Error al crear la cuenta en el servidor ACME. Si se requiere vinculación de cuenta externa, verifique que las credenciales correctas estén configuradas en acme.yml",
       "account_key_pair_error": "Error al obtener el par de claves para la cuenta del servidor ACME",
       "account_keystore_password_missing": "Falta la contraseña del almacén de claves de la cuenta ACME en el archivo de configuración acme.yml",
+      "acme_yaml_missing": "Falta el archivo de configuración de ACME acme.yml",
+      "acme_yaml_account_keystore_password_update_error": "Error al actualizar la contraseña del almacén de claves de la cuenta ACME en el archivo de configuración acme.yml",
       "authorization_failure": "Error de autorización. Generalmente relacionado con una falla en la validación del desafío necesario para demostrar la propiedad del dominio",
       "authorization_wait_failure": "Error al esperar que se complete la autorización",
       "certificate_failure": "Error al obtener el certificado del servidor ACME",
