@@ -49,32 +49,12 @@
  */
 import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
-import { Backup, BackupExt } from '@/openapi-types';
+import { Backup } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import {
-  XrdView,
-  useNotifications,
-  BackupHandler,
-  BackupItem,
-  XrdBackupsDataTable,
-  multipartFormDataConfig,
-  saveResponseAsFile,
-  buildFileFormData,
-} from '@niis/shared-ui';
+import { XrdView, useNotifications, BackupHandler, XrdBackupsDataTable } from '@niis/shared-ui';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
-
-const uploadBackup = async (backupFile: File, ignoreWarnings = false) => {
-  return api
-    .post<BackupItem>(
-      `/backups/upload?ignore_warnings=${ignoreWarnings}`,
-      buildFileFormData('backup', backupFile),
-      multipartFormDataConfig(),
-    )
-    .then((resp) => resp.data);
-};
+import { useBackups } from '@/store/modules/backups';
 
 export default defineComponent({
   components: {
@@ -84,7 +64,8 @@ export default defineComponent({
   },
   setup() {
     const { addError } = useNotifications();
-    return { addError };
+    const backupStore = useBackups();
+    return { addError, backupStore };
   },
   data() {
     return {
@@ -109,41 +90,20 @@ export default defineComponent({
   methods: {
     backupHandler(): BackupHandler {
       return {
-        create: this.createBackup,
-        upload: uploadBackup,
-        delete: this.deleteBackup,
-        download: this.downloadBackup,
-        restore: this.restoreBackup,
+        create: this.backupStore.createBackup,
+        upload: this.backupStore.uploadBackup,
+        delete: this.backupStore.deleteBackup,
+        download: this.backupStore.downloadBackup,
+        restore: this.backupStore.restoreBackup,
       };
     },
     async fetchData() {
       this.loadingBackups = true;
-      return api
-        .get<Backup[]>('/backups')
-        .then((res) => {
-          this.backups = res.data.sort((a, b) => {
-            return b.created_at.localeCompare(a.created_at);
-          });
-        })
+      return this.backupStore
+        .fetchData()
+        .then((data) => (this.backups = data))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingBackups = false));
-    },
-    async createBackup() {
-      this.creatingBackup = true;
-      return api.post<BackupExt>('/backups/ext', null).then((resp) => resp.data);
-    },
-    async deleteBackup(filename: string) {
-      return api.remove(`/backups/${encodePathParameter(filename)}`);
-    },
-    async downloadBackup(fileName: string) {
-      return api
-        .get(`/backups/${encodePathParameter(fileName)}/download`, {
-          responseType: 'blob',
-        })
-        .then((resp) => saveResponseAsFile(resp, fileName));
-    },
-    async restoreBackup(fileName: string) {
-      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
     },
   },
 });

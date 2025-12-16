@@ -26,7 +26,6 @@
  -->
 <template>
   <XrdCard title="diagnostics.connection.management.title" class="overview-card">
-
     <v-card-text class="xrd-card-text">
       <v-row class="my-2"></v-row>
       <v-row dense>
@@ -36,40 +35,28 @@
         <v-col cols="7">
           <v-combobox
             v-model="selectedClientId"
+            class="xrd"
             :items="clients"
             item-title="id"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.client')"
-            variant="outlined"
             :disabled="true"
-          ></v-combobox>
+          />
         </v-col>
         <v-col cols="2">
-          <v-radio-group
-            v-model="selectedProtocolType"
-            name="protocolType"
-            inline
-            class="dlg-row-input"
-            :disabled="true"
-          >
-            <v-radio
-              :label="$t('diagnostics.connection.securityServer.rest')"
-              value="REST"
-            ></v-radio>
-            <v-radio
-              :label="$t('diagnostics.connection.securityServer.soap')"
-              value="SOAP"
-            ></v-radio>
+          <v-radio-group v-model="selectedProtocolType" name="protocolType" inline class="dlg-row-input" :disabled="true">
+            <v-radio class="xrd" :label="$t('diagnostics.connection.securityServer.rest')" value="REST" />
+            <v-radio class="xrd" :label="$t('diagnostics.connection.securityServer.soap')" value="SOAP" />
           </v-radio-group>
         </v-col>
         <v-col cols="1">
           <XrdBtn
             variant="text"
             text="diagnostics.connection.test"
-            @click="testManagementServiceStatus()"
             :disabled="!selectedSecurityServerId || otherSecurityServerLoading"
             data-test="management-server-test-button"
+            @click="testManagementServiceStatus()"
           />
         </v-col>
       </v-row>
@@ -82,34 +69,33 @@
             v-model="localInstance"
             :items="xRoadInstanceIdentifiers"
             :label="$t('general.instance')"
-            class="flex-input"
-            variant="outlined"
+            class="flex-input xrd"
             hide-details
             :disabled="true"
-          ></v-select>
+          />
         </v-col>
         <v-col cols="5">
           <v-combobox
             v-model="selectedTargetSubsystemId"
+            class="xrd"
             :items="localAllSubsystems"
             item-title="id"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.targetClient')"
-            variant="outlined"
             :disabled="true"
-          ></v-combobox>
+          />
         </v-col>
         <v-col cols="2">
           <v-combobox
             v-model="selectedSecurityServerId"
+            class="xrd"
             :items="localSecurityServers"
             item-title="server_code"
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.securityServer')"
-            variant="outlined"
-          ></v-combobox>
+          />
         </v-col>
       </v-row>
       <v-row dense>
@@ -135,8 +121,8 @@
             />
           </span>
           <span v-else-if="managementServiceStatus && managementServiceStatus?.status_class === 'OK'">
-           {{ $t('diagnostics.connection.ok') }}
-           </span>
+            {{ $t('diagnostics.connection.ok') }}
+          </span>
           <span v-else>
             {{ otherSecurityServerErrorMessage }}
           </span>
@@ -148,8 +134,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapActions, mapState } from "pinia";
-import { useNotifications, XrdBtn, XrdCard, XrdFormLabel } from '@niis/shared-ui';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications, XrdBtn, XrdCard, XrdFormLabel, XrdEmptyPlaceholder } from '@niis/shared-ui';
 import { useGeneral } from '@/store/modules/general';
 import { useClients } from '@/store/modules/clients';
 import { useClient } from '@/store/modules/client';
@@ -177,7 +163,8 @@ export default defineComponent({
     XrdFormLabel,
     StatusAvatar,
     XrdBtn,
-    XrdCard
+    XrdCard,
+    XrdEmptyPlaceholder,
   },
   setup() {
     const { addError } = useNotifications();
@@ -186,7 +173,7 @@ export default defineComponent({
   data() {
     return {
       otherSecurityServerLoading: false,
-      ...initialState()
+      ...initialState(),
     };
   },
   computed: {
@@ -196,19 +183,19 @@ export default defineComponent({
     ...mapState(useDiagnostics, ['otherSecurityServerStatus']),
 
     localInstance(): string {
-      return this.xRoadInstances.find(i => i.local)?.identifier ?? '';
+      return this.xRoadInstances.find((i) => i.local)?.identifier ?? '';
     },
     localOwner(): string | undefined {
-      const local = this.clients.find(i => i.owner);
+      const local = this.clients.find((i) => i.owner);
       return local ? local.id : '';
     },
     managementService(): string | undefined {
-      const managementService = this.localAllSubsystems.find(i => i.is_management_services_provider);
+      const managementService = this.localAllSubsystems.find((i) => i.is_management_services_provider);
       return managementService ? managementService.id : '';
     },
     otherSecurityServerErrorMessage() {
-      const err = this.managementServiceStatus?.error
-      return formatErrorForUi(err)
+      const err = this.managementServiceStatus?.error;
+      return formatErrorForUi(err);
     },
   },
 
@@ -219,17 +206,13 @@ export default defineComponent({
 
     if (this.selectedInstance) {
       await this.fetchAllSubsystems(this.selectedInstance);
-      this.localAllSubsystems = this.allSubsystems.map(
-        (c: Client) => ({ ...c }),
-      );
+      this.localAllSubsystems = this.allSubsystems.map((c: Client) => ({ ...c }));
       this.selectedTargetSubsystemId = this.managementService || '';
     }
 
     if (this.selectedTargetSubsystemId) {
       await this.fetchSecurityServers(this.selectedTargetSubsystemId);
-      this.localSecurityServers = this.securityServers.map(
-        (s: SecurityServer) => ({ ...s }),
-      );
+      this.localSecurityServers = this.securityServers.map((s: SecurityServer) => ({ ...s }));
       if (this.securityServers.length === 1) {
         this.selectedSecurityServerId = this.localSecurityServers[0].id;
       }
@@ -246,8 +229,12 @@ export default defineComponent({
 
     testManagementServiceStatus() {
       this.otherSecurityServerLoading = true;
-      this.fetchOtherSecurityServerStatus(this.selectedProtocolType, this.selectedClientId,
-        this.selectedTargetSubsystemId, this.selectedSecurityServerId)
+      this.fetchOtherSecurityServerStatus(
+        this.selectedProtocolType,
+        this.selectedClientId,
+        this.selectedTargetSubsystemId,
+        this.selectedSecurityServerId,
+      )
         .then(() => {
           this.managementServiceStatus = this.otherSecurityServerStatus;
         })
@@ -265,14 +252,5 @@ export default defineComponent({
 <style scoped lang="scss">
 .xrd-card-text {
   padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
 }
 </style>

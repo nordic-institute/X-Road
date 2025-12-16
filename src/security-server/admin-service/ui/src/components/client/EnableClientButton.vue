@@ -42,9 +42,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { XrdBtn, useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
+import { useClient } from '@/store/modules/client';
 
 export default defineComponent({
   components: { XrdBtn, XrdConfirmDialog },
@@ -57,7 +56,8 @@ export default defineComponent({
   emits: ['done'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
+    const { enableClient: apiEnableClient } = useClient();
+    return { addError, addSuccessMessage, apiEnableClient };
   },
   data() {
     return {
@@ -68,14 +68,9 @@ export default defineComponent({
   methods: {
     enableClient(): void {
       this.isLoading = true;
-      api
-        .put(`/clients/${encodePathParameter(this.id)}/enable`, {})
-        .then(
-          () => {
-            this.addSuccessMessage('client.action.enable.success');
-          },
-          (error) => this.addError(error),
-        )
+      this.apiEnableClient(this.id)
+        .then(() => this.addSuccessMessage('client.action.enable.success'))
+        .catch((error) => this.addError(error))
         .finally(() => {
           this.$emit('done', this.id);
           this.confirmEnableClient = false;

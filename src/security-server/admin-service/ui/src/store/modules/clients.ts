@@ -98,7 +98,7 @@ export const useClients = defineStore('clients', {
             show_members: false,
             internal_search: false,
             include_management_service_check: true,
-          }
+          },
         })
         .then((res) => {
           this.allSubsystems = res.data;

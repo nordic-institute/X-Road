@@ -24,51 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { type CodeWithDetails } from '@/openapi-types';
-import { i18n, Status } from '@niis/shared-ui';
 
-export function formatErrorForUi(err?: CodeWithDetails): string {
-  if (!err) return '';
+import { defineStore } from 'pinia';
+import * as api from '@/util/api';
+import { TimestampingService, ServicePrioritizationStrategy } from '@/openapi-types';
+import { sortTimestampingServices } from '@/util/sorting';
 
-  const { code, metadata = [], validation_errors = {} } = err;
+export const useTimestampingServices = defineStore('timestamping-services', {
+  state: () => ({}),
+  getters: {},
 
-  const buildKey = (rawKey?: string): string => {
-    if (!rawKey) return '';
-    return rawKey.includes('.') ? rawKey : `error_code.${rawKey}`;
-  };
-
-  const t = (key: string) => i18n.global.t(key) as string;
-
-  const codeKey = buildKey(code);
-  const codeText = codeKey ? t(codeKey) : '';
-  const metaText = metadata.length ? metadata.join(', ') : '';
-  const header = [codeText, metaText].filter(Boolean).join(' - ');
-
-  const veEntries = Object.entries(validation_errors);
-  const veText = veEntries.length
-    ? veEntries
-        .map(([field, msgs]) => {
-          const labelKey = buildKey(field);
-          const translated = labelKey ? t(labelKey) : '';
-          const label = translated || field;
-          return `${label}: ${msgs.join(', ')}`;
-        })
-        .join(' | ')
-    : '';
-
-  return [header, veText].filter(Boolean).join(' | ');
-}
-
-export function statusIconType(status: string | undefined): Status | undefined {
-  if (!status) {
-    return 'progress-register';
-  }
-  switch (status) {
-    case 'OK':
-      return 'ok';
-    case 'FAIL':
-      return 'error';
-    default:
-      return 'progress-register';
-  }
-}
+  actions: {
+    async addTimestampingService(service: TimestampingService) {
+      return api.post('/system/timestamping-services', service);
+    },
+    async fetchSortedTimestampingServiced() {
+      return api.get<TimestampingService[]>('/system/timestamping-services').then((resp) => sortTimestampingServices(resp.data));
+    },
+    async fetchApprovedAndSortedTimestampingServices() {
+      return api.get<TimestampingService[]>('/timestamping-services').then((resp) => sortTimestampingServices(resp.data));
+    },
+    async fetchTimestampingPrioritizationStrategy() {
+      return api.get<ServicePrioritizationStrategy>('/system/timestamping-services/prioritization-strategy').then((resp) => resp.data);
+    },
+    async deleteTimestampingService(service: TimestampingService) {
+      return api.post('/system/timestamping-services/delete', service);
+    },
+  },
+});

@@ -175,8 +175,6 @@ import ClientStatus from './ClientStatus.vue';
 import { ClientTypes, Permissions, RouteName } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useClients } from '@/store/modules/clients';
@@ -184,6 +182,7 @@ import { XrdView, XrdLabelWithIcon, XrdBtn, XrdLabel, useNotifications, XrdConfi
 import { AxiosError } from 'axios';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+import { useClient } from '@/store/modules/client';
 
 export default defineComponent({
   components: {
@@ -197,7 +196,8 @@ export default defineComponent({
   },
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
+    const { registerClient: apiRegisterClient } = useClient();
+    return { addError, addSuccessMessage, apiRegisterClient };
   },
   data: () => ({
     search: '',
@@ -353,16 +353,9 @@ export default defineComponent({
 
       const clientId = createClientId(item?.instance_id, item?.member_class, item?.member_code, item?.subsystem_code);
 
-      api
-        .put(`/clients/${encodePathParameter(clientId)}/register`, {})
-        .then(
-          () => {
-            this.addSuccessMessage('clients.action.register.success');
-          },
-          (error) => {
-            this.addError(error);
-          },
-        )
+      this.apiRegisterClient(clientId)
+        .then(() => this.addSuccessMessage('clients.action.register.success'))
+        .catch((error) => this.addError(error))
         .finally(() => {
           this.fetchData();
           this.confirmRegisterClient = false;

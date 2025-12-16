@@ -27,64 +27,46 @@
 
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
-import { MemberName, XRoadInstance } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
+import { Backup, BackupExt } from '@/openapi-types';
+import { saveResponseAsFile, BackupItem, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
-export const useGeneral = defineStore('general', {
-  state: () => {
-    return {
-      xRoadInstances: [] as XRoadInstance[],
-      xRoadInstanceIdentifiers: [] as string[],
-      memberClasses: [] as string[],
-      memberClassesCurrentInstance: [] as string[],
-      memberName: '' as string,
-    };
-  },
+export const useBackups = defineStore('backups', {
+  state: () => ({}),
+  getters: {},
 
   actions: {
-    fetchMemberClasses() {
-      return api
-        .get<string[]>('/member-classes')
-        .then((res) => {
-          this.memberClasses = res.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
+    async fetchData() {
+      return api.get<Backup[]>('/backups').then((res) =>
+        res.data.sort((a, b) => {
+          return b.created_at.localeCompare(a.created_at);
+        }),
+      );
     },
-
-    fetchMemberClassesForCurrentInstance() {
-      return api
-        .get<string[]>('/member-classes?current_instance=true')
-        .then((res) => {
-          this.memberClassesCurrentInstance = res.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
+    async createBackup() {
+      return api.post<BackupExt>('/backups/ext', null).then((resp) => resp.data);
     },
-
-    fetchMemberName(memberClass: string, memberCode: string) {
-      // this is currently an inline schema and is not automatically generated to a typescript type
-      return api
-        .get<MemberName>(`/member-names?member_class=${memberClass}&member_code=${memberCode}`)
-        .then((res) => {
-          this.memberName = res.data.member_name || '';
-        })
-        .catch((error) => {
-          throw error;
-        });
+    async deleteBackup(filename: string) {
+      return api.remove(`/backups/${encodePathParameter(filename)}`);
     },
-
-    fetchXRoadInstances() {
+    async downloadBackup(fileName: string) {
       return api
-        .get('/xroad-instances')
-        .then((res) => {
-          this.xRoadInstances = res.data as XRoadInstance[];
-          this.xRoadInstanceIdentifiers = this.xRoadInstances.map((instance) => instance.identifier);
+        .get(`/backups/${encodePathParameter(fileName)}/download`, {
+          responseType: 'blob',
         })
-        .catch((error) => {
-          throw error;
-        });
+        .then((resp) => saveResponseAsFile(resp, fileName));
+    },
+    async restoreBackup(fileName: string) {
+      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
+    },
+    async uploadBackup(backupFile: File, ignoreWarnings = false) {
+      return api
+        .post<BackupItem>(
+          `/backups/upload?ignore_warnings=${ignoreWarnings}`,
+          buildFileFormData('backup', backupFile),
+          multipartFormDataConfig(),
+        )
+        .then((resp) => resp.data);
     },
   },
 });

@@ -184,5 +184,33 @@ export const useClient = defineStore('client', {
     async registerClient(clientId: string) {
       return api.put(clientBaseUrl(clientId, '/register'), {});
     },
+
+    async unregisterClient(clientId: string) {
+      return api.put(clientBaseUrl(clientId, '/unregister'), {});
+    },
+
+    async deleteClient(clientId: string) {
+      return api.remove(clientBaseUrl(clientId, '/register'));
+    },
+
+    async checkOrphans(clientId: string) {
+      return api.get(clientBaseUrl(clientId, '/orphans'));
+    },
+
+    async deleteOrphans(clientId: string) {
+      return api.remove(clientBaseUrl(clientId, '/orphans'));
+    },
+
+    async disableClient(clientId: string) {
+      return api.put(clientBaseUrl(clientId, '/disable'), {});
+    },
+
+    async enableClient(clientId: string) {
+      return api.put(clientBaseUrl(clientId, '/enable'), {});
+    },
+
+    async makeOwner(clientId: string) {
+      return api.put(clientBaseUrl(clientId, '/make-owner'), {});
+    },
   },
 });

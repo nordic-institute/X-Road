@@ -35,6 +35,7 @@ import {
   OcspResponderDiagnostics,
   ProxyMemoryUsageStatus,
   TimestampingServiceDiagnostics,
+  CaOcspDiagnostics,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
@@ -43,7 +44,7 @@ export interface DiagnosticsState {
   addOnStatus?: AddOnStatus;
   timestampingServices: TimestampingServiceDiagnostics[];
   globalConf?: GlobalConfDiagnostics;
-  ocspResponderDiagnostics: OcspResponderDiagnostics[];
+  ocspResponderDiagnostics: CaOcspDiagnostics[];
   backupEncryptionDiagnostics?: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
@@ -80,9 +81,7 @@ export const useDiagnostics = defineStore('diagnostics', {
   },
   actions: {
     async fetchAddonStatus() {
-      return api.get<AddOnStatus>('/diagnostics/addon-status').then((res) => {
-        this.addOnStatus = res.data;
-      });
+      return api.get<AddOnStatus>('/diagnostics/addon-status').then((res) => (this.addOnStatus = res.data));
     },
     async fetchTimestampingServiceDiagnostics() {
       return api.get<TimestampingServiceDiagnostics[]>(`/diagnostics/timestamping-services`).then((res) => {
@@ -95,7 +94,7 @@ export const useDiagnostics = defineStore('diagnostics', {
       });
     },
     async fetchOcspResponderDiagnostics() {
-      return api.get<OcspResponderDiagnostics[]>('/diagnostics/ocsp-responders').then((res) => {
+      return api.get<CaOcspDiagnostics[]>('/diagnostics/ocsp-responders').then((res) => {
         this.ocspResponderDiagnostics = res.data;
       });
     },
@@ -119,16 +118,15 @@ export const useDiagnostics = defineStore('diagnostics', {
         this.authCertReqStatus = res.data;
       });
     },
-    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string,
-      securityServerId: string) {
+    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string, securityServerId: string) {
       return api
         .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
           params: {
             protocol_type: protocolType,
             client_id: clientId,
             target_client_id: targetClientId,
-            security_server_id: securityServerId
-          }
+            security_server_id: securityServerId,
+          },
         })
         .then((res) => {
           this.otherSecurityServerStatus = res.data;
@@ -138,6 +136,9 @@ export const useDiagnostics = defineStore('diagnostics', {
       return api.get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status').then((res) => {
         this.globalConfStatuses = res.data;
       });
+    },
+    async downloadReport() {
+      return api.get('/diagnostics/info/download', { responseType: 'blob' });
     },
   },
 });
