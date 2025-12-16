@@ -213,9 +213,16 @@ export default defineComponent({
   watch: {
     localInstance: {
       immediate: true,
-      async handler(newInstance: string) {
+      handler(newInstance: string) {
+        if (!this.selectedInstance) {
+          this.selectedInstance = newInstance;
+        }
+      },
+    },
 
-        this.selectedInstance = newInstance
+    selectedInstance: {
+      immediate: true,
+      async handler(newInstance: string) {
         this.selectedTargetSubsystemId = '';
         this.selectedSecurityServerId = '';
 
