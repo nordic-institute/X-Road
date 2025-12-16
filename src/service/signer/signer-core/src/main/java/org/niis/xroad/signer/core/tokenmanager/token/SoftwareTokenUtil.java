@@ -58,6 +58,12 @@ public final class SoftwareTokenUtil {
     private SoftwareTokenUtil() {
     }
 
+    public static PrivateKey loadPrivateKey(byte[] keyStoreFile, String alias, char[] password)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
+        KeyStore ks = loadPkcs12KeyStore(new ByteArrayInputStream(keyStoreFile), password);
+        return loadPrivateKey(ks, alias, password);
+    }
+
     static KeyStore createKeyStore(KeyPair kp, String alias, char[] password, KeyManagers keyManagers)
             throws OperatorCreationException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException {
         var signALgo = keyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
@@ -74,12 +80,6 @@ public final class SoftwareTokenUtil {
         keyStore.setEntry(alias, pkEntry, new KeyStore.PasswordProtection(password));
 
         return keyStore;
-    }
-
-    static PrivateKey loadPrivateKey(byte[] keyStoreFile, String alias, char[] password)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
-        KeyStore ks = loadPkcs12KeyStore(new ByteArrayInputStream(keyStoreFile), password);
-        return loadPrivateKey(ks, alias, password);
     }
 
     static PrivateKey loadPrivateKey(KeyStore ks, String alias, char[] password)

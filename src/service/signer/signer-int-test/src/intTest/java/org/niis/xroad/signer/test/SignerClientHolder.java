@@ -116,13 +116,11 @@ public class SignerClientHolder {
         signerRpcClientInstance.init();
 
         signerSignClient = new SignerSignRpcClient(getFactory(), properties);
-        signerSignClient.init();
 
         secondarySignerRpcClient = new SignerRpcClient(getFactory(), secondaryProperties);
         secondarySignerRpcClient.init();
 
         secondarySignerSignClient = new SignerSignRpcClient(getFactory(), secondaryProperties);
-        secondarySignerSignClient.init();
 
         log.info("Will use {}:{} (original port {})  for signer RPC connection..", properties.host(), properties.port(), SIGNER_GRPC_PORT);
         return signerRpcClientInstance;

@@ -29,8 +29,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.rpc.common.ServicePrioritizationStrategy;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.config.SignerProperties;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.OcspPrioritizationStrategyResp;
 
 /**

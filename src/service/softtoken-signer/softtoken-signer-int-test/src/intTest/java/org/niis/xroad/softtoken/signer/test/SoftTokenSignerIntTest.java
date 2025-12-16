@@ -24,25 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.protocol;
 
-import com.google.protobuf.AbstractMessage;
-import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+package org.niis.xroad.softtoken.signer.test;
 
-/**
- * @param <ReqT>
- * @param <RespT>
- */
-@Slf4j
-public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
-    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
+import org.junit.platform.suite.api.SelectClasspathResource;
+import org.niis.xroad.test.framework.core.BaseTestRunner;
 
-    protected abstract RespT handle(ReqT request);
-
-    public void processSingle(ReqT request, StreamObserver<RespT> responseObserver) {
-        rpcResponseHandler.handleRequest(responseObserver, () -> handle(request));
-    }
-
+@SelectClasspathResource("behavior")
+public class SoftTokenSignerIntTest extends BaseTestRunner {
 }
+

@@ -282,7 +282,20 @@ public final class CryptoUtils {
             keyContent.append(line);
         }
         byte[] decodedKeyBytes = Base64.getDecoder().decode(keyContent.toString());
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedKeyBytes);
+        return getPrivateKeyFromPKCS8(decodedKeyBytes);
+    }
+
+    /**
+     * Reads a private key from raw PKCS#8 encoded bytes.
+     *
+     * @param pkcs8EncodedKey the PKCS#8 encoded private key bytes
+     * @return the private key
+     * @throws NoSuchAlgorithmException if the algorithm is not supported
+     * @throws InvalidKeySpecException  if the key spec is invalid
+     */
+    public static PrivateKey getPrivateKeyFromPKCS8(byte[] pkcs8EncodedKey)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pkcs8EncodedKey);
         try {
             return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
         } catch (InvalidKeySpecException ignore) {

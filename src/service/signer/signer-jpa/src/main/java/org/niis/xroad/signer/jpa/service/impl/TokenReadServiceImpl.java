@@ -72,7 +72,7 @@ public class TokenReadServiceImpl implements TokenReadService {
     private final CertRequestMapper certRequestMapper;
 
     @Override
-    public LoadedTokens  loadAllTokens() {
+    public LoadedTokens loadAllTokens() {
         return sessionProvider.doInTransaction(this::loadedTokens);
     }
 

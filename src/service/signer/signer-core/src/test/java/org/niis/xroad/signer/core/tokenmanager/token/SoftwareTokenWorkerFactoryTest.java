@@ -40,6 +40,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
@@ -84,11 +85,11 @@ class SoftwareTokenWorkerFactoryTest {
     private final TokenPinManager pinManager = mock(TokenPinManager.class);
     private final TokenRegistry tokenRegistry = mock(TokenRegistry.class);
     private final TokenInfo tokenInfo = mock(TokenInfo.class);
-
     private final KeyManagers keyManagers = new KeyManagers(2048, "secp256r1");
+    private final SignatureGenerator signatureGenerator = new SignatureGenerator(keyManagers);
 
     private final SoftwareTokenWorkerFactory factory = new SoftwareTokenWorkerFactory(signerProperties, tokenManager, keyManager,
-            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers);
+            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers, signatureGenerator);
 
     private static final String TOKEN_ID = "token-id";
     private static final String KEY_ID = "key-id";

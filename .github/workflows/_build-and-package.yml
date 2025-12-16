@@ -162,6 +162,13 @@ jobs:
           path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
           compression-level: '0'
 
+      - name: Upload softtoken-signer-int-test
+        uses: actions/upload-artifact@v4
+        with:
+          name: softtoken-signer-int-test-jar
+          path: src/service/softtoken-signer/softtoken-signer-int-test/build/libs/softtoken-signer-int-test-1.0.jar
+          compression-level: '0'
+
       - name: Upload opmonitor-int-test
         uses: actions/upload-artifact@v4
         with:

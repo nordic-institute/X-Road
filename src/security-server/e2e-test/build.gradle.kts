@@ -28,6 +28,7 @@ intTestComposeEnv {
     "CONFIGURATION_CLIENT_IMG" to "ss-configuration-client",
     "MONITOR_IMG" to "ss-monitor",
     "SIGNER_IMG" to "ss-signer",
+    "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer",
     "PROXY_IMG" to "ss-proxy",
     "PROXY_UI_IMG" to "ss-proxy-ui-api",
     "BACKUP_MANAGER_IMG" to "ss-backup-manager",

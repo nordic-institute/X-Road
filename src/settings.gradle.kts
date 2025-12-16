@@ -75,6 +75,9 @@ include("service:configuration-client:configuration-client-core")
 include("service:configuration-client:configuration-client-model")
 include("service:configuration-client:configuration-client-rpc-client")
 
+include("service:softtoken-signer:softtoken-signer-application")
+include("service:softtoken-signer:softtoken-signer-int-test")
+
 include("service:configuration-proxy:configuration-proxy-application")
 
 include("service:monitor:monitor-application")
@@ -96,6 +99,7 @@ include("service:proxy:proxy-monitoring-api")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")
+include("service:signer:signer-common")
 include("service:signer:signer-core")
 include("service:signer:signer-jpa")
 include("service:signer:signer-cli")

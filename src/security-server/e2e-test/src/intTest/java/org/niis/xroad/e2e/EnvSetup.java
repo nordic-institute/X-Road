@@ -43,9 +43,6 @@ import java.util.Set;
 
 import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.common.vault.VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH;
-import static org.niis.xroad.e2e.EnvSetup.Feature.BATCH_SIGNATURES;
-import static org.niis.xroad.e2e.EnvSetup.Feature.HSM;
-import static org.niis.xroad.e2e.EnvSetup.Feature.MESSAGE_LOG_ENCRYPTION;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 
 @Slf4j
@@ -57,6 +54,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
     private static final String COMPOSE_SS_HSM_FILE = "compose.ss-hsm.e2e.yaml";
     private static final String COMPOSE_SS_BATCH_SIGNATURES_FILE = "compose.ss-batch-signature-enabled.e2e.yaml";
+    private static final String COMPOSE_SS_SOFTTOKEN_SIGNER_FILE = "compose.ss-softtoken-signer-enabled.e2e.yaml";
     private static final String COMPOSE_SS_MSGLOG_ENCRYPTION = "compose.ss-msglog-encryption.e2e.yaml";
 
     private static final String CS = "cs";
@@ -64,6 +62,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String PROXY = "proxy";
     private static final String UI = "ui";
     private static final String SIGNER = "signer";
+    private static final String SOFTTOKEN_SIGNER = "softtoken-signer";
     private static final String CONFIGURATION_CLIENT = "configuration-client";
     private static final String XROAD_NETWORK = "xroad-network";
 
@@ -80,9 +79,9 @@ public class EnvSetup extends BaseComposeSetup {
 
     @Override
     public void init() {
-        envSs0 = createSSEnvironment("ss0", Set.of(BATCH_SIGNATURES));
+        envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER));
 
-        envSs1 = createSSEnvironment("ss1", Set.of(HSM, MESSAGE_LOG_ENCRYPTION));
+        envSs1 = createSSEnvironment("ss1", Set.of(Feature.HSM, Feature.MESSAGE_LOG_ENCRYPTION));
 
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
@@ -136,10 +135,19 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER))
                 .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO));
 
-        env.start();
-        connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
+        if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
+            env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
+        }
 
-        if (features.contains(MESSAGE_LOG_ENCRYPTION)) {
+        env.start();
+
+        if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
+            connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER, SOFTTOKEN_SIGNER);
+        } else {
+            connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
+        }
+
+        if (features.contains(Feature.MESSAGE_LOG_ENCRYPTION)) {
             importPublicKeysToBao(env);
         }
 
@@ -224,6 +232,7 @@ public class EnvSetup extends BaseComposeSetup {
     enum Feature {
         HSM(COMPOSE_SS_HSM_FILE),
         BATCH_SIGNATURES(COMPOSE_SS_BATCH_SIGNATURES_FILE),
+        SOFTTOKEN_SIGNER(COMPOSE_SS_SOFTTOKEN_SIGNER_FILE),
         MESSAGE_LOG_ENCRYPTION(COMPOSE_SS_MSGLOG_ENCRYPTION);
 
         private final String composeFile;

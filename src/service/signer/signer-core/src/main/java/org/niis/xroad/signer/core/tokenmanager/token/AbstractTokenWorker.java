@@ -26,7 +26,6 @@
 package org.niis.xroad.signer.core.tokenmanager.token;
 
 import ee.ria.xroad.common.crypto.KeyManagers;
-import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -41,6 +40,7 @@ import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.common.SignReqHandler;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
@@ -49,16 +49,13 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.SignCertificateReq;
-import org.niis.xroad.signer.proto.SignReq;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -71,7 +68,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
  * Token worker base class.
  */
 @Slf4j
-public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLifecycle {
+public abstract class AbstractTokenWorker extends SignReqHandler implements TokenWorker, WorkerWithLifecycle {
     private final String workerId;
 
     protected final String tokenId;
@@ -138,20 +135,6 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     }
 
     @Override
-    public byte[] handleSign(SignReq request) {
-        try {
-            var signatureAlgId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
-            byte[] data = SignDataPreparer.of(signatureAlgId).prepare(request.getDigest().toByteArray());
-
-            return sign(request.getKeyId(), signatureAlgId, data);
-        } catch (Exception e) {
-            log.error("Error while signing with key '{}'", request.getKeyId(), e);
-
-            throw translateException(e).withPrefix(X_CANNOT_SIGN);
-        }
-    }
-
-    @Override
     public byte[] handleSignCertificate(SignCertificateReq request) {
         try {
             var signatureAlgorithmId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
@@ -192,10 +175,6 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     protected abstract void deleteKey(String keyId) throws IOException, TokenException;
 
     protected abstract void deleteCert(String certId);
-
-    protected abstract byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data)
-            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, UnrecoverableKeyException,
-            CertificateException, IOException, KeyStoreException, TokenException;
 
     protected abstract byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName,
                                               PublicKey publicKey)

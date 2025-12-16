@@ -30,8 +30,8 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.config.SignerProperties;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.IsEnforcedTokenPinPolicyResp;
 
 @ApplicationScoped
@@ -46,5 +46,5 @@ public class IsEnforcedTokenPinPolicyHandler extends AbstractRpcHandler<Empty, I
                 .setEnforced(signerProperties.enforceTokenPinPolicy())
                 .build();
     }
-    
+
 }
