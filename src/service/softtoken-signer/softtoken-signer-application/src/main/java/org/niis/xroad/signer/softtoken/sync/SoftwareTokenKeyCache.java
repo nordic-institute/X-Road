@@ -28,44 +28,27 @@ package org.niis.xroad.signer.softtoken.sync;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Thread-safe in-memory cache for synchronized software token keys.
  * <p>
  * This cache stores private keys and their metadata synchronized from the signer service.
  * The entire cache is atomically replaced on each synchronization cycle to ensure consistency.
- * <p>
- * <strong>Concurrency Model:</strong>
- * <ul>
- *   <li>Read operations (during signing): Lock-free via volatile map reference</li>
- *   <li>Write operations (during sync): Atomic map replacement, no read blocking</li>
- *   <li>Thread safety: ConcurrentHashMap handles concurrent reads</li>
- * </ul>
  */
 @Slf4j
 @ApplicationScoped
 public class SoftwareTokenKeyCache {
 
-    private volatile Map<String, CachedKeyInfo> keys = new ConcurrentHashMap<>();
+    private final AtomicReference<Map<String, CachedKeyInfo>> keys = new AtomicReference<>(Map.of());
 
-    public void addKey(CachedKeyInfo cachedKeyInfo) {
-        keys.put(cachedKeyInfo.keyId(), cachedKeyInfo);
+    public void updateKeys(Map<String, CachedKeyInfo> newKeys) {
+        keys.set(Map.copyOf(newKeys));
     }
 
     public Optional<CachedKeyInfo> getKey(String keyId) {
-        return Optional.ofNullable(keys.get(keyId));
-    }
-
-    public Set<String> getAllKeyIds() {
-        return new HashSet<>(keys.keySet());
-    }
-
-    public void removeKey(String keyId) {
-        keys.remove(keyId);
+        return Optional.ofNullable(keys.get().get(keyId));
     }
 }

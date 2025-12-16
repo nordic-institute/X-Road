@@ -34,13 +34,13 @@ import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.event.Startup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.softtoken.config.SoftTokenSignerKeysProperties;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -67,8 +67,8 @@ public class KeysSynchronizationJob {
         log.info("Performing initial keys' synchronization on startup");
         synchronizeKeys();
 
-        log.info("Scheduling keys' synchronization at fixed rate: {}", properties.refreshRateInSeconds());
-        scheduler.scheduleAtFixedRate(this::synchronizeKeys, properties.refreshRateInSeconds(), properties.refreshRateInSeconds(), SECONDS);
+        log.info("Scheduling keys' synchronization at fixed rate: {} seconds", properties.syncRate().toSeconds());
+        scheduler.scheduleAtFixedRate(this::synchronizeKeys, properties.syncRate().toSeconds(), properties.syncRate().toSeconds(), SECONDS);
     }
 
     @PreDestroy
@@ -76,74 +76,27 @@ public class KeysSynchronizationJob {
         scheduler.shutdown();
     }
 
-    /**
-     * Synchronizes software token keys from the signer service.
-     * <p>
-     * This method:
-     * <ul>
-     *   <li>Fetches all software token keys from the signer via gRPC</li>
-     *   <li>Creates cached key information with metadata</li>
-     *   <li>Only updates keys that have changed (preserving lastSynced for unchanged keys)</li>
-     *   <li>Adds new keys that don't exist in the cache</li>
-     *   <li>Removes keys that are no longer present</li>
-     *   <li>Atomically updates the key cache</li>
-     * </ul>
-     */
     public void synchronizeKeys() {
-
         log.info("Starting software token key synchronization");
 
         try {
             final var softwareTokenKeys = signerRpcClient.listSoftwareTokenKeys();
-            final Set<String> currentKeyIds = new HashSet<>();
-
-            int addedCount = 0;
-            int updatedCount = 0;
-            int unchangedCount = 0;
+            final Map<String, CachedKeyInfo> newKeys = new HashMap<>();
 
             for (var key : softwareTokenKeys) {
-                var privateKey = key.privateKey() != null ? CryptoUtils.getPrivateKeyFromPKCS8(key.privateKey()) : null;
-                final CachedKeyInfo newKey = new CachedKeyInfo(
+                var privateKey = ArrayUtils.isEmpty(key.privateKey()) ? null : CryptoUtils.getPrivateKeyFromPKCS8(key.privateKey());
+                final CachedKeyInfo cachedKey = new CachedKeyInfo(
                         key.keyId(),
                         privateKey,
                         key.keyAvailable(),
                         key.keyLabel(),
                         key.signMechanism()
                 );
-
-                currentKeyIds.add(key.keyId());
-
-                Optional<CachedKeyInfo> existingKey = keyCache.getKey(newKey.keyId());
-                if (existingKey.isEmpty()) {
-                    log.debug("Adding software token key (id: {}, label: {}) to cache", newKey.keyId(), newKey.keyLabel());
-                    keyCache.addKey(newKey);
-                    addedCount++;
-                } else {
-                    if (existingKey.get().equals(newKey)) {
-                        log.info("Software token key (id: {}, label: {}) unchanged in cache", newKey.keyId(), newKey.keyLabel());
-                        unchangedCount++;
-                    } else {
-                        log.debug("Updating software token key (id: {}, label: {}) as it has changed", newKey.keyId(), newKey.keyLabel());
-                        keyCache.addKey(newKey);
-                        updatedCount++;
-                    }
-                }
+                newKeys.put(key.keyId(), cachedKey);
             }
 
-            // Remove keys that are no longer present in the signer response
-            final Set<String> cachedKeyIds = keyCache.getAllKeyIds();
-            final Set<String> keysToRemove = new HashSet<>(cachedKeyIds);
-            keysToRemove.removeAll(currentKeyIds);
-
-            int removedCount = 0;
-            for (String keyId : keysToRemove) {
-                log.debug("Removing software token key (id: {}) as it is no longer present", keyId);
-                keyCache.removeKey(keyId);
-                removedCount++;
-            }
-
-            log.info("Successfully synchronized software token keys (added: {}, updated: {}, unchanged: {}, removed: {})",
-                    addedCount, updatedCount, unchangedCount, removedCount);
+            keyCache.updateKeys(newKeys);
+            log.info("Successfully synchronized {} software token keys", newKeys.size());
 
         } catch (Exception e) {
             log.error("Software token key synchronization failed: {}", e.getMessage(), e);

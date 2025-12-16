@@ -30,6 +30,8 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.time.Duration;
+
 /**
  * Configuration properties for softtoken-signer keys' synchronization from signer.
  */
@@ -37,7 +39,7 @@ import io.smallrye.config.WithName;
 public interface SoftTokenSignerKeysProperties {
 
     @WithName("sync-rate")
-    @WithDefault("30")
-    int refreshRateInSeconds();
+    @WithDefault("30S")
+    Duration syncRate();
 
 }
