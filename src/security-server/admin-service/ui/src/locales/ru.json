@@ -390,6 +390,7 @@
     "invalid_init_params": "Недопустимые параметры инициализации",
     "invalid_instance_identifier": "Недопустимый идентификатор экземпляра",
     "invalid_member_class": "Недопустимый класс участника",
+    "invalid_pem_csr": "Недопустимый PEM CSR",
     "invalid_service_client_id": "Недопустимый идентификатор клиента службы",
     "invalid_service_url": "Недопустимый URL службы",
     "invalid_wsdl": "Недопустимый WSDL",
