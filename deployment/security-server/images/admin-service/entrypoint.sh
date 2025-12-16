@@ -17,7 +17,8 @@ if [[ "${DEBUG:-false}" == "true" ]]; then
 fi
 
 exec java \
-  $DEBUG_OPTS \
   -Dspring.profiles.include=containerized \
+  $DEBUG_OPTS \
+  $JAVA_OPTS \
   -jar /opt/app/proxy-ui-api.jar
 
