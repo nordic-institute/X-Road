@@ -1,3 +1,9 @@
 xroad:
+  admin-service:
+    # TODO: Rate limit can interfere with UI tests. This will be changed in follow-up task.
+    rate-limit-enabled: false
+    global-configuration-generation-rate-in-seconds: 10
+  configuration-client:
+    update-interval: 10 #default 60
   signer:
     enforce-token-pin-policy: true

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +35,7 @@ import org.apache.commons.cli.Options;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.confproxy.SystemPropertiesLoader;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -45,7 +44,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
+import static org.niis.xroad.confproxy.SystemProperties.CONF_FILE_CONFPROXY;
 
 /**
  * Main program for launching configuration proxy utility tools.
@@ -67,7 +66,6 @@ public final class ConfProxyUtilMain {
 
     /**
      * Configuration proxy utility tool program entry point.
-     *
      * @param args program args
      */
     public static void main(final String[] args) throws Exception {
@@ -111,7 +109,6 @@ public final class ConfProxyUtilMain {
 
     /**
      * Executes the utility program with the provided argument list.
-     *
      * @param args program arguments
      * @throws Exception if any errors occur during execution
      */
@@ -126,14 +123,13 @@ public final class ConfProxyUtilMain {
 
     /**
      * Creates an utility program instance of the provided class name.
-     *
      * @param className name of the utility program class
      * @return an instance of the requested utility program
      */
     @SuppressWarnings("unchecked")
     static ConfProxyUtil createUtilInstance(final String className)
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException {
+                   InstantiationException, IllegalAccessException {
         Class<ConfProxyUtil> utilClass =
                 (Class<ConfProxyUtil>) Class.forName(className);
         return utilClass.getConstructor(SignerRpcClient.class).newInstance(signerRpcClient);

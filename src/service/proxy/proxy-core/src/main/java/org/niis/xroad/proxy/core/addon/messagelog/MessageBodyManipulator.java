@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -51,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Utility class for processing SoapMessages and removing altered message with <soap:body>
@@ -77,29 +77,8 @@ public class MessageBodyManipulator {
         public static final String MESSAGE_BODY_LOGGING_ENABLED = PREFIX + "message-body-logging";
 
         /**
-         * Prefix for enable-overriding message body logging
-         **/
-        private static final String MESSAGE_BODY_LOGGING_ENABLE = PREFIX + "enabled-body-logging";
-
-        /**
-         * Prefix for disable-overriding message body logging
-         **/
-        private static final String MESSAGE_BODY_LOGGING_DISABLE = PREFIX + "disabled-body-logging";
-
-        /**
-         * Postfix for overriding message body logging for local producers
-         **/
-        private static final String MESSAGE_BODY_LOGGING_LOCAL_PRODUCER = "-local-producer-subsystems";
-
-        /**
-         * Postfix for overriding message body logging for remote producers
-         **/
-        private static final String MESSAGE_BODY_LOGGING_REMOTE_PRODUCER = "-remote-producer-subsystems";
-
-        /**
          * Returns list of local producer subsystem ClientIds for which global SOAP body logging
          * setting is overridden
-         *
          * @return list of ClientId
          */
         public Collection<ClientId> getLocalProducerOverrides() {
@@ -109,7 +88,6 @@ public class MessageBodyManipulator {
         /**
          * Returns list of remote producer subsystem ClientIds for which global SOAP body logging
          * setting is overridden
-         *
          * @return list of ClientId
          */
         public Collection<ClientId> getRemoteProducerOverrides() {
@@ -118,7 +96,6 @@ public class MessageBodyManipulator {
 
         /**
          * Tells whether SOAP body logging is enabled
-         *
          * @return true if enabled
          */
         public boolean isMessageBodyLoggingEnabled() {
@@ -128,7 +105,7 @@ public class MessageBodyManipulator {
         private Collection<ClientId> getMessageBodyLoggingOverrides(boolean local) {
             validateBodyLoggingOverrideParameters();
 
-            return parseClientIdParameters(getMessageBodyLoggingOverrideParameter(!isMessageBodyLoggingEnabled(), local));
+            return parseClientIdParameters(getMessageBodyLoggingOverrideParameter(!isMessageBodyLoggingEnabled(), local).orElse(""));
         }
 
         /**
@@ -143,38 +120,45 @@ public class MessageBodyManipulator {
 
         /**
          * Check that given parameter is not in use, and if it is throws IllegalStateException.
-         *
          * @param enable
          * @param local
          */
         private void validateBodyLoggingOverrideParamNotUsed(boolean enable, boolean local) {
-            if (!getMessageBodyLoggingOverrideParameter(enable, local).isEmpty()) {
+            if (getMessageBodyLoggingOverrideParameter(enable, local).isPresent()) {
+
                 throw new IllegalStateException(getMessageBodyLoggingOverrideParameterName(enable, local)
                         + " should not be used when " + MESSAGE_BODY_LOGGING_ENABLED
                         + " is " + isMessageBodyLoggingEnabled());
             }
         }
 
-        private String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {
-            String prefix = enable ? MESSAGE_BODY_LOGGING_ENABLE : MESSAGE_BODY_LOGGING_DISABLE;
-            String postfix = local ? MESSAGE_BODY_LOGGING_LOCAL_PRODUCER : MESSAGE_BODY_LOGGING_REMOTE_PRODUCER;
+        private String getMessageBodyLoggingOverrideParameterName(boolean enabled, boolean local) {
+            final String postfix;
+            if (enabled) {
+                postfix = local ? "enabled-body-logging-local-producer-subsystems" : "enabled-body-logging-remote-producer-subsystems";
+            } else {
+                postfix = local ? "disabled-body-logging-local-producer-subsystems" : "disabled-body-logging-remote-producer-subsystems";
+            }
 
-            return prefix + postfix;
+            return PREFIX + postfix;
         }
 
-        private static String getProperty(String key, String defaultValue) {
-            return SystemPropertySource.getPropertyResolver().getProperty(key, defaultValue);
-        }
-
-        private String getMessageBodyLoggingOverrideParameter(boolean enable, boolean local) {
-            return getProperty(getMessageBodyLoggingOverrideParameterName(enable, local), "");
+        private Optional<String> getMessageBodyLoggingOverrideParameter(boolean enabled, boolean local) {
+            if (enabled) {
+                return local
+                        ? messageLogProperties.enabledBodyLoggingLocalProducerSubsystems()
+                        : messageLogProperties.enabledBodyLoggingRemoteProducerSubsystems();
+            } else {
+                return local
+                        ? messageLogProperties.disabledBodyLoggingLocalProducerSubsystems()
+                        : messageLogProperties.disabledBodyLoggingRemoteProducerSubsystems();
+            }
         }
 
         /**
          * Given one parameter parses it to collection of ClientIds. Parameter should be of format
          * FI/GOV/1710128-9/MANSIKKA, FI/GOV/1710128-9/MUSTIKKA, that is: comma separated list of slash-separated subsystem
          * identifiers.
-         *
          * @param clientIdParameters
          * @return
          */
@@ -211,7 +195,6 @@ public class MessageBodyManipulator {
      * Returns the string that should be logged. This will either be the original soap message
      * (when soap:body logging is used for this message) or manipulated soap message with
      * soap:body element cleared.
-     *
      * @param message soap message
      * @return the string that should be logged
      * @throws Exception when error occurs
@@ -255,7 +238,6 @@ public class MessageBodyManipulator {
 
     /**
      * Tells whether SOAP body should be logged for this message.
-     *
      * @param message SOAP message
      * @return true if this message's body is logged
      */
@@ -279,7 +261,6 @@ public class MessageBodyManipulator {
 
     /**
      * Takes one ClientId object, and searches whether it is in searched group of ClientIds
-     *
      * @param searchParam ClientId to search
      * @param searched    collection to search from
      * @return true if ClientId is in the collection

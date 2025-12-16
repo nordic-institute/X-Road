@@ -27,14 +27,12 @@
 package org.niis.xroad.cs.registrationservice.controller;
 
 import ee.ria.xroad.common.OcspTestUtils;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.runner.RunWith;
@@ -91,11 +89,6 @@ class RegistrationRequestApiTest {
         GlobalConfProvider testGlobalConfProvider() {
             return new TestGlobalConf();
         }
-    }
-
-    @BeforeAll
-    public static void setup() {
-        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/testconf");
     }
 
     @Autowired

@@ -46,6 +46,7 @@ import java.nio.file.Paths;
 public class LegacyConfigMigrationCLI {
 
     private enum Command {
+        VALIDATE("validate", "Check for probable config migration issues"),
         CONFIG("config", "Migrate configuration files (INI/properties to DB)"),
         PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
@@ -62,6 +63,7 @@ public class LegacyConfigMigrationCLI {
 
         static Command fromString(String value) {
             return switch (value) {
+                case "validate" -> VALIDATE;
                 case "config" -> CONFIG;
                 case "pgp-keys" -> PGP_KEYS;
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
@@ -87,6 +89,7 @@ public class LegacyConfigMigrationCLI {
             }
 
             switch (command) {
+                case VALIDATE -> validateEnv();
                 case CONFIG -> migrateConfiguration(shiftArgs(args));
                 case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
@@ -115,6 +118,7 @@ public class LegacyConfigMigrationCLI {
                 Usage: migration-cli <command> [options]
 
                 Commands:
+                  validate                       Check for probable migration issues
                   config                         Migrate configuration files (INI/properties to DB)
                   pgp-keys                       Migrate PGP keys from GPG to Vault
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
@@ -150,6 +154,10 @@ public class LegacyConfigMigrationCLI {
                   migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                 """);
+    }
+
+    private static void validateEnv() {
+        new EnvironmentValidator().run();
     }
 
     private static void migratePgpKeys(String[] args) {

@@ -50,6 +50,7 @@ import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceGlobalConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
@@ -64,6 +65,8 @@ import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -102,10 +105,12 @@ class ConfigurationServiceImplTest {
     private static final byte[] FILE_DATA = "file-data".getBytes(UTF_8);
     private static final String NODE_LOCAL_CONTENT_ID = CONTENT_ID_PRIVATE_PARAMETERS;
     private static final String TEST_CONFIGURATION_PART = "TEST-CONFIGURATION-PART";
-    private static final String CONF_PARTS_DIR = "src/test/resources/configuration-parts";
+    private static final Path CONF_PARTS_DIR = Paths.get("src/test/resources/configuration-parts");
 
     @Mock
     private SystemParameterService systemParameterService;
+    @Mock
+    private AdminServiceGlobalConfigProperties adminServiceGlobalConfigProperties;
     @Mock
     private ConfigurationSourceRepository configurationSourceRepository;
     @Mock
@@ -238,22 +243,29 @@ class ConfigurationServiceImplTest {
     class GetDownloadUrl {
         @Test
         void shouldGetInternalGlobalDownloadUrl() {
+            final var directory = "internalconf";
+            when(adminServiceGlobalConfigProperties.getInternalDirectory())
+                    .thenReturn(directory);
             when(systemParameterService.getCentralServerAddress())
                     .thenReturn(CENTRAL_SERVICE);
 
             final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl(INTERNAL);
 
-            assertThat(result.getUrl()).isEqualTo("https://" + CENTRAL_SERVICE + "/internalconf");
+            assertThat(result.getUrl()).isEqualTo("https://" + CENTRAL_SERVICE + "/" + directory);
         }
 
         @Test
         void shouldGetExternalGlobalDownloadUrl() {
+            final var directory = "externalconf";
+            when(adminServiceGlobalConfigProperties.getExternalDirectory())
+                    .thenReturn(directory);
+
             when(systemParameterService.getCentralServerAddress())
                     .thenReturn(CENTRAL_SERVICE);
 
             final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl(EXTERNAL);
 
-            assertThat(result.getUrl()).isEqualTo("https://" + CENTRAL_SERVICE + "/externalconf");
+            assertThat(result.getUrl()).isEqualTo("https://" + CENTRAL_SERVICE + "/" + directory);
         }
     }
 
@@ -267,7 +279,9 @@ class ConfigurationServiceImplTest {
                 distributedFileMapper,
                 auditDataHelper,
                 configurationPartValidator,
-                configurationSigningKeyMapper);
+                configurationSigningKeyMapper,
+                adminServiceGlobalConfigProperties
+        );
     }
 
     @Nested

@@ -27,7 +27,14 @@
 
 package org.niis.xroad.common.acme;
 
+import ee.ria.xroad.common.FilePaths;
+
+import java.nio.file.Path;
+
 public interface AcmeConfig {
+
+    Path ACME_ACCOUNT_KEYSTORE_PATH =   FilePaths.BASE_CONF_PATH.resolve("ssl/acme.p12");
+    Path ACME_CHALLENGE_PATH = FilePaths.BASE_CONF_PATH.resolve("acme-challenge");
 
     /**
      * raw usage with default in org.niis.xroad.securityserver.restapi.config.AcmeBeanConfig.IsAcmeCertRenewalJobsActive
@@ -93,4 +100,6 @@ public interface AcmeConfig {
     int getAcmeChallengePort();
 
     int getAcmeKeyLength();
+
+    String getAcmeChallengePath();
 }
