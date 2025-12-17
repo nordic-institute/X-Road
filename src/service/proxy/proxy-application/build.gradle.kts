@@ -12,9 +12,8 @@ configurations.named("runtimeClasspath") {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":lib:bootstrap-quarkus"))
-  implementation(project(":common:common-properties-db-source-quarkus"))
-  implementation(project(":common:common-rpc-quarkus"))
+  implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))
   implementation(libs.bundles.quarkus.containerized)
 

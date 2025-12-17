@@ -28,12 +28,12 @@ dependencies {
   implementation(project(":common:common-db"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:op-monitor:op-monitor-api"))
-  implementation(project(":common:common-vault-quarkus"))
+  implementation(project(":lib:vault-quarkus"))
 
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))
   testImplementation(libs.commons.cli)
-  testImplementation(testFixtures(project(":common:common-properties")))
+  testImplementation(testFixtures(project(":lib:properties-core")))
 
   xjc(libs.bundles.jaxb)
 }

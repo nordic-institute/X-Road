@@ -31,11 +31,12 @@ import io.quarkus.test.junit.QuarkusTestProfile;
 import java.util.Map;
 
 import static java.lang.String.join;
-import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.CLI;
-import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.NATIVE;
-import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
 
 public class ConfClientCLITestProfile implements QuarkusTestProfile {
+    private static final String NATIVE = "native";
+    private static final String CLI = "cli";
+    private static final String TEST = "test";
+
     @Override
     public String getConfigProfile() {
         return join(",", CLI, NATIVE, TEST);

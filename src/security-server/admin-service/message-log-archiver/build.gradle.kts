@@ -7,7 +7,7 @@ dependencies {
   implementation(platform(libs.springBoot.bom))
 
   implementation(project(":common:common-db"))
-  implementation(project(":common:common-rpc"))
+  implementation(project(":lib:rpc-core"))
   implementation(project(":security-server:admin-service:message-log-archiver-api"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:asic-core"))

@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-domain"))
-  api(project(":common:common-rpc"))
+  api(project(":lib:rpc-core"))
 }
 
 tasks.compileJava {
