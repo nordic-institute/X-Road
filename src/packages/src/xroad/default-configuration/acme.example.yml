@@ -29,4 +29,4 @@ eab-credentials:
 
 # This is a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server.
 # Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password: acmep12Password1234
+account-keystore-password:

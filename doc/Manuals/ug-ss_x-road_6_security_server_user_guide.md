@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.103  
+Version: 2.104  
 Doc. ID: UG-SS
 
 ---
@@ -132,6 +132,7 @@ Doc. ID: UG-SS
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
 | 01.12.2025 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
 | 07.12.2025 | 2.103   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
+| 15.12.2025 | 2.104   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -3605,7 +3606,7 @@ This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_
 Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
-2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server, when communicating with the ACME Server.
+2. `account-keystore-password` -  the password for the ACME Server account PKCS #12 keystore. The password is populated automatically by the Security Server when communicating with the ACME Server. When ACME is used for the first time, the keystore is generated automatically using this password. If the value of this property is left empty, the Security Server generates a random password and stores it in the acme.yml file. If the value of this property is not empty, the provided value is used as the password for the generated keystore file.
 
 **Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
 
@@ -3645,7 +3646,7 @@ eab-credentials:
 
 # This is a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server.
 # Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password: acmep12Password1234
+account-keystore-password: 
 
 ```
 
