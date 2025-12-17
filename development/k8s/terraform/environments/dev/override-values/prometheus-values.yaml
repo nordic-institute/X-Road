@@ -1,0 +1,28 @@
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      - job_name: 'xroad-jvm-stats'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - ss
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: xroad-.*
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            action: keep
+            regex: 9801
+          - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_container_port_number]
+            action: replace
+            target_label: __address__
+            regex: (.+);(.+)
+            replacement: $1:$2
+          - source_labels: [ __meta_kubernetes_pod_name ]
+            target_label: pod
+          - source_labels: [ __meta_kubernetes_pod_label_app ]
+            target_label: app
+          - source_labels: [ __meta_kubernetes_namespace ]
+            target_label: namespace
+
