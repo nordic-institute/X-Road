@@ -59,15 +59,15 @@
             </span>
           </td>
           <td v-if="index === 0" :rowspan="globalConfStatuses.length">
-            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testGlobalConfDownload()" data-test="central-server-global-conf-test-button" />
+            <XrdBtn
+              variant="text"
+              text="diagnostics.connection.test"
+              data-test="central-server-global-conf-test-button"
+              @click="testGlobalConfDownload()"
+            />
           </td>
         </tr>
-        <XrdEmptyPlaceholderRow
-          :colspan="5"
-          :loading="globalConfLoading"
-          :data="globalConfStatuses"
-          :no-items-text="$t('noData.noData')"
-        />
+        <XrdEmptyPlaceholderRow :colspan="5" :loading="globalConfLoading" :data="globalConfStatuses" :no-items-text="$t('noData.noData')" />
         <tr>
           <td colspan="2" class="font-weight-bold">
             {{ $t('diagnostics.connection.centralServer.authCertRequest') }}
@@ -85,15 +85,15 @@
             </span>
           </td>
           <td>
-            <XrdBtn variant="text" text="diagnostics.connection.test" @click="testAuthCertRequest()" data-test="central-server-auth-cert-test-button" />
+            <XrdBtn
+              variant="text"
+              text="diagnostics.connection.test"
+              data-test="central-server-auth-cert-test-button"
+              @click="testAuthCertRequest()"
+            />
           </td>
         </tr>
-        <XrdEmptyPlaceholderRow
-          :colspan="5"
-          :loading="authCertLoading"
-          :data="authCertReqStatus"
-          :no-items-text="$t('noData.noData')"
-        />
+        <XrdEmptyPlaceholderRow :colspan="5" :loading="authCertLoading" :data="authCertReqStatus" :no-items-text="$t('noData.noData')" />
       </tbody>
     </v-table>
   </XrdCard>
@@ -105,7 +105,7 @@ import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useNotifications, XrdCard, XrdEmptyPlaceholderRow, XrdBtn } from '@niis/shared-ui';
 import type { CodeWithDetails } from '@/openapi-types';
 import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
-import { formatErrorForUi, statusIconType } from "@/util/formatting";
+import { formatErrorForUi, statusIconType } from '@/util/formatting';
 
 export default defineComponent({
   name: 'ConnectionCentralServerView',

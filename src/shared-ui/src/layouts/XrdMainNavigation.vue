@@ -77,7 +77,14 @@
             {{ userName }}
           </v-list-item-title>
         </v-list-item>
-        <v-list v-if="userOptions" v-model:opened="expandedUserOptions" :selected="[currentLanguage]" density="compact" slim @update:selected="changeLanguage">
+        <v-list
+          v-if="userOptions"
+          v-model:opened="expandedUserOptions"
+          :selected="[currentLanguage]"
+          density="compact"
+          slim
+          @update:selected="changeLanguage"
+        >
           <v-list-group>
             <template #activator="{ props }">
               <v-list-item

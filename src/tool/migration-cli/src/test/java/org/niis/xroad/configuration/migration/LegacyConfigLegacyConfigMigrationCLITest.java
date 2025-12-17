@@ -80,6 +80,9 @@ class LegacyConfigLegacyConfigMigrationCLITest {
 
         var result = loadYaml("build/local.yml");
 
+        assertEquals(false, result.getProperty("xroad.management-requests.auto-approve-owner-change-requests"));
+        assertEquals("internalconf", result.getProperty("xroad.admin-service.global-conf-generator.internal-directory"));
+        assertEquals("externalconf", result.getProperty("xroad.admin-service.global-conf-generator.external-directory"));
         assertEquals("0.0.0.0", result.getProperty("xroad.proxy.client-proxy.connector-host"));
         assertEquals(false, result.getProperty("xroad.proxy.client-proxy.pool-enable-connection-reuse"));
         assertEquals(5665, result.getProperty("xroad.configuration-client.port"));

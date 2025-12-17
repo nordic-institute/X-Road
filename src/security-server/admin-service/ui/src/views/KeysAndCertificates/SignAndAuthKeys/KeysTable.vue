@@ -150,8 +150,6 @@ import { Key, KeyUsageType, PossibleAction, TokenCertificate, TokenCertificateSi
 import { Permissions } from '@/global';
 import * as Sorting from './keyColumnSorting';
 import { KeysSortColumn } from './keyColumnSorting';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
@@ -222,7 +220,7 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions(useCsr, ['orderAcmeCertificate']),
+    ...mapActions(useCsr, ['orderAcmeCertificate', 'deleteCsrFromKey', 'registerCertificate']),
     setSort(sort: KeysSortColumn): void {
       // Set sort column and direction
       if (sort === this.selectedSort) {
@@ -280,15 +278,12 @@ export default defineComponent({
         return;
       }
 
-      api
-        .put(`/token-certificates/${this.selectedCert.certificate_details.hash}/register`, { address })
+      this.registerCertificate(this.selectedCert.certificate_details.hash, address)
         .then(() => {
           this.addSuccessMessage('keys.certificateRegistered');
           this.$emit('refresh-list');
         })
-        .catch((error) => {
-          this.addError(error);
-        });
+        .catch((error) => this.addError(error));
     },
     showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {
       this.confirmDeleteCsr = true;
@@ -323,8 +318,7 @@ export default defineComponent({
         return;
       }
 
-      api
-        .remove(`/keys/${encodePathParameter(this.selectedKey.id)}/csrs/${encodePathParameter(this.selectedCsr.id)}`)
+      this.deleteCsrFromKey(this.selectedKey.id, this.selectedCsr.id)
         .then(() => {
           this.addSuccessMessage('keys.csrDeleted');
           this.$emit('refresh-list');

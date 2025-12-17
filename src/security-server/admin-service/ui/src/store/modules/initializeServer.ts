@@ -26,6 +26,8 @@
  */
 
 import { defineStore } from 'pinia';
+import { InitialServerConf } from '@/openapi-types';
+import * as api from '@/util/api';
 
 export const useInitializeServer = defineStore('initializeServer', {
   state: () => {
@@ -60,6 +62,9 @@ export const useInitializeServer = defineStore('initializeServer', {
     },
     storeInitServerSSCode(code: string | undefined) {
       this.securityServerCode = code;
+    },
+    async initializeServer(payload: InitialServerConf) {
+      return api.post('/initialization', payload);
     },
   },
 });

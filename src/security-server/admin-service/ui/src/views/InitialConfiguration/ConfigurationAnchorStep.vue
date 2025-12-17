@@ -76,9 +76,9 @@ import { useNotifications, XrdBtn, XrdDateTime, XrdHashValue, XrdWizardStep, Xrd
 
 import { Anchor } from '@/openapi-types';
 import { useGeneral } from '@/store/modules/general';
-import * as api from '@/util/api';
 
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
+import { useSystem } from '@/store/modules/system';
 
 export default defineComponent({
   components: {
@@ -98,7 +98,8 @@ export default defineComponent({
   emits: ['done'],
   setup() {
     const { addError } = useNotifications();
-    return { addError };
+    const { fetchConfigurationAnchor: apiFetchConfigurationAnchor } = useSystem();
+    return { addError, apiFetchConfigurationAnchor };
   },
   data() {
     return {
@@ -111,9 +112,8 @@ export default defineComponent({
     ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
     // Fetch anchor data so it can be shown in the UI
     fetchConfigurationAnchor() {
-      api
-        .get<Anchor>('/system/anchor')
-        .then((resp) => (this.configurationAnchor = resp.data))
+      this.apiFetchConfigurationAnchor()
+        .then((data) => (this.configurationAnchor = data))
         .catch((error) => this.addError(error));
 
       // Fetch member classes for owner member step after anchor is ready

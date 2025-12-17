@@ -79,7 +79,13 @@ const style = computed(() => {
       case ManagementRequestStatus.WAITING:
         return buildStyle('managementRequests.pending', 'on-warning-container', 'warning__filled', 'text-warning', 'bg-warning-container');
       case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
-        return buildStyle('managementRequests.submitted', 'on-warning-container', 'warning__filled', 'text-warning', 'bg-warning-container');
+        return buildStyle(
+          'managementRequests.submitted',
+          'on-warning-container',
+          'warning__filled',
+          'text-warning',
+          'bg-warning-container',
+        );
     }
   }
   return undefined;

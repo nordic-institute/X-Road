@@ -49,6 +49,11 @@ function sortTokens(tokens: Token[]): Token[] {
   return arr;
 }
 
+function tokenBaseUrl(tokenId: string, path = '') {
+  const encodedId = encodePathParameter(tokenId);
+  return `/tokens/${encodedId}` + path;
+}
+
 export const useTokens = defineStore('tokens', {
   state: () => {
     return {
@@ -168,9 +173,15 @@ export const useTokens = defineStore('tokens', {
       this.selectedToken = token;
     },
 
+    async tokenLogin(tokenId: string, tokenPin: string) {
+      return api.put(`/tokens/${encodePathParameter(tokenId)}/login`, {
+        password: tokenPin,
+      });
+    },
+
     async tokenLogout(id: string) {
       return api
-        .put(`/tokens/${encodePathParameter(id)}/logout`, {})
+        .put(tokenBaseUrl(id, '/logout'), {})
         .then(() => {
           // Update tokens
           this.fetchTokens();
@@ -186,13 +197,13 @@ export const useTokens = defineStore('tokens', {
         old_pin: oldPin,
         new_pin: newPin,
       };
-      return api.put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate).catch((error) => {
+      return api.put(tokenBaseUrl(tokenId, '/pin'), tokenPinUpdate).catch((error) => {
         throw error;
       });
     },
     async updateToken(token: Token) {
       return api
-        .patch<Token>(`/tokens/${encodePathParameter(token.id)}`, token)
+        .patch<Token>(tokenBaseUrl(token.id), token)
         .then((res) => {
           const tokenIndex = this.tokens.findIndex((t) => t.id === token.id);
           this.tokens[tokenIndex] = res.data;
@@ -202,9 +213,7 @@ export const useTokens = defineStore('tokens', {
         });
     },
     async deleteToken(tokenId: string) {
-      const encodedId = encodePathParameter(tokenId);
-
-      return api.remove(`/tokens/${encodedId}`);
+      return api.remove(tokenBaseUrl(tokenId));
     },
   },
 });

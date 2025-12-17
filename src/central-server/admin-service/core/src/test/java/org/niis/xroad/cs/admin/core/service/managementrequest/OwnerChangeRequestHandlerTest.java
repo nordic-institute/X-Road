@@ -43,6 +43,7 @@ import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
@@ -63,7 +64,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static ee.ria.xroad.common.SystemProperties.CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertThrows;
@@ -100,6 +100,7 @@ class OwnerChangeRequestHandlerTest {
     private final ServerClientRepository serverClients = mock(ServerClientRepository.class);
     private final RequestMapper requestMapper = mock(RequestMapper.class);
     private final GlobalGroupMemberService groupMemberService = mock(GlobalGroupMemberService.class);
+    private final ManagementServiceConfigProperties managementServiceConfigProperties = mock(ManagementServiceConfigProperties.class);
     @Mock
     private OwnerChangeRequestEntity ownerChangeRequestEntity;
     @Mock
@@ -115,7 +116,7 @@ class OwnerChangeRequestHandlerTest {
     private XRoadMemberEntity currentOwnerMock;
 
     private final OwnerChangeRequestHandler ownerChangeRequestHandler = new OwnerChangeRequestHandler(members, ownerChangeRequestRepository,
-            serverIds, memberIds, servers, serverClients, groupMemberService, requestMapper);
+            serverIds, memberIds, servers, serverClients, groupMemberService, requestMapper, managementServiceConfigProperties);
 
     private final ClientId clientId = MemberId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
     private final XRoadMemberEntity xRoadMemberEntity =
@@ -127,7 +128,7 @@ class OwnerChangeRequestHandlerTest {
 
     @Test
     void canAutoApproveFalse() {
-        System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "true");
+        when(managementServiceConfigProperties.isAutoApproveOwnerChangeRequests()).thenReturn(true);
         when(members.findMember(clientId)).thenReturn(Optional.empty());
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
@@ -137,7 +138,7 @@ class OwnerChangeRequestHandlerTest {
 
     @Test
     void canAutoApproveFalse2() {
-        System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "false");
+        when(managementServiceConfigProperties.isAutoApproveOwnerChangeRequests()).thenReturn(false);
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
@@ -148,7 +149,7 @@ class OwnerChangeRequestHandlerTest {
 
     @Test
     void canAutoApproveTrue() {
-        System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "true");
+        when(managementServiceConfigProperties.isAutoApproveOwnerChangeRequests()).thenReturn(true);
         when(members.findMember(clientId)).thenReturn(Optional.of(mock(XRoadMemberEntity.class)));
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);

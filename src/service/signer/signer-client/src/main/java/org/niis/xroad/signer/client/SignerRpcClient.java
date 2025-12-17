@@ -85,6 +85,7 @@ import org.niis.xroad.signer.proto.GetTokenByIdReq;
 import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
+import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyReq;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
@@ -135,7 +136,7 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     public static final String SSL_TOKEN_ID = "0";
 
-    private final RpcChannelFactory proxyRpcChannelFactory;
+    private final RpcChannelFactory rpcChannelFactory;
     private final SignerRpcChannelProperties rpcChannelProperties;
 
     private ManagedChannel channel;
@@ -155,7 +156,7 @@ public class SignerRpcClient extends AbstractRpcClient {
     public void init() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
+        channel = rpcChannelFactory.createChannel(rpcChannelProperties);
 
         blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
         blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel).withWaitForReady();
@@ -210,6 +211,30 @@ public class SignerRpcClient extends AbstractRpcClient {
                 () -> blockingTokenService.listTokens(Empty.newBuilder().build())
                         .getTokensList().stream()
                         .map(TokenInfo::new)
+                        .toList()
+        );
+    }
+
+    /**
+     * Gets information about all software token keys.
+     * <p>
+     * Retrieves all keys from all software tokens with their private keys
+     * and availability status to softtoken-signer instances.
+     *
+     * @return a List of SoftwareTokenKeyDto objects
+     */
+    public List<SoftwareTokenKeyDto> listSoftwareTokenKeys() {
+        log.debug("Listing software token keys for synchronization");
+        return exec(
+                () -> blockingKeyService.listSoftwareTokenKeys(Empty.newBuilder().build())
+                        .getKeysList().stream()
+                        .map(keyInfo -> new SoftwareTokenKeyDto(
+                                keyInfo.getKeyId(),
+                                keyInfo.getPrivateKey().toByteArray(),
+                                keyInfo.getKeyAvailable(),
+                                keyInfo.getKeyLabel(),
+                                keyInfo.getSignMechanism()
+                        ))
                         .toList()
         );
     }
@@ -860,6 +885,14 @@ public class SignerRpcClient extends AbstractRpcClient {
         );
     }
 
+    public Boolean isSoftTokenBased(String keyId) {
+        return exec(
+                () -> blockingKeyService.isSoftwareBasedKey(IsSoftTokenBasedKeyReq.newBuilder()
+                        .setKeyId(keyId)
+                        .build()).getSoftTokenBased()
+        );
+    }
+
     public Boolean isTokenBatchSigningEnabled(String keyId) {
         return exec(
                 () -> blockingTokenService.getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq.newBuilder()
@@ -979,6 +1012,15 @@ public class SignerRpcClient extends AbstractRpcClient {
     }
 
     public record KeyIdInfo(String keyId, SignMechanism signMechanismName) {
+    }
+
+    public record SoftwareTokenKeyDto(
+            String keyId,
+            byte[] privateKey,
+            boolean keyAvailable,
+            String keyLabel,
+            String signMechanism
+    ) {
     }
 
 }

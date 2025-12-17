@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.transaction.Transactional;
@@ -43,6 +42,7 @@ import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
@@ -90,10 +90,11 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     private final GlobalGroupMemberService groupMemberService;
 
     private final RequestMapper requestMapper;
+    private final ManagementServiceConfigProperties managementServiceConfigProperties;
 
     @Override
     public boolean canAutoApprove(OwnerChangeRequest request) {
-        return SystemProperties.getCenterAutoApproveOwnerChangeRequests()
+        return managementServiceConfigProperties.isAutoApproveOwnerChangeRequests()
                 && members.findMember(request.getClientId()).isPresent();
     }
 

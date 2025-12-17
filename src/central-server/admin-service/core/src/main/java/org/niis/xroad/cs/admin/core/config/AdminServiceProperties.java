@@ -76,6 +76,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         UserRoleConfig,
         KeyAlgorithmConfig,
         UserAuthenticationConfig,
+        FederationConfig,
+        BackupConfig,
         AllowListConfig {
 
     /**
@@ -157,7 +159,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      * incompatible identifier.
      */
     private boolean strictIdentifierChecks;
-    /** Configures Api regular request size limit.  */
+    /** Configures Api regular request size limit. */
     private DataSize requestSizeLimitRegular;
 
     /** Configures Api file upload request size limit. */
@@ -176,6 +178,11 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private AuthenticationProviderType authenticationProvider;
 
     private boolean enforceUserPasswordPolicy;
+
+    /** Whether configuration of trusted anchors is enabled in the central server UI, 'true' by default. */
+    private boolean trustedAnchorsAllowed;
+    /** path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default. */
+    private String confBackupPath;
 
     /** Default whitelist for key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";

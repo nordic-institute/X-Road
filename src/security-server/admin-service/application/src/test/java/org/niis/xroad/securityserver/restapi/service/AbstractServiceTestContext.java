@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
-import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
@@ -71,8 +70,6 @@ import static org.mockito.Mockito.when;
  * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  */
 public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTestContext {
-    @MockitoBean
-    BackupRepository backupRepository;
     @MockitoBean
     ClientRepository clientRepository;
     @MockitoBean

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.transaction.Transactional;
@@ -41,6 +40,7 @@ import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -85,10 +85,11 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     private final ServerClientRepository serverClientRepository;
     private final RequestMapper requestMapper;
     private final MemberHelper memberHelper;
+    private final ManagementServiceConfigProperties managementServiceConfigProperties;
 
     @Override
     public boolean canAutoApprove(ClientRegistrationRequest request) {
-        return (SystemProperties.getCenterAutoApproveClientRegRequests()
+        return (managementServiceConfigProperties.isAutoApproveClientRegRequests()
                 || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
                 && request.getOrigin() == SECURITY_SERVER
                 && servers.count(request.getSecurityServerId()) > 0

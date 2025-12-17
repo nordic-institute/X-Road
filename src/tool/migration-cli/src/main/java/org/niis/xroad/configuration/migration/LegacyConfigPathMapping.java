@@ -108,6 +108,11 @@ public class LegacyConfigPathMapping {
         addMapping("message-log.max-loggable-message-body-size", "proxy.message-log.max-loggable-message-body-size");
         addMapping("message-log.truncated-body-allowed", "proxy.message-log.truncated-body-allowed");
 
+        addMapping("message-log.enabled-body-logging-local-producer-subsystems", "proxy.message-log.enabled-body-logging-local-producer-subsystems");
+        addMapping("message-log.enabled-body-logging-remote-producer-subsystems", "proxy.message-log.enabled-body-logging-remote-producer-subsystems");
+        addMapping("message-log.disabled-body-logging-local-producer-subsystems", "proxy.message-log.disabled-body-logging-local-producer-subsystems");
+        addMapping("message-log.disabled-body-logging-remote-producer-subsystems", "proxy.message-log.disabled-body-logging-remote-producer-subsystems");
+
         // message-log - hash/digest algorithm
         addMapping("message-log.hash-algo-id", "proxy.message-log.hash-algo-id");
 
@@ -148,11 +153,28 @@ public class LegacyConfigPathMapping {
         // proxy-ui
         addMapping("proxy-ui-api.security-server-url", "proxy-ui-api.proxy-server-url");
 
+        // center
+        addMapping("center.minimum-global-configuration-version", "global-conf-generator.minimum-global-configuration-version");
+        addMapping("center.internal-directory", "admin-service.global-conf-generator.internal-directory");
+        addMapping("center.external-directory", "admin-service.global-conf-generator.external-directory");
+        addMapping("center.generated-conf-dir", "admin-service.global-conf-generator.generated-conf-dir");
+        addMapping("center.trusted-anchors-allowed", "admin-service.trusted-anchors-allowed");
+        addMapping("center.conf-backup-path", "admin-service.conf-backup-path");
+
+        addMapping("center.auto-approve-owner-change-requests", "management-requests.auto-approve-owner-change-requests");
+        addMapping("center.auto-approve-client-reg-requests", "management-requests.auto-approve-client-reg-requests");
+        addMapping("center.auto-approve-auth-cert-reg-requests", "management-requests.auto-approve-auth-cert-reg-requests");
+        addMapping("center.ha-node-name", "admin-service.ha-node-name");
+        addMapping("center.backup-encryption-enabled", "backups.backup-encryption-enabled");
+        addMapping("center.backup-encryption-keyids", "backups.backup-encryption-keyids");
+
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));
         MAPPING.putAll(addDatabaseMapping("op-monitor"));
 
         // ----- removed keys ------------
+        REMOVED_KEYS.add("conf.path");
+        REMOVED_KEYS.add("center.database-properties");
         REMOVED_KEYS.add("proxy-ui-api.ssl-properties");
         REMOVED_KEYS.add("proxy.configuration-anchor-file");
         REMOVED_KEYS.add("proxy.database-properties");

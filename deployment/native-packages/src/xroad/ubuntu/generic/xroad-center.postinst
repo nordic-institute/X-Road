@@ -11,6 +11,9 @@ abort() {
 }
 log() { echo "xroad-center: $*" >&2; }
 get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
+get_yaml_prop() {
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+}
 
 gen_pw() {
   head -c 24 /dev/urandom | base64 | tr "/+" "_-"
@@ -204,7 +207,7 @@ split_ip_dns() {
 }
 
 prepare_certificates_settings() {
-  INI_FILE="/etc/xroad/conf.d/local.ini"
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
   HOST=$(hostname -f)
   if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"
@@ -213,9 +216,9 @@ prepare_certificates_settings() {
   for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
   ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
-  if [[ -z $(crudini --get "$INI_FILE" admin-service.tls.certificate-provisioning common-name 2>/dev/null) && \
-        -z $(crudini --get "$INI_FILE" admin-service.tls.certificate-provisioning alt-names 2>/dev/null) && \
-        -z $(crudini --get "$INI_FILE" admin-service.tls.certificate-provisioning ip-subject-alt-names 2>/dev/null) ]]; then
+  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
 
     log "Preparing center-admin-service certificate properties"
     db_subst xroad-common/admin-subject HOST "$HOST"
@@ -238,19 +241,20 @@ prepare_certificates_settings() {
     altn="$RET"
 
     read ip_list dns_list < <(split_ip_dns "$altn")
-    crudini --set "$INI_FILE" admin-service.tls.certificate-provisioning common-name "$subj"
-    crudini --set "$INI_FILE" admin-service.tls.certificate-provisioning alt-names "$dns_list"
-    crudini --set "$INI_FILE" admin-service.tls.certificate-provisioning ip-subject-alt-names "$ip_list"
+
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name" "$subj"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names" "$dns_list"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
   else
     log "Center-admin-service certificate properties are set, skipping"
   fi
 
-  if [[ -z $(crudini --get "$INI_FILE" registration-service.tls.certificate-provisioning common-name 2>/dev/null) && \
-        -z $(crudini --get "$INI_FILE" registration-service.tls.certificate-provisioning alt-names 2>/dev/null) && \
-        -z $(crudini --get "$INI_FILE" registration-service.tls.certificate-provisioning ip-subject-alt-names 2>/dev/null) && \
-        -z $(crudini --get "$INI_FILE" management-service.tls.certificate-provisioning common-name 2>/dev/null) && \
-        -z $(crudini --get "$INI_FILE" management-service.tls.certificate-provisioning alt-names 2>/dev/null) && \
-        -z $(crudini --get "$INI_FILE" management-service.tls.certificate-provisioning ip-subject-alt-names 2>/dev/null) ]]; then
+  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names") && \
+        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
 
     log "Preparing management and registration service certificate properties"
     db_subst xroad-common/service-subject HOST "$HOST"
@@ -273,13 +277,14 @@ prepare_certificates_settings() {
     altn="$RET"
 
     read ip_list dns_list < <(split_ip_dns "$altn")
-    crudini --set "$INI_FILE" registration-service.tls.certificate-provisioning common-name "$subj"
-    crudini --set "$INI_FILE" registration-service.tls.certificate-provisioning alt-names "$dns_list"
-    crudini --set "$INI_FILE" registration-service.tls.certificate-provisioning ip-subject-alt-names "$ip_list"
 
-    crudini --set "$INI_FILE" management-service.tls.certificate-provisioning common-name "$subj"
-    crudini --set "$INI_FILE" management-service.tls.certificate-provisioning alt-names "$dns_list"
-    crudini --set "$INI_FILE" management-service.tls.certificate-provisioning ip-subject-alt-names "$ip_list"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name" "$subj"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names" "$dns_list"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
+
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name" "$subj"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names" "$dns_list"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
   else
     log "Management and registration service certificate properties are set, skipping"
   fi

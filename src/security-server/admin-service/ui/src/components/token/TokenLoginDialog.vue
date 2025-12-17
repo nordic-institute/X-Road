@@ -58,8 +58,6 @@
 import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { Token } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { useAlerts } from '@/store/modules/alerts';
 import { useTokens } from '@/store/modules/tokens';
 import { useField } from 'vee-validate';
@@ -76,6 +74,7 @@ export default defineComponent({
   emits: ['cancel', 'save'],
   setup() {
     const { addSuccessMessage, addError } = useNotifications();
+    const { tokenLogin } = useTokens();
     const { value, meta, errors, setErrors, resetField } = useField('tokenPin', 'required', { initialValue: '' });
     return {
       tokenPin: value,
@@ -85,6 +84,7 @@ export default defineComponent({
       resetField,
       addSuccessMessage,
       addError,
+      tokenLogin,
     };
   },
   data() {
@@ -110,10 +110,7 @@ export default defineComponent({
       const token: Token = this.selectedToken;
 
       this.loading = true;
-      api
-        .put(`/tokens/${encodePathParameter(token.id)}/login`, {
-          password: this.tokenPin,
-        })
+      this.tokenLogin(token.id, this.tokenPin)
         .then(() => {
           this.loading = false;
           this.addSuccessMessage('keys.loggedIn');

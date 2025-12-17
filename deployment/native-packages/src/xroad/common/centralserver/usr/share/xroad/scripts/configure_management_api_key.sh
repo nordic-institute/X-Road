@@ -7,7 +7,8 @@ encode_token() {
 }
 
 api_token_configured() {
-  local token=$(crudini --get /etc/xroad/conf.d/local.ini "$1" api-token 2>/dev/null)
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
+  local token= $(/usr/share/xroad/scripts/yaml_helper.sh get "$CONFIG_FILE" "xroad.${1}.api-token")
   if [[ -z "$token" ]]; then
     echo "api-token property not configured for $1"
     return 1
@@ -60,6 +61,6 @@ else
         echo "Failed to finish configuring new API KEY"
         exit 1
   fi
-  crudini --set /etc/xroad/conf.d/local.ini "$1" api-token "$token"
+  /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.${1}.api-token" "$token"
   echo "New API KEY successfully configured"
 fi

@@ -32,11 +32,10 @@
 
     <XrdSubView>
       <ConnectionCentralServerView class="mt-0" />
-    </XrdSubView>
 
-    <XrdSubView>
       <template v-if="!loading">
-        <ConnectionSecurityServerView class="mt-0" />
+        <ConnectionSecurityServerView class="mt-4" />
+        <ConnectionManagementView class="mt-4" />
       </template>
 
       <XrdEmptyPlaceholder
@@ -47,21 +46,6 @@
         :skeleton-count="1"
       />
     </XrdSubView>
-
-    <XrdSubView>
-      <template v-if="!loading">
-        <ConnectionManagementView class="mt-0" />
-      </template>
-
-      <XrdEmptyPlaceholder
-        :data="xRoadInstances"
-        :loading="loading"
-        :no-items-text="$t('noData.noData')"
-        skeleton-type="table-heading"
-        :skeleton-count="1"
-      />
-    </XrdSubView>
-
   </XrdView>
 </template>
 
@@ -85,13 +69,13 @@ export default defineComponent({
     XrdView,
     ConnectionManagementView,
     ConnectionSecurityServerView,
-    ConnectionCentralServerView
+    ConnectionCentralServerView,
   },
 
   data() {
     return {
-      loading: false
-    }
+      loading: false,
+    };
   },
 
   computed: {
@@ -99,21 +83,17 @@ export default defineComponent({
   },
 
   async created() {
-    this.loading = true
+    this.loading = true;
     try {
-      await Promise.all([
-        this.fetchXRoadInstances(),
-        this.fetchClients(),
-      ])
-
+      await Promise.all([this.fetchXRoadInstances(), this.fetchClients()]);
     } finally {
-      this.loading = false
+      this.loading = false;
     }
   },
 
   methods: {
     ...mapActions(useGeneral, ['fetchXRoadInstances']),
-    ...mapActions(useClients, ['fetchClients'])
-  }
+    ...mapActions(useClients, ['fetchClients']),
+  },
 });
 </script>

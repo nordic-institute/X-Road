@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,7 +50,7 @@ class MessageLogIniToDbMigratorTest {
 
         // Then: Should have indexed properties for all members
         assertNotNull(properties);
-        assertTrue(properties.size() > 0, "Should have loaded properties");
+        assertFalse(properties.isEmpty(), "Should have loaded properties");
 
         // TEST/GOV/1234 has 2 keys
         assertNotNull(properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/GOV/1234\"[0]"));

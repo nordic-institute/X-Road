@@ -30,6 +30,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.CERT_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.CSR_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_AVAILABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.LOGIN_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.LOGOUT_FAILED;
@@ -92,7 +93,7 @@ public final class ExceptionHelper {
      * @return exception indicating a key is not available
      */
     public static XrdRuntimeException keyNotAvailable(String keyId) {
-        return XrdRuntimeException.systemException(KEY_NOT_FOUND, "Key '%s' not available".formatted(keyId));
+        return XrdRuntimeException.systemException(KEY_NOT_AVAILABLE, "Key '%s' not available".formatted(keyId));
     }
 
     /**

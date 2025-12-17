@@ -62,10 +62,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { PublicPathState, useForm } from 'vee-validate';
 import { DialogSaveHandler, useNotifications, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
+import { useLocalGroups } from '@/store/modules/local-groups';
 
 export default defineComponent({
   components: {
@@ -82,6 +81,7 @@ export default defineComponent({
   emits: ['cancel', 'group-added'],
   setup() {
     const { addSuccessMessage } = useNotifications();
+    const { addLocalGroup } = useLocalGroups();
     const { meta, defineField, resetForm } = useForm({
       validationSchema: {
         code: 'required|max:255',
@@ -107,6 +107,7 @@ export default defineComponent({
       descriptionAttrs,
       resetForm,
       addSuccessMessage,
+      addLocalGroup,
     };
   },
   data() {
@@ -121,11 +122,7 @@ export default defineComponent({
     },
     save(evt: Event, handler: DialogSaveHandler): void {
       this.saving = true;
-      api
-        .post(`/clients/${encodePathParameter(this.id)}/local-groups`, {
-          code: this.code,
-          description: this.description,
-        })
+      this.addLocalGroup(this.id, this.code as string, this.description as string)
         .then(() => {
           this.addSuccessMessage('localGroup.localGroupAdded');
           this.$emit('group-added');

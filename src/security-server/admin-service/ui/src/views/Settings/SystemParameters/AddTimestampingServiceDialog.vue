@@ -75,11 +75,10 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import { TimestampingService } from '@/openapi-types';
-import { sortTimestampingServices } from '@/util/sorting';
 import { XrdSimpleDialog, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
+import { useTimestampingServices } from '@/store/modules/timestamping-services';
 
 export default defineComponent({
   components: {
@@ -97,9 +96,12 @@ export default defineComponent({
   emits: ['added'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
+    const { addTimestampingService, fetchApprovedAndSortedTimestampingServices } = useTimestampingServices();
     return {
       addError,
       addSuccessMessage,
+      addTimestampingService,
+      fetchApprovedAndSortedTimestampingServices,
     };
   },
   data() {
@@ -130,15 +132,16 @@ export default defineComponent({
       this.show = true;
     },
     fetchApprovedTimestampingServices(): void {
-      api
-        .get<TimestampingService[]>('/timestamping-services')
-        .then((resp) => (this.approvedTimestampingServices = sortTimestampingServices(resp.data)))
+      this.fetchApprovedAndSortedTimestampingServices()
+        .then((sorted) => (this.approvedTimestampingServices = sorted))
         .catch((error) => this.addError(error));
     },
     add(): void {
+      if (!this.selectedTimestampingService) {
+        return;
+      }
       this.loading = true;
-      api
-        .post('/system/timestamping-services', this.selectedTimestampingService)
+      this.addTimestampingService(this.selectedTimestampingService)
         .then(() => {
           this.addSuccessMessage('systemParameters.timestampingServices.action.add.dialog.success');
           this.$emit('added');

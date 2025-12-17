@@ -48,9 +48,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { XrdBtn, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
+import { useClient } from '@/store/modules/client';
 
 export default defineComponent({
   components: { XrdBtn, XrdSimpleDialog },
@@ -63,7 +62,8 @@ export default defineComponent({
   emits: ['done'],
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
+    const { makeOwner: apiMakeOwner } = useClient();
+    return { addError, addSuccessMessage, apiMakeOwner };
   },
   data() {
     return {
@@ -75,14 +75,9 @@ export default defineComponent({
     makeOwner(): void {
       this.makeOwnerLoading = true;
 
-      api
-        .put(`/clients/${encodePathParameter(this.id)}/make-owner`, {})
-        .then(
-          () => {
-            this.addSuccessMessage('client.action.makeOwner.success');
-          },
-          (error) => this.addError(error),
-        )
+      this.apiMakeOwner(this.id)
+        .then(() => this.addSuccessMessage('client.action.makeOwner.success'))
+        .catch((error) => this.addError(error))
         .finally(() => {
           this.$emit('done', this.id);
           this.confirmMakeOwner = false;

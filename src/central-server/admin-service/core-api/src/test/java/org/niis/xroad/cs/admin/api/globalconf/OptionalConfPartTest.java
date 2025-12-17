@@ -39,6 +39,8 @@ import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashSet;
 import java.util.List;
@@ -52,7 +54,7 @@ import static org.junit.Assert.assertTrue;
  * Tests to verify correct optional configuration parts behavior.
  */
 public class OptionalConfPartTest {
-    private static final String CONF_DIR = "src/test/resources/configuration-parts-OPT";
+    private static final Path CONF_DIR = Paths.get("src/test/resources/configuration-parts-OPT");
     private static final String MESSAGE_CONVERTER_FILE = CONF_DIR + File.separator + "message-converter.ini";
 
     @Rule
@@ -60,7 +62,6 @@ public class OptionalConfPartTest {
 
     /**
      * Test to ensure test configuration part content identifier can be read.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -88,7 +89,7 @@ public class OptionalConfPartTest {
 
     @Test
     public void shouldGetPartFileNameThrowException() {
-        String confDir = "src/test/resources/configuration-parts";
+        var confDir = Paths.get("src/test/resources/configuration-parts");
         OptionalPartsConf conf = new OptionalPartsConf(confDir);
 
         assertThrows(XrdRuntimeException.class, () -> conf.getPartFileName("NOT-EXISTING"));
@@ -96,7 +97,6 @@ public class OptionalConfPartTest {
 
     /**
      * Test to ensure all configuration parts in the directory can be read.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -121,7 +121,6 @@ public class OptionalConfPartTest {
     /**
      * Test to ensure errors are added when cannot read the configuration parts
      * file.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -145,13 +144,12 @@ public class OptionalConfPartTest {
 
     /**
      * Test to ensure the optional parts list is empty if directory does not exist.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
     public void shouldReturnEmptyListWhenNoConfDirectory() {
         // Given
-        String confDir = "src/test/resources/configuration-parts-NONEXISTENT";
+        var confDir = Paths.get("src/test/resources/configuration-parts-NONEXISTENT");
         OptionalPartsConf conf = new OptionalPartsConf(confDir);
 
         // When
@@ -163,13 +161,12 @@ public class OptionalConfPartTest {
 
     /**
      * Test to ensure malformed files are skipped.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
     public void shouldSkipFileWhenMalformed() {
         // Given
-        String confDir = "src/test/resources/configuration-parts-MALFORMED_FILE";
+        var confDir = Paths.get("src/test/resources/configuration-parts-MALFORMED_FILE");
         OptionalPartsConf conf = new OptionalPartsConf(confDir);
 
         // When
@@ -181,7 +178,6 @@ public class OptionalConfPartTest {
 
     /**
      * Test to ensure reserved filenames are not allowed in configuration parts.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -191,7 +187,6 @@ public class OptionalConfPartTest {
 
     /**
      * Test to ensure reserved content IDs are not allowed in configuration parts.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -201,7 +196,6 @@ public class OptionalConfPartTest {
 
     /**
      * Test to ensure duplicate filenames are not allowed in configuration parts.
-     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -212,7 +206,7 @@ public class OptionalConfPartTest {
     private void testMalformedConf(String confDir) {
         thrown.expectError(ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF.code());
 
-        new OptionalPartsConf(confDir);
+        new OptionalPartsConf(Paths.get(confDir));
     }
 
     private AnyOf<String> containsPermissionDenied() {

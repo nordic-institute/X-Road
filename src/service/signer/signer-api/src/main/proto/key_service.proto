@@ -45,6 +45,10 @@ service KeyService {
   rpc DeleteKey(DeleteKeyReq) returns (Empty) {}
 
   rpc GetAuthKey(GetAuthKeyReq) returns (AuthKeyProto) {}
+
+  rpc IsSoftwareBasedKey(IsSoftTokenBasedKeyReq) returns (IsSoftTokenBasedKeyResp) {}
+
+  rpc ListSoftwareTokenKeys(Empty) returns (ListSoftwareTokenKeysResp) {}
 }
 
 service SignService {
@@ -130,4 +134,24 @@ message AuthKeyProto {
   bytes keyStore = 2; // PKCS#12 keystore
   string password = 3;
   CertificateInfoProto cert = 4;
+}
+
+message IsSoftTokenBasedKeyReq {
+  string key_id = 1;
+}
+
+message IsSoftTokenBasedKeyResp {
+  bool soft_token_based = 1;
+}
+
+message SoftwareTokenKeyInfo {
+  string key_id = 1;
+  bytes private_key = 2;
+  bool key_available = 3;
+  string key_label = 4;
+  string sign_mechanism = 5;
+}
+
+message ListSoftwareTokenKeysResp {
+  repeated SoftwareTokenKeyInfo keys = 1;
 }

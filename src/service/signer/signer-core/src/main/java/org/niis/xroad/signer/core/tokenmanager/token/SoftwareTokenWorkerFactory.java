@@ -52,6 +52,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
@@ -75,7 +76,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.CertPath;
 import java.security.cert.CertificateException;
@@ -83,14 +83,13 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_POLICY_FAILURE;
-import static org.niis.xroad.common.core.exception.ErrorCode.UNSUPPORTED_SIGN_ALGORITHM;
+import static org.niis.xroad.signer.common.SigningUtil.checkSignatureAlgorithm;
 import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotFound;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
@@ -106,18 +105,6 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotActive;
 @RequiredArgsConstructor
 public class SoftwareTokenWorkerFactory {
 
-    private static final Set<SignAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
-            SignAlgorithm.SHA1_WITH_RSA,
-            SignAlgorithm.SHA256_WITH_RSA,
-            SignAlgorithm.SHA384_WITH_RSA,
-            SignAlgorithm.SHA512_WITH_RSA,
-
-            SignAlgorithm.SHA1_WITH_ECDSA,
-            SignAlgorithm.SHA256_WITH_ECDSA,
-            SignAlgorithm.SHA384_WITH_ECDSA,
-            SignAlgorithm.SHA512_WITH_ECDSA
-    );
-
     private final SignerProperties signerProperties;
     private final TokenManager tokenManager;
     private final KeyManager keyManager;
@@ -126,12 +113,13 @@ public class SoftwareTokenWorkerFactory {
     private final TokenPinManager pinManager;
     private final TokenRegistry tokenRegistry;
     private final KeyManagers keyManagers;
+    private final SignatureGenerator signatureGenerator;
 
     public SoftwareTokenWorker create(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
         return new SoftwareTokenWorker(tokenInfo, tokenDefinition);
     }
 
-    public class SoftwareTokenWorker extends AbstractTokenWorker {
+    public final class SoftwareTokenWorker extends AbstractTokenWorker {
         private final Map<String, PrivateKey> privateKeys = new ConcurrentHashMap<>();
         private final TokenDefinition tokenDefinition;
 
@@ -142,7 +130,7 @@ public class SoftwareTokenWorkerFactory {
          *
          * @param tokenInfo the token info
          */
-        public SoftwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
+        private SoftwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
             super(tokenInfo,
                     SoftwareTokenWorkerFactory.this.tokenManager,
                     SoftwareTokenWorkerFactory.this.keyManager,
@@ -252,35 +240,7 @@ public class SoftwareTokenWorkerFactory {
 
             PrivateKey key = getPrivateKey(keyId);
 
-            var keyAlgorithm = KeyAlgorithm.valueOf(key.getAlgorithm());
-            checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
-
-            if (!keyAlgorithm.equals(signatureAlgorithmId.algorithm())) {
-                throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
-                        "Unsupported signature algorithm '%s' for key algorithm '%s'".formatted(signatureAlgorithmId.name(), keyAlgorithm));
-            }
-
-            log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
-
-
-            SignAlgorithm signAlgorithm = keyManagers.getFor(keyAlgorithm).getSoftwareTokenSignAlgorithm();
-            Signature signature = Signature.getInstance(signAlgorithm.name(), BOUNCY_CASTLE);
-            signature.initSign(key);
-            signature.update(data);
-
-            return signature.sign();
-        }
-
-        private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) {
-            if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
-                throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
-                        "Unsupported signature algorithm '%s'".formatted(signatureAlgorithmId.name()));
-            }
-
-            if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
-                throw XrdRuntimeException.systemException(UNSUPPORTED_SIGN_ALGORITHM,
-                        "Unsupported signature algorithm '%s' for key algorithm '%s'".formatted(signatureAlgorithmId.name(), algorithm));
-            }
+            return signatureGenerator.sign(key, signatureAlgorithmId, data);
         }
 
         @Override

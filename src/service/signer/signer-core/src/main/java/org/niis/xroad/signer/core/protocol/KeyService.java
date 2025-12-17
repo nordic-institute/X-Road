@@ -34,6 +34,8 @@ import org.niis.xroad.signer.core.protocol.handler.GenerateKeyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetAuthKeyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetKeyIdForCertHashReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetSignMechanismReqHandler;
+import org.niis.xroad.signer.core.protocol.handler.IsSoftwareTokenBasedKeyReqHandler;
+import org.niis.xroad.signer.core.protocol.handler.ListSoftwareTokenKeysReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.SetKeyFriendlyNameReqHandler;
 import org.niis.xroad.signer.proto.AuthKeyProto;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
@@ -43,7 +45,10 @@ import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
+import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyReq;
+import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyResp;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
+import org.niis.xroad.signer.proto.ListSoftwareTokenKeysResp;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 
@@ -60,6 +65,8 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     private final SetKeyFriendlyNameReqHandler setKeyFriendlyNameReqHandler;
     private final DeleteKeyReqHandler deleteKeyReqHandler;
     private final GetAuthKeyReqHandler getAuthKeyReqHandler;
+    private final ListSoftwareTokenKeysReqHandler listSoftwareTokenKeysReqHandler;
+    private final IsSoftwareTokenBasedKeyReqHandler isSoftwareTokenBasedKeyReqHandler;
 
     @Override
     public void getKeyIdForCertHash(GetKeyIdForCertHashReq request, StreamObserver<GetKeyIdForCertHashResp> responseObserver) {
@@ -67,7 +74,7 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     }
 
     @Override
-    public void setKeyFriendlyName(SetKeyFriendlyNameReq request, StreamObserver<org.niis.xroad.rpc.common.Empty> responseObserver) {
+    public void setKeyFriendlyName(SetKeyFriendlyNameReq request, StreamObserver<Empty> responseObserver) {
         setKeyFriendlyNameReqHandler.processSingle(request, responseObserver);
     }
 
@@ -89,5 +96,15 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     @Override
     public void getAuthKey(GetAuthKeyReq request, StreamObserver<AuthKeyProto> responseObserver) {
         getAuthKeyReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void listSoftwareTokenKeys(Empty request, StreamObserver<ListSoftwareTokenKeysResp> responseObserver) {
+        listSoftwareTokenKeysReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void isSoftwareBasedKey(IsSoftTokenBasedKeyReq request, StreamObserver<IsSoftTokenBasedKeyResp> responseObserver) {
+        isSoftwareTokenBasedKeyReqHandler.processSingle(request, responseObserver);
     }
 }

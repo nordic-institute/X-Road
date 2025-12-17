@@ -24,11 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {
-  type CodeWithDetails,
-} from '@/openapi-types';
+import { type CodeWithDetails } from '@/openapi-types';
 import { i18n, Status } from '@niis/shared-ui';
-
 
 export function formatErrorForUi(err?: CodeWithDetails): string {
   if (!err) return '';
@@ -50,13 +47,13 @@ export function formatErrorForUi(err?: CodeWithDetails): string {
   const veEntries = Object.entries(validation_errors);
   const veText = veEntries.length
     ? veEntries
-      .map(([field, msgs]) => {
-        const labelKey = buildKey(field);
-        const translated = labelKey ? t(labelKey) : '';
-        const label = translated || field;
-        return `${label}: ${msgs.join(', ')}`;
-      })
-      .join(' | ')
+        .map(([field, msgs]) => {
+          const labelKey = buildKey(field);
+          const translated = labelKey ? t(labelKey) : '';
+          const label = translated || field;
+          return `${label}: ${msgs.join(', ')}`;
+        })
+        .join(' | ')
     : '';
 
   return [header, veText].filter(Boolean).join(' | ');

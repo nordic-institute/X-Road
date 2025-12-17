@@ -144,7 +144,7 @@
         <span class="pl-4" :class="{ 'opacity-60': !messageLogEnabled }">
           {{ $t('systemParameters.servicePrioritizationStrategy.timestamping.label') }}
           <strong data-test="timestamping-prioritization-strategy">{{ timestampingPrioritizationStrategy }}</strong>
-          {{ ' - ' }}
+          {{ separator }}
           {{ $t(`systemParameters.servicePrioritizationStrategy.timestamping.${timestampingPrioritizationStrategy}`) }}
         </span>
         <v-table class="xrd">
@@ -189,7 +189,7 @@
         <span class="pl-4">
           {{ $t('systemParameters.servicePrioritizationStrategy.ocsp.label') }}
           <strong data-test="ocsp-prioritization-strategy">{{ ocspPrioritizationStrategy }}</strong>
-          {{ ' - ' }}
+          {{ separator }}
           {{ $t(`systemParameters.servicePrioritizationStrategy.ocsp.${ocspPrioritizationStrategy}`) }}
         </span>
         <v-table class="xrd">
@@ -293,8 +293,7 @@ import {
   XrdStatusIcon,
   saveResponseAsFile,
 } from '@niis/shared-ui';
-import { AddOnStatus, Anchor, CertificateAuthority, SecurityServerAddressStatus, TimestampingService } from '@/openapi-types';
-import * as api from '@/util/api';
+import { Anchor, CertificateAuthority, TimestampingService, ServicePrioritizationStrategy } from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
@@ -302,9 +301,12 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
-import { sortTimestampingServices } from '@/util/sorting';
 import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
+import { useSystem } from '@/store/modules/system';
+import { useDiagnostics } from '@/store/modules/diagnostics';
+import { useTimestampingServices } from '@/store/modules/timestamping-services';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default defineComponent({
   components: {
@@ -327,7 +329,26 @@ export default defineComponent({
   },
   setup() {
     const { addError } = useNotifications();
-    return { addError };
+    const {
+      fetchConfigurationAnchor: apiFetchConfigurationAnchor,
+      downloadAnchor: apiDownloadAnchor,
+      fetchSecurityServerAddress,
+    } = useSystem();
+    const { fetchAddonStatus } = useDiagnostics();
+    const { fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy } =
+      useTimestampingServices();
+    const { searchCertificateAuthorities, fetchCertificateAuthoritiesPrioritizationStrategy } = useCsr();
+    return {
+      addError,
+      apiFetchConfigurationAnchor,
+      fetchAddonStatus,
+      fetchSortedTimestampingServiced,
+      apiFetchTimestampingPrioritizationStrategy,
+      searchCertificateAuthorities,
+      fetchCertificateAuthoritiesPrioritizationStrategy,
+      apiDownloadAnchor,
+      fetchSecurityServerAddress,
+    };
   },
   data() {
     return {
@@ -346,6 +367,7 @@ export default defineComponent({
       showEditServerAddressDialog: false,
       addressChangeInProgress: false,
       serverAddress: '',
+      separator: ' - ',
     };
   },
   computed: {
@@ -378,63 +400,55 @@ export default defineComponent({
   methods: {
     async fetchConfigurationAnchor() {
       this.loadingAnchor = true;
-      return api
-        .get<Anchor>('/system/anchor')
-        .then((resp) => (this.configurationAnchor = resp.data))
+      return this.apiFetchConfigurationAnchor()
+        .then((data) => (this.configurationAnchor = data))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingAnchor = false));
     },
     async fetchMessageLogEnabled() {
       this.loadingMessageLogEnabled = true;
-      return api
-        .get<AddOnStatus>('/diagnostics/addon-status')
-        .then((resp) => (this.messageLogEnabled = resp.data.messagelog_enabled))
+      return this.fetchAddonStatus()
+        .then((data) => (this.messageLogEnabled = data.messagelog_enabled))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingMessageLogEnabled = false));
     },
     async fetchConfiguredTimestampingServiced() {
       this.loadingTimestampingservices = true;
-      return api
-        .get<TimestampingService[]>('/system/timestamping-services')
-        .then((resp) => (this.configuredTimestampingServices = sortTimestampingServices(resp.data)))
+      return this.fetchSortedTimestampingServiced()
+        .then((sorted) => (this.configuredTimestampingServices = sorted))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },
     async fetchTimestampingPrioritizationStrategy() {
-      return api
-        .get<ServicePrioritizationStrategy>('/system/timestamping-services/prioritization-strategy')
-        .then((resp) => (this.timestampingPrioritizationStrategy = resp.data))
-        .catch((error) => this.showError(error));
+      return this.apiFetchTimestampingPrioritizationStrategy()
+        .then((data) => (this.timestampingPrioritizationStrategy = data))
+        .catch((error) => this.addError(error));
     },
     async fetchApprovedCertificateAuthorities() {
       this.loadingCAs = true;
-      return api
-        .get<CertificateAuthority[]>('/certificate-authorities?include_intermediate_cas=true')
-        .then((resp) => (this.certificateAuthorities = resp.data))
+      return this.searchCertificateAuthorities(true)
+        .then((data) => (this.certificateAuthorities = data))
         .catch((error) => this.addError(error))
         .finally(() => (this.loadingCAs = false));
     },
     async fetchOcspPrioritizationStrategy() {
-      return api
-        .get<ServicePrioritizationStrategy>('/certificate-authorities/ocsp-prioritization-strategy')
-        .then((resp) => (this.ocspPrioritizationStrategy = resp.data))
-        .catch((error) => this.showError(error));
+      return this.fetchCertificateAuthoritiesPrioritizationStrategy()
+        .then((data) => (this.ocspPrioritizationStrategy = data))
+        .catch((error) => this.addError(error));
     },
     downloadAnchor(): void {
       this.downloadingAnchor = true;
-      api
-        .get('/system/anchor/download', { responseType: 'blob' })
+      this.apiDownloadAnchor()
         .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
         .catch((error) => this.addError(error))
         .finally(() => (this.downloadingAnchor = false));
     },
     fetchServerAddress(): boolean {
       if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
-        api
-          .get<SecurityServerAddressStatus>('/system/server-address')
-          .then((resp) => {
-            this.serverAddress = resp.data.current_address?.address || '';
-            this.addressChangeInProgress = resp.data.requested_change !== undefined;
+        this.fetchSecurityServerAddress()
+          .then((data) => {
+            this.serverAddress = data.current_address?.address || '';
+            this.addressChangeInProgress = data.requested_change !== undefined;
           })
           .catch((error) => this.addError(error));
       }
@@ -462,9 +476,5 @@ export default defineComponent({
 
 .settings-block:not(:last-child) {
   margin-bottom: 16px;
-}
-
-.vertical-align-top {
-  vertical-align: top;
 }
 </style>

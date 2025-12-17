@@ -27,8 +27,18 @@
 
 import { defineStore } from 'pinia';
 
-import { MaintenanceMode, NodeType, NodeTypeResponse, VersionInfo, AuthProviderType, AuthProviderTypeResponse } from '@/openapi-types';
+import {
+  MaintenanceMode,
+  NodeType,
+  NodeTypeResponse,
+  VersionInfo,
+  AuthProviderType,
+  AuthProviderTypeResponse,
+  Anchor,
+  SecurityServerAddressStatus,
+} from '@/openapi-types';
 import * as api from '@/util/api';
+import { buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
 export interface SystemState {
   securityServerVersion: VersionInfo;
@@ -92,10 +102,28 @@ export const useSystem = defineStore('system', {
     async fetchMaintenanceModeState() {
       return api.get<MaintenanceMode>('/system/maintenance-mode').then((resp) => resp.data);
     },
+    async fetchSecurityServerAddress() {
+      return api.get<SecurityServerAddressStatus>('/system/server-address').then((resp) => resp.data);
+    },
     async changeSecurityServerAddress(address: string) {
       return api.put('/system/server-address', {
         address,
       });
+    },
+    async uploadAnchor(initMode: boolean, anchorFile: File) {
+      const apiCall = initMode ? api.post : api.put;
+      return apiCall('/system/anchor', buildFileFormData('anchor', anchorFile), multipartFormDataConfig());
+    },
+    async fetchConfigurationAnchor() {
+      return api.get<Anchor>('/system/anchor').then((resp) => resp.data);
+    },
+    async downloadAnchor() {
+      return api.get('/system/anchor/download', { responseType: 'blob' });
+    },
+    async previewAnchor(initMode: boolean, anchorFile: File) {
+      const path = initMode ? '/system/anchor/previews?validate_instance=false' : '/system/anchor/previews';
+
+      return api.post<Anchor>(path, buildFileFormData('anchor', anchorFile), multipartFormDataConfig()).then((resp) => resp.data);
     },
   },
 });

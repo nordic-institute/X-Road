@@ -30,48 +30,72 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignServiceGrpc;
 
 import java.io.Closeable;
 import java.security.PublicKey;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Slf4j
-@RequiredArgsConstructor
 @ApplicationScoped
 public class SignerSignRpcClient extends AbstractRpcClient implements SignerSignClient, Closeable {
-    private final RpcChannelFactory proxyRpcChannelFactory;
-    private final SignerRpcChannelProperties rpcChannelProperties;
 
-    private ManagedChannel channel;
-    private SignServiceGrpc.SignServiceBlockingStub signServiceBlockingStub;
+    private final ManagedChannel signerChannel;
+    private final SignServiceGrpc.SignServiceBlockingStub signerSignServiceBlockingStub;
 
-    @PostConstruct
-    public void init() {
-        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
-                rpcChannelProperties.port());
-        channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
+    private final ManagedChannel softTokenSignerChannel;
+    private final SignServiceGrpc.SignServiceBlockingStub softTokenSignerSignServiceBlockingStub;
+    private final SignerRpcClient signerRpcClient;
 
-        signServiceBlockingStub = SignServiceGrpc.newBlockingStub(channel).withWaitForReady();
+    private final Map<String, Boolean> cachedKeyIds = new HashMap<>();
+
+    public SignerSignRpcClient(RpcChannelFactory rpcChannelFactory, SignerRpcChannelProperties signerRpcChannelProperties) {
+        log.info("Initializing Signer RPC client to {}:{}", signerRpcChannelProperties.host(), signerRpcChannelProperties.port());
+        signerChannel = rpcChannelFactory.createChannel(signerRpcChannelProperties);
+        signerSignServiceBlockingStub = SignServiceGrpc.newBlockingStub(signerChannel).withWaitForReady();
+
+        softTokenSignerChannel = null;
+        softTokenSignerSignServiceBlockingStub = null;
+        signerRpcClient = null;
+    }
+
+    public SignerSignRpcClient(RpcChannelFactory rpcChannelFactory,
+                               SignerRpcChannelProperties signerRpcChannelProperties,
+                               SoftwareTokenSignerRpcChannelProperties softTokenSignerRpcChannelProperties,
+                               SignerRpcClient signerRpcClient) {
+        log.info("Initializing Signer RPC client to {}:{}", signerRpcChannelProperties.host(), signerRpcChannelProperties.port());
+        signerChannel = rpcChannelFactory.createChannel(signerRpcChannelProperties);
+        signerSignServiceBlockingStub = SignServiceGrpc.newBlockingStub(signerChannel).withWaitForReady();
+
+        log.info("Initializing SoftToken Signer RPC client to {}:{}",
+                softTokenSignerRpcChannelProperties.host(), softTokenSignerRpcChannelProperties.port());
+        softTokenSignerChannel = rpcChannelFactory.createChannel(softTokenSignerRpcChannelProperties);
+        softTokenSignerSignServiceBlockingStub = SignServiceGrpc.newBlockingStub(softTokenSignerChannel).withWaitForReady();
+        this.signerRpcClient = signerRpcClient;
     }
 
     @Override
     @PreDestroy
     public void close() {
-        if (channel != null) {
-            channel.shutdown();
+        if (signerChannel != null) {
+            signerChannel.shutdown();
+        }
+        if (softTokenSignerChannel != null) {
+            softTokenSignerChannel.shutdown();
         }
     }
 
@@ -84,8 +108,9 @@ public class SignerSignRpcClient extends AbstractRpcClient implements SignerSign
     @Override
     @WithSpan("SignerSignRpcClient#sign")
     public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) {
+        var serviceStub = shouldUseSoftTokenSigner(keyId) ? softTokenSignerSignServiceBlockingStub : signerSignServiceBlockingStub;
         return exec(
-                () -> signServiceBlockingStub.sign(SignReq.newBuilder()
+                () -> serviceStub.sign(SignReq.newBuilder()
                                 .setKeyId(keyId)
                                 .setSignatureAlgorithmId(signatureAlgorithmId.name())
                                 .setDigest(ByteString.copyFrom(digest))
@@ -94,10 +119,22 @@ public class SignerSignRpcClient extends AbstractRpcClient implements SignerSign
         );
     }
 
+    private boolean shouldUseSoftTokenSigner(String keyId) {
+        if (softTokenSignerSignServiceBlockingStub != null) {
+            // cache the result to avoid redundant network calls for the same key
+            if (cachedKeyIds.get(keyId) == null) {
+                var isSoftTokenBased = signerRpcClient.isSoftTokenBased(keyId);
+                cachedKeyIds.put(keyId, isSoftTokenBased);
+            }
+            return true == cachedKeyIds.get(keyId);
+        }
+        return false;
+    }
+
     @Override
     public byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey) {
         return exec(
-                () -> signServiceBlockingStub.signCertificate(SignCertificateReq.newBuilder()
+                () -> signerSignServiceBlockingStub.signCertificate(SignCertificateReq.newBuilder()
                                 .setKeyId(keyId)
                                 .setSignatureAlgorithmId(signatureAlgorithmId.name())
                                 .setSubjectName(subjectName)
