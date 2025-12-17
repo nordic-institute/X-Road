@@ -25,7 +25,7 @@ dependencies {
   implementation(libs.bouncyCastle.bcpg)
 
   implementation(project(":common:common-domain"))
-  implementation(project(":common:common-vault-spring"))
+  implementation(project(":lib:vault-spring"))
   implementation("org.yaml:snakeyaml")
 
   testImplementation(project(":common:common-test"))

@@ -10,7 +10,7 @@ dependencies {
   intTestImplementation(project(":service:softtoken-signer:softtoken-signer-application"))
   intTestImplementation(project(":common:common-core"))
   intTestImplementation(project(":common:common-message"))
-  intTestImplementation(project(":common:common-properties"))
+  intTestImplementation(project(":lib:properties-core"))
 }
 
 intTestComposeEnv {

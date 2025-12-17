@@ -4,7 +4,7 @@ plugins {
 dependencies {
   api(platform(libs.springCloud.bom))
 
-  implementation(project(":common:common-properties"))
+  implementation(project(":lib:properties-core"))
 
   api(libs.slf4j.api)
   api(libs.logback.classic)

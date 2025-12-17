@@ -38,10 +38,9 @@ publishing {
 }
 
 dependencies {
-  implementation(project(":lib:bootstrap-quarkus"))
-  implementation(project(":common:common-rpc-quarkus"))
+  implementation(project(":lib:rpc-quarkus"))
   implementation(project(":common:common-core"))
-  implementation(project(":common:common-properties-db-source-quarkus"))
+  implementation(project(":lib:properties-quarkus"))
   implementation(project(":service:configuration-client:configuration-client-core"))
 
   implementation(libs.bundles.quarkus.core)

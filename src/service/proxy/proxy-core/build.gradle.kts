@@ -7,7 +7,7 @@ plugins {
 dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
 
-  implementation(project(":common:common-vault-quarkus"))
+  implementation(project(":lib:vault-quarkus"))
   implementation(project(":common:common-jetty"))
   implementation(project(":lib:messagelog-core"))
   implementation(project(":service:op-monitor:op-monitor-api"))
@@ -36,7 +36,7 @@ dependencies {
     exclude(group = "org.springframework.boot")
   }
 
-  testImplementation(testFixtures(project(":common:common-properties")))
+  testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
@@ -54,7 +54,7 @@ dependencies {
   testFixturesImplementation(project(":lib:messagelog-core"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
   testFixturesImplementation(project(":service:monitor:monitor-rpc-client"))
-  testFixturesImplementation(testFixtures(project(":common:common-properties")))
+  testFixturesImplementation(testFixtures(project(":lib:properties-core")))
   testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
   testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))
   testFixturesImplementation(libs.wsdl4j)

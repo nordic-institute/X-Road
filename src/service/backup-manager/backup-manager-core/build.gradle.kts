@@ -11,5 +11,5 @@ dependencies {
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)
-  testImplementation(testFixtures(project(":common:common-properties")))
+  testImplementation(testFixtures(project(":lib:properties-core")))
 }

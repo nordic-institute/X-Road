@@ -5,5 +5,5 @@ plugins {
 dependencies {
   implementation(libs.springBoot.starterWeb)
 
-  api(project(":common:common-vault-spring"))
+  api(project(":lib:vault-spring"))
 }
