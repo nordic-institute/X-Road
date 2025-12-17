@@ -408,3 +408,13 @@ persistentVolumeClaims:
   gpg-keys-pvc:
     accessMode: ReadWriteOnce
     storage: 128Mi
+
+jvmMetrics:
+  enabled: false
+  jmxExporter:
+    port: 9801
+    config: |
+      lowercaseOutputName: true
+      lowercaseOutputLabelNames: true
+      rules:
+        - pattern: ".*"
