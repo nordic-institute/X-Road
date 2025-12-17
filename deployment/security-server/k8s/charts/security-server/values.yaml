@@ -301,7 +301,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx350m -XX:MaxMetaspaceSize=100m
+      JAVA_OPTS: -Xmx350m -XX:MaxMetaspaceSize=120m
       DEBUG_PORT: "9999"
       XROAD_HOST: "op-monitor"
       XROAD_OP_MONITOR_LISTEN_ADDRESS: 0.0.0.0
