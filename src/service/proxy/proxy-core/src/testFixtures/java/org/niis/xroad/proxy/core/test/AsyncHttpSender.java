@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +36,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
 
 import java.io.IOException;
@@ -46,9 +46,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
  * Asynchronous HTTP sender.
@@ -65,7 +64,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
      * @param client asynchronous closeable HTTP client this sender should use
      */
     public AsyncHttpSender(CloseableHttpAsyncClient client) {
-        super();
+        super(false);
         this.client = client;
     }
 
@@ -78,11 +77,9 @@ public class AsyncHttpSender extends AbstractHttpSender {
      * @param address     the address to send
      * @param content     the content to send
      * @param contentType the content type of the input data
-     * @throws Exception if an error occurs
      */
     @Override
-    public void doPost(URI address, String content, String contentType)
-            throws Exception {
+    public void doPost(URI address, String content, String contentType) {
         log.trace("doPost({})", address);
 
         HttpPost post = new HttpPost(address);
@@ -103,11 +100,10 @@ public class AsyncHttpSender extends AbstractHttpSender {
      * @param content       the content to send
      * @param contentLength length of the content in bytes
      * @param contentType   the content type of the input data
-     * @throws Exception if an error occurs
      */
     @Override
     public void doPost(URI address, InputStream content, long contentLength,
-                       String contentType) throws Exception {
+                       String contentType) {
         log.trace("doPost({})", address);
 
         HttpPost post = new HttpPost(address);
@@ -120,7 +116,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
     }
 
     @Override
-    public void doGet(URI address) throws Exception {
+    public void doGet(URI address) {
         log.trace("doGet({})", address);
 
         PerformanceLogger.log(log, "doGet(" + address + ") done");
@@ -132,11 +128,10 @@ public class AsyncHttpSender extends AbstractHttpSender {
      * Will block until response becomes available in the future.
      *
      * @param timeoutSec number of seconds before a timeout exception is thrown
-     * @throws Exception if response could not be retrieved in the alloted time
      */
-    public void waitForResponse(int timeoutSec) throws Exception {
+    public void waitForResponse(int timeoutSec) {
         if (futureResponse == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Request uninitialized");
+            throw XrdRuntimeException.systemInternalError("Request uninitialized");
         }
 
         log.trace("waitForResponse()");
@@ -146,7 +141,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
             handleResponse(response);
         } catch (TimeoutException e) {
             cancelRequest();
-            throw new CodedException(X_NETWORK_ERROR, "Connection timed out");
+            throw XrdRuntimeException.systemException(NETWORK_ERROR, "Connection timed out");
         } catch (Exception e) {
             handleFailure(e);
         } finally {
@@ -171,7 +166,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
         }
     }
 
-    private void doRequest(HttpRequestBase request) throws Exception {
+    private void doRequest(HttpRequestBase request) {
         this.request = request;
 
         addAdditionalHeaders();

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,79 +25,52 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wizard-token-step-form-content">
-    {{ $t('wizard.token.info') }}
-    <v-text-field
-      v-model="search"
-      :label="$t('wizard.token.tokenName')"
-      single-line
-      hide-details
-      class="search-input"
-      data-test="token-search-input"
-      autofocus
-      variant="underlined"
-      density="compact"
-      append-inner-icon="mdi-magnify"
-    >
-    </v-text-field>
-
+  <XrdWizardStep sub-title="wizard.token.info">
     <v-radio-group v-model="tokenGroup">
-      <div v-for="token in filteredTokens" :key="token.id" class="radio-row">
-        <v-radio
-          :label="`Token ${token.name}`"
-          :value="token"
-          :disabled="!token.logged_in"
-          data-test="token-radio-button"
-        ></v-radio>
-        <div>
-          <xrd-button
-            v-if="!token.logged_in"
-            :disabled="!token.available"
-            :outlined="false"
-            text
+      <v-data-table class="xrd border xrd-rounded-12 bg-surface-container" hide-default-footer :headers="headers" :items="filteredTokens">
+        <template #top>
+          <v-text-field
+            v-model="search"
+            data-test="token-search-input"
+            class="xrd w-50 mt-2 ml-4 mb-6"
+            density="compact"
+            prepend-inner-icon="search"
+            single-line
+            hide-details
+            autofocus
+            :label="$t('wizard.token.tokenName')"
+          />
+        </template>
+        <template #item.radio="{ item }">
+          <v-radio data-test="token-radio-button" class="xrd" :value="item" :disabled="!item.logged_in" />
+        </template>
+        <template #item.name="{ value: name }">
+          {{ `Token ${name}` }}
+        </template>
+        <template #item.actions="{ item }">
+          <XrdBtn v-if="item.logged_in" data-test="token-logout-button" variant="text" text="wizard.token.loggedIn" disabled />
+          <XrdBtn
+            v-else
             data-test="token-login-button"
-            @click="confirmLogin(token)"
-            >{{ $t('keys.logIn') }}
-          </xrd-button>
-          <xrd-button
-            v-if="token.logged_in"
-            text
-            :outlined="false"
-            disabled
-            data-test="token-logout-button"
-            >{{ $t('wizard.token.loggedIn') }}
-          </xrd-button>
-        </div>
-      </div>
+            variant="text"
+            text="keys.logIn"
+            :disabled="!item.available"
+            @click="confirmLogin(item)"
+          />
+        </template>
+      </v-data-table>
     </v-radio-group>
-  </div>
+    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
 
-  <div class="button-footer">
-    <xrd-button
-      outlined
-      :disabled="!disableDone"
-      data-test="cancel-button"
-      @click="cancel"
-      >{{ $t('action.cancel') }}
-    </xrd-button>
+    <template #footer>
+      <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" :disabled="!disableDone" @click="cancel" />
+      <v-spacer />
 
-    <xrd-button
-      outlined
-      class="previous-button"
-      data-test="previous-button"
-      @click="previous"
-      >{{ $t('action.previous') }}
-    </xrd-button>
+      <XrdBtn data-test="previous-button" variant="outlined" class="mr-2" text="action.previous" @click="previous" />
 
-    <xrd-button :disabled="disableNext" data-test="next-button" @click="done"
-      >{{ $t('action.next') }}
-    </xrd-button>
-  </div>
-  <TokenLoginDialog
-    :dialog="loginDialog"
-    @cancel="loginDialog = false"
-    @save="tokenLogin"
-  />
+      <XrdBtn data-test="next-button" text="action.next" :disabled="disableNext" @click="done" />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
@@ -105,15 +79,23 @@ import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import { Token } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 
-import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import { useCsr } from '@/store/modules/certificateSignRequest';
+import { XrdWizardStep, XrdBtn, useNotifications } from '@niis/shared-ui';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
   components: {
     TokenLoginDialog,
+    XrdWizardStep,
+    XrdBtn,
   },
   emits: ['cancel', 'previous', 'done'],
+  setup() {
+    const { addError } = useNotifications();
+
+    return { addError };
+  },
   data() {
     return {
       search: undefined as string | undefined,
@@ -129,25 +111,21 @@ export default defineComponent({
       return this.tokensFilteredByName(this.search);
     },
 
-    disableSelection() {
-      if (this.tokens.length === 1) {
-        return true;
-      }
-      return false;
-    },
-
     disableNext() {
-      if (this.tokenGroup) {
-        return false;
-      }
-      return true;
+      return !this.tokenGroup;
+    },
+    headers() {
+      return [
+        { title: '', key: 'radio' },
+        { title: this.$t('keys.name') as string, key: 'name', align: 'start' },
+        { title: '', key: 'actions' },
+      ] as DataTableHeader[];
     },
   },
   created() {
     this.fetchData();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useCsr, ['setCsrTokenId']),
     ...mapActions(useTokens, ['setSelectedToken', 'fetchTokens']),
     cancel(): void {
@@ -176,43 +154,14 @@ export default defineComponent({
       this.fetchTokens()
         .then(() => {
           // Preselect the token if there is only one
-          if (
-            this.filteredTokens.length === 1 &&
-            this.filteredTokens[0].logged_in
-          ) {
+          if (this.filteredTokens.length === 1 && this.filteredTokens[0].logged_in) {
             this.tokenGroup = this.filteredTokens[0];
           }
         })
-        .catch((error) => {
-          this.showError(error);
-        });
+        .catch((error) => this.addError(error));
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-@use '@niis/shared-ui/src/assets/colors';
-
-.wizard-token-step-form-content {
-  padding: 30px;
-}
-
-.search-input {
-  width: 300px;
-}
-
-.radio-row {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  padding-right: 10px;
-  flex-direction: row;
-  flex-wrap: wrap;
-  border-bottom: 1px solid colors.$WarmGrey30;
-  padding-left: 12px;
-  padding-bottom: 5px;
-  padding-top: 5px;
-}
-</style>
+<style lang="scss" scoped></style>

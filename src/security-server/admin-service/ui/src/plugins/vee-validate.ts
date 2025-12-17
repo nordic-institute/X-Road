@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,14 +25,7 @@
  * THE SOFTWARE.
  */
 import { configure, defineRule } from 'vee-validate';
-import {
-  between,
-  confirmed,
-  email,
-  max,
-  min,
-  required,
-} from '@vee-validate/rules';
+import { between, confirmed, email, max, min, required } from '@vee-validate/rules';
 import { i18n } from '@niis/shared-ui';
 import * as Helpers from '@/util/helpers';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
@@ -46,24 +40,16 @@ export function createValidators() {
           const ruleParams = ctx.rule?.params;
           switch (ctx.rule?.name) {
             case 'max': {
-              args.length = Array.isArray(ruleParams)
-                ? ruleParams?.[0]
-                : ruleParams?.['max'];
+              args.length = Array.isArray(ruleParams) ? ruleParams?.[0] : ruleParams?.['max'];
               break;
             }
             case 'min': {
-              args.length = Array.isArray(ruleParams)
-                ? ruleParams?.[0]
-                : ruleParams?.['min'];
+              args.length = Array.isArray(ruleParams) ? ruleParams?.[0] : ruleParams?.['min'];
               break;
             }
             case 'between': {
-              args.min = Array.isArray(ruleParams)
-                ? ruleParams?.[0]
-                : ruleParams?.['min'];
-              args.max = Array.isArray(ruleParams)
-                ? ruleParams?.[1]
-                : ruleParams?.['max'];
+              args.min = Array.isArray(ruleParams) ? ruleParams?.[0] : ruleParams?.['min'];
+              args.max = Array.isArray(ruleParams) ? ruleParams?.[1] : ruleParams?.['max'];
               break;
             }
           }
@@ -119,19 +105,16 @@ export function createValidators() {
         return i18n.global.t('customValidation.invalidEndpoint');
       });
 
-      defineRule(
-        'address',
-        (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
-          if (!value) {
-            return true;
-          }
-          if (/[^a-zA-Z\d-.]/.test(value)) {
-            const field = i18n.global.t('fields.' + ctx.field);
-            return i18n.global.t('validation.messages.address', { field });
-          }
+      defineRule('address', (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
+        if (!value) {
           return true;
-        },
-      );
+        }
+        if (/[^a-zA-Z\d-.]/.test(value)) {
+          const field = i18n.global.t('fields.' + ctx.field);
+          return i18n.global.t('validation.messages.address', { field });
+        }
+        return true;
+      });
     },
   };
 }

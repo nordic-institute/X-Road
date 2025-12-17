@@ -1,0 +1,183 @@
+#!/bin/bash
+. /usr/share/debconf/confmodule
+
+#add groups
+groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
+
+#define groups that are allowed on ss-cluster slaves
+slave_groups="xroad-security-officer xroad-securityserver-observer"
+
+log () { echo >&2 "$@"; }
+
+get_prop() {
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+}
+
+split_ip_dns() {
+  local input="$1"
+  local ip_list dns_list
+  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
+  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
+  echo "$ip_list" "$dns_list"
+}
+
+prepare_tls_settings() {
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
+
+  if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.common-name') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.alt-names') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names') ]]; then
+    log "Preparing proxy internal TLS settings"
+
+    HOST=$(hostname -f)
+    if (( ${#HOST} > 64 )); then
+      HOST="$(hostname -s)"
+    fi
+    LIST=
+    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+    ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+    db_subst xroad-common/service-subject HOST "$HOST"
+    db_subst xroad-common/service-altsubject ALT "$ALT"
+
+    db_get xroad-common/service-subject
+    [ -z "$RET" ] && db_set xroad-common/service-subject "$HOST"
+
+    db_get xroad-common/service-altsubject
+    [ -z "$RET" ] && db_set xroad-common/service-altsubject "$ALT"
+
+    db_beginblock
+    db_input critical xroad-common/service-subject || true
+    db_input critical xroad-common/service-altsubject || true
+    db_endblock
+    db_go
+
+    db_get xroad-common/service-subject
+    cn="$RET"
+    db_get xroad-common/service-altsubject
+    altn="$RET"
+
+    read ip_list dns_list < <(split_ip_dns "$altn")
+
+    log "Writing proxy internal TLS settings to $CONFIG_FILE"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.common-name" "$cn"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.alt-names" "$dns_list"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
+  else
+    log "proxy internal TLS settings exists, skipping"
+  fi
+}
+
+function handle_error() {
+   ERR=$(</tmp/memory.err)
+   db_subst xroad-common/proxy-memory-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+   db_input critical xroad-common/proxy-memory-error
+   db_go
+   rm -f /tmp/memory.err
+}
+
+case "$1" in
+ configure|reconfigure)
+  chmod 0440 /etc/sudoers.d/xroad-proxy
+  chown xroad:xroad /etc/xroad/backup.d/??_xroad-proxy
+  chmod 0440 /etc/xroad/backup.d/??_xroad-proxy
+
+  mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
+  mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
+  mkdir -p /etc/xroad/globalconf; chown xroad:xroad  /etc/xroad/globalconf
+
+  test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
+  test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
+
+  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
+
+  RET=""
+  db_get xroad-common/username
+  AUSER="$RET"
+
+  if [ -n "$AUSER" ]; then
+    groupnames=""
+    if [[ "$node_type" == "slave" ]]; then
+      log "Cluster slave node detected, configuring slave compatible groups"
+      groupnames=$slave_groups
+    else
+      log "Configuring groups"
+      groupnames=$groups
+    fi
+
+    usergroups=" $(id -Gn "$AUSER") "
+    for groupname in $groupnames; do
+      if ! getent group "$groupname" > /dev/null; then
+          groupadd --system "$groupname" || true
+      fi
+      if [[ $usergroups != *" $groupname "* ]]; then
+          usermod -a -G "$groupname" "$AUSER" || true
+      fi
+    done
+  else
+    log "WARNING: X-Road admin user not configured."
+  fi
+
+  RET=""
+  db_get xroad-common/database-host || RET=""
+  /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
+  /usr/share/xroad/scripts/setup_messagelog_db.sh "$RET"
+
+  DEFAULT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-default')"
+  RECOMMENDED_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-recommended')"
+  CURRENT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-current')"
+
+  db_subst xroad-common/proxy-memory DEFAULT_XM "$DEFAULT_XM"
+  db_subst xroad-common/proxy-memory RECOMMENDED_XM "$RECOMMENDED_XM"
+
+  db_set xroad-common/proxy-memory "$CURRENT_XM"
+
+  while :; do
+    # Get memory config string from the user
+    db_input high xroad-common/proxy-memory || true
+    db_go
+
+    RET=""
+    db_get xroad-common/proxy-memory || RET=""
+
+    if [ -z "$RET" ];then
+      if [ -z "$CURRENT_XM" ];then
+        /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-default'
+      fi
+      break
+    elif [ "$RET" == "d" ];then
+      /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-default'
+      break
+    elif [ "$RET" == "r" ];then
+      /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-recommended'
+      break
+    else
+      if ! /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply' $RET 2>/tmp/memory.err; then
+        handle_error
+        continue
+      else
+        break
+      fi
+    fi
+  done
+
+  prepare_tls_settings
+
+  db_stop
+
+  invoke-rc.d --quiet rsyslog try-restart || true
+  invoke-rc.d --quiet xroad-confclient try-restart || true
+  invoke-rc.d --quiet xroad-signer try-restart || true
+ ;;
+
+ abort-upgrade|abort-remove|abort-deconfigure)
+ ;;
+
+ *)
+    log "postinst called with unknown argument \`$1'" >&2
+    exit 1
+ ;;
+esac
+
+#DEBHELPER#
+exit 0

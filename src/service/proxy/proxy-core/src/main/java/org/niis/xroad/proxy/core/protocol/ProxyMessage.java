@@ -73,6 +73,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     private final String originalContentType;
     private final String originalMimeBoundary;
+    private final String tmpDir;
 
     private SoapMessageImpl soapMessage;
     @Getter
@@ -96,9 +97,10 @@ public class ProxyMessage implements ProxyMessageConsumer {
      *
      * @param originalContentType the original content type.
      */
-    public ProxyMessage(String originalContentType) {
+    public ProxyMessage(String originalContentType, String tmpDir) {
         this.originalContentType = originalContentType;
         this.originalMimeBoundary = HeaderValueUtils.getBoundary(originalContentType);
+        this.tmpDir = tmpDir;
     }
 
     /**
@@ -143,8 +145,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
             MultipartSoapMessageEncoder multipartEncoder = new MultipartSoapMessageEncoder(out, originalMimeBoundary);
             // Write the SOAP before attachments
             multipartEncoder.soap(soapMessage, soapPartHeaders);
-            for (Attachment attachment : attachmentCache) {
-                multipartEncoder.attachment(attachment.contentType, attachment.content.getCachedContents(), attachment.additionalHeaders);
+            for (Attachment attach : attachmentCache) {
+                multipartEncoder.attachment(attach.contentType(), attach.content().getCachedContents(), attach.additionalHeaders());
             }
             // Finish writing to the attachment cache.
             multipartEncoder.close();
@@ -162,7 +164,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
         }
 
         for (var attachment : attachmentCache) {
-            attachment.content.consume();
+            attachment.content().consume();
         }
     }
 
@@ -203,7 +205,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     @Override
     public void restBody(InputStream content) throws IOException {
         assert (restBodyCache == null);
-        restBodyCache = new CachingStream();
+        restBodyCache = new CachingStream(tmpDir);
         IOUtils.copyLarge(content, restBodyCache);
     }
 
@@ -211,7 +213,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders) throws IOException {
         log.trace("Attachment: {}", contentType);
 
-        CachingStream attachmentCacheStream = new CachingStream();
+        CachingStream attachmentCacheStream = new CachingStream(tmpDir);
         IOUtils.copyLarge(content, attachmentCacheStream);
         attachmentCache.add(new Attachment(contentType, attachmentCacheStream, additionalHeaders));
     }
@@ -254,19 +256,4 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
 
-    private record Attachment(String contentType, CachingStream content, Map<String, String> additionalHeaders) {
-        AttachmentStream getAttachmentStream() {
-            return new AttachmentStream() {
-                @Override
-                public InputStream getStream() {
-                    return content.getCachedContents();
-                }
-
-                @Override
-                public long getSize() {
-                    return content.size();
-                }
-            };
-        }
-    }
 }

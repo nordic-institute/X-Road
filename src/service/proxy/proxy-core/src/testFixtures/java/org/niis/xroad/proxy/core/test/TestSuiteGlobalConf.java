@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
@@ -51,6 +50,17 @@ import static java.util.Collections.singleton;
  * Test globalconf implementation.
  */
 public class TestSuiteGlobalConf extends EmptyGlobalConf {
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper;
+
+    public TestSuiteGlobalConf(ProxyTestSuiteHelper proxyTestSuiteHelper) {
+        super();
+        this.proxyTestSuiteHelper = proxyTestSuiteHelper;
+    }
+
+    public TestSuiteGlobalConf(String confPath, ProxyTestSuiteHelper proxyTestSuiteHelper) {
+        super(confPath);
+        this.proxyTestSuiteHelper = proxyTestSuiteHelper;
+    }
 
     @Override
     public String getInstanceIdentifier() {
@@ -61,7 +71,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     public Collection<String> getProviderAddress(ClientId provider) {
         if (currentTestCase() == null || provider == null) {
             return singleton("http://127.0.0.1:"
-                    + SystemProperties.getServerProxyPort());
+                    + proxyTestSuiteHelper.proxyProperties.serverProxyPort());
         }
 
         String addr = currentTestCase().getProviderAddress(
@@ -88,7 +98,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     private MessageTestCase currentTestCase() {
-        return ProxyTestSuiteHelper.currentTestCase;
+        return proxyTestSuiteHelper.currentTestCase;
     }
 
     @Override
@@ -98,7 +108,9 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
     @Override
     public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) {
-        return new CertChainFactory(this).create(instanceIdentifier, subject, null);
+        return CertChainFactory.create(instanceIdentifier,
+                getCaCert(instanceIdentifier, subject),
+                subject, null);
     }
 
     @Override

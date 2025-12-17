@@ -1,0 +1,16 @@
+test-framework:
+  component-scan:
+    additional-packages:
+      - org.niis.xroad.softtoken.signer.test
+  cucumber:
+    glue:
+      - "org.niis.xroad.softtoken.signer.test.glue"
+      - "org.niis.xroad.test.framework"
+    filter-tags: "not @Skip"
+
+"%cli":
+  test-framework:
+    working-dir: "test-framework-working-dir/"
+    resource-dir: "test-framework-working-dir/resources/"
+    allure:
+      results-directory: "test-framework-working-dir/allure-results"

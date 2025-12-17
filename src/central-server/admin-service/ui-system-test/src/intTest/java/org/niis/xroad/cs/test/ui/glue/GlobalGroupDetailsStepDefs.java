@@ -34,7 +34,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
@@ -46,7 +46,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
                 .shouldBe(enabled, visible)
                 .click();
 
-        globalGroupDetailsPage.getAddMembersDialogObj().btnAddMembers()
+        globalGroupDetailsPage.getAddMembersDialogObj().btnSave()
                 .shouldNotBe(enabled);
     }
 
@@ -81,7 +81,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("user adds selected members")
     public void addSelectedMembers() {
-        globalGroupDetailsPage.getAddMembersDialogObj().btnAddMembers()
+        globalGroupDetailsPage.getAddMembersDialogObj().btnSave()
                 .shouldBe(enabled)
                 .click();
     }
@@ -89,7 +89,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
     @Step("user closes add members dialog")
     public void closeAddMembersDialog() {
         globalGroupDetailsPage.getAddMembersDialogObj().btnClose()
-                .shouldBe(enabled)
+                .shouldNotHave(cssClass("v-icon--disabled"))
                 .click();
     }
 
@@ -124,7 +124,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
         identifiers.asList()
                 .forEach(identifier -> globalGroupDetailsPage.getAddMembersDialogObj().rowCheckbox(identifier)
                         .$("i")
-                        .shouldHave(cssClass("mdi-checkbox-marked")));
+                        .shouldHave(cssClass("check_box__filled")));
     }
 
     @Step("user filters selectable members list with query: {string}")

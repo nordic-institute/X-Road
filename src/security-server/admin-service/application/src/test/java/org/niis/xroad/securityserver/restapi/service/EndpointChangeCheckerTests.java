@@ -55,11 +55,11 @@ public class EndpointChangeCheckerTests {
     @Before
     public void setup() {
         serviceChangeChecker = new EndpointEntityChangeChecker();
-        all = EndpointEntity.create("unitTestService", "*", "**", true);
-        toBeRemoved = EndpointEntity.create("unitTestService", "GET", "/random", true);
-        unchanged = EndpointEntity.create("unitTestService", "POST", "/random1", true);
-        wsdlEndpoint = EndpointEntity.create("wsdlOperation1", "*", "**", true);
-        newEndpoint = EndpointEntity.create("unitTestService", "GET", "/foo", true);
+        all = EndpointEntity.create(null, "unitTestService", "*", "**", true);
+        toBeRemoved = EndpointEntity.create(null, "unitTestService", "GET", "/random", true);
+        unchanged = EndpointEntity.create(null, "unitTestService", "POST", "/random1", true);
+        wsdlEndpoint = EndpointEntity.create(null, "wsdlOperation1", "*", "**", true);
+        newEndpoint = EndpointEntity.create(null, "unitTestService", "GET", "/foo", true);
         toBeRemovedAcl = createAccessRight(toBeRemoved);
     }
 

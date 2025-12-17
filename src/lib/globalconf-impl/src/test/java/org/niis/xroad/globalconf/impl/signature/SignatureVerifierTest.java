@@ -25,9 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl.signature;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -42,16 +39,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -59,14 +56,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Tests the signature verifier.
@@ -99,8 +96,7 @@ class SignatureVerifierTest {
      */
     @BeforeEach
     void setUp() {
-        loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good_v4",
-                "../globalconf-core/src/test/resources/configuration-anchor1.xml", true);
+        loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good_v4", true);
     }
 
     /**
@@ -168,7 +164,7 @@ class SignatureVerifierTest {
     @Test
     void emptySignature() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/empty.xml"))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining(ErrorCode.INVALID_XML.code());
     }
 
@@ -178,8 +174,8 @@ class SignatureVerifierTest {
     @Test
     void noXadesSignature() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/sign-0-no-signature.xml"))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -188,8 +184,8 @@ class SignatureVerifierTest {
     @Test
     void noObjectContainer() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/sign-0-no-objectcontainer.xml"))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -198,7 +194,7 @@ class SignatureVerifierTest {
     @Test
     void malformedXml() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/sign-0-malformed-xml.xml"))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining(ErrorCode.INVALID_XML.code());
     }
 
@@ -209,8 +205,8 @@ class SignatureVerifierTest {
     @Test
     void schemaValidationFail() {
         assertThatThrownBy(() -> createSignatureVerifier("src/test/signatures/sign-0-schema-fail.xml"))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -222,8 +218,8 @@ class SignatureVerifierTest {
     void noSigningCertificate() throws Exception {
         SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/sign-0-no-signing-cert.xml");
         assertThatThrownBy(() -> verifier.verify(null, null))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -236,8 +232,8 @@ class SignatureVerifierTest {
         var clientId = createClientId("FOORBAR");
         SignatureVerifier verifier = createSignatureVerifier("../../common/common-test/src/test/signatures/sign-0.xml");
         assertThatThrownBy(() -> verifier.verify(clientId, null))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_INCORRECT_CERTIFICATE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(INCORRECT_CERTIFICATE.code());
     }
 
     /**
@@ -249,8 +245,8 @@ class SignatureVerifierTest {
     void invalidSignatureValue() throws Exception {
         SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/sign-0-invalid-signature-value.xml");
         assertThatThrownBy(() -> verifier.verify(CONSUMER_ID, null))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_INVALID_SIGNATURE_VALUE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(INVALID_SIGNATURE_VALUE.code());
     }
 
     /**
@@ -263,8 +259,8 @@ class SignatureVerifierTest {
     void extraCertsMissingId() throws Exception {
         SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/extra-certs-missing-id.xml");
         assertThatThrownBy(() -> verifier.verify(TEST_ORG_ID, CORRECT_VALIDATION_DATE))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -276,8 +272,8 @@ class SignatureVerifierTest {
     void extraCertsMissingCert() throws Exception {
         SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/extra-certs-missing-cert.xml");
         assertThatThrownBy(() -> verifier.verify(TEST_ORG_ID, CORRECT_VALIDATION_DATE))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -289,8 +285,8 @@ class SignatureVerifierTest {
     void extraCertsDigestInvalid() throws Exception {
         SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/extra-certs-digest-invalid.xml");
         assertThatThrownBy(() -> verifier.verify(TEST_ORG_ID, CORRECT_VALIDATION_DATE))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -302,8 +298,8 @@ class SignatureVerifierTest {
     void ocspNoResponses() throws Exception {
         SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/sign-0-ocsp-no-responses.xml");
         assertThatThrownBy(() -> verifier.verify(CONSUMER_ID, CORRECT_VALIDATION_DATE))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_MALFORMED_SIGNATURE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(MALFORMED_SIGNATURE.code());
     }
 
     /**
@@ -321,8 +317,8 @@ class SignatureVerifierTest {
         verifier.addParts(hashes);
 
         assertThatThrownBy(() -> verifier.verify(CONSUMER_ID, CORRECT_VALIDATION_DATE))
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining(X_INVALID_SIGNATURE_VALUE);
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(INVALID_SIGNATURE_VALUE.code());
     }
 
     @Nested
@@ -336,8 +332,7 @@ class SignatureVerifierTest {
 
         @BeforeEach
         void before() {
-            loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good2_v3",
-                    "../globalconf-core/src/test/resources/configuration-anchor1.xml", false);
+            loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good2_v3", false);
         }
 
         @Test
@@ -362,21 +357,23 @@ class SignatureVerifierTest {
             verifier.addParts(hashes);
 
             assertThatThrownBy(() -> verifier.verify(DEV_CLIENT, VALIDATION_DATE))
-                    .isInstanceOf(CodedException.class)
-                    .hasMessageContaining(X_INVALID_SIGNATURE_VALUE);
+                    .isInstanceOf(XrdRuntimeException.class)
+                    .hasMessageContaining(INVALID_SIGNATURE_VALUE.code());
         }
 
     }
 
     private SignatureVerifier createSignatureVerifier(String signaturePath) throws Exception {
-        return new SignatureVerifier(globalConfProvider, signature(signaturePath));
+        return new SignatureVerifier(globalConfProvider, new OcspVerifierFactory(),
+                signature(signaturePath));
     }
 
     private SignatureVerifier createSignatureVerifier(String signatureFileName, String hashChainResultFileName,
                                                       HashChainReferenceResolver resolver) throws Exception {
         Signature signature = signature(signatureFileName);
 
-        SignatureVerifier verifier = new SignatureVerifier(globalConfProvider, signature, loadFile(hashChainResultFileName), null);
+        SignatureVerifier verifier = new SignatureVerifier(globalConfProvider, new OcspVerifierFactory(),
+                signature, loadFile(hashChainResultFileName), null);
 
         verifier.setHashChainResourceResolver(resolver);
 
@@ -454,20 +451,7 @@ class SignatureVerifierTest {
         }
     }
 
-    void loadGlobalConf(String globalConfPath, String configurationAnchorFile, boolean useTestCaCert) {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, globalConfPath);
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-
-        globalConfProvider = new TestGlobalConfImpl() {
-            @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert)
-                    throws CertificateEncodingException, IOException {
-                if (useTestCaCert) {
-                    return TestCertUtil.getCaCert();
-                } else {
-                    return super.getCaCert(instanceIdentifier, memberCert);
-                }
-            }
-        };
+    void loadGlobalConf(String globalConfPath, boolean useTestCaCert) {
+        globalConfProvider = TestGlobalConfFactory.create(useTestCaCert, globalConfPath);
     }
 }

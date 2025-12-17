@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.SoapFault;
 
 import org.eclipse.jetty.http.HttpStatus;
@@ -33,6 +32,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -58,7 +58,7 @@ public abstract class HandlerBase extends Handler.Abstract {
     public void sendErrorResponse(Request request,
                                   Response response,
                                   Callback callback,
-                                  CodedException ex) throws IOException {
+                                  XrdRuntimeException ex) throws IOException {
         String faultXml = SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
         byte[] messageBytes = faultXml.getBytes(encoding);
@@ -85,7 +85,7 @@ public abstract class HandlerBase extends Handler.Abstract {
         response.write(true, ByteBuffer.wrap(messageBytes), callback);
     }
 
-    protected void failure(Request request, Response response, Callback callback, CodedException ex)
+    protected void failure(Request request, Response response, Callback callback, XrdRuntimeException ex)
             throws IOException {
     }
 }

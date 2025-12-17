@@ -1,7 +1,0 @@
-#!/bin/bash
-
-if [[ "$1" == "remove" ]]; then
-  crudini --del /etc/xroad/conf.d/local.ini proxy-ui-api wsdl-validator-command
-  invoke-rc.d --quiet xroad-proxy-ui-api try-restart || true
-fi
-exit 0

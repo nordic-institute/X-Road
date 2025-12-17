@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Adicionar clientes",
     "addSubjectsSuccess": "Direitos de acesso adicionados com sucesso",
     "id": "ID",
-    "subsystemName": "Nome do subsistema / Descrição do grupo",
     "removeAllText": "Tem certeza de que deseja remover os direitos de acesso de todos os clientes?",
     "removeAllTitle": "Remover todos os direitos de acesso?",
     "removeSuccess": "Direitos de acesso removidos com sucesso",
     "removeText": "Tem certeza de que deseja remover os direitos de acesso deste cliente?",
     "removeTitle": "Remover direitos de acesso?",
     "rightsGiven": "Direitos de Acesso Concedidos",
+    "subsystemName": "Nome do subsistema / Descrição do grupo",
     "title": "Direitos de Acesso"
   },
   "action": {
@@ -119,21 +119,23 @@
     "member": "Membro",
     "memberClass": "Classe do Membro",
     "memberCode": "Código do Membro",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Nome do Membro",
     "name": "Nome",
     "owner": "Proprietário",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Status",
     "statusText": {
-      "deletionInProgress": "EXCLUSÃO EM ANDAMENTO",
-      "disabled": "DESATIVADO",
-      "disablingInProgress": "DESATIVAÇÃO EM ANDAMENTO",
-      "enablingInProgress": "ATIVAÇÃO EM ANDAMENTO",
-      "globalError": "ERRO GLOBAL",
+      "deletionInProgress": "Exclusão em andamento",
+      "disabled": "Desativado",
+      "disablingInProgress": "Desativação em andamento",
+      "enablingInProgress": "Ativação em andamento",
+      "globalError": "Erro global",
       "nameSet": "Alteração de nome será aplicada no registro do cliente",
       "nameSubmitted": "Alteração de nome enviada",
-      "registered": "REGISTRADO",
-      "registrationInProgress": "REGISTRO EM ANDAMENTO",
-      "saved": "SALVO"
+      "registered": "Registrado",
+      "registrationInProgress": "Registro em andamento",
+      "saved": "Salvo"
     },
     "subsystemCode": "Código do Subsistema",
     "subsystemName": "Nome do Subsistema",
@@ -177,6 +179,17 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Desativado por configuração"
+    },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Serviço de registro de certificado de autenticação",
+        "globalConf": "Download da configuração global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Servidor Central"
+      },
+      "ok": "Tudo certo",
+      "test": "Teste"
     },
     "costType": "Tipo de custo",
     "downloadReport": "Baixar relatório de diagnóstico",
@@ -239,25 +252,25 @@
         "title": "Status das notificações por e-mail"
       },
       "recipientsEmails": "E-mails dos destinatários",
-      "status": "Status",
       "sentTestMail": "Enviar e-mail de teste",
+      "status": "Status",
       "title": "Status das notificações por e-mail",
       "type": {
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "Notificações de certificado ACME ativado automaticamente",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "Notificações de falha na ativação automática do certificado ACME",
         "ACME_FAILURE": "Notificações de falha do ACME",
         "ACME_SUCCESS": "Notificações de sucesso do ACME",
-        "AUTH_CERT_REGISTERED": "Notificações de certificado de autenticação registrado",
-        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "Notificações de certificado ACME ativado automaticamente",
-        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "Notificações de falha na ativação automática do certificado ACME"
+        "AUTH_CERT_REGISTERED": "Notificações de certificado de autenticação registrado"
       },
       "types": "Tipos de notificação por e-mail"
     },
     "maintenanceMode": {
-      "enableTitle": "Ativar modo de manutenção",
-      "enableConfirm": "Deseja ativar o modo de manutenção?",
-      "enableSuccess": "Ativação do modo de manutenção em andamento",
-      "disableTitle": "Desativar modo de manutenção",
       "disableConfirm": "Deseja desativar o modo de manutenção?",
       "disableSuccess": "Desativação do modo de manutenção em andamento",
+      "disableTitle": "Desativar modo de manutenção",
+      "enableConfirm": "Deseja ativar o modo de manutenção?",
+      "enableSuccess": "Ativação do modo de manutenção em andamento",
+      "enableTitle": "Ativar modo de manutenção",
       "forbiddenEnable": "O modo de manutenção não pode ser ativado para um provedor de serviços de gerenciamento",
       "label": "Modo de manutenção:",
       "status": {
@@ -307,22 +320,25 @@
       "title": "Carimbo de tempo"
     },
     "traffic": {
-      "period": "Período",
-      "periodInfo": "Selecione início e fim",
-      "date": "Data",
-      "time": "Hora",
-      "party": "Parte",
-      "partyInfo": "Serviço, subsistema, membro",
       "client": "Cliente",
-      "service": "Serviço",
+      "date": "Data",
+      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring).",
+      "disabledTitle": "Monitoramento de dados operacionais desativado",
       "exchangeRole": "Função de troca",
       "exchangeRoleInfo": "Produtor ou Consumidor",
+      "failedRequests": "Solicitações falhas",
+      "failure": "Falha",
+      "party": "Parte",
+      "partyInfo": "Serviço, subsistema, membro",
+      "period": "Período",
+      "periodInfo": "Selecione início e fim",
       "producer": "Produtor",
+      "service": "Serviço",
       "status": "Status",
       "statusInfo": "Status da troca de mensagens",
       "success": "Sucesso",
-      "failure": "Falha",
       "successfulRequests": "Solicitações exitosas",
+      "time": "Hora",
       "failedRequests": "Solicitações falhas",
       "disabledTitle": "Monitoramento de dados operacionais desativado",
       "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring)."
@@ -443,6 +459,7 @@
     "global_conf_outdated": "Configuração global está desatualizada",
     "gpg_key_generation_failed": "Falha ao gerar chave GPG",
     "gpg_key_generation_interrupted": "Geração de chave GPG interrompida",
+    "http_error": "Erro HTTP",
     "identifier_not_found": "Identificador não encontrado",
     "illegal_generated_endpoint_remove": "Não é permitido remover endpoint gerado automaticamente",
     "illegal_generated_endpoint_update": "Não é permitido editar endpoint gerado automaticamente",
@@ -466,8 +483,8 @@
     "local_group_member_already_exists": "Membro do grupo local já existe",
     "local_group_member_not_found": "Membro do grupo local não encontrado",
     "local_group_not_found": "Grupo local não encontrado",
-    "malformed_anchor": "Âncora malformada",
     "maintenance_mode_change_request_already_submitted": "Já existe uma solicitação pendente para alteração do modo de manutenção",
+    "malformed_anchor": "Âncora malformada",
     "malformed_url": "URL malformada",
     "management_request_sending_failed": "Falha ao enviar solicitação de gerenciamento",
     "member_already_owner": "Membro já é o proprietário",
@@ -477,7 +494,6 @@
     "member_code_not_provided": "Código de membro não informado",
     "missing_parameter": "Parâmetro ausente",
     "network_error": "Erro de rede",
-    "http_error": "Erro HTTP",
     "ocsp_connection_error": "Não foi possível conectar ao respondedor OCSP",
     "ocsp_failed": "Não foi possível obter resposta do respondedor OCSP",
     "ocsp_response_parsing_failure": "Não foi possível interpretar a resposta OCSP",
@@ -513,7 +529,6 @@
     "wrong_servicedescription_type": "Tipo de descrição de serviço inválido",
     "wsdl_download_failed": "Falha ao baixar WSDL",
     "wsdl_exists": "WSDL já existe",
-    "wsdl_validator_interrupted": "Validador de WSDL interrompido",
     "wsdl_validator_not_executable": "Validador de WSDL não pode ser executado"
   },
   "fields": {
@@ -678,13 +693,13 @@
     "importCertOcspVerifyWarning": "Não foi possível ativar o certificado. A verificação OCSP falhou. Erro: {errorMessage}",
     "importCertSuccess": "Certificado importado com sucesso",
     "incorrectPin": "PIN incorreto. Tente novamente.",
-    "keyAlgorithm": "Algoritmo da Chave:",
+    "keyAlgorithm": "Algoritmo da Chave",
     "keyDeleted": "Chave excluída",
-    "keyId": "ID da Chave:",
+    "keyId": "ID da Chave",
     "keyInfo": "Informações da Chave",
     "keyLabelInput": "Rótulo da Chave",
     "keySaved": "Chave salva",
-    "label": "Rótulo:",
+    "label": "Rótulo",
     "logIn": "Entrar",
     "logOut": "Sair",
     "logOutText": "Deseja sair do token?",
@@ -702,7 +717,7 @@
       "unknown": "Desconhecido"
     },
     "orderAcmeCertificate": "Solicitar Certificado",
-    "readOnly": "Somente leitura:",
+    "readOnly": "Somente leitura",
     "registrationRequest": "Solicitação de registro",
     "renewal": "Renovação automática",
     "request": "Solicitação",
@@ -710,13 +725,13 @@
     "signKeyCert": "Chaves e Certificados SIGN",
     "status": "Status",
     "token": {
+      "deleteSuccess": "Token excluído com sucesso",
+      "deleteText": "Tem certeza de que deseja excluir este token e todas as informações associadas?",
+      "deleteTitle": "Excluir token?",
       "details": "Detalhes do Token",
       "id": "ID do Token:",
       "info": "Informações do Token",
-      "saved": "Token salvo",
-      "deleteText": "Tem certeza de que deseja excluir este token e todas as informações associadas?",
-      "deleteTitle": "Excluir token?",
-      "deleteSuccess": "Token excluído com sucesso"
+      "saved": "Token salvo"
     },
     "tokenStatus": {
       "active": "",
@@ -816,7 +831,6 @@
     "enableSuccess": "Descrição do serviço ativada",
     "idGroupCode": "ID / Código do grupo",
     "lastRefreshed": "Última atualização: ",
-    "subsystemNameGroupDesc": "Nome do subsistema / Descrição do grupo",
     "noMatches": "Nenhum registro correspondente",
     "openApi3Added": "Serviço OpenAPI 3 adicionado",
     "openapiDetails": "Detalhes OpenAPI 3",
@@ -834,6 +848,7 @@
       "internal_server_ssl_error": "Falha ao verificar os certificados do servidor interno. A URL está correta e acessível pelo Servidor Seguro?",
       "internal_server_ssl_handshake_error": "Falha no handshake TLS com o servidor upstream. O certificado do servidor está ausente da configuração:"
     },
+    "subsystemNameGroupDesc": "Nome do subsistema / Descrição do grupo",
     "timeout": "Timeout",
     "timeoutSec": "Tempo limite (s)",
     "timeoutTooltip": "Duração máxima de uma requisição ao serviço, em segundos",
@@ -854,36 +869,6 @@
     "wsdlAdded": "WSDL adicionado",
     "wsdlDescription": "Descrição do WSDL",
     "wsdlDetails": "Detalhes do WSDL"
-  },
-  "ssTlsCertificate": {
-    "certificateImported": "Certificado importado",
-    "exportCertificate": "Exportar cert.",
-    "generateCsr": "Gerar CSR",
-    "generateInternalCsr": {
-      "cancel": "CANCELAR",
-      "done": "CONCLUÍDO",
-      "step1": {
-        "description": "1) Primeiro, forneça um Distinguished Name",
-        "label": "Distinguished Name",
-        "placeholder": "CN=meuservidorseguro.exemplo.com, O=Minha Organização, C=BR",
-        "tooltip": "O Distinguished Name (DN) identifica de forma única uma entidade em um certificado X.509. Os atributos comuns incluem: CN = Nome comum, O = Nome da organização, C = Código do país."
-      },
-      "step2": {
-        "description": "2) Gere um novo CSR e salve em local seguro",
-        "generateCSR": "Gerar CSR"
-      },
-      "title": "Gerar Solicitação de Assinatura de Certificado TLS"
-    },
-    "generateKey": "Gerar chave",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "Gerar uma nova chave e certificado TLS do Servidor Seguro?",
-      "explanation": "O sistema irá gerar uma nova chave TLS e um certificado autoassinado, substituindo os existentes.",
-      "success": "Nova chave e certificado TLS gerados com sucesso",
-      "title": "Chave TLS do Servidor Seguro"
-    },
-    "importCertificate": "Importar cert.",
-    "keyCertTitle": "Chave e Certificado TLS",
-    "keyText": "Chave TLS Interna"
   },
   "stores": {
     "user": {
@@ -973,7 +958,7 @@
         "add": {
           "button": "Adicionar",
           "dialog": {
-            "info": "Serviços confiáveis de Carimbo do Tempo:",
+            "info": "Serviços confiáveis de Carimbo do Tempo",
             "success": "Serviço de Carimbo do Tempo adicionado",
             "title": "Adicionar Serviço de Carimbo do Tempo"
           }
@@ -991,9 +976,9 @@
           }
         },
         "header": {
+          "costType": "Tipo de Custo",
           "serviceURL": "URL do Serviço",
-          "timestampingService": "Serviço de Carimbo do Tempo",
-          "costType": "Tipo de Custo"
+          "timestampingService": "Serviço de Carimbo do Tempo"
         }
       },
       "title": "Serviços de Carimbo do Tempo"
@@ -1007,6 +992,11 @@
       "localGroups": "Grupos locais",
       "serviceClients": "Clientes de serviço",
       "services": "Serviços"
+    },
+    "diagnostics": {
+      "connectionTesting": "Teste de Conexão",
+      "overview": "Visão Geral",
+      "traffic": "Tráfego"
     },
     "keys": {
       "apiKey": "Chaves de API",
@@ -1026,11 +1016,22 @@
     "settings": {
       "backupAndRestore": "Backup e Restauração",
       "systemParameters": "Parâmetros do Sistema"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN=meuservidorseguro.exemplo.com, O=Minha Organização, C=BR"
     },
-    "diagnostics": {
-      "overview": "Visão Geral",
-      "traffic": "Tráfego",
-      "connectionTesting": "Teste de Conexão"
+    "generateKey": {
+      "confirmation": "Gerar uma nova chave e certificado TLS do Servidor Seguro?",
+      "explanation": "O sistema irá gerar uma nova chave TLS e um certificado autoassinado, substituindo os existentes.",
+      "success": "Nova chave e certificado TLS gerados com sucesso",
+      "title": "Chave TLS do Servidor Seguro"
+    },
+    "key": "Chave e Certificado TLS",
+    "title": "Chave TLS do Servidor Seguro",
+    "uploadCertificate": {
+      "success": "Certificado importado"
     }
   },
   "token": {

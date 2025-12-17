@@ -35,6 +35,8 @@ service OcspService {
   rpc SetOcspResponses(SetOcspResponsesReq) returns (Empty) {}
 
   rpc GetOcspResponses(GetOcspResponsesReq) returns (GetOcspResponsesResp) {}
+
+  rpc GetOcspPrioritizationStrategy(Empty) returns (OcspPrioritizationStrategyResp) {}
 }
 
 message SetOcspResponsesReq {
@@ -48,4 +50,8 @@ message GetOcspResponsesReq{
 
 message GetOcspResponsesResp{
   map<string, string> base64_encoded_responses = 1;
+}
+
+message OcspPrioritizationStrategyResp {
+  ServicePrioritizationStrategy strategy = 1;
 }

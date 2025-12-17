@@ -3,24 +3,31 @@ plugins {
   id("xroad.int-test-conventions")
 }
 
-sourceSets {
-  named("intTest") {
-    resources {
-      srcDir("../../../common/common-int-test/src/main/resources/")
-    }
-  }
-}
-
 dependencies {
-  "intTestRuntimeOnly"(project(":addons:hwtoken"))
-  "intTestImplementation"(project(":service:signer:signer-application"))
-  "intTestImplementation"(project(":common:common-test"))
-  "intTestImplementation"(project(":common:common-int-test"))
+  intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":service:signer:signer-client"))
+  intTestImplementation(project(":common:common-core"))
+  intTestImplementation(project(":common:common-message"))
+  intTestImplementation(project(":common:common-properties"))
 }
 
+intTestComposeEnv {
+  images(
+    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
+    "SIGNER_IMG" to "ss-signer",
+    "CA_IMG" to "testca-dev"
+  )
+}
+
+intTestShadowJar {
+  archiveBaseName("signer-int-test")
+  mainClass("org.niis.xroad.signer.test.ConsoleIntTestRunner")
+}
 
 tasks.register<Test>("intTest") {
-  dependsOn(":service:signer:signer-application:shadowJar")
+  dependsOn(":service:signer:signer-application:quarkusBuild")
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
 
   useJUnitPlatform()
 
@@ -30,26 +37,22 @@ tasks.register<Test>("intTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  val intTestArgs = mutableListOf<String>()
-
-  if (project.hasProperty("intTestProfilesInclude")) {
-    intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
-  }
-
-  jvmArgs(intTestArgs)
-
   testLogging {
     showStackTraces = true
     showExceptions = true
     showCauses = true
     showStandardStreams = true
   }
-
-  reports {
-    junitXml.required.set(false)
-  }
 }
 
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
+tasks.named<Checkstyle>("checkstyleIntTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+}
+
+tasks.named<Copy>("processIntTestResources") {
+  from("../../../../development/docker/testca-dev")
+}
+
+archUnit {
+  setSkip(true)
 }

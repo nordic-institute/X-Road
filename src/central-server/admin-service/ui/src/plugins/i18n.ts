@@ -43,4 +43,3 @@ export async function loadMessages(language: string) {
 export async function createLanguageHelper() {
   return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
 }
-

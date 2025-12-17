@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -46,6 +47,11 @@ function sortTokens(tokens: Token[]): Token[] {
   });
 
   return arr;
+}
+
+function tokenBaseUrl(tokenId: string, path = '') {
+  const encodedId = encodePathParameter(tokenId);
+  return `/tokens/${encodedId}` + path;
 }
 
 export const useTokens = defineStore('tokens', {
@@ -167,9 +173,15 @@ export const useTokens = defineStore('tokens', {
       this.selectedToken = token;
     },
 
-    tokenLogout(id: string) {
+    async tokenLogin(tokenId: string, tokenPin: string) {
+      return api.put(`/tokens/${encodePathParameter(tokenId)}/login`, {
+        password: tokenPin,
+      });
+    },
+
+    async tokenLogout(id: string) {
       return api
-        .put(`/tokens/${encodePathParameter(id)}/logout`, {})
+        .put(tokenBaseUrl(id, '/logout'), {})
         .then(() => {
           // Update tokens
           this.fetchTokens();
@@ -180,20 +192,18 @@ export const useTokens = defineStore('tokens', {
           throw error;
         });
     },
-    updatePin(tokenId: string, oldPin: string, newPin: string) {
+    async updatePin(tokenId: string, oldPin: string, newPin: string) {
       const tokenPinUpdate: TokenPinUpdate = {
         old_pin: oldPin,
         new_pin: newPin,
       };
-      return api
-        .put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate)
-        .catch((error) => {
-          throw error;
-        });
+      return api.put(tokenBaseUrl(tokenId, '/pin'), tokenPinUpdate).catch((error) => {
+        throw error;
+      });
     },
-    updateToken(token: Token) {
+    async updateToken(token: Token) {
       return api
-        .patch<Token>(`/tokens/${encodePathParameter(token.id)}`, token)
+        .patch<Token>(tokenBaseUrl(token.id), token)
         .then((res) => {
           const tokenIndex = this.tokens.findIndex((t) => t.id === token.id);
           this.tokens[tokenIndex] = res.data;
@@ -201,6 +211,9 @@ export const useTokens = defineStore('tokens', {
         .catch((error) => {
           throw error;
         });
+    },
+    async deleteToken(tokenId: string) {
+      return api.remove(tokenBaseUrl(tokenId));
     },
   },
 });

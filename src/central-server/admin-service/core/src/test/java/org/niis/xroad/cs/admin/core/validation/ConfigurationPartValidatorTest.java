@@ -27,10 +27,9 @@
 
 package org.niis.xroad.cs.admin.core.validation;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.extension.OcspFetchIntervalSchemaValidator;
 import org.niis.xroad.globalconf.extension.OcspNextUpdateSchemaValidator;
@@ -67,7 +66,7 @@ class ConfigurationPartValidatorTest {
                      mockStatic(MonitoringParametersSchemaValidator.class)) {
 
             schemaValidator.when(() -> MonitoringParametersSchemaValidator.validate(new String(FILE_DATA, UTF_8)))
-                    .thenThrow(new CodedException("code"));
+                    .thenThrow(XrdRuntimeException.systemInternalError("error"));
 
             assertThatThrownBy(() -> configurationPartValidator.validate(CONTENT_ID_MONITORING, FILE_DATA))
                     .isExactlyInstanceOf(BadRequestException.class)
@@ -92,7 +91,7 @@ class ConfigurationPartValidatorTest {
                      mockStatic(OcspFetchIntervalSchemaValidator.class)) {
 
             schemaValidator.when(() -> OcspFetchIntervalSchemaValidator.validate(new String(FILE_DATA, UTF_8)))
-                    .thenThrow(new CodedException("code"));
+                    .thenThrow(XrdRuntimeException.systemInternalError("error"));
 
             assertThatThrownBy(() -> configurationPartValidator.validate(CONTENT_ID_MONITORING, FILE_DATA))
                     .isExactlyInstanceOf(BadRequestException.class)
@@ -116,7 +115,7 @@ class ConfigurationPartValidatorTest {
                      mockStatic(OcspNextUpdateSchemaValidator.class)) {
 
             schemaValidator.when(() -> OcspNextUpdateSchemaValidator.validate(new String(FILE_DATA, UTF_8)))
-                    .thenThrow(new CodedException("code"));
+                    .thenThrow(XrdRuntimeException.systemInternalError("error"));
 
             assertThatThrownBy(() -> configurationPartValidator.validate(CONTENT_ID_MONITORING, FILE_DATA))
                     .isExactlyInstanceOf(BadRequestException.class)
