@@ -25,89 +25,18 @@
  */
 package ee.ria.xroad.common.conf;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.Getter;
 import lombok.Value;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-
-/**
- * The certificate and private key for internal TLS communications are held
- * in a pkcs11 file.
- */
 @Value
 public final class InternalSSLKey {
-
-    public static final String PK_FILE_NAME = "ssl/internal.key";
-    public static final String CRT_FILE_NAME = "ssl/internal.crt";
-    public static final String KEY_FILE_NAME = "ssl/internal.p12";
     public static final String KEY_ALIAS = "internal";
     @Getter
     private static final char[] KEY_PASSWORD = KEY_ALIAS.toCharArray();
 
     private final PrivateKey key;
     private final X509Certificate[] certChain;
-
-    /**
-     * Loads the SSL key (the 'internal' key by default) from the pkcs11 file.
-     *
-     * @return the internal ssl key
-     */
-    public static InternalSSLKey load()
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        return load(KEY_FILE_NAME, KEY_ALIAS, KEY_PASSWORD);
-    }
-
-    /**
-     * Loads the SSL key with the given name from the pkcs11 file.
-     *
-     * @param keyName the name of the key to load
-     * @return the internal ssl key
-     */
-    public static InternalSSLKey load(String keyName)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        String filename = String.format("ssl/%s.p12", keyName);
-        return load(filename, keyName, keyName.toCharArray());
-    }
-
-    private static InternalSSLKey load(String filename, String keyAlias, char[] keyPassword)
-            throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
-        Path file = Paths.get(SystemProperties.getConfPath(), filename);
-        if (Files.exists(file)) {
-            KeyStore ks = loadPkcs12KeyStore(file.toFile(), keyPassword);
-
-            PrivateKey key = (PrivateKey) ks.getKey(keyAlias, keyPassword);
-            if (key == null) {
-                throw new CodedException(X_INTERNAL_ERROR,
-                        "Could not get key from '%s'", file);
-            }
-
-            Certificate[] chain = ks.getCertificateChain(keyAlias);
-            if (chain == null || chain.length < 1 || !(chain[0] instanceof X509Certificate)) {
-                throw new CodedException(X_INTERNAL_ERROR, "Could not get certificate from '%s'", file);
-            }
-            X509Certificate[] tmp = new X509Certificate[chain.length];
-            System.arraycopy(chain, 0, tmp, 0, chain.length);
-
-            return new InternalSSLKey(key, tmp);
-        }
-
-        return null;
-    }
 }

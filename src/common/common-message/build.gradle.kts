@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jboss-test-logging-conventions")
 }
 
 val xjc by configurations.creating
@@ -23,8 +24,16 @@ dependencies {
   api(libs.saajImpl)
 
   testImplementation(project(":common:common-test"))
-
   xjc(libs.bundles.jaxb)
+
+  constraints {
+    testImplementation("org.apache.james:apache-mime4j-core") {
+      version {
+        strictly(libs.apache.mime4jCore.get().version!!)
+      }
+      because("Avoid pulling in old versions via transitive dependencies")
+    }
+  }
 }
 
 tasks.register("xjc") {

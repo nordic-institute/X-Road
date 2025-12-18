@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jboss-test-logging-conventions")
 }
 
 val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -30,7 +31,6 @@ dependencies {
   "xjc"(libs.bundles.jaxb)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.junit.jupiter.params)
 }
 
 tasks.register("createDirs") {

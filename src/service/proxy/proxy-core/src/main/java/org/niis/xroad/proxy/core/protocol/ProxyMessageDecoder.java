@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.protocol;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -55,7 +54,9 @@ import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.http.HttpField;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.proxy.core.signedmessage.Verifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,9 +66,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MimeTypes.HASH_CHAIN;
 import static ee.ria.xroad.common.util.MimeTypes.HASH_CHAIN_RESULT;
@@ -78,6 +76,8 @@ import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_MESSAGE;
 
 /**
  * Decodes proxy SOAP messages from an input stream.
@@ -135,9 +135,10 @@ public class ProxyMessageDecoder {
      * @param contentType        expected content type of the input stream
      * @param hashAlgoId         hash algorithm id used when hashing parts
      */
-    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
+    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                               ProxyMessageConsumer callback,
                                String contentType, DigestAlgorithm hashAlgoId) {
-        this(globalConfProvider, callback, contentType, true, hashAlgoId);
+        this(globalConfProvider, ocspVerifierFactory, callback, contentType, true, hashAlgoId);
     }
 
     /**
@@ -150,7 +151,8 @@ public class ProxyMessageDecoder {
      *                           should be thrown
      * @param hashAlgoId         hash algorithm id used when hashing parts
      */
-    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
+    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                               ProxyMessageConsumer callback,
                                String contentType, boolean faultAllowed, DigestAlgorithm hashAlgoId) {
         LOG.trace("new ProxyMessageDecoder({}, {})", contentType, hashAlgoId);
 
@@ -158,7 +160,7 @@ public class ProxyMessageDecoder {
         this.contentType = contentType;
         this.faultAllowed = faultAllowed;
         this.hashAlgoId = hashAlgoId;
-        this.verifier = new Verifier(globalConfProvider);
+        this.verifier = new Verifier(globalConfProvider, ocspVerifierFactory);
     }
 
     /**
@@ -176,8 +178,8 @@ public class ProxyMessageDecoder {
         } else if (baseContentType.equalsIgnoreCase(MULTIPART_MIXED)) {
             parseMultipart(is);
         } else {
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Invalid content type: %s", baseContentType);
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
+                    "Invalid content type: %s".formatted(baseContentType));
         }
     }
 
@@ -199,7 +201,7 @@ public class ProxyMessageDecoder {
     private void parseFault(InputStream is) throws IOException {
         Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
-            throw new CodedException(X_INVALID_MESSAGE,
+            throw XrdRuntimeException.systemException(INVALID_MESSAGE,
                     "Expected fault message, but got reqular SOAP message");
         }
 
@@ -209,7 +211,7 @@ public class ProxyMessageDecoder {
     private void parseMultipart(InputStream is) throws IOException, MimeException {
         // Multipart content type requires boundary!
         if (!HeaderValueUtils.hasBoundary(contentType.toLowerCase())) {
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
                     "Multipart content type is missing required boundary");
         }
 
@@ -322,8 +324,8 @@ public class ProxyMessageDecoder {
                     nextPart = NextPart.NONE;
                     break;
                 case NONE:
-                    throw new CodedException(X_INVALID_MESSAGE,
-                            "Extra content (%s) after signature", bd.getMimeType());
+                    throw XrdRuntimeException.systemException(INVALID_MESSAGE,
+                            "Extra content (%s) after signature".formatted(bd.getMimeType()));
                 default:
                     throw new IllegalArgumentException("Unexpected next body part: "
                             + nextPart);
@@ -354,9 +356,8 @@ public class ProxyMessageDecoder {
                 case XOP_XML:
                     break;
                 default:
-                    throw new CodedException(X_INVALID_CONTENT_TYPE,
-                            "Invalid content type for SOAP message: %s",
-                            bd.getMimeType());
+                    throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
+                            "Invalid content type for SOAP message: %s".formatted(bd.getMimeType()));
             }
 
             Soap soap = new SaxSoapParserImpl().parse(partContentType, is);
@@ -432,13 +433,13 @@ public class ProxyMessageDecoder {
             private String partContentType;
 
             @Override
-            public void startHeader() throws MimeException {
+            public void startHeader() {
                 headers = new HashMap<>();
                 partContentType = null;
             }
 
             @Override
-            public void field(Field field) throws MimeException {
+            public void field(Field field) {
                 if (field.getName().equalsIgnoreCase(
                         HEADER_CONTENT_TYPE)) {
                     partContentType = field.getBody();
@@ -453,8 +454,7 @@ public class ProxyMessageDecoder {
             }
 
             @Override
-            public void body(BodyDescriptor bd, InputStream is)
-                    throws IOException {
+            public void body(BodyDescriptor bd, InputStream is) {
                 LOG.trace("attachment body: {}", bd.getMimeType());
                 try {
                     DigestCalculator dc =
@@ -479,7 +479,7 @@ public class ProxyMessageDecoder {
         attachmentParser.parse(is);
     }
 
-    private void handleHashChainResult(InputStream is) throws CodedException {
+    private void handleHashChainResult(InputStream is) {
         try {
             LOG.trace("handleHashChainResult()");
 
@@ -492,7 +492,7 @@ public class ProxyMessageDecoder {
         }
     }
 
-    private void handleHashChain(InputStream is) throws CodedException {
+    private void handleHashChain(InputStream is) {
         try {
             LOG.trace("handleHashChain()");
 
@@ -507,8 +507,7 @@ public class ProxyMessageDecoder {
     }
 
     @SuppressWarnings("fallthrough")
-    private void handleSignature(BodyDescriptor bd, InputStream is)
-            throws CodedException {
+    private void handleSignature(BodyDescriptor bd, InputStream is) {
         try {
             LOG.trace("Looking for signature, got '{}'", bd.getMimeType());
 
@@ -536,9 +535,8 @@ public class ProxyMessageDecoder {
                     // Um, not what we expected.
                     // The error reporting must use exceptions, otherwise
                     // the parsing is not interrupted.
-                    throw new CodedException(X_INVALID_CONTENT_TYPE,
-                            "Received invalid content type instead of signature: %s",
-                            bd.getMimeType());
+                    throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
+                            "Received invalid content type instead of signature: %s".formatted(bd.getMimeType()));
             }
         } catch (Exception e) {
             throw translateException(e);
@@ -547,8 +545,7 @@ public class ProxyMessageDecoder {
 
     private DigestAlgorithm getHashAlgoId() {
         if (hashAlgoId == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not get hash algorithm identifier from message");
+            throw XrdRuntimeException.systemInternalError("Could not get hash algorithm identifier from message");
         }
 
         return hashAlgoId;

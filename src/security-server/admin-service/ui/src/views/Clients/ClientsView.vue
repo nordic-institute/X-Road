@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,15 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <clientsDataTable />
+  <router-view />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import ClientsDataTable from './ClientsDataTable.vue';
-export default defineComponent({
-  components: {
-    ClientsDataTable,
-  },
-});
-</script>
+<script lang="ts" setup></script>
+
+<style lang="scss" scoped></style>

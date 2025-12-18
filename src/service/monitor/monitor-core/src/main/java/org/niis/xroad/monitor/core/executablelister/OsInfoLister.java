@@ -28,9 +28,7 @@ package org.niis.xroad.monitor.core.executablelister;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.monitor.core.JmxStringifiedData;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -41,15 +39,6 @@ public class OsInfoLister extends AbstractExecLister<String> {
 
     private static final String SHOW_OS_INFO_COMMAND = "cat /proc/version";
     private static final int NUMBER_OF_FIELDS = 1;
-
-    /**
-     * Program entry point
-     */
-    public static void main(String[] args) throws IOException {
-        JmxStringifiedData<String> p = new OsInfoLister().list();
-        System.out.println("raw: " + p.getJmxStringData());
-        System.out.println("parsed: " + p.getDtoData());
-    }
 
     @Override
     protected String getCommand() {
@@ -68,6 +57,6 @@ public class OsInfoLister extends AbstractExecLister<String> {
 
     @Override
     protected String parse(List<String> columns) {
-        return columns.get(0);
+        return columns.getFirst();
     }
 }

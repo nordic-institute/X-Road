@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.serviceAccount.name }}-script
+data:
+  _openbao.sh: |
+    {{- .Files.Get "scripts/_openbao.sh" | nindent 4 }}
+  _k8s.sh: |
+    {{- .Files.Get "scripts/_k8s.sh" | nindent 4 }}
+  init.sh: |
+    {{- .Files.Get "scripts/init.sh" | nindent 4 }}

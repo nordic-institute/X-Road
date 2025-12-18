@@ -32,6 +32,10 @@ dependencies {
   implementation(project(":lib:globalconf-spring"))
 
   implementation(project(":common:common-management-request")) {
+    exclude(module = "spring-boot-starter-tomcat")
+  }
+
+  implementation(project(":common:common-management-service")) {
     exclude( module = "spring-boot-starter-tomcat")
   }
 
@@ -40,7 +44,7 @@ dependencies {
   }
 
   implementation("org.springframework.boot:spring-boot-starter-jetty")
-
+  implementation(project(":lib:properties-spring"))
   implementation(libs.jakarta.validationApi)
   implementation(libs.bucket4j.core)
   implementation(libs.logback.classic)

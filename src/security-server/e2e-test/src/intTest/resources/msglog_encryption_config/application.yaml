@@ -1,0 +1,14 @@
+xroad:
+  proxy:
+    message-log:
+      database-encryption:
+        enabled: true
+      archiver:
+        encryption-enabled: true
+        archive-interval: 0 * * * * ?
+        default-key-id: 3BD9C292C63580F8
+        grouping-strategy: SUBSYSTEM
+        grouping-keys:
+          "not/existing/member": 8A4BB80EEE081BDE
+          "DEV/COM/4321": E93952B01C2D2EA5,8A4BB80EEE081BDE
+          "another/fake/member": 1234567890ABCDEF # not existing key

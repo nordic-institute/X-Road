@@ -30,6 +30,7 @@ package org.niis.xroad.cs.test.glue;
 import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
+import org.apache.commons.io.IOUtils;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.DistinguishedNameDto;
 import org.niis.xroad.cs.openapi.model.ManagementServicesConfigurationDto;
@@ -42,8 +43,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static java.lang.ClassLoader.getSystemResourceAsStream;
+import java.io.IOException;
+
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
+import static org.mockserver.model.MediaType.APPLICATION_JSON;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -130,8 +135,8 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
 
     @Step("Management service TLS certificate is uploaded")
     public void uploadCertificate() throws Exception {
-        var keyInputStream = getSystemResourceAsStream("container-files/etc/xroad/ssl/management-service-new.crt");
-        MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, keyInputStream.readAllBytes());
+        var newCert = IOUtils.toByteArray(getClass().getResourceAsStream("/test-data/management-service-new.crt"));
+        MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, newCert);
         try {
             tlsCertificateResponse = managementServicesApi.uploadCertificate(certificate);
             putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCode().value());
@@ -148,7 +153,8 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(values.get("$securityServerId"), "body.securityServerId"))
-                .assertion(equalsAssertion(values.get("$securityServerOwnersGlobalGroupCode"), "body.securityServerOwnersGlobalGroupCode"))
+                .assertion(equalsAssertion(values.get("$securityServerOwnersGlobalGroupCode"),
+                        "body.securityServerOwnersGlobalGroupCode"))
                 .assertion(equalsAssertion(values.get("$serviceProviderName"), "body.serviceProviderName"))
                 .assertion(equalsAssertion(values.get("$servicesAddress"), "body.servicesAddress"))
                 .assertion(equalsAssertion(values.get("$wsdlAddress"), "body.wsdlAddress"))
@@ -168,5 +174,60 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
+    }
+
+    @Step("Vault's TLS credentials issuance response is mocked")
+    public void mockVaultTlsCredentialsIssuanceResponse() throws IOException {
+        mockServerService.client()
+                .when(request()
+                        .withMethod("POST")
+                        .withPath("/v1/xrd-pki/issue/xrd-internal"))
+                .respond(response()
+                        .withStatusCode(OK.value())
+                        .withContentType(APPLICATION_JSON)
+                        .withBody(IOUtils.toByteArray(
+                                getClass().getResourceAsStream("/test-data/vault-issue-tls-creds-response.json"))));
+
+        mockServerService.client()
+                .when(request()
+                        .withMethod("POST")
+                        .withPath("/v1/xrd-secret/tls/management-service"))
+                .respond(response()
+                        .withStatusCode(OK.value())
+                        .withContentType(APPLICATION_JSON));
+    }
+
+    @Step("Vault's TLS credentials addition response is mocked")
+    public void mockVaultTlsCredentialsAdditionResponse() throws IOException {
+        mockServerService.client()
+                .when(request()
+                        .withMethod("POST")
+                        .withPath("/v1/xrd-pki/issue/xrd-internal"))
+                .respond(response()
+                        .withStatusCode(OK.value())
+                        .withContentType(APPLICATION_JSON)
+                        .withBody(IOUtils.toByteArray(
+                                getClass().getResourceAsStream("/test-data/vault-issue-tls-creds-response.json"))));
+
+        mockServerService.client()
+                .when(request()
+                        .withMethod("POST")
+                        .withPath("/v1/xrd-secret/tls/management-service"))
+                .respond(response()
+                        .withStatusCode(OK.value())
+                        .withContentType(APPLICATION_JSON));
+    }
+
+    @Step("Vault's TLS credentials retrieval response is mocked")
+    public void mockVaultTlsCredentialsRetrievalResponse() throws IOException {
+        mockServerService.client()
+                .when(request()
+                        .withMethod("GET")
+                        .withPath("/v1/xrd-secret/tls/management-service"))
+                .respond(response()
+                        .withStatusCode(OK.value())
+                        .withContentType(APPLICATION_JSON)
+                        .withBody(IOUtils.toByteArray(
+                                getClass().getResourceAsStream("/test-data/vault-get-tls-creds.response.json"))));
     }
 }

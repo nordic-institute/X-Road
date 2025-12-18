@@ -45,10 +45,7 @@ export const getTokenUIStatus = (status: TokenStatus): TokenUIStatus => {
     return TokenUIStatus.Available;
   } else if (status === TokenStatus.OK) {
     return TokenUIStatus.Active;
-  } else if (
-    status === TokenStatus.USER_PIN_EXPIRED ||
-    status === TokenStatus.USER_PIN_LOCKED
-  ) {
+  } else if (status === TokenStatus.USER_PIN_EXPIRED || status === TokenStatus.USER_PIN_LOCKED) {
     return TokenUIStatus.Unavailable;
   } else if (status === TokenStatus.NOT_INITIALIZED) {
     return TokenUIStatus.Unsaved;

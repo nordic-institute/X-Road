@@ -25,17 +25,20 @@
  */
 package org.niis.xroad.common.managementrequest.model;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 @Slf4j
 public class ClientRegRequest extends GenericClientRequest {
 
-    public ClientRegRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
-        super(signerRpcClient, client, request);
+    public ClientRegRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient, ClientId client, SoapMessageImpl request,
+                            DigestAlgorithm signatureDigestAlgorithm) {
+        super(signerRpcClient, signerSignClient, client, request, signatureDigestAlgorithm);
     }
 
 }

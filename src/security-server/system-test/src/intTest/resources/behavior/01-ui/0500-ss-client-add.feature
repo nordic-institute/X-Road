@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0500 - SS: Client Add
 
@@ -20,9 +21,9 @@ Feature: 0500 - SS: Client Add
     And Add Client Token is set as "Token softToken-0"
     And Add Client Sign key label set to "<$label>"
     And Add Client CSR details Certification Service to "Test CA" and CSR format "PEM"
-    And Add Client Generate CSR is set to organization "test-org" SAN is set to "ss0" and csr is created
+    And Add Client Generate CSR is set to organization "test-org" SAN is set to "ui" and csr is created
     Then Client "<$client>" with status "<$status>" is present in the list
     Examples:
       | $label           | $client               | $clientIdentifier       | $status    | $newName                     |
-      | label-TestClient | Test client subsystem | DEV:COM:4321:TestClient | REGISTERED | Test client subsystem edited |
+      | label-TestClient | Test client subsystem | DEV:COM:4321:TestClient | Registered | Test client subsystem edited |
     #  | label-Management | Management | DEV:COM:1234:MANAGEMENT | REGISTERED |

@@ -27,10 +27,9 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.SignerProxyException;
@@ -112,14 +111,14 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
 
         try {
             signerProxyFacade.activateToken(tokenLoginRequest.getTokenId(), tokenLoginRequest.getPassword().toCharArray());
-        } catch (CodedException codedException) {
+        } catch (XrdRuntimeException xrdRuntimeException) {
             final org.niis.xroad.signer.api.dto.TokenInfo token1 = getToken(tokenLoginRequest.getTokenId());
             if (USER_PIN_FINAL_TRY == token1.getStatus()) {
-                throw new BadRequestException(codedException, TOKEN_PIN_FINAL_TRY.build());
+                throw new BadRequestException(xrdRuntimeException, TOKEN_PIN_FINAL_TRY.build());
             } else if (USER_PIN_LOCKED == token1.getStatus()) {
-                throw new BadRequestException(codedException, TOKEN_PIN_LOCKED.build());
+                throw new BadRequestException(xrdRuntimeException, TOKEN_PIN_LOCKED.build());
             }
-            throw new SignerProxyException(codedException, TOKEN_ACTIVATION_FAILED.build(codedException.getFaultCode()));
+            throw new SignerProxyException(xrdRuntimeException, TOKEN_ACTIVATION_FAILED.build(xrdRuntimeException.getErrorCode()));
         } catch (Exception exception) {
             throw new SignerProxyException(exception, TOKEN_ACTIVATION_FAILED.build());
         }
@@ -134,8 +133,8 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token));
         try {
             signerProxyFacade.deactivateToken(tokenId);
-        } catch (CodedException codedException) {
-            throw new SignerProxyException(codedException, TOKEN_DEACTIVATION_FAILED.build(codedException.getFaultCode()));
+        } catch (XrdRuntimeException xrdRuntimeException) {
+            throw new SignerProxyException(xrdRuntimeException, TOKEN_DEACTIVATION_FAILED.build(xrdRuntimeException.getErrorCode()));
         } catch (Exception exception) {
             throw new SignerProxyException(exception, TOKEN_DEACTIVATION_FAILED.build());
         }

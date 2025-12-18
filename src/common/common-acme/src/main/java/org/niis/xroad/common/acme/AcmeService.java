@@ -25,12 +25,10 @@
  */
 package org.niis.xroad.common.acme;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
@@ -63,7 +61,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -106,12 +103,10 @@ import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_FINALIZATION
 public final class AcmeService {
 
     public static final int ORDER_NOT_AFTER_DAYS = 365;
-    @Setter
-    private String acmeAccountKeystorePath = SystemProperties.getConfPath() + "ssl/acme.p12";
-    private final String acmeChallengePath = SystemProperties.getConfPath() + "acme-challenge/";
 
     private final AcmeProperties acmeProperties;
     private final MailNotificationProperties mailNotificationProperties;
+    private final AcmeConfig acmeConfig;
 
     public boolean isExternalAccountBindingRequired(String acmeServerDirectoryUrl) {
         Session session = new Session(acmeServerDirectoryUrl);
@@ -160,20 +155,20 @@ public final class AcmeService {
     public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
         try {
             Login login = getLogin(memberId, caInfo, keyUsage);
-            File acmeKeystoreFile = new File(acmeAccountKeystorePath);
+            File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
             char[] storePassword = acmeProperties.getAccountKeystorePassword();
             KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
             String alias = getAlias(memberId, keyUsage, caInfo);
             X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
-            int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeKeypairRenewalTimeBeforeExpirationDate();
+            int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeKeypairRenewalTimeBeforeExpirationDate();
             if (certificate != null && Instant.now()
                     .isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
                 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-                keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+                keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
                 KeyPair keyPair = keyPairGenerator.generateKeyPair();
                 login.getAccount().changeKey(keyPair);
 
-                long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
+                long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
                 X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
                 keyStore.setKeyEntry(
                         alias,
@@ -190,7 +185,7 @@ public final class AcmeService {
     private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo)
             throws GeneralSecurityException, IOException, OperatorCreationException {
         String alias = getAlias(memberId, keyUsage, caInfo);
-        File acmeKeystoreFile = new File(acmeAccountKeystorePath);
+        File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
         KeyStore keyStore;
         char[] storePassword = acmeProperties.getAccountKeystorePassword();
         if (isEmpty(storePassword)) {
@@ -216,10 +211,10 @@ public final class AcmeService {
         } else {
             log.debug("Creating keypair");
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+            keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
             keyPair = keyPairGenerator.generateKeyPair();
 
-            long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
+            long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
             X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
 
             keyStore.setKeyEntry(
@@ -330,7 +325,7 @@ public final class AcmeService {
                         .orElseThrow(() -> new AcmeServiceException(HTTP_CHALLENGE_MISSING.build()));
                 String token = httpChallenge.getToken();
                 String content = httpChallenge.getAuthorization();
-                String acmeChallenge = acmeChallengePath + token;
+                var acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token);
                 try {
                     AtomicSave.execute(acmeChallenge, "tmp_challenge",
                             out -> out.write(content.getBytes(StandardCharsets.UTF_8)));
@@ -344,7 +339,7 @@ public final class AcmeService {
                 }
                 waitForTheChallengeToBeCompleted(httpChallenge);
                 try {
-                    Files.delete(Path.of(acmeChallenge));
+                    Files.delete(acmeChallenge);
                 } catch (IOException e) {
                     throw new AcmeServiceException(e, HTTP_CHALLENGE_FILE_DELETION.build());
                 }
@@ -354,10 +349,10 @@ public final class AcmeService {
         }
     }
 
-    private static void waitForTheChallengeToBeCompleted(Challenge challenge) {
+    private void waitForTheChallengeToBeCompleted(Challenge challenge) {
         log.debug("Waiting for challenge to be completed");
-        int attempts = SystemProperties.getAcmeAuthorizationWaitAttempts();
-        long interval = SystemProperties.getAcmeAuthorizationWaitInterval();
+        int attempts = acmeConfig.getAcmeAuthorizationWaitAttempts();
+        long interval = acmeConfig.getAcmeAuthorizationWaitInterval();
         waitForTheAcmeResourceToBeCompleted(challenge,
                 challenge::getStatus,
                 attempts,
@@ -394,8 +389,8 @@ public final class AcmeService {
 
     private Certificate getCertificate(Order order) {
         log.debug("Getting the certificate");
-        int attempts = SystemProperties.getAcmeCertificateWaitAttempts();
-        long interval = SystemProperties.getAcmeCertificateWaitInterval();
+        int attempts = acmeConfig.getAcmeCertificateWaitAttempts();
+        long interval = acmeConfig.getAcmeCertificateWaitInterval();
         waitForTheAcmeResourceToBeCompleted(order, order::getStatus, attempts, interval, CERTIFICATE_FAILURE, CERTIFICATE_WAIT_FAILURE);
         return order.getCertificate();
     }
@@ -455,7 +450,7 @@ public final class AcmeService {
                     "Retrieving renewal information from ACME Server failed. "
                             + "Falling back to fixed renewal time based on certificate expiration date: {}", ex.getMessage());
         }
-        int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
+        int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeRenewalTimeBeforeExpirationDate();
         return x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS);
     }
 

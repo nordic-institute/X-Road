@@ -57,14 +57,14 @@ class ConfigurationDownloadUtilsTest {
         assertEquals(orderedLocations.size(), shuffledLocations.size());
         assertTrue(orderedLocations.containsAll(shuffledLocations));
         assertNotEquals(orderedLocations, shuffledLocations);
-        assertTrue(shuffledLocations.get(0).getDownloadURL().startsWith("https"));
-        assertTrue(shuffledLocations.get(1).getDownloadURL().startsWith("https"));
-        assertTrue(shuffledLocations.get(2).getDownloadURL().startsWith("https"));
-        assertTrue(shuffledLocations.get(3).getDownloadURL().startsWith("https"));
-        assertTrue(shuffledLocations.get(0).getDownloadURL().startsWith("http"));
-        assertTrue(shuffledLocations.get(1).getDownloadURL().startsWith("http"));
-        assertTrue(shuffledLocations.get(2).getDownloadURL().startsWith("http"));
-        assertTrue(shuffledLocations.get(3).getDownloadURL().startsWith("http"));
+        assertTrue(shuffledLocations.get(0).getDownloadURL().startsWith("https:"));
+        assertTrue(shuffledLocations.get(1).getDownloadURL().startsWith("https:"));
+        assertTrue(shuffledLocations.get(2).getDownloadURL().startsWith("https:"));
+        assertTrue(shuffledLocations.get(3).getDownloadURL().startsWith("https:"));
+        assertTrue(shuffledLocations.get(4).getDownloadURL().startsWith("http:"));
+        assertTrue(shuffledLocations.get(5).getDownloadURL().startsWith("http:"));
+        assertTrue(shuffledLocations.get(6).getDownloadURL().startsWith("http:"));
+        assertTrue(shuffledLocations.get(7).getDownloadURL().startsWith("http:"));
     }
 
     @Test

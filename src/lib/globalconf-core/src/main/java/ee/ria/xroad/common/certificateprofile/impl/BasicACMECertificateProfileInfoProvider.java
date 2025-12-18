@@ -146,14 +146,14 @@ public class BasicACMECertificateProfileInfoProvider
 
             String memberClass = CertUtils.getRDNValue(x500name, BCStyle.BUSINESS_CATEGORY);
             if (memberClass == null) {
-                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.systemException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Certificate subject name does not contain business category")
                         .build();
             }
 
             String memberCode = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
             if (memberCode == null) {
-                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.systemException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Subject name does not contain serial number")
                         .build();
             }

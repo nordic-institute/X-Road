@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class FlattenedSecurityServerClientView extends Auditable {
-    private int id;
+    private long id;
     private String xroadInstance;
     private MemberClass memberClass;
     private String memberCode;

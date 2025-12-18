@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.asic;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -64,6 +63,7 @@ import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
@@ -81,8 +81,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
@@ -91,6 +89,8 @@ import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SOAP;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Controls the validity of ASiC containers.
@@ -105,6 +105,7 @@ public class AsicContainerVerifier {
     }
 
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final OcspVerifier ocspVerifier;
     private final List<String> attachmentHashes = new ArrayList<>();
     private final AsicContainer asic;
@@ -130,9 +131,11 @@ public class AsicContainerVerifier {
      * @param filename           name of the ASiC container ZIP file
      */
     public AsicContainerVerifier(GlobalConfProvider globalConfProvider,
+                                 OcspVerifierFactory ocspVerifierFactory,
                                  String filename) throws IOException {
         this.globalConfProvider = globalConfProvider;
-        this.ocspVerifier = new OcspVerifier(globalConfProvider);
+        this.ocspVerifierFactory = ocspVerifierFactory;
+        this.ocspVerifier = ocspVerifierFactory.create(globalConfProvider);
 
         try (FileInputStream in = new FileInputStream(filename)) {
             asic = AsicContainer.read(in);
@@ -152,6 +155,7 @@ public class AsicContainerVerifier {
 
         SignatureVerifier signatureVerifier =
                 new SignatureVerifier(globalConfProvider,
+                        ocspVerifierFactory,
                         signature,
                         signatureData.getHashChainResult(),
                         signatureData.getHashChain());
@@ -181,7 +185,7 @@ public class AsicContainerVerifier {
     private void verifyRequiredReferencesExist() throws XMLSecurityException {
         if (!signature.references(MESSAGE)
                 && !signature.references(SIG_HASH_CHAIN_RESULT)) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE,
                     "Signature does not reference '%s' or '%s'",
                     MESSAGE, SIG_HASH_CHAIN_RESULT);
         }
@@ -239,7 +243,7 @@ public class AsicContainerVerifier {
             HashChainVerifier.verify(in, new HashChainReferenceResolverImpl(),
                     inputs);
         } catch (Exception e) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE,
                     "Failed to verify time-stamp hash chain: %s", e);
         }
     }
@@ -274,8 +278,8 @@ public class AsicContainerVerifier {
             }
             return msg.isRequest()
                     ? msg.getClient() : msg.getService().getClientId();
-        } catch (CodedException ce) {
-            if (X_INVALID_SOAP.equals(ce.getFaultCode())) {
+        } catch (XrdRuntimeException ce) {
+            if (INVALID_SOAP.code().equals(ce.getErrorCode())) {
                 try {
                     final RestMessage restMessage = RestMessage.of(messageBytes);
                     return restMessage.getSender();

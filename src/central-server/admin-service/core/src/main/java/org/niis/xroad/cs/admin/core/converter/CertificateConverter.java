@@ -32,8 +32,10 @@ import ee.ria.xroad.common.util.EncoderUtils;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderCertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
+import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -64,6 +66,19 @@ public class CertificateConverter {
         try {
             var certificateDetails = new CertificateDetails();
             populateCertificateDetails(certificateDetails, cert);
+            return certificateDetails;
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    public OcspResponderCertificateDetails toCertificateDetails(final OcspInfoEntity ocspInfo) {
+        if (ocspInfo.getCert() == null) {
+            return null;
+        }
+        try {
+            OcspResponderCertificateDetails certificateDetails = new OcspResponderCertificateDetails();
+            populateCertificateDetails(certificateDetails, ocspInfo.getCert());
             return certificateDetails;
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(e);

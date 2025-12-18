@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.104  
+Version: 2.105
 Doc. ID: UG-SS
 
 ---
@@ -130,9 +130,10 @@ Doc. ID: UG-SS
 | 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 | 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
-| 01.12.2025 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
-| 07.12.2025 | 2.103   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
-| 15.12.2025 | 2.104   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
+| 11.11.2025 | 2.102   | Drop monitoring JMX interfaces                                                                                                                                                                                                                                                                                                                                                                              | Justas Samuolis      |
+| 01.12.2025 | 2.103   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
+| 07.12.2025 | 2.104   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
+| 15.12.2025 | 2.105   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -265,11 +266,9 @@ Doc. ID: UG-SS
     - [15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-http-endpoint-of-the-operational-monitoring-daemon)
     - [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
     - [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
-    - [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
 - [16 Environmental Monitoring](#16-environmental-monitoring)
   - [16.1 Usage via SOAP API](#161-usage-via-soap-api)
-  - [16.2 Usage via JMX API](#162-usage-via-jmx-api)
-  - [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)
+  - [16.2 Limiting environmental monitoring remote data set](#162-limiting-environmental-monitoring-remote-data-set)
 - [17 Logs and System Services](#17-logs-and-system-services)
   - [17.1 System Services](#171-system-services)
   - [17.2 Logging configuration](#172-logging-configuration)
@@ -356,47 +355,31 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 8. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
 
-9. <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
+9. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] X-Road: Operational Monitoring System Parameters. Document ID: [PR-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
 
-10. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] X-Road: Operational Monitoring System Parameters. Document ID: [PR-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
+10. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road: Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
 
-11. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road: Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
+11. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-12. <a id="Ref_JMX" class="anchor"></a>\[JMX\] Monitoring and Management Using JMX Technology,  
-    <http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html>
+12. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
 
-13. <a id="Ref_ZABBIX-GATEWAY" class="anchor"></a>\[ZABBIX-GATEWAY\] Zabbix Java Gateway,  
-    <https://www.zabbix.com/documentation/3.0/manual/concepts/java>
+13. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
-14. <a id="Ref_ZABBIX-JMX" class="anchor"></a>\[ZABBIX-JMX\] Zabbix JMX Monitoring,  
-    <https://www.zabbix.com/documentation/3.0/manual/config/items/itemtypes/jmx_monitoring>
+14. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
-15. <a id="Ref_ZABBIX-API" class="anchor"></a>\[ZABBIX-API\] Zabbix API,  
-    <https://www.zabbix.com/documentation/3.0/manual/api>
+15. <a id="Ref_PR-MREST" class="anchor"></a>\[PR-MREST\] X-Road: Service Metadata Protocol for REST. Document ID: [PR-MREST](../Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md).
 
-16. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
+16. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
-17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
+17. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml>.
 
-18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
+18. <a id="Ref_GnuPG" class="anchor"></a>\[GnuPG\] The GNU Privacy Guard, <https://gnupg.org>.
 
-19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+19. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
-20. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
+20. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
 
-21. <a id="Ref_PR-MREST" class="anchor"></a>\[PR-MREST\] X-Road: Service Metadata Protocol for REST. Document ID: [PR-MREST](../Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md).
-
-22. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
-
-23. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml>.
-
-24. <a id="Ref_GnuPG" class="anchor"></a>\[GnuPG\] The GNU Privacy Guard, <https://gnupg.org>.
-
-25. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
-
-26. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
-
-27. <a id="Ref_ACME-ARI" class="anchor"></a>\[ACME-ARI\] draft-ietf-acme-ari-05:  Automated Certificate Management Environment (ACME) Renewal Information (ARI) Extension , <https://datatracker.ietf.org/doc/draft-ietf-acme-ari/>
+21. <a id="Ref_ACME-ARI" class="anchor"></a>\[ACME-ARI\] draft-ietf-acme-ari-05:  Automated Certificate Management Environment (ACME) Renewal Information (ARI) Extension , <https://datatracker.ietf.org/doc/draft-ietf-acme-ari/>
 
 ## 2 User Management
 
@@ -2705,7 +2688,7 @@ Field descriptions:
 
 The Security Server caches operational monitoring data in the **operational monitoring buffer**. One operational data record is created for each request during the message exchange. Security server forwards operational data cached in the operational monitoring buffer to the operational monitoring daemon. Successfully forwarded records are removed from the operational monitoring buffer.
 
-The operational monitoring daemon makes operational and health data available to the owner of the Security Server, regular clients and the central monitoring client via the Security Server. Local health data are available for external monitoring systems (e.g. Zabbix) over the JMXMP interface described in \[[PR-OPMONJMX](#Ref_PR-OPMONJMX)\].
+The operational monitoring daemon makes operational and health data available to the owner of the Security Server, regular clients and the central monitoring client via the Security Server.
 
 The owner of the Security Server and the central monitoring client are able to query the records of all clients. For a regular client, only the records associated with that client are available. The internal IP of the Security Server is included in the response only for the owner of the Security Server and central monitoring client.
 
@@ -2880,21 +2863,6 @@ For the service to stay stopped after reboot the following command should be run
 The configuration anchor (renamed as `configuration-anchor.xml`) file must be manually copied into the directory `/etc/xroad` of the external monitoring daemon in order for configuration client to be able to download the global configuration (by default configuration download interval is 60 seconds). The system user xroad must have permissions to read this file.
 
 
-#### 15.2.6 Monitoring Health Data over JMXMP
-
-The operational monitoring daemon makes health data available over the JMXMP protocol. The Zabbix monitoring software can be configured to gather that data periodically, using its built in JMX interface type.
-
-By default, the operational monitoring daemon JMXMP is disabled. JMXMP must be enabled for external tools such as Zabbix to be able to access the data. Please refer to the documentation at \[[JMX](#Ref_JMX)\] for instructions on configuring access to the JMX interface of the operational monitoring daemon.
-
-For Zabbix to be able to gather data over JMX, the Zabbix Java gateway must be installed. See \[[ZABBIX-GATEWAY](#Ref_ZABBIX-GATEWAY)\] for instructions.
-
-The JMX interface must be configured to each host item in Zabbix, for which health data needs to be obtained. See \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\] for instructions.
-
-Please refer to \[[PR-OPMONJMX](#Ref_PR-OPMONJMX)\] for a specification of the names and attributes of the JMX objects exposed by the operational monitoring daemon.
-
-The xroad-opmonitor package comes with sample host data that can be imported to Zabbix, containing a JMX interface, applications related to sample services and health data items under these services. Also, a script is provided for importing health data related applications and items to several hosts using the Zabbix API. Please find the example files in the directory `/usr/share/doc/xroad-opmonitor/examples/zabbix/`. Please refer to \[[ZABBIX-API](#Ref_ZABBIX-API)\] for information on the Zabbix API.
-
-
 ## 16 Environmental Monitoring
 
 Environmental monitoring provides details of the Security Servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc.
@@ -2906,14 +2874,7 @@ Environmental monitoring provides SOAP API via X-Road message protocol extension
 
 Monitoring extension schema is defined in \[[MONITORING_XSD](#Ref_MONITORING_XSD)\].
 
-
-### 16.2 Usage via JMX API
-
-Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details.
-
-JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\].
-
-### 16.3 Limiting environmental monitoring remote data set
+### 16.2 Limiting environmental monitoring remote data set
 
 It is possibility to limit what allowed non-owners can request via environmental monotiring data request by changing monitor-env limit-remote-data-set parameter. By changing flag to be true non-owners who are allowed to query environmental monitoring data will get only certificate, operating system and xroad version information. This parameters is set by default false. Security server owner will always get full data set as requested.
 
@@ -2947,7 +2908,7 @@ System services are managed through the *systemd* facility.
     service <service> stop
 
 Services use the [default unit start rate limits](https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#DefaultStartLimitIntervalSec=).
-An exception to this is `xroad-proxy-ui-api`, which uses a longer start rate limit ([5 starts / 40 seconds](https://github.com/nordic-institute/X-Road/blob/master/src/packages/src/xroad/ubuntu/generic/xroad-proxy-ui-api.service#L5-6))
+An exception to this is `xroad-proxy-ui-api`, which uses a longer start rate limit ([5 starts / 40 seconds](https://github.com/nordic-institute/X-Road/blob/master/deployment/native-packages/src/xroad/ubuntu/generic/xroad-proxy-ui-api.service#L5-6))
 to prevent infinite restart-loop in some specific error situations.
 
 ### 17.2 Logging configuration
