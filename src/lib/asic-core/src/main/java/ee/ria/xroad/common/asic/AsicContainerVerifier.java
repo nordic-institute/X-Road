@@ -31,9 +31,9 @@ import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestMessage;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.StaxSoapParserImpl;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -126,7 +126,6 @@ public class AsicContainerVerifier {
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
      * given filename. Attempts to verify its contents.
-     *
      * @param globalConfProvider global conf provider
      * @param filename           name of the ASiC container ZIP file
      */
@@ -147,7 +146,7 @@ public class AsicContainerVerifier {
      *
      */
     public void verify() throws XMLSecurityException, CertificateEncodingException, IOException,
-            TSPException, OperatorCreationException, CMSException, OCSPException {
+                                TSPException, OperatorCreationException, CMSException, OCSPException {
         String message = asic.getMessage();
         SignatureData signatureData = asic.getSignature();
         signature = new Signature(signatureData.getSignatureXml());
@@ -223,7 +222,7 @@ public class AsicContainerVerifier {
     }
 
     private Date verifyTimestamp() throws IOException, TSPException, XMLSignatureException,
-            CertificateEncodingException, OperatorCreationException, CMSException {
+                                          CertificateEncodingException, OperatorCreationException, CMSException {
         TimeStampToken tsToken = getTimeStampToken();
 
         TimestampVerifier.verify(tsToken, getTimestampedData(), globalConfProvider.getTspCertificates());
@@ -270,7 +269,7 @@ public class AsicContainerVerifier {
         final byte[] messageBytes = messageXml.getBytes(UTF_8);
 
         try {
-            Soap soap = new SaxSoapParserImpl().parse(
+            Soap soap = new StaxSoapParserImpl().parse(
                     MimeTypes.TEXT_XML_UTF8,
                     new ByteArrayInputStream(messageBytes));
             if (!(soap instanceof SoapMessageImpl msg)) {

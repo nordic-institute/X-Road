@@ -36,12 +36,17 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.Arrays;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.QUERY_DIR;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.build;
@@ -53,6 +58,7 @@ import static ee.ria.xroad.common.message.SoapMessageTestUtil.messageToBytes;
 import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.common.core.exception.ErrorCode.DUPLICATE_HEADER_FIELD;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_HEADERS;
@@ -73,7 +79,6 @@ public class SoapMessageTest {
 
     /**
      * Test that reading a normal request message is successful and that header and body are correctly parsed.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -93,7 +98,6 @@ public class SoapMessageTest {
     /**
      * Test that reading a normal RPC encoded request message is successful
      * and that header and body are correctly parsed.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -113,7 +117,6 @@ public class SoapMessageTest {
 
     /**
      * Test that reading a normal response message is successful and that header and body are correctly parsed.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -132,7 +135,6 @@ public class SoapMessageTest {
 
     /**
      * Test that represented party header element is correctly parsed.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -147,7 +149,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that missing header is detected on not fault messages.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -158,7 +159,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that missing body is detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -169,7 +169,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that missing required header fields are detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -180,7 +179,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that userId header field is optional.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @SuppressWarnings("squid:S2699")
@@ -191,7 +189,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that duplicate header fields are detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -202,7 +199,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that body with more than one child elements is detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -213,7 +209,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that service name mismatch in header and body is detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -224,27 +219,26 @@ public class SoapMessageTest {
 
     /**
      * Tests that message with invalid content type is detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void invalidContentType() throws Exception {
-        thrown.expectError(INVALID_CONTENT_TYPE.code());
-
+    @ParameterizedTest
+    @MethodSource(value = "parsers")
+    public void invalidContentType(Supplier<SoapParser> soapParser) throws Exception {
         try (FileInputStream in = new FileInputStream(QUERY_DIR + "simple.query")) {
-            new SaxSoapParserImpl().parse(MimeTypes.TEXT_HTML_UTF8, in);
+            var expected = assertThrows(XrdRuntimeException.class, () -> soapParser.get()  .parse(MimeTypes.TEXT_HTML_UTF8, in));
+            assertEquals(INVALID_CONTENT_TYPE.code(), expected.getCode());
         }
     }
 
     /**
      * Tests that SoapMessage class understands fault messages.
-     *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void faultMessage() {
+    @ParameterizedTest
+    @MethodSource(value = "parsers")
+    public void faultMessage(Supplier<SoapParser> soapParser) {
         String soapFaultXml = SoapFault.createFaultXml("foo.bar", "baz", "xxx", "yyy");
-        Soap message = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8,
+        Soap message = soapParser.get().parse(MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
 
         assertTrue(message instanceof SoapFault);
@@ -258,7 +252,6 @@ public class SoapMessageTest {
 
     /**
      * Checks that inconsistencies between two messages are detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -270,7 +263,6 @@ public class SoapMessageTest {
 
     /**
      * Checks that inconsistencies between two messages are detected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -285,7 +277,6 @@ public class SoapMessageTest {
 
     /**
      * Checks that a request message can be converted to a response message.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -298,7 +289,6 @@ public class SoapMessageTest {
 
     /**
      * Test that request with are quest suffix is correctly converted to a request.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -318,11 +308,11 @@ public class SoapMessageTest {
 
     /**
      * Tests that we can parse our own created Soap messages.
-     *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void shouldParseBuiltMessage() throws Exception {
+    @ParameterizedTest
+    @MethodSource(value = "parsers")
+    public void shouldParseBuiltMessage(Supplier<SoapParser> soapParser) throws Exception {
         ClientId client = ClientId.Conf.create("EE", "BUSINESS", "producer");
         ServiceId service = ServiceId.Conf.create("EE", "BUSINESS", "consumer", null, "test");
         String userId = "foobar";
@@ -335,7 +325,7 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(service, built.getService());
 
-        Soap parsedSoap = new SaxSoapParserImpl().parse(built.getContentType(),
+        Soap parsedSoap = soapParser.get().parse(built.getContentType(),
                 new ByteArrayInputStream(built.getBytes()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
@@ -354,7 +344,7 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(service, built.getService());
 
-        parsedSoap = new SaxSoapParserImpl().parse(built.getContentType(), IOUtils.toInputStream(built.getXml()));
+        parsedSoap = soapParser.get().parse(built.getContentType(), IOUtils.toInputStream(built.getXml()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         parsed = (SoapMessageImpl) parsedSoap;
@@ -366,7 +356,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that we can parse our own created Soap messages.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -388,7 +377,6 @@ public class SoapMessageTest {
 
     /**
      * Tests that missing header field is checked.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -405,7 +393,6 @@ public class SoapMessageTest {
 
     /**
      * Test that input message is not re-encoded when getting XML.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -418,12 +405,15 @@ public class SoapMessageTest {
 
     /**
      * Test protocol version.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void wrongProtocolVersion() throws Exception {
         thrown.expectError(INVALID_PROTOCOL_VERSION.code());
         createRequest("wrong-version.query");
+    }
+
+    public static Stream<Supplier<SoapParser>> parsers() {
+        return Stream.of(SaxSoapParserImpl::new, StaxSoapParserImpl::new);
     }
 }
