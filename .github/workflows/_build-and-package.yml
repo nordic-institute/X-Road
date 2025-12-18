@@ -156,7 +156,7 @@ jobs:
           ./build-images.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
-        uses: actions/upload-artifact@v
+        uses: actions/upload-artifact@v6
         with:
           name: signer-int-test-jar
           path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
