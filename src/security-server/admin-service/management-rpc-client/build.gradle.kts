@@ -6,7 +6,7 @@ plugins {
 dependencies {
   api(project(":security-server:admin-service:message-log-archiver-api"))
 
-  implementation(project(":common:common-rpc"))
+  implementation(project(":lib:rpc-core"))
   implementation(project(":common:common-core"))
   implementation(libs.smallrye.config.core)
 }

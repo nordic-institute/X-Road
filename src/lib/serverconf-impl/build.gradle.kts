@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-domain"))
-  implementation(project(":common:common-vault"))
+  implementation(project(":lib:vault-core"))
   api(project(":common:common-db"))
   api(project(":common:common-db-identifiers"))
   api(project(":lib:serverconf-core"))
@@ -22,7 +22,7 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.hsqldb)
   testImplementation(libs.hibernate.hikaricp)
-  testImplementation(testFixtures(project(":common:common-properties")))
+  testImplementation(testFixtures(project(":lib:properties-core")))
 
   testFixturesImplementation(project(":common:common-test"))
 }

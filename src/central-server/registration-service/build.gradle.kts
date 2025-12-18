@@ -44,7 +44,7 @@ dependencies {
   }
 
   implementation("org.springframework.boot:spring-boot-starter-jetty")
-  implementation(project(":common:common-properties"))
+  implementation(project(":lib:properties-spring"))
   implementation(libs.jakarta.validationApi)
   implementation(libs.bucket4j.core)
   implementation(libs.logback.classic)

@@ -21,7 +21,7 @@ dependencies {
   api(libs.bouncyCastle.bcpg)
   api(libs.bouncyCastle.bcpkix)
   api(project(":common:common-pgp"))
-  api(project(":common:common-vault"))
+  api(project(":lib:vault-core"))
 
   testImplementation(project(":common:common-test"))
 }

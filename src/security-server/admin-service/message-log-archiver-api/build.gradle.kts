@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":common:common-rpc"))
+  implementation(project(":lib:rpc-core"))
 }
