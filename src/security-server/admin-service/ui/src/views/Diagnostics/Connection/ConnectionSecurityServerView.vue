@@ -205,6 +205,15 @@ export default defineComponent({
   watch: {
     localInstance: {
       immediate: true,
+      handler(newInstance: string) {
+        if (!this.selectedInstance) {
+          this.selectedInstance = newInstance;
+        }
+      },
+    },
+
+    selectedInstance: {
+      immediate: true,
       async handler(newInstance: string) {
         this.selectedInstance = newInstance;
         this.selectedTargetSubsystemId = '';

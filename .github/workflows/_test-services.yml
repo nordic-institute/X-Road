@@ -37,7 +37,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download signer-int-test
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: signer-int-test-jar
 
@@ -87,7 +87,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload signer-int-test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: signer-int-test-report-${{ github.run_number }}
@@ -118,7 +118,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download softtoken-signer-int-test
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: softtoken-signer-int-test-jar
 
@@ -168,7 +168,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload softtoken-signer-int-test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: softtoken-signer-int-test-report-${{ github.run_number }}
@@ -199,7 +199,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download opmonitor-int-test
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: opmonitor-int-test-jar
 
@@ -249,7 +249,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload opmonitor-int-test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: opmonitor-int-test-report-${{ github.run_number }}
@@ -280,7 +280,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download cs-admin-int-test
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: cs-admin-int-test-jar
 
@@ -323,7 +323,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload cs-admin-int-test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: cs-admin-int-test-report-${{ github.run_number }}
@@ -354,7 +354,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download cs-management-int-test
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: cs-management-int-test-jar
 
@@ -397,7 +397,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload cs-management-int-test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: cs-management-int-test-report-${{ github.run_number }}
