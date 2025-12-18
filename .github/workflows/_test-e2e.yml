@@ -37,7 +37,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download e2e-test
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: e2e-test-jar
 
@@ -89,7 +89,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload e2e-test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: e2e-test-report-${{ github.run_number }}
