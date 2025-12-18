@@ -22,6 +22,7 @@ dependencies {
   api(libs.jetty.http)
   api(libs.apache.httpclient)
   api(libs.saajImpl)
+  api(libs.woodstox.core)
 
   testImplementation(project(":common:common-test"))
   xjc(libs.bundles.jaxb)

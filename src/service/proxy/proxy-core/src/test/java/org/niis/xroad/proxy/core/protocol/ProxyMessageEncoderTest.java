@@ -27,10 +27,10 @@ package org.niis.xroad.proxy.core.protocol;
 
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.StaxSoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 
@@ -81,7 +81,6 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message is encoded correctly.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -104,7 +103,6 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with OCSP responses is encoded correctly.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -129,7 +127,6 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with an attachment is encoded correctly.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -153,7 +150,6 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a SOAP fault message is encoded correctly.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -171,7 +167,6 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with fault instead of signature is encoded correctly.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -200,7 +195,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapMessageImpl createMessage(InputStream is) {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapMessageImpl) {
             return (SoapMessageImpl) soap;
@@ -210,7 +205,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapFault createFault(InputStream is) {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapFault) {
             return (SoapFault) soap;
