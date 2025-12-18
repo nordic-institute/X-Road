@@ -33,7 +33,7 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.common.util.CachingStream;
+import org.niis.xroad.proxy.core.util.CachingStream;
 import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;

@@ -29,6 +29,7 @@ package org.niis.xroad.softtoken.signer.test;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Service;
@@ -38,11 +39,10 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import java.io.File;
 import java.time.Duration;
 
-import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
-
 @Slf4j
 @Service
 public class SoftTokenSignerIntTestContainerSetup extends BaseComposeSetup {
+    private static final int SIGNER_GRPC_PORT = Integer.parseInt(SignerRpcChannelProperties.DEFAULT_PORT);
     private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
     private static final Duration SOFTTOKEN_SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
 

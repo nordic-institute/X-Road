@@ -29,10 +29,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.mail.MailNotificationProperties;
-import org.niis.xroad.common.mail.MailService;
-import org.niis.xroad.common.mail.NotificationConfig;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.mail.MailNotificationProperties;
+import org.niis.xroad.securityserver.restapi.mail.MailService;
+import org.niis.xroad.securityserver.restapi.mail.NotificationConfig;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.support.MessageSourceAccessor;

@@ -35,8 +35,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeConfig;
-import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -48,6 +46,8 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.SecurityHelper;
+import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
+import org.niis.xroad.securityserver.restapi.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;

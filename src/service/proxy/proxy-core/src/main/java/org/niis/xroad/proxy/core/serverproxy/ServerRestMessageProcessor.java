@@ -34,7 +34,7 @@ import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.util.CachingStream;
+import org.niis.xroad.proxy.core.util.CachingStream;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;

@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
-import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;

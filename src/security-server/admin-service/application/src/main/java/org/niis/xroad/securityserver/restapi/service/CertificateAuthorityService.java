@@ -37,14 +37,14 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeProperties;
-import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.securityserver.restapi.acme.AcmeProperties;
+import org.niis.xroad.securityserver.restapi.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;

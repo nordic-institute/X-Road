@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
-import ee.ria.xroad.common.util.CachingStream;
+import org.niis.xroad.proxy.core.util.CachingStream;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.DeserializationFeature;
