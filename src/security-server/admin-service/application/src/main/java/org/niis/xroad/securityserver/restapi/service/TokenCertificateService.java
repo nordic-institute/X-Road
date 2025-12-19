@@ -233,8 +233,11 @@ public class TokenCertificateService {
         String memberEncodedId = keyUsage == KeyUsageInfo.SIGNING
                 ? memberId.asEncodedId()
                 : serverConfProvider.getIdentifier().getOwner().asEncodedId();
+        byte[] derCsr = generatedCertRequestInfo.format() == CertificateRequestFormat.PEM
+                ? CertUtils.convertPemCsrToDer(generatedCertRequestInfo.certRequest())
+                : generatedCertRequestInfo.certRequest();
         List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
-                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberEncodedId, generatedCertRequestInfo.certRequest());
+                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberEncodedId, derCsr);
         if (chain != null) {
             log.info("Acme order was successful, importing certificate");
             try {

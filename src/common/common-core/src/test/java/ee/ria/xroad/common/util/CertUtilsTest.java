@@ -28,9 +28,14 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.TestCertUtil;
 
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -211,4 +216,34 @@ public class CertUtilsTest {
         String serialNumber = CertUtils.getSubjectSerialNumber(cert);
         assertNull(serialNumber);
     }
+
+    @Test
+    public void convertPemCsrToDer() throws Exception {
+        KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
+        gen.initialize(2048);
+        KeyPair pair = gen.generateKeyPair();
+        byte[] pemCsr = CertUtils.generateCertRequest(
+                pair.getPrivate(), pair.getPublic(), "C=FI, CN=test.example.com");
+
+        byte[] derCsr = CertUtils.convertPemCsrToDer(pemCsr);
+
+        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(derCsr);
+        assertNotNull(csr);
+        X500Name subject = csr.getSubject();
+        assertEquals("test.example.com", CertUtils.getRDNValue(subject, BCStyle.CN));
+        assertEquals("FI", CertUtils.getRDNValue(subject, BCStyle.C));
+    }
+
+    @Test
+    public void convertPemCsrToDerInvalidBase64() {
+        String invalidPemCsr = "-----BEGIN CERTIFICATE REQUEST-----\n"
+               + "Not@Valid#Base64!\n"
+               + "-----END CERTIFICATE REQUEST-----";
+        try {
+            CertUtils.convertPemCsrToDer(invalidPemCsr.getBytes());
+        } catch (XrdRuntimeException e) {
+            assertEquals(ErrorCode.INVALID_PEM_CSR.code(), e.getErrorCode());
+        }
+    }
+
 }

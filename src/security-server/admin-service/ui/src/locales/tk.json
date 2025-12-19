@@ -318,6 +318,9 @@
     "acme": {
       "account_creation_failure": "ACME serwerinde hasap döredip bolmady. Eger-de daşky hasaby baglamak zerur bolsa, onda acme.yml-da dogry ulanyjy ady we açar sözi görkezilendigini barlaň",
       "account_key_pair_error": "ACME serweriň ulanyjy ady we açar sözi üçin jübüt açary alyp bolmady",
+      "account_keystore_password_missing": "acme.yml konfigurasiýa faýlynda ACME hasap açarynyň ammarynyň paroly ýok",
+      "acme_yaml_missing": "ACME konfigurasiýa faýly acme.yml ýok",
+      "acme_yaml_account_keystore_password_update_error": "ACME hasap açarynyň ammarynyň parolyny acme.yml konfigurasiýa faýlynda täzeläp bolmady",
       "authorization_failure": "Awtorizasiýa bolmady. Adatça, domeniň eýeçiligini tassyklamak üçin zerur bolan talaby barlamakda ýüze çykýan ýalňyşlyşlyk bilen baglydyr.",
       "authorization_wait_failure": "Awtorizasiýanyň tamamlanmagyna garaşyp bomady",
       "certificate_failure": "ACME serweriň şahadatnamasyny alyp bolmady",
@@ -407,6 +410,7 @@
     "invalid_init_params": "Işe taýýarlygyň parametrleri nädogry",
     "invalid_instance_identifier": "Nusganyň identifikatory nädogry",
     "invalid_member_class": "Agaznyň klassy nädogry",
+    "invalid_pem_csr": "PEM CSR nädogry",
     "invalid_service_client_id": "Gulluk müşderisiniň ID-si nädogry",
     "invalid_service_url": "Gulluk url nädogry",
     "invalid_wsdl": "WSDL nädogry",
