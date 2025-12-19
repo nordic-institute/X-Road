@@ -38,15 +38,24 @@
     path: "/etc/yum.repos.d/xroad.repo"
     modification_time: now
 
-- name: Install required packages (RHEL)
+- name: Install required packages (RHEL8 - CLI)
   become: yes
-  yum:
-    name: "{{ items }}"
-    state: present
-  vars:
-    items:
+  command: >
+    dnf -y install curl cronie tar acl tzdata-java
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+
+- name: Install required packages (RHEL9+ - module)
+  become: yes
+  package:
+    name:
       - curl
       - cronie
       - tar
       - acl
       - tzdata-java
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
