@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestResponse;
-import org.niis.xroad.proxy.core.util.CachingStream;
 import ee.ria.xroad.common.util.RequestWrapper;
 
 import org.apache.http.client.HttpClient;
@@ -35,6 +34,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
+import org.niis.xroad.proxy.core.util.CachingStream;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

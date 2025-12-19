@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
-import org.niis.xroad.proxy.core.util.CachingStream;
 import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -55,6 +54,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
+import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 

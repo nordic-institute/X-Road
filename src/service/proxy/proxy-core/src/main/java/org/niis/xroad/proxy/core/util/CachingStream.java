@@ -28,8 +28,8 @@ package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.DefaultFilepaths;
 import ee.ria.xroad.common.ErrorCodes;
-
 import ee.ria.xroad.common.util.CacheInputStream;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FilterOutputStream;
