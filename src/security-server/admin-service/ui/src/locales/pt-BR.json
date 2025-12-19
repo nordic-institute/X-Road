@@ -331,11 +331,24 @@
       "ok": "Tudo certo",
       "test": "Teste",
       "centralServer": {
-        "title": "Servidor Central",
+        "authCertRequest": "Serviço de registro de certificado de autenticação",
         "globalConf": "Download da configuração global",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Serviço de registro de certificado de autenticação"
+        "title": "Servidor Central"
+      },
+      "management": {
+        "title": "Servidor de Segurança de Gerenciamento"
+      },
+      "securityServer": {
+        "client": "Cliente",
+        "sourceClient": "Cliente de origem",
+        "rest": "REST",
+        "securityServer": "Servidor de Segurança",
+        "soap": "SOAP",
+        "title": "Outro Servidor de Segurança",
+        "target": "Destino",
+        "targetClient": "Cliente de destino"
       }
     }
   },
@@ -361,6 +374,8 @@
       "account_creation_failure": "Falha ao criar conta no servidor ACME. Se for necessário vincular conta externa, verifique se as credenciais estão corretas no acme.yml",
       "account_key_pair_error": "Falha ao obter o par de chaves da conta ACME",
       "account_keystore_password_missing": "Senha do keystore da conta ACME ausente no arquivo de configuração acme.yml",
+      "acme_yaml_missing": "Arquivo de configuração ACME acme.yml está ausente",
+      "acme_yaml_account_keystore_password_update_error": "Falha ao atualizar a senha do keystore da conta ACME no arquivo de configuração acme.yml",
       "authorization_failure": "Falha na autorização. Normalmente está relacionado à validação de propriedade do domínio",
       "authorization_wait_failure": "Falha ao aguardar a conclusão da autorização",
       "certificate_failure": "Falha ao obter certificado do servidor ACME",
@@ -442,6 +457,7 @@
     "invalid_init_params": "Parâmetros de inicialização inválidos",
     "invalid_instance_identifier": "Identificador de instância inválido",
     "invalid_member_class": "Classe de membro inválida",
+    "invalid_pem_csr": "CSR PEM inválido",
     "invalid_service_client_id": "ID de cliente de serviço inválido",
     "invalid_service_url": "URL de serviço inválida",
     "invalid_wsdl": "WSDL inválido",
@@ -453,8 +469,8 @@
     "local_group_member_already_exists": "Membro do grupo local já existe",
     "local_group_member_not_found": "Membro do grupo local não encontrado",
     "local_group_not_found": "Grupo local não encontrado",
-    "malformed_anchor": "Âncora malformada",
     "maintenance_mode_change_request_already_submitted": "Já existe uma solicitação pendente para alteração do modo de manutenção",
+    "malformed_anchor": "Âncora malformada",
     "malformed_url": "URL malformada",
     "management_request_sending_failed": "Falha ao enviar solicitação de gerenciamento",
     "member_already_owner": "Membro já é o proprietário",

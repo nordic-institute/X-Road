@@ -336,11 +336,24 @@
       "ok": "Everything ok",
       "test": "Test",
       "centralServer": {
-        "title": "Central Server",
+        "authCertRequest": "Authentication certificate registration service",
         "globalConf": "Global configuration download",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Authentication certificate registration service"
+        "title": "Central Server"
+      },
+      "management": {
+        "title": "Management Security Server"
+      },
+      "securityServer": {
+        "client": "Client",
+        "sourceClient": "Source Client",
+        "rest": "REST",
+        "securityServer":  "Security Server",
+        "soap": "SOAP",
+        "title": "Other Security Server",
+        "target": "Target",
+        "targetClient": "Target Client"
       }
     }
   },
@@ -366,6 +379,8 @@
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
       "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
+      "acme_yaml_missing": "ACME configuration file acme.yml is missing",
+      "acme_yaml_account_keystore_password_update_error": "Updating ACME account keystore password in acme.yml configuration file failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",
       "certificate_failure": "Getting the Certificate from the ACME server failed",
@@ -467,6 +482,7 @@
     "invalid_init_params": "Invalid initialisation parameters",
     "invalid_instance_identifier": "Invalid instance identifier",
     "invalid_member_class": "Invalid member class",
+    "invalid_pem_csr": "Invalid PEM CSR",
     "invalid_service_client_id": "Invalid service client ID",
     "invalid_service_url": "Invalid service url",
     "invalid_wsdl": "Invalid WSDL",
@@ -478,9 +494,9 @@
     "local_group_member_already_exists": "Local group member already exists",
     "local_group_member_not_found": "Local group member not found",
     "local_group_not_found": "Local group not found",
+    "maintenance_mode_change_request_already_submitted": "Maintenance mode change is already pending",
     "malformed_anchor": "Malformed anchor",
     "malformed_global_conf": "Malformed global configuration",
-    "maintenance_mode_change_request_already_submitted": "Maintenance mode change is already pending",
     "malformed_url": "Malformed URL",
     "management_request_sending_failed": "Sending of management request failed",
     "member_already_owner": "Member is already the owner",

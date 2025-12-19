@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
@@ -44,7 +45,6 @@ import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.CsrFormatDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -87,24 +87,21 @@ public class CertificationServicesController implements CertificationServicesApi
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE)
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
+                                                                                   CsrFormatDto defaultCsrFormat,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth,
-                                                                                   CsrFormatDto defaultCsrFormat,
                                                                                    String acmeServerDirectoryUrl,
                                                                                    String acmeServerIpAddress,
                                                                                    String authenticationCertificateProfileId,
                                                                                    String signingCertificateProfileId) {
         var isForTlsAuth = parseBoolean(tlsAuth);
-        CsrFormat csrFormat = defaultCsrFormat != null
-                ? CsrFormat.valueOf(defaultCsrFormat.name())
-                : CsrFormat.DER;
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
         fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
         var approvedCa = new ApprovedCertificationService(
                 fileBytes,
                 certificateProfileInfo,
                 isForTlsAuth,
-                csrFormat,
+                CsrFormat.valueOf(defaultCsrFormat.name()),
                 acmeServerDirectoryUrl,
                 acmeServerIpAddress,
                 authenticationCertificateProfileId,

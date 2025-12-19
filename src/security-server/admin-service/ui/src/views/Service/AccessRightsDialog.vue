@@ -65,7 +65,7 @@
 
                 <v-select
                   v-model="instance"
-                  :items="xroadInstances"
+                  :items="xRoadInstanceIdentifiers"
                   :label="$t('general.instance')"
                   class="flex-input"
                   data-test="instance-select"
@@ -252,7 +252,7 @@ export default defineComponent({
     return { ...initialState() };
   },
   computed: {
-    ...mapState(useGeneral, ['xroadInstances', 'memberClasses']),
+    ...mapState(useGeneral, ['xRoadInstanceIdentifiers', 'memberClasses']),
     canSave(): boolean {
       return this.selectedIds.length > 0;
     },
@@ -275,12 +275,12 @@ export default defineComponent({
     },
   },
   created() {
-    this.fetchXroadInstances();
+    this.fetchXRoadInstances();
     this.fetchMemberClasses();
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
-    ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXroadInstances']),
+    ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXRoadInstances']),
     checkboxChange(subject: ServiceClient, event: boolean): void {
       if (event) {
         this.selectedIds.push(subject);

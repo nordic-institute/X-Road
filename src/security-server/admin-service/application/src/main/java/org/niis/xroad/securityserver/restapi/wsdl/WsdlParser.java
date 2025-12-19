@@ -33,6 +33,7 @@ import org.apache.commons.lang3.Strings;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;

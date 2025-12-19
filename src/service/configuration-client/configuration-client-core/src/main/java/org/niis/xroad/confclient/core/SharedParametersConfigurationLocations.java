@@ -33,6 +33,7 @@ import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.globalconf.util.GlobalConfUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,12 +42,9 @@ import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DOWNLOAD_URL_FORMAT;
 import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
 @Slf4j
@@ -56,7 +54,6 @@ class SharedParametersConfigurationLocations {
     private static final String HTTPS = "https";
     private static final String INTERNAL_CONF = "internalconf";
     private static final String EXTERNAL_CONF = "externalconf";
-    private static final Pattern CONF_PATTERN = Pattern.compile("http://[^/]*/");
 
     private final FileNameProvider fileNameProvider;
 
@@ -64,7 +61,7 @@ class SharedParametersConfigurationLocations {
         List<ConfigurationLocation> locations = new ArrayList<>();
 
         try {
-            String configurationDirectory = getConfigurationDirectory(source);
+            String configurationDirectory = GlobalConfUtils.getConfigurationDirectory(source);
             List<SharedParameters.ConfigurationSource> sharedParametersConfigurationSources =
                     getSharedParametersConfigurationSources(source.getInstanceIdentifier());
             locations = sharedParametersConfigurationSources.stream()
@@ -87,19 +84,6 @@ class SharedParametersConfigurationLocations {
 
     private String getDownloadUrl(String domainAddress, String configurationDirectory) {
         return String.format("%s://%s/%s", HTTPS, domainAddress, configurationDirectory);
-    }
-
-    private String getConfigurationDirectory(ConfigurationSource source) {
-        var firstHttpDownloadUrl = source.getLocations().stream()
-                .map(ConfigurationLocation::getDownloadURL)
-                .filter(ConfigurationDownloadUtils::startWithHttpAndNotWithHttps).findFirst();
-        if (firstHttpDownloadUrl.isPresent()) {
-            Matcher matcher = CONF_PATTERN.matcher(firstHttpDownloadUrl.get());
-            if (matcher.find()) {
-                return firstHttpDownloadUrl.get().substring(matcher.end());
-            }
-        }
-        throw new ConflictException(INVALID_DOWNLOAD_URL_FORMAT.build());
     }
 
     private List<byte[]> getVerificationCerts(String confLocation, SharedParameters.ConfigurationSource confSource) {

@@ -51,8 +51,8 @@ tags:
     description: token certificates endpoints
   - name: tokens
     description: tokens endpoints
-  - name: xroad-instances
-    description: xroad-instances endpoints
+  - name: x-road-instances
+    description: x-road-instances endpoints
 paths:
   /backups:
     get:
@@ -843,6 +843,13 @@ paths:
           schema:
             type: boolean
             default: false
+        - in: query
+          name: include_management_service_check
+          description: add info, is this subsystem management service provider or not
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: list of clients
@@ -1236,6 +1243,46 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
+  /clients/{id}/security-servers:
+    get:
+      tags:
+        - clients
+      summary: get all clients security servers
+      operationId: getClientSecurityServers
+      description: <h3>Administrator views the details of clients security servers.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '200':
+          description: list of SecurityServer objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of SecurityServer objects
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /clients/{id}/service-clients:
     get:
       tags:
@@ -2433,6 +2480,67 @@ paths:
                 description: array of statuses for the global configuration download connection
                 items:
                   $ref: '#/components/schemas/GlobalConfConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/other-security-server-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view other security server connection status
+      operationId: getOtherSecurityServerStatus
+      description: <h3>Administrator views the other security server connection status.</h3>
+      parameters:
+        - in: query
+          name: protocol_type
+          description: service protocol type, must be REST or SOAP
+          required: true
+          schema:
+            type: string
+            enum:
+              - REST
+              - SOAP
+            example: REST
+        - in: query
+          name: client_id
+          description: clientId of the current security server. <instance_id>:<member_class>:<member_code>:<subsystem_code>. Subsystem code is optional.
+          example: FI:GOV:123:Subsystem
+          required: true
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: target_client_id
+          description: targetClientId of the other security server. <instance_id>:<member_class>:<member_code>:<subsystem_code>.
+          example: FI:GOV:123:Subsystem
+          required: true
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: security_server_id
+          description: securityServerId of the other security server. <instance_id>:<member_class>:<member_code>:<server_code>.
+          example: FI:GOV:123:DEV
+          required: true
+          schema:
+            type: string
+            format: text
+      responses:
+        '200':
+          description: other security server connection status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionStatus'
         '400':
           description: request was invalid
         '401':
@@ -5702,24 +5810,21 @@ paths:
   /xroad-instances:
     get:
       tags:
-        - xroad-instances
-      summary: get list of known xroad instance identifiers
-      operationId: getXroadInstances
-      description: <h3>Administrator lists xroad instance identifiers</h3>
+        - x-road-instances
+      summary: get list of known x-road instance identifiers
+      operationId: getXRoadInstances
+      description: <h3>Administrator lists x-road instance identifiers</h3>
       responses:
         '200':
-          description: xroad instance identifiers
+          description: x-road instance identifiers
           content:
             application/json:
               schema:
-                type: array
-                description: array of xroad instance identifiers
-                uniqueItems: true
-                items:
-                  type: string
-                  format: text
-                  minLength: 1
-                  maxLength: 255
+               type: array
+               uniqueItems: true
+               description: array of x-road instance identifiers
+               items:
+                 $ref: '#/components/schemas/XRoadInstance'
         '400':
           description: request was invalid
         '401':
@@ -6111,6 +6216,24 @@ components:
           description: download url of the global configuration
         connection_status:
           $ref: '#/components/schemas/ConnectionStatus'
+    XRoadInstance:
+      type: object
+      description: x-road instance
+      required:
+        - identifier
+        - local
+      properties:
+        identifier:
+          type: string
+          readOnly: true
+          format: text
+          minLength: 1
+          maxLength: 255
+          description: x-road instance identifier
+        local:
+          type: boolean
+          readOnly: true
+          description: is this the local x-road instance
     MailNotificationStatus:
       type: object
       description: automatic e-mail notification status
@@ -6566,6 +6689,8 @@ components:
           example: org.example.TestCertificateInfoProvider
           minLength: 1
           maxLength: 1024
+        default_csr_format:
+          $ref: '#/components/schemas/CsrFormat'
         acme_capable:
           type: boolean
           description: if certificate authority supports ACME

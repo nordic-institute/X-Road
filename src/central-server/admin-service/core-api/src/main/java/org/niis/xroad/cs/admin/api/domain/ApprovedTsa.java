@@ -28,8 +28,8 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.globalconf.model.CostType;
 
 import java.time.Instant;
 

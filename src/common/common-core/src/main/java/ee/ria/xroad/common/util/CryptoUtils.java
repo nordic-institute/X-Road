@@ -31,6 +31,7 @@ import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import com.google.common.base.Splitter;
+import org.apache.commons.lang3.RandomUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -61,6 +62,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Collection;
 
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
@@ -425,5 +427,16 @@ public final class CryptoUtils {
         try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(out))) {
             writer.writeObject(readCertificate(certBytes));
         }
+    }
+
+    /**
+     * Generates a random password of the specified length.
+     *
+     * @param lengthInBytes the number of random bytes to generate
+     * @return URL-safe base64 encoded random password without padding
+     */
+    public static String generateRandomPassword(int lengthInBytes) {
+        byte[] bytes = RandomUtils.secure().randomBytes(lengthInBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }

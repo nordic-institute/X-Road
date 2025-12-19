@@ -228,7 +228,7 @@ public class ProxyAdminPortConfig {
     private Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl(ServerConfProvider serverConfProvider) {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        for (String tspUrl : serverConfProvider.getTspUrl()) {
+        for (String tspUrl : serverConfProvider.getTspUrls()) {
             try {
                 URL url = URI.create(tspUrl).toURL();
 

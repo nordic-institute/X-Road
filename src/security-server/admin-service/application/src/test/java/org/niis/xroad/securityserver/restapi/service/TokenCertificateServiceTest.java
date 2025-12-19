@@ -99,6 +99,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_AVAILABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_READONLY;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.createCertificateInfo;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCa;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
 
 /**
  * Test TokenCertificateService
@@ -192,8 +194,7 @@ public class TokenCertificateServiceTest {
     private final CertificateInfo authCert =
             new CertificateTestUtils.CertificateInfoBuilder().id(EXISTING_CERT_IN_AUTH_KEY_HASH)
                     .certificate(CertificateTestUtils.getMockAuthCertificate()).build();
-    private final ApprovedCAInfo acmeCA = new ApprovedCAInfo(CA_NAME, false, PROFILE_CLASS,
-            "http://test-ca/acme", "123.4.5.6", "5", "6");
+    private final ApprovedCAInfo acmeCA = approvedCaWithAcme(CA_NAME, false, PROFILE_CLASS);
 
     private CertRequestInfo newCertRequestInfo(String id) {
         return new CertRequestInfo(CertRequestInfoProto.newBuilder()
@@ -461,7 +462,7 @@ public class TokenCertificateServiceTest {
         when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
         when(globalConfProvider.getApprovedCA(any(), any()))
-                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", null, null, null, null));
+                .thenReturn(approvedCa("testca", false, "ee.test.Profile"));
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, CA_NAME,
                 ImmutableMap.of("CN", "test-common-name", "O", "test-org", "subjectAltName", "test-alt-name"),
@@ -623,7 +624,7 @@ public class TokenCertificateServiceTest {
         when(globalConfProvider.getCaCert(any(), any()))
                 .thenReturn(CertificateTestUtils.getMockIntermediateCaCertificate());
         when(globalConfProvider.getApprovedCA(any(), any()))
-                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", "http://test-ca/acme", "123.4.5.6", "5", "6"));
+                .thenReturn(approvedCaWithAcme("testca", false, "ee.test.Profile"));
         tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageInfo.SIGNING);
         verify(acmeService).orderCertificateFromACMEServer("common name",
                 "ss0",

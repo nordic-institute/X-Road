@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.IOException;
@@ -187,9 +188,11 @@ public interface ServerConfProvider {
      * @return list of URLs for the Time-stamping providers configured
      * in this security server.
      */
-    List<String> getTspUrl();
+    List<String> getTspUrls();
 
-    String getTspCostType(String tspUrl);
+    List<String> getOrderedTspUrls();
+
+    CostType getTspCostType(String tspUrl);
 
     /**
      * @param serviceId the service identifier

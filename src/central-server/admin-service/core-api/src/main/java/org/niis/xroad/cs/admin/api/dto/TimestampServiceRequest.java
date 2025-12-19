@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.niis.xroad.globalconf.model.CostType;
+import org.niis.xroad.common.CostType;
 
 @Data
 @Accessors(chain = true)

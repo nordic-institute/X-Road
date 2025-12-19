@@ -26,6 +26,7 @@
 package org.niis.xroad.globalconf.impl;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -42,6 +43,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.CostTypePrioritizer;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
@@ -50,13 +53,14 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersCache;
+import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
+import org.niis.xroad.globalconf.util.GlobalConfUtils;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -65,13 +69,14 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
@@ -80,6 +85,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Global configuration implementation
@@ -287,27 +293,59 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
-        return doGetOcspResponderAddressesForCertificate(member, false);
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
+        List<SharedParameters.OcspInfo> sharedParamsOcspResponders = getSharedParamsOcspResponders(member);
+        Stream<String> ocspResponderUrls = getOrderedSharedParamsOcspResponderUrls(sharedParamsOcspResponders);
+        String uri = CertUtils.getOcspResponderUriFromCert(member);
+        return Stream.concat(
+                ocspResponderUrls,
+                Optional.ofNullable(uri).map(String::trim).stream()
+        ).toList();
     }
 
-    private List<String> doGetOcspResponderAddressesForCertificate(X509Certificate certificate, boolean certificateIsCA)
+    private List<SharedParameters.OcspInfo> getSharedParamsOcspResponders(X509Certificate member)
             throws CertificateEncodingException, IOException {
+        List<SharedParameters.OcspInfo> sharedParamsOcspResponders = new ArrayList<>();
+        X509Certificate caCert = null;
+        try {
+            caCert = getCaCert(null, member);
+        } catch (CodedException e) {
+            log.error("Unable to determine OCSP responders", e);
+        }
+        if (caCert != null) {
+            for (SharedParametersCache p : globalConfSource.getSharedParametersCaches()) {
+                List<SharedParameters.OcspInfo> caOcspData = p.getCaCertsAndOcspData().get(caCert);
+                if (caOcspData == null) {
+                    continue;
+                }
+                caOcspData.stream()
+                        .filter(ocspData -> isNotBlank(ocspData.getUrl()))
+                        .forEach(sharedParamsOcspResponders::add);
+            }
+        }
+        return sharedParamsOcspResponders;
+    }
+
+    private Stream<String> getOrderedSharedParamsOcspResponderUrls(List<SharedParameters.OcspInfo> responders) {
+        OptionalInt gcVersion = getVersion();
+        boolean globalConfSupportsCostTypes = gcVersion.isPresent() && gcVersion.getAsInt() >= GLOBAL_CONF_VERSION_WITH_COST_TYPE;
+
+        if (globalConfSupportsCostTypes) {
+            CostTypePrioritizer<SharedParameters.OcspInfo> sorter = new CostTypePrioritizer<>(responders);
+            SystemProperties.ServicePrioritizationStrategy prioritizationStrategy = SystemProperties.getOcspPrioritizationStrategy();
+            log.debug("OCSP responder urls will be sorted based on prioritization strategy: {}", prioritizationStrategy);
+            return sorter.prioritize(prioritizationStrategy).stream();
+        } else {
+            return responders.stream().map(SharedParameters.OcspInfo::getUrl);
+        }
+    }
+
+    @Override
+    public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) throws IOException {
         List<String> responders = new ArrayList<>();
 
         for (SharedParametersCache p : globalConfSource.getSharedParametersCaches()) {
-            List<SharedParameters.OcspInfo> caOcspData = null;
-            X509Certificate caCert;
-            try {
-                if (!certificateIsCA) {
-                    caCert = getCaCert(null, certificate);
-                } else {
-                    caCert = certificate;
-                }
-                caOcspData = p.getCaCertsAndOcspData().get(caCert);
-            } catch (CodedException e) {
-                log.error("Unable to determine OCSP responders", e);
-            }
+            List<SharedParameters.OcspInfo> caOcspData = p.getCaCertsAndOcspData().get(caCert);
             if (caOcspData == null) {
                 continue;
             }
@@ -317,7 +355,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                     .forEach(responders::add);
         }
 
-        String uri = CertUtils.getOcspResponderUriFromCert(certificate);
+        String uri = CertUtils.getOcspResponderUriFromCert(caCert);
         if (uri != null) {
             responders.add(uri.trim());
         }
@@ -325,20 +363,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return responders;
     }
 
-
-    @Override
-    public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) throws CertificateEncodingException, IOException {
-        return doGetOcspResponderAddressesForCertificate(caCert, true);
-    }
-
     @Override
     public Map<String, CostType> getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert) {
-        Map<String, CostType> responders = new java.util.HashMap<>();
+        Map<String, CostType> responders = new HashMap<>();
         SharedParametersCache sharedParametersCache = getSharedParametersCache(instanceIdentifier);
         List<SharedParameters.OcspInfo> ocspInfos = sharedParametersCache.getCaCertsAndOcspData().get(caCert);
         if (ocspInfos != null) {
             ocspInfos.stream()
-                    .filter(ocspInfo -> StringUtils.isNotBlank(ocspInfo.getUrl()))
+                    .filter(ocspInfo -> isNotBlank(ocspInfo.getUrl()))
                     .forEach(ocspInfo -> responders.put(ocspInfo.getUrl().trim(), ocspInfo.getCostType()));
         }
         return responders;
@@ -349,7 +381,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         SharedParametersCache sharedParametersCache = getSharedParametersCache(instanceIdentifier);
         for (List<SharedParameters.OcspInfo> ocspInfos : sharedParametersCache.getCaCertsAndOcspData().values()) {
             for (SharedParameters.OcspInfo ocspInfo : ocspInfos) {
-                if (StringUtils.isNotBlank(ocspInfo.getUrl()) && ocspInfo.getUrl().trim().equals(ocspUrl.trim())) {
+                if (isNotBlank(ocspInfo.getUrl()) && ocspInfo.getUrl().trim().equals(ocspUrl.trim())) {
                     return ocspInfo.getCostType();
                 }
             }
@@ -537,6 +569,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 ca.getName(),
                 ca.getAuthenticationOnly(),
                 ca.getCertificateProfileInfo(),
+                ca.getDefaultCsrFormat(),
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getDirectoryURL() : null,
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getIpAddress() : null,
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getAuthenticationCertificateProfileId() : null,
@@ -667,11 +700,32 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findSourceAddresses() {
-        return getSharedParameters(getInstanceIdentifier()).getSources().stream()
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getSources().stream()
                 .map(SharedParameters.ConfigurationSource::getAddress)
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toSet());
+                .collect(toSet());
+    }
+
+    @Override
+    public Set<String> getAllowedFederationInstances() {
+        var localInstance = getInstanceIdentifier();
+        var sourceFilter = new FederationConfigurationSourceFilter(localInstance);
+
+        return getInstanceIdentifiers().stream()
+                .filter(instance -> !localInstance.equals(instance))
+                .filter(sourceFilter::shouldDownloadConfigurationFor)
+                .filter(StringUtils::isNotBlank)
+                .collect(toSet());
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return getPrivateParameters().getConfigurationAnchors().stream()
+                .filter(configurationAnchor -> instanceIdentifier.equals(configurationAnchor.getInstanceIdentifier()))
+                .map(GlobalConfUtils::getConfigurationDirectory)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Configuration directory not found for instance " + instanceIdentifier));
     }
 
     @Override

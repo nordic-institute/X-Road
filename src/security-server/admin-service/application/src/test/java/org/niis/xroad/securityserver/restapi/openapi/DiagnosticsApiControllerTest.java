@@ -35,8 +35,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import com.google.protobuf.Timestamp;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -524,7 +524,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getGlobalConfStatus() {
-        when(globalConfProvider.findSourceAddresses()).thenReturn(Set.of("one-host"));
+        when(globalConfProvider.getSourceAddresses(globalConfProvider.getInstanceIdentifier())).thenReturn(Set.of("one-host"));
 
         ResponseEntity<List<GlobalConfConnectionStatusDto>> response = diagnosticsApiController.getGlobalConfStatus();
 
@@ -547,6 +547,22 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
             assertEquals(DiagnosticStatusClassDto.FAIL, status.getConnectionStatus().getStatusClass());
             assertEquals("unknown_host", status.getConnectionStatus().getError().getCode());
         });
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getOtherSecurityServerStatus() {
+        ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getOtherSecurityServerStatus("REST",
+                "DEV:COM:4321", "DEV:COM:1234:MANAGEMENT", "DEV:COM:1234:SS0");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ConnectionStatusDto connectionStatusDto = response.getBody();
+        assertNotNull(connectionStatusDto);
+        assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
+        assertEquals("network_error", connectionStatusDto.getError().getCode());
+        assertThat(connectionStatusDto.getError().getMetadata().getFirst())
+                .contains("Connect to localhost:8443")
+                .contains("Connection refused");
     }
 
     private void stubForDiagnosticsRequest(String requestPath, String responseBody) {

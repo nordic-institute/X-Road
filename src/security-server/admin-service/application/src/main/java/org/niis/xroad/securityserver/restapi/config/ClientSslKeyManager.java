@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.wsdl;
+package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
@@ -42,7 +42,7 @@ import java.security.cert.X509Certificate;
 
 @Slf4j
 @RequiredArgsConstructor
-class ClientSslKeyManager extends X509ExtendedKeyManager {
+public class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     private static final String ALIAS = "ClientSslKeyManager";
 
@@ -65,7 +65,7 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
-        return null;
+        return new String[]{};
     }
 
     @Override
@@ -75,7 +75,7 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers) {
-        return null;
+        return new String[]{};
     }
 
     @Override

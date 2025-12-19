@@ -59,7 +59,7 @@ function getAllowedTabs(): Tab[] {
       permissions: [Permissions.DIAGNOSTICS],
     },
     {
-      key: 'diagnostics-connection-tab-button',
+      key: 'diagnostics-connection-testing-tab-button',
       name: 'tab.diagnostics.connectionTesting',
       to: {
         name: RouteName.DiagnosticsConnection,

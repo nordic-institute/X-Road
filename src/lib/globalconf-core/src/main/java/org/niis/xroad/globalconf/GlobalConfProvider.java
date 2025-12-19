@@ -33,10 +33,10 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -57,6 +57,8 @@ import java.util.Set;
  * Global configuration provider.
  */
 public interface GlobalConfProvider {
+
+    int GLOBAL_CONF_VERSION_WITH_COST_TYPE = 6;
 
     /**
      * Reloads configuration from disk
@@ -149,14 +151,14 @@ public interface GlobalConfProvider {
             X509Certificate cert);
 
     /**
-     * Returns a list of OCSP responder addresses for the given member
-     * certificate.
+     * Returns a list of OCSP responder addresses for the given member certificate.
+     * Addresses are ordered based on ocsp-prioritization-strategy system property.
      *
      * @param member the member certificate
      * @return list of OCSP responder addresses
      *
      */
-    List<String> getOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException;
+    List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException;
 
 
     /**
@@ -347,9 +349,28 @@ public interface GlobalConfProvider {
     X509Certificate getCentralServerSslCertificate();
 
     /**
-     * @return a set containing all configured source addresses
+     * Returns the set of source addresses for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the set of source addresses for the given instance
      */
-    Set<String> findSourceAddresses();
+    Set<String> getSourceAddresses(String instanceIdentifier);
+
+    /**
+     * Returns all allowed federation instances.
+     * Also taking into account the value of the {@code configuration-client.allowed-federations} property.
+     *
+     * @return a set of allowed federation instances
+     */
+    Set<String> getAllowedFederationInstances();
+
+    /**
+     * Returns the configuration directory path for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the configuration directory path for the given instance
+     */
+    String getConfigurationDirectoryPath(String instanceIdentifier);
 
     /**
      * @return maximum allowed validity time of OCSP responses. If thisUpdate

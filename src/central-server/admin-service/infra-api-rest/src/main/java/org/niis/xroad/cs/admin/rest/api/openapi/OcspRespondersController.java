@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
@@ -36,7 +37,6 @@ import org.niis.xroad.cs.openapi.OcspRespondersApi;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;

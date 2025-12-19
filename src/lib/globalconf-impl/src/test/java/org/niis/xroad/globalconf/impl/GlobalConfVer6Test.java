@@ -35,8 +35,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.CostType;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +44,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class GlobalConfVer6Test {
@@ -107,19 +109,76 @@ public class GlobalConfVer6Test {
     }
 
     @Test
+    public void getOrderedOcspResponderAddresses() throws CertificateEncodingException, IOException {
+        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.ONLY_FREE.name());
+        List<String> addresses =
+                globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
+
+        assertThat(addresses).containsExactly(
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp4");
+
+        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.FREE_FIRST.name());
+        addresses =
+                globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
+
+        assertThat(addresses).containsExactly(
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp4",
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2",
+                "http://www.example.net/ocsp3");
+
+        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.ONLY_PAID.name());
+        addresses =
+                globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
+
+        assertThat(addresses).containsExactly(
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2");
+
+        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.PAID_FIRST.name());
+        addresses =
+                globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
+
+        assertThat(addresses).containsExactly(
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2",
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp4",
+                "http://www.example.net/ocsp3");
+
+        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+                SystemProperties.ServicePrioritizationStrategy.NONE.name());
+        addresses =
+                globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
+
+        assertThat(addresses).containsExactly(
+                "http://127.0.0.1:8082/ocsp",
+                "http://www.example.net/ocsp",
+                "http://www.example.net/ocsp2",
+                "http://www.example.net/ocsp3",
+                "http://www.example.net/ocsp4");
+    }
+
+    @Test
     public void getOcspResponderAddressesAndCostTypes() {
 
         Map<String, CostType> addressesAndCostTypes =
                 globalConfProvider.getOcspResponderAddressesAndCostTypes("EE", TestCertUtil.getCaCert());
 
-        assertEquals(2, addressesAndCostTypes.size());
+        assertEquals(5, addressesAndCostTypes.size());
         assertEquals(CostType.FREE, addressesAndCostTypes.get("http://127.0.0.1:8082/ocsp"));
         assertEquals(CostType.PAID, addressesAndCostTypes.get("http://www.example.net/ocsp"));
     }
 
     @Test
     public void getOcspResponderCostType() {
-        CostType costType = globalConfProvider.getOcspResponderCostType("EE", "http://www.example.net/ocsp2");
+        CostType costType = globalConfProvider.getOcspResponderCostType("EE", "http://www.example.net/ocsp4");
         assertEquals(CostType.FREE, costType);
     }
 }

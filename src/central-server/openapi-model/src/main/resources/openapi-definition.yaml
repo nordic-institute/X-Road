@@ -3547,6 +3547,9 @@ components:
         - $ref: '#/components/schemas/CertificationServiceSettings'
       description: certification service file and settings
       type: object
+      required:
+        - certificate
+        - default_csr_format
     CertificationServiceSettings:
       description: certification service settings
       properties:

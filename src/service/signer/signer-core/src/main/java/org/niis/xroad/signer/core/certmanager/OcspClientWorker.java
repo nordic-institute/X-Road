@@ -252,7 +252,7 @@ public class OcspClientWorker {
         X509Certificate signer = ocspClient.getOcspSignerCert();
         SignAlgorithm signAlgoId = ocspClient.getSignAlgorithmId();
 
-        List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
+        List<String> responderURIs = globalConfProvider.getOrderedOcspResponderAddresses(subject);
 
         log.debug("responder URIs: {}", responderURIs);
 

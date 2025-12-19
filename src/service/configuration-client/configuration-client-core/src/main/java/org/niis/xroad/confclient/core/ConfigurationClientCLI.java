@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
+import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
 
 import java.nio.file.Path;
 import java.util.Collections;

@@ -67,7 +67,7 @@
                   data-test="select-member-instance"
                   hide-details
                   clearable
-                  :items="xroadInstances"
+                  :items="xRoadInstanceIdentifiers"
                   :label="$t('general.instance')"
                 ></v-select>
               </div>
@@ -219,19 +219,19 @@ export default defineComponent({
     return { ...initialState() };
   },
   computed: {
-    ...mapState(useGeneral, ['xroadInstances', 'memberClasses']),
+    ...mapState(useGeneral, ['xRoadInstanceIdentifiers', 'memberClasses']),
     canSave(): boolean {
       return this.selectedIds.length > 0;
     },
   },
   created() {
-    this.fetchXroadInstances();
+    this.fetchXRoadInstances();
     this.fetchMemberClasses();
   },
 
   methods: {
     ...mapActions(useNotifications, ['showError']),
-    ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXroadInstances']),
+    ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXRoadInstances']),
     checkboxChange(id: string, event: boolean): void {
       if (event) {
         this.selectedIds.push(id);

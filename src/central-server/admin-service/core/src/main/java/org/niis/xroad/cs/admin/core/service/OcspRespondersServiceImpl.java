@@ -27,6 +27,7 @@ package org.niis.xroad.cs.admin.core.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
@@ -37,7 +38,6 @@ import org.niis.xroad.cs.admin.core.converter.OcspResponderConverter;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.cs.admin.core.validation.UrlValidator;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 

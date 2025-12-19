@@ -215,6 +215,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_CERTIFICATE("invalid_certificate"),
     INVALID_DISTINGUISHED_NAME("invalid_distinguished_name"),
     INVALID_CHARACTERS("invalid_characters"),
+    INVALID_PEM_CSR("invalid_pem_csr"),
 
     // ===== BUSINESS LOGIC ERRORS =====
     DUPLICATE_ENTRY("duplicate_entry"),

@@ -260,11 +260,24 @@
       "ok": "Все в порядке",
       "test": "Тест",
       "centralServer": {
-        "title": "Центральный сервер",
+        "authCertRequest": "Сервис регистрации сертификатов аутентификации",
         "globalConf": "Загрузка глобальной конфигурации",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Сервис регистрации сертификатов аутентификации"
+        "title": "Центральный сервер"
+      },
+      "management": {
+        "title": "Управляющий сервер безопасности"
+      },
+      "securityServer": {
+        "client": "Клиент",
+        "sourceClient": "Исходный клиент",
+        "rest": "REST",
+        "securityServer": "Сервер безопасности",
+        "soap": "SOAP",
+        "title": "Другой сервер безопасности",
+        "target": "Цель",
+        "targetClient": "Целевой клиент"
       }
     }
   },
@@ -289,6 +302,9 @@
     "acme": {
       "account_creation_failure": "Не удалось создать аккаунт на сервере ACME. Если требуется внешняя привязка аккаунта, проверьте, что в acme.yml указаны правильные учетные данные",
       "account_key_pair_error": "Не удалось получить пару ключей для аккаунта ACME-сервера",
+      "account_keystore_password_missing": "В файле конфигурации acme.yml отсутствует пароль хранилища ключей учетной записи ACME",
+      "acme_yaml_missing": "Отсутствует файл конфигурации ACME acme.yml",
+      "acme_yaml_account_keystore_password_update_error": "Не удалось обновить пароль хранилища ключей учетной записи ACME в файле конфигурации acme.yml",
       "authorization_failure": "Ошибка авторизации. Обычно связано с неудачной проверкой запроса, необходимой для подтверждения владения доменом",
       "authorization_wait_failure": "Не удалось дождаться завершения авторизации",
       "certificate_failure": "Не удалось получить сертификат от сервера ACME",
@@ -377,6 +393,7 @@
     "invalid_init_params": "Недопустимые параметры инициализации",
     "invalid_instance_identifier": "Недопустимый идентификатор экземпляра",
     "invalid_member_class": "Недопустимый класс участника",
+    "invalid_pem_csr": "Недопустимый PEM CSR",
     "invalid_service_client_id": "Недопустимый идентификатор клиента службы",
     "invalid_service_url": "Недопустимый URL службы",
     "invalid_wsdl": "Недопустимый WSDL",

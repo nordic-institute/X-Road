@@ -40,6 +40,7 @@ import org.niis.xroad.globalconf.model.ConfigurationSource;
 import org.niis.xroad.globalconf.model.ConfigurationUtils;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.PrivateParameters;
+import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -99,7 +100,7 @@ public class ConfigurationClient {
         var configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
-                new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
+                new FederationConfigurationSourceFilter(configurationAnchor.getInstanceIdentifier());
 
         deleteExtraConfigurationDirectories(configurationSources, sourceFilter);
 

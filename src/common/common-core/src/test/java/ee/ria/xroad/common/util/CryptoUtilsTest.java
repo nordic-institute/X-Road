@@ -23,17 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core;
+package ee.ria.xroad.common.util;
 
-/**
- * A small interface for deciding if the additional configuration for a given X-Road instance should be downloaded.
- * Not downloading the configuration prevents federation with that instance for this security server.
- */
-public interface FederationConfigurationSourceFilter {
+import org.junit.jupiter.api.Test;
 
-    /**
-     * @param instanceIdentifier the instance identifier of an existing federation partner
-     * @return <code>true</code> if the configuration should be downloaded, <code>false</code> otherwise
-     */
-    boolean shouldDownloadConfigurationFor(String instanceIdentifier);
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class CryptoUtilsTest {
+
+    @Test
+    void generateRandomPasswordShouldHaveCorrectLength() {
+        int length = 16;
+        String password = CryptoUtils.generateRandomPassword(length);
+        // Base64 encoding increases length. Each 3 bytes become 4 chars,
+        // so for 16 bytes: ceil(16/3)*4 = 24
+        int expectedMinLength = (int) Math.ceil(length * 4 / 3.0);
+        assertTrue(password.length() >= expectedMinLength, "Password length should be at least expected base64 length");
+    }
+
+    @Test
+    void generateRandomPasswordShouldBeRandom() {
+        Set<String> passwords = new HashSet<>();
+        for (int i = 0; i < 100; i++) {
+            passwords.add(CryptoUtils.generateRandomPassword(16));
+        }
+        assertEquals(100, passwords.size(), "Passwords should be unique");
+    }
+
 }

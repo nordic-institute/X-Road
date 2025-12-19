@@ -285,11 +285,24 @@
       "ok": "Ok",
       "test": "Prueba",
       "centralServer": {
-        "title": "Servidor Central",
+        "authCertRequest": "Servicio de registro de certificados de autenticación",
         "globalConf": "Descarga de configuración global",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Servicio de registro de certificados de autenticación"
+        "title": "Servidor Central"
+      },
+      "management": {
+        "title": "Servidor de Seguridad de Gestión"
+      },
+      "securityServer": {
+        "client": "Cliente",
+        "sourceClient": "Cliente de origen",
+        "rest": "REST",
+        "securityServer": "Servidor de Seguridad",
+        "soap": "SOAP",
+        "title": "Otro Servidor de Seguridad",
+        "target": "Destino",
+        "targetClient": "Cliente destino"
       }
     }
   },
@@ -315,6 +328,8 @@
       "account_creation_failure": "Error al crear la cuenta en el servidor ACME. Si se requiere vinculación de cuenta externa, verifique que las credenciales correctas estén configuradas en acme.yml",
       "account_key_pair_error": "Error al obtener el par de claves para la cuenta del servidor ACME",
       "account_keystore_password_missing": "Falta la contraseña del almacén de claves de la cuenta ACME en el archivo de configuración acme.yml",
+      "acme_yaml_missing": "Falta el archivo de configuración de ACME acme.yml",
+      "acme_yaml_account_keystore_password_update_error": "Error al actualizar la contraseña del almacén de claves de la cuenta ACME en el archivo de configuración acme.yml",
       "authorization_failure": "Error de autorización. Generalmente relacionado con una falla en la validación del desafío necesario para demostrar la propiedad del dominio",
       "authorization_wait_failure": "Error al esperar que se complete la autorización",
       "certificate_failure": "Error al obtener el certificado del servidor ACME",
@@ -392,6 +407,7 @@
     "invalid_init_params": "Los Parámetros de inicialización no son válidos",
     "invalid_instance_identifier": "El identificador de instancia no es válido",
     "invalid_member_class": "La clase de miembro no es válida",
+    "invalid_pem_csr": "El CSR PEM no es válido",
     "invalid_service_client_id": "El ID de cliente del servicio no es válido",
     "invalid_service_url": "La URL del servicio no es válida",
     "invalid_wsdl": "El WSDL no es válido",

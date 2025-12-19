@@ -36,7 +36,8 @@ services:
   ss1:
     container_name: ss1
     environment:
-      - XROAD_TOKEN_PIN=Secret1234
+      - XROAD_TOKEN_0_PIN=Secret1234
+      - XROAD_TOKEN_31_PIN=Secret1234
     ports:
       - "4300:4000" # Frontend
       - "4310:8080" # Proxy

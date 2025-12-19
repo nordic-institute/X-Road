@@ -68,7 +68,6 @@ public final class VuetifyHelper {
         return new Select(vuetifySelectField);
     }
 
-
     public static SelenideElement selectorOptionOf(String value) {
         var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item') and contains(./descendant-or-self::*/text(),'%s')]";
         return $x(format(xpath, value));
@@ -242,6 +241,10 @@ public final class VuetifyHelper {
 
         public void select(final String val) {
             selectorOptionOf(val).click();
+        }
+
+        public void selectCombobox(final String val) {
+            selectorComboboxOf(val).click();
         }
 
         public void clickAndSelect(final String val) {

@@ -331,11 +331,24 @@
       "ok": "Kõik on korras",
       "test": "Test",
       "centralServer": {
-        "title": "Keskserver",
+        "authCertRequest": "Autentimise sertifikaadi registreerimise teenus",
         "globalConf": "Globaalse konfiguratsiooni allalaadimine",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "authCertRequest": "Autentimise sertifikaadid registreerimise teenus"
+        "title": "Keskserver"
+      },
+      "management": {
+        "title": "Haldusteenuse pakkuja"
+      },
+      "securityServer": {
+        "client": "Klient",
+        "sourceClient": "Lähteklient",
+        "rest": "REST",
+        "securityServer":  "Turvaserver",
+        "soap": "SOAP",
+        "title": "Teine turvaserver",
+        "target": "Teine klient",
+        "targetClient": "Klient"
       }
     }
   },
@@ -361,6 +374,8 @@
       "account_creation_failure": "Konto loomine ACME serveris ebaõnnestus. Kui välise konto sidumine on nõutav, siis veenduge, et acme.yml failis on konfigureeritud õiged identsustõendid",
       "account_key_pair_error": "Võtmepaari hankimine ACME serveri kontole ebaõnnestus",
       "account_keystore_password_missing": "ACME konto võtmehoidla parool puudub acme.yml konfiguratsioonifailis",
+      "acme_yaml_missing": "ACME konfiguratsioonifail acme.yml puudub",
+      "acme_yaml_account_keystore_password_update_error": "ACME konto võtmehoidla parooli uuendamine acme.yml konfiguratsioonifailis ebaõnnestus",
       "authorization_failure": "Volitamine ebaõnnestus. Tavaliselt seotud pretensiooni valideerimise tõrkega, mis on nõutav domeeni omandi tõendamiseks",
       "authorization_wait_failure": "Volitamise lõpule viimise ootamine ebaõnnestus",
       "certificate_failure": "Sertifikaadi hankimine ACME serverilt ebaõnnestus",
@@ -442,6 +457,7 @@
     "invalid_init_params": "Kehtetud lähtestamisparameetrid",
     "invalid_instance_identifier": "Kehtetu juhtumi identifikaator",
     "invalid_member_class": "Kehtetu liikmeklass",
+    "invalid_pem_csr": "Kehtetu PEM CSR",
     "invalid_service_client_id": "Kehtetu teenuse kliendi ID",
     "invalid_service_url": "Kehtetu teenuse URL",
     "invalid_wsdl": "Kehtetu WSDL",
@@ -453,8 +469,8 @@
     "local_group_member_already_exists": "Lokaalse rühma liige on juba olemas",
     "local_group_member_not_found": "Lokaalse rühma liiget ei leitud",
     "local_group_not_found": "Lokaalset rühma ei leitud",
-    "malformed_anchor": "Vale vorminguga ankur",
     "maintenance_mode_change_request_already_submitted": "Hooldusrežiimi muudatus on juba ootel",
+    "malformed_anchor": "Vale vorminguga ankur",
     "malformed_url": "Vale vorminguga URL",
     "management_request_sending_failed": "Halduspäringu saatmine ebaõnnestus",
     "member_already_owner": "Liige on juba omanik",

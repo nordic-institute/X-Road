@@ -32,9 +32,9 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;

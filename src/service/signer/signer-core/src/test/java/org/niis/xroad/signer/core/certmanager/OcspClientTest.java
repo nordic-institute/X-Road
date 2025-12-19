@@ -109,7 +109,7 @@ class OcspClientTest {
 
             when(testConf.getInstanceIdentifier()).thenReturn("TEST");
 
-            when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
+            when(testConf.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
                     List.of(RESPONDER_URI));
 
             ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
@@ -184,7 +184,7 @@ class OcspClientTest {
     void goodCertificateStatusFromSecondResponder() throws Exception {
         X509Certificate subject = getDefaultClientCert();
 
-        when(globalConfProvider.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
+        when(globalConfProvider.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
                 Arrays.asList("http://127.0.0.1:1234", RESPONDER_URI));
 
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
@@ -246,7 +246,7 @@ class OcspClientTest {
         // this certificate does not contain responder URI in AIA extension.
         X509Certificate subject = TestCertUtil.getCertChainCert("user_0.p12");
 
-        when(globalConfProvider.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(new ArrayList<>());
+        when(globalConfProvider.getOrderedOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(new ArrayList<>());
 
         assertThrows(ConnectException.class, () -> queryAndUpdateCertStatus(ocspClientWorker, subject));
     }

@@ -24,28 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.converter;
+package org.niis.xroad.globalconf.util;
 
-import org.niis.xroad.common.core.dto.ConnectionStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetailsDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.model.ConfigurationSource;
 
-import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-@Component
-public class AuthCertStatusConverter {
-    public ConnectionStatusDto convert(ConnectionStatus connectionStatus) {
-        return new ConnectionStatusDto()
-                .error(getCodeWithDetailsDto(connectionStatus))
-                .statusClass(DiagnosticStatusClassMapping.map(connectionStatus.getStatus()));
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DOWNLOAD_URL_FORMAT;
+
+public final class GlobalConfUtils {
+    private static final Pattern CONF_PATTERN = Pattern.compile("http://[^/]*/");
+    private static final String HTTP = "http";
+    private static final String HTTPS = "https";
+
+    private GlobalConfUtils() {
     }
 
-    private CodeWithDetailsDto getCodeWithDetailsDto(ConnectionStatus connectionStatus) {
-        return Optional.ofNullable(connectionStatus.getErrorCode())
-                .map(errorCode -> new CodeWithDetailsDto(errorCode)
-                        .metadata(connectionStatus.getErrorMetadata())
-                        .validationErrors(connectionStatus.getValidationErrors()))
-                .orElse(null);
+    public static String getConfigurationDirectory(ConfigurationSource source) {
+        var firstHttpDownloadUrl = source.getLocations().stream()
+                .map(ConfigurationLocation::getDownloadURL)
+                .filter(GlobalConfUtils::startWithHttpAndNotWithHttps).findFirst();
+        if (firstHttpDownloadUrl.isPresent()) {
+            Matcher matcher = CONF_PATTERN.matcher(firstHttpDownloadUrl.get());
+            if (matcher.find()) {
+                return firstHttpDownloadUrl.get().substring(matcher.end());
+            }
+        }
+        throw new ConflictException(INVALID_DOWNLOAD_URL_FORMAT.build());
+    }
+
+    public static boolean startWithHttpAndNotWithHttps(String url) {
+        return url.startsWith(HTTP) && !url.startsWith(HTTPS);
     }
 }

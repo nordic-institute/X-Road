@@ -32,13 +32,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.CostType;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -72,7 +72,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl());
 
     @Override
-    public List<String> getOcspResponderAddresses(X509Certificate org) {
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate org) {
         return Collections.emptyList();
     }
 
@@ -185,8 +185,18 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> findSourceAddresses() {
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
         return Set.of();
+    }
+
+    @Override
+    public Set<String> getAllowedFederationInstances() {
+        return Set.of();
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return "";
     }
 
     @Override

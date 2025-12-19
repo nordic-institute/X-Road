@@ -48,6 +48,7 @@ export interface DiagnosticsState {
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
   authCertReqStatus?: ConnectionStatus;
   globalConfStatuses: GlobalConfConnectionStatus[];
+  otherSecurityServerStatus?: ConnectionStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -62,6 +63,7 @@ export const useDiagnostics = defineStore('diagnostics', {
       proxyMemoryUsageStatus: undefined,
       authCertReqStatus: undefined,
       globalConfStatuses: [],
+      otherSecurityServerStatus: undefined,
     };
   },
   persist: {
@@ -132,6 +134,21 @@ export const useDiagnostics = defineStore('diagnostics', {
         .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
         .then((res) => {
           this.authCertReqStatus = res.data;
+        });
+    },
+    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string,
+      securityServerId: string) {
+      return api
+        .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
+          params: {
+            protocol_type: protocolType,
+            client_id: clientId,
+            target_client_id: targetClientId,
+            security_server_id: securityServerId
+          }
+        })
+        .then((res) => {
+          this.otherSecurityServerStatus = res.data;
         });
     },
     async fetchGlobalConfStatuses() {
