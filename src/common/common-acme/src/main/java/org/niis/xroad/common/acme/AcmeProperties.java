@@ -25,24 +25,14 @@
  */
 package org.niis.xroad.common.acme;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.exception.NotFoundException;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR;
-import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACME_YAML_MISSING;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
 
 @Getter
@@ -113,8 +103,12 @@ public class AcmeProperties {
                 .orElse(null);
     }
 
+    //TODO this will be re-implemented in XRDDEV-3070 so that the new value will be written to database instead.
     public char[] createNewAccountKeystorePassword() {
-        String newAccountKeystorePassword = CryptoUtils.generateRandomPassword(ACCOUNT_KEYSTORE_PASSWORD_LENGTH);
+
+        throw new AcmeServiceException(ACCOUNT_KEYSTORE_PASSWORD_MISSING.build());
+
+        /*String newAccountKeystorePassword = CryptoUtils.generateRandomPassword(ACCOUNT_KEYSTORE_PASSWORD_LENGTH);
 
         Path acmeYaml = Paths.get(SystemProperties.getConfPath(), "conf.d/acme.yml");
 
@@ -131,10 +125,10 @@ public class AcmeProperties {
 
         setAccountKeystorePassword(newAccountKeystorePassword);
 
-        return accountKeystorePassword.toCharArray();
+        return accountKeystorePassword.toCharArray();*/
     }
 
-    private void updateAccountKeystorePasswordInAcmeYaml(Path acmeYaml, String newAccountKeystorePassword) throws IOException {
+    /*private void updateAccountKeystorePasswordInAcmeYaml(Path acmeYaml, String newAccountKeystorePassword) throws IOException {
         List<String> lines = Files.readAllLines(acmeYaml, StandardCharsets.UTF_8);
         boolean updated = false;
 
@@ -152,5 +146,5 @@ public class AcmeProperties {
         }
 
         Files.write(acmeYaml, lines, StandardCharsets.UTF_8);
-    }
+    }*/
 }
