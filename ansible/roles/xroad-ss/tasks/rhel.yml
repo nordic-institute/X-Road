@@ -28,19 +28,47 @@
   tags:
     - install-xroad-ss-packages
 
-# verify presence of xroad packages and dependencies
-- name: install xroad packages and dependencies from set up repository (RHEL)
+- name: install xroad packages and dependencies from set up repository (RHEL8)
+  shell: |
+    set -euo pipefail
+    pkgs="{{ vars['xroad_varpkg_' + variant] if (vars['xroad_varpkg_' + variant] is string)
+            else (vars['xroad_varpkg_' + variant] | join(' ')) }}"
+    dnf -y install $pkgs
+  tags:
+    - install-xroad-ss-packages
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+
+- name: install xroad packages and dependencies from set up repository (RHEL9+)
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
   tags:
     - install-xroad-ss-packages
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
 
-- name: install opmonitoring
+- name: install opmonitoring (RHEL8)
+  shell: |
+    set -euo pipefail
+    dnf -y install xroad-addon-opmonitoring
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+    - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
+  tags:
+    - install-xroad-ss-packages
+
+- name: install opmonitoring (RHEL9+)
   yum:
     name: xroad-addon-opmonitoring
     state: latest
-  when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
+    - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
     - install-xroad-ss-packages
 
