@@ -110,7 +110,7 @@ public class GlobalConfVer6Test {
 
     @Test
     public void getOrderedOcspResponderAddresses() throws CertificateEncodingException, IOException {
-        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.SIGNER_OCSP_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.ONLY_FREE.name());
         List<String> addresses =
                 globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
@@ -119,7 +119,7 @@ public class GlobalConfVer6Test {
                 "http://127.0.0.1:8082/ocsp",
                 "http://www.example.net/ocsp4");
 
-        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.SIGNER_OCSP_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.FREE_FIRST.name());
         addresses =
                 globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
@@ -131,7 +131,7 @@ public class GlobalConfVer6Test {
                 "http://www.example.net/ocsp2",
                 "http://www.example.net/ocsp3");
 
-        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.SIGNER_OCSP_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.ONLY_PAID.name());
         addresses =
                 globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
@@ -140,7 +140,7 @@ public class GlobalConfVer6Test {
                 "http://www.example.net/ocsp",
                 "http://www.example.net/ocsp2");
 
-        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.SIGNER_OCSP_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.PAID_FIRST.name());
         addresses =
                 globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));
@@ -152,7 +152,7 @@ public class GlobalConfVer6Test {
                 "http://www.example.net/ocsp4",
                 "http://www.example.net/ocsp3");
 
-        System.setProperty(SystemProperties.PROXY_OCSP_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.SIGNER_OCSP_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.NONE.name());
         addresses =
                 globalConfProvider.getOrderedOcspResponderAddresses(TestCertUtil.getCertChainCert("user_1.p12"));

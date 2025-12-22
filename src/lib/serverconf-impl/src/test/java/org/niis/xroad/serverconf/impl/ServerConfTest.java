@@ -342,14 +342,14 @@ public class ServerConfTest {
 
     @Test
     public void getOrderedTspUrls() {
-        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.ONLY_FREE.name());
         List<String> tspUrls = serverConfProvider.getOrderedTspUrls();
         assertThat(tspUrls).containsExactly(
                 "tspUrl1",
                 "tspUrl4");
 
-        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.FREE_FIRST.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
         assertThat(tspUrls).containsExactly(
@@ -359,7 +359,7 @@ public class ServerConfTest {
                 "tspUrl3",
                 "tspUrl2");
 
-        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.ONLY_PAID.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
         assertThat(tspUrls).containsExactly(
@@ -367,7 +367,7 @@ public class ServerConfTest {
                 "tspUrl3");
 
 
-        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.PAID_FIRST.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
         assertThat(tspUrls).containsExactly(
@@ -377,7 +377,7 @@ public class ServerConfTest {
                 "tspUrl4",
                 "tspUrl2");
 
-        System.setProperty(SystemProperties.PROXY_TIMESTAMPING_PRIORITIZATION_STRATEGY,
+        System.setProperty(SystemProperties.MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY,
                 SystemProperties.ServicePrioritizationStrategy.NONE.name());
         tspUrls = serverConfProvider.getOrderedTspUrls();
         assertThat(tspUrls).containsExactly(
