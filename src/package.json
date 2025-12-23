@@ -43,6 +43,7 @@
   },
   "pnpm": {
     "overrides": {
+      "glob": "^10.5.0",
       "semver": "^7.5.3"
     }
   },

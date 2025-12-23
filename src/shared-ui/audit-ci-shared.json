@@ -9,6 +9,7 @@
     "GHSA-9crc-q9x8-hgqq|* > vitest*",
     "GHSA-p2ph-7g93-hw3m|* > vue*",
     "GHSA-jr5f-v2jv-69x6|* > axios*",
-    "GHSA-4hjh-wcwx-xvwj|* > axios*"
+    "GHSA-4hjh-wcwx-xvwj|* > axios*",
+    "GHSA-37j7-fg3j-429f|* > happy-dom*"
   ]
 }
