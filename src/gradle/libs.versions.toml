@@ -12,7 +12,7 @@ hibernate = "6.5.2.Final"
 mapstruct = "1.5.5.Final"
 jackson = "2.17.1"
 mockito = "5.12.0"
-springBoot = "3.3.1"
+springBoot = "3.3.9"
 junitJupiter = "5.10.2"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
@@ -21,7 +21,8 @@ testAutomationFramework = "0.2.19"
 protoc = "3.25.3"
 grpc = "1.64.0"
 swaggerParser = "2.1.22"
-logback = "1.4.14"
+logback = "1.5.16"
+logbackAccess = "2.0.7"
 apacheCxf = "4.0.4"
 
 [libraries]
@@ -99,7 +100,7 @@ apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configurat
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
-apache-tikaCore = { module = "org.apache.tika:tika-core", version = "2.9.2" }
+apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.2" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.2" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
@@ -123,11 +124,11 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.32" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logback" }
+logback-access-tomcat = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.0" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.7.0" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.3" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.28.0" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
