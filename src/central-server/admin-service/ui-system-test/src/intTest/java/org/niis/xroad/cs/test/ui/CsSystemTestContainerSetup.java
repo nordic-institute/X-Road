@@ -28,9 +28,6 @@
 package org.niis.xroad.cs.test.ui;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Component;
@@ -38,17 +35,11 @@ import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 
-import static org.niis.xroad.test.framework.core.logging.ComposeLoggerFactory.CONTAINER_LOGS_DIR;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 
 @Component
-@Slf4j
 public class CsSystemTestContainerSetup extends BaseComposeSetup {
     private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(90);
 
@@ -76,27 +67,7 @@ public class CsSystemTestContainerSetup extends BaseComposeSetup {
     @Override
     public void destroy() {
         // copy log files from CS container
-        var container = env.getContainerByServiceName(CS).orElseThrow();
-        var dockerClient = container.getDockerClient();
-        Path targetDir = Path.of(coreProperties.workingDir(), CONTAINER_LOGS_DIR);
-
-        try (InputStream tarStream =
-                     dockerClient.copyArchiveFromContainerCmd(container.getContainerId(), "/var/log/xroad").exec();
-             TarArchiveInputStream tarIn = new TarArchiveInputStream(tarStream)) {
-
-            TarArchiveEntry entry;
-            while ((entry = tarIn.getNextEntry()) != null) {
-                Path outPath = targetDir.resolve(entry.getName());
-                if (entry.isDirectory()) {
-                    Files.createDirectories(outPath);
-                } else {
-                    Files.createDirectories(outPath.getParent());
-                    Files.copy(tarIn, outPath);
-                }
-            }
-        } catch (IOException e) {
-            log.error("Failed to copy log files from container", e);
-        }
+        copyXRoadLogsFromContainer(CS, "cs");
 
         super.destroy();
     }
