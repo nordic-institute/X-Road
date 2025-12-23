@@ -1,6 +1,7 @@
 # Change Log
 
-## 7.6.3 - UNRELEASED
+## 7.6.3 - 2025-12-22
+- XRDDEV-3054: Potential path traversal issue in the Security Server
 
 ## 7.6.2 - 2025-04-03
 - XRDDEV-2760: Issues with authentication certificate rotation
