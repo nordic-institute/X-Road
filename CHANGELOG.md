@@ -1,6 +1,6 @@
-## 7.7.1 - 2025-12-11
+## 7.7.1 - 2025-12-23
 - XRDDEV-3049: As a Developer I want to replace our charting library for a library that has a better license so that we don't have licensing issues
-- XRDDEV-3054: Potential path traversal issue in the Security Server
+- XRDDEV-3054: Resolve issue where using wildcard expressions in REST path mappings lead to a vulnerability to path traversal attacks in certain cases
 
 ## 7.7.0 - 2025-07-08
 - XRDDEV-55: As a Product Owner I want that the memory allocated for Proxy component will be automatically adjusted at init phase of Security Server to correlate the amount of RAM memory to optimize the performance
