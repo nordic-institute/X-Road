@@ -15,9 +15,40 @@
         group: "root"
         mode: 0600
         force: no
+
+    - name: db.properties template
+      template:
+        src: "db.properties"
+        dest: "/etc/xroad/db.properties"
+        owner: "xroad"
+        group: "xroad"
+        mode: 0751
+        force: no
   when: (database_admin_password is defined) and (database_admin_password != "")
   tags:
     - install-xroad-ss-packages
+
+- name: Install PostgreSQL packages (RHEL8)
+  become: yes
+  shell: |
+    set -euo pipefail
+    dnf -y install postgresql-server postgresql-contrib
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+    - not ((database_admin_password is defined) and (database_admin_password != ""))
+
+- name: Install PostgreSQL packages (RHEL9+)
+  become: yes
+  yum:
+    name:
+      - postgresql-server
+      - postgresql-contrib
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
+    - not ((database_admin_password is defined) and (database_admin_password != ""))
 
 - name: install xroad packages and dependencies from set up repository (RHEL8)
   shell: |
@@ -25,20 +56,21 @@
     pkgs="{{ vars['xroad_varpkg_' + variant] if (vars['xroad_varpkg_' + variant] is string)
             else (vars['xroad_varpkg_' + variant] | join(' ')) }}"
     dnf -y install $pkgs
+  tags:
+    - install-xroad-ss-packages
   when:
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int == 8
-  tags:
-    - install-xroad-ss-packages
 
 - name: install xroad packages and dependencies from set up repository (RHEL9+)
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
+  tags:
+    - install-xroad-ss-packages
   when:
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int >= 9
-  tags: [install-xroad-ss-packages]
 
 - name: install opmonitoring (RHEL8)
   shell: |
@@ -47,7 +79,7 @@
   when:
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int == 8
-    - xroad_install_opmonitoring | default(false)
+    - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
     - install-xroad-ss-packages
 
@@ -58,30 +90,7 @@
   when:
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int >= 9
-    - xroad_install_opmonitoring | default(false)
-  tags:
-    - install-xroad-ss-packages
-
-- name: db.properties template (final, after all packages)
-  template:
-    src: db.properties
-    dest: /etc/xroad/db.properties
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    force: yes
-  when: (database_admin_password is defined) and (database_admin_password != "")
-  tags:
-    - install-xroad-ss-packages
-
-- name: Verify db.properties contains required DB URLs
-  shell: |
-    set -euo pipefail
-    grep -q '^serverconf\.hibernate\.connection\.url' /etc/xroad/db.properties
-    grep -q '^messagelog\.hibernate\.connection\.url' /etc/xroad/db.properties
-    grep -q '^op-monitor\.hibernate\.connection\.url' /etc/xroad/db.properties
-  changed_when: false
-  when: (database_admin_password is defined) and (database_admin_password != "")
+    - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
     - install-xroad-ss-packages
 
