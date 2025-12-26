@@ -151,7 +151,11 @@ jobs:
           ${{ steps.chrome.outputs.chrome-path }} --version
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
+        run: >
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g
+          -Dselenide.browserBinary="$SELENIDE_BROWSER_BINARY"
+          :central-server:admin-service:ui-system-test:systemTest
+          -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
