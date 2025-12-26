@@ -139,6 +139,16 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
+      - name: Set up Chrome (for Testing)
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: '137.0.7151.119'
+      - name: Export Selenide browser binary
+        run: |
+          echo "SELENIDE_BROWSER_BINARY=${{ steps.chrome.outputs.chrome-path }}" >> $GITHUB_ENV
+          echo "Chrome path: ${{ steps.chrome.outputs.chrome-path }}"
+          ${{ steps.chrome.outputs.chrome-path }} --version
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
