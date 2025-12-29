@@ -173,9 +173,9 @@ public class StaxSoapParserImpl implements SoapParser {
         InputStream proxyStream = excludeUtf8Bom(contentType, new TeeInputStream(is, rawXml));
 
         // Parse using StAX
-        try (var reader = new AutoCloseableWrapper(INPUT_FACTORY.createXMLStreamReader(proxyStream, charset))) {
+        try (var reader = new ReaderWrapper(INPUT_FACTORY.createXMLStreamReader(proxyStream, charset))) {
 
-            ParseResult result = parseXml(reader.reader);
+            ParseResult result = parseXml(reader);
 
             if (result.fault != null) {
                 return new SoapFault(
@@ -200,7 +200,7 @@ public class StaxSoapParserImpl implements SoapParser {
         }
     }
 
-    private ParseResult parseXml(XMLStreamReader reader) throws XMLStreamException {
+    private ParseResult parseXml(ReaderWrapper reader) throws XMLStreamException {
         SoapHeader header = new SoapHeader();
         ParseResult result = new ParseResult();
         result.header = header;
@@ -213,12 +213,12 @@ public class StaxSoapParserImpl implements SoapParser {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                QName element = reader.getName();
+                QName element = reader.subject.getName();
 
                 if (element.equals(QNAME_SOAP_ENVELOPE)) {
                     foundEnvelope = true;
                     result.isRpc = URI_ENCODING.equals(
-                            reader.getAttributeValue(URI_ENVELOPE, ATTR_ENCODING_STYLE));
+                            reader.subject.getAttributeValue(URI_ENVELOPE, ATTR_ENCODING_STYLE));
                 } else if (element.equals(QNAME_SOAP_HEADER)) {
                     foundHeader = true;
                     parseHeader(reader, header);
@@ -256,25 +256,25 @@ public class StaxSoapParserImpl implements SoapParser {
         return result;
     }
 
-    private void parseHeader(XMLStreamReader reader, SoapHeader header) throws XMLStreamException {
+    private void parseHeader(ReaderWrapper reader, SoapHeader header) throws XMLStreamException {
         while (reader.hasNext()) {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                QName element = reader.getName();
+                QName element = reader.subject.getName();
 
                 if (element.equals(QNAME_XROAD_QUERY_ID)) {
                     validateDuplicate(element, header.getQueryId());
-                    header.setQueryId(reader.getElementText());
+                    header.setQueryId(reader.subject.getElementText());
                 } else if (element.equals(QNAME_XROAD_USER_ID)) {
                     validateDuplicate(element, header.getUserId());
-                    header.setUserId(reader.getElementText());
+                    header.setUserId(reader.subject.getElementText());
                 } else if (element.equals(QNAME_XROAD_ISSUE)) {
                     validateDuplicate(element, header.getIssue());
-                    header.setIssue(reader.getElementText());
+                    header.setIssue(reader.subject.getElementText());
                 } else if (element.equals(QNAME_XROAD_PROTOCOL_VERSION)) {
                     validateDuplicate(element, header.getProtocolVersion());
-                    header.setProtocolVersion(new ProtocolVersion(reader.getElementText()));
+                    header.setProtocolVersion(new ProtocolVersion(reader.subject.getElementText()));
                 } else if (element.equals(QNAME_XROAD_CLIENT)) {
                     validateDuplicate(element, header.getClient());
                     header.setClient(parseClientId(reader));
@@ -294,14 +294,14 @@ public class StaxSoapParserImpl implements SoapParser {
                     skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getName().equals(QNAME_SOAP_HEADER)) {
+                if (reader.subject.getName().equals(QNAME_SOAP_HEADER)) {
                     return;
                 }
             }
         }
     }
 
-    private ClientId.Conf parseClientId(XMLStreamReader reader) throws XMLStreamException {
+    private ClientId.Conf parseClientId(ReaderWrapper reader) throws XMLStreamException {
         validateObjectType(reader, XRoadObjectType.MEMBER, XRoadObjectType.SUBSYSTEM);
 
         String instance = null;
@@ -313,22 +313,22 @@ public class StaxSoapParserImpl implements SoapParser {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String localName = reader.getLocalName();
-                String namespace = reader.getNamespaceURI();
+                String localName = reader.subject.getLocalName();
+                String namespace = reader.subject.getNamespaceURI();
 
                 if (URI_IDENTIFIERS.equals(namespace)) {
                     switch (localName) {
-                        case INSTANCE -> instance = reader.getElementText();
-                        case MEMBER_CLASS -> memberClass = reader.getElementText();
-                        case MEMBER_CODE -> memberCode = reader.getElementText();
-                        case SUBSYSTEM_CODE -> subsystemCode = reader.getElementText();
+                        case INSTANCE -> instance = reader.subject.getElementText();
+                        case MEMBER_CLASS -> memberClass = reader.subject.getElementText();
+                        case MEMBER_CODE -> memberCode = reader.subject.getElementText();
+                        case SUBSYSTEM_CODE -> subsystemCode = reader.subject.getElementText();
                         default -> skipElement(reader);
                     }
                 } else {
                     skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getName().equals(QNAME_XROAD_CLIENT)) {
+                if (reader.subject.getName().equals(QNAME_XROAD_CLIENT)) {
                     break;
                 }
             }
@@ -337,7 +337,7 @@ public class StaxSoapParserImpl implements SoapParser {
         return ClientId.Conf.create(instance, memberClass, memberCode, subsystemCode);
     }
 
-    private ServiceId.Conf parseServiceId(XMLStreamReader reader) throws XMLStreamException {
+    private ServiceId.Conf parseServiceId(ReaderWrapper reader) throws XMLStreamException {
         validateObjectType(reader, XRoadObjectType.SERVICE);
 
         String instance = null;
@@ -351,24 +351,24 @@ public class StaxSoapParserImpl implements SoapParser {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String localName = reader.getLocalName();
-                String namespace = reader.getNamespaceURI();
+                String localName = reader.subject.getLocalName();
+                String namespace = reader.subject.getNamespaceURI();
 
                 if (URI_IDENTIFIERS.equals(namespace)) {
                     switch (localName) {
-                        case INSTANCE -> instance = reader.getElementText();
-                        case MEMBER_CLASS -> memberClass = reader.getElementText();
-                        case MEMBER_CODE -> memberCode = reader.getElementText();
-                        case SUBSYSTEM_CODE -> subsystemCode = reader.getElementText();
-                        case SERVICE_CODE -> serviceCode = reader.getElementText();
-                        case SERVICE_VERSION -> serviceVersion = reader.getElementText();
+                        case INSTANCE -> instance = reader.subject.getElementText();
+                        case MEMBER_CLASS -> memberClass = reader.subject.getElementText();
+                        case MEMBER_CODE -> memberCode = reader.subject.getElementText();
+                        case SUBSYSTEM_CODE -> subsystemCode = reader.subject.getElementText();
+                        case SERVICE_CODE -> serviceCode = reader.subject.getElementText();
+                        case SERVICE_VERSION -> serviceVersion = reader.subject.getElementText();
                         default -> skipElement(reader);
                     }
                 } else {
                     skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getName().equals(QNAME_XROAD_SERVICE)) {
+                if (reader.subject.getName().equals(QNAME_XROAD_SERVICE)) {
                     break;
                 }
             }
@@ -377,7 +377,7 @@ public class StaxSoapParserImpl implements SoapParser {
         return ServiceId.Conf.create(instance, memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
     }
 
-    private SecurityServerId.Conf parseSecurityServerId(XMLStreamReader reader) throws XMLStreamException {
+    private SecurityServerId.Conf parseSecurityServerId(ReaderWrapper reader) throws XMLStreamException {
         validateObjectType(reader, XRoadObjectType.SERVER);
 
         String instance = null;
@@ -389,22 +389,22 @@ public class StaxSoapParserImpl implements SoapParser {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String localName = reader.getLocalName();
-                String namespace = reader.getNamespaceURI();
+                String localName = reader.subject.getLocalName();
+                String namespace = reader.subject.getNamespaceURI();
 
                 if (URI_IDENTIFIERS.equals(namespace)) {
                     switch (localName) {
-                        case INSTANCE -> instance = reader.getElementText();
-                        case MEMBER_CLASS -> memberClass = reader.getElementText();
-                        case MEMBER_CODE -> memberCode = reader.getElementText();
-                        case SERVER_CODE -> serverCode = reader.getElementText();
+                        case INSTANCE -> instance = reader.subject.getElementText();
+                        case MEMBER_CLASS -> memberClass = reader.subject.getElementText();
+                        case MEMBER_CODE -> memberCode = reader.subject.getElementText();
+                        case SERVER_CODE -> serverCode = reader.subject.getElementText();
                         default -> skipElement(reader);
                     }
                 } else {
                     skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getName().equals(QNAME_XROAD_SECURITY_SERVER)) {
+                if (reader.subject.getName().equals(QNAME_XROAD_SECURITY_SERVER)) {
                     break;
                 }
             }
@@ -413,7 +413,7 @@ public class StaxSoapParserImpl implements SoapParser {
         return SecurityServerId.Conf.create(instance, memberClass, memberCode, serverCode);
     }
 
-    private RepresentedParty parseRepresentedParty(XMLStreamReader reader) throws XMLStreamException {
+    private RepresentedParty parseRepresentedParty(ReaderWrapper reader) throws XMLStreamException {
         String partyClass = null;
         String partyCode = null;
 
@@ -421,20 +421,20 @@ public class StaxSoapParserImpl implements SoapParser {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String localName = reader.getLocalName();
-                String namespace = reader.getNamespaceURI();
+                String localName = reader.subject.getLocalName();
+                String namespace = reader.subject.getNamespaceURI();
 
                 if (URI_REPRESENTATION.equals(namespace)) {
                     switch (localName) {
-                        case PARTY_CLASS -> partyClass = reader.getElementText();
-                        case PARTY_CODE -> partyCode = reader.getElementText();
+                        case PARTY_CLASS -> partyClass = reader.subject.getElementText();
+                        case PARTY_CODE -> partyCode = reader.subject.getElementText();
                         default -> skipElement(reader);
                     }
                 } else {
                     skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getName().equals(QNAME_REPR_REPRESENTED_PARTY)) {
+                if (reader.subject.getName().equals(QNAME_REPR_REPRESENTED_PARTY)) {
                     break;
                 }
             }
@@ -443,13 +443,13 @@ public class StaxSoapParserImpl implements SoapParser {
         return new RepresentedParty(partyClass, partyCode);
     }
 
-    private RequestHash parseRequestHash(XMLStreamReader reader) throws XMLStreamException {
-        String algorithmId = reader.getAttributeValue(null, ATTR_ALGORITHM_ID);
-        String hash = reader.getElementText();
+    private RequestHash parseRequestHash(ReaderWrapper reader) throws XMLStreamException {
+        String algorithmId = reader.subject.getAttributeValue(null, ATTR_ALGORITHM_ID);
+        String hash = reader.subject.getElementText();
         return new RequestHash(algorithmId, hash);
     }
 
-    private BodyParseResult parseBody(XMLStreamReader reader) throws XMLStreamException {
+    private BodyParseResult parseBody(ReaderWrapper reader) throws XMLStreamException {
         BodyParseResult result = new BodyParseResult();
         int childElementCount = 0;
 
@@ -457,7 +457,7 @@ public class StaxSoapParserImpl implements SoapParser {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                QName element = reader.getName();
+                QName element = reader.subject.getName();
 
                 if (element.equals(QNAME_SOAP_FAULT)) {
                     result.fault = parseFault(reader);
@@ -472,7 +472,7 @@ public class StaxSoapParserImpl implements SoapParser {
                     skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getName().equals(QNAME_SOAP_BODY)) {
+                if (reader.subject.getName().equals(QNAME_SOAP_BODY)) {
                     return result;
                 }
             }
@@ -481,24 +481,24 @@ public class StaxSoapParserImpl implements SoapParser {
         return result;
     }
 
-    private FaultData parseFault(XMLStreamReader reader) throws XMLStreamException {
+    private FaultData parseFault(ReaderWrapper reader) throws XMLStreamException {
         FaultData fault = new FaultData();
 
         while (reader.hasNext()) {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String localName = reader.getLocalName();
+                String localName = reader.subject.getLocalName();
 
                 switch (localName) {
-                    case FAULT_CODE -> fault.faultCode = reader.getElementText();
-                    case FAULT_STRING -> fault.faultString = reader.getElementText();
-                    case FAULT_ACTOR -> fault.faultActor = reader.getElementText();
+                    case FAULT_CODE -> fault.faultCode = reader.subject.getElementText();
+                    case FAULT_STRING -> fault.faultString = reader.subject.getElementText();
+                    case FAULT_ACTOR -> fault.faultActor = reader.subject.getElementText();
                     case FAULT_DETAIL -> fault.faultDetail = parseFaultDetail(reader);
                     default -> skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.getName().equals(QNAME_SOAP_FAULT)) {
+                if (reader.subject.getName().equals(QNAME_SOAP_FAULT)) {
                     return fault;
                 }
             }
@@ -507,22 +507,22 @@ public class StaxSoapParserImpl implements SoapParser {
         return fault;
     }
 
-    private String parseFaultDetail(XMLStreamReader reader) throws XMLStreamException {
+    private String parseFaultDetail(ReaderWrapper reader) throws XMLStreamException {
         StringBuilder detail = new StringBuilder();
 
         while (reader.hasNext()) {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String localName = reader.getLocalName();
+                String localName = reader.subject.getLocalName();
                 if ("faultDetail".equals(localName)) {
-                    return reader.getElementText();
+                    return reader.subject.getElementText();
                 }
                 skipElement(reader);
             } else if (event == XMLStreamConstants.CHARACTERS || event == XMLStreamConstants.CDATA) {
-                detail.append(reader.getText());
+                detail.append(reader.subject.getText());
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (FAULT_DETAIL.equals(reader.getLocalName())) {
+                if (FAULT_DETAIL.equals(reader.subject.getLocalName())) {
                     String text = detail.toString().trim();
                     return text.isEmpty() ? null : text;
                 }
@@ -532,8 +532,8 @@ public class StaxSoapParserImpl implements SoapParser {
         return null;
     }
 
-    private void validateObjectType(XMLStreamReader reader, XRoadObjectType... expected) {
-        String objectType = reader.getAttributeValue(URI_IDENTIFIERS, ATTR_OBJECT_TYPE);
+    private void validateObjectType(ReaderWrapper reader, XRoadObjectType... expected) {
+        String objectType = reader.subject.getAttributeValue(URI_IDENTIFIERS, ATTR_OBJECT_TYPE);
 
         if (objectType == null) {
             throw XrdRuntimeException.systemException(INVALID_XML, "Missing objectType attribute");
@@ -581,7 +581,7 @@ public class StaxSoapParserImpl implements SoapParser {
         }
     }
 
-    private void skipElement(XMLStreamReader reader) throws XMLStreamException {
+    private void skipElement(ReaderWrapper reader) throws XMLStreamException {
         int depth = 1;
         while (reader.hasNext() && depth > 0) {
             int event = reader.next();
@@ -617,12 +617,21 @@ public class StaxSoapParserImpl implements SoapParser {
     }
 
 
-    private record AutoCloseableWrapper(XMLStreamReader reader) implements AutoCloseable {
+    private record ReaderWrapper(XMLStreamReader subject) implements AutoCloseable {
+
+        public int next() throws XMLStreamException {
+            return subject.next();
+        }
+
+        public boolean hasNext() throws XMLStreamException {
+            return subject.hasNext();
+        }
 
         @Override
         public void close() throws XMLStreamException {
-            reader.close();
+            subject.close();
         }
     }
 }
+
 
