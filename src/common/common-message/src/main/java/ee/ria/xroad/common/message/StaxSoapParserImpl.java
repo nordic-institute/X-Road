@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import com.ctc.wstx.stax.WstxInputFactory;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.soap.SOAPException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.TeeInputStream;
@@ -163,6 +164,10 @@ public class StaxSoapParserImpl implements SoapParser {
         }
     }
 
+    protected void onNext(XMLStreamReader reader) {
+        // noop
+    }
+
     private Soap parseMessage(InputStream is, String contentType, String charset)
             throws IOException, SOAPException {
         log.trace("parseMessage({}, {})", contentType, charset);
@@ -231,6 +236,10 @@ public class StaxSoapParserImpl implements SoapParser {
             }
         }
 
+        return validateParseResult(result, foundEnvelope, foundHeader, foundBody);
+    }
+
+    private ParseResult validateParseResult(ParseResult result, boolean foundEnvelope, boolean foundHeader, boolean foundBody) {
         // Validation
         if (!foundEnvelope) {
             throw XrdRuntimeException.systemException(INVALID_SOAP, MISSING_ENVELOPE_MESSAGE);
@@ -244,13 +253,13 @@ public class StaxSoapParserImpl implements SoapParser {
                 throw XrdRuntimeException.systemException(MISSING_BODY, MISSING_BODY_MESSAGE);
             }
 
-            validateHeader(header);
+            validateHeader(result.header);
 
             if (result.serviceName == null) {
                 throw XrdRuntimeException.systemException(INVALID_BODY, INVALID_BODY_MESSAGE);
             }
 
-            SoapUtils.validateServiceName(header.getService().getServiceCode(), result.serviceName);
+            SoapUtils.validateServiceName(result.header.getService().getServiceCode(), result.serviceName);
         }
 
         return result;
@@ -261,43 +270,46 @@ public class StaxSoapParserImpl implements SoapParser {
             int event = reader.next();
 
             if (event == XMLStreamConstants.START_ELEMENT) {
-                QName element = reader.subject.getName();
 
-                if (element.equals(QNAME_XROAD_QUERY_ID)) {
-                    validateDuplicate(element, header.getQueryId());
-                    header.setQueryId(reader.subject.getElementText());
-                } else if (element.equals(QNAME_XROAD_USER_ID)) {
-                    validateDuplicate(element, header.getUserId());
-                    header.setUserId(reader.subject.getElementText());
-                } else if (element.equals(QNAME_XROAD_ISSUE)) {
-                    validateDuplicate(element, header.getIssue());
-                    header.setIssue(reader.subject.getElementText());
-                } else if (element.equals(QNAME_XROAD_PROTOCOL_VERSION)) {
-                    validateDuplicate(element, header.getProtocolVersion());
-                    header.setProtocolVersion(new ProtocolVersion(reader.subject.getElementText()));
-                } else if (element.equals(QNAME_XROAD_CLIENT)) {
-                    validateDuplicate(element, header.getClient());
-                    header.setClient(parseClientId(reader));
-                } else if (element.equals(QNAME_XROAD_SERVICE)) {
-                    validateDuplicate(element, header.getService());
-                    header.setService(parseServiceId(reader));
-                } else if (element.equals(QNAME_REPR_REPRESENTED_PARTY)) {
-                    validateDuplicate(element, header.getRepresentedParty());
-                    header.setRepresentedParty(parseRepresentedParty(reader));
-                } else if (element.equals(QNAME_XROAD_SECURITY_SERVER)) {
-                    validateDuplicate(element, header.getSecurityServer());
-                    header.setSecurityServer(parseSecurityServerId(reader));
-                } else if (element.equals(QNAME_XROAD_REQUEST_HASH)) {
-                    validateDuplicate(element, header.getRequestHash());
-                    header.setRequestHash(parseRequestHash(reader));
-                } else {
-                    skipElement(reader);
-                }
-            } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.subject.getName().equals(QNAME_SOAP_HEADER)) {
-                    return;
-                }
+                parseHeaderComponents(reader, header);
+            } else if (event == XMLStreamConstants.END_ELEMENT && reader.subject.getName().equals(QNAME_SOAP_HEADER)) {
+                return;
             }
+        }
+    }
+
+    private void parseHeaderComponents(ReaderWrapper reader, SoapHeader header) throws XMLStreamException {
+        QName element = reader.subject.getName();
+
+        if (element.equals(QNAME_XROAD_QUERY_ID)) {
+            validateDuplicate(element, header.getQueryId());
+            header.setQueryId(reader.subject.getElementText());
+        } else if (element.equals(QNAME_XROAD_USER_ID)) {
+            validateDuplicate(element, header.getUserId());
+            header.setUserId(reader.subject.getElementText());
+        } else if (element.equals(QNAME_XROAD_ISSUE)) {
+            validateDuplicate(element, header.getIssue());
+            header.setIssue(reader.subject.getElementText());
+        } else if (element.equals(QNAME_XROAD_PROTOCOL_VERSION)) {
+            validateDuplicate(element, header.getProtocolVersion());
+            header.setProtocolVersion(new ProtocolVersion(reader.subject.getElementText()));
+        } else if (element.equals(QNAME_XROAD_CLIENT)) {
+            validateDuplicate(element, header.getClient());
+            header.setClient(parseClientId(reader));
+        } else if (element.equals(QNAME_XROAD_SERVICE)) {
+            validateDuplicate(element, header.getService());
+            header.setService(parseServiceId(reader));
+        } else if (element.equals(QNAME_REPR_REPRESENTED_PARTY)) {
+            validateDuplicate(element, header.getRepresentedParty());
+            header.setRepresentedParty(parseRepresentedParty(reader));
+        } else if (element.equals(QNAME_XROAD_SECURITY_SERVER)) {
+            validateDuplicate(element, header.getSecurityServer());
+            header.setSecurityServer(parseSecurityServerId(reader));
+        } else if (element.equals(QNAME_XROAD_REQUEST_HASH)) {
+            validateDuplicate(element, header.getRequestHash());
+            header.setRequestHash(parseRequestHash(reader));
+        } else {
+            skipElement(reader);
         }
     }
 
@@ -471,10 +483,8 @@ public class StaxSoapParserImpl implements SoapParser {
                     }
                     skipElement(reader);
                 }
-            } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (reader.subject.getName().equals(QNAME_SOAP_BODY)) {
-                    return result;
-                }
+            } else if (event == XMLStreamConstants.END_ELEMENT && reader.subject.getName().equals(QNAME_SOAP_BODY)) {
+                return result;
             }
         }
 
@@ -521,11 +531,9 @@ public class StaxSoapParserImpl implements SoapParser {
                 skipElement(reader);
             } else if (event == XMLStreamConstants.CHARACTERS || event == XMLStreamConstants.CDATA) {
                 detail.append(reader.subject.getText());
-            } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (FAULT_DETAIL.equals(reader.subject.getLocalName())) {
-                    String text = detail.toString().trim();
-                    return text.isEmpty() ? null : text;
-                }
+            } else if (event == XMLStreamConstants.END_ELEMENT && FAULT_DETAIL.equals(reader.subject.getLocalName())) {
+                String text = detail.toString().trim();
+                return text.isEmpty() ? null : text;
             }
         }
 
@@ -617,10 +625,15 @@ public class StaxSoapParserImpl implements SoapParser {
     }
 
 
-    private record ReaderWrapper(XMLStreamReader subject) implements AutoCloseable {
+    @RequiredArgsConstructor
+    private class ReaderWrapper implements AutoCloseable {
+
+        public final XMLStreamReader subject;
 
         public int next() throws XMLStreamException {
-            return subject.next();
+            int next = subject.next();
+            onNext(subject);
+            return next;
         }
 
         public boolean hasNext() throws XMLStreamException {
