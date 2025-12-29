@@ -626,7 +626,7 @@ public class StaxSoapParserImpl implements SoapParser {
 
 
     @RequiredArgsConstructor
-    private class ReaderWrapper implements AutoCloseable {
+    private final class ReaderWrapper implements AutoCloseable {
 
         public final XMLStreamReader subject;
 
