@@ -43,13 +43,18 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import com.ctc.wstx.stax.WstxOutputFactory;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
+import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.XMLStreamWriter2;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -79,9 +84,13 @@ import org.xml.sax.helpers.AttributesImpl;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
@@ -239,7 +248,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
 
     private void handleRequest()
             throws SOAPException, JAXBException, IOException, URISyntaxException,
-            ParserConfigurationException, HttpClientCreator.HttpClientCreatorException, SAXException {
+                   ParserConfigurationException, HttpClientCreator.HttpClientCreatorException, SAXException {
         ServiceHandler handler = getServiceHandler(requestMessage);
 
         if (handler == null) {
@@ -461,7 +470,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
 
         try (SoapMessageHandler messageHandler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(handler.getResponseContentType(),
-                    messageHandler, new ResponseSoapParserImpl());
+                    messageHandler, new ResponseStaxSoapParserImpl());
             soapMessageDecoder.parse(handler.getResponseContent());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
@@ -776,6 +785,96 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             bufferedOffset = start;
             bufferedLength = length;
             bufferFlushed = false;
+        }
+    }
+
+    @RequiredArgsConstructor
+    private final class ResponseStaxSoapParserImpl extends StaxSoapParserImpl {
+
+        private static final WstxOutputFactory WSTX_OUTPUT_FACTORY = new WstxOutputFactory();
+
+        private XMLStreamWriter2 writer;
+        private boolean inHeader;
+        private boolean foundQueryId;
+        private String whiteSpace = "";
+
+
+        @Override
+        protected InputStream prepareInputStream(InputStream rawInputStream, OutputStream rawOutputStream) throws XMLStreamException {
+            writer = (XMLStreamWriter2) WSTX_OUTPUT_FACTORY.createXMLStreamWriter(rawOutputStream);
+            return rawInputStream;
+        }
+
+        @Override
+        protected void beforeDocument() throws XMLStreamException {
+            writer.writeStartDocument("UTF-8", "1.0");
+            writer.writeCharacters("\n");
+        }
+
+        @Override
+        protected void afterDocument() throws XMLStreamException {
+            writer.flush();
+            writer.close();
+        }
+
+        @Override
+        protected int onNext(XMLStreamReader reader) throws XMLStreamException {
+            var event = super.onNext(reader);
+            writer.copyEventFromReader((XMLStreamReader2) reader, true);
+
+            switch (event) {
+                case XMLStreamConstants.CHARACTERS -> {
+                    if (!foundQueryId && StringUtils.isWhitespace(reader.getText())) {
+                        whiteSpace = reader.getText();
+                    }
+                }
+                case XMLStreamConstants.START_ELEMENT -> {
+                    System.out.println("open: " + reader.getLocalName());
+                    if (QNAME_SOAP_HEADER.equals(reader.getName())) {
+                        inHeader = true;
+                    }
+                    if (inHeader && QNAME_XROAD_QUERY_ID.equals(reader.getName())) {
+                        foundQueryId = true;
+                    } else if (!foundQueryId) {
+                        whiteSpace = "";
+                    }
+                }
+                case XMLStreamConstants.END_ELEMENT -> {
+                    System.out.println("close: " + reader.getLocalName());
+                    if (inHeader && QNAME_SOAP_HEADER.equals(reader.getName())) {
+                        inHeader = false;
+                    }
+                    if (inHeader && QNAME_XROAD_QUERY_ID.equals(reader.getName())) {
+                        addRequestHash(reader.getPrefix());
+                    }
+                }
+                default -> {
+                    // NOOP
+                }
+            }
+
+            return event;
+        }
+
+        private void addRequestHash(String prefix) {
+            try {
+                byte[] hashBytes = requestMessage.getSoap().getHash();
+                String hash = encodeBase64(hashBytes);
+
+                DigestAlgorithm algoUri = SoapUtils.getHashAlgoId();
+
+                if (!whiteSpace.isEmpty()) {
+                    writer.writeCharacters(whiteSpace);
+                }
+
+                writer.writeStartElement(prefix, QNAME_XROAD_REQUEST_HASH.getLocalPart(), QNAME_XROAD_REQUEST_HASH.getNamespaceURI());
+                writer.writeAttribute(ATTR_ALGORITHM_ID, algoUri.uri());
+                writer.writeCharacters(hash);
+                writer.writeEndElement();
+
+            } catch (Exception e) {
+                throw translateException(e);
+            }
         }
     }
 }
