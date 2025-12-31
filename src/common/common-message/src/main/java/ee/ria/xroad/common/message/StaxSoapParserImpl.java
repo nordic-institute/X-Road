@@ -51,6 +51,8 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.message.SoapUtils.validateMimeType;
@@ -106,20 +108,20 @@ public class StaxSoapParserImpl implements SoapParser {
     private static final String SERVER_CODE = "serverCode";
 
     private static final String ATTR_OBJECT_TYPE = "objectType";
-    private static final String ATTR_ALGORITHM_ID = "algorithmId";
+    protected static final String ATTR_ALGORITHM_ID = "algorithmId";
     private static final String ATTR_ENCODING_STYLE = "encodingStyle";
 
     private static final QName QNAME_SOAP_ENVELOPE = new QName(SoapUtils.NS_SOAPENV, ENVELOPE);
-    private static final QName QNAME_SOAP_HEADER = new QName(SoapUtils.NS_SOAPENV, HEADER);
+    protected static final QName QNAME_SOAP_HEADER = new QName(SoapUtils.NS_SOAPENV, HEADER);
     private static final QName QNAME_SOAP_BODY = new QName(SoapUtils.NS_SOAPENV, BODY);
     private static final QName QNAME_SOAP_FAULT = new QName(SoapUtils.NS_SOAPENV, FAULT);
 
-    private static final QName QNAME_XROAD_QUERY_ID = new QName(SoapHeader.NS_XROAD, QUERY_ID);
+    protected static final QName QNAME_XROAD_QUERY_ID = new QName(SoapHeader.NS_XROAD, QUERY_ID);
     private static final QName QNAME_XROAD_USER_ID = new QName(SoapHeader.NS_XROAD, USER_ID);
     private static final QName QNAME_XROAD_ISSUE = new QName(SoapHeader.NS_XROAD, ISSUE);
     private static final QName QNAME_REPR_REPRESENTED_PARTY = new QName(SoapHeader.NS_REPR, REPRESENTED_PARTY);
     private static final QName QNAME_XROAD_PROTOCOL_VERSION = new QName(SoapHeader.NS_XROAD, PROTOCOL_VERSION);
-    private static final QName QNAME_XROAD_REQUEST_HASH = new QName(SoapHeader.NS_XROAD, REQUEST_HASH);
+    protected static final QName QNAME_XROAD_REQUEST_HASH = new QName(SoapHeader.NS_XROAD, REQUEST_HASH);
     private static final QName QNAME_XROAD_CLIENT = new QName(SoapHeader.NS_XROAD, CLIENT);
     private static final QName QNAME_XROAD_SERVICE = new QName(SoapHeader.NS_XROAD, SERVICE);
     private static final QName QNAME_XROAD_SECURITY_SERVER = new QName(SoapHeader.NS_XROAD, SECURITY_SERVER);
@@ -164,21 +166,31 @@ public class StaxSoapParserImpl implements SoapParser {
         }
     }
 
-    protected void onNext(XMLStreamReader reader) {
+    protected void beforeDocument() throws XMLStreamException {
         // noop
+    }
+
+    protected int onNext(XMLStreamReader reader) throws XMLStreamException {
+        return reader.next();
+    }
+
+    protected void afterDocument() throws XMLStreamException {
+        // noop
+    }
+
+    protected InputStream prepareInputStream(InputStream rawInputStream, OutputStream rawOutputStream) throws XMLStreamException {
+        return new TeeInputStream(rawInputStream, rawOutputStream);
     }
 
     private Soap parseMessage(InputStream is, String contentType, String charset)
             throws IOException, SOAPException {
         log.trace("parseMessage({}, {})", contentType, charset);
 
-        ByteArrayOutputStream rawXml = new ByteArrayOutputStream();
-
-        // Read and buffer the input
-        InputStream proxyStream = excludeUtf8Bom(contentType, new TeeInputStream(is, rawXml));
-
         // Parse using StAX
-        try (var reader = new ReaderWrapper(INPUT_FACTORY.createXMLStreamReader(proxyStream, charset))) {
+        try (var rawXml = new ByteArrayOutputStream();
+             var proxyStream = excludeUtf8Bom(contentType, prepareInputStream(is, rawXml));
+             var reader = new ReaderWrapper(INPUT_FACTORY.createXMLStreamReader(proxyStream, charset))) {
+            beforeDocument();
 
             ParseResult result = parseXml(reader);
 
@@ -191,6 +203,9 @@ public class StaxSoapParserImpl implements SoapParser {
                         rawXml.toByteArray(),
                         charset);
             }
+            afterDocument();
+
+            System.out.println(new String(rawXml.toByteArray(), StandardCharsets.UTF_8));
 
             return new SoapMessageImpl(
                     rawXml.toByteArray(),
@@ -272,8 +287,10 @@ public class StaxSoapParserImpl implements SoapParser {
             if (event == XMLStreamConstants.START_ELEMENT) {
 
                 parseHeaderComponents(reader, header);
-            } else if (event == XMLStreamConstants.END_ELEMENT && reader.subject.getName().equals(QNAME_SOAP_HEADER)) {
-                return;
+            } else if (event == XMLStreamConstants.END_ELEMENT) {
+                if (reader.subject.getName().equals(QNAME_SOAP_HEADER)) {
+                    return;
+                }
             }
         }
     }
@@ -483,8 +500,10 @@ public class StaxSoapParserImpl implements SoapParser {
                     }
                     skipElement(reader);
                 }
-            } else if (event == XMLStreamConstants.END_ELEMENT && reader.subject.getName().equals(QNAME_SOAP_BODY)) {
-                return result;
+            } else if (event == XMLStreamConstants.END_ELEMENT) {
+                if (reader.subject.getName().equals(QNAME_SOAP_BODY)) {
+                    return result;
+                }
             }
         }
 
@@ -530,10 +549,15 @@ public class StaxSoapParserImpl implements SoapParser {
                 }
                 skipElement(reader);
             } else if (event == XMLStreamConstants.CHARACTERS || event == XMLStreamConstants.CDATA) {
-                detail.append(reader.subject.getText());
-            } else if (event == XMLStreamConstants.END_ELEMENT && FAULT_DETAIL.equals(reader.subject.getLocalName())) {
-                String text = detail.toString().trim();
-                return text.isEmpty() ? null : text;
+                // Use getTextCharacters() instead of getText() as it reliably returns content
+                detail.append(reader.subject.getTextCharacters(),
+                        reader.subject.getTextStart(),
+                        reader.subject.getTextLength());
+            } else if (event == XMLStreamConstants.END_ELEMENT) {
+                if (FAULT_DETAIL.equals(reader.subject.getLocalName())) {
+                    String text = detail.toString().trim();
+                    return text.isEmpty() ? null : text;
+                }
             }
         }
 
@@ -631,9 +655,7 @@ public class StaxSoapParserImpl implements SoapParser {
         public final XMLStreamReader subject;
 
         public int next() throws XMLStreamException {
-            int next = subject.next();
-            onNext(subject);
-            return next;
+            return onNext(subject);
         }
 
         public boolean hasNext() throws XMLStreamException {
@@ -646,5 +668,7 @@ public class StaxSoapParserImpl implements SoapParser {
         }
     }
 }
+
+
 
 
