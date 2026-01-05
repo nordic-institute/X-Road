@@ -42,12 +42,12 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Random;
 
 import static ee.ria.xroad.common.util.CryptoUtils.SHA1WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSAANDMGF1_ID;
@@ -64,6 +64,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 public final class SignerUtil {
 
     private static final int RANDOM_ID_LENGTH = 20;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private SignerUtil() {
     }
@@ -180,7 +181,7 @@ public final class SignerUtil {
      */
     public static byte[] generateId() {
         byte[] id = new byte[RANDOM_ID_LENGTH];
-        new Random().nextBytes(id);
+        SECURE_RANDOM.nextBytes(id);
         return id;
     }
 

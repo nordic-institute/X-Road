@@ -87,6 +87,7 @@ public class CachingServerConfTest {
 
     /**
      * Creates test database.
+     *
      * @throws Exception if an error occurs
      */
     @BeforeClass
@@ -250,6 +251,10 @@ public class CachingServerConfTest {
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest));
+
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
     }
 
     /**
@@ -267,6 +272,7 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting IS certificates,
+     *
      * @throws Exception if an error coccurs
      */
     @Test
@@ -297,6 +303,7 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting members.
+     *
      * @throws Exception if an error coccurs
      */
     @Test
@@ -308,6 +315,7 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting TSPs.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -318,6 +326,7 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting services.
+     *
      * @throws Exception if an error occurs
      */
     @Test

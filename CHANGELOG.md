@@ -1,5 +1,8 @@
 # Change Log
 
+## 7.5.2 - 2025-12-23
+- XRDDEV-3054: Resolve issue where using wildcard expressions in REST path mappings lead to a vulnerability to path traversal attacks in certain cases
+
 ## 7.5.1 - 2024-09-02
 - XRDDEV-2669: As an Administrator I would like to be able to override the database host in the environments file as well so that it can be used in scripts
 - XRDDEV-2688: Adding WSDL gives a library error as a warning
