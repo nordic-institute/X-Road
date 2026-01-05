@@ -34,9 +34,7 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
-import org.niis.xroad.signer.core.tokenmanager.token.BlockingTokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
-import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
 
 import java.util.Collections;
@@ -56,7 +54,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @RequiredArgsConstructor
 public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
     @SuppressWarnings("java:S3077")
-    private volatile Map<String, BlockingTokenWorker> tokenWorkers = Collections.emptyMap();
+    private volatile Map<String, AbstractTokenWorker> tokenWorkers = Collections.emptyMap();
 
     @Getter
     private final ModuleType moduleType;
@@ -64,7 +62,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
     protected final TokenManager tokenManager;
     protected final TokenLookup tokenLookup;
 
-    public Optional<TokenWorker> getTokenById(String tokenId) {
+    public Optional<AbstractTokenWorker> getTokenById(String tokenId) {
         return Optional.ofNullable(tokenWorkers.get(tokenId));
     }
 
@@ -104,16 +102,16 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
     protected abstract AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition);
 
     private void loadTokens(boolean reload) throws TokenException {
-        final Map<String, BlockingTokenWorker> newTokens = new HashMap<>();
+        final Map<String, AbstractTokenWorker> newTokens = new HashMap<>();
 
         final List<TokenDefinition> tokens = listTokens();
         log.trace("Got {} tokens from module '{}'", tokens.size(), getClass().getSimpleName());
 
         for (TokenDefinition tokenDefinition : tokens) {
-            BlockingTokenWorker tokenWorker = tokenWorkers.get(tokenDefinition.getId());
+            AbstractTokenWorker tokenWorker = tokenWorkers.get(tokenDefinition.getId());
             if (tokenWorker == null) {
                 log.debug("Adding new token '{}#{}'", tokenDefinition.moduleType(), tokenDefinition.getId());
-                tokenWorker = new BlockingTokenWorker(createWorker(getTokenInfo(tokenDefinition), tokenDefinition));
+                tokenWorker = createWorker(getTokenInfo(tokenDefinition), tokenDefinition);
                 tokenWorker.start();
             } else if (reload) {
                 tokenWorker.reload();
@@ -128,12 +126,12 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         stopLostTokenWorkers(oldTokenWorkers, tokens);
     }
 
-    private void stopLostTokenWorkers(Map<String, BlockingTokenWorker> oldTokens, List<TokenDefinition> newTokens) {
+    private void stopLostTokenWorkers(Map<String, AbstractTokenWorker> oldTokens, List<TokenDefinition> newTokens) {
         final Set<String> moduleTypes = newTokens.stream()
                 .map(TokenDefinition::getId)
                 .collect(Collectors.toSet());
 
-        for (Map.Entry<String, BlockingTokenWorker> entry : oldTokens.entrySet()) {
+        for (Map.Entry<String, AbstractTokenWorker> entry : oldTokens.entrySet()) {
             if (!moduleTypes.contains(entry.getKey())) {
                 try {
                     log.trace("Stopping token worker for module '{}'", entry.getKey());
