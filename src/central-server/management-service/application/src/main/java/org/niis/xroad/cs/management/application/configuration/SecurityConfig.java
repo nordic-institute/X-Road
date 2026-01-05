@@ -24,37 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.registrationservice.config;
 
-import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
-import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
-import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientConfiguration;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
-import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
+package org.niis.xroad.cs.management.application.configuration;
+
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 
-@Import({
-        AdminServiceClientConfiguration.class,
-        SpringGlobalConfConfig.class,
-        SpringOcspVerifierConfig.class,
-        VaultPoweredTlsConfiguration.class
-})
 @Configuration
-@EnableScheduling
-public class RegistrationServiceConfiguration {
+@EnableWebSecurity
+@ArchUnitSuppressed("NoVanillaExceptions")
+public class SecurityConfig {
 
     @Bean
-    ManagementRequestVerifier managementRequestVerifier(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory) {
-        return new ManagementRequestVerifier(globalConfProvider, ocspVerifierFactory);
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.NEVER))
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/managementservice/manage", "/managementservice/manage/").permitAll()
+                        .anyRequest().denyAll())
+                .headers(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .build();
     }
 
-    @Bean
-    ManagementRequestSoapExecutor managementRequestSoapExecutor(ManagementRequestVerifier managementRequestVerifier) {
-        return new ManagementRequestSoapExecutor(managementRequestVerifier);
-    }
 }
