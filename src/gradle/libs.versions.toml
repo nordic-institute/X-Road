@@ -12,17 +12,18 @@ hibernate = "6.6.2.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.2"
 mockito = "5.15.2"
-springBoot = "3.3.6"
+springBoot = "3.3.9"
 junitJupiter = "5.11.4"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.80"
 slf4j = "2.0.16"
-testAutomationFramework = "0.2.19"
+testAutomationFramework = "0.2.21"
+selenide="7.12.0"
 protoc = "4.29.0"
 grpc = "1.68.2"
 swaggerParser = "2.1.25"
-logback = "1.5.12"
-logbackAccess = "2.0.3"
+logback = "1.5.20"
+logbackAccess = "2.0.7"
 apacheCxf = "4.1.0"
 archUnitPlugin = "4.0.0"
 
@@ -73,6 +74,8 @@ testAutomation-feign = { module = "com.nortal.test:test-automation-feign", versi
 testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
 testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
+test-selenide-core = { module = "com.codeborne:selenide", version.ref = "selenide" }
+test-selenide-proxy = { module = "com.codeborne:selenide-proxy", version.ref = "selenide" }
 
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.0" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
@@ -102,7 +105,7 @@ apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configurat
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
-apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.0.0" }
+apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.2" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.3" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
@@ -126,7 +129,7 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.36" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
+logback-access-tomcat= { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.10.0" }
