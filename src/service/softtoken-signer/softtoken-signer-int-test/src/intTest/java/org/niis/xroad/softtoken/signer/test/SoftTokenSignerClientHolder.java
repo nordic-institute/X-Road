@@ -39,7 +39,6 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 import static org.niis.xroad.softtoken.signer.test.SoftTokenSignerIntTestContainerSetup.Port.SOFTTOKEN_SIGNER_GRPC;
 import static org.niis.xroad.softtoken.signer.test.SoftTokenSignerIntTestContainerSetup.SIGNER;
 import static org.niis.xroad.softtoken.signer.test.SoftTokenSignerIntTestContainerSetup.SOFTTOKEN_SIGNER;
@@ -53,6 +52,7 @@ import static org.niis.xroad.softtoken.signer.test.SoftTokenSignerIntTestContain
 @RequiredArgsConstructor
 public class SoftTokenSignerClientHolder {
     private static final int DEFAULT_TIMEOUT_MILLIS = 60000;
+    private static final int SIGNER_GRPC_PORT = Integer.parseInt(SignerRpcChannelProperties.DEFAULT_PORT);
     private final SoftTokenSignerIntTestContainerSetup containerSetup;
 
     @Getter

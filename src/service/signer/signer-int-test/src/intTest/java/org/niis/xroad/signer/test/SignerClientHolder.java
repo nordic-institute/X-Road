@@ -39,8 +39,6 @@ import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
-
 /**
  * Holder for SignerRpcClient instance. Holds the signerRpcClient instance that is used in the tests. Otherwise, would
  * need to recreate on every feature.
@@ -49,6 +47,9 @@ import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 @Component
 @RequiredArgsConstructor
 public class SignerClientHolder {
+
+    private static final int SIGNER_GRPC_PORT = Integer.parseInt(SignerRpcChannelProperties.DEFAULT_PORT);
+
     private final SignerIntTestContainerSetup signerIntTestSetup;
 
     private SignerRpcClient signerRpcClientInstance;

@@ -30,6 +30,8 @@ package org.niis.xroad.test.framework.core.container;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.logging.ComposeLoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -38,6 +40,10 @@ import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.concurrent.Callable;
@@ -45,6 +51,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import static org.niis.xroad.test.framework.core.logging.ComposeLoggerFactory.CONTAINER_LOGS_DIR;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -140,6 +148,31 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     }
 
     public record ContainerMapping(String host, int port) {
+    }
+
+    protected void copyXRoadLogsFromContainer(String containerName, String subpath) {
+        var container = env.getContainerByServiceName(containerName).orElseThrow();
+        var dockerClient = container.getDockerClient();
+
+        Path targetDir = Path.of(coreProperties.workingDir(), CONTAINER_LOGS_DIR, subpath);
+
+        try (InputStream tarStream =
+                     dockerClient.copyArchiveFromContainerCmd(container.getContainerId(), "/var/log/xroad").exec();
+             TarArchiveInputStream tarIn = new TarArchiveInputStream(tarStream)) {
+
+            TarArchiveEntry entry;
+            while ((entry = tarIn.getNextEntry()) != null) {
+                Path outPath = targetDir.resolve(entry.getName());
+                if (entry.isDirectory()) {
+                    Files.createDirectories(outPath);
+                } else {
+                    Files.createDirectories(outPath.getParent());
+                    Files.copy(tarIn, outPath);
+                }
+            }
+        } catch (IOException e) {
+            log.error("Failed to copy log files from container", e);
+        }
     }
 
 }

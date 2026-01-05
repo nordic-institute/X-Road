@@ -42,8 +42,8 @@ import org.niis.xroad.rpc.common.Empty;
 
 import java.io.FileNotFoundException;
 
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
-import static ee.ria.xroad.common.ReturnCodes.RETURN_SUCCESS;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.confclient.core.ReturnCodes.RETURN_SUCCESS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 
 @RequiredArgsConstructor
