@@ -10,7 +10,7 @@ ExecStart=/usr/share/xroad/autologin/xroad-autologin-retry.sh
 StandardOutput=journal+console
 
 Restart=on-failure
-RestartSec=10s
+RestartSec=3s
 RestartPreventExitStatus=127
 
 [Install]
