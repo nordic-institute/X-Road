@@ -37,7 +37,7 @@ public class TrafficPageObj {
     public final Filter filter = new Filter();
 
     public SelenideElement trafficChart() {
-        return $x("//div[@class='vue-apexcharts']");
+        return $x("//x-vue-echarts");
     }
 
     public static class Filter {
