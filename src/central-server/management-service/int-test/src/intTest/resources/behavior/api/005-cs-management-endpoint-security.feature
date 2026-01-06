@@ -26,3 +26,7 @@ Feature: Management requests API: Endpoint security
       | OPTIONS | /managementservice/info     |
       | GET     | /something                  |
       | POST    | /something                  |
+
+  Scenario: Request is limited to 100000 bytes
+    Given more than 100000 bytes request is sent
+    Then Response of status code 500 and soap faultCode "bad_request" and soap faultString "Request size limit 100000 exceeded" is returned

@@ -22,7 +22,6 @@ dependencies {
   annotationProcessor(platform(libs.springBoot.bom))
   implementation(platform(libs.springBoot.bom))
   implementation(platform(libs.springCloud.bom))
-  implementation("org.springframework.boot:spring-boot-starter-security")
 
   annotationProcessor("org.springframework:spring-context-indexer")
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -45,6 +44,7 @@ dependencies {
   }
 
   implementation("org.springframework.boot:spring-boot-starter-jetty")
+  implementation("org.springframework.boot:spring-boot-starter-security")
   implementation(project(":lib:properties-spring"))
   implementation(libs.jakarta.validationApi)
   implementation(libs.bucket4j.core)

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.common.managementrequest;
 
+import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.message.SoapFault;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
+import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestUtil;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.slf4j.MDC;
@@ -43,6 +45,8 @@ import org.springframework.http.ResponseEntity;
 import java.io.InputStream;
 import java.util.function.ToIntFunction;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.BAD_REQUEST;
+
 @Slf4j
 @RequiredArgsConstructor
 public class ManagementRequestSoapExecutor {
@@ -52,7 +56,10 @@ public class ManagementRequestSoapExecutor {
 
     public ResponseEntity<String> process(String contentType, InputStream body,
                                           ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
-        try (var bos = BoundedInputStream.builder().setInputStream(body).setMaxCount(MAX_REQUEST_SIZE).get()) {
+        try (var bos = BoundedInputStream.builder()
+                .setInputStream(body)
+                .setMaxCount(MAX_REQUEST_SIZE)
+                .setOnMaxCount(this::onMaxCount).get()) {
             var verificationResult = managementRequestVerifier.readRequest(contentType, bos);
 
             var createdRequestId = onSuccess.applyAsInt(verificationResult);
@@ -75,6 +82,14 @@ public class ManagementRequestSoapExecutor {
             return disableCache(ResponseEntity.internalServerError())
                     .body(SoapFault.createFaultXml(ex));
         }
+    }
+
+    private void onMaxCount(Long max, Long read) {
+        log.warn("Request size limit {} exceeded", max);
+        throw XrdRuntimeHttpException.builder(BAD_REQUEST)
+                .httpStatus(HttpStatus.REQUEST_TOO_LONG)
+                .details("Request size limit %d exceeded".formatted(max))
+                .build();
     }
 
     private static ResponseEntity.BodyBuilder disableCache(ResponseEntity.BodyBuilder builder) {
