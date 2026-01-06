@@ -33,7 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.StaxSoapParserImpl;
+import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -269,7 +269,7 @@ public class AsicContainerVerifier {
         final byte[] messageBytes = messageXml.getBytes(UTF_8);
 
         try {
-            Soap soap = new StaxSoapParserImpl().parse(
+            Soap soap = new StaxEventSoapParserImpl().parse(
                     MimeTypes.TEXT_XML_UTF8,
                     new ByteArrayInputStream(messageBytes));
             if (!(soap instanceof SoapMessageImpl msg)) {

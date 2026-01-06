@@ -460,7 +460,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(jRequest.getContentType(),
-                    handler, new StaxSoapParserImpl());
+                    handler, new StaxEventSoapParserImpl());
             try {
                 originalSoapAction = SoapUtils.validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
                 soapMessageDecoder.parse(jRequest.getInputStream());

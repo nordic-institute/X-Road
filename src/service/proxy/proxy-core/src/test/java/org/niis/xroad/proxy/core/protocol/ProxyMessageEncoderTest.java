@@ -30,7 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.StaxSoapParserImpl;
+import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 
@@ -195,7 +195,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapMessageImpl createMessage(InputStream is) {
-        Soap soap = new StaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxEventSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapMessageImpl) {
             return (SoapMessageImpl) soap;
@@ -205,7 +205,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapFault createFault(InputStream is) {
-        Soap soap = new StaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxEventSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapFault) {
             return (SoapFault) soap;
