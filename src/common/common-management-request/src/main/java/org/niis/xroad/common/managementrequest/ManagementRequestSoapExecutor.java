@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.managementrequest;
 
-import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.message.SoapFault;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
-import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestUtil;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.slf4j.MDC;
@@ -85,9 +83,7 @@ public class ManagementRequestSoapExecutor {
     }
 
     private void onMaxCount(Long max, Long read) {
-        log.warn("Request size limit {} exceeded", max);
-        throw XrdRuntimeHttpException.builder(BAD_REQUEST)
-                .httpStatus(HttpStatus.REQUEST_TOO_LONG)
+        throw XrdRuntimeException.systemException(BAD_REQUEST)
                 .details("Request size limit %d exceeded".formatted(max))
                 .build();
     }
