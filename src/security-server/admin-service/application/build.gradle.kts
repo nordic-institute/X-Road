@@ -43,11 +43,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
   implementation(project(":service:proxy:proxy-rpc-client"))
-
-  implementation(project(":security-server:admin-service:message-log-archiver")) {
-    exclude(group = "xerces", module = "xercesImpl") // inclusion replaces xerces as default wsdl parser & introduces XXE vulnerability
-  }
-
+  implementation(project(":security-server:admin-service:message-log-archiver"))
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")

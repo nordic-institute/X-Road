@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import com.ctc.wstx.stax.WstxInputFactory;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
@@ -141,7 +140,7 @@ public class StaxEventSoapParserImpl implements SoapParser {
     private static final XMLInputFactory INPUT_FACTORY = createInputFactory();
 
     private static XMLInputFactory createInputFactory() {
-        var factory = new WstxInputFactory();
+        var factory = XMLInputFactory.newFactory();
         // Security: disable DTD and external entities
         factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
@@ -170,10 +169,6 @@ public class StaxEventSoapParserImpl implements SoapParser {
         }
     }
 
-    protected void beforeDocument() throws XMLStreamException {
-        // noop
-    }
-
     protected void onNextEvent(XMLEvent currentEvent, XMLEvent previousEvent) throws XMLStreamException {
         // noop
     }
@@ -194,7 +189,6 @@ public class StaxEventSoapParserImpl implements SoapParser {
         try (var rawXml = new ByteArrayOutputStream();
              var proxyStream = excludeUtf8Bom(contentType, prepareInputStream(is, rawXml));
              var reader = new EventReaderWrapper(INPUT_FACTORY.createXMLEventReader(proxyStream, charset))) {
-            beforeDocument();
 
             ParseResult result = parseXml(reader);
 

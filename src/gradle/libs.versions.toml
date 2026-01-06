@@ -198,8 +198,6 @@ postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 h2database = { module = "com.h2database:h2", version = "2.2.224" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
-xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
-woodstox-core = { module = "com.fasterxml.woodstox:woodstox-core", version = "7.1.1" }
 guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.38" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
