@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.message.GetOcspResponses;
 import org.niis.xroad.signer.api.message.GetOcspResponsesResponse;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
@@ -49,23 +50,26 @@ public class GetOcspResponsesReqHandler
     private final OcspResponseManager ocspResponseManager;
 
     @Override
-    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) throws Exception {
-        var message = new GetOcspResponses(
-                request.getCertHashList().toArray(new String[0]));
+    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) {
+        var message = new GetOcspResponses(request.getCertHashList().toArray(new String[0]));
 
-        GetOcspResponsesResponse response = ocspResponseManager.handleGetOcspResponses(message);
+        try {
+            GetOcspResponsesResponse response = ocspResponseManager.handleGetOcspResponses(message);
 
-        // todo return map from ocsp responses manager
-        Map<String, String> ocspResponses = new HashMap<>();
-        for (int i = 0; i < message.getCertHash().length; i++) {
-            if (ArrayUtils.get(response.getBase64EncodedResponses(), i) != null) {
-                ocspResponses.put(request.getCertHash(i), response.getBase64EncodedResponses()[i]);
+            // todo return map from ocsp responses manager
+            Map<String, String> ocspResponses = new HashMap<>();
+            for (int i = 0; i < message.getCertHash().length; i++) {
+                if (ArrayUtils.get(response.getBase64EncodedResponses(), i) != null) {
+                    ocspResponses.put(request.getCertHash(i), response.getBase64EncodedResponses()[i]);
+                }
             }
-        }
 
-        return GetOcspResponsesResp.newBuilder()
-                .putAllBase64EncodedResponses(ocspResponses)
-                .build();
+            return GetOcspResponsesResp.newBuilder()
+                    .putAllBase64EncodedResponses(ocspResponses)
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
 }

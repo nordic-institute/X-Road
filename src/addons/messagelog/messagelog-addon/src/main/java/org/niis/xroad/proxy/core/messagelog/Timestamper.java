@@ -25,19 +25,24 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.GLOBAL_CONF_OUTDATED;
 
 /**
  * Timestamper is responsible for routing timestamping tasks to the timestamp worker.
@@ -51,7 +56,7 @@ public class Timestamper {
     @Data
     @RequiredArgsConstructor
     @ToString(exclude = "signatureHashes")
-    static final class TimestampTask implements Serializable {
+    public static final class TimestampTask implements Serializable {
         private final Long[] messageRecords;
         private final String[] signatureHashes;
 
@@ -61,12 +66,20 @@ public class Timestamper {
         }
     }
 
-    interface TimestampResult {
+    public abstract static sealed class TimestampResult permits TimestampSucceeded, TimestampFailed {
+        @Getter
+        @Setter
+        private Map<String, Exception> errorsByUrl = new HashMap<>();
+
+        public void putError(String url, Exception e) {
+            errorsByUrl.put(url, e);
+        }
     }
 
     @Data
+    @EqualsAndHashCode(callSuper = false)
     @ToString(exclude = {"timestampDer", "hashChains"})
-    static final class TimestampSucceeded implements TimestampResult, Serializable {
+    protected static final class TimestampSucceeded extends TimestampResult implements Serializable {
         private final Long[] messageRecords;
         private final byte[] timestampDer;
         private final String hashChainResult;
@@ -75,21 +88,22 @@ public class Timestamper {
     }
 
     @Data
-    static final class TimestampFailed implements TimestampResult, Serializable {
+    @EqualsAndHashCode(callSuper = false)
+    protected static final class TimestampFailed extends TimestampResult implements Serializable {
         private final Long[] messageRecords;
         private final Exception cause;
     }
 
     protected TimestamperWorker getWorkerImpl() {
-        return new TimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
+        return new TimestamperWorker(globalConfProvider, serverConfProvider.getOrderedTspUrls());
     }
 
-    public TimestampResult handleTimestampTask(TimestampTask message) {
+    public TimestampResult handleTimestampTask(TimestampTask timestampTask) {
         if (!globalConfProvider.isValid()) {
-            return new TimestampFailed(message.getMessageRecords(),
-                    new CodedException(X_OUTDATED_GLOBALCONF, "Global configuration is not valid"));
+            return new TimestampFailed(timestampTask.getMessageRecords(),
+                    XrdRuntimeException.systemException(GLOBAL_CONF_OUTDATED).details("Global configuration is not valid").build());
         }
 
-        return getWorkerImpl().timestamp(message);
+        return getWorkerImpl().timestamp(timestampTask);
     }
 }

@@ -32,6 +32,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,6 +78,7 @@ public class FormLoginWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
                                                             @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
                                                             AuthenticationProvider authenticationProvider,

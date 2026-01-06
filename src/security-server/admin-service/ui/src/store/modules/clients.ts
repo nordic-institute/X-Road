@@ -41,6 +41,7 @@ export interface ClientsState {
   members: ExtendedClient[]; // all local members, virtual and real
   realMembers: ExtendedClient[]; // local actual real members, owner +1
   subsystems: ExtendedClient[];
+  allSubsystems: Client[];
 }
 
 export const useClients = defineStore('clients', {
@@ -53,6 +54,7 @@ export const useClients = defineStore('clients', {
       members: [],
       subsystems: [],
       realMembers: [],
+      allSubsystems: [] as Client[],
     };
   },
   getters: {
@@ -60,7 +62,7 @@ export const useClients = defineStore('clients', {
   },
 
   actions: {
-    fetchClients() {
+    async fetchClients() {
       this.clientsLoading = true;
 
       return api
@@ -73,6 +75,23 @@ export const useClients = defineStore('clients', {
         })
         .finally(() => {
           this.clientsLoading = false;
+        });
+    },
+    async fetchAllSubsystems(instance: string) {
+      return api
+        .get<Client[]>('/clients', {
+          params: {
+            instance: instance,
+            show_members: false,
+            internal_search: false,
+            include_management_service_check: true,
+          }
+        })
+        .then((res) => {
+          this.allSubsystems = res.data;
+        })
+        .catch((error) => {
+          throw error;
         });
     },
     storeClients(clients: Client[]) {

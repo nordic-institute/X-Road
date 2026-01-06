@@ -33,7 +33,10 @@ import ee.ria.xroad.common.util.PasswordStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -50,11 +53,12 @@ import org.niis.xroad.signer.proto.AuthKeyInfoProto;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static java.util.Optional.ofNullable;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotActive;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialized;
 
@@ -69,8 +73,8 @@ public class GetAuthKeyReqHandler
     private final GlobalConfProvider globalConfProvider;
 
     @Override
-    @SuppressWarnings("squid:S3776")
-    protected AuthKeyInfoProto handle(GetAuthKeyReq request) throws Exception {
+    @SuppressWarnings({"squid:S3776"})
+    protected AuthKeyInfoProto handle(GetAuthKeyReq request) {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}", securityServer);
 
@@ -95,9 +99,13 @@ public class GetAuthKeyReqHandler
                 }
 
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                    if (authCertValid(certInfo, securityServer)) {
-                        log.trace("Found suitable authentication key {}", keyInfo.getId());
-                        return authKeyResponse(keyInfo, certInfo);
+                    try {
+                        if (authCertValid(certInfo, securityServer)) {
+                            log.trace("Found suitable authentication key {}", keyInfo.getId());
+                            return authKeyResponse(keyInfo, certInfo);
+                        }
+                    } catch (Exception e) {
+                        throw XrdRuntimeException.systemException(e);
                     }
                 }
             }
@@ -119,23 +127,22 @@ public class GetAuthKeyReqHandler
         }
     }
 
-    private AuthKeyInfoProto authKeyResponse(KeyInfo keyInfo,
-                                             CertificateInfo certInfo) throws Exception {
+    private AuthKeyInfoProto authKeyResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
         String alias = keyInfo.getId();
         String keyStoreFileName = SoftwareTokenUtil.getKeyStoreFileName(alias);
-        char[] password = PasswordStore.getPassword(SoftwareTokenType.ID);
+        var password = PasswordStore.getPassword(SoftwareTokenType.ID);
 
         var builder = AuthKeyInfoProto.newBuilder()
                 .setAlias(alias)
                 .setKeyStoreFileName(keyStoreFileName)
                 .setCert(certInfo.asMessage());
 
-        ofNullable(password).ifPresent(passwd -> builder.setPassword(new String(passwd)));
+        password.ifPresent(passwd -> builder.setPassword(new String(passwd)));
         return builder.build();
     }
 
-    private boolean authCertValid(CertificateInfo certInfo,
-                                  SecurityServerId securityServer) throws Exception {
+    private boolean authCertValid(CertificateInfo certInfo, SecurityServerId securityServer)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
         if (!certInfo.isActive()) {
@@ -180,7 +187,8 @@ public class GetAuthKeyReqHandler
     }
 
     private void verifyOcspResponse(String instanceIdentifier,
-                                    X509Certificate subject, byte[] ocspBytes, OcspVerifierOptions verifierOptions) throws Exception {
+                                    X509Certificate subject, byte[] ocspBytes, OcspVerifierOptions verifierOptions)
+            throws OCSPException, CertificateException, IOException {
         if (ocspBytes == null) {
             throw new CertificateException("OCSP response not found");
         }

@@ -31,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
@@ -72,6 +73,7 @@ class OcspResponderConverterTest {
         assertThat(result.getCert()).isEmpty();
         assertThat(result.getCaInfo()).isEqualTo(caInfoEntity);
         assertThat(result.getUrl()).isEqualTo(URL);
+        assertThat(result.getCostType()).isEqualTo(CostType.FREE.name());
     }
 
 
@@ -96,6 +98,7 @@ class OcspResponderConverterTest {
         assertThat(result).isNotNull();
         assertThat(result.getCaId()).isEqualTo(CA_ID);
         assertThat(result.getUrl()).isEqualTo(URL);
+        assertThat(result.getCostType()).isEqualTo(CostType.PAID);
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getUpdatedAt()).isNotNull();
     }
@@ -104,6 +107,7 @@ class OcspResponderConverterTest {
         var request = new OcspResponderAddRequest();
         request.setCaId(CA_ID);
         request.setUrl(URL);
+        request.setCostType(CostType.FREE);
         request.setCertificate(new byte[0]);
         return request;
     }
@@ -113,6 +117,7 @@ class OcspResponderConverterTest {
 
         var ocspInfo = new OcspInfoEntity(caInfoEntity, URL, new byte[0]);
         ocspInfo.getCaInfo().getOcspInfos().add(ocspInfo);
+        ocspInfo.setCostType(CostType.PAID.name());
 
         return ocspInfo;
     }

@@ -56,7 +56,7 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
-    protected List<TokenType> listTokens() throws Exception {
+    protected List<TokenType> listTokens()  {
         return TOKENS;
     }
 

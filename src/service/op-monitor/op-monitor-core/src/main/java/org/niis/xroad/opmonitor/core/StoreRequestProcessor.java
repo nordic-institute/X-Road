@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -43,6 +44,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
  * The processor class for store operational monitoring data (JSON) requests.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 class StoreRequestProcessor {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();

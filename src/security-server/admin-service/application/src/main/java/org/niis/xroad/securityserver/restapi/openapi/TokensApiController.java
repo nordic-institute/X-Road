@@ -52,6 +52,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TokenNameDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenPasswordDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenPinUpdateDto;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
@@ -89,6 +90,7 @@ public class TokensApiController implements TokensApi {
     private final TokenService tokenService;
     private final TokenConverter tokenConverter;
     private final KeyAndCertificateRequestService keyAndCertificateRequestService;
+    private final CertificateAuthorityService certificateAuthorityService;
 
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
@@ -175,7 +177,6 @@ public class TokensApiController implements TokensApi {
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY_AND_CSR)
     public ResponseEntity<KeyWithCertificateSigningRequestIdDto> addKeyAndCsr(String tokenId,
                                                                               KeyLabelWithCsrGenerateDto keyLabelWithCsrGenerateDto) {
-
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
         CsrGenerateDto csrGenerate = keyLabelWithCsrGenerateDto.getCsrGenerateRequest();
@@ -189,6 +190,7 @@ public class TokensApiController implements TokensApi {
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since csr format is mandatory parameter
         CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
+        certificateAuthorityService.validateCsrFormat(csrGenerate.getCaName(), csrFormat);
 
         KeyAndCertificateRequestService.KeyAndCertRequestInfo keyAndCertRequest;
         try {

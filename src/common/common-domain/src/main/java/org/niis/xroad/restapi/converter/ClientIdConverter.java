@@ -25,9 +25,11 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.inject.Named;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 
@@ -36,7 +38,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
 
 /**
  * Converter for encoded client ids
@@ -72,9 +74,11 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
      * @return ClientId
      * @throws BadRequestException if encoded id could not be decoded
      */
-    public ClientId.Conf convertId(String encodedId) throws BadRequestException {
+    public ClientId.Conf convertId(String encodedId) throws XrdRuntimeException {
         if (!isEncodedClientId(encodedId)) {
-            throw new BadRequestException(INVALID_ENCODED_ID.build(encodedId));
+            throw XrdRuntimeException.businessException(INVALID_ENCODED_ID)
+                    .metadataItems(encodedId)
+                    .httpStatus(HttpStatus.BAD_REQUEST).build();
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
@@ -83,7 +87,9 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
         String subsystemCode = null;
         if (parts.size() != (MEMBER_CODE_INDEX + 1)
                 && parts.size() != (SUBSYSTEM_CODE_INDEX + 1)) {
-            throw new BadRequestException(INVALID_ENCODED_ID.build(encodedId));
+            throw XrdRuntimeException.businessException(INVALID_ENCODED_ID)
+                    .metadataItems(encodedId)
+                    .httpStatus(HttpStatus.BAD_REQUEST).build();
         }
         if (parts.size() == (SUBSYSTEM_CODE_INDEX + 1)) {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);

@@ -36,6 +36,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +46,14 @@ import java.util.Map;
 /**
  * Service that listens for administrative commands on a specific port.
  */
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class AdminPort {
 
     /**
      * Base class for AdminPort callbacks
      */
     public abstract static class AdminPortCallback {
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public abstract void handle(RequestWrapper request, ResponseWrapper response) throws Exception;
     }
 
@@ -122,7 +125,7 @@ public class AdminPort {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {
             if (!CONNECTOR_HOST.equals(Request.getRemoteAddr(request))) {
-                response.setStatus(HttpStatus.SC_FORBIDDEN);
+                response.setStatus(HttpStatus.FORBIDDEN.getCode());
                 callback.succeeded();
             } else {
                 final var target = request.getHttpURI().getPath();
@@ -136,12 +139,12 @@ public class AdminPort {
                             LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
                         }
                     } else {
-                        response.setStatus(HttpStatus.SC_NOT_FOUND);
+                        response.setStatus(HttpStatus.NOT_FOUND.getCode());
                     }
                     callback.succeeded();
                 } catch (Exception e) {
                     LOG.error("Handler got error", e);
-                    response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                    response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.getCode());
                     Content.Sink.write(response, true, e.toString(), callback);
                 }
             }

@@ -38,7 +38,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.apache.commons.io.IOUtils.toByteArray;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ERROR_READING_OPENAPI_FILE;
+import static org.niis.xroad.common.core.exception.ErrorCode.ERROR_READING_OPENAPI_FILE;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.createAttachmentResourceResponse;
 
 @Controller

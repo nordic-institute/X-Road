@@ -29,8 +29,8 @@ package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -63,7 +63,7 @@ class PrivateParametersV2MarshallerTest {
         privateParams.getManagementService().setAuthCertRegServiceAddress("https://cs:4001/managementservice/");
         privateParams.getManagementService().setManagementRequestServiceProviderId(clientId);
 
-        assertThrows(MarshalException.class, () -> marshaller.marshall(privateParams));
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(privateParams));
     }
 
     @Test
@@ -72,7 +72,7 @@ class PrivateParametersV2MarshallerTest {
         privateParams.setInstanceIdentifier("CS");
         // missing managementService
 
-        assertThrows(MarshalException.class, () -> marshaller.marshall(privateParams));
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(privateParams));
     }
 
     @Test
@@ -84,7 +84,7 @@ class PrivateParametersV2MarshallerTest {
         privateParams.getManagementService().setManagementRequestServiceProviderId(clientId);
         // missing TimeStampingIntervalSeconds
 
-        assertThrows(MarshalException.class, () -> marshaller.marshall(privateParams));
+        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(privateParams));
     }
 
 }

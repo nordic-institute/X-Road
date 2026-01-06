@@ -33,11 +33,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.lang.reflect.InvocationTargetException;
+
 @Configuration
 public class ProxyOpMonitoringConfig {
 
     @Bean
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider)
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         return OpMonitoring.init(serverConfProvider);
     }
 

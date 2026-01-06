@@ -30,7 +30,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -47,6 +50,7 @@ import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
 import javax.wsdl.Service;
+import javax.wsdl.WSDLException;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.UnknownExtensibilityElement;
 import javax.wsdl.extensions.soap.SOAPAddress;
@@ -65,6 +69,8 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -108,6 +114,7 @@ public final class WsdlParser {
 
     /**
      * Extracts the list of services that are described in the given WSDL.
+     *
      * @param wsdlUrl the URL from which the WSDL is available
      * @return collection of ServiceInfo objects
      * @throws WsdlNotFoundException if a WSDL was not found at given URL
@@ -128,8 +135,9 @@ public final class WsdlParser {
 
     private static Exception clarifyWsdlParsingException(Exception e) {
         if (identicalOperationsUnderSamePort(e)) {
-            return new RuntimeException(
-                    "WSDL violates specification: " + e.getMessage());
+            return XrdRuntimeException.businessException(ErrorCode.INTERNAL_ERROR)
+                    .details("WSDL violates specification: " + e.getMessage())
+                    .build();
         }
 
         return e;
@@ -142,7 +150,7 @@ public final class WsdlParser {
 
     }
 
-    private Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws Exception {
+    private Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws WSDLException {
         log.info("running WSDL parser");
         WSDLFactory wsdlFactory = WSDLFactory.newInstance(
                 "com.ibm.wsdl.factory.WSDLFactoryImpl");
@@ -180,7 +188,7 @@ public final class WsdlParser {
         return result.values();
     }
 
-    private static boolean hasSoapOverHttpBinding(Port port) throws Exception {
+    private static boolean hasSoapOverHttpBinding(Port port) {
         for (ExtensibilityElement ext : (List<ExtensibilityElement>) port.getBinding().getExtensibilityElements()) {
 
             if (ext.getElementType().equals(SOAP_BINDING)) {
@@ -264,6 +272,7 @@ public final class WsdlParser {
 
         /**
          * Constructs a new service info object.
+         *
          * @param name    the name of the service
          * @param title   the title of the service
          * @param url     the URL of the service
@@ -351,7 +360,7 @@ public final class WsdlParser {
             // no-op
         }
 
-        private void configureHttps(HttpsURLConnection conn) throws Exception {
+        private void configureHttps(HttpsURLConnection conn) throws NoSuchAlgorithmException, KeyManagementException {
             TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         @Override

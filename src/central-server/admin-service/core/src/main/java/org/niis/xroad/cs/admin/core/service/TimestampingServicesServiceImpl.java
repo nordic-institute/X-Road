@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
@@ -49,6 +50,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TIMESTAMPING_AUTHORITY_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_URL;
@@ -73,9 +75,9 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
     }
 
     @Override
-    public ApprovedTsa add(String url, byte[] certificate) {
+    public ApprovedTsa add(String url, byte[] certificate, CostType costType) {
         urlValidator.validateUrl(url);
-        final ApprovedTsaEntity entity = approvedTsaMapper.toEntity(url, certificate);
+        final ApprovedTsaEntity entity = approvedTsaMapper.toEntity(url, certificate, costType);
         final ApprovedTsaEntity savedTsa = approvedTsaRepository.save(entity);
         addAuditMessages(savedTsa);
         return approvedTsaMapper.toTarget(savedTsa);
@@ -87,6 +89,7 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
 
         urlValidator.validateUrl(updateRequest.getUrl());
         entity.setUrl(updateRequest.getUrl());
+        entity.setCostType(updateRequest.getCostType().name());
         Optional.ofNullable(updateRequest.getCertificate()).ifPresent(entity::setCert);
 
         final ApprovedTsaEntity savedEntity = approvedTsaRepository.save(entity);
@@ -121,6 +124,7 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
         auditDataHelper.put(TSA_ID, tsaEntity.getId());
         auditDataHelper.put(TSA_NAME, tsaEntity.getName());
         auditDataHelper.put(TSA_URL, tsaEntity.getUrl());
+        auditDataHelper.put(TSA_COST_TYPE, tsaEntity.getCostType());
         auditDataHelper.put(TSA_CERT_HASH, calculateCertHexHashDelimited(tsaEntity.getCert()));
         auditDataHelper.put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }

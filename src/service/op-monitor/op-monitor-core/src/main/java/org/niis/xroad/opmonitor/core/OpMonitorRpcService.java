@@ -45,7 +45,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
 
     @Override
     public void getOperationalDataIntervals(GetOperationalDataIntervalsReq request,
-                                              StreamObserver<GetOperationalDataIntervalsResp> responseObserver) {
+                                            StreamObserver<GetOperationalDataIntervalsResp> responseObserver) {
         try {
             responseObserver.onNext(handleGetMonitoringDataRequest(request));
             responseObserver.onCompleted();
@@ -55,7 +55,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
         }
     }
 
-    private GetOperationalDataIntervalsResp handleGetMonitoringDataRequest(GetOperationalDataIntervalsReq request) throws Exception {
+    private GetOperationalDataIntervalsResp handleGetMonitoringDataRequest(GetOperationalDataIntervalsReq request) {
         log.debug("Getting operational data in {} minute intervals, between {} and {}",
                 request.getIntervalInMinutes(),
                 Instant.ofEpochMilli(request.getRecordsFrom()),

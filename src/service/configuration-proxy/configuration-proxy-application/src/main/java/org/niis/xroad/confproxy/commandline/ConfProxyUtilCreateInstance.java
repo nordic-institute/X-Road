@@ -28,6 +28,7 @@ package org.niis.xroad.confproxy.commandline;
 import ee.ria.xroad.common.SystemProperties;
 
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -42,6 +43,7 @@ import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
  * Utility tool for creating a new configuration proxy instance
  * with default settings.
  */
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
 
     static final int DEFAULT_VALIDITY_INTERVAL_SECONDS = 600;

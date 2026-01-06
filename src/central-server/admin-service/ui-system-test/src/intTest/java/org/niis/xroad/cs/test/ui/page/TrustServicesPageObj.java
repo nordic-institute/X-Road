@@ -110,6 +110,10 @@ public class TrustServicesPageObj {
                 return $x("//div[@data-test='cert-profile-card']/div[contains(@class, 'v-card-text')]/div");
             }
 
+            public SelenideElement defaultCsrFormat() {
+                return $x("//div[@data-test='default-csr-format-card']/div[contains(@class, 'v-card-text')]/div");
+            }
+
             public SelenideElement acmeServerDirectoryUrl() {
                 return $x("//div[@data-test='cert-acme-card']//div[@data-test='acme-server-directory-url']");
             }
@@ -134,6 +138,10 @@ public class TrustServicesPageObj {
                 return $x("//div[@data-test='cert-profile-card']//button[@data-test='info-card-edit-button']");
             }
 
+            public SelenideElement btnEditDefaultCsrFormat() {
+                return $x("//div[@data-test='default-csr-format-card']//button[@data-test='info-card-edit-button']");
+            }
+
             public SelenideElement btnEditAcme() {
                 return $x("//div[@data-test='cert-acme-card']//button[@data-test='info-card-edit-button']");
             }
@@ -144,6 +152,10 @@ public class TrustServicesPageObj {
 
             public SelenideElement inputCertProfile() {
                 return $x("//div[@data-test='dialog-simple']//div[@data-test='cert-profile-input']");
+            }
+
+            public SelenideElement selectDefaultCsrFormat() {
+                return $x("//div[@data-test='dialog-simple']//div[@data-test='default-csr-format-select']");
             }
 
             public SelenideElement inputAcmeServerDirectoryUrl() {
@@ -174,6 +186,10 @@ public class TrustServicesPageObj {
     public class AddCaSettingsDialog {
         public SelenideElement inputCertificateProfile() {
             return $x("//div[@data-test='cert-profile-input']");
+        }
+
+        public SelenideElement selectDefaultCsrFormat() {
+            return $x("//div[@data-test='csr-format-select']");
         }
 
         public SelenideElement checkboxAcme() {

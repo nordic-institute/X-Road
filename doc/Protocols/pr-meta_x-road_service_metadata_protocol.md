@@ -1,7 +1,7 @@
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.15  
+Version: 2.16  
 Doc. ID: PR-META
 
 ---
@@ -30,6 +30,7 @@ Doc. ID: PR-META
 | 01.06.2023 | 2.13    | Update references                                                 | Petteri Kivimäki     |
 | 06.03.2025 | 2.14    | Update XML Schema for Messages                                    | Ovidijus Narkevičius |
 | 29.04.2025 | 2.15    | Update JSON Schema for *listClients* and XML and JSON examples    | Ovidijus Narkevičius |
+| 22.08.2025 | 2.16    | Update Security Server default HTTP and HTTPS ports               | Petteri Kivimäki     |
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -101,14 +102,14 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 2 Retrieving List of Service Providers
 
-Security server clients can retrieve a list of all the potential service providers (i.e., members and subsystems) of an X-Road instance. This can be accomplished by making a HTTP GET request to the security server. The request URL is `http://SECURITYSERVER/listClients` or `https://SECURITYSERVER/listClients` depending on whether the HTTPS protocol is configured for interaction between the security server and the information system. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server.
+Security server clients can retrieve a list of all the potential service providers (i.e., members and subsystems) of an X-Road instance. This can be accomplished by making a HTTP GET request to the Security Server. The request URL is `http://SECURITYSERVER:8080/listClients` or `https://SECURITYSERVER:8443/listClients` depending on whether the HTTPS protocol is configured for interaction between the Security Server and the information system. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the Security Server. The default port for the HTTP protocol is 8080 and for the HTTPS protocol is 8443.
 In addition, it is possible to retrieve a list of clients in other, federated X-Road instances by adding the following HTTP parameter:
 
 * `xRoadInstance` – code that identifies the X-Road instance.
 
-Thus, in order to retrieve a list of clients defined in the X-Road instance `AA`, the request URL is `http://SECURITYSERVER/listClients?xRoadInstance=AA`.
+Thus, in order to retrieve a list of clients defined in the X-Road instance `AA`, the request URL is `http://SECURITYSERVER:8080/listClients?xRoadInstance=AA`.
 
-It is possible to control the response content type using HTTP `Accept` header. If the header value is `application/json`, the security server must produce an application/json response, as defined in Annex B, [OpenAPI definition](#openapi-definition). Otherwise, security server MUST respond with content-type `text/xml` and the response MUST contain the `clientList` XML element defined in Annex [A](#annex-a-xml-schema-for-messages)).
+It is possible to control the response content type using HTTP `Accept` header. If the header value is `application/json`, the Security Server must produce an application/json response, as defined in Annex B, [OpenAPI definition](#openapi-definition). Otherwise, Security Server MUST respond with content-type `text/xml` and the response MUST contain the `clientList` XML element defined in Annex [A](#annex-a-xml-schema-for-messages)).
 
 Annex [C.1](#c1-listclients-response) contains an example XML and JSON response messages
 
@@ -152,14 +153,14 @@ Service clients are able to download WSDL-files that contain the definition of a
 The service SOAP header MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be `getWsdl`.
 The body of the request MUST contain an appropriately named XML element (`getWsdl`) which contains one or two child elements (`serviceCode`, `serviceVersion`) that define the service which service description is returned. The `serviceCode` element is mandatory and the `serviceVersion` element is optional.
 
-An example of a `getWsdl` request to the client security server is documented in annex [C.7](#c7-getwsdl-request) and the corresponding response in annexes [C.8](#c8-getwsdl-response) and [C.9](#c9-getwsdl-response-attachment).
+An example of a `getWsdl` request to the client Security Server is documented in annex [C.7](#c7-getwsdl-request) and the corresponding response in annexes [C.8](#c8-getwsdl-response) and [C.9](#c9-getwsdl-response-attachment).
 
 #### WSDL-information modifications
 
 Security server MUST replace endpoint location with value `http://example.org/xroad-endpoint`.
 This is done for security reasons, to hide the endpoint addresses which often point
 to information systems which should be hidden from the clients, and be accessed only through
-the provider security server.
+the provider Security Server.
 
 For example service definition
 
@@ -506,7 +507,7 @@ components:
 ### C.1 listClients Response
 
 #### XML Response
-`curl http://SECURITYSERVER/listClients`
+`curl http://SECURITYSERVER:8080/listClients`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -551,7 +552,7 @@ components:
 ```
 
 #### JSON Response
-`curl -H "Accept: application/json" http://SECURITYSERVER/listClients`
+`curl -H "Accept: application/json" http://SECURITYSERVER:8080/listClients`
 
 ```json
 {

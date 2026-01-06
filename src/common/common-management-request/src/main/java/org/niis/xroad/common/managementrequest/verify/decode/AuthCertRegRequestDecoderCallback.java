@@ -39,6 +39,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
@@ -47,6 +48,11 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Map;
@@ -129,7 +135,9 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         return authCertRegRequestType;
     }
 
-    public void verifyMessage() throws Exception {
+    public void verifyMessage()
+            throws IOException, CertificateException, NoSuchAlgorithmException,
+            SignatureException, InvalidKeyException, NoSuchProviderException, OCSPException {
         final SoapMessageImpl soap = rootCallback.getSoapMessage();
 
         final X509Certificate authCert = CryptoUtils.readCertificate(this.authCertBytes);
@@ -186,7 +194,7 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     }
 
 
-    private ClientId getClientIdFromCert(X509Certificate cert, ClientId clientId) throws Exception {
+    private ClientId getClientIdFromCert(X509Certificate cert, ClientId clientId) {
         return globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         ClientId.Conf.create(
@@ -200,7 +208,9 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         );
     }
 
-    public boolean verifyAuthCert(X509Certificate authCert) throws Exception {
+    public boolean verifyAuthCert(X509Certificate authCert)
+            throws CertificateException, IOException, NoSuchAlgorithmException, SignatureException,
+            InvalidKeyException, NoSuchProviderException {
 
         var instanceId = globalConfProvider.getInstanceIdentifier();
         var caCert = globalConfProvider.getCaCert(instanceId, authCert);

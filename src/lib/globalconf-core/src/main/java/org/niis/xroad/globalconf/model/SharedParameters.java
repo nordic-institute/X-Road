@@ -32,6 +32,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.SortableByCostType;
 
 import java.util.List;
 
@@ -100,6 +102,7 @@ public class SharedParameters {
         private CaInfo topCA;
         private List<CaInfo> intermediateCas;
         private String certificateProfileInfo;
+        private CsrFormat defaultCsrFormat;
         private AcmeServer acmeServer;
     }
 
@@ -124,9 +127,20 @@ public class SharedParameters {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class OcspInfo {
+    public static class OcspInfo implements SortableByCostType {
         private String url;
         private byte[] cert;
+        private CostType costType;
+
+        public OcspInfo(String url, byte[] cert) {
+            this.url = url;
+            this.cert = cert;
+        }
+
+        @Override
+        public String getSortableValue() {
+            return url;
+        }
     }
 
     @Data
@@ -136,6 +150,13 @@ public class SharedParameters {
         private String name;
         private String url;
         private byte[] cert;
+        private CostType costType;
+
+        public ApprovedTSA(String name, String url, byte[] cert) {
+            this.name = name;
+            this.url = url;
+            this.cert = cert;
+        }
     }
 
     @Data

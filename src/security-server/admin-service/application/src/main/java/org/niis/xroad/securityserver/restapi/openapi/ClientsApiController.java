@@ -27,13 +27,16 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -46,6 +49,7 @@ import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConvert
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.LocalGroupConverter;
+import org.niis.xroad.securityserver.restapi.converter.SecurityServerConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.ServiceDescriptionConverter;
@@ -64,6 +68,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeWrapper
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OrphanInformationDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAddDto;
@@ -133,6 +138,7 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVA
 public class ClientsApiController implements ClientsApi {
     private final ClientConverter clientConverter;
     private final ClientService clientService;
+    private final GlobalConfProvider globalConfProvider;
     private final LocalGroupConverter localGroupConverter;
     private final LocalGroupService localGroupService;
     private final TokenService tokenService;
@@ -142,6 +148,7 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightService accessRightService;
     private final TokenCertificateConverter tokenCertificateConverter;
     private final OrphanRemovalService orphanRemovalService;
+    private final SecurityServerConverter securityServerConverter;
     private final ServiceClientConverter serviceClientConverter;
     private final AccessRightConverter accessRightConverter;
     private final ServiceClientService serviceClientService;
@@ -170,7 +177,8 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<Set<ClientDto>> findClients(String name, String instance, String memberClass,
                                                       String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
-                                                      Boolean localValidSignCert, Boolean excludeLocal) {
+                                                      Boolean localValidSignCert, Boolean excludeLocal,
+                                                      Boolean includeManagementServiceCheck) {
         ClientService.SearchParameters searchParams = ClientService.SearchParameters.builder()
                 .name(name)
                 .instance(instance)
@@ -183,6 +191,10 @@ public class ClientsApiController implements ClientsApi {
                 .hasValidLocalSignCert(localValidSignCert)
                 .build();
         Set<ClientDto> clients = clientConverter.convert(clientService.findClients(searchParams));
+        if (BooleanUtils.isTrue(includeManagementServiceCheck)) {
+            clients.forEach(clientDto -> clientDto.setIsManagementServicesProvider(
+                    clientService.isManagementServiceProvider(clientIdConverter.convertId(clientDto.getId()))));
+        }
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -303,8 +315,8 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     @AuditEventMethod(event = ADD_LOCAL_GROUP)
     public ResponseEntity<LocalGroupDto> addClientLocalGroup(String id, LocalGroupAddDto localGroupAdd) {
-        Client client = getClientFromDb(id);
-        LocalGroup localGroup = localGroupService.addLocalGroup(client.getIdentifier(),
+        final ClientId clientId = clientIdConverter.convertId(id);
+        LocalGroup localGroup = localGroupService.addLocalGroup(clientId,
                 localGroupConverter.convert(localGroupAdd));
 
         LocalGroupDto createdGroupDto = localGroupConverter.convert(localGroup);
@@ -440,6 +452,16 @@ public class ClientsApiController implements ClientsApi {
         } else {
             throw new OrphanRemovalService.OrphansNotFoundException();
         }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
+    public ResponseEntity<Set<SecurityServerDto>> getClientSecurityServers(String encodedClientId) {
+        ClientId clientId = clientIdConverter.convertId(encodedClientId);
+        Set<SecurityServerId.Conf> securityServerIds = globalConfProvider.getSecurityServers().stream()
+                .filter(ssId -> globalConfProvider.isSecurityServerClient(clientId, ssId))
+                .collect(toSet());
+        return new ResponseEntity<>(securityServerConverter.convert(securityServerIds), HttpStatus.OK);
     }
 
     @Override

@@ -37,6 +37,7 @@ import ee.ria.xroad.common.util.PasswordStore;
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.ECDSAPublicKey;
 import iaik.pkcs.pkcs11.objects.PrivateKey;
 import iaik.pkcs.pkcs11.objects.RSAPublicKey;
@@ -45,6 +46,7 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
@@ -60,11 +62,20 @@ import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertPath;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -179,7 +190,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    public void refresh() throws Exception {
+    public void refresh() throws PKCS11Exception {
         log.trace("refresh()");
 
         if (isTokenAvailable(tokenId) && activeSession != null) {
@@ -226,7 +237,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception {
+    protected GenerateKeyResult generateKey(GenerateKeyReq message) throws TokenException, IOException, InvalidKeySpecException {
         log.trace("generateKeys()");
 
         assertTokenWritable();
@@ -263,7 +274,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void deleteKey(String keyId) throws Exception {
+    protected void deleteKey(String keyId) throws TokenException {
         log.trace("deleteKey({})", keyId);
 
         assertTokenWritable();
@@ -346,7 +357,9 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data)
+            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, UnrecoverableKeyException,
+            CertificateException, IOException, KeyStoreException, TokenException {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
         assertActiveSession();
@@ -387,7 +400,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
-            throws Exception {
+            throws CertIOException, CertificateException, NoSuchProviderException {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
 
         assertKeyAvailable(keyId);
@@ -413,10 +426,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 .orElseThrow(() -> new CryptoException("Unsupported key algorithm: " + algorithm));
     }
 
-
-    // ------------------------------------------------------------------------
-
-    private void findKeysNotInConf() throws Exception {
+    private void findKeysNotInConf() throws PKCS11Exception {
         log.trace("findKeysNotInConf()");
 
         try {
@@ -458,7 +468,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private PrivateKey getPrivateKey(String keyId) throws Exception {
+    private PrivateKey getPrivateKey(String keyId) throws TokenException {
         PrivateKey privateKey = privateKeys.get(keyId);
         if (privateKey == null) {
             log.debug("Key {} not found in cache, trying to find it from hardware token", keyId);
@@ -468,7 +478,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         return privateKey;
     }
 
-    private void findPublicKeysForPrivateKeys() throws Exception {
+    private void findPublicKeysForPrivateKeys() throws PKCS11Exception {
         log.trace("findPublicKeysForPrivateKeys()");
 
         for (KeyInfo key : listKeys(tokenId)) {
@@ -478,7 +488,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void findCertificatesNotInConf() throws Exception {
+    private void findCertificatesNotInConf() throws PKCS11Exception {
         log.trace("findCertificatesNotInConf()");
 
         try {
@@ -504,7 +514,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void updatePublicKey(String keyId) throws Exception {
+    private void updatePublicKey(String keyId) throws PKCS11Exception {
         log.trace("updatePublicKey({})", keyId);
 
         try {
@@ -540,19 +550,17 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    // ------------------------------------------------------------------------
-
-    private void initialize() throws Exception {
+    private void initialize() throws TokenException {
         log.trace("initialize()");
 
         createSession();
         updateTokenInfo();
     }
 
-    private void login() throws Exception {
-        char[] password = PasswordStore.getPassword(tokenId);
+    private void login() throws TokenException {
+        var password = PasswordStore.getPassword(tokenId);
 
-        if (password == null) {
+        if (password.isEmpty()) {
             log.debug("Cannot login, no password stored");
 
             return;
@@ -563,7 +571,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("login()");
 
         try {
-            HardwareTokenUtil.login(activeSession, password);
+            HardwareTokenUtil.login(activeSession, password.get());
 
             log.info("User successfully logged in");
 
@@ -577,7 +585,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void logout() throws Exception {
+    private void logout() throws TokenException {
         if (activeSession == null) {
             return;
         }
@@ -623,7 +631,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void createSession() throws Exception {
+    private void createSession() throws TokenException {
         log.trace("createSession()");
         closeActiveSession();
 
@@ -632,7 +640,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void loadPrivateKeys() throws Exception {
+    private void loadPrivateKeys() throws TokenException {
         if (activeSession == null) {
             return;
         }
@@ -695,7 +703,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void closeActiveSession() throws Exception {
+    private void closeActiveSession() throws TokenException {
         if (activeSession != null) {
             try {
                 logout();
@@ -710,7 +718,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         return ((HardwareTokenType) tokenType).getToken();
     }
 
-    private void setTokenStatusFromErrorCode(long errorCode) throws Exception {
+    private void setTokenStatusFromErrorCode(long errorCode) throws TokenException {
         TokenStatusInfo status = getTokenStatus(getToken().getTokenInfo(), errorCode);
 
         if (status != null) {

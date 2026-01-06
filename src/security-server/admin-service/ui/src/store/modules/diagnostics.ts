@@ -27,6 +27,8 @@
 import {
   AddOnStatus,
   BackupEncryptionStatus,
+  ConnectionStatus,
+  GlobalConfConnectionStatus,
   GlobalConfDiagnostics,
   MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
@@ -44,6 +46,9 @@ export interface DiagnosticsState {
   backupEncryptionDiagnostics?: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
+  authCertReqStatus?: ConnectionStatus;
+  globalConfStatuses: GlobalConfConnectionStatus[];
+  otherSecurityServerStatus?: ConnectionStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -56,6 +61,9 @@ export const useDiagnostics = defineStore('diagnostics', {
       backupEncryptionDiagnostics: undefined,
       messageLogEncryptionDiagnostics: undefined,
       proxyMemoryUsageStatus: undefined,
+      authCertReqStatus: undefined,
+      globalConfStatuses: [],
+      otherSecurityServerStatus: undefined,
     };
   },
   persist: {
@@ -119,6 +127,35 @@ export const useDiagnostics = defineStore('diagnostics', {
         .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
         .then((res) => {
           this.proxyMemoryUsageStatus = res.data;
+        });
+    },
+    async fetchAuthCertReqStatus() {
+      return api
+        .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
+        .then((res) => {
+          this.authCertReqStatus = res.data;
+        });
+    },
+    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string,
+      securityServerId: string) {
+      return api
+        .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
+          params: {
+            protocol_type: protocolType,
+            client_id: clientId,
+            target_client_id: targetClientId,
+            security_server_id: securityServerId
+          }
+        })
+        .then((res) => {
+          this.otherSecurityServerStatus = res.data;
+        });
+    },
+    async fetchGlobalConfStatuses() {
+      return api
+        .get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status')
+        .then((res) => {
+          this.globalConfStatuses = res.data;
         });
     },
   },

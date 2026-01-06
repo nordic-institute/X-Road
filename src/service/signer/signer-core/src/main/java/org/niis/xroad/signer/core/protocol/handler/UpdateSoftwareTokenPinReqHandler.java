@@ -44,7 +44,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
 
     @Override
-    protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
+    protected Empty handle(UpdateSoftwareTokenPinReq request) {
         final TokenWorker tokenWorker = getTokenWorker(request.getTokenId());
         if (tokenWorker.isSoftwareToken()) {
             tokenWorker.handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());

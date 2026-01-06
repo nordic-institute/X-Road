@@ -49,6 +49,7 @@ import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -82,6 +83,7 @@ import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private ServiceId requestServiceId;
@@ -98,7 +100,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     ClientRestMessageProcessor(CommonBeanProxy commonBeanProxy,
                                RequestWrapper request, ResponseWrapper response,
                                HttpClient httpClient, IsAuthenticationData clientCert,
-                               OpMonitoringData opMonitoringData) throws Exception {
+                               OpMonitoringData opMonitoringData) {
         super(commonBeanProxy, request, response, httpClient,
                 clientCert, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();

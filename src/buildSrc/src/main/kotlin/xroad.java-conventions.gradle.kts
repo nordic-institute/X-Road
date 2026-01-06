@@ -31,6 +31,9 @@ dependencies {
 
   testImplementation(libs.findLibrary("mockito-core").get())
   testImplementation(libs.findLibrary("mockito-jupiter").get())
+
+  testRuntimeOnly(libs.findLibrary("junit.platform.launcher").get())
+
   mockitoAgent(libs.findLibrary("mockito-core").get()) { isTransitive = false }
 
   "archUnitExtraLib"(project(":arch-rules"))
@@ -138,10 +141,11 @@ archUnit {
   testScopePath = "/classes/java/main" // disabling default test scanning
 
   preConfiguredRules = listOf(
-    "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
 // These rules are disabled in preparation for X-Road 8
-//            "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
-//            "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
+//    "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
+//    "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
+//    "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
+    "org.niis.xroad.arch.rule.NoVanillaExceptions",
   )
 }
 

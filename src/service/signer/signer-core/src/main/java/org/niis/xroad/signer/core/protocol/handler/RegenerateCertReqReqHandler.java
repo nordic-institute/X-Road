@@ -30,6 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -55,7 +56,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<RegenerateCertRequestReq, RegenerateCertRequestResp> {
 
     @Override
-    protected RegenerateCertRequestResp handle(RegenerateCertRequestReq message) throws Exception {
+    protected RegenerateCertRequestResp handle(RegenerateCertRequestReq message) {
         TokenAndKey tokenAndKey = findTokenAndKeyForCsrId(message.getCertRequestId());
 
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
@@ -79,16 +80,20 @@ public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<Regener
         String subjectName = certRequestInfo.getSubjectName();
         String subjectAltName = certRequestInfo.getSubjectAltName();
 
-        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName, subjectAltName,
-                tokenAndKey.key().getUsage());
+        try {
+            PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName, subjectAltName,
+                    tokenAndKey.key().getUsage());
 
-        final RegenerateCertRequestResp.Builder builder = RegenerateCertRequestResp.newBuilder()
-                .setCertReqId(message.getCertRequestId())
-                .setCertRequest(ByteString.copyFrom(convert(generatedRequest, message.getFormat())))
-                .setFormat(message.getFormat())
-                .setKeyUsage(tokenAndKey.key().getUsage());
-        ofNullable(certRequestInfo.getMemberId()).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
-        return builder.build();
+            final RegenerateCertRequestResp.Builder builder = RegenerateCertRequestResp.newBuilder()
+                    .setCertReqId(message.getCertRequestId())
+                    .setCertRequest(ByteString.copyFrom(convert(generatedRequest, message.getFormat())))
+                    .setFormat(message.getFormat())
+                    .setKeyUsage(tokenAndKey.key().getUsage());
+            ofNullable(certRequestInfo.getMemberId()).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
+            return builder.build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private TokenAndKey findTokenAndKeyForCsrId(String certRequestId) {

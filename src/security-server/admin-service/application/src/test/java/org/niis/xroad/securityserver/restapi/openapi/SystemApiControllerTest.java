@@ -32,6 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -40,11 +41,13 @@ import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedNameDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeMessageDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.AnchorFileNotFoundException;
@@ -173,8 +176,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getConfiguredTimestampingServices() {
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(
-                Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME),
-                        TestUtils.createTspType(TSA_2_URL, TSA_2_NAME))));
+                Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME, CostType.FREE),
+                        TestUtils.createTspType(TSA_2_URL, TSA_2_NAME, CostType.PAID))));
 
         ResponseEntity<Set<TimestampingServiceDto>> response =
                 systemApiController.getConfiguredTimestampingServices();
@@ -200,9 +203,20 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
+    @WithMockUser(authorities = {"VIEW_TSPS"})
+    public void getTimestampingPrioritizationStrategy() {
+        when(systemService.getTimestampingPrioritizationStrategy())
+                .thenReturn(SystemProperties.ServicePrioritizationStrategy.FREE_FIRST);
+
+        ResponseEntity<ServicePrioritizationStrategyDto> response = systemApiController.getTimestampingPrioritizationStrategy();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(ServicePrioritizationStrategyDto.FREE_FIRST, response.getBody());
+    }
+
+    @Test
     @WithMockUser(authorities = {"ADD_TSP"})
     public void addConfiguredTimestampingService() {
-        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
+        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME, CostTypeDto.UNDEFINED);
 
         ResponseEntity<TimestampingServiceDto> response = systemApiController
                 .addConfiguredTimestampingService(timestampingService);
@@ -210,13 +224,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(TSA_2_NAME, response.getBody().getName());
         assertEquals(TSA_2_URL, response.getBody().getUrl());
+        assertEquals(CostTypeDto.UNDEFINED, response.getBody().getCostType());
     }
 
     @Test
     @WithMockUser(authorities = {"ADD_TSP"})
     public void addDuplicateConfiguredTimestampingService()
             throws SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
-        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME, CostTypeDto.FREE);
 
         Mockito.doThrow(new SystemService.DuplicateConfiguredTimestampingServiceException("")).when(systemService)
                 .addConfiguredTimestampingService(any());
@@ -236,7 +251,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
                                                               SystemService.DuplicateConfiguredTimestampingServiceException,
                                                               TimestampingServiceNotFoundException {
         TimestampingServiceDto timestampingService = TestUtils
-                .createTimestampingService("http://dummy.com", "Dummy");
+                .createTimestampingService("http://dummy.com", "Dummy", CostTypeDto.UNDEFINED);
 
         Mockito.doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
                 .addConfiguredTimestampingService(any());
@@ -253,14 +268,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"DELETE_TSP"})
     public void deleteConfiguredTimestampingService() {
         ResponseEntity<Void> response = systemApiController
-                .deleteConfiguredTimestampingService(TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME));
+                .deleteConfiguredTimestampingService(TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME, CostTypeDto.UNDEFINED));
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
     @WithMockUser(authorities = {"DELETE_TSP"})
     public void deleteNonExistingConfiguredTimestampingService() throws TimestampingServiceNotFoundException {
-        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+        TimestampingServiceDto timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME, CostTypeDto.UNDEFINED);
 
         Mockito.doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
                 .deleteConfiguredTimestampingService(any());

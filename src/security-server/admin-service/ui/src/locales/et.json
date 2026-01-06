@@ -5,7 +5,7 @@
     "addServiceClientsTitle": "Lisa ligipääs",
     "addSubjectsSuccess": "Ligipääs edukalt antud",
     "id": "ID",
-    "memberName": "Liikme nimi / Rühma kirjeldus",
+    "subsystemName": "Alamsüsteemi nimi / Rühma kirjeldus",
     "removeAllText": "Kas olete kindel, et soovite kõikidelt klientidelt pääsuõigused eemaldada?",
     "removeAllTitle": "Eemalda kõik pääsuõigused?",
     "removeSuccess": "Pääsuõigused edukalt eemaldatud",
@@ -47,6 +47,12 @@
     "serialNumber": "Seerianumber",
     "signCertificate": "Allkirjasertifikaat",
     "state": "Olek"
+  },
+  "certificate": {
+    "hash": "Sertifikaadi Räsi",
+    "notAfter": "Mitte Pärast",
+    "notBefore": "Mitte Enne",
+    "subjectDistinguishedName": "Subjekti Eristusnimi"
   },
   "certificateProfile": {
     "COMMON_NAME": "Üldnimi (CN)",
@@ -96,12 +102,19 @@
         "confirmTitle": "Kustuta võti ja sertifikaat",
         "success": "Sertifikaat kustutatud"
       },
+      "renameSubsystem": {
+        "changeAdded": "Alamsüsteemi nime muudatus oli edukas ning rakendadakse kliendi registreerimisel",
+        "changeSubmitted": "Alamsüsteemi nime muutmise taotlus oli edukas",
+        "title": "Muuda alamsüsteemi nime"
+      },
       "unregister": {
         "confirmText": "Kas soovite selle kliendi nimekirjast kustutada?",
         "confirmTitle": "Kustuta klient nimekirjast",
         "success": "Klient nimekirjast kustutatud"
       }
     },
+    "defaultSubsystemNameTooltip": "Alamsüsteemi nimi ei ole määratud",
+    "forbiddenDisable": "Haldusteenuse pakkujat ei saa välja lülitada",
     "id": "ID",
     "member": "Liige",
     "memberClass": "Liikmeklass",
@@ -116,11 +129,15 @@
       "disablingInProgress": "TOIMUB BLOKEERIMINE",
       "enablingInProgress": "TOIMUB AKTIVEERIMINE",
       "globalError": "GLOBAALNE VIGA",
+      "nameSet": "Nime muutus rakendub alamsüsteemi registreerimisel",
+      "nameSubmitted": "Nime muutmise taotlus on saadetud",
       "registered": "REGISTREERITUD",
       "registrationInProgress": "TOIMUB REGISTREERIMINE",
       "saved": "SALVESTATUD"
     },
     "subsystemCode": "Alamsüsteemi kood",
+    "subsystemName": "Alamsüsteemi nimi",
+    "subsystemTitleSuffix": " (@:general.subsystem)",
     "unknownMember": "tundmatu liige"
   },
   "clients": {
@@ -161,6 +178,8 @@
     "addOnStatus": {
       "messageLogDisabled": "Konfiguratsiooniga blokeeritud"
     },
+    "costType": "Hinna tüüp",
+    "downloadReport": "Salvesta Diagnostika Raport",
     "encryption": {
       "backup": {
         "configuredKeyId": "Konfigureeritud võtme ID",
@@ -215,14 +234,38 @@
         "false": "Blokeeritud",
         "true": "Aktiveeritud"
       },
-      "failureEnabled": "Tõrketeated",
       "help": {
         "description": "Sõltuvalt konfiguratsioonist saadetakse konfigureeritud adressaatidele automaatselt emaili teavitused järgmiste sündmuste kohta: autentimissertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, allkirjastamise sertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, autentimissertifikaadi registreerimine õnnestus. Meiliteatiste lubamine nõuab turvaserveri konfiguratsiooni muutmist. Lisateavet leiate turvaserveri User Guide dokumentatsioonist.",
         "title": "Erinevad emaili teavituste staatused"
       },
-      "recipientsEmails": "E-kirjade saajad",
-      "successEnabled": "Õnnestumisteated",
-      "title": "Emaili teavituste staatus"
+      "recipientsEmails": "Saajate e-post aadressid",
+      "status": "Staatus",
+      "sentTestMail": "Saada test meil",
+      "title": "Meili teavituse staatus",
+      "type": {
+        "ACME_FAILURE": "ACME tõrke teavitused",
+        "ACME_SUCCESS": "ACME õnnestumise teavitused",
+        "AUTH_CERT_REGISTERED": "AUTH sertifikaadi registreerimise teavitused",
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME sertifikaadi automaatse aktiveerimise teavitused",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME sertifikaadi automaatse aktiveerimise ebaõnnestumise teavitused"
+      },
+      "types": "Meili teavituste tüübid"
+    },
+    "maintenanceMode": {
+      "enableTitle": "Lülita hooldusrežiim sisse",
+      "enableConfirm": "Kas sa soovid hooldusrežiimi sisse lülitada?",
+      "enableSuccess": "Hooldusrežiimi sisse lülitamine on töös",
+      "disableTitle": "Lülita hooldusrežiim välja",
+      "disableConfirm": "Kas sa soovid hooldusrežiimi välja lülitada?",
+      "disableSuccess": "Hooldusrežiimi välja lülitamine on töös",
+      "forbiddenEnable": "Hooldusrežiimi ei saa haldusteenuse pakkuja jaoks sisse lülitada",
+      "label": "Hooldusrežiim:",
+      "status": {
+        "DISABLED_MAINTENANCE_MODE": "Hooldusrežiim on välja lülitatud",
+        "ENABLED_MAINTENANCE_MODE": "Hooldusrežiim on sisse lülitatud",
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Hooldusrežiimi välja lülitamise taotlus on saadetud",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Hooldusrežiimi sisse lülitamise taotlus on saadetud"
+      }
     },
     "message": "Sõnum",
     "nextUpdate": "Järgmine värskendus",
@@ -231,7 +274,7 @@
       "ocspStatus": {
         "ERROR_CODE_OCSP_CONNECTION_ERROR": "OCSP vastajaga ei õnnestu ühendust luua",
         "ERROR_CODE_OCSP_FAILED": "OCSP vastajalt ei õnnestu vastust saada",
-        "ERROR_CODE_OCSP_RESPONSE_INVALID": "OCSP vastus vigane/kehtetu ",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "OCSP vastus vigane/kehtetu",
         "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "OCSP vastust ei õnnestu kontrollida",
         "ERROR_CODE_OCSP_UNINITIALIZED": "OCSP olekupäringut pole veel saadetud",
         "SUCCESS": "Kõik on korras",
@@ -240,6 +283,16 @@
       "title": "OCSP vastajad"
     },
     "previousUpdate": "Eelmine värskendus",
+    "proxyMemoryUsage": {
+      "alertOverThreshold": "Hoiatus: Proxy teenuse mälukasutus on üle seadistatud väärtuse",
+      "max": "Maksimaalne maht",
+      "ok": "Kõik korras",
+      "threshold": "Limiit",
+      "title": "Proxy teenuse mälu kasutus",
+      "total": "Eraldatud mälu koguväärtus",
+      "usagePercent": "Kasutatud maht (%)",
+      "used": "Kasutatud maht"
+    },
     "serviceUrl": "Teenuse URL",
     "status": "Olek",
     "timestamping": {
@@ -273,6 +326,30 @@
       "failedRequests": "Ebaõnnestunud päringud",
       "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
       "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Kõik on korras",
+      "test": "Test",
+      "centralServer": {
+        "authCertRequest": "Autentimise sertifikaadi registreerimise teenus",
+        "globalConf": "Globaalse konfiguratsiooni allalaadimine",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Keskserver"
+      },
+      "management": {
+        "title": "Haldusteenuse pakkuja"
+      },
+      "securityServer": {
+        "client": "Klient",
+        "sourceClient": "Lähteklient",
+        "rest": "REST",
+        "securityServer":  "Turvaserver",
+        "soap": "SOAP",
+        "title": "Teine turvaserver",
+        "target": "Teine klient",
+        "targetClient": "Klient"
+      }
     }
   },
   "endpoints": {
@@ -297,6 +374,8 @@
       "account_creation_failure": "Konto loomine ACME serveris ebaõnnestus. Kui välise konto sidumine on nõutav, siis veenduge, et acme.yml failis on konfigureeritud õiged identsustõendid",
       "account_key_pair_error": "Võtmepaari hankimine ACME serveri kontole ebaõnnestus",
       "account_keystore_password_missing": "ACME konto võtmehoidla parool puudub acme.yml konfiguratsioonifailis",
+      "acme_yaml_missing": "ACME konfiguratsioonifail acme.yml puudub",
+      "acme_yaml_account_keystore_password_update_error": "ACME konto võtmehoidla parooli uuendamine acme.yml konfiguratsioonifailis ebaõnnestus",
       "authorization_failure": "Volitamine ebaõnnestus. Tavaliselt seotud pretensiooni valideerimise tõrkega, mis on nõutav domeeni omandi tõendamiseks",
       "authorization_wait_failure": "Volitamise lõpule viimise ootamine ebaõnnestus",
       "certificate_failure": "Sertifikaadi hankimine ACME serverilt ebaõnnestus",
@@ -313,15 +392,13 @@
     },
     "action_not_possible": "Toiming pole võimalik",
     "additional_member_already_exists": "Täiendav liige on juba olemas",
+    "already_disabled_maintenance_mode": "Hooldusrežiim on juba välja lülitatud",
+    "already_enabled_maintenance_mode": "Hooldusrežiim on juba sisse lülitatud",
     "anchor_already_exists": "Ankur on juba olemas",
     "anchor_file_not_found": "Ankrufaili ei leitud",
     "anchor_not_found": "Ankrut ei leitud",
     "anchor_upload_failed": "Ankru üleslaadimine ebaõnnestus",
-    "api_key_not_found": "API võtit ei leitud",
     "auth_cert_not_supported": "Autentimissertifikaati ei toetata",
-    "backup_file_not_found": "Varufaili ei leitud",
-    "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
-    "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
     "base_endpoint_not_found": "Baasotspunkti ei leitud",
     "ca_cert_status_processing_failure": "CA sertifikaadi oleku töötlemine ebaõnnestus",
     "cannot_delete_owner": "Omanikku ei saa kustutada",
@@ -362,6 +439,8 @@
     "duplicate_accessright": "Dubleeri pääsuõigus",
     "endpoint_already_exists": "Otspunkt on juba olemas",
     "endpoint_not_found": "Otspunkti ei leitud",
+    "forbidden_disable_management_service_client": "Haldusteenuste pakkujat ei saa välja lülitada",
+    "forbidden_enable_maintenance_mode_for_management_service": "Haldusteenuste pakkujat ei saa välja lülitada",
     "global_conf_download_request_failed": "Globaalse konfiguratsiooni allalaadimise päring ebaõnnestus",
     "global_conf_outdated": "Globaalne konfiguratsioon on aegunud",
     "gpg_key_generation_failed": "GPG võtmepaari loomine ebaõnnestus",
@@ -378,16 +457,19 @@
     "invalid_init_params": "Kehtetud lähtestamisparameetrid",
     "invalid_instance_identifier": "Kehtetu juhtumi identifikaator",
     "invalid_member_class": "Kehtetu liikmeklass",
+    "invalid_pem_csr": "Kehtetu PEM CSR",
     "invalid_service_client_id": "Kehtetu teenuse kliendi ID",
     "invalid_service_url": "Kehtetu teenuse URL",
     "invalid_wsdl": "Kehtetu WSDL",
     "invalid_wsdl_service_identifier": "Kehtetu WSDL teenuse identifikaator",
+    "io_error": "I/O viga",
     "key_and_cert_generation_failed": "Võtme ja sertifikaadi loomine ebaõnnestus",
     "key_not_found": "Võtit ei leitud",
     "local_group_code_already_exists": "Lokaalse rühma kood on juba olemas",
     "local_group_member_already_exists": "Lokaalse rühma liige on juba olemas",
     "local_group_member_not_found": "Lokaalse rühma liiget ei leitud",
     "local_group_not_found": "Lokaalset rühma ei leitud",
+    "maintenance_mode_change_request_already_submitted": "Hooldusrežiimi muudatus on juba ootel",
     "malformed_anchor": "Vale vorminguga ankur",
     "malformed_url": "Vale vorminguga URL",
     "management_request_sending_failed": "Halduspäringu saatmine ebaõnnestus",
@@ -397,6 +479,12 @@
     "member_code_exists": "Liikmekood on olemas",
     "member_code_not_provided": "Liikmekood puudub",
     "missing_parameter": "Parameeter puudub",
+    "network_error": "Võrguühenduse viga",
+    "http_error": "HTTP viga",
+    "ocsp_connection_error": "OCSP vastajaga ei õnnestu ühendust luua",
+    "ocsp_failed": "OCSP vastajalt ei õnnestu vastust saada",
+    "ocsp_response_parsing_failure": "OCSP vastus vigane/kehtetu",
+    "ocsp_response_verification_failure": "OCSP vastust ei õnnestu kontrollida",
     "openapi_parsing_error": "OpenApi3 kirjelduse analüüs ebaõnnestus",
     "orphans_not_found": "Antud kliendile kuuluvaid orbvõtmeid, sertifikaate ja/või CSR-e ei leitud",
     "pin_code_exists": "PIN-kood on olemas",
@@ -414,7 +502,6 @@
     "service_description_not_found": "Teenuse kirjeldust ei leitud",
     "service_not_found": "teenust ei leitud",
     "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",
-    "signer_not_reachable": "Signeerija pole hetkel kättesaadav. Vt täpsemalt vt signeerija logi.",
     "software_token_init_failed": "Tarkvaralise krüptomooduli lähtestamine ebaõnnestus",
     "timestamping_service_already_configured": "Ajatempli teenus on juba konfigureeritud",
     "timestamping_service_not_found": "Ajatempli teenust ei leitud",
@@ -439,7 +526,8 @@
     "addClient": {
       "memberClass": "Liikmeklass",
       "memberCode": "Liikmekood",
-      "subsystemCode": "Alamsüsteemi kood"
+      "subsystemCode": "Alamsüsteemi kood",
+      "subsystemName": "Alamsüsteemi nimi"
     },
     "certificationService": "Sertifitseerimisteenus",
     "clientAdd": {
@@ -460,6 +548,7 @@
     "keys": {
       "name": "Nimi"
     },
+    "maintenanceModeMessage": "Hooldusrežiimi teade",
     "memberCode": "Liikmekood",
     "path": "asukoht",
     "pin": "PIN",
@@ -493,7 +582,8 @@
     "name": "Nimi",
     "subsystem": "alamsüsteem",
     "subsystemCode": "Alamsüsteemi kood",
-    "type": "Tüüp"
+    "type": "Tüüp",
+    "undefinedSubsystemName": "määramata"
   },
   "global": {
     "appTitle": "X-Road turvaserver"
@@ -588,8 +678,10 @@
     "helpTitleSS": "Turvaserveri TLS sertifikaat",
     "id": "ID",
     "importCert": "Impordi sert.",
+    "importCertOcspVerifyWarning": "Sertifikaati ei õnnestunud aktiveerida, sest OCSP vastust ei saanud valideerida. Veateade: {errorMessage}",
     "importCertSuccess": "Sertifikaadi üleslaadimine õnnestus",
     "incorrectPin": "Vale PIN. Palun proovige uuesti.",
+    "keyAlgorithm": "Key Algorithm:",
     "keyDeleted": "Võti kustutatud",
     "keyId": "Võtme ID:",
     "keyInfo": "Võtme teave",
@@ -663,7 +755,8 @@
     "removeAllTitle": "Eemalda kõik liikmed?",
     "removeText": "Kas olete kindel, et soovite selle liikme eemaldada?",
     "removeTitle": "Eemalda liige?",
-    "searchOptions": "Valikute otsimine"
+    "searchOptions": "Valikute otsimine",
+    "subsystemName": "Alamsüsteemi Nimi"
   },
   "localGroups": {
     "addGroup": "Lisa rühm",
@@ -726,7 +819,7 @@
     "enableSuccess": "Teenuse kirjeldus aktiveeritud",
     "idGroupCode": "ID / Grupi kood",
     "lastRefreshed": "Viimati värskendatud:",
-    "memberNameGroupDesc": "Liikme nimi / Grupi kirjeldus",
+    "subsystemNameGroupDesc": "Alamsüsteemi nimi / Grupi kirjeldus",
     "noMatches": "Sobivad kirjed puuduvad",
     "openApi3Added": "OpenApi teenus lisatud",
     "openapiDetails": "OpenAPI teenuse detailid",
@@ -807,6 +900,7 @@
           "acmeIpAddresses": "ACME serveri IP",
           "distinguishedName": "Eristusnimi",
           "expires": "Aegub",
+          "ocspCostType": "OCSP hinna tüüp",
           "ocspResponse": "OCSP vastus"
         },
         "notAvailable": "Ei kohaldata",
@@ -845,6 +939,11 @@
       },
       "title": "Konfiguratsiooniankur"
     },
+    "costType": {
+      "FREE": "Tasuta",
+      "PAID": "Tasuline",
+      "UNDEFINED": "Määramata"
+    },
     "securityServer": {
       "addressChangeInProgress": "MUUTUS ON POOLELI",
       "editDialog": {
@@ -853,6 +952,24 @@
       "securityServer": "Turvaserver",
       "serverAddress": "Serveri aadress",
       "updateSubmitted": "Turvaserveri aadressi muutus edukalt esitatud"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Ajatemplite eelistamise strateegia: ",
+        "ONLY_FREE": "kasuta ainult tasuta ajatempliteenuseid",
+        "ONLY_PAID": "kasuta ainult tasulisi ajatempliteenuseid",
+        "FREE_FIRST": "kasuta esmalt tasuta ajatempliteenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasulisi",
+        "PAID_FIRST": "kasuta esmalt tasulisi ajatempliteenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasuta",
+        "NONE": "kasuta kõiki ajatempliteenuseid ilma eelistuseta"
+      },
+      "ocsp": {
+        "label": "OCSP eelistamise strateegia: ",
+        "ONLY_FREE": "kasuta ainult tasuta OCSP teenuseid",
+        "ONLY_PAID": "kasuta ainult tasulisi OCSP teenuseid",
+        "FREE_FIRST": "kasuta esmalt tasuta OCSP teenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasulisi",
+        "PAID_FIRST": "kasuta esmalt tasulisi OCSP teenuseid, kui need ebaõnnestuvad või pole saadaval, kasuta tasuta",
+        "NONE": "kasuta kõiki OCSP teenuseid ilma eelistuseta"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -878,7 +995,8 @@
         },
         "header": {
           "serviceURL": "Teenuse URL",
-          "timestampingService": "Ajatempli teenus"
+          "timestampingService": "Ajatempli teenus",
+          "costType": "Hinna tüüp"
         }
       },
       "title": "Ajatempli teenused"
@@ -914,7 +1032,8 @@
     },
     "diagnostics": {
       "overview": "Ülevaade",
-      "traffic": "Päringute statistika"
+      "traffic": "Päringute statistika",
+      "connectionTesting": "Ühenduse testimine"
     }
   },
   "token": {
@@ -945,7 +1064,8 @@
       "memberNameTooltip": "Liikmeorganisatsiooni nimi.",
       "register": "Registreeri klient",
       "searchLabel": "Klient",
-      "subsystemCodeTooltip": "Alamsüsteemi kood, mis identifitseerib liikmele kuuluva infosüsteemi."
+      "subsystemCodeTooltip": "Alamsüsteemi kood, mis identifitseerib liikmele kuuluva infosüsteemi.",
+      "subsystemNameTooltip": "Infosüsteemi nimi, mida alamsüsteem X-teel esindab."
     },
     "clientDetails": "Kliendi detailid",
     "clientInfo1": "Täpsustage kliendi detailid, keda te soovite lisada.",
@@ -991,6 +1111,7 @@
       "subsystemExists": "Alamsüsteem on juba olemas"
     },
     "subsystemCode": "Alamsüsteemi kood",
+    "subsystemName": "Alamsüsteemi nimi",
     "token": {
       "info": "Valige krüptomoodul, millele soovite lisada SIGN-võtme uue kliendi jaoks. Märkus: krüptomoodul peab olema sisselogitud olekus.",
       "loggedIn": "Sisselogitud",

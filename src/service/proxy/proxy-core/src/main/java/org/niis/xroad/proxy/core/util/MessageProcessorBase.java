@@ -40,13 +40,19 @@ import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
@@ -54,13 +60,14 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP_ACTION;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
  * Base class for message processors.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 public abstract class MessageProcessorBase {
     protected final CommonBeanProxy commonBeanProxy;
 
@@ -107,11 +114,12 @@ public abstract class MessageProcessorBase {
     /**
      * Called when processing successfully completed.
      */
-    protected void postprocess() throws Exception {
+    protected void postprocess() {
     }
 
     /**
      * Processes the incoming message.
+     *
      * @throws Exception in case of any errors
      */
     public abstract void process() throws Exception;
@@ -119,6 +127,7 @@ public abstract class MessageProcessorBase {
     /**
      * Update operational monitoring data with SOAP message header data and
      * the size of the message.
+     *
      * @param opMonitoringData monitoring data to update
      * @param soapMessage      SOAP message
      */
@@ -183,6 +192,7 @@ public abstract class MessageProcessorBase {
      * Validates SOAPAction header value.
      * Valid header values are: (empty string),(""),("URI-reference")
      * In addition, this implementation allows missing (null) header.
+     *
      * @return the argument as-is if it is valid
      * @throws CodedException if the the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
@@ -200,16 +210,14 @@ public abstract class MessageProcessorBase {
                 new URI(soapAction.substring(1, lastIndex));
                 return soapAction;
             } catch (URISyntaxException e) {
-                throw new CodedException(X_INVALID_SOAPACTION, e, "Malformed SOAPAction header");
+                throw new CodedException(X_INVALID_SOAP_ACTION, e, "Malformed SOAPAction header");
             }
         }
-        throw new CodedException(X_INVALID_SOAPACTION, "Malformed SOAPAction header");
+        throw new CodedException(X_INVALID_SOAP_ACTION, "Malformed SOAPAction header");
     }
 
     /**
      * Logs a warning if identifier contains invalid characters.
-     * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
-     * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
     protected static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
@@ -230,12 +238,13 @@ public abstract class MessageProcessorBase {
 
     /**
      * Verifies the authentication for the client certificate.
+     *
      * @param client the client identifier
      * @param auth   the authentication data of the information system
-     * @throws Exception if verification fails
      */
     protected void verifyClientAuthentication(ClientId client,
-                                              IsAuthenticationData auth) throws Exception {
+                                              IsAuthenticationData auth)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
         IsAuthentication isAuthentication = commonBeanProxy.serverConfProvider.getIsAuthentication(client);
         if (isAuthentication == null) {
@@ -282,7 +291,7 @@ public abstract class MessageProcessorBase {
         }
     }
 
-    private void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) throws CodedException {
+    private void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) {
         try {
             cert.checkValidity();
         } catch (CertificateExpiredException e) {

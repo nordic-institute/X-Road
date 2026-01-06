@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.certmanager;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
@@ -99,7 +100,7 @@ public class FileBasedOcspCache extends OcspCache {
         return response;
     }
 
-    void reloadFromDisk() throws Exception {
+    void reloadFromDisk() throws IOException, OCSPException {
         Path path = Paths.get(getOcspCachePath());
 
         try (DirectoryStream<Path> stream =
@@ -126,8 +127,7 @@ public class FileBasedOcspCache extends OcspCache {
         log.trace("Saved OCSP response to file '{}'", file);
     }
 
-    OCSPResp loadResponseFromFileIfNotExpired(File file, Date atDate)
-            throws Exception {
+    OCSPResp loadResponseFromFileIfNotExpired(File file, Date atDate) throws OCSPException, IOException {
         OCSPResp response = loadResponseFromFile(file);
         if (response != null) {
             String key = getFileNameWithoutExtension(file);

@@ -54,6 +54,7 @@
               <th class="url-column">
                 {{ $t('diagnostics.serviceUrl') }}
               </th>
+              <th class="cost-type-column">{{ $t('diagnostics.costType') }}</th>
               <th>{{ $t('diagnostics.message') }}</th>
               <th class="time-column">
                 {{ $t('diagnostics.previousUpdate') }}
@@ -71,12 +72,11 @@
               <td class="url-column" data-test="service-url">
                 {{ ocsp.url }}
               </td>
+              <td class="cost-type-column" data-test="service-cost-type">
+                {{ $t('systemParameters.costType.' + ocsp.cost_type) }}
+              </td>
               <td data-test="ocsp-responders-message">
-                {{
-                  $t(
-                    `diagnostics.ocspResponders.ocspStatus.${ocsp.status_code}`,
-                  )
-                }}
+                {{ statusMessage(ocsp) }}
               </td>
               <td class="time-column">
                 {{ $filters.formatHoursMins(ocsp.prev_update_at ?? '') }}
@@ -102,6 +102,8 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
+import { DiagnosticStatusClass, type OcspResponder } from '@/openapi-types';
+import { i18n } from '@niis/shared-ui';
 
 export default defineComponent({
   data: () => ({
@@ -136,6 +138,18 @@ export default defineComponent({
           return 'error';
         default:
           return 'error';
+      }
+    },
+    statusMessage(ocsp: OcspResponder): string {
+      if (ocsp.status_class === DiagnosticStatusClass.FAIL) {
+        return i18n.global.t(
+          `error_code.${ocsp.error?.code}`,
+          ocsp.error?.metadata,
+        );
+      } else {
+        return i18n.global.t(
+          `diagnostics.ocspResponders.ocspStatus.${ocsp.status_class}`,
+        );
       }
     },
   },

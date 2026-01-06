@@ -43,6 +43,8 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.MutationQuery;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -76,14 +78,14 @@ public final class LogRecordManager {
 
     /**
      * Returns a log record for a given message Query Id and sender Client Id.
-     * @param queryId the message query id.
-     * @param clientId the sender client id.
+     *
+     * @param queryId    the message query id.
+     * @param clientId   the sender client id.
      * @param isResponse whether the response record should be retrieved.
      * @return the log record or null, if log record is not found in database.
-     * @throws Exception if an error occurs while communicating with database.
      */
     public static <R> R getByQueryIdUnique(String queryId, ClientId clientId, Boolean isResponse,
-                                           Function<MessageRecord, R> processor) throws Exception {
+                                           Function<MessageRecord, R> processor) {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
         Function<MessageRecordEntity, R> mapper = processor.compose(MessageRecordMapper.get()::toDTO);
@@ -93,14 +95,14 @@ public final class LogRecordManager {
 
     /**
      * Returns a list of log records for a given message Query Id and sender Client Id.
-     * @param queryId the message query id.
-     * @param clientId the sender client id.
+     *
+     * @param queryId    the message query id.
+     * @param clientId   the sender client id.
      * @param isResponse whether the response record should be retrieved.
      * @return the log record list or empty list, if no log records were not found in database.
-     * @throws Exception if an error occurs while communicating with database.
      */
     public static <R> R getByQueryId(String queryId, ClientId clientId, Boolean isResponse,
-                                     Function<List<MessageRecord>, R> processor) throws Exception {
+                                     Function<List<MessageRecord>, R> processor) {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
         Function<List<MessageRecordEntity>, R> mapper = processor.compose(MessageRecordMapper.get()::toDTOs);
@@ -110,11 +112,11 @@ public final class LogRecordManager {
 
     /**
      * Returns a log record for a given log record number.
+     *
      * @param number the log record number.
      * @return the log record or null, if log record is not found in database.
-     * @throws Exception if an error occurs while communicating with database.
      */
-    public static LogRecord get(Long number) throws Exception {
+    public static LogRecord get(Long number) {
         log.trace("get({})", number);
 
         return doInTransaction(session -> MessageRecordMapper.INSTANCE.toDTO(getLogRecord(session, number)));
@@ -122,10 +124,10 @@ public final class LogRecordManager {
 
     /**
      * Saves the message record to database.
+     *
      * @param messageRecord the message record to be saved.
-     * @throws Exception if an error occurs while communicating with database.
      */
-    static void saveMessageRecord(MessageRecord messageRecord) throws Exception {
+    static void saveMessageRecord(MessageRecord messageRecord) {
 
         final MessageRecordEncryption encryption = MessageRecordEncryption.getInstance();
         final boolean encrypt = encryption.encryptionEnabled();
@@ -152,11 +154,11 @@ public final class LogRecordManager {
 
     /**
      * Saves the message record in the database.
+     *
      * @param messageRecord the message record to be updated.
-     * @throws Exception if an error occurs while communicating with database.
      */
     @SuppressWarnings("JpaQlInspection")
-    static void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
+    static void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) {
         doInTransaction(session -> {
             final MutationQuery query = session.createMutationQuery("update MessageRecordEntity m "
                     + "set m.signature = :signature, m.signatureHash = :hash "
@@ -174,25 +176,32 @@ public final class LogRecordManager {
     /**
      * Saves the time-stamp record to database. Associates the message records with this time-stamp
      * record.
-     * @param timestampRecord the time-stamp record to be saved.
+     *
+     * @param timestampRecord       the time-stamp record to be saved.
      * @param timestampedLogRecords the message records that were time-stamped.
-     * @param hashChains the time-stamp hash chains for each message record.
-     * @throws Exception if an error occurs while communicating with database.
+     * @param hashChains            the time-stamp hash chains for each message record.
      */
     static void saveTimestampRecord(TimestampRecord timestampRecord, Long[]
-            timestampedLogRecords, String[] hashChains)
-            throws Exception {
-        doInTransaction(session -> {
-            timestampRecord.setId(getNextRecordId(session));
-            save(session, timestampRecord);
-            setMessageRecordsTimestamped(session, timestampedLogRecords, timestampRecord, hashChains);
-            return null;
-        });
+            timestampedLogRecords, String[] hashChains) {
+        try {
+            doInTransaction(session -> {
+                timestampRecord.setId(getNextRecordId(session));
+                save(session, timestampRecord);
+                setMessageRecordsTimestamped(session, timestampedLogRecords, timestampRecord, hashChains);
+                return null;
+            });
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMP_RECORD_SAVE_FAILURE)
+                    .details("Failed to save timestamp record to database")
+                    .cause(e)
+                    .build();
+        }
     }
 
     /**
      * Saves the log record to database. Sets the number of the log record.
-     * @param session the Hibernate session.
+     *
+     * @param session   the Hibernate session.
      * @param logRecord the log record to save.
      */
     static void save(Session session, LogRecord logRecord) {
@@ -206,10 +215,11 @@ public final class LogRecordManager {
 
     /**
      * Associates each log record with the time-stamp record.
-     * @param session the Hibernate session.
-     * @param messageRecords the message records.
+     *
+     * @param session         the Hibernate session.
+     * @param messageRecords  the message records.
      * @param timestampRecord the time-stamp record.
-     * @param hashChains the time-stamp hash chains.
+     * @param hashChains      the time-stamp hash chains.
      */
     private static void setMessageRecordsTimestamped(Session session, Long[] messageRecords,
                                                      TimestampRecord timestampRecord, String[] hashChains) {
@@ -219,7 +229,7 @@ public final class LogRecordManager {
         }
 
         if (hashChains != null && messageRecords.length != hashChains.length) {
-            throw new RuntimeException("Must have hash chain for each log record");
+            throw XrdRuntimeException.systemInternalError("Must have hash chains for each log record");
         }
 
         // Let's perform directly JDBC related work for bulk update.
@@ -263,7 +273,7 @@ public final class LogRecordManager {
     }
 
     private static AbstractLogRecordEntity getLogRecord(Session session, Long number) {
-        return session.get(AbstractLogRecordEntity.class, number);
+        return session.find(AbstractLogRecordEntity.class, number);
     }
 
     private static MessageRecordEntity getMessageRecord(Session session, String queryId, ClientId clientId,

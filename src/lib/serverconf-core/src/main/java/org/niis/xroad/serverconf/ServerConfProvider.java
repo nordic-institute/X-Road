@@ -33,8 +33,14 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -126,9 +132,8 @@ public interface ServerConfProvider {
      * @param clientId the client identifier
      * @return the list of certificates that are allowed to be used to
      * authenticate the client information system.
-     * @throws Exception if an error occurs
      */
-    List<X509Certificate> getIsCerts(ClientId clientId) throws Exception;
+    List<X509Certificate> getIsCerts(ClientId clientId);
 
 
     /**
@@ -141,7 +146,8 @@ public interface ServerConfProvider {
      * @return the internal SSL cert-key pair.
      * @throws Exception if an error occurs
      */
-    InternalSSLKey getSSLKey() throws Exception;
+    InternalSSLKey getSSLKey()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
 
     /**
      * @param serviceId the service identifier
@@ -151,9 +157,8 @@ public interface ServerConfProvider {
 
     /**
      * @return all members identifiers
-     * @throws Exception if an error occurs
      */
-    List<ClientId.Conf> getMembers() throws Exception;
+    List<ClientId.Conf> getMembers();
 
     /**
      * @param memberId the member identifier
@@ -183,7 +188,11 @@ public interface ServerConfProvider {
      * @return list of URLs for the Time-stamping providers configured
      * in this security server.
      */
-    List<String> getTspUrl();
+    List<String> getTspUrls();
+
+    List<String> getOrderedTspUrls();
+
+    CostType getTspCostType(String tspUrl);
 
     /**
      * @param serviceId the service identifier

@@ -27,7 +27,8 @@ package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
@@ -41,7 +42,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -51,6 +53,7 @@ import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -142,6 +145,7 @@ public class ProxyAdminPortConfig {
     private void addMaintenanceHandler(AdminPort adminPort) {
         adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions")
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
 
                 String result = "Invalid parameter 'targetState', request ignored";
@@ -191,8 +195,7 @@ public class ProxyAdminPortConfig {
                 } catch (Exception e) {
                     log.error("Unable to connect to LogManager, immediate timestamping status unavailable", e);
                     result = statusesFromSimpleConnectionCheck;
-                    transmuteErrorCodes(result, DiagnosticsErrorCodes.RETURN_SUCCESS,
-                            DiagnosticsErrorCodes.ERROR_CODE_LOGMANAGER_UNAVAILABLE);
+                    transmuteOkToError(result, ErrorCode.MLOG_LOG_MANAGER_UNAVAILABLE);
                 }
 
                 writeJsonResponse(result, response);
@@ -214,10 +217,10 @@ public class ProxyAdminPortConfig {
                 .orElse("No HealthCheckPort found, maintenance mode not set");
     }
 
-    private void transmuteErrorCodes(Map<String, DiagnosticsStatus> map, int oldErrorCode, int newErrorCode) {
+    private void transmuteOkToError(Map<String, DiagnosticsStatus> map, ErrorCode newErrorCode) {
         map.forEach((key, value) -> {
-            if (value != null && oldErrorCode == value.getReturnCode()) {
-                value.setReturnCodeNow(newErrorCode);
+            if (value != null && DiagnosticStatus.OK == value.getStatus()) {
+                value.setStatusNow(DiagnosticStatus.ERROR, newErrorCode);
             }
         });
     }
@@ -225,9 +228,9 @@ public class ProxyAdminPortConfig {
     private Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl(ServerConfProvider serverConfProvider) {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        for (String tspUrl : serverConfProvider.getTspUrl()) {
+        for (String tspUrl : serverConfProvider.getTspUrls()) {
             try {
-                URL url = new URL(tspUrl);
+                URL url = URI.create(tspUrl).toURL();
 
                 log.info("Checking timestamp server status for url {}", url);
 
@@ -246,19 +249,24 @@ public class ProxyAdminPortConfig {
                     log.warn("Timestamp check received HTTP error: {} - {}. Might still be ok", con.getResponseCode(),
                             con.getResponseMessage());
                     statuses.put(tspUrl,
-                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
+                            new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
                                     tspUrl));
                 } else {
                     statuses.put(tspUrl,
-                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
+                            new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
                                     tspUrl));
                 }
 
             } catch (Exception e) {
                 log.warn("Timestamp status check failed", e);
 
-                statuses.put(tspUrl,
-                        new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), TimeUtils.offsetDateTimeNow(), tspUrl));
+                DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatus.ERROR,
+                        TimeUtils.offsetDateTimeNow(),
+                        tspUrl,
+                        DiagnosticsUtils.getErrorCode(e));
+                diagnosticsStatus.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(e));
+
+                statuses.put(tspUrl, diagnosticsStatus);
             }
         }
         return statuses;
@@ -279,11 +287,11 @@ public class ProxyAdminPortConfig {
         DiagnosticsStatus status = statusFromSimpleConnectionCheck;
 
         // use the status either from simple connection check or from LogManager
-        if (statusFromSimpleConnectionCheck.getReturnCode() == DiagnosticsErrorCodes.RETURN_SUCCESS) {
+        if (statusFromSimpleConnectionCheck.getStatus() == DiagnosticStatus.OK) {
             // simple connection check = OK
             if (statusFromLogManager == null) {
                 // missing LogManager status -> "uninitialized" error
-                status.setReturnCodeNow(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
+                status.setStatusNow(DiagnosticStatus.UNINITIALIZED, null);
             } else {
                 // use the status from LogManager (ok or fail)
                 log.info("Using time stamping status from LogManager for url {} status: {}",
@@ -295,7 +303,7 @@ public class ProxyAdminPortConfig {
             // Use fail status from LogManager, if one exists
             // Otherwise, retain the original simple connection check fail status.
             if (statusFromLogManager != null
-                    && statusFromLogManager.getReturnCode() != DiagnosticsErrorCodes.RETURN_SUCCESS) {
+                    && statusFromLogManager.getStatus() != DiagnosticStatus.OK) {
                 log.info("Using time stamping status from LogManager for url {} status: {}",
                         timestamperUrl, statusFromLogManager);
                 status = statusFromLogManager;

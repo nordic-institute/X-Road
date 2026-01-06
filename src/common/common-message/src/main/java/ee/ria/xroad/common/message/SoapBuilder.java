@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPEnvelope;
@@ -43,6 +44,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
 import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
@@ -65,13 +68,14 @@ public class SoapBuilder {
     /**
      * Functional interface for the callback used when assembling the SOAP body.
      */
+
     public interface SoapBodyCallback {
         /**
          * Populates the SOAPBody object with content.
+         *
          * @param soapBody the SOAP body that needs to be populated by content.
-         * @throws Exception if errors occur when populating the SOAP body
          */
-        void create(SOAPBody soapBody) throws Exception;
+        void create(SOAPBody soapBody) throws SOAPException, JAXBException;
     }
 
     private static final Logger LOG =
@@ -87,10 +91,10 @@ public class SoapBuilder {
     /**
      * Builds the SOAP message using the currently set header, character set and
      * callback function for populating the SOAP body.
+     *
      * @return SoapMessageImpl
-     * @throws Exception in case errors occur when creating the SOAP message
      */
-    public SoapMessageImpl build() throws Exception {
+    public SoapMessageImpl build() throws IllegalAccessException, SOAPException, JAXBException, IOException {
         if (header == null) {
             throw new IllegalStateException("Header cannot be null");
         }
@@ -125,25 +129,22 @@ public class SoapBuilder {
         return header.getService();
     }
 
-    private void assembleMessageBody(SOAPMessage soap) throws Exception {
+    private void assembleMessageBody(SOAPMessage soap) throws SOAPException, JAXBException {
         SoapBodyCallback cb = createBodyCallback;
         if (cb == null) {
             final String bodyNodeName = getService().getServiceCode();
-            cb = new SoapBodyCallback() {
-                @Override
-                public void create(SOAPBody soapBody) throws Exception {
-                    Document doc = soapBody.getOwnerDocument();
-                    Element node = doc.createElementNS(NS_XROAD,
-                            PREFIX_XROAD + ":" + bodyNodeName);
-                    soapBody.appendChild(node);
-                }
+            cb = soapBody -> {
+                Document doc = soapBody.getOwnerDocument();
+                Element node = doc.createElementNS(NS_XROAD,
+                        PREFIX_XROAD + ":" + bodyNodeName);
+                soapBody.appendChild(node);
             };
         }
 
         cb.create(soap.getSOAPBody());
     }
 
-    private void assembleMessage(SOAPMessage soap) throws Exception {
+    private void assembleMessage(SOAPMessage soap) throws SOAPException, JAXBException {
         // Since we are marshaling the header into the SOAPEnvelope object
         // (creating a new SOAPHeader element), we need to remove the existing
         // SOAPHeader element and SOAPBody from the Envelope, then marshal

@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultiPartOutputStream;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerRpcClient.MemberSigningInfoDto;
@@ -90,7 +91,7 @@ abstract class GenericClientRequest implements ManagementRequest {
     }
 
     @Override
-    public InputStream getRequestContent() throws Exception {
+    public InputStream getRequestContent() throws IOException, OperatorCreationException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart = new MultiPartOutputStream(out);
 
@@ -102,7 +103,7 @@ abstract class GenericClientRequest implements ManagementRequest {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    private void writeCert() throws Exception {
+    private void writeCert() throws IOException {
         // Write client certificate and corresponding OCSP response
         multipart.startPart(MimeTypes.BINARY);
         multipart.write(clientCert.getCertificateBytes());
@@ -110,7 +111,7 @@ abstract class GenericClientRequest implements ManagementRequest {
         multipart.write(clientCert.getOcspBytes());
     }
 
-    private void writeSignature() throws Exception {
+    private void writeSignature() throws IOException, OperatorCreationException {
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
         var clientSignAlgoId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM_ID,

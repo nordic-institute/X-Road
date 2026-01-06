@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.Scheduler;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.util.SystemMetrics;
 
@@ -106,6 +107,7 @@ public class AntiDosConnector extends ServerConnector {
     }
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions")
     protected void doStart() throws Exception {
         super.doStart();
 

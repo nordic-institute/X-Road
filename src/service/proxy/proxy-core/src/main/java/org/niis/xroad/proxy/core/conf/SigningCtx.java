@@ -29,6 +29,9 @@ import ee.ria.xroad.common.signature.SignatureData;
 
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+
 /**
  * Encapsulates security-related parameters of a given member,
  * such as currently used signing key and cert.
@@ -36,9 +39,9 @@ import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 public interface SigningCtx {
     /**
      * Creates and signs the signature and returns the signature XML as string.
+     *
      * @param builder the signature builder instance
      * @return the signature data
-     * @throws Exception in case of any errors
      */
-    SignatureData buildSignature(SignatureBuilder builder) throws Exception;
+    SignatureData buildSignature(SignatureBuilder builder) throws CertificateEncodingException, IOException;
 }

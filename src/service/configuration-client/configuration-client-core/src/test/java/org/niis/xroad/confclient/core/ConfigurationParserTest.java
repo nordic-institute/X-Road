@@ -28,7 +28,9 @@ package org.niis.xroad.confclient.core;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
@@ -38,9 +40,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.TestExceptionUtils.codedException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -77,7 +76,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(X_MALFORMED_GLOBALCONF));
+                .is(codedException(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE.code()));
     }
 
     /**
@@ -90,7 +89,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(X_MALFORMED_GLOBALCONF));
+                .is(codedException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING.code()));
     }
 
     /**
@@ -103,7 +102,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getProducer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(X_CERT_NOT_FOUND));
+                .is(codedException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT.code()));
     }
 
     /**
@@ -116,7 +115,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(X_INVALID_SIGNATURE_VALUE));
+                .is(codedException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE.code()));
     }
 
     /**
@@ -129,7 +128,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(X_INVALID_SIGNATURE_VALUE));
+                .is(codedException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE.code()));
     }
 
     // ------------------------------------------------------------------------
@@ -158,7 +157,8 @@ class ConfigurationParserTest {
         if (!source.getLocations().isEmpty()) {
             ConfigurationParser parser = new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                 @Override
-                protected InputStream getInputStream() throws Exception {
+                @SneakyThrows
+                protected InputStream getInputStream() {
                     return new FileInputStream(path + ".txt");
                 }
             };

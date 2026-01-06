@@ -25,60 +25,60 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.core.schedule.RetryingQuartzJob;
-import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
 
 /**
  * Quartz job implementation for the configuration client.
  */
 @Slf4j
 @DisallowConcurrentExecution
-public class ConfigurationClientJob extends RetryingQuartzJob {
-    private static final int RETRY_DELAY_SEC = 3;
+public class ConfigurationClientJob implements Job {
 
+    public static final String PROXY_CONFIGURATION_BACKUP_JOB = "ProxyConfigurationBackupJob";
     private final ConfigurationClient configClient;
 
     public ConfigurationClientJob(ConfigurationClient configClient) {
-        super(RETRY_DELAY_SEC);
         this.configClient = configClient;
     }
 
     @Override
-    protected void executeWithRetry(JobExecutionContext context) throws Exception {
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         try {
-            configClient.execute();
+            if (JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)) {
+                log.warn("Proxy configuration backup job is running, skipping configuration client execution.");
+                return;
+            }
+            DownloadResult downloadResult = configClient.execute();
 
             DiagnosticsStatus status =
-                    new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
+                    new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
                             TimeUtils.offsetDateTimeNow()
                                     .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-
-            context.setResult(status);
+            status.setDescription(downloadResult.getLastSuccessfulLocationUrl());
+            jobExecutionContext.setResult(status);
         } catch (Exception e) {
-            DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
+            DiagnosticsStatus status = new DiagnosticsStatus(DiagnosticStatus.ERROR,
                     TimeUtils.offsetDateTimeNow(),
                     TimeUtils.offsetDateTimeNow()
-                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-            context.setResult(status);
+                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()),
+                    DiagnosticsUtils.getErrorCode(e));
+            status.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(e));
+            status.setDescription(configClient.getLastSuccessfulLocationUrl());
+            jobExecutionContext.setResult(status);
 
+            log.error("Error executing job.", e);
             throw new JobExecutionException(e);
         }
     }
-
-    @Override
-    protected boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException {
-        return JobManager.isJobRunning(context, ProxyConfigurationBackupJob.class);
-    }
-
 }

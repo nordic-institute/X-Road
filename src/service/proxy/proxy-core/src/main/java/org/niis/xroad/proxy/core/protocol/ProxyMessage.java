@@ -49,6 +49,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ import java.util.Map;
  * Reads in all of the proxy message, extracts the parts and is later able
  * to convert the message to SOAP. Note: any attachments are cached in the
  * file system.
- *
+ * <p>
  * To load the message pass this object to a proxy message producer that
  * fills in the parts. After that, you can query the message parts and
  * the encoded SOAP message.
@@ -166,21 +167,21 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
-    public void ocspResponse(OCSPResp ocspResponse) throws Exception {
+    public void ocspResponse(OCSPResp ocspResponse) {
         log.trace("Read TLS OCSP response");
 
         this.ocspResponses.add(ocspResponse);
     }
 
     @Override
-    public void signature(SignatureData signatureData) throws Exception {
+    public void signature(SignatureData signatureData) {
         log.trace("Read signature");
 
         this.signature = signatureData;
     }
 
     @Override
-    public void soap(SoapMessageImpl soap, Map<String, String> additionalHeaders) throws Exception {
+    public void soap(SoapMessageImpl soap, Map<String, String> additionalHeaders) throws CertificateEncodingException, IOException {
         log.trace("Read SOAP message");
 
         this.soapMessage = soap;
@@ -188,27 +189,26 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
-    public void rest(RestRequest message) throws Exception {
+    public void rest(RestRequest message) throws CertificateEncodingException, IOException {
         log.trace("Rest request");
         this.restMessage = message;
     }
 
     @Override
-    public void rest(RestResponse message) throws Exception {
+    public void rest(RestResponse message) {
         log.trace("Rest response");
         this.restResponse = message;
     }
 
     @Override
-    public void restBody(InputStream content) throws Exception {
+    public void restBody(InputStream content) throws IOException {
         assert (restBodyCache == null);
         restBodyCache = new CachingStream();
         IOUtils.copyLarge(content, restBodyCache);
     }
 
     @Override
-    public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
-            throws Exception {
+    public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders) throws IOException {
         log.trace("Attachment: {}", contentType);
 
         CachingStream attachmentCacheStream = new CachingStream();
@@ -217,7 +217,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
-    public void fault(SoapFault soapFault) throws Exception {
+    public void fault(SoapFault soapFault) throws IOException {
         log.trace("Read fault");
 
         this.fault = soapFault;

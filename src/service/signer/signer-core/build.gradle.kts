@@ -27,8 +27,6 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-
-
   xjc(libs.bundles.jaxb)
 }
 

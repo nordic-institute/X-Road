@@ -31,8 +31,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-
-import javax.annotation.concurrent.Immutable;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +43,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +64,6 @@ import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceI
  *
  */
 @Slf4j
-@Immutable
 public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     @Getter
@@ -81,6 +81,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     /**
      * Constructs new directory from the given path.
+     *
      * @param directoryPath the path to the directory.
      * @throws IOException if loading configuration fails
      */
@@ -96,8 +97,9 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     /**
      * Constructs new directory from the given path using parts from provided base that have not changed.
+     *
      * @param directoryPath the path to the directory.
-     * @param base existing configuration directory to look for reusable parameter objects
+     * @param base          existing configuration directory to look for reusable parameter objects
      * @throws IOException if loading configuration fails
      */
     public VersionedConfigurationDirectory(String directoryPath, VersionedConfigurationDirectory base) throws IOException {
@@ -111,6 +113,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     /**
      * Reloads private parameters. Only files that are new or have changed, are actually loaded.
+     *
      * @throws IOException if an error occurs during reload
      */
     private Map<String, PrivateParametersProvider> loadPrivateParameters(Map<String, PrivateParametersProvider> basePrivateParams)
@@ -154,6 +157,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     /**
      * Reloads shared parameters. Only files that are new or have changed, are actually loaded.
+     *
      * @throws IOException if an error occurs during reload
      */
     private Map<String, SharedParametersProvider> loadSharedParameters(Map<String, SharedParametersProvider> baseSharedParams)
@@ -198,6 +202,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     /**
      * Returns private parameters for a given instance identifier.
+     *
      * @param instanceId the instance identifier
      * @return optional of private parameters or {@link Optional#empty()} if no private parameters exist for given instance identifier
      */
@@ -213,6 +218,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     /**
      * Returns shared parameters for a given instance identifier.
+     *
      * @param instanceId the instance identifier
      * @return optional of shared parameters or {@link Optional#empty()} if no shared parameters exist for given instance identifier
      */
@@ -285,11 +291,18 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     private SharedParametersCache getSharedParametersCache(SharedParameters sharedParams) {
         return sharedParametersCacheMap.computeIfAbsent(sharedParams.getInstanceIdentifier(),
-                k -> new SharedParametersCache(sharedParams));
+                k -> {
+                    try {
+                        return new SharedParametersCache(sharedParams);
+                    } catch (IOException | CertificateEncodingException e) {
+                        throw XrdRuntimeException.systemInternalError("Failed to create SharedParametersCache for instance ", e);
+                    }
+                });
     }
 
     /**
      * Applies the given function to all files belonging to the configuration directory.
+     *
      * @param consumer the function instance that should be applied to
      * @throws IOException if an error occurs
      */
@@ -311,8 +324,9 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     /**
      * Applies the given function to all files belonging to the configuration directory.
+     *
      * @param consumer the function instance that should be applied to all files belonging to the
-     *         configuration directory.
+     *                 configuration directory.
      * @throws IOException if an error occurs
      */
     public synchronized void eachFile(FileConsumer consumer) throws IOException {
@@ -330,20 +344,19 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                 }
 
                 consumer.consume(metadata, is);
-            } catch (RuntimeException e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e, e);
-
-                throw e;
             } catch (Exception e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e, e);
-
-                throw new RuntimeException(e);
+                throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+                        .cause(e)
+                        .details("Error processing configuration file")
+                        .metadataItems(filepath)
+                        .build();
             }
         });
     }
 
     /**
      * Gets the metadata for the given file.
+     *
      * @param fileName the file name
      * @return the metadata for the given file or null if metadata file does not exist.
      * @throws IOException if the metadata cannot be loaded

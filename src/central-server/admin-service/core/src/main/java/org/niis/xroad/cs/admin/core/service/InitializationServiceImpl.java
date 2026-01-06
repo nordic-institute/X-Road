@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -51,7 +52,6 @@ import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,8 +61,9 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INITIALIZATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.GPG_KEY_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.INITIALIZATION_INTERRUPTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.INITIALIZED;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.NOT_INITIALIZED;
 import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.UNKNOWN;
@@ -220,7 +221,7 @@ public class InitializationServiceImpl implements InitializationService {
                 status = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED ? INITIALIZED : NOT_INITIALIZED;
             }
         } catch (Exception e) {
-            if (!(e instanceof SignerException se && se.isCausedByKeyNotFound())) {
+            if (!(e instanceof XrdRuntimeException se && se.isCausedBy(KEY_NOT_FOUND))) {
                 status = UNKNOWN;
             }
         }

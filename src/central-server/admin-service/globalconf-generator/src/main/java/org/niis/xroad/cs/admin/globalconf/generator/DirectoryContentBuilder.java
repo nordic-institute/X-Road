@@ -29,10 +29,12 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.Value;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.util.HashCalculator;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -55,7 +57,6 @@ public class DirectoryContentBuilder {
     private final int configurationVersion;
     private final List<ConfigurationPart> configurationParts = new ArrayList<>();
 
-    @SneakyThrows
     public DirectoryContentBuilder(
             @NonNull DigestAlgorithm hashAlgorithmId,
             @NonNull Instant expireDate,
@@ -70,18 +71,18 @@ public class DirectoryContentBuilder {
         hashCalculator = new HashCalculator(hashAlgorithmId);
     }
 
-    DirectoryContentBuilder contentPart(ConfigurationPart configurationPart) {
+    public DirectoryContentBuilder contentPart(ConfigurationPart configurationPart) {
         configurationParts.add(configurationPart);
         return this;
     }
 
-    DirectoryContentBuilder contentParts(Collection<ConfigurationPart> parts) {
+    public DirectoryContentBuilder contentParts(Collection<ConfigurationPart> parts) {
         this.configurationParts.addAll(parts);
         return this;
     }
 
 
-    DirectoryContentHolder build() {
+    public DirectoryContentHolder build() {
         var builder = MultipartMessage.builder();
         builder.part(partBuilder()
                 .header(header("Expire-date", EXPIRE_DATE_FORMATTER.format(expireDate)))
@@ -106,9 +107,12 @@ public class DirectoryContentBuilder {
                 .build();
     }
 
-    @SneakyThrows
     private String calculateHash(byte[] data) {
-        return hashCalculator.calculateFromBytes(data);
+        try {
+            return hashCalculator.calculateFromBytes(data);
+        } catch (IOException | OperatorCreationException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Value

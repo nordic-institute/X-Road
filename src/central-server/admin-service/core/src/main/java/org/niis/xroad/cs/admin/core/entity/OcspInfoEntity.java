@@ -70,6 +70,11 @@ public class OcspInfoEntity extends AuditableEntity {
     @Setter
     private byte[] cert;
 
+    @Column(name = "cost_type")
+    @Getter
+    @Setter
+    private String costType;
+
     public OcspInfoEntity(CaInfoEntity caInfo, String url, byte[] cert) {
         this.caInfo = caInfo;
         this.url = url;

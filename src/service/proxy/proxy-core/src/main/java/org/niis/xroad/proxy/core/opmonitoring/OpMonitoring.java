@@ -30,9 +30,12 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Contains method for storing operational monitoring data.
@@ -49,9 +52,9 @@ public final class OpMonitoring {
     /**
      * Creates non initialized the operational monitoring using the provided actor system.
      *
-     * @throws Exception if initialization fails
      */
-    public static AbstractOpMonitoringBuffer init(ServerConfProvider serverConfProvider) throws Exception {
+    public static AbstractOpMonitoringBuffer init(ServerConfProvider serverConfProvider)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<? extends AbstractOpMonitoringBuffer> clazz = getOpMonitoringManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
@@ -83,8 +86,8 @@ public final class OpMonitoring {
 
             return (Class<? extends AbstractOpMonitoringBuffer>) clazz;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Unable to load operational monitoring buffer impl: "
-                    + opMonitoringBufferImplClassName, e);
+            throw XrdRuntimeException.systemInternalError(
+                    "Unable to load operational monitoring buffer impl: " + opMonitoringBufferImplClassName, e);
         }
     }
 

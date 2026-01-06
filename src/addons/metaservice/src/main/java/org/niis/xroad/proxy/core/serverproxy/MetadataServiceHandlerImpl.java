@@ -35,7 +35,6 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.message.SoapUtils.SOAPCallback;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -47,8 +46,7 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
-import jakarta.xml.soap.SOAPMessage;
-import lombok.SneakyThrows;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -58,6 +56,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.common.WsdlRequestData;
@@ -134,7 +133,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             return factory;
         } catch (TransformerConfigurationException e) {
-            throw new RuntimeException("unable to create SAX transformer factory", e);
+            throw XrdRuntimeException.systemInternalError("unable to create SAX transformer factory", e);
         }
     }
 
@@ -154,7 +153,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
                              ProxyMessage requestProxyMessage) {
 
@@ -169,10 +167,12 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
                         try (out) {
                             requestProxyMessage.writeSoapContent(out);
                         } catch (IOException e) {
-                            throw new RuntimeException("Failed to write soap content", e);
+                            throw XrdRuntimeException.systemInternalError("Failed to write soap content", e);
                         }
                     });
                     requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(requestProxyMessage.getSoapContentType(), in);
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemInternalError("Failed to parse request message", e);
                 }
                 yield true;
             }
@@ -183,7 +183,8 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     @Override
     public void startHandling(RequestWrapper servletRequest,
                               ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-                              OpMonitoringData opMonitoringData) throws Exception {
+                              OpMonitoringData opMonitoringData)
+            throws SOAPException, JAXBException, IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException {
 
         final String serviceCode = requestMessage.getService().getServiceCode();
 
@@ -209,7 +210,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public void finishHandling() throws Exception {
+    public void finishHandling() {
         // nothing to do
     }
 
@@ -219,13 +220,13 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public InputStream getResponseContent() throws Exception {
+    public InputStream getResponseContent() {
         return new ByteArrayInputStream(responseOut.toByteArray());
     }
 
 // ------------------------------------------------------------------------
 
-    private void handleListMethods(SoapMessageImpl request) throws Exception {
+    private void handleListMethods(SoapMessageImpl request) throws SOAPException, JAXBException, IOException {
         log.trace("handleListMethods()");
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
@@ -238,7 +239,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     private void handleAllowedMethods(SoapMessageImpl request)
-            throws Exception {
+            throws SOAPException, JAXBException, IOException {
         log.trace("handleAllowedMethods()");
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
@@ -252,7 +253,8 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         responseEncoder.soap(result, new HashMap<>());
     }
 
-    private void handleGetWsdl(SoapMessageImpl request) throws Exception {
+    private void handleGetWsdl(SoapMessageImpl request)
+            throws JAXBException, SOAPException, URISyntaxException, IOException, HttpClientCreator.HttpClientCreatorException {
         log.trace("handleGetWsdl()");
 
         Unmarshaller um = JaxbUtils.createUnmarshaller(WsdlRequestData.class);
@@ -287,7 +289,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
 // ------------------------------------------------------------------------
 
-    private String getWsdlUrl(ServiceId service) throws Exception {
+    private String getWsdlUrl(ServiceId service) {
         ServiceDescription wsdl = ServerConfDatabaseCtx.doInTransaction(
                 session -> ServiceDescriptionMapper.get().toTarget(
                         new ServiceDescriptionDAOImpl().getServiceDescription(session, service)
@@ -302,19 +304,16 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     private static SoapMessageImpl createMethodListResponse(
             SoapMessageImpl requestMessage,
-            final JAXBElement<MethodListType> methodList) throws Exception {
+            final JAXBElement<MethodListType> methodList) throws SOAPException, JAXBException, IOException {
 
         return SoapUtils.toResponse(requestMessage,
-                new SOAPCallback() {
-                    @Override
-                    public void call(SOAPMessage soap) throws Exception {
-                        soap.getSOAPBody().removeContents();
-                        marshal(methodList, soap.getSOAPBody());
-                    }
+                soap -> {
+                    soap.getSOAPBody().removeContents();
+                    marshal(methodList, soap.getSOAPBody());
                 });
     }
 
-    private static void marshal(Object object, Node out) throws Exception {
+    private static void marshal(Object object, Node out) throws JAXBException {
         Marshaller marshaller = JAXB_CTX.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
@@ -325,7 +324,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -335,7 +334,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
      * a lexicalHandler, too
      */
     private static class CommentsHandler extends DefaultHandler2 {
-        private LexicalHandler serializer;
+        private final LexicalHandler serializer;
 
         protected CommentsHandler(LexicalHandler serializer) {
             super();
@@ -350,8 +349,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
-     * @param wsdl
-     * @return
      */
     private InputStream modifyWsdl(InputStream wsdl) {
         try {
@@ -377,7 +374,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
             // offer InputStream into processed String
             return new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
         } catch (IOException | SAXException | TransformerConfigurationException | ParserConfigurationException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -400,7 +397,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         StatusLine statusLine = response.getStatusLine();
 
         if (HttpStatus.SC_OK != statusLine.getStatusCode()) {
-            throw new RuntimeException("Received HTTP error: "
+            throw XrdRuntimeException.systemInternalError("Received HTTP error: "
                     + statusLine.getStatusCode() + " - " + statusLine.getReasonPhrase());
         }
 

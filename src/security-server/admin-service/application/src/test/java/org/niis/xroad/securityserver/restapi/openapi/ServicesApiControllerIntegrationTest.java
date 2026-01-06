@@ -49,6 +49,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.net.ssl.SSLHandshakeException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
@@ -62,7 +63,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CLIENT_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.CLIENT_NOT_FOUND;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_NOT_FOUND;
 
 /**
@@ -159,7 +160,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         assertEquals(DeviationCodes.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR,
                 expected.getWarningDeviations().iterator().next().code());
 
-        doThrow(new Exception("")).when(internalServerTestService).testHttpsConnection(any(), any());
+        doThrow(new IOException("test")).when(internalServerTestService).testHttpsConnection(any(), any());
         expected = assertThrows(BadRequestException.class,
                 () -> servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate));
 

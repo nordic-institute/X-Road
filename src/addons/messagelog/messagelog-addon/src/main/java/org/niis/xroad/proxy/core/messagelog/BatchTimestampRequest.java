@@ -28,14 +28,22 @@ package org.niis.xroad.proxy.core.messagelog;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
+import jakarta.xml.bind.JAXBException;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+import java.util.Arrays;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
-
+import static org.niis.xroad.common.core.exception.ErrorCode.FAILED_TO_BUILD_SIGNATURE_HASH_CHAIN;
 
 class BatchTimestampRequest extends AbstractTimestampRequest {
 
@@ -52,23 +60,30 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     }
 
     @Override
-    byte[] getRequestData() throws Exception {
-        HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
-        hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
-        hashChains = hcBuilder.getHashChains(SIGNATURE);
+    byte[] getRequestData() {
+        try {
+            HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
+            hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
+            hashChains = hcBuilder.getHashChains(SIGNATURE);
+        } catch (IOException | JAXBException e) {
+            throw XrdRuntimeException.systemException(FAILED_TO_BUILD_SIGNATURE_HASH_CHAIN)
+                    .details("Failed to build hash chain for log records " + Arrays.toString(logRecords))
+                    .cause(e)
+                    .build();
+        }
         return hashChainResult.getBytes(UTF_8);
     }
 
     @Override
-    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url) throws Exception {
+    Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url)
+            throws CertificateEncodingException, IOException, TSPException, CMSException {
         byte[] timestampDer = getTimestampDer(tsResponse);
         return new Timestamper.TimestampSucceeded(logRecords, timestampDer,
                 hashChainResult, hashChains, url);
     }
 
-    private HashChainBuilder buildHashChain(String[] hashes) throws Exception {
-        HashChainBuilder hcBuilder =
-                new HashChainBuilder(MessageLogProperties.getHashAlg());
+    private HashChainBuilder buildHashChain(String[] hashes) throws IOException {
+        HashChainBuilder hcBuilder = new HashChainBuilder(MessageLogProperties.getHashAlg());
 
         for (String signatureHashBase64 : hashes) {
             hcBuilder.addInputHash(decodeBase64(signatureHashBase64));

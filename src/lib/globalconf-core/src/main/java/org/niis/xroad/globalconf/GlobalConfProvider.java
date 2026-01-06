@@ -32,6 +32,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
@@ -39,10 +41,14 @@ import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -51,6 +57,8 @@ import java.util.Set;
  * Global configuration provider.
  */
 public interface GlobalConfProvider {
+
+    int GLOBAL_CONF_VERSION_WITH_COST_TYPE = 6;
 
     /**
      * Reloads configuration from disk
@@ -61,6 +69,7 @@ public interface GlobalConfProvider {
      * Returns true, if the global configuration is valid and can be used
      * for security-critical tasks.
      * Configuration is considered valid if main/home instance parameters are valid
+     *
      * @return true if the global configuration is valid
      */
     boolean isValid();
@@ -118,6 +127,7 @@ public interface GlobalConfProvider {
 
     /**
      * Returns address of the given service provider's proxy.
+     *
      * @param serviceProvider the service provider identifier
      * @return IP address converted to string, such as "192.168.2.2".
      */
@@ -125,6 +135,7 @@ public interface GlobalConfProvider {
 
     /**
      * Returns address of the given security server
+     *
      * @param serverId the security server identifier
      * @return IP address converted to string, such as "192.168.2.2".
      */
@@ -134,31 +145,34 @@ public interface GlobalConfProvider {
      * @param parameters the parameters
      * @param cert       the signing certificate
      * @return subject client identifier
-     * @throws Exception if an error occurs
      */
     ClientId.Conf getSubjectName(
             SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception;
+            X509Certificate cert);
 
     /**
-     * Returns a list of OCSP responder addresses for the given member
-     * certificate.
+     * Returns a list of OCSP responder addresses for the given member certificate.
+     * Addresses are ordered based on ocsp-prioritization-strategy system property.
+     *
      * @param member the member certificate
      * @return list of OCSP responder addresses
-     * @throws Exception if an error occurs
+     *
      */
-    List<String> getOcspResponderAddresses(X509Certificate member)
-            throws Exception;
+    List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException;
 
 
     /**
      * Returns a list of OCSP responder addresses for the given CA certificate
+     *
      * @param caCert the CA certificate
      * @return list of OCSP responder addresses
-     * @throws Exception if an error occurs
+     *
      */
-    List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert)
-            throws Exception;
+    List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) throws CertificateEncodingException, IOException;
+
+    Map<String, CostType> getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert);
+
+    CostType getOcspResponderCostType(String instanceIdentifier, String ocspUrl);
 
     /**
      * @return a list of known OCSP responder certificates
@@ -169,10 +183,9 @@ public interface GlobalConfProvider {
      * @param instanceIdentifier the instance identifier
      * @param memberCert         the member certificate
      * @return the issuer certificate for the member certificate
-     * @throws Exception if an error occurs
+     *
      */
-    X509Certificate getCaCert(String instanceIdentifier,
-                              X509Certificate memberCert) throws Exception;
+    X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws CertificateEncodingException, IOException;
 
     /**
      * @return all CA certificates.
@@ -189,10 +202,9 @@ public interface GlobalConfProvider {
      * @param subject            the subject certificate
      * @return the top CA and any intermediate CA certificates for a
      * given end entity
-     * @throws Exception if an error occurs
+     *
      */
-    CertChain getCertChain(String instanceIdentifier, X509Certificate subject)
-            throws Exception;
+    CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws CertificateEncodingException, IOException;
 
     /**
      * @param ca       the CA certificate
@@ -213,9 +225,9 @@ public interface GlobalConfProvider {
      * @return the security server id for the given authentication certificate
      * of null of the authentication certificate does not map to any security
      * server.
-     * @throws Exception if an error occurs
+     *
      */
-    SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception;
+    SecurityServerId.Conf getServerId(X509Certificate cert) throws CertificateEncodingException, IOException, OperatorCreationException;
 
     /**
      * @param serverId the security server id
@@ -229,10 +241,10 @@ public interface GlobalConfProvider {
      * @param memberId the member identifier
      * @return true, if cert can be used to authenticate as
      * member member
-     * @throws Exception if an error occurs
+     *
      */
     boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
-            throws Exception;
+            throws CertificateEncodingException, IOException, OperatorCreationException;
 
     /**
      * @param instanceIdentifier the instance identifier
@@ -247,21 +259,21 @@ public interface GlobalConfProvider {
      * @param parameters the authentication certificate profile info parameters
      * @param cert       the certificate
      * @return auth certificate profile info for this certificate
-     * @throws Exception if an error occurs
+     *
      */
     AuthCertificateProfileInfo getAuthCertificateProfileInfo(
             AuthCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception;
+            X509Certificate cert) throws CertificateEncodingException, IOException, CertificateParsingException;
 
     /**
      * @param parameters the signing certificate profile info parameters
      * @param cert       the certificate
      * @return signing certificate profile info for this certificate
-     * @throws Exception if an error occurs
+     *
      */
     SignCertificateProfileInfo getSignCertificateProfileInfo(
             SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception;
+            X509Certificate cert) throws CertificateEncodingException, IOException;
 
     /**
      * @param instanceIdentifier the instance identifier
@@ -285,9 +297,8 @@ public interface GlobalConfProvider {
 
     /**
      * @return the list of TSP certificates
-     * @throws Exception if an error occurs
      */
-    List<X509Certificate> getTspCertificates() throws Exception;
+    List<X509Certificate> getTspCertificates();
 
     /**
      * @return all addresses of all members
@@ -333,9 +344,33 @@ public interface GlobalConfProvider {
 
     /**
      * @return SSL certificates of central servers
-     * @throws Exception if an error occurs
+     *
      */
-    X509Certificate getCentralServerSslCertificate() throws Exception;
+    X509Certificate getCentralServerSslCertificate();
+
+    /**
+     * Returns the set of source addresses for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the set of source addresses for the given instance
+     */
+    Set<String> getSourceAddresses(String instanceIdentifier);
+
+    /**
+     * Returns all allowed federation instances.
+     * Also taking into account the value of the {@code configuration-client.allowed-federations} property.
+     *
+     * @return a set of allowed federation instances
+     */
+    Set<String> getAllowedFederationInstances();
+
+    /**
+     * Returns the configuration directory path for the given instance identifier.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return the configuration directory path for the given instance
+     */
+    String getConfigurationDirectoryPath(String instanceIdentifier);
 
     /**
      * @return maximum allowed validity time of OCSP responses. If thisUpdate
@@ -359,6 +394,7 @@ public interface GlobalConfProvider {
 
     /**
      * Get ApprovedCAInfo matching given CA certificate
+     *
      * @param instanceIdentifier instance id
      * @param cert               intermediate or top CA cert
      * @return ApprovedCAInfo (for the top CA)
@@ -369,6 +405,7 @@ public interface GlobalConfProvider {
 
     /**
      * Returns access to various GlobalConf extensions.
+     *
      * @return the global configuration extensions
      */
     GlobalConfExtensions getGlobalConfExtensions();
@@ -387,5 +424,13 @@ public interface GlobalConfProvider {
      * @return Status of the maintenance mode
      */
     Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress);
+
+    /**
+     * Finds all the security servers where client is registered
+     *
+     * @param clientId client id
+     * @return Set of security server identifiers
+     */
+    Set<SecurityServerId> getClientSecurityServers(ClientId clientId);
 
 }

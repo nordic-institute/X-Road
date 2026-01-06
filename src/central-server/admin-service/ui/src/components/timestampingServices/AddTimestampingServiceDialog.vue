@@ -48,6 +48,23 @@
         ></v-text-field>
       </div>
 
+      <div class="space-out-bottom dlg-input-width">
+        <v-radio-group
+          v-model="costType"
+          v-bind="costTypeAttrs"
+          inline
+          class="dlg-row-input"
+        >
+          <v-radio
+            v-for="type in definedCostTypes"
+            :key="type"
+            :data-test="`timestamping-service-cost-type-radio-${type}`"
+            :label="$t(`trustServices.trustService.costType.${type}`)"
+            :value="type"
+          ></v-radio>
+        </v-radio-group>
+      </div>
+
       <div class="dlg-input-width">
         <CertificateFileUpload
           v-model:file="certFile"
@@ -61,7 +78,10 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { useTimestampingServicesStore } from '@/store/modules/trust-services';
+import {
+  definedCostTypes,
+  useTimestampingServicesStore,
+} from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 import { useBasicForm, useFileRef } from '@/util/composables';
@@ -69,9 +89,15 @@ import { useBasicForm, useFileRef } from '@/util/composables';
 const emits = defineEmits(['save', 'cancel']);
 
 const { meta, defineField, handleSubmit } = useForm({
-  validationSchema: { url: 'required|url' },
+  validationSchema: {
+    url: 'required|url',
+    costType: `required|one_of:${definedCostTypes}`,
+  },
 });
 const [tasUrl, tasUrlAttrs] = defineField('url', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [costType, costTypeAttrs] = defineField('costType', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
@@ -87,7 +113,7 @@ const save = handleSubmit((values) => {
   }
 
   loading.value = true;
-  addTimestampingService(values.url, certFile.value)
+  addTimestampingService(values.url, values.costType, certFile.value)
     .then(() => {
       showSuccess(t('trustServices.timestampingService.dialog.add.success'));
       emits('save');

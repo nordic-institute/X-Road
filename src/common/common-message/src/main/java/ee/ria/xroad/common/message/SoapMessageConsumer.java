@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.common.message;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -32,6 +35,7 @@ import java.util.Map;
  * Describes the SOAP message callback. The message consists of a XML message
  * and optional attachments.
  */
+@ArchUnitSuppressed("NoVanillaExceptions")
 public interface SoapMessageConsumer {
 
     /**
@@ -51,5 +55,5 @@ public interface SoapMessageConsumer {
      * @throws Exception if an error occurs
      */
     void attachment(String contentType, InputStream content,
-                    Map<String, String> additionalHeaders) throws Exception;
+                    Map<String, String> additionalHeaders) throws IOException;
 }

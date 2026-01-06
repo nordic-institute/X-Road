@@ -50,7 +50,7 @@ public abstract class BaseServerRequestCallback<T> extends BaseSignedRequestCall
     protected abstract SecurityServerId getServer();
 
     @Override
-    protected void verifyMessage() throws Exception {
+    protected void verifyMessage() {
         final SecurityServerId serverId = getServer();
 
         validateServerId(serverId);

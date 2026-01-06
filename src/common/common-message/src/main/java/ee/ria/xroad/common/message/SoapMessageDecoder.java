@@ -34,6 +34,7 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -66,6 +67,7 @@ public class SoapMessageDecoder {
     /**
      * Callback interface for handling the outcome of the decoding process.
      */
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public interface Callback extends SoapMessageConsumer, Closeable {
 
         /**
@@ -128,6 +130,7 @@ public class SoapMessageDecoder {
      * @param soapStream input stream with the SOAP message data
      * @throws Exception if any errors occur
      */
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void parse(InputStream soapStream) throws Exception {
         if (baseContentType == null) {
             throw new CodedException(X_INVALID_REQUEST,
@@ -154,6 +157,7 @@ public class SoapMessageDecoder {
         callback.onCompleted();
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private void readSoapMessage(InputStream is) throws Exception {
         log.trace("readSoapMessage");
 
@@ -174,7 +178,7 @@ public class SoapMessageDecoder {
         callback.soap((SoapMessage) soap, new HashMap<>());
     }
 
-    private void readMultipart(InputStream is) throws Exception {
+    private void readMultipart(InputStream is) throws IOException {
         log.trace("readMultipart");
 
         MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(contentType).build();
@@ -197,13 +201,13 @@ public class SoapMessageDecoder {
         private Soap soapBody;
 
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             headers = new HashMap<>();
             partContentType = null;
         }
 
         @Override
-        public void field(Field field) throws MimeException {
+        public void field(Field field) {
             if (HEADER_CONTENT_TYPE.equalsIgnoreCase(field.getName())) {
                 partContentType = field.getBody();
             } else {
@@ -212,8 +216,7 @@ public class SoapMessageDecoder {
         }
 
         @Override
-        public void body(BodyDescriptor bd, InputStream is)
-                throws MimeException, IOException {
+        public void body(BodyDescriptor bd, InputStream is) {
             if (!headers.isEmpty()) {
                 log.trace("headers: {}", headers);
             }

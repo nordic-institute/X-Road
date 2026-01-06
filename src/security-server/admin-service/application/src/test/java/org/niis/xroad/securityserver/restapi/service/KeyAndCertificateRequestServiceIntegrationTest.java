@@ -25,19 +25,17 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -58,6 +56,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCa;
 
 public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
@@ -134,10 +134,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                     return new SignerRpcClient.GeneratedCertRequestInfo(null, null, null, null, null);
                 });
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(Arrays.asList(
-                new ApprovedCAInfo(MOCK_CA,
-                        false,
-                        "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
-                        null, null, null, null)));
+                approvedCa(MOCK_CA, false, "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider")));
         ClientId.Conf ownerId = ClientId.Conf.create("FI", "GOV", "M1");
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
@@ -167,9 +164,9 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
 
     @Test
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
-    public void addKeyAndCertSuccess() throws Exception {
+    public void addKeyAndCertSuccess() {
         HashMap<String, String> dnParams = createCsrDnParams();
-        KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
+        keyAndCertificateRequestService
                 .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                         ClientId.Conf.create("FI", "GOV", "M1"),
                         KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
@@ -192,7 +189,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
 
     @Test
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
-    public void canAddAuthKeyToSoftToken() throws Exception {
+    public void canAddAuthKeyToSoftToken() {
         HashMap<String, String> dnParams = createCsrDnParams();
         KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
                 .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
@@ -204,9 +201,9 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
 
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
-    public void cannotAddAuthKeyToNonSoftToken() throws Exception {
+    public void cannotAddAuthKeyToNonSoftToken() {
         HashMap<String, String> dnParams = createCsrDnParams();
-        KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
+        keyAndCertificateRequestService
                 .addKeyAndCertRequest(OTHER_TOKEN_ID, "keylabel",
                         null,
                         KeyUsageInfo.AUTHENTICATION, MOCK_CA, dnParams,
@@ -215,7 +212,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
 
     @Test
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
-    public void csrGenerateFailureRollsBackKeyCreate() throws Exception {
+    public void csrGenerateFailureRollsBackKeyCreate() {
         HashMap<String, String> dnParams = createCsrDnParams();
 
         ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
@@ -235,9 +232,9 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
 
     @Test
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
-    public void failedRollback() throws Exception {
+    public void failedRollback() {
         HashMap<String, String> dnParams = createCsrDnParams();
-        doThrow(new SignerException(ErrorCodes.X_KEY_NOT_FOUND))
+        doThrow(XrdRuntimeException.systemException(KEY_NOT_FOUND).build())
                 .when(signerRpcClient).getTokenForKeyId(any());
         try {
             ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");

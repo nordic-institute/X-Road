@@ -41,6 +41,7 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 @Slf4j
+@SuppressWarnings("checkstyle:SneakyThrowsCheck")
 public class TestCaStepDefs extends BaseStepDefs {
     @Autowired
     private TestCaFeignApi testCaFeignApi;

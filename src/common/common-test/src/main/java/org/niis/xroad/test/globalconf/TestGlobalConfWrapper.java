@@ -33,6 +33,8 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
@@ -41,9 +43,13 @@ import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -125,17 +131,27 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
         return globalConfProvider.getSubjectName(parameters, cert);
     }
 
     @Override
-    public List<String> getOcspResponderAddresses(X509Certificate member) throws Exception {
-        return globalConfProvider.getOcspResponderAddresses(member);
+    public Map<String, CostType>  getOcspResponderAddressesAndCostTypes(String instanceIdentifier, X509Certificate caCert) {
+        return globalConfProvider.getOcspResponderAddressesAndCostTypes(instanceIdentifier, caCert);
     }
 
     @Override
-    public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) throws Exception {
+    public CostType getOcspResponderCostType(String instanceIdentifier, String ocspUrl) {
+        return globalConfProvider.getOcspResponderCostType(instanceIdentifier, ocspUrl);
+    }
+
+    @Override
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
+        return globalConfProvider.getOrderedOcspResponderAddresses(member);
+    }
+
+    @Override
+    public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert) throws CertificateEncodingException, IOException {
         return globalConfProvider.getOcspResponderAddressesForCaCertificate(caCert);
     }
 
@@ -145,7 +161,8 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
+    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert)
+            throws CertificateEncodingException, IOException {
         return globalConfProvider.getCaCert(instanceIdentifier, memberCert);
     }
 
@@ -160,7 +177,7 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws Exception {
+    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws CertificateEncodingException, IOException {
         return globalConfProvider.getCertChain(instanceIdentifier, subject);
     }
 
@@ -175,7 +192,8 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         return globalConfProvider.getServerId(cert);
     }
 
@@ -185,19 +203,21 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) throws Exception {
+    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         return globalConfProvider.authCertMatchesMember(cert, memberId);
     }
 
     @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
-                                                                    X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert)
+            throws CertificateParsingException, CertificateEncodingException, IOException {
         return globalConfProvider.getAuthCertificateProfileInfo(parameters, cert);
     }
 
     @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
-                                                                    X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) throws CertificateEncodingException, IOException {
         return globalConfProvider.getSignCertificateProfileInfo(parameters, cert);
     }
 
@@ -217,7 +237,7 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getTspCertificates() throws Exception {
+    public List<X509Certificate> getTspCertificates() {
         return globalConfProvider.getTspCertificates();
     }
 
@@ -257,8 +277,23 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public X509Certificate getCentralServerSslCertificate() throws Exception {
+    public X509Certificate getCentralServerSslCertificate() {
         return globalConfProvider.getCentralServerSslCertificate();
+    }
+
+    @Override
+    public Set<String> getSourceAddresses(String instanceIdentifier) {
+        return Set.of();
+    }
+
+    @Override
+    public Set<String> getAllowedFederationInstances() {
+        return Set.of();
+    }
+
+    @Override
+    public String getConfigurationDirectoryPath(String instanceIdentifier) {
+        return "";
     }
 
     @Override
@@ -299,5 +334,10 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
         return globalConfProvider.getMaintenanceMode(instanceIdentifier, serverAddress);
+    }
+
+    @Override
+    public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+        return globalConfProvider.getClientSecurityServers(clientId);
     }
 }

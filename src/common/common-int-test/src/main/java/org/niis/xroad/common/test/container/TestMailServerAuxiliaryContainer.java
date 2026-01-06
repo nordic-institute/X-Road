@@ -31,6 +31,7 @@ import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
 import com.nortal.test.testcontainers.configuration.ContainerProperties;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,6 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -69,17 +69,15 @@ public class TestMailServerAuxiliaryContainer extends AbstractAuxiliaryContainer
 
     @NotNull
     @Override
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     public TestMailServerContainer configure() {
         var dataDirPath = Paths.get("build/mail-server-data/");
         var dataDir = dataDirPath.toFile();
         dataDir.mkdirs();
 
         if (SystemUtils.IS_OS_UNIX) {
-            try {
-                Files.setPosixFilePermissions(dataDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            Files.setPosixFilePermissions(dataDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
         }
         Logger logger = LoggerFactory.getLogger(getConfigurationKey());
         Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger).withSeparateOutputStreams();
