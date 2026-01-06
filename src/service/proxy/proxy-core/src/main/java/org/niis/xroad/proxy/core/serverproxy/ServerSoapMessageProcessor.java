@@ -42,7 +42,6 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import com.ctc.wstx.stax.WstxOutputFactory;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
@@ -80,6 +79,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
@@ -661,27 +661,25 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
     @RequiredArgsConstructor
     private final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
 
-        private static final WstxOutputFactory WSTX_OUTPUT_FACTORY = new WstxOutputFactory();
+        private static final XMLOutputFactory OUTPUT_FACTORY = XMLOutputFactory.newFactory();
         private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newFactory();
+
+        static {
+            final var useDoubleQuotes = "com.ctc.wstx.useDoubleQuotesInXmlDecl";
+            if (OUTPUT_FACTORY.isPropertySupported(useDoubleQuotes)) {
+                OUTPUT_FACTORY.setProperty(useDoubleQuotes, true);
+            }
+        }
 
         private XMLEventWriter writer;
         private boolean inHeader;
         private boolean inRequestHash = false;
         private String headerWhiteSpace = "";
 
-        static {
-            WSTX_OUTPUT_FACTORY.configureForSpeed();
-        }
-
-
         @Override
         protected InputStream prepareInputStream(InputStream rawInputStream, OutputStream rawOutputStream) throws XMLStreamException {
-            writer = WSTX_OUTPUT_FACTORY.createXMLEventWriter(rawOutputStream);
+            writer = OUTPUT_FACTORY.createXMLEventWriter(rawOutputStream);
             return rawInputStream;
-        }
-
-        @Override
-        protected void beforeDocument() {
         }
 
         @Override
