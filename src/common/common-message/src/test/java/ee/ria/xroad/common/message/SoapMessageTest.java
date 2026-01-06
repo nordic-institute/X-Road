@@ -36,8 +36,6 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.Arrays;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.namespace.QName;
@@ -45,8 +43,6 @@ import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.QUERY_DIR;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.build;
@@ -221,11 +217,10 @@ public class SoapMessageTest {
      * Tests that message with invalid content type is detected.
      * @throws Exception in case of any unexpected errors
      */
-    @ParameterizedTest
-    @MethodSource(value = "parsers")
-    public void invalidContentType(Supplier<SoapParser> soapParser) throws Exception {
+    @Test
+    public void invalidContentType() throws Exception {
         try (FileInputStream in = new FileInputStream(QUERY_DIR + "simple.query")) {
-            var expected = assertThrows(XrdRuntimeException.class, () -> soapParser.get()  .parse(MimeTypes.TEXT_HTML_UTF8, in));
+            var expected = assertThrows(XrdRuntimeException.class, () -> buildParser().parse(MimeTypes.TEXT_HTML_UTF8, in));
             assertEquals(INVALID_CONTENT_TYPE.code(), expected.getCode());
         }
     }
@@ -234,11 +229,10 @@ public class SoapMessageTest {
      * Tests that SoapMessage class understands fault messages.
      * @throws Exception in case of any unexpected errors
      */
-    @ParameterizedTest
-    @MethodSource(value = "parsers")
-    public void faultMessage(Supplier<SoapParser> soapParser) {
+    @Test
+    public void faultMessage() {
         String soapFaultXml = SoapFault.createFaultXml("foo.bar", "baz", "xxx", "yyy");
-        Soap message = soapParser.get().parse(MimeTypes.TEXT_XML_UTF8,
+        Soap message = buildParser().parse(MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
 
         assertTrue(message instanceof SoapFault);
@@ -310,9 +304,8 @@ public class SoapMessageTest {
      * Tests that we can parse our own created Soap messages.
      * @throws Exception in case of any unexpected errors
      */
-    @ParameterizedTest
-    @MethodSource(value = "parsers")
-    public void shouldParseBuiltMessage(Supplier<SoapParser> soapParser) throws Exception {
+    @Test
+    public void shouldParseBuiltMessage() throws Exception {
         ClientId client = ClientId.Conf.create("EE", "BUSINESS", "producer");
         ServiceId service = ServiceId.Conf.create("EE", "BUSINESS", "consumer", null, "test");
         String userId = "foobar";
@@ -325,7 +318,7 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(service, built.getService());
 
-        Soap parsedSoap = soapParser.get().parse(built.getContentType(),
+        Soap parsedSoap = buildParser().parse(built.getContentType(),
                 new ByteArrayInputStream(built.getBytes()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
@@ -344,7 +337,7 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(service, built.getService());
 
-        parsedSoap = soapParser.get().parse(built.getContentType(), IOUtils.toInputStream(built.getXml()));
+        parsedSoap = buildParser().parse(built.getContentType(), IOUtils.toInputStream(built.getXml()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         parsed = (SoapMessageImpl) parsedSoap;
@@ -396,7 +389,7 @@ public class SoapMessageTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void shouldNotReencodeInputMessage() throws Exception {
+    public void shouldNotReEncodeInputMessage() throws Exception {
         byte[] in = fileToBytes("simple.query");
         byte[] out = messageToBytes(createSoapMessage(in));
 
@@ -413,7 +406,7 @@ public class SoapMessageTest {
         createRequest("wrong-version.query");
     }
 
-    public static Stream<Supplier<SoapParser>> parsers() {
-        return Stream.of(SaxSoapParserImpl::new, StaxSoapParserImpl::new);
+    public static SoapParser buildParser() {
+        return new StaxEventSoapParserImpl();
     }
 }
