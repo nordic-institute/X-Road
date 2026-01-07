@@ -6,3 +6,15 @@ cs_modules:
     lib: centralserver-admin-service-1.0.jar
     target: /usr/share/xroad/jlib
     service: xroad-center
+  cs-management-service:
+    dir: central-server/management-service/application
+    build: build
+    lib: centralserver-management-service-1.0.jar
+    target: /usr/share/xroad/jlib
+    service: xroad-center-management-service
+  cs-registration-service:
+    dir: central-server/registration-service
+    build: build
+    lib: centralserver-registration-service-1.0.jar
+    target: /usr/share/xroad/jlib
+    service: xroad-center-registration-service

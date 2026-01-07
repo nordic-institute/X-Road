@@ -37,6 +37,9 @@ case $1 in
 "cs-management-service")
   gradleModule="central-server/management-service"
   ;;
+"cs-registration-service")
+  gradleModule="central-server/registration-service"
+  ;;
 esac
 
 cd "$SCRIPT_DIR"/../../src/
