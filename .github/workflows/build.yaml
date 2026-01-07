@@ -408,6 +408,16 @@ jobs:
           task: start-measurement
           label: 'E2E tests'
       # Setup
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          tool-cache: false
+          dotnet: false
+          haskell: false
+          large-packages: false
+          docker-images: false
+          swap-storage: false
       - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v5
