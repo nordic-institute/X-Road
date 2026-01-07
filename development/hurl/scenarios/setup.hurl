@@ -686,6 +686,16 @@ HTTP 200
 [Captures]
 ss1_token_id: jsonpath "$[?(@.type == 'HARDWARE')].id" nth 0
 
+# Log in to the Security Servers token
+PUT https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/login
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "password": "Secret1234"
+}
+
+HTTP *
+
 # Add sign key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/keys-with-csrs
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
