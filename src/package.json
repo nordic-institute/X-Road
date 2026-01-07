@@ -25,7 +25,7 @@
     "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-vue": "^10.3.0",
     "eslint-plugin-vuetify": "^2.5.2",
-    "happy-dom": "^18.0.1",
+    "happy-dom": "^20.0.2",
     "license-check-and-add": "~4.0.5",
     "mkdirp": "^3.0.1",
     "openapi-typescript-codegen": "^0.29.0",

@@ -12,12 +12,13 @@ hibernate = "6.6.13.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.1"
 mockito = "5.18.0"
-springBoot = "3.4.4"
+springBoot = "3.4.6"
 junitJupiter = "5.11.4"
 xmlUnit = "2.10.3"
 bouncyCastle = "1.81"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
+selenide="7.12.0"
 protoc = "4.31.1"
 grpc = "1.73.0"
 swaggerParser = "2.1.30"
@@ -75,6 +76,8 @@ testAutomation-feign = { module = "com.nortal.test:test-automation-feign", versi
 testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
 testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
+test-selenide-core = { module = "com.codeborne:selenide", version.ref = "selenide" }
+test-selenide-proxy = { module = "com.codeborne:selenide-proxy", version.ref = "selenide" }
 
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
@@ -103,7 +106,7 @@ apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configurat
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
-apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.0" }
+apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.2" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.4" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }

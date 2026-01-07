@@ -248,6 +248,10 @@ public class ServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest));
+
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
     }
 
     /**
