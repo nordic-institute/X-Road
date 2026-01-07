@@ -488,12 +488,6 @@ public class StaxEventSoapParserImpl implements SoapParser {
         while (reader.hasNext()) {
             XMLEvent event = reader.nextEvent();
 
-            if (event.isEndElement()) {
-                if (event.asEndElement().getName().equals(QNAME_SOAP_BODY)) {
-                    return result;
-                }
-            }
-
             if (event.isStartElement()) {
                 StartElement startElement = event.asStartElement();
                 QName element = startElement.getName();
@@ -510,6 +504,8 @@ public class StaxEventSoapParserImpl implements SoapParser {
                     }
                     skipElement(reader);
                 }
+            } else if (event.isEndElement() && event.asEndElement().getName().equals(QNAME_SOAP_BODY)) {
+                return result;
             }
         }
 
