@@ -81,6 +81,8 @@ import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import java.io.IOException;
@@ -696,17 +698,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             }
 
             if (currentEvent.isStartElement()) {
-                var startElement = currentEvent.asStartElement();
-                if (QNAME_SOAP_HEADER.equals(startElement.getName())) {
-                    inHeader = true;
-                }
-                if (inHeader && QNAME_XROAD_QUERY_ID.equals(startElement.getName())) {
-                    var data = previousEvent.isCharacters() ? previousEvent.asCharacters().getData() : "";
-                    headerWhiteSpace = StringUtils.isWhitespace(data) ? data : "";
-                }
-                if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(startElement.getName())) {
-                    inRequestHash = true;
-                }
+                handleStartTag(currentEvent.asStartElement(), previousEvent);
             }
 
             if (!inRequestHash) {
@@ -714,16 +706,28 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
             }
 
             if (currentEvent.isEndElement()) {
-                var endElement = currentEvent.asEndElement();
-                if (QNAME_SOAP_HEADER.equals(endElement.getName())) {
-                    inHeader = false;
-                }
-                if (inHeader && QNAME_XROAD_QUERY_ID.equals(endElement.getName())) {
-                    addRequestHash(endElement.getName().getPrefix());
-                }
-                if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(endElement.getName())) {
-                    inRequestHash = false;
-                }
+                handleEndTag(currentEvent.asEndElement());
+            }
+        }
+
+        private void handleStartTag(StartElement startElement, XMLEvent previousEvent) {
+            if (QNAME_SOAP_HEADER.equals(startElement.getName())) {
+                inHeader = true;
+            } else if (inHeader && QNAME_XROAD_QUERY_ID.equals(startElement.getName())) {
+                var data = previousEvent.isCharacters() ? previousEvent.asCharacters().getData() : "";
+                headerWhiteSpace = StringUtils.isWhitespace(data) ? data : "";
+            } else if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(startElement.getName())) {
+                inRequestHash = true;
+            }
+        }
+
+        private void handleEndTag(EndElement endElement) {
+            if (QNAME_SOAP_HEADER.equals(endElement.getName())) {
+                inHeader = false;
+            } else if (inHeader && QNAME_XROAD_QUERY_ID.equals(endElement.getName())) {
+                addRequestHash(endElement.getName().getPrefix());
+            } else if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(endElement.getName())) {
+                inRequestHash = false;
             }
         }
 
