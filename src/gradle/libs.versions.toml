@@ -6,7 +6,7 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.37"
-jetty = "12.1.5"
+jetty = "12.0.31"
 jaxb = "4.0.5"
 hibernate = "7.1.4.Final"
 mapstruct = "1.6.3"
@@ -112,7 +112,7 @@ apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.3" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.4" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.6" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.5.1" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.11.0" }

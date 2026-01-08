@@ -115,7 +115,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE.code()));
+                .is(codedException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE.code()));
     }
 
     /**
