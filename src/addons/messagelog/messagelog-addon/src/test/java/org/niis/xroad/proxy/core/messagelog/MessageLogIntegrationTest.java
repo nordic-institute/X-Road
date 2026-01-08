@@ -43,6 +43,7 @@ import static org.niis.xroad.proxy.core.messagelog.TestUtil.createSignature;
 /**
  * Messagelog integration test program.
  */
+@SuppressWarnings("squid:S2187")
 public class MessageLogIntegrationTest extends AbstractMessageLogTest {
 
     /**

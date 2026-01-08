@@ -29,6 +29,7 @@ import org.junit.rules.ExternalResource;
 import org.niis.xroad.proxymonitor.util.MonitorClient;
 
 /** A JUnit rule to restore the {@link ProxyMonitor} MonitorClient after the test has run. */
+@SuppressWarnings("squid:S2187")
 public class RestoreMonitorClientAfterTest extends ExternalResource {
 
     private MonitorClient monitorClient;

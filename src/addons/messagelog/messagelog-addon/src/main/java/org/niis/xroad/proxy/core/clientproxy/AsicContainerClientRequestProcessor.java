@@ -267,6 +267,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         T get() throws IOException;
     }
 
+    @SuppressWarnings("squid:S2095")
     private void writeEncryptedContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
                                           Boolean response) throws IOException {
 

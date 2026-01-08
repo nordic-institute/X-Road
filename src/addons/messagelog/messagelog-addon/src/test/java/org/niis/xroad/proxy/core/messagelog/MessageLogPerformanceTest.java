@@ -37,6 +37,7 @@ import static org.niis.xroad.proxy.core.messagelog.TestUtil.createSignature;
 /**
  * Messagelog performance test program.
  */
+@SuppressWarnings("squid:S2187")
 @Slf4j
 public class MessageLogPerformanceTest extends AbstractMessageLogTest {
 

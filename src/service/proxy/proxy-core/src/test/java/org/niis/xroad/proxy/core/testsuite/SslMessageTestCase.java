@@ -54,6 +54,7 @@ import java.security.cert.X509Certificate;
  * All test cases extending this class will be executed in a separate batch
  * where ClientProxy and ServerProxy are started in SSL mode.
  */
+@SuppressWarnings("squid:S2187")
 public class SslMessageTestCase extends MessageTestCase {
 
     @Override

@@ -294,9 +294,10 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         TestTimestamperWorker.failNextTimestamping(true);
 
+        SoapMessageImpl message = createMessage();
+        SignatureData signature = createSignature();
         try {
-            log(createMessage(), createSignature());
-
+            log(message, signature);
             fail("Should fail to timestamp immediately");
         } catch (Exception expected) {
             log.info("Expected exception: " + expected);
