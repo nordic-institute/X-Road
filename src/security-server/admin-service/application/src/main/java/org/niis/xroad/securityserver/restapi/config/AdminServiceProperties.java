@@ -30,9 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
-import org.niis.xroad.common.mail.NotificationConfig;
 import org.niis.xroad.common.properties.DefaultTlsProperties;
 import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
@@ -42,6 +40,8 @@ import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
+import org.niis.xroad.securityserver.restapi.mail.NotificationConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;

@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
@@ -128,6 +129,12 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     @Step("Client Registration request with clientId {string} and serverId {string} was sent")
     public void executeRequestWithCustomServerId(String clientIdStr, String serverId) throws Exception {
         executeRequestWithCustomServerId(null, clientIdStr, serverId);
+    }
+
+    @Step("more than {int} bytes request is sent")
+    public void executeBigRequest(int size) throws Exception {
+        String longName = RandomStringUtils.insecure().nextAlphanumeric(size);
+        executeRequestWithCustomServerId(longName, "EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId());
     }
 
     private void executeRequestWithCustomServerId(String subsystemName, String clientIdStr, String serverId) throws Exception {

@@ -43,6 +43,8 @@ import org.springframework.http.ResponseEntity;
 import java.io.InputStream;
 import java.util.function.ToIntFunction;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.BAD_REQUEST;
+
 @Slf4j
 @RequiredArgsConstructor
 public class ManagementRequestSoapExecutor {
@@ -52,7 +54,10 @@ public class ManagementRequestSoapExecutor {
 
     public ResponseEntity<String> process(String contentType, InputStream body,
                                           ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
-        try (var bos = BoundedInputStream.builder().setInputStream(body).setMaxCount(MAX_REQUEST_SIZE).get()) {
+        try (var bos = BoundedInputStream.builder()
+                .setInputStream(body)
+                .setMaxCount(MAX_REQUEST_SIZE)
+                .setOnMaxCount(this::onMaxCount).get()) {
             var verificationResult = managementRequestVerifier.readRequest(contentType, bos);
 
             var createdRequestId = onSuccess.applyAsInt(verificationResult);
@@ -75,6 +80,12 @@ public class ManagementRequestSoapExecutor {
             return disableCache(ResponseEntity.internalServerError())
                     .body(SoapFault.createFaultXml(ex));
         }
+    }
+
+    private void onMaxCount(Long max, Long read) {
+        throw XrdRuntimeException.systemException(BAD_REQUEST)
+                .details("Request size limit %d exceeded".formatted(max))
+                .build();
     }
 
     private static ResponseEntity.BodyBuilder disableCache(ResponseEntity.BodyBuilder builder) {

@@ -39,6 +39,7 @@ dependencies {
   }
 
   implementation("org.springframework.boot:spring-boot-starter-jetty")
+  implementation("org.springframework.boot:spring-boot-starter-security")
   implementation(project(":lib:properties-spring"))
   implementation(libs.logback.classic)
 

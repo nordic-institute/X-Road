@@ -156,14 +156,14 @@ jobs:
           ./build-images.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: signer-int-test-jar
           path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload softtoken-signer-int-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: softtoken-signer-int-test-jar
           path: src/service/softtoken-signer/softtoken-signer-int-test/build/libs/softtoken-signer-int-test-1.0.jar
@@ -177,35 +177,35 @@ jobs:
           compression-level: '0'
 
       - name: Upload cs-admin-int-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cs-admin-int-test-jar
           path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-management-int-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cs-management-int-test-jar
           path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload ss-system-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ss-system-test-jar
           path: src/security-server/system-test/build/libs/security-server-system-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-system-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cs-system-test-jar
           path: src/central-server/admin-service/ui-system-test/build/libs/central-server-system-test-1.0.jar
           compression-level: '0'
 
       - name: Upload e2e-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: e2e-test-jar
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar

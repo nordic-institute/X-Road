@@ -29,13 +29,11 @@ dependencyResolutionManagement {
 include("arch-rules")
 
 include("common")
-include("common:common-acme")
 include("common:common-admin-api")
 include("common:common-api-throttling")
 include("common:common-db")
 include("common:common-db-identifiers")
 include("common:common-domain")
-include("common:common-mail")
 include("common:common-management-request")
 include("common:common-management-service")
 include("common:common-core")

@@ -8,3 +8,8 @@ variable "security_server_namespace" {
   type = string
   default = "ss"
 }
+
+variable "monitoring_namespace" {
+  type    = string
+  default = "ss-monitoring"
+}

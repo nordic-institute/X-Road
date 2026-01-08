@@ -64,6 +64,14 @@ public class CsSystemTestContainerSetup extends BaseComposeSetup {
         initSelenideRemoteWebDriver();
     }
 
+    @Override
+    public void destroy() {
+        // copy log files from CS container
+        copyXRoadLogsFromContainer(CS, "cs");
+
+        super.destroy();
+    }
+
     @UtilityClass
     public final class Port {
         public static final int UI = 4000;

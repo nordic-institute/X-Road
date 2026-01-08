@@ -26,7 +26,8 @@
 package org.niis.xroad.proxy.core.protocol;
 
 import ee.ria.xroad.common.message.AttachmentStream;
-import ee.ria.xroad.common.util.CachingStream;
+
+import org.niis.xroad.proxy.core.util.CachingStream;
 
 import java.io.InputStream;
 import java.util.Map;

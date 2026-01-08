@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.globalconf.monitoringconf;
 
-import ee.ria.xroad.common.conf.AbstractXmlConf;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.model.AbstractXmlConf;
 import org.niis.xroad.globalconf.schema.monitoringparameters.MonitoringClientType;
 import org.niis.xroad.globalconf.schema.monitoringparameters.MonitoringParametersType;
 import org.niis.xroad.globalconf.schema.monitoringparameters.ObjectFactory;

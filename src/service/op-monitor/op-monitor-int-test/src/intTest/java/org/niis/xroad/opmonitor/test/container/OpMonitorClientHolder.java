@@ -27,8 +27,6 @@
 
 package org.niis.xroad.opmonitor.test.container;
 
-import ee.ria.xroad.common.PortNumbers;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -57,14 +55,17 @@ public class OpMonitorClientHolder {
     public OpMonitorClient initializeOpMonitorClient() {
         var properties = new OpMonitorRpcChannelProperties() {
 
+
             @Override
             public String host() {
-                return opMonitorIntTestSetup.getContainerMapping(OP_MONITOR, PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT).host();
+                return opMonitorIntTestSetup.getContainerMapping(OP_MONITOR,
+                        Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT)).host();
             }
 
             @Override
             public int port() {
-                return opMonitorIntTestSetup.getContainerMapping(OP_MONITOR, PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT).port();
+                return opMonitorIntTestSetup.getContainerMapping(OP_MONITOR,
+                        Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT)).port();
             }
 
             @Override

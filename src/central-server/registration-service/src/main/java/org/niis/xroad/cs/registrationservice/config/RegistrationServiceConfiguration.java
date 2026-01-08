@@ -28,7 +28,6 @@ package org.niis.xroad.cs.registrationservice.config;
 
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
-import org.niis.xroad.common.managementservice.ManagementServiceMvcConfig;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientConfiguration;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -43,7 +42,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         AdminServiceClientConfiguration.class,
         SpringGlobalConfConfig.class,
         SpringOcspVerifierConfig.class,
-        ManagementServiceMvcConfig.class,
         VaultPoweredTlsConfiguration.class
 })
 @Configuration

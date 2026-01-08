@@ -29,6 +29,7 @@ package org.niis.xroad.signer.test;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Service;
@@ -39,13 +40,13 @@ import java.io.File;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @Service
 public class SignerIntTestContainerSetup extends BaseComposeSetup {
     private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
+    private static final int SIGNER_GRPC_PORT = Integer.parseInt(SignerRpcChannelProperties.DEFAULT_PORT);
 
     public static final String SIGNER = "signer";
     public static final String SIGNER_SECONDARY = "signer-secondary";

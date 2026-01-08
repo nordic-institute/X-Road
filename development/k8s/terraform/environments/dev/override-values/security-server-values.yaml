@@ -119,3 +119,6 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: backup-manager-openbao-tls-certificate
+
+jvmMetrics:
+  enabled: true
