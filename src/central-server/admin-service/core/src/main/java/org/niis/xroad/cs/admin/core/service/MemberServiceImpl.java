@@ -108,8 +108,7 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NotFoundException(
                         MEMBER_CLASS_NOT_FOUND.build(
                                 "code",
-                                request.getMemberClass()
-                        )));
+                                request.getMemberClass())));
 
         var memberIdEntity = memberIds.findOrCreate(MemberIdEntity.ensure(request.getClientId()));
 
@@ -158,12 +157,19 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public List<SecurityServer> getMemberClientOfServers(ClientId memberId) {
 
-        return xRoadMemberRepository.findOneBy(memberId).stream()
-                .map(SecurityServerClientEntity::getServerClients)
-                .flatMap(Collection::stream)
-                .map(ServerClientEntity::getSecurityServer)
-                .map(securityServerMapper::toTarget)
-                .collect(toList());
+        return xRoadMemberRepository.findOneBy(memberId).map(member -> {
+            var memberServers = member.getServerClients().stream();
+            var subsystemServers = member.getSubsystems().stream()
+                    .map(SecurityServerClientEntity::getServerClients)
+                    .flatMap(Collection::stream);
+
+            return java.util.stream.Stream.concat(memberServers, subsystemServers)
+                    .map(ServerClientEntity::getSecurityServer)
+                    .distinct()
+                    .map(securityServerMapper::toTarget)
+                    .collect(toList());
+        })
+                .orElse(List.of());
     }
 
     @Override
