@@ -503,6 +503,7 @@
     "invalid_init_params": "Invalid initialisation parameters",
     "invalid_instance_identifier": "Invalid instance identifier",
     "invalid_member_class": "Invalid member class",
+    "invalid_pem_csr": "Invalid PEM CSR",
     "invalid_service_client_id": "Invalid service client ID",
     "invalid_service_url": "Invalid service url",
     "invalid_wsdl": "Invalid WSDL",
