@@ -57,6 +57,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
@@ -163,13 +164,13 @@ public class MemberServiceImpl implements MemberService {
                     .map(SecurityServerClientEntity::getServerClients)
                     .flatMap(Collection::stream);
 
-            return java.util.stream.Stream.concat(memberServers, subsystemServers)
+            return Stream.concat(memberServers, subsystemServers)
                     .map(ServerClientEntity::getSecurityServer)
                     .distinct()
                     .map(securityServerMapper::toTarget)
-                    .collect(toList());
+                    .toList();
         })
-                .orElse(List.of());
+                .orElseGet(List::of);
     }
 
     @Override
