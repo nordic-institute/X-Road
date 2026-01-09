@@ -52,6 +52,8 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapperImpl;
@@ -135,7 +137,8 @@ class MemberServiceImplTest {
             when(memberClassRepository.findByCode(MEMBER_CLASS))
                     .thenReturn(Optional.of(new MemberClassEntity(MEMBER_CLASS, "")));
 
-            SecurityServerClient result = memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
+            SecurityServerClient result = memberService
+                    .add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 
             assertEquals("MEMBER", result.getIdentifier().getMemberCode());
 
@@ -157,7 +160,8 @@ class MemberServiceImplTest {
 
             String clientIdentifier = memberId.toShortString();
 
-            Executable testable = () -> memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
+            Executable testable = () -> memberService
+                    .add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 
             ConflictException exception = assertThrows(ConflictException.class, testable);
             assertEquals(MEMBER_EXISTS.code(), exception.getErrorDeviation().code());
@@ -263,7 +267,8 @@ class MemberServiceImplTest {
 
         @Test
         void shouldReturnMemberGlobalGroups() {
-            final GlobalGroupMemberEntity memberGroup = new GlobalGroupMemberEntity(new GlobalGroupEntity("groupCode"), clientId);
+            final GlobalGroupMemberEntity memberGroup = new GlobalGroupMemberEntity(new GlobalGroupEntity("groupCode"),
+                    clientId);
             doReturn(List.of(memberGroup)).when(globalGroupMemberRepository).findMemberGroups(clientId);
 
             final List<GlobalGroupMember> result = memberService.getMemberGlobalGroups(clientId);
@@ -295,14 +300,13 @@ class MemberServiceImplTest {
 
             final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
-
             verify(xRoadMemberRepository).findMember(clientId);
             verify(xRoadMember).getOwnedServers();
 
             assertEquals(securityServersMock.size(), result.size());
 
             Assertions.assertThat(result.stream()
-                            .map(SecurityServer::getServerCode).collect(toList()))
+                    .map(SecurityServer::getServerCode).collect(toList()))
                     .hasSameElementsAs(List.of("SS0", "SS1"));
         }
 
@@ -314,6 +318,51 @@ class MemberServiceImplTest {
 
             verify(xRoadMemberRepository).findMember(clientId);
             assertTrue(CollectionUtils.isEmpty(result));
+        }
+    }
+
+    @Nested
+    @DisplayName("getMemberClientOfServers(ClientId memberId)")
+    class GetMemberClientOfServers {
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
+
+        @Mock
+        private XRoadMemberEntity xRoadMember;
+
+        @Test
+        void shouldReturnMemberAndSubsystemUsedServers() {
+            // Setup servers
+            var ss1 = new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS1");
+            var ss2 = new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS2");
+            var ss3 = new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS3"); // Shared server
+            var ss4 = new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS4");
+
+            // Setup member clients
+            var memberClient1 = new ServerClientEntity(ss1, xRoadMember);
+            var memberClient2 = new ServerClientEntity(ss3, xRoadMember);
+            doReturn(Set.of(memberClient1, memberClient2)).when(xRoadMember).getServerClients();
+
+            // Setup subsystem clients
+            var subsystem = mock(SubsystemEntity.class);
+            var subClient1 = new ServerClientEntity(ss3, subsystem); // Duplicate (ss3)
+            var subClient2 = new ServerClientEntity(ss4, subsystem);
+            doReturn(Set.of(subClient1, subClient2)).when(subsystem).getServerClients();
+            doReturn(Set.of(subsystem)).when(xRoadMember).getSubsystems();
+
+            // Repository mock
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findOneBy(clientId);
+
+            // Mapper mocks
+            when(securityServerMapper.toTarget(ss1)).thenReturn(new SecurityServer(null, "SS1"));
+            when(securityServerMapper.toTarget(ss3)).thenReturn(new SecurityServer(null, "SS3"));
+            when(securityServerMapper.toTarget(ss4)).thenReturn(new SecurityServer(null, "SS4"));
+
+            final List<SecurityServer> result = memberService.getMemberClientOfServers(clientId);
+
+            assertEquals(3, result.size());
+            Assertions.assertThat(result.stream()
+                    .map(SecurityServer::getServerCode).collect(toList()))
+                    .containsExactlyInAnyOrder("SS1", "SS3", "SS4");
         }
     }
 }
