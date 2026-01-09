@@ -472,6 +472,7 @@
     "invalid_init_params": "Parâmetros de inicialização inválidos",
     "invalid_instance_identifier": "Identificador de instância inválido",
     "invalid_member_class": "Classe de membro inválida",
+    "invalid_pem_csr": "CSR PEM inválido",
     "invalid_service_client_id": "ID de cliente de serviço inválido",
     "invalid_service_url": "URL de serviço inválida",
     "invalid_wsdl": "WSDL inválido",

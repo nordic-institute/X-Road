@@ -472,6 +472,7 @@
     "invalid_init_params": "Kehtetud lähtestamisparameetrid",
     "invalid_instance_identifier": "Kehtetu juhtumi identifikaator",
     "invalid_member_class": "Kehtetu liikmeklass",
+    "invalid_pem_csr": "Kehtetu PEM CSR",
     "invalid_service_client_id": "Kehtetu teenuse kliendi ID",
     "invalid_service_url": "Kehtetu teenuse URL",
     "invalid_wsdl": "Kehtetu WSDL",
