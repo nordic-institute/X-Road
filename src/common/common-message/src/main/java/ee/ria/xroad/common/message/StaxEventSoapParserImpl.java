@@ -173,12 +173,17 @@ public class StaxEventSoapParserImpl implements SoapParser {
         // noop
     }
 
-    protected void afterDocument() throws XMLStreamException {
-        // noop
+    protected byte[] postProcessXml(byte[] rawXml, String charset) throws XMLStreamException {
+        return rawXml;
     }
 
-    protected InputStream prepareInputStream(InputStream rawInputStream, OutputStream rawOutputStream) throws XMLStreamException {
-        return new TeeInputStream(rawInputStream, rawOutputStream);
+    private Result process(InputStream is, String contentType, String charset) throws IOException, XMLStreamException {
+        try (var rawXml = new ByteArrayOutputStream();
+             var proxyStream = excludeUtf8Bom(contentType, proxyToOutputStream(is, rawXml));
+             var reader = new EventReaderWrapper(INPUT_FACTORY.createXMLEventReader(proxyStream, charset))) {
+
+            return new Result(parseXml(reader), rawXml.toByteArray());
+        }
     }
 
     private Soap parseMessage(InputStream is, String contentType, String charset)
@@ -186,30 +191,29 @@ public class StaxEventSoapParserImpl implements SoapParser {
         log.trace("parseMessage({}, {})", contentType, charset);
 
         // Parse using StAX XMLEventReader
-        try (var rawXml = new ByteArrayOutputStream();
-             var proxyStream = excludeUtf8Bom(contentType, prepareInputStream(is, rawXml));
-             var reader = new EventReaderWrapper(INPUT_FACTORY.createXMLEventReader(proxyStream, charset))) {
+        try {
 
-            ParseResult result = parseXml(reader);
+            var result = process(is, contentType, charset);
 
-            if (result.fault != null) {
+            var processedXmlBytes = postProcessXml(result.xmlBytes(), charset);
+
+            if (result.result.fault != null) {
                 return new SoapFault(
-                        result.fault.faultCode,
-                        result.fault.faultString,
-                        result.fault.faultActor,
-                        result.fault.faultDetail,
-                        rawXml.toByteArray(),
+                        result.result.fault.faultCode,
+                        result.result.fault.faultString,
+                        result.result.fault.faultActor,
+                        result.result.fault.faultDetail,
+                        processedXmlBytes,
                         charset);
             }
-            afterDocument();
 
             return new SoapMessageImpl(
-                    rawXml.toByteArray(),
+                    processedXmlBytes,
                     charset,
-                    result.header,
+                    result.result.header,
                     null,
-                    result.serviceName,
-                    result.isRpc,
+                    result.result.serviceName,
+                    result.result.isRpc,
                     contentType);
         } catch (XMLStreamException e) {
             throw new SOAPException(e);
@@ -655,6 +659,10 @@ public class StaxEventSoapParserImpl implements SoapParser {
         }
     }
 
+    protected InputStream proxyToOutputStream(InputStream rawInputStream, OutputStream rawOutputStream) throws XMLStreamException {
+        return new TeeInputStream(rawInputStream, rawOutputStream);
+    }
+
     private InputStream excludeUtf8Bom(String contentType, InputStream soapStream) throws IOException {
         return hasUtf8Charset(contentType) ? BOMInputStream.builder().setInputStream(soapStream).get() : soapStream;
     }
@@ -699,6 +707,9 @@ public class StaxEventSoapParserImpl implements SoapParser {
         public void close() throws XMLStreamException {
             reader.close();
         }
+    }
+
+    record Result(ParseResult result, byte[] xmlBytes) {
     }
 }
 

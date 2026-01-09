@@ -36,7 +36,6 @@ import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -45,11 +44,9 @@ import ee.ria.xroad.common.util.TimeUtils;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -77,17 +74,9 @@ import org.niis.xroad.serverconf.model.DescriptionType;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -101,7 +90,6 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
@@ -466,7 +454,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
 
         try (SoapMessageHandler messageHandler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(handler.getResponseContentType(),
-                    messageHandler, new ResponseStaxSoapParserImpl());
+                    messageHandler, new ResponseStaxSoapParserImpl(requestMessage));
             soapMessageDecoder.parse(handler.getResponseContent());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
@@ -657,105 +645,6 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         @Override
         public void close() {
             // Do nothing.
-        }
-    }
-
-    @RequiredArgsConstructor
-    private final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
-
-        private static final XMLOutputFactory OUTPUT_FACTORY = XMLOutputFactory.newFactory();
-        private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newFactory();
-
-        static {
-            final var useDoubleQuotes = "com.ctc.wstx.useDoubleQuotesInXmlDecl";
-            if (OUTPUT_FACTORY.isPropertySupported(useDoubleQuotes)) {
-                OUTPUT_FACTORY.setProperty(useDoubleQuotes, true);
-            }
-        }
-
-        private XMLEventWriter writer;
-        private boolean inHeader;
-        private boolean inRequestHash = false;
-        private String headerWhiteSpace = "";
-
-        @Override
-        protected InputStream prepareInputStream(InputStream rawInputStream, OutputStream rawOutputStream) throws XMLStreamException {
-            writer = OUTPUT_FACTORY.createXMLEventWriter(rawOutputStream);
-            return rawInputStream;
-        }
-
-        @Override
-        protected void afterDocument() throws XMLStreamException {
-            writer.flush();
-            writer.close();
-        }
-
-        @Override
-        protected void onNextEvent(XMLEvent currentEvent, XMLEvent previousEvent) throws XMLStreamException {
-            if (previousEvent != null && previousEvent.isStartDocument() && !currentEvent.isCharacters()) {
-                //at least in some cases white space characters event is missing after start document <?xml ...?>
-                writer.add(EVENT_FACTORY.createCharacters("\n"));
-            }
-
-            if (currentEvent.isStartElement()) {
-                handleStartTag(currentEvent.asStartElement(), previousEvent);
-            }
-
-            if (!inRequestHash) {
-                writer.add(currentEvent);
-            }
-
-            if (currentEvent.isEndElement()) {
-                handleEndTag(currentEvent.asEndElement());
-            }
-        }
-
-        private void handleStartTag(StartElement startElement, XMLEvent previousEvent) {
-            if (QNAME_SOAP_HEADER.equals(startElement.getName())) {
-                inHeader = true;
-            } else if (inHeader && QNAME_XROAD_QUERY_ID.equals(startElement.getName())) {
-                var data = previousEvent.isCharacters() ? previousEvent.asCharacters().getData() : "";
-                headerWhiteSpace = StringUtils.isWhitespace(data) ? data : "";
-            } else if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(startElement.getName())) {
-                inRequestHash = true;
-            }
-        }
-
-        private void handleEndTag(EndElement endElement) {
-            if (QNAME_SOAP_HEADER.equals(endElement.getName())) {
-                inHeader = false;
-            } else if (inHeader && QNAME_XROAD_QUERY_ID.equals(endElement.getName())) {
-                addRequestHash(endElement.getName().getPrefix());
-            } else if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(endElement.getName())) {
-                inRequestHash = false;
-            }
-        }
-
-        private void addRequestHash(String prefix) {
-            try {
-                byte[] hashBytes = requestMessage.getSoap().getHash();
-                String hash = encodeBase64(hashBytes);
-
-                DigestAlgorithm algoUri = SoapUtils.getHashAlgoId();
-
-                if (!headerWhiteSpace.isEmpty()) {
-                    writer.add(EVENT_FACTORY.createCharacters(headerWhiteSpace));
-                }
-
-                writer.add(EVENT_FACTORY.createStartElement(
-                        prefix,
-                        QNAME_XROAD_REQUEST_HASH.getNamespaceURI(),
-                        QNAME_XROAD_REQUEST_HASH.getLocalPart()));
-                writer.add(EVENT_FACTORY.createAttribute(ATTR_ALGORITHM_ID, algoUri.uri()));
-                writer.add(EVENT_FACTORY.createCharacters(hash));
-                writer.add(EVENT_FACTORY.createEndElement(
-                        prefix,
-                        QNAME_XROAD_REQUEST_HASH.getNamespaceURI(),
-                        QNAME_XROAD_REQUEST_HASH.getLocalPart()));
-
-            } catch (Exception e) {
-                throw translateException(e);
-            }
         }
     }
 }
