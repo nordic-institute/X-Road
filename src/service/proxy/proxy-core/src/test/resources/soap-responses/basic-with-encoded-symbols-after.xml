@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>testQuery</id:serviceCode>
+        </xroad:service>
+        <xroad:userId>user-id-1-&amp;-eu</xroad:userId>
+        <xroad:id>1234567890</xroad:id>
+        <xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">aGFzaA==</xroad:requestHash>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:testQueryResponse xmlns:ns1="http://cosumer.ee.xroad.net">
+            <quetes>"Hello"</quetes>
+            <appostroves>'Hello'</appostroves>
+            <gt>>Hello></gt>
+            <entity-reference in-attribute="&amp;value">&quot;Hello&quot; &amp; Good Bye</entity-reference>
+            <character-reference in-attribute="&#39;&#62;value">&#39;&#62;Hello &#39;&#62; Good Bye &#39;&#62;</character-reference>
+        </ns1:testQueryResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
