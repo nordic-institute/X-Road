@@ -30,6 +30,8 @@ import ee.ria.xroad.common.util.MimeTypes;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,50 +41,42 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ResponseStaxSoapParserImplTest {
 
+    private static final String HASH_ELEM_START = "<xroad:requestHash ";
+    private static final String HASH_ELEM_END = "</xroad:requestHash>";
+    private static final String ID_ELEM_START = "<xroad:id>";
+    private static final String ID_ELEM_END = "</xroad:id>";
+
+    private static final String HASH_ELEM = """
+            <xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">aGFzaA==</xroad:requestHash>
+            """.trim();
+
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ProxyMessage request;
 
 
-    @Test
-    public void basicAddHash() throws IOException {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "basic",
+            "basic-no-formating",
+            "basic-with-bom",
+            "basic-with-random-hash",
+            "basic-with-random2-hash",
+            "basic-with-encoded-symbols"
+    })
+    public void basicCases(String file) throws IOException {
         when(request.getSoap().getHash()).thenReturn("hash".getBytes(StandardCharsets.UTF_8));
+        var xml = asString(file);
 
-        var result = new ResponseStaxSoapParserImpl(request).parse(MimeTypes.TEXT_XML_UTF8, asInputStream("basic"));
+        var result = new ResponseStaxSoapParserImpl(request).parse(MimeTypes.TEXT_XML_UTF8, toInputStream(xml, "utf-8"));
 
-        assertEquals(asString("basic-with-hash"), result.getXml());
-    }
-
-    @Test
-    public void basicAddHashWithBom() throws IOException {
-        when(request.getSoap().getHash()).thenReturn("hash".getBytes(StandardCharsets.UTF_8));
-
-        var result = new ResponseStaxSoapParserImpl(request).parse(MimeTypes.TEXT_XML_UTF8, asInputStream("basic-with-bom"));
-
-        assertEquals(asString("basic-with-hash"), result.getXml());
-    }
-
-    @Test
-    public void basicReplaceHash() throws IOException {
-        when(request.getSoap().getHash()).thenReturn("hash".getBytes(StandardCharsets.UTF_8));
-
-        var result = new ResponseStaxSoapParserImpl(request).parse(MimeTypes.TEXT_XML_UTF8, asInputStream("basic-with-random-hash"));
-
-        assertEquals(asString("basic-with-hash"), result.getXml());
-    }
-
-    @Test
-    public void basicReplaceHashInDifferentPlace() throws IOException {
-        when(request.getSoap().getHash()).thenReturn("hash".getBytes(StandardCharsets.UTF_8));
-
-        var result = new ResponseStaxSoapParserImpl(request).parse(MimeTypes.TEXT_XML_UTF8, asInputStream("basic-with-random2-hash"));
-
-        assertEquals(asString("basic-with-hash"), result.getXml());
+        assertEquals(addHash(xml), result.getXml());
     }
 
     @Test
@@ -92,22 +86,40 @@ public class ResponseStaxSoapParserImplTest {
         assertEquals(asString("fault-missing-query-id"), result.getXml());
     }
 
-
-    @Test
-    public void basicMWithEncodedChars() throws IOException {
-        when(request.getSoap().getHash()).thenReturn("hash".getBytes(StandardCharsets.UTF_8));
-
-        var result = new ResponseStaxSoapParserImpl(request).parse(MimeTypes.TEXT_XML_UTF8, asInputStream("basic-with-encoded-symbols"));
-
-        assertEquals(asString("basic-with-encoded-symbols-after"), result.getXml());
-    }
-
-
     private static InputStream asInputStream(String name) {
         return ResponseStaxSoapParserImplTest.class.getResourceAsStream("/soap-responses/%s.xml".formatted(name));
     }
 
     private static String asString(String name) throws IOException {
         return IOUtils.resourceToString("/soap-responses/%s.xml".formatted(name), StandardCharsets.UTF_8);
+    }
+
+    private static String addHash(String xml) {
+        var builder = new StringBuilder(xml);
+        if (builder.charAt(0) == '\ufeff') {
+            builder.deleteCharAt(0);
+        }
+        var hStart = builder.indexOf(HASH_ELEM_START);
+        if (hStart > 0) {
+            var hEnd = builder.indexOf(HASH_ELEM_END) + HASH_ELEM_END.length();
+            builder.replace(hStart, hEnd, "");
+            var whiteIdx = hStart - 1;
+            while (Character.isWhitespace(builder.charAt(whiteIdx))) {
+                builder.deleteCharAt(whiteIdx);
+                whiteIdx--;
+            }
+        }
+        var iStart = builder.indexOf(ID_ELEM_START);
+        if (iStart > 0) {
+            var iEnd = builder.indexOf(ID_ELEM_END) + ID_ELEM_END.length();
+            var whiteIdx = iStart - 1;
+            var indent = new StringBuilder();
+            while (Character.isWhitespace(builder.charAt(whiteIdx))) {
+                indent.append(builder.charAt(whiteIdx));
+                whiteIdx--;
+            }
+            builder.insert(iEnd, indent.reverse() + HASH_ELEM);
+        }
+        return builder.toString();
     }
 }
