@@ -101,9 +101,9 @@
     - ss
     - hwtokens
   vars:
-    hwtokens_label: "x-road-softhsm2"
-    hwtokens_so_pin: "1234"
-    hwtokens_user_pin: "Secret1234"
+    hwtoken_label: "x-road-softhsm2"
+    hwtoken_so_pin: "1234"
+    hwtoken_user_pin: "Secret1234"
   vars_files:
     - vars_files/local_repo.yml
   tasks:
@@ -119,12 +119,28 @@
   strategy: free
   roles:
     - xroad-ss
+    - xroad-autologin
+  vars:
+    xroad_autologin_pin: "Secret1234"
+    hwtoken_id: "31"
+    hwtoken_user_pin: "Secret1234"
   tags:
     - ss
     - install
   vars_files:
     - vars_files/local_repo.yml
     - vars_files/ss_database.yml
+  tasks:
+    - name: Ensure xroad-autologin installed
+      ansible.builtin.package:
+        name: xroad-autologin
+        state: present
+
+    - name: Enable and start autologin service
+      ansible.builtin.service:
+        name: xroad-autologin
+        enabled: yes
+        state: started
 
 - name: Install IS servers
   hosts: is_servers
