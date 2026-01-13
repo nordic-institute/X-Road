@@ -31,10 +31,8 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MultiPartOutputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerRpcClient.MemberSigningInfoDto;
@@ -94,7 +92,7 @@ abstract class GenericClientRequest implements ManagementRequest {
     }
 
     @Override
-    public InputStream getRequestContent() throws IOException, OperatorCreationException {
+    public InputStream getRequestContent() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart = new MultiPartOutputStream(out);
 
@@ -114,7 +112,7 @@ abstract class GenericClientRequest implements ManagementRequest {
         multipart.write(clientCert.getOcspBytes());
     }
 
-    private void writeSignature() throws IOException, OperatorCreationException {
+    private void writeSignature() throws IOException {
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
         var clientSignAlgoId = SignAlgorithm.ofDigestAndMechanism(signatureDigestAlgorithm,

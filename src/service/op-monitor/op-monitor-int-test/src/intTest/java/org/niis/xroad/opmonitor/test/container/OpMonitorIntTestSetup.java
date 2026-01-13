@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.opmonitor.test.container;
 
+import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.context.annotation.Primary;
@@ -34,8 +35,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.time.Duration;
-
-import static ee.ria.xroad.common.PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT;
 
 @Primary
 @Service
@@ -57,7 +56,7 @@ public class OpMonitorIntTestSetup extends BaseComposeSetup {
         return new ComposeContainer("op-monitor-",
                 new File(coreProperties.resourceDir() + COMPOSE_FILE))
                 .withExposedService(OP_MONITOR,
-                        OP_MONITOR_DAEMON_GRPC_PORT,
+                        Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT),
                         Wait.forHealthcheck().withStartupTimeout(OP_MONITOR_STARTUP_TIMEOUT))
                 .withExposedService(DB_OP_MONITOR, DB_OP_MONITOR_PORT, Wait.forListeningPort())
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))

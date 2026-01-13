@@ -31,7 +31,7 @@ protobufPlugin = "0.9.5"
 checkstyle = "11.0.1"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
-quarkus = "3.30.2"
+quarkus = "3.30.4"
 quarkus-vault = "4.4.0"
 quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.14.1"
@@ -39,9 +39,10 @@ microprofile = "3.1"
 feign = "13.6"
 testCucumber = "7.32.0"
 testContainers = "2.0.2"
-testAllure="2.31.0"
-testSelenide="7.12.3"
+testAllure = "2.31.0"
+testSelenide = "7.12.3"
 shadowPlugin = "8.3.9"
+edc = "0.16.0-SNAPSHOT"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -131,9 +132,9 @@ test-allure-junitPlatform = { module = "io.qameta.allure:allure-junit-platform",
 test-allure-commandline = { module = "io.qameta.allure:allure-commandline", version.ref = "testAllure" }
 test-restassured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 
-cucumber-java = { module = "io.cucumber:cucumber-java", version.ref= "testCucumber" }
-cucumber-spring = { module = "io.cucumber:cucumber-spring", version.ref= "testCucumber" }
-cucumber-junit = { module = "io.cucumber:cucumber-junit-platform-engine", version.ref= "testCucumber" }
+cucumber-java = { module = "io.cucumber:cucumber-java", version.ref = "testCucumber" }
+cucumber-spring = { module = "io.cucumber:cucumber-spring", version.ref = "testCucumber" }
+cucumber-junit = { module = "io.cucumber:cucumber-junit-platform-engine", version.ref = "testCucumber" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 mockserver-client = { module = "org.mock-server:mockserver-client-java", version = "5.15.0" }
 
@@ -210,7 +211,7 @@ hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
 hikariCP = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
 saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" }
-quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
+quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.2" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
 semver4j = { module = "org.semver4j:semver4j", version = "6.0.0" }
@@ -220,6 +221,64 @@ cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.20.1" }
+
+# EDC Core modules
+edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
+edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc" }
+
+edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
+edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
+edc-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
+edc-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
+edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
+
+edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
+edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
+edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
+
+# EDC SPI modules
+edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
+edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
+edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
+edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
+edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
+edc-spi-transaction-datasource = { module = "org.eclipse.edc:transaction-datasource-spi", version.ref = "edc" }
+edc-spi-protocol = { module = "org.eclipse.edc:protocol-spi", version.ref = "edc" }
+edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
+edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
+edc-spi-transfer = { module = "org.eclipse.edc:transfer-spi", version.ref = "edc" }
+edc-spi-policy = { module = "org.eclipse.edc:policy-spi", version.ref = "edc" }
+edc-spi-policy-context = { module = "org.eclipse.edc:request-policy-context-spi", version.ref = "edc" }
+edc-spi-policy-monitor = { module = "org.eclipse.edc:policy-monitor-spi", version.ref = "edc" }
+edc-spi-policy-engine = { module = "org.eclipse.edc:policy-engine-spi", version.ref = "edc" }
+edc-spi-participant = { module = "org.eclipse.edc:participant-spi", version.ref = "edc" }
+edc-spi-verifiablecredentials = { module = "org.eclipse.edc:verifiable-credentials-spi", version.ref = "edc" }
+edc-spi-jsonld = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
+edc-spi-dsp = { module = "org.eclipse.edc:dsp-spi", version.ref = "edc" }
+edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
+edc-spi-dsp-http = { module = "org.eclipse.edc:dsp-http-spi", version.ref = "edc" }
+edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
+edc-spi-dataplane = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
+edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi", version.ref = "edc" }
+edc-spi-validator = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
+edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
+edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
+edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
+edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
+
+# EDC Lib modules
+edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
+edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
+
+# EDC DCP modules
+edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
+edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
+edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
+edc-iam-dcp-trustedissuers = { module = "org.eclipse.edc:decentralized-claims-issuers-configuration", version.ref = "edc" }
+
+# BOM modules
+edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
+edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
@@ -232,6 +291,22 @@ shadowGradlePlugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", vers
 [bundles]
 metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
+
+edc-dcp = [
+  "edc-crypto-verifiablecredentials-jwt",
+  "edc-crypto-verifiablecredentials-ldp",
+  "edc-iam-dcp-core",
+  "edc-oauth2-client",
+  "edc-iam-decentralized",
+  "edc-iam-dcp-trustedissuers",
+]
+edc-connector = [
+  "edc-boot",
+  "edc-core-connector",
+  "edc-http",
+  "edc-jsonld",
+  "edc-api-observability"
+]
 
 quarkus-core = [
   "quarkus-arc",

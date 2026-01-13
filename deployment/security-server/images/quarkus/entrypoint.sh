@@ -22,4 +22,5 @@ exec java \
   -Djava.library.path=/usr/share/xroad/lib \
   -Dquarkus.profile=containerized \
   $DEBUG_OPTS \
+  $JAVA_OPTS \
   -jar /opt/app/quarkus-run.jar

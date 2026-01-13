@@ -19,6 +19,9 @@ dependencyResolutionManagement {
   repositories {
     mavenCentral()
     mavenLocal()
+    maven {
+      url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+    }
   }
 }
 
@@ -26,13 +29,11 @@ dependencyResolutionManagement {
 include("arch-rules")
 
 include("common")
-include("common:common-acme")
 include("common:common-admin-api")
 include("common:common-api-throttling")
 include("common:common-db")
 include("common:common-db-identifiers")
 include("common:common-domain")
-include("common:common-mail")
 include("common:common-management-request")
 include("common:common-management-service")
 include("common:common-core")
@@ -44,6 +45,7 @@ include("common:common-pgp")
 // Lib projects
 include("lib")
 include("lib:asic-core")
+include("lib:bootstrap-edc-quarkus")
 include("lib:globalconf-impl")
 include("lib:globalconf-core")
 include("lib:globalconf-spring")
@@ -106,6 +108,12 @@ include("service:signer:signer-cli")
 include("service:signer:signer-client")
 include("service:signer:signer-client-spring")
 include("service:signer:signer-int-test")
+
+include("service:ds-control-plane")
+include("service:ds-control-plane:ds-control-plane-application")
+include("service:ds-control-plane:ds-ext-sample")
+include("service:ds-data-plane")
+include("service:ds-data-plane:ds-data-plane-application")
 
 // Tool projects
 include("tool")

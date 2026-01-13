@@ -25,15 +25,14 @@
  */
 package org.niis.xroad.globalconf.impl.extension;
 
-import ee.ria.xroad.common.conf.AbstractXmlConf;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.FileSource;
 import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.RemoteGlobalConfSource;
+import org.niis.xroad.globalconf.model.AbstractXmlConf;
+import org.niis.xroad.globalconf.model.FileSource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.locks.ReentrantLock;

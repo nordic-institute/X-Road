@@ -34,7 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

@@ -25,18 +25,16 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.ReturnCodes;
-
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_ANCHOR_FILE_NOT_FOUND;
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_DATABASE_ERROR;
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_EXPIRED_CONF;
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_MALFORMED_ANCHOR;
-import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_UNKNOWN_HOST;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_ANCHOR_FILE_NOT_FOUND;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_DATABASE_ERROR;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_EXPIRED_CONF;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_MALFORMED_ANCHOR;
+import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_UNKNOWN_HOST;
 
 /**
  * Utilities for configuration client module

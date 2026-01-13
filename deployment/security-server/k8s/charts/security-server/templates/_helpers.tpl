@@ -29,6 +29,11 @@ metadata:
     app: xroad-{{ .service }}
 spec:
   ports:
+    {{- if .root.Values.jvmMetrics.enabled }}
+    - port: {{ .root.Values.jvmMetrics.jmxExporter.port }}
+      targetPort: {{ .root.Values.jvmMetrics.jmxExporter.port }}
+      name: jmx-metrics
+    {{- end }}
     {{- if kindIs "slice" .config.ports }}
     {{- range .config.ports }}
     - port: {{ .port }}
@@ -93,6 +98,10 @@ spec:
           securityContext:
             {{- toYaml .root.Values.securityContext.container | nindent 12 }}
           ports:
+            {{- if .root.Values.jvmMetrics.enabled }}
+            - containerPort: {{ .root.Values.jvmMetrics.jmxExporter.port }}
+              name: jmx-metrics
+            {{- end }}
             {{- if kindIs "slice" .config.ports }}
             {{- range .config.ports }}
             - containerPort: {{ .port }}
@@ -122,6 +131,12 @@ spec:
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
+            {{- if .root.Values.jvmMetrics.enabled }}
+            - mountPath: /opt/jmx-exporter-config.yaml
+              name: jmx-exporter-config
+              subPath: jmx-exporter-config.yaml
+              readOnly: true
+            {{- end}}
             {{- $skipMounts := .config.skipDefaultMounts | default list }}
             {{- range .root.Values.writablePaths }}
             {{- if not (has . $skipMounts) }}
@@ -149,6 +164,11 @@ spec:
       volumes:
         - name: tmp-volume
           emptyDir: {}
+        {{- if .root.Values.jvmMetrics.enabled }}
+        - name: jmx-exporter-config
+          configMap:
+            name: {{ $.root.Release.Name }}-jmx-exporter-config
+        {{- end }}
         {{- $skipMounts := .config.skipDefaultMounts | default list }}
         {{- range .root.Values.writablePaths }}
         {{- if not (has . $skipMounts) }}
