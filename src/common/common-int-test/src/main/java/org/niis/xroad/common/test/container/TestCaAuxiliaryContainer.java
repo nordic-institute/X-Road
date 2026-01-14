@@ -72,7 +72,7 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     @NotNull
     @Override
     @SneakyThrows
-    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
+    @SuppressWarnings({"checkstyle:SneakyThrowsCheck", "squid:S2095"})
     public TestCaContainer configure() {
         var logDirPath = Paths.get("build/ca-container-logs/");
         var logDir = logDirPath.toFile();
