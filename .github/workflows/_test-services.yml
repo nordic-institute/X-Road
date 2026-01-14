@@ -27,12 +27,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: start-measurement
           label: 'signer-int-test'
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
 
@@ -55,7 +55,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'signer-int-test setup'
@@ -71,7 +71,7 @@ jobs:
           show-docker-images: 'true'
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'signer-int-test'
@@ -97,7 +97,7 @@ jobs:
             test-framework-working-dir/test-automation-exec.log
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
           pr-comment: true
@@ -108,12 +108,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: start-measurement
           label: 'softtoken-signer-int-test'
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
 
@@ -136,7 +136,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'softtoken-signer-int-test setup'
@@ -152,7 +152,7 @@ jobs:
           show-docker-images: 'true'
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'softtoken-signer-int-test'
@@ -178,7 +178,7 @@ jobs:
             test-framework-working-dir/test-automation-exec.log
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
           pr-comment: true
@@ -189,12 +189,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: start-measurement
           label: 'opmonitor-int-test'
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
 
@@ -217,7 +217,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'opmonitor-int-test setup'
@@ -233,7 +233,7 @@ jobs:
           show-docker-images: 'true'
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'opmonitor-int-test'
@@ -259,7 +259,7 @@ jobs:
             test-framework-working-dir/test-automation-exec.log
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
           pr-comment: true
@@ -270,12 +270,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: start-measurement
           label: 'cs-admin-int-test'
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
 
@@ -298,7 +298,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'cs-admin-int-test setup'
@@ -307,7 +307,7 @@ jobs:
         run: java -jar central-server-admin-int-test-1.0.jar
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'cs-admin-int-test'
@@ -333,7 +333,7 @@ jobs:
             test-framework-working-dir/test-automation-exec.log
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
           pr-comment: true
@@ -344,12 +344,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: start-measurement
           label: 'cs-management-int-test'
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
 
@@ -372,7 +372,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'cs-management-int-test setup'
@@ -381,7 +381,7 @@ jobs:
         run: java -jar central-server-management-int-test-1.0.jar
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'cs-management-int-test'
@@ -407,7 +407,7 @@ jobs:
             test-framework-working-dir/test-automation-exec.log
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
           pr-comment: true
