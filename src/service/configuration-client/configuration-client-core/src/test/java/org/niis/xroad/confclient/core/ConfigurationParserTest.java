@@ -114,7 +114,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
-                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE));
     }
 
     /**
