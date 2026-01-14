@@ -56,7 +56,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version}), , xroad-ds-control-plane (=${binary:Version}), xroad-ds-data-plane (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
@@ -179,3 +179,13 @@ Breaks: xroad-proxy (<< 7.9.0)
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Description: X-Road backup manager
  X-Road backup manager
+
+Package: xroad-ds-control-plane
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
+Description: X-Road DS Control Plane
+
+Package: xroad-ds-data-plane
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
+Description: X-Road DS Data Plane

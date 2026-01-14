@@ -1,0 +1,4 @@
+../../../../src/xroad/common/ds-data-plane/etc/* etc/
+../../../../src/xroad/common/ds-data-plane/usr/* usr/
+../../../../../../src/service/ds-data-plane/ds-data-plane-application/build/quarkus-app/* usr/share/xroad/jlib/ds-data-plane/
+../../../../../../src/service/ds-data-plane/ds-data-plane-db/build/resources/main/liquibase/* /usr/share/xroad/db/

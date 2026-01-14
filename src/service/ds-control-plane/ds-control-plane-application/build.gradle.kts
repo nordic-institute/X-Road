@@ -7,9 +7,11 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
+  implementation(project(":service:ds-control-plane:ds-control-plane-db"))
+  implementation(project(":service:ds-control-plane:ds-ext-sample"))
+
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
-  implementation(project(":service:ds-control-plane:ds-ext-sample"))
 
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)

@@ -11,11 +11,26 @@ quarkus:
       "EDC":
         level: DEBUG
 
+"%native":
+  quarkus:
+    config:
+      locations:
+        - xroad-common.yaml
+        - xroad-logging.yaml
+        - /etc/xroad/conf.d/local-tls.yaml
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/db.properties
+    log:
+      console:
+        enabled: false
+      file:
+        enabled: true
+        path: /var/log/xroad/ds-data-plane.log
 
 web:
   http:
     protocol:
-      port: 8282
+      port: 8283
       path: /api/dsp
 
 edc:

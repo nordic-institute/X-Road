@@ -7,6 +7,8 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
+  implementation(project(":service:ds-data-plane:ds-data-plane-db"))
+
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
 

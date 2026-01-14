@@ -111,9 +111,11 @@ include("service:signer:signer-int-test")
 
 include("service:ds-control-plane")
 include("service:ds-control-plane:ds-control-plane-application")
+include("service:ds-control-plane:ds-control-plane-db")
 include("service:ds-control-plane:ds-ext-sample")
 include("service:ds-data-plane")
 include("service:ds-data-plane:ds-data-plane-application")
+include("service:ds-data-plane:ds-data-plane-db")
 
 // Tool projects
 include("tool")
