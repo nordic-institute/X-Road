@@ -1,0 +1,28 @@
+---
+- name: Update apt cache
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: Force reinstall selected packages [{{selected_modules}}]
+  become: yes
+  shell: |
+    apt-get install --reinstall -y {{ modules[item] }}
+  when: item in modules
+  with_items: "{{selected_modules.split(',')}}"
+  register: reinstall_result
+
+- name: Show reinstalled packages
+  debug:
+    msg: "Reinstalled package {{ modules[item] }} for module {{ item }}"
+  when: item in modules
+  with_items: "{{selected_modules.split(',')}}"
+
+- name: Restart services for reinstalled packages [{{selected_modules}}]
+  become: yes
+  service:
+    name: "xroad-{{ item }}"
+    state: restarted
+  when: item in modules
+  with_items: "{{selected_modules.split(',')}}"
+  ignore_errors: yes

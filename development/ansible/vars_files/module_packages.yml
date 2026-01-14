@@ -1,0 +1,26 @@
+---
+# Maps module names to their corresponding package names
+# Common modules available on all server types
+common_packages:
+  signer: xroad-signer
+  signer-console: xroad-signer
+
+# Central Server specific
+cs_packages:
+  cs-admin-service: xroad-center
+  cs-management-service: xroad-center-management-service
+  cs-registration-service: xroad-center-registration-service
+
+# Configuration Proxy specific
+cp_packages:
+  configuration-proxy: xroad-confproxy
+
+# Security Server specific
+ss_packages:
+  monitor: xroad-monitor
+  proxy: xroad-proxy
+  configuration-client: xroad-confclient
+  backup-manager: xroad-backup-manager
+  proxy-ui-api: xroad-proxy-ui-api
+  ds-control-plane: xroad-ds-control-plane
+  ds-data-plane: xroad-ds-data-plane

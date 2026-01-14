@@ -26,3 +26,13 @@ ss_modules:
     lib: proxy-ui-api-1.0.jar
     target: /usr/share/xroad/jlib
     service: xroad-proxy-ui-api
+  ds-control-plane:
+    dir: service/ds-control-plane/ds-control-plane-application
+    build: build
+    target: /usr/share/xroad/jlib/ds-control-plane
+    service: xroad-ds-control-plane
+  ds-data-plane:
+    dir: service/ds-control-plane/ds-data-plane-application
+    build: build
+    target: /usr/share/xroad/jlib/ds-data-plane
+    service: xroad-ds-data-plane
