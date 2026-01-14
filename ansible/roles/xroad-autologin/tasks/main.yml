@@ -1,6 +1,6 @@
 ---
 - name: autologin configuration
-  ansible.builtin.template:
+  template:
     src: "{{ 'xroad-autologin-hsm.j2' if 'ubuntu_hsm_ss' in group_names else 'xroad-autologin.j2' }}"
     dest: "/etc/xroad/autologin"
     owner: root

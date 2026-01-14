@@ -108,7 +108,7 @@
     - vars_files/local_repo.yml
   tasks:
     - name: Run ubuntu_hsm_ss hwtoken tasks
-      ansible.builtin.include_role:
+      include_role:
         name: xroad-ss
         tasks_from: hwtokens.yml
 
@@ -132,12 +132,12 @@
     - vars_files/ss_database.yml
   tasks:
     - name: Ensure xroad-autologin installed
-      ansible.builtin.package:
+      package:
         name: xroad-autologin
         state: present
 
     - name: Enable and start autologin service
-      ansible.builtin.service:
+      service:
         name: xroad-autologin
         enabled: yes
         state: started

@@ -26,12 +26,12 @@
         groups: softhsm
 
     - name: Read SoftHSM slots (before)
-      ansible.builtin.command: softhsm2-util --show-slots
+      command: softhsm2-util --show-slots
       register: softhsm_slots_before
       changed_when: false
 
     - name: Initialize SoftHSM token if label not present
-      ansible.builtin.command: >
+      command: >
         softhsm2-util --init-token
         --slot 0
         --label {{ hwtoken_label | quote }}
@@ -42,12 +42,12 @@
       changed_when: init_result.rc == 0
 
     - name: Read SoftHSM slots (after)
-      ansible.builtin.command: softhsm2-util --show-slots
+      command: softhsm2-util --show-slots
       register: softhsm_slots_after
       changed_when: false
 
     - name: Get slot id for token label
-      ansible.builtin.shell: |
+      shell: |
         softhsm2-util --show-slots | awk '
           /^Slot[[:space:]]+/ { slot=$2 }
           /Label:[[:space:]]*{{ hwtoken_label | regex_escape }}/ { print slot; exit }'
@@ -57,25 +57,25 @@
       changed_when: false
 
     - name: Set slot id fact
-      ansible.builtin.set_fact:
+      set_fact:
         softhsm2_slot_id: "{{ slot_id_cmd.stdout | trim }}"
 
     - name: Fail if slot id not found for token label
-      ansible.builtin.fail:
+      fail:
         msg: "Could not determine slot id for SoftHSM token label '{{ hwtoken_label }}'. Output was: {{ softhsm_slots_after.stdout }}"
       when: softhsm2_slot_id == ""
 
     - name: Ensure devices.ini exists
-      ansible.builtin.file:
-        path: /etc/xroad/devices.ini
+      file:
+        path: "/etc/xroad/devices.ini"
         state: touch
         owner: root
         group: root
         mode: "0644"
 
     - name: Configure SoftHSM as a hardware token in X-Road devices.ini
-      ansible.builtin.blockinfile:
-        path: /etc/xroad/devices.ini
+      blockinfile:
+        path: "/etc/xroad/devices.ini"
         marker: "# {mark} ANSIBLE MANAGED BLOCK (SoftHSM)"
         block: |
           [softhsm2]
@@ -87,7 +87,7 @@
     
     - name: Recursively chown tokens to xroad
       become: true
-      ansible.builtin.file:
+      file:
         path: /var/lib/softhsm/tokens
         state: directory
         owner: xroad
