@@ -15,6 +15,13 @@ dependencies {
   intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:globalconf-core"))
   intTestImplementation(libs.postgresql)
+
+  testImplementation(project(":common:common-test"))
+  testImplementation(project(":lib:globalconf-core"))
+  // FIXME: move required classes to common
+  testImplementation(project(":central-server:admin-service:core-api"))
+  testImplementation(project(":central-server:admin-service:globalconf-generator"))
+  testImplementation(project(":service:configuration-client:configuration-client-core"))
 }
 
 intTestComposeEnv {

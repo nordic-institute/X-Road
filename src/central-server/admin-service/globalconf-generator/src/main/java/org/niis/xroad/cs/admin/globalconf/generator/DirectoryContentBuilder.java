@@ -71,18 +71,18 @@ public class DirectoryContentBuilder {
         hashCalculator = new HashCalculator(hashAlgorithmId);
     }
 
-    DirectoryContentBuilder contentPart(ConfigurationPart configurationPart) {
+    public DirectoryContentBuilder contentPart(ConfigurationPart configurationPart) {
         configurationParts.add(configurationPart);
         return this;
     }
 
-    DirectoryContentBuilder contentParts(Collection<ConfigurationPart> parts) {
+    public DirectoryContentBuilder contentParts(Collection<ConfigurationPart> parts) {
         this.configurationParts.addAll(parts);
         return this;
     }
 
 
-    DirectoryContentHolder build() {
+    public DirectoryContentHolder build() {
         var builder = MultipartMessage.builder();
         builder.part(partBuilder()
                 .header(header("Expire-date", EXPIRE_DATE_FORMATTER.format(expireDate)))

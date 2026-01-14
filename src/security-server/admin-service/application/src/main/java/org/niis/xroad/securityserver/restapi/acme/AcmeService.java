@@ -172,7 +172,11 @@ public final class AcmeService {
         KeyStore keyStore;
         char[] storePassword = acmeProperties.getAccountKeystorePassword();
         if (isEmpty(storePassword)) {
-            throw new AcmeServiceException(AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING.build());
+            if (acmeKeystoreFile.exists()) {
+                throw new AcmeServiceException(AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING.build());
+            } else {
+                storePassword = acmeProperties.createNewAccountKeystorePassword();
+            }
         }
         if (acmeKeystoreFile.exists()) {
             keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
