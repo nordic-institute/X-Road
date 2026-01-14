@@ -57,7 +57,7 @@ public final class Version {
     static {
         Properties props = new Properties();
 
-        try (InputStream inputStream = Version.class.getResourceAsStream("/version.properties")) {
+        try (InputStream inputStream = Version.class.getResourceAsStream("/xroad-version.properties")) {
             props.load(inputStream);
         } catch (IOException e) {
             log.error("Could not read version.properties", e);

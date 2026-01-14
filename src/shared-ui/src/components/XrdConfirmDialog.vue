@@ -25,20 +25,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    :title="title"
-    :cancel-button-text="cancelButtonText"
-    :save-button-text="acceptButtonText"
-    :show-close="false"
-    :loading="loading"
-    :focus-on-save="focusOnAccept"
-    @save="$emit('accept')"
-    @cancel="$emit('cancel')"
+  <v-dialog
+    :model-value="true"
+    class="xrd-confirm-dialog"
+    :persistent="persistent"
+    :width="maxWidth ? undefined : width"
+    :max-width="maxWidth ? maxWidth : undefined"
   >
-    <template #text>
-      <slot name="text">{{ $t(text, data) }}</slot>
-    </template>
-  </xrd-simple-dialog>
+    <v-card data-test="dialog-simple" class="xrd-rounded-12 bg-surface-container-lowest">
+      <template #title>
+        <slot name="title">
+          <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
+        </slot>
+      </template>
+      <div class="alert-slot pl-6 pr-6">
+        <XrdErrorNotifications :manager="errorManager" />
+      </div>
+      <v-card-text class="pt-0 pr-6 pl-6 pb-2">
+        <slot name="text">
+          <span class="font-weight-regular body-regular">
+            {{ $t(text, data) }}
+          </span>
+        </slot>
+      </v-card-text>
+      <v-card-actions class="pa-4">
+        <XrdBtn v-if="!hideCancelButton" data-test="dialog-cancel-button" variant="text" :text="cancelButtonText" @click="emit('cancel')" />
+        <XrdBtn
+          ref="acceptButton"
+          data-test="dialog-save-button"
+          class="ml-2"
+          variant="text"
+          :text="acceptButtonText"
+          :loading="loading"
+          :autofocus="focusOnAccept"
+          @click="accept"
+        />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -46,17 +70,21 @@
  * A dialog for simple "accept or cancel" functions
  */
 
-import type { PropType } from 'vue';
-import XrdSimpleDialog from './XrdSimpleDialog.vue';
+import { PropType, onMounted, onBeforeMount, useTemplateRef } from 'vue';
 
-defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
+import XrdBtn from './XrdBtn.vue';
+import XrdErrorNotifications from './XrdErrorNotifications.vue';
+import { useLocalErrorManager } from '../composables';
+import { AddError, DialogSaveHandler } from '../types';
+
+const props = defineProps({
   title: {
     type: String,
-    required: true,
+    default: '',
+  },
+  translatedTitle: {
+    type: String,
+    default: '',
   },
   text: {
     type: String,
@@ -69,6 +97,14 @@ defineProps({
   acceptButtonText: {
     type: String,
     default: 'action.yes',
+  },
+  width: {
+    type: [Number, String],
+    default: 400,
+  },
+  maxWidth: {
+    type: [Number, String],
+    default: 0,
   },
   // Set save button loading spinner
   loading: {
@@ -85,8 +121,53 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  hideCancelButton: {
+    type: Boolean,
+    default: false,
+  },
+  persistent: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-defineEmits(['accept', 'cancel']);
+const emit = defineEmits<{
+  cancel: [];
+  accept: [handler: DialogSaveHandler];
+}>();
+
+const acceptButton = useTemplateRef<{ focus: () => void }>('acceptButton');
+
+const errorManager = useLocalErrorManager();
+const handler = { addError: errorManager.addError } as DialogSaveHandler;
+
+function blur() {
+  const activeElement = document.activeElement as HTMLElement | undefined;
+  if (activeElement && activeElement.blur) {
+    activeElement.blur();
+  }
+}
+
+function accept() {
+  emit('accept', handler);
+}
+
+defineExpose({
+  focusOnSave() {
+    if (acceptButton.value) {
+      blur();
+      acceptButton.value.focus();
+    }
+  },
+  addError: errorManager.addError,
+});
+
+onMounted(() => {
+  if (acceptButton.value && props.focusOnAccept) {
+    acceptButton.value.focus();
+  }
+});
+
+onBeforeMount(() => blur());
 </script>
 <style lang="scss" scoped></style>

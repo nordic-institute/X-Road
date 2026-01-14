@@ -35,16 +35,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ClientDisableRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
@@ -102,7 +103,7 @@ class ClientDisableRequestHandlerTest {
         when(server.getServerClients()).thenReturn(Set.of(serverClient));
 
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
-        when(clientIds.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
+        when(clientIds.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
         when(servers.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(server));
 
         when(disableRequests.save(isA(ClientDisableRequestEntity.class))).thenReturn(managementRequest);
@@ -124,7 +125,7 @@ class ClientDisableRequestHandlerTest {
 
         when(server.getServerClients()).thenReturn(Set.of());
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
-        when(clientIds.findOne(ClientIdEntity.ensure(unknownSubsystemId))).thenReturn(mockClientId);
+        when(clientIds.findOne(ClientIdEntityFactory.ensure(unknownSubsystemId))).thenReturn(mockClientId);
         when(servers.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(server));
 
         Assertions.assertThatThrownBy(() -> handler.add(request))
@@ -149,7 +150,7 @@ class ClientDisableRequestHandlerTest {
         when(server.getServerClients()).thenReturn(Set.of(serverClient));
 
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
-        when(clientIds.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
+        when(clientIds.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
         when(servers.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(server));
 
         when(systemParameterService.getManagementServiceProviderId()).thenReturn(subsystemId);

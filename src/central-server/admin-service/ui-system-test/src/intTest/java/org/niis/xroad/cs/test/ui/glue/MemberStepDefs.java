@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class MemberStepDefs extends BaseUiStepDefs {
     private final MemberPageObj memberPageObj = new MemberPageObj();

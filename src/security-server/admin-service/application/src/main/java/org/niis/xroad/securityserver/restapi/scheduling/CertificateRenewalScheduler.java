@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
@@ -41,6 +40,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 public class CertificateRenewalScheduler {
 
     private final AcmeClientWorker acmeClientWorker;
+    private final AcmeConfig acmeConfig;
     private final TaskScheduler taskScheduler;
     private ScheduledFuture<?> scheduledFuture;
 
@@ -53,11 +53,11 @@ public class CertificateRenewalScheduler {
     }
 
     private Duration getNextDelay() {
-        final int retryDelay = SystemProperties.getAcmeCertificateRenewalRetryDelay();
-        if (retryMode && retryDelay < SystemProperties.getAcmeCertificateRenewalInterval()) {
+        final int retryDelay = acmeConfig.getAcmeRenewalRetryDelay();
+        if (retryMode && retryDelay < acmeConfig.getAcmeRenewalInterval()) {
             return Duration.of(retryDelay, SECONDS);
         }
-        return Duration.of(SystemProperties.getAcmeCertificateRenewalInterval(), SECONDS);
+        return Duration.of(acmeConfig.getAcmeRenewalInterval(), SECONDS);
     }
 
     public void success() {

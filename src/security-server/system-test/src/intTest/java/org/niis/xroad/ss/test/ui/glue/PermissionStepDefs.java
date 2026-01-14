@@ -64,6 +64,11 @@ public class PermissionStepDefs extends BaseUiStepDefs {
         commonPageObj.subMenu.apiKeysTab().shouldBe(validation.getSelenideCondition());
     }
 
+    @Step("Admin Users Sub-Tab is {selenideValidation}")
+    public void validateAdminUsers(ParameterMappers.SelenideValidation validation) {
+        commonPageObj.subMenu.adminUsersTab().shouldBe(validation.getSelenideCondition());
+    }
+
     @Step("Backup and Restore Sub-Tab is {selenideValidation}")
     public void validateBackupAndRestore(ParameterMappers.SelenideValidation validation) {
         commonPageObj.subMenu.backupAndRestoresTab().shouldBe(validation.getSelenideCondition());

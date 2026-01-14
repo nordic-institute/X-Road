@@ -25,9 +25,6 @@
  */
 package org.niis.xroad.common.core.exception;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.HttpStatus;
-
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -47,7 +44,6 @@ class XrdRuntimeExceptionTest {
     @Test
     void shouldCreateWellFormedErrorMessage() {
         String identifier = "test-identifier";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.INTERNAL_ERROR;
         String details = "This is a test error message.";
 
@@ -57,87 +53,38 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), exception.getCode());
 
-        String expectedMessage = "[test-identifier] [SYSTEM] internal_error: This is a test error message.";
+        String expectedMessage = "[test-identifier] internal_error: This is a test error message.";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldCreateExceptionWithMetadata() {
         String identifier = "metadata-test";
-        ExceptionCategory category = ExceptionCategory.VALIDATION;
         var errorDeviation = ErrorCode.INVALID_CERTIFICATE;
         String details = "Certificate validation failed";
 
-        XrdRuntimeException exception = XrdRuntimeException.validationException(errorDeviation)
+        XrdRuntimeException exception = XrdRuntimeException.systemException(errorDeviation)
                 .identifier(identifier)
                 .details(details)
                 .metadataItems("certificate", "expired", "2024-01-01")
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
 
         String expectedMessage =
-                "[metadata-test] [VALIDATION] invalid_certificate (certificate, expired, 2024-01-01): Certificate validation failed";
-        assertEquals(expectedMessage, exception.toString());
-    }
-
-    @Test
-    void shouldCreateBusinessException() {
-        String identifier = "business-test";
-        ExceptionCategory category = ExceptionCategory.BUSINESS;
-        var errorDeviation = ErrorCode.DUPLICATE_ENTRY;
-        String details = "User already exists";
-
-        XrdRuntimeException exception = XrdRuntimeException.businessException(errorDeviation)
-                .identifier(identifier)
-                .details(details)
-                .build();
-
-        assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
-        assertEquals(errorDeviation.code(), exception.getCode());
-        assertEquals(details, exception.getDetails());
-
-        String expectedMessage = "[business-test] [BUSINESS] duplicate_entry: User already exists";
-        assertEquals(expectedMessage, exception.toString());
-    }
-
-    @Test
-    void shouldCreateExceptionWithHttpStatus() {
-        String identifier = "http-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
-        var errorDeviation = ErrorCode.NOT_FOUND;
-        String details = "Resource not found";
-        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
-
-        XrdRuntimeException exception = XrdRuntimeException.systemException(errorDeviation)
-                .identifier(identifier)
-                .details(details)
-                .httpStatus(httpStatus)
-                .build();
-
-        assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
-        assertEquals(errorDeviation.code(), exception.getCode());
-        assertEquals(details, exception.getDetails());
-        assertEquals(httpStatus, exception.getHttpStatus().orElse(null));
-
-        String expectedMessage = "[http-test] [SYSTEM] not_found: Resource not found";
+                "[metadata-test] invalid_certificate (certificate, expired, 2024-01-01): Certificate validation failed";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldCreateExceptionWithCause() {
         String identifier = "cause-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.IO_ERROR;
         String details = "File operation failed";
         Throwable cause = new RuntimeException("Underlying cause");
@@ -149,19 +96,17 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
         assertEquals(cause, exception.getCause());
 
-        String expectedMessage = "[cause-test] [SYSTEM] io_error: File operation failed";
+        String expectedMessage = "[cause-test] io_error: File operation failed";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldCreateExceptionWithoutDetails() {
         String identifier = "no-details-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.INTERNAL_ERROR;
 
         XrdRuntimeException exception = XrdRuntimeException.systemException(errorDeviation)
@@ -169,18 +114,16 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertNull(exception.getDetails());
 
-        String expectedMessage = "[no-details-test] [SYSTEM] internal_error";
+        String expectedMessage = "[no-details-test] internal_error";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldCreateExceptionWithEmptyDetails() {
         String identifier = "empty-details-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.INTERNAL_ERROR;
         String details = "";
 
@@ -190,19 +133,17 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
 
         // Empty details should not appear in toString() since they're blank
-        String expectedMessage = "[empty-details-test] [SYSTEM] internal_error";
+        String expectedMessage = "[empty-details-test] internal_error";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldCreateExceptionWithBlankDetails() {
         String identifier = "blank-details-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.INTERNAL_ERROR;
         String details = "   ";
 
@@ -212,39 +153,35 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
 
         // Blank details should not appear in toString() since they're blank
-        String expectedMessage = "[blank-details-test] [SYSTEM] internal_error";
+        String expectedMessage = "[blank-details-test] internal_error";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldCreateExceptionWithMetadataOnly() {
         String identifier = "metadata-only-test";
-        ExceptionCategory category = ExceptionCategory.VALIDATION;
         var errorDeviation = ErrorCode.INVALID_XML;
 
-        XrdRuntimeException exception = XrdRuntimeException.validationException(errorDeviation)
+        XrdRuntimeException exception = XrdRuntimeException.systemException(errorDeviation)
                 .identifier(identifier)
                 .metadataItems("line", "42", "column", "15")
                 .build();
 
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertNull(exception.getDetails());
 
-        String expectedMessage = "[metadata-only-test] [VALIDATION] invalid_xml (line, 42, column, 15)";
+        String expectedMessage = "[metadata-only-test] invalid_xml (line, 42, column, 15)";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldCreateExceptionWithNullHttpStatus() {
         String identifier = "null-http-test";
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.INTERNAL_ERROR;
         String details = "No HTTP status";
 
@@ -253,19 +190,17 @@ class XrdRuntimeExceptionTest {
                 .details(details)
                 .build();
 
+        assertFalse(exception instanceof XrdRuntimeHttpException);
         assertEquals(identifier, exception.getIdentifier());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
-        assertTrue(exception.getHttpStatus().isEmpty());
 
-        String expectedMessage = "[null-http-test] [SYSTEM] internal_error: No HTTP status";
+        String expectedMessage = "[null-http-test] internal_error: No HTTP status";
         assertEquals(expectedMessage, exception.toString());
     }
 
     @Test
     void shouldGenerateRandomIdentifierWhenNotProvided() {
-        ExceptionCategory category = ExceptionCategory.SYSTEM;
         var errorDeviation = ErrorCode.INTERNAL_ERROR;
         String details = "Auto-generated identifier";
 
@@ -275,11 +210,10 @@ class XrdRuntimeExceptionTest {
 
         assertNotNull(exception.getIdentifier());
         assertFalse(exception.getIdentifier().isEmpty());
-        assertEquals(category, exception.getCategory());
         assertEquals(errorDeviation.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
 
-        String expectedMessage = "[%s] [SYSTEM] internal_error: %s".formatted(exception.getIdentifier(), details);
+        String expectedMessage = "[%s] internal_error: %s".formatted(exception.getIdentifier(), details);
         assertEquals(expectedMessage, exception.toString());
     }
 
@@ -298,7 +232,7 @@ class XrdRuntimeExceptionTest {
         String getMessageResult = exception.getMessage();
 
         assertEquals(toStringResult, getMessageResult);
-        assertEquals("[message-test] [SYSTEM] internal_error: Test message", toStringResult);
+        assertEquals("[message-test] internal_error: Test message", toStringResult);
     }
 
     @Test
@@ -309,7 +243,7 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         assertNotNull(exception);
-        assertEquals("[null-metadata-test] [SYSTEM] internal_error", exception.toString());
+        assertEquals("[null-metadata-test] internal_error", exception.toString());
     }
 
     @Test
@@ -321,7 +255,7 @@ class XrdRuntimeExceptionTest {
 
         assertNotNull(exception);
         assertNull(exception.getDetails());
-        assertEquals("[null-details-test] [SYSTEM] internal_error", exception.toString());
+        assertEquals("[null-details-test] internal_error", exception.toString());
     }
 
 
@@ -339,7 +273,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(ioException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.IO_ERROR.code(), result.getCode());
         assertEquals(ioException, result.getCause());
         assertTrue(result.toString().contains("io_error"));
@@ -352,7 +285,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(networkException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.UNKNOWN_HOST.code(), result.getCode());
         assertEquals(networkException, result.getCause());
         assertTrue(result.toString().contains("unknown_host"));
@@ -365,25 +297,9 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(networkException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.NETWORK_ERROR.code(), result.getCode());
         assertEquals(networkException, result.getCause());
         assertTrue(result.toString().contains("network_error"));
-    }
-
-    @Test
-    void shouldTranslateCodedExceptionUsingFaultCode() {
-        // Mock a CodedException with a specific fault code
-        CodedException codedException = new CodedException(HTTP_ERROR.code(), "Test error message") {
-        };
-
-        XrdRuntimeException result = XrdRuntimeException.systemException(codedException);
-
-        assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
-        assertEquals(HTTP_ERROR.code(), result.getCode());
-        assertEquals(codedException, result.getCause());
-        assertTrue(result.toString().contains(HTTP_ERROR.code()));
     }
 
     @Test
@@ -393,7 +309,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(unknownException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), result.getCode());
         assertEquals(unknownException, result.getCause());
         assertTrue(result.toString().contains("internal_error"));
@@ -428,14 +343,6 @@ class XrdRuntimeExceptionTest {
         assertThrows(IllegalArgumentException.class, () -> {
             XrdRuntimeException.systemException((DeviationBuilder.ErrorDeviationBuilder) null);
         });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            XrdRuntimeException.businessException(null);
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            XrdRuntimeException.validationException(null);
-        });
     }
 
     @Test
@@ -443,7 +350,7 @@ class XrdRuntimeExceptionTest {
         // Test that Builder constructor handles null parameters gracefully
         // Since validation was removed, these should not throw exceptions
         assertThrows(IllegalArgumentException.class, () -> {
-            new XrdRuntimeExceptionBuilder(null, null);
+            new XrdRuntimeExceptionBuilder(null);
         });
     }
 
@@ -482,7 +389,7 @@ class XrdRuntimeExceptionTest {
         assertNotNull(exception);
         assertEquals("   ", exception.getDetails());
         // Blank details should not appear in toString() since they're blank
-        assertEquals("[blank-details-test] [SYSTEM] internal_error", exception.toString());
+        assertEquals("[blank-details-test] internal_error", exception.toString());
     }
 
     // ===== NEW TESTS FOR UPDATED FUNCTIONALITY =====
@@ -537,7 +444,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException exception = XrdRuntimeException.systemInternalError(details);
 
         assertNotNull(exception);
-        assertEquals(ExceptionCategory.SYSTEM, exception.getCategory());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
         assertTrue(exception.toString().contains("internal_error"));
@@ -551,7 +457,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException exception = XrdRuntimeException.systemInternalError(details, cause);
 
         assertNotNull(exception);
-        assertEquals(ExceptionCategory.SYSTEM, exception.getCategory());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), exception.getCode());
         assertEquals(details, exception.getDetails());
         assertEquals(cause, exception.getCause());
@@ -566,7 +471,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(malformedUrlException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.NETWORK_ERROR.code(), result.getCode());
         assertEquals(malformedUrlException, result.getCause());
         assertTrue(result.toString().contains("network_error"));
@@ -579,7 +483,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(socketException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.NETWORK_ERROR.code(), result.getCode());
         assertEquals(socketException, result.getCause());
         assertTrue(result.toString().contains("network_error"));
@@ -592,7 +495,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(unknownServiceException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.NETWORK_ERROR.code(), result.getCode());
         assertEquals(unknownServiceException, result.getCause());
         assertTrue(result.toString().contains("network_error"));
@@ -607,7 +509,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(genericException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), result.getCode()); // Should fall back to internal error
         assertEquals(genericException, result.getCause());
         assertTrue(result.toString().contains("internal_error"));
@@ -620,7 +521,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(certException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INCORRECT_CERTIFICATE.code(), result.getCode());
         assertEquals(certException, result.getCause());
         assertTrue(result.toString().contains("incorrect_certificate"));
@@ -633,7 +533,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(soapException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INVALID_SOAP.code(), result.getCode());
         assertEquals(soapException, result.getCause());
         assertTrue(result.toString().contains("invalid_soap"));
@@ -646,7 +545,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(saxException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INVALID_XML.code(), result.getCode());
         assertEquals(saxException, result.getCause());
         assertTrue(result.toString().contains("invalid_xml"));
@@ -664,7 +562,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(unmarshalException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), result.getCode()); // Should fall back to internal error
         assertEquals(unmarshalException, result.getCause());
         assertTrue(result.toString().contains("internal_error"));
@@ -680,17 +577,15 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(mimeException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), result.getCode()); // Should fall back to internal error
         assertEquals(mimeException, result.getCause());
         assertTrue(result.toString().contains("internal_error"));
     }
 
     @Test
-    void shouldTranslateAccessorExceptionWithCodedExceptionCause() {
-        // Create a mock AccessorException with CodedException cause
-        CodedException codedCause = new CodedException(HTTP_ERROR.code(), "Coded exception cause") {
-        };
+    void shouldTranslateAccessorExceptionWithXrdRuntimeExceptionCause() {
+        // Create a mock AccessorException with XrdRuntimeException cause
+        XrdRuntimeException codedCause = XrdRuntimeException.systemException(HTTP_ERROR, "Coded exception cause");
         Exception accessorException = new Exception("AccessorException", codedCause) {
             // We can't easily mock getClass().getName() in a test, so we'll test the fallback behavior
         };
@@ -698,7 +593,6 @@ class XrdRuntimeExceptionTest {
         XrdRuntimeException result = XrdRuntimeException.systemException(accessorException);
 
         assertNotNull(result);
-        assertEquals(ExceptionCategory.SYSTEM, result.getCategory());
         assertEquals(ErrorCode.INTERNAL_ERROR.code(), result.getCode()); // Should fall back to internal error
         assertEquals(accessorException, result.getCause());
         assertTrue(result.toString().contains("internal_error"));
@@ -711,14 +605,14 @@ class XrdRuntimeExceptionTest {
                 .build();
 
         // Test adding prefix
-        CodedException prefixedException = exception.withPrefix("client", "proxy");
+        XrdRuntimeException prefixedException = exception.withPrefix("client", "proxy");
         assertNotNull(prefixedException);
-        assertTrue(prefixedException.getFaultCode().startsWith("client.proxy.io_error"));
+        assertTrue(prefixedException.getErrorCode().startsWith("client.proxy.io_error"));
 
         // Test adding prefix when already prefixed (should return same instance)
         // First add a prefix, then try to add the same prefix again
-        XrdRuntimeException prefixedOnce = (XrdRuntimeException) exception.withPrefix("client");
-        CodedException sameException = prefixedOnce.withPrefix("client");
+        XrdRuntimeException prefixedOnce = exception.withPrefix("client");
+        XrdRuntimeException sameException = prefixedOnce.withPrefix("client");
         assertEquals(prefixedOnce, sameException);
     }
 
@@ -728,8 +622,8 @@ class XrdRuntimeExceptionTest {
                 .identifier("fault-code-test")
                 .build();
 
-        assertEquals(ErrorCode.IO_ERROR.code(), exception.getFaultCode());
-        assertEquals(exception.getCode(), exception.getFaultCode());
+        assertEquals(ErrorCode.IO_ERROR.code(), exception.getErrorCode());
+        assertEquals(exception.getCode(), exception.getErrorCode());
     }
 
     @Test
@@ -740,7 +634,7 @@ class XrdRuntimeExceptionTest {
                 .details(details)
                 .build();
 
-        assertEquals(details, exception.getFaultString());
+        assertEquals(details, exception.getDetails());
     }
 
     @Test
@@ -761,7 +655,7 @@ class XrdRuntimeExceptionTest {
                 .details(details)
                 .build();
 
-        String expectedMessage = "[message-test] [SYSTEM] io_error: Test message";
+        String expectedMessage = "[message-test] io_error: Test message";
         assertEquals(expectedMessage, exception.getMessage());
         assertEquals(exception.toString(), exception.getMessage());
     }
@@ -814,16 +708,4 @@ class XrdRuntimeExceptionTest {
         assertFalse(exception.getIdentifier().isEmpty());
     }
 
-    @Test
-    void shouldTestNullCategoryInToString() {
-        // This test is more theoretical since the builder validates category is not null
-        // But we can test the toString method's handling of null category
-        XrdRuntimeException exception = XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
-                .identifier("null-category-test")
-                .build();
-
-        // Category should never be null due to builder validation
-        assertNotNull(exception.getCategory());
-        assertTrue(exception.toString().contains("SYSTEM"));
-    }
 }
