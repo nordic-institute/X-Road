@@ -13,6 +13,10 @@ Feature: Global groups API
     When new global group 'test-group' with description 'group description' is added
     Then Response is of status code 409 and error code 'global_group_exists'
 
+  Scenario: Add global group with invalid description
+    Given new global group 'test-group' with description 'invalid description$€' is added
+    And Response is of status code 400
+
   Scenario: Global groups list
     Given new global group 'test-group-1' with description 'group 1 description' is added
     And new global group 'test-group-2' with description 'group 2 description' is added
@@ -23,6 +27,11 @@ Feature: Global groups API
     Given new global group 'test-group' with description 'group description' is added
     When global group 'test-group' description is updated to 'new description'
     Then global group 'test-group' description is 'new description'
+
+  Scenario: Update global group with invalid description
+    Given new global group 'test-group' with description 'group description' is added
+    When global group 'test-group' description is updated to 'invalid description$€'
+    Then Response is of status code 400
 
   Scenario: Delete global group
     Given new global group 'test-group' with description 'group description' is added

@@ -73,6 +73,10 @@ public class SettingsGlobalResourcesPageObj {
             return $x("//div[@data-test='add-global-group-description-input']");
         }
 
+        public SelenideElement inputGroupDescriptionValidation() {
+            return inputGroupDescription().$x(".//div[@class='v-messages__message']");
+        }
+
         public SelenideElement btnConfirm() {
             return commonPageObj.dialog.btnSave();
         }

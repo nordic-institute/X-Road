@@ -33,7 +33,9 @@ import org.niis.xroad.cs.test.ui.page.SettingsGlobalResourcesPageObj;
 import java.util.List;
 import java.util.Map;
 
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
@@ -66,6 +68,20 @@ public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
         vTextField(globalResourcesPage.globalGroupForm.inputGroupCode()).setValue(code);
         vTextField(globalResourcesPage.globalGroupForm.inputGroupDescription()).setValue(desc);
         globalResourcesPage.globalGroupForm.btnConfirm().click();
+    }
+
+    @Step("Add Global Group dialog is submitted with code {string} and invalid description")
+    public void clickCreateGlobalGroupWithInvalidDescription(String code) {
+        vTextField(globalResourcesPage.globalGroupForm.inputGroupCode()).setValue(code);
+        vTextField(globalResourcesPage.globalGroupForm.inputGroupDescription()).setValue("invaliddescription$€");
+        globalResourcesPage.globalGroupForm.btnConfirm().shouldBe(visible, disabled);
+    }
+
+    @Step("Error message for group description is displayed")
+    public void groupDescriptionShowsError() {
+        globalResourcesPage.globalGroupForm.inputGroupDescriptionValidation()
+                .shouldBe(visible)
+                .shouldHave(text("Use valid description characters only"));
     }
 
     @Step("user opens global group: {string} details")

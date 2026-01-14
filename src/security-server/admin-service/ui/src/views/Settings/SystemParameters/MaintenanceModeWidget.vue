@@ -118,7 +118,7 @@ const {
   errors,
   value: noticeMessage,
   resetField,
-} = useField('message', 'max:255', { initialValue: '' });
+} = useField('message', 'max:255|validDescription', { initialValue: '' });
 
 const { hasPermission } = useUser();
 const {

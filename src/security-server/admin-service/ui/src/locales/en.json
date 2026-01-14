@@ -172,7 +172,8 @@
     "invalidEndpoint": "Endpoint contains illegal characters",
     "invalidUrl": "URL is not valid",
     "invalidXrdIdentifier": "Identifier value contains illegal characters",
-    "requiredIf": "The {fieldName} field is required"
+    "requiredIf": "The {fieldName} field is required",
+    "description": "Use valid description characters only"
   },
   "diagnostics": {
     "addOnStatus": {

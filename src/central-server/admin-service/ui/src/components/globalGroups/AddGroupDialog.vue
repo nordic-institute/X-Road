@@ -66,7 +66,7 @@ const emit = defineEmits(['save', 'cancel']);
 const { defineField, meta, handleSubmit, setFieldError } = useForm({
   validationSchema: {
     code: 'required',
-    description: 'required',
+    description: 'required|validDescription',
   },
 });
 const [code, codeAttrs] = defineField('code', {

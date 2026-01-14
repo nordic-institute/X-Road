@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.validation.ConstraintViolationException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,6 +80,7 @@ import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -408,6 +410,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         var response = systemApiController.enableMaintenanceMode(new MaintenanceModeMessageDto().message(message));
         assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
         verify(systemService).enableMaintenanceMode(eq(message));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"TOGGLE_MAINTENANCE_MODE"})
+    public void enableMaintenanceModeWithInvalidMessage() {
+        final var message = "invalidmessage$€";
+        assertThrows(ConstraintViolationException.class, () ->
+                systemApiController.enableMaintenanceMode(new MaintenanceModeMessageDto().message(message)));
     }
 
     @Test

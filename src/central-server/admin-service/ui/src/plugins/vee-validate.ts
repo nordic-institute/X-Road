@@ -109,5 +109,17 @@ export default {
         return true;
       },
     );
+    defineRule(
+      'validDescription',
+      (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
+        if (!value) {
+          return true;
+        }
+        if (/[^a-zA-Z0-9\-_,.;:!? ]/.test(value)) {
+          return t('customValidation.description');
+        }
+        return true;
+      },
+    );
   },
 };

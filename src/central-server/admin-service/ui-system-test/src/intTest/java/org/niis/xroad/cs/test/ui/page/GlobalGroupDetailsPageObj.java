@@ -37,9 +37,15 @@ public class GlobalGroupDetailsPageObj {
     private static final int SUBSYSTEM_ID_PARTS = 4;
     private final AddMembersDialogObj addMembersDialogObj = new AddMembersDialogObj();
     private final DeleteMemberDialogObj deleteMemberDialogObj = new DeleteMemberDialogObj();
+    private final EditDescriptionDialogObj editDescriptionDialogObj = new EditDescriptionDialogObj();
 
     public SelenideElement btnAddMembersButton() {
         final var xpath = "//article[@data-test='global-resources-view']//button[@data-test='add-member-button']";
+        return $x(xpath);
+    }
+
+    public SelenideElement btnEditDescription() {
+        final var xpath = "//article[@data-test='global-resources-view']//button[@data-test='info-card-edit-button']";
         return $x(xpath);
     }
 
@@ -50,6 +56,10 @@ public class GlobalGroupDetailsPageObj {
 
     public AddMembersDialogObj getAddMembersDialogObj() {
         return addMembersDialogObj;
+    }
+
+    public EditDescriptionDialogObj getEditDescriptionDialogObj() {
+        return editDescriptionDialogObj;
     }
 
     public SelenideElement memberRow(final String identifier) {
@@ -155,6 +165,18 @@ public class GlobalGroupDetailsPageObj {
         public SelenideElement inputFilter() {
             final var xpath = "//div[@data-test='member-subsystem-search-field']";
             return $x(xpath);
+        }
+    }
+
+    public class EditDescriptionDialogObj {
+
+        public SelenideElement inputDescription() {
+            final var xpath = "//div[@data-test='global-group-description-edit']";
+            return $x(xpath);
+        }
+
+        public SelenideElement inputDescriptionValidation() {
+            return inputDescription().$x(".//div[@class='v-messages__message']");
         }
     }
 }

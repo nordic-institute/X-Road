@@ -132,6 +132,18 @@ export function createValidators() {
           return true;
         },
       );
+      defineRule(
+        'validDescription',
+        (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
+          if (!value) {
+            return true;
+          }
+          if (/[^a-zA-Z0-9\-_,.;:!? ]/.test(value)) {
+            return i18n.global.t('customValidation.description');
+          }
+          return true;
+        },
+      );
     },
   };
 }
