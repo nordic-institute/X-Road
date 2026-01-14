@@ -27,15 +27,12 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
@@ -45,6 +42,7 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
@@ -77,6 +75,8 @@ class NotificationServiceImplTest {
     private ConfigurationSigningKeysService configurationSigningKeysService;
     @Mock
     private GlobalConfGenerationStatusService globalConfGenerationStatus;
+    @Mock
+    private AdminServiceProperties adminServiceProperties;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -101,14 +101,11 @@ class NotificationServiceImplTest {
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
-        try (MockedStatic<SystemProperties> utilities = Mockito.mockStatic(SystemProperties.class)) {
-            utilities.when(SystemProperties::getCenterTrustedAnchorsAllowed).thenReturn(true);
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-            final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-            assertThat(alerts).isEmpty();
-        }
+        assertThat(alerts).isEmpty();
     }
 
     @Test
@@ -123,17 +120,14 @@ class NotificationServiceImplTest {
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
-        try (MockedStatic<SystemProperties> utilities = Mockito.mockStatic(SystemProperties.class)) {
-            utilities.when(SystemProperties::getCenterTrustedAnchorsAllowed).thenReturn(true);
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-            final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-            assertThat(alerts).hasSize(3)
-                    .contains(new AlertInfo("status.signing_key.internal.token_not_found"))
-                    .contains(new AlertInfo("status.signing_key.external.token_not_found"))
-                    .contains(new AlertInfo("status.global_conf_generation.failing", time));
-        }
+        assertThat(alerts).hasSize(3)
+                .contains(new AlertInfo("status.signing_key.internal.token_not_found"))
+                .contains(new AlertInfo("status.signing_key.external.token_not_found"))
+                .contains(new AlertInfo("status.global_conf_generation.failing", time));
     }
 
     @Test
@@ -147,16 +141,13 @@ class NotificationServiceImplTest {
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
-        try (MockedStatic<SystemProperties> utilities = Mockito.mockStatic(SystemProperties.class)) {
-            utilities.when(SystemProperties::getCenterTrustedAnchorsAllowed).thenReturn(true);
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-            final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-            assertThat(alerts).hasSize(2)
-                    .contains(new AlertInfo("status.signing_key.internal.token_not_active"))
-                    .contains(new AlertInfo("status.signing_key.external.token_not_active"));
-        }
+        assertThat(alerts).hasSize(2)
+                .contains(new AlertInfo("status.signing_key.internal.token_not_active"))
+                .contains(new AlertInfo("status.signing_key.external.token_not_active"));
     }
 
     @Test
@@ -170,17 +161,14 @@ class NotificationServiceImplTest {
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
-        try (MockedStatic<SystemProperties> utilities = Mockito.mockStatic(SystemProperties.class)) {
-            utilities.when(SystemProperties::getCenterTrustedAnchorsAllowed).thenReturn(true);
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-            final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-            assertThat(alerts).hasSize(3)
-                    .contains(new AlertInfo("status.global_conf_generation.status_not_found"))
-                    .contains(new AlertInfo("status.signing_key.internal.key_not_available"))
-                    .contains(new AlertInfo("status.signing_key.external.key_not_available"));
-        }
+        assertThat(alerts).hasSize(3)
+                .contains(new AlertInfo("status.global_conf_generation.status_not_found"))
+                .contains(new AlertInfo("status.signing_key.internal.key_not_available"))
+                .contains(new AlertInfo("status.signing_key.external.key_not_available"));
     }
 
     @Test
@@ -194,15 +182,12 @@ class NotificationServiceImplTest {
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
-        try (MockedStatic<SystemProperties> utilities = Mockito.mockStatic(SystemProperties.class)) {
-            utilities.when(SystemProperties::getCenterTrustedAnchorsAllowed).thenReturn(true);
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-            final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-            assertThat(alerts).hasSize(1)
-                    .contains(new AlertInfo("status.global_conf_generation.global_conf_expired"));
-        }
+        assertThat(alerts).hasSize(1)
+                .contains(new AlertInfo("status.global_conf_generation.global_conf_expired"));
     }
 
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {
@@ -225,7 +210,6 @@ class NotificationServiceImplTest {
                 .setActive(tokenActive)
                 .setSerialNumber("")
                 .setLabel("")
-                .setSlotIndex(0)
                 .setStatus(OK)
                 .addKeyInfo(keyinfo)
                 .build());

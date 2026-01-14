@@ -25,23 +25,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdAppLogin ref="loginForm" :loading @login="submit">
-    <template #top>
-      <AlertsContainer class="alerts" />
-    </template>
-  </XrdAppLogin>
+  <XrdAppLogin ref="loginForm" :loading @login="submit" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapActions, mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { useNotifications } from '@/store/modules/notifications';
-import { useSystem } from '@/store/modules/system';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import { swallowRedirectedNavigationError } from '@/util/helpers';
+
 import axios from 'axios';
-import { XrdAppLogin } from '@niis/shared-ui';
+import { mapActions, mapState } from 'pinia';
+
+import { XrdAppLogin, useNotifications } from '@niis/shared-ui';
+
+import { useSystem } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 interface Form {
   clearForm(): void;
@@ -52,7 +49,10 @@ interface Form {
 export default defineComponent({
   components: {
     XrdAppLogin,
-    AlertsContainer,
+  },
+  setup() {
+    const { addError, addErrorMessage, clear } = useNotifications();
+    return { addError, addErrorMessage, clear };
   },
   data() {
     return {
@@ -60,19 +60,14 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useUser, ['getFirstAllowedTab']),
+    ...mapState(useMainTabs, ['firstAllowedTab']),
   },
   methods: {
     ...mapActions(useUser, ['login', 'fetchUserData']),
-    ...mapActions(useNotifications, [
-      'showError',
-      'showErrorMessage',
-      'resetNotifications',
-    ]),
     ...mapActions(useSystem, ['fetchSystemStatus', 'fetchServerVersion']),
     async submit(username: string, password: string) {
       // Clear old error notifications (if they exist) before submit
-      this.resetNotifications();
+      this.clear();
 
       const loginData = { username, password };
 
@@ -89,9 +84,9 @@ export default defineComponent({
           loginForm.clearForm();
 
           loginForm.addErrors(this.$t('login.errorMsg401'));
-          this.showErrorMessage(this.$t('login.generalError'));
+          this.addErrorMessage('login.generalError');
         } else {
-          this.showError(error);
+          this.addError(error);
         }
         this.loading = false;
         return;
@@ -103,7 +98,7 @@ export default defineComponent({
         await this.fetchSystemStatus();
         await this.routeToMembersPage();
       } catch (error) {
-        this.showError(error);
+        this.addError(error);
         this.loading = false;
       }
     },
@@ -112,22 +107,10 @@ export default defineComponent({
       return this.fetchUserData();
     },
     async routeToMembersPage() {
-      this.$router
-        .replace(this.getFirstAllowedTab.to)
-        .catch(swallowRedirectedNavigationError);
+      this.$router.replace(this.firstAllowedTab.to);
       this.loading = false;
     },
   },
 });
 </script>
-<style lang="scss" scoped>
-.alerts {
-  top: 40px;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  z-index: 100;
-  position: absolute;
-}
-</style>
+<style lang="scss" scoped></style>

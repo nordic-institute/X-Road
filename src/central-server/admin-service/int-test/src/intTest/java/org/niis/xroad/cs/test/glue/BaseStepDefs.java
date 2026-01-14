@@ -25,17 +25,17 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.AssertionOperation;
-import com.nortal.test.asserts.JsonPathAssertions;
-import com.nortal.test.asserts.ValidationHelper;
-import com.nortal.test.asserts.ValidationService;
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.ScenarioContext;
+
 import feign.FeignException;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.test.container.service.MockServerService;
-import org.niis.xroad.cs.test.container.service.TestDatabaseService;
+import org.niis.xroad.cs.test.service.MockServerService;
+import org.niis.xroad.cs.test.service.TestDatabaseService;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.AssertionOperation;
+import org.niis.xroad.test.framework.core.asserts.JsonPathAssertions;
+import org.niis.xroad.test.framework.core.asserts.ValidationHelper;
+import org.niis.xroad.test.framework.core.asserts.ValidationService;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,8 +44,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 
 /**
  * Base class for all step definitions. Provides convenience methods and most commonly used beans.
@@ -54,8 +54,6 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 public abstract class BaseStepDefs {
     @Autowired
     private ScenarioContext scenarioContext;
-    @Autowired
-    protected CucumberScenarioProvider cucumberScenarioProvider;
     @Autowired
     protected ValidationService validationService;
     @Autowired

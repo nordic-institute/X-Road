@@ -27,13 +27,11 @@
 
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -47,13 +45,19 @@ import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalC
 import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.UNKNOWN;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerationStatusService {
 
     static final String STATUS_FILE_NAME = ".global_conf_gen_status";
 
     private final ObjectMapper objectMapper;
+    private final String logPath;
+
+    public GlobalConfGenerationStatusServiceImpl(ObjectMapper objectMapper,
+                                                 @Value("${xroad.appLog.path:/var/log/xroad/}") String logPath)  {
+        this.objectMapper = objectMapper;
+        this.logPath = logPath;
+    }
 
     @EventListener
     public void handleGlobalConfGenerationEvent(GlobalConfGenerationEvent event) {
@@ -78,7 +82,7 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
 
     private void writeFile(GlobalConfGenerationStatusInternal status) {
         try {
-            Files.writeString(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME),
+            Files.writeString(Paths.get(logPath, STATUS_FILE_NAME),
                     objectMapper.writeValueAsString(status));
         } catch (Exception e) {
             log.warn("Failed to write global conf generation status file", e);
@@ -88,7 +92,7 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
     @Override
     public GlobalConfGenerationStatus get() {
         try {
-            final String content = Files.readString(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME));
+            final String content = Files.readString(Paths.get(logPath, STATUS_FILE_NAME));
             final GlobalConfGenerationStatusInternal statusInternal =
                     objectMapper.readValue(content, GlobalConfGenerationStatusInternal.class);
             return new GlobalConfGenerationStatus(statusInternal.success() ? SUCCESS : FAILURE, statusInternal.time());

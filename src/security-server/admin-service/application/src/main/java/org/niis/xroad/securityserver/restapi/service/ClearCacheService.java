@@ -25,62 +25,34 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.PortNumbers;
-
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.time.Duration;
 
 /**
  * Service for clearing proxy cache.
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ClearCacheService {
-    private static final int REST_TEMPLATE_TIMEOUT_MS = 5000;
 
-    private final RestTemplate restTemplate;
-    private final String clearConfCacheUrl;
-
-    @Autowired
-    public ClearCacheService(@Value("${url.clear-configuration-cache}") String clearConfCacheUrl,
-                             RestTemplateBuilder restTemplateBuilder) {
-        this.clearConfCacheUrl = String.format(clearConfCacheUrl, PortNumbers.ADMIN_PORT);
-        this.restTemplate = restTemplateBuilder
-                .readTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
-                .build();
-    }
-
-    // used for testing
-    ClearCacheService() {
-        clearConfCacheUrl = null;
-        restTemplate = null;
-    }
+    private final ProxyRpcClient proxyRpcClient;
 
     /**
-     * Sends an http request to proxy in order to trigger the clearing (invalidating) of cache.
+     * Sends rpc request to proxy in order to trigger the clearing (invalidating) of cache.
      * @return true if clearing succeeded, false otherwise (error is logged)
      */
     public boolean executeClearConfigurationCache() {
-        log.info("Starting to clear configuration cache {}", clearConfCacheUrl);
-        ResponseEntity<String> response = null;
+        log.info("Starting to clear configuration cache");
         try {
-            response = restTemplate.getForEntity(clearConfCacheUrl, String.class);
+            proxyRpcClient.clearConfCache();
+            log.info("Configuration cache cleared");
+            return true;
         } catch (Exception e) {
             log.error("Clearing cache failed", e);
             return false;
         }
-        if (response.getStatusCode() != HttpStatus.OK) {
-            log.error("Clearing cache failed, HttpStatus={}", response.getStatusCode().value());
-            return false;
-        }
-        return true;
     }
 }

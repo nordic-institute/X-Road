@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     :loading="loading"
     title="members.member.subsystems.deleteSubsystem"
     focus-on-accept
@@ -33,34 +33,34 @@
     @accept="unregisterSubsystem"
   >
     <template #text>
-      <i18n-t
-        scope="global"
-        keypath="members.member.subsystems.areYouSureUnregister"
-      >
-        <template #subsystemCode>
-          <b>{{ subsystemCode }}</b>
-        </template>
-        <template #serverCode>
-          <b>{{ serverCode }}</b>
-        </template>
-      </i18n-t>
+      <span class="font-weight-regular body-regular">
+        <i18n-t scope="global" keypath="members.member.subsystems.areYouSureUnregister">
+          <template #subsystemCode>
+            <span class="font-weight-bold">{{ subsystemCode }}</span>
+          </template>
+          <template #serverCode>
+            <span class="font-weight-bold">{{ serverCode }}</span>
+          </template>
+        </i18n-t>
+      </span>
     </template>
-  </xrd-confirm-dialog>
+  </XrdConfirmDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useSystem } from '@/store/modules/system';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { ClientId } from '@/openapi-types';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
   name: 'UnregisterMemberSubsystemDialog',
+  components: { XrdConfirmDialog },
   props: {
     subsystemCode: {
       type: String,
@@ -80,6 +80,10 @@ export default defineComponent({
     },
   },
   emits: ['cancel', 'unregistered-subsystem'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       loading: false,
@@ -90,31 +94,22 @@ export default defineComponent({
     ...mapState(useSystem, ['getSystemStatus']),
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
     },
     unregisterSubsystem(): void {
       this.loading = true;
       this.subsystemStore
-        .unregisterById(
-          toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
-          this.serverId,
-        )
+        .unregisterById(toIdentifier(this.member.client_id) + ':' + this.subsystemCode, this.serverId)
         .then(() => {
-          this.showSuccess(
-            this.$t(
-              'members.member.subsystems.subsystemSuccessfullyUnregistered',
-              {
-                subsystemCode: this.subsystemCode,
-                serverCode: this.serverCode,
-              },
-            ),
-          );
+          this.addSuccessMessage('members.member.subsystems.subsystemSuccessfullyUnregistered', {
+            subsystemCode: this.subsystemCode,
+            serverCode: this.serverCode,
+          });
           this.$emit('unregistered-subsystem');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
           this.$emit('cancel');
         })
         .finally(() => {

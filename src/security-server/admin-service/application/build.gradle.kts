@@ -27,25 +27,36 @@ dependencies {
   implementation(platform(libs.springCloud.bom))
 
   implementation(project(":lib:globalconf-spring"))
-  implementation(project(":service:signer:signer-client"))
+  implementation(project(":service:signer:signer-client-spring"))
   implementation(project(":lib:serverconf-spring"))
-  implementation(project(":common:common-acme"))
+  implementation(project(":lib:rpc-spring"))
   implementation(project(":common:common-admin-api"))
   implementation(project(":common:common-management-request"))
   implementation(project(":common:common-api-throttling"))
-  implementation(project(":common:common-mail"))
+  implementation(project(":common:common-pgp"))
+  implementation(project(":lib:properties-spring"))
   implementation(project(":security-server:openapi-model"))
   implementation(project(":service:monitor:monitor-api"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:op-monitor:op-monitor-client"))
+  implementation(project(":service:backup-manager:backup-manager-rpc-client"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
+  implementation(project(":service:monitor:monitor-rpc-client"))
+  implementation(project(":service:proxy:proxy-rpc-client"))
+
+  implementation(project(":security-server:admin-service:message-log-archiver")) {
+    exclude(group = "xerces", module = "xercesImpl") // inclusion replaces xerces as default wsdl parser & introduces XXE vulnerability
+  }
 
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-cache")
+  implementation("org.springframework.boot:spring-boot-starter-mail")
   implementation("org.springframework.boot:spring-boot-starter-validation")
   implementation("io.micrometer:micrometer-tracing-bridge-brave")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation(libs.acme4j)
   implementation(libs.libpam4j)
   implementation(libs.apache.commonsCompress)
   implementation(libs.wsdl4j)
@@ -56,6 +67,10 @@ dependencies {
   implementation(libs.logback.access) {
     exclude(group = "org.apache.tomcat")
   }
+
+  implementation(libs.apache.cxfToolsValidator)
+  implementation(libs.apache.cxfRtTransportsHttp)
+  implementation(libs.javax.annotationApi)
 
   testImplementation(platform(libs.springBoot.bom))
   testImplementation(project(":common:common-test"))
@@ -68,10 +83,17 @@ dependencies {
   testRuntimeOnly(libs.junit.vintageEngine)
 }
 
-tasks.register<ProcessResources>("copyUi") {
+tasks.register<Copy>("copyUi") {
   dependsOn(configurations["dist"])
   from(configurations["dist"])
-  into(layout.buildDirectory.dir("admin-service/ui/public"))
+  into(layout.buildDirectory.dir("resources/main/public"))
+}
+
+tasks.named("resolveMainClassName") {
+  dependsOn(tasks.named("copyUi"))
+}
+tasks.named("compileTestJava") {
+  dependsOn(tasks.named("copyUi"))
 }
 
 tasks.bootRun {
@@ -87,13 +109,6 @@ tasks.jar {
 
 tasks.bootJar {
   enabled = true
-
-  if (!project.hasProperty("skip-frontend-build")) {
-    dependsOn(tasks.named("copyUi"))
-    classpath(layout.buildDirectory.dir("admin-service/ui"))
-  } else {
-    println("Warning: Excluding frontend from boot jar")
-  }
 
   manifest {
     attributes(

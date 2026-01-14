@@ -39,7 +39,7 @@ public class DiagnosticsPageObj {
     }
 
     public ElementsCollection backupEncryptionKeyList() {
-        return $$x("//table[@data-test='backup-encryption-keys']/tbody/tr/td");
+        return $$x("//div[@data-test='backup-encryption-keys']//tbody/tr/td");
     }
 
     public SelenideElement messageLogEncryptionStatus() {

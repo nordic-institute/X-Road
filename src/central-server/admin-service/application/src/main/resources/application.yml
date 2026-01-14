@@ -16,6 +16,12 @@ spring:
         dialect: ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialect
   profiles:
     include: nontest
+  config:
+    import:
+      - classpath:/xroad-common.yaml
+      - optional:file:/etc/xroad/conf.d/local-tls.yaml
+      - optional:file:/etc/xroad/conf.d/local.yaml
+      - optional:file:/etc/xroad/db.properties
   jackson:
     default-property-inclusion: NON_NULL
   liquibase:
@@ -31,12 +37,11 @@ common-module-endpoints:
 server:
   port: 4000
   ssl:
-    key-store: /etc/xroad/ssl/center-admin-service.p12
-    key-store-password: center-admin-service
     enabled: true
     ciphers: TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
     protocol: TLS
     enabled-protocols: TLSv1.2,TLSv1.3
+    bundle: admin-service # Use TLS key & certificate provided by AdminServiceSslBundleRegistrar
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
@@ -54,8 +59,6 @@ script:
   generate-backup:
     path: /usr/share/xroad/scripts/backup_xroad_center_configuration.sh
     valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
-  generate-certificate:
-    path: /usr/share/xroad/scripts/generate_certificate.sh
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_center_configuration.sh
   external-configuration-verifier:
@@ -63,9 +66,6 @@ script:
 
 gpgkeys:
   gpghome: /etc/xroad/gpghome
-
-certificates:
-  path: /etc/xroad/ssl/
 
 file-upload-endpoints:
   endpoint-definitions:
@@ -105,6 +105,18 @@ file-upload-endpoints:
 
 xroad:
   admin-service:
+    ha-node-name:
+    global-conf-generator:
+      minimum-global-configuration-version: 2
+      internal-directory: internalconf
+      external-directory: externalconf
+      generated-conf-dir: /var/lib/xroad/public
+    management-requests:
+      auto-approve-owner-change-requests: false
+      auto-approve-client-reg-requests: false
+      auto-approve-auth-cert-reg-requests: false
+    trusted-anchors-allowed: true
+    authentication-provider: PAM
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
     rate-limit-requests-per-second: 20
@@ -116,8 +128,16 @@ xroad:
     certificate-allowed-extensions: der,crt,pem,cer
     certificate-allowed-content-types: application/x-x509-cert,text/plain
     backup-allowed-content-types: application/pgp-encrypted
+    conf-backup-path: /var/lib/xroad/backup/
     xml-allowed-extensions: xml
     xml-allowed-content-types: text/xml,application/xml
     strict-identifier-checks: true
     request-size-limit-regular: 50KB
     request-size-limit-binary-upload: 10MB
+    tls:
+      certificate-provisioning:
+        common-name: ${XROAD_HOST:localhost}
+        ip-subject-alt-names:
+          - 127.0.0.1
+    key-management-api-whitelist: 127.0.0.0/8, ::1
+    regular-api-whitelist: 0.0.0.0/0, ::/0

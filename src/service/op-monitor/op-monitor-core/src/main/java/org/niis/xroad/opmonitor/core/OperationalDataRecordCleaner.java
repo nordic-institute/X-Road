@@ -25,45 +25,57 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.quarkus.runtime.Startup;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.ScheduledExecution;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-import org.quartz.SchedulerException;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
-import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
-
 /**
  * Deletes outdated operational data records from the database.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-
+@Startup
+@ApplicationScoped
 public final class OperationalDataRecordCleaner {
+    private final OpMonitorProperties opMonitorProperties;
+    private final DatabaseCtx databaseCtx;
+    private final Scheduler scheduler;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    /**
-     * Initializes the operational data recorder cleaner creating an operational
-     * data records cleaner job and scheduling a
-     * periodic cleanup with the provided job manager.
-     *
-     * @param jobManager the job manager
-     */
-    public static void init(JobManager jobManager) {
-        registerCronJob(jobManager, OpMonitoringSystemProperties.getOpMonitorCleanInterval());
+    public OperationalDataRecordCleaner(OpMonitorProperties opMonitorProperties,
+                                        OpMonitorDatabaseCtx databaseCtx,
+                                        Scheduler scheduler,
+                                        Scheduled.ApplicationNotRunning applicationNotRunning) {
+        this.opMonitorProperties = opMonitorProperties;
+        this.databaseCtx = databaseCtx;
+        this.scheduler = scheduler;
+        this.applicationNotRunning = applicationNotRunning;
     }
 
-    public static void doClean() {
+    @PostConstruct
+    public void init() {
+        log.info("Scheduling OcspClientReloadJob");
+        scheduler.newJob("OperationalDataRecordCleanerJob")
+                .setCron(opMonitorProperties.cleanInterval())
+                .setTask(this::doClean)
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
+    }
+
+    void doClean(ScheduledExecution execution) {
         try {
             handleCleanup();
         } catch (Exception e) {
@@ -72,15 +84,15 @@ public final class OperationalDataRecordCleaner {
         }
     }
 
-    private static void handleCleanup() {
+    private void handleCleanup() {
         cleanRecords(
-                TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
+                TimeUtils.now().minus(opMonitorProperties.keepRecordsForDays(), ChronoUnit.DAYS));
     }
 
-    static int cleanRecords(Instant before) {
+    int cleanRecords(Instant before) {
         log.trace("cleanRecords({})", before);
 
-        return doInTransaction(session -> {
+        return databaseCtx.doInTransaction(session -> {
             String hql =
                     "delete OperationalDataRecordEntity r where r.monitoringDataTs < "
                             + TimeUnit.MILLISECONDS.toSeconds(before.toEpochMilli());
@@ -88,34 +100,13 @@ public final class OperationalDataRecordCleaner {
             int removed = session.createMutationQuery(hql).executeUpdate();
 
             if (removed == 0) {
-                log.info("No outdated operational data records to remove from"
-                        + " the database");
+                log.info("No outdated operational data records to remove from the database");
             } else {
-                log.info("Removed {} outdated operational data records from"
-                        + " the database", removed);
+                log.info("Removed {} outdated operational data records from the database", removed);
             }
 
             return removed;
         });
     }
 
-    private static void registerCronJob(JobManager jobManager, String cronExpression) {
-
-        try {
-            jobManager.registerJob(OperationalDataRecordCleanerJob.class,
-                    OperationalDataRecordCleanerJob.class.getSimpleName(), cronExpression,
-                    new JobDataMap());
-        } catch (SchedulerException e) {
-            log.error("Unable to schedule job", e);
-        }
-    }
-
-    @DisallowConcurrentExecution
-    public static class OperationalDataRecordCleanerJob implements Job {
-
-        @Override
-        public void execute(JobExecutionContext context) {
-            OperationalDataRecordCleaner.doClean();
-        }
-    }
 }
