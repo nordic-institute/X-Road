@@ -9,10 +9,22 @@
     state: present
     key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ansible_distribution_major_version}}
 
-- name: Install EPEL repository (RHEL)
+- name: Install EPEL repository (RHEL8)
+  raw: |
+    yum -y install "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+  when:
+    - not epel.stat.exists
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+  changed_when: true
+
+- name: Install EPEL repository (RHEL9+)
   yum:
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
-  when: not epel.stat.exists
+  when:
+    - not epel.stat.exists
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
 
 - name: X-Road repo key
   rpm_key:
@@ -57,15 +69,23 @@
     path: "/etc/yum.repos.d/xroad.repo"
     modification_time: now
 
-- name: Install required packages (RHEL)
+- name: Install required packages (RHEL8)
   become: yes
-  yum:
-    name: "{{ items }}"
-    state: present
-  vars:
-    items:
+  command: dnf -y install curl cronie tar acl tzdata-java
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+
+- name: Install required packages (RHEL9+)
+  become: yes
+  package:
+    name:
       - curl
       - cronie
       - tar
       - acl
       - tzdata-java
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
