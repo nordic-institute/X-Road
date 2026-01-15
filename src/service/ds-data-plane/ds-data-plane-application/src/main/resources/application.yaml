@@ -1,0 +1,52 @@
+quarkus:
+  application:
+    name: ds-data-plane
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  log:
+    level: INFO
+    category:
+      "EDC":
+        level: DEBUG
+
+
+web:
+  http:
+    protocol:
+      port: 8282
+      path: /api/dsp
+
+edc:
+  participant:
+    id: participantContextId
+  dpf:
+    selector:
+      url: https://127.0.0.1:9192/control/v1/dataplanes
+  hostname: host.docker.internal
+  component:
+    id: DSP-compatibility-test
+  transfer:
+    proxy:
+      token:
+        signer:
+          privatekey:
+            alias: private-key
+        verifier:
+          publickey:
+            alias: public-key
+  datasource:
+    default:
+      url: jdbc:postgresql://localhost:5432/edc
+      user: edc
+      password: password
+    #      slot: edc_cdc_slot
+  sql:
+    schema:
+      autocreate: true
+  iam:
+    oauth2:
+      jwks:
+        url: https://example.com/jwks
+      issuer: test-issuer

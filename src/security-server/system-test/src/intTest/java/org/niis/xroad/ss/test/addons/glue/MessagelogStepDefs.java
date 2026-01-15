@@ -26,32 +26,85 @@
 
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.nortal.test.asserts.Assertion;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.ui.container.service.TestDatabaseService;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.ByteArrayInputStream;
+import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class MessagelogStepDefs extends BaseStepDefs {
 
     @Autowired
     private TestDatabaseService testDatabaseService;
+    @Autowired
+    private FeignXRoadRestRequestsApi feignXRoadRestRequestsApi;
 
     @Step("Messagelog contains {int} entries with queryId {string}")
     public void messageLogContainsNEntries(int expectedCount, String queryId) {
-        String sql = "SELECT COUNT(id) FROM logrecord WHERE queryid = :queryId";
+        String sql = "SELECT id, keyid, message FROM logrecord WHERE queryid = :queryId";
 
-        final Integer recordsCount = testDatabaseService.getMessagelogTemplate()
-                .queryForObject(sql, Map.of("queryId", queryId), Integer.class);
+        final List<Map<String, Object>> records = testDatabaseService.getMessagelogTemplate()
+                .queryForList(sql, Map.of("queryId", queryId));
 
-        validate(recordsCount)
+        validate(records.size())
                 .assertion(new Assertion.Builder()
                         .message("Verify count")
                         .expression("=")
-                        .actualValue(recordsCount)
+                        .actualValue(records.size())
                         .expectedValue(expectedCount)
+                        .build())
+                .execute();
+
+        // Verify that all entries are encrypted (keyId IS NOT NULL AND message IS NULL)
+        int encryptedCount = 0;
+        for (Map<String, Object> record : records) {
+            String keyId = (String) record.get("keyid");
+            String message = (String) record.get("message");
+            if (keyId != null && message == null) {
+                encryptedCount++;
+            }
+        }
+
+        validate(encryptedCount)
+                .assertion(new Assertion.Builder()
+                        .message("Verify all entries are encrypted")
+                        .expression("=")
+                        .actualValue(encryptedCount)
+                        .expectedValue(expectedCount)
+                        .build())
+                .execute();
+    }
+
+    @Step("verification configuration can be downloaded")
+    public void downloadVerificationConfiguration() throws Exception {
+        var response = feignXRoadRestRequestsApi.getVerificationConf();
+
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(response.getBody().getContentAsByteArray()))) {
+            ZipEntry entry = zip.getNextEntry();
+            assertContentName("verificationconf/DEV/shared-params.xml", entry.getName());
+
+            entry = zip.getNextEntry();
+            assertContentName("verificationconf/DEV/shared-params.xml.metadata", entry.getName());
+
+            entry = zip.getNextEntry();
+            assertContentName("verificationconf/instance-identifier", entry.getName());
+        }
+    }
+
+    private void assertContentName(String expected, String actual) {
+        validate(actual)
+                .assertion(new Assertion.Builder()
+                        .message("Verify content file name")
+                        .expression("=")
+                        .actualValue(actual)
+                        .expectedValue(expected)
                         .build())
                 .execute();
     }

@@ -49,4 +49,4 @@ The development environment should have at least 8GB of memory and 20GB of free 
 
     If Docker is installed, the script will build the .deb and .rpm packages in a Docker container. If Docker is not installed, only .deb packages will be built.
 
-Once you have successfully built the software, please see [ansible/README.md](../ansible/README.md) for local installation instructions.
+Once you have successfully built the software, please see [development/ansible/README.md](../development/ansible/README.md) for local installation instructions.

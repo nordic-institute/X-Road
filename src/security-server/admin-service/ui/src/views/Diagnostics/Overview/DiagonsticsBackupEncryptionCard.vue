@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,73 +25,59 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="xrd-card diagnostic-card">
-    <v-card-title class="text-h5" data-test="diagnostics-backup-encryption">
-      {{ $t('diagnostics.encryption.backup.title') }}
-    </v-card-title>
-
-    <v-card-text class="xrd-card-text">
-      <div v-if="backupEncryptionDiagnostics">
-        <div
-          class="sub-title status-wrapper"
-          data-test="backup-encryption-status"
+  <XrdCard data-test="diagnostics-backup-encryption" title="diagnostics.encryption.backup.title" class="overview-card">
+    <div v-if="backupEncryptionDiagnostics">
+      <div class="ml-4 mb-4 d-flex flex-row align-center" data-test="backup-encryption-status">
+        <span class="mr-2">
+          {{ $t('diagnostics.encryption.statusTitle') }}
+        </span>
+        <XrdStatusChip
+          :type="encryptionStatusType(backupEncryptionDiagnostics.backup_encryption_status)"
+          :text="`diagnostics.encryption.status.${backupEncryptionDiagnostics.backup_encryption_status}`"
         >
-          <span>
-            {{ $t('diagnostics.encryption.statusTitle') }}
-          </span>
-          <xrd-status-icon
-            :status="
-              encryptionStatusIconType(
-                backupEncryptionDiagnostics.backup_encryption_status,
-              )
-            "
-          />
-          {{
-            $t(
-              `diagnostics.encryption.status.${backupEncryptionDiagnostics.backup_encryption_status}`,
-            )
-          }}
-        </div>
-
-        <table
-          v-if="backupEncryptionDiagnostics.backup_encryption_status"
-          class="xrd-table"
-          data-test="backup-encryption-keys"
-        >
-          <thead>
-            <tr>
-              <th>
-                {{ $t('diagnostics.encryption.backup.configuredKeyId') }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="confKeys in backupEncryptionDiagnostics.backup_encryption_keys"
-              :key="confKeys"
-            >
-              <td>
-                {{ confKeys }}
-              </td>
-            </tr>
-            <XrdEmptyPlaceholderRow
-              :loading="backupEncryptionLoading"
-              :data="backupEncryptionDiagnostics.backup_encryption_keys"
-              :no-items-text="$t('noData.noBackUpEncryptionKeys')"
-            />
-          </tbody>
-        </table>
+          <template #icon>
+            <XrdStatusIcon class="mr-1 ml-n1" :status="encryptionStatusIcon(backupEncryptionDiagnostics.backup_encryption_status)" />
+          </template>
+        </XrdStatusChip>
       </div>
-    </v-card-text>
-  </v-card>
+
+      <v-table v-if="backupEncryptionDiagnostics.backup_encryption_status" class="xrd" data-test="backup-encryption-keys">
+        <thead>
+          <tr>
+            <th>
+              {{ $t('diagnostics.encryption.backup.configuredKeyId') }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="confKeys in backupEncryptionDiagnostics.backup_encryption_keys" :key="confKeys">
+            <td>
+              {{ confKeys }}
+            </td>
+          </tr>
+          <XrdEmptyPlaceholderRow
+            colspan="1"
+            :loading="backupEncryptionLoading"
+            :data="backupEncryptionDiagnostics.backup_encryption_keys"
+            :no-items-text="$t('noData.noBackUpEncryptionKeys')"
+          />
+        </tbody>
+      </v-table>
+    </div>
+  </XrdCard>
 </template>
 <script lang="ts">
 import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
-import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
+import { XrdCard, Status, XrdStatusChip, statusToType, useNotifications, XrdEmptyPlaceholderRow, XrdStatusIcon } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdStatusIcon, XrdCard, XrdStatusChip, XrdEmptyPlaceholderRow },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data: () => ({
     backupEncryptionLoading: false,
   }),
@@ -101,16 +88,15 @@ export default defineComponent({
     this.backupEncryptionLoading = true;
     this.fetchBackupEncryptionDiagnostics()
       .catch((error) => {
-        this.showError(error);
+        this.addError(error);
       })
       .finally(() => {
         this.backupEncryptionLoading = false;
       });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
     ...mapActions(useDiagnostics, ['fetchBackupEncryptionDiagnostics']),
-    encryptionStatusIconType(enabled: boolean): string {
+    encryptionStatusIcon(enabled: boolean): Status {
       switch (enabled) {
         case true:
           return 'ok';
@@ -120,49 +106,10 @@ export default defineComponent({
           return 'error';
       }
     },
+    encryptionStatusType(enabled: boolean) {
+      return statusToType(this.encryptionStatusIcon(enabled));
+    },
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
-}
-
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.sub-title {
-  margin-top: 30px;
-  margin-left: 16px;
-
-  font-style: normal;
-  font-weight: bold;
-  font-size: colors.$DefaultFontSize;
-  line-height: 20px;
-  color: colors.$Black100;
-
-  span {
-    font-style: normal;
-    font-weight: normal;
-    font-size: colors.$DefaultFontSize;
-    line-height: 20px;
-    padding-right: 16px;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

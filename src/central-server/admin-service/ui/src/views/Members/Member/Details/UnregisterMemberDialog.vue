@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     :loading="loading"
     title="members.member.details.unregisterMember"
     focus-on-accept
@@ -33,27 +33,25 @@
     @accept="unregister"
   >
     <template #text>
-      <i18n-t
-        scope="global"
-        keypath="members.member.details.areYouSureUnregister"
-      >
-        <template #memberCode>
-          <b>{{ member.client_id.member_code }}</b>
-        </template>
-        <template #serverCode>
-          <b>{{ server.server_id.server_code }}</b>
-        </template>
-      </i18n-t>
+      <span class="font-weight-regular body-regular">
+        <i18n-t scope="global" keypath="members.member.details.areYouSureUnregister">
+          <template #memberCode>
+            <span class="font-weight-bold">{{ member.client_id.member_code }}</span>
+          </template>
+          <template #serverCode>
+            <span class="font-weight-bold">{{ server.server_id.server_code }}</span>
+          </template>
+        </i18n-t>
+      </span>
     </template>
-  </xrd-confirm-dialog>
+  </XrdConfirmDialog>
 </template>
 
 <script setup lang="ts">
 import { PropType, ref } from 'vue';
 import { Client, SecurityServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
-import { useI18n } from 'vue-i18n';
-import { useNotifications } from '@/store/modules/notifications';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 const props = defineProps({
   server: {
@@ -66,8 +64,7 @@ const props = defineProps({
   },
 });
 
-const { t } = useI18n<{ message: MessageSchema }>({ useScope: 'global' });
-const { showSuccess, showError } = useNotifications();
+const { addSuccessMessage, addError } = useNotifications();
 
 const memberStore = useMember();
 
@@ -76,22 +73,21 @@ const loading = ref(false);
 const emit = defineEmits(['cancel', 'unregister']);
 
 function unregister() {
+  if (!props.member.client_id.encoded_id || !props.server.server_id.encoded_id) {
+    throw "Either client ID or server ID doesn't have ecodeded_id";
+  }
+
   loading.value = true;
   memberStore
-    .unregister(
-      props.member.client_id.encoded_id,
-      props.server.server_id.encoded_id,
-    )
+    .unregister(props.member.client_id.encoded_id, props.server.server_id.encoded_id)
     .then(() => {
-      showSuccess(
-        t('members.member.details.memberSuccessfullyUnregistered', {
-          memberCode: props.member.client_id.member_code,
-          serverCode: props.server.server_id.server_code,
-        }),
-      );
+      addSuccessMessage('members.member.details.memberSuccessfullyUnregistered', {
+        memberCode: props.member.client_id.member_code,
+        serverCode: props.server.server_id.server_code,
+      });
       emit('unregister');
     })
-    .catch((error) => showError(error))
+    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }
 </script>

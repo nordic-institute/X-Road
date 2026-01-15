@@ -1,5 +1,7 @@
 @CentralServer
-@CertificationService
+@Settings
+@SystemParameters
+
 Feature: 0350 - CS: System Settings -> System parameters
 
   Background:

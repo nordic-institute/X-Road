@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Agregar permisos",
     "addSubjectsSuccess": "Permisos de acceso agregados con éxito",
     "id": "ID",
-    "subsystemName": "Nombre del subsistema / Descripción del grupo",
     "removeAllText": "¿Estás seguro de que deseas eliminar los permisos de acceso de todos los clientes?",
     "removeAllTitle": "Eliminar todos los permisos de acceso?",
     "removeSuccess": "Permisos de acceso eliminados con éxito",
     "removeText": "¿Estás seguro de que deseas eliminar los permisos de acceso de este cliente?",
     "removeTitle": "Eliminar los permisos de acceso?",
     "rightsGiven": "Permisos de acceso dados",
+    "subsystemName": "Nombre del subsistema / Descripción del grupo",
     "title": "Permisos de acceso"
   },
   "action": {
@@ -112,17 +112,18 @@
     "member": "Miembro",
     "memberClass": "Clase del miembro",
     "memberCode": "Código del miembro",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Nombre del miembro",
     "name": "Nombre",
     "owner": "Propietario",
     "status": "Estado",
     "statusText": {
       "deletionInProgress": "Eliminación en progreso",
-      "disabled": "DESHABILITADO",
+      "disabled": "Deshabilitado",
       "disablingInProgress": "Deshabilitación en progreso",
       "enablingInProgress": "Habilitación en progreso",
       "globalError": "Error global",
-      "registered": "REGISTRADO",
+      "registered": "Registrado",
       "registrationInProgress": "Registro en progreso",
       "saved": "Guardado"
     },
@@ -166,6 +167,17 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Deshabilitado por configuración"
+    },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Servicio de registro de certificados de autenticación",
+        "globalConf": "Descarga de configuración global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Servidor Central"
+      },
+      "ok": "Ok",
+      "test": "Prueba"
     },
     "costType": "Tipo de costo",
     "encryption": {
@@ -261,22 +273,25 @@
       "title": "Marca de tiempo"
     },
     "traffic": {
-      "period": "Período",
-      "periodInfo": "Selecciona inicio y fin",
-      "date": "Fecha",
-      "time": "Hora",
-      "party": "Parte",
-      "partyInfo": "Servicio, subsistema, miembro",
       "client": "Cliente",
-      "service": "Servicio",
+      "date": "Fecha",
+      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring).",
+      "disabledTitle": "La monitorización de datos operativos está deshabilitada",
       "exchangeRole": "Rol de intercambio",
       "exchangeRoleInfo": "Productor o Consumidor",
+      "failedRequests": "Solicitudes fallidas",
+      "failure": "Fallo",
+      "party": "Parte",
+      "partyInfo": "Servicio, subsistema, miembro",
+      "period": "Período",
+      "periodInfo": "Selecciona inicio y fin",
       "producer": "Productor",
+      "service": "Servicio",
       "status": "Estado",
       "statusInfo": "Estado del intercambio de mensajes",
       "success": "Éxito",
-      "failure": "Fallo",
       "successfulRequests": "Solicitudes exitosas",
+      "time": "Hora",
       "failedRequests": "Solicitudes fallidas",
       "disabledTitle": "La monitorización de datos operativos está deshabilitada",
       "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
@@ -395,6 +410,7 @@
     "global_conf_outdated": "La configuración global está desactualizada",
     "gpg_key_generation_failed": "Falló en la generación del GPG KeyPair",
     "gpg_key_generation_interrupted": "Generación del GPG interrupida",
+    "http_error": "Error HTTP",
     "identifier_not_found": "Identificador no encontrado",
     "illegal_generated_endpoint_remove": "No está permitido eliminar el endpoint generado",
     "illegal_generated_endpoint_update": "No está permitido actualizar el endpoint generado",
@@ -429,7 +445,6 @@
     "member_code_not_provided": "No has proporcionado el código de miembro",
     "missing_parameter": "Parámetro faltante",
     "network_error": "Error de red",
-    "http_error": "Error HTTP",
     "ocsp_connection_error": "Incapaz de conectarse al servicio OCSP Responder",
     "ocsp_failed": "No se puede obtener la respuesta del servicio OCSP Responder",
     "ocsp_response_parsing_failure": "Incapaz de analizar la respuesta OCSP",
@@ -465,7 +480,6 @@
     "wrong_servicedescription_type": "Tipo de descripción del servicio incorrecto",
     "wsdl_download_failed": "Falló la descarga de WSDL",
     "wsdl_exists": "WSDL existe",
-    "wsdl_validator_interrupted": "Validador de WSDL interrumpido",
     "wsdl_validator_not_executable": "El validador de WSDL no es ejecutable"
   },
   "fields": {
@@ -626,13 +640,13 @@
     "importCert": "Importar certificado.",
     "importCertSuccess": "Certificado importado con éxito",
     "incorrectPin": "PIN incorrecto. Por favor intente de nuevo.",
-    "keyAlgorithm": "Algoritmo clave:",
+    "keyAlgorithm": "Algoritmo clave",
     "keyDeleted": "Clave eliminada",
-    "keyId": "ID de clave:",
+    "keyId": "ID de clave",
     "keyInfo": "Información clave",
     "keyLabelInput": "Etiqueta de clave",
     "keySaved": "Clave guardada",
-    "label": "Etiqueta:",
+    "label": "Etiqueta",
     "logIn": "Acceso",
     "logOut": "Finalizar la sesión",
     "logOutText": "¿Cerrar sesión del token?",
@@ -650,7 +664,7 @@
       "unknown": "Desconocido"
     },
     "orderAcmeCertificate": "Solicitar certificado",
-    "readOnly": "Solo lectura:",
+    "readOnly": "Solo lectura",
     "registrationRequest": "Solicitud de registro",
     "renewal": "Renovación automática",
     "request": "Solicitud",
@@ -658,13 +672,13 @@
     "signKeyCert": "Firmar claves y certificados",
     "status": "Estado",
     "token": {
+      "deleteSuccess": "Token fue eliminado",
+      "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
+      "deleteTitle": "¿Eliminar token?",
       "details": "Detalles del token",
       "id": "ID de token:",
       "info": "Información del token",
-      "saved": "Token guardado",
-      "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
-      "deleteTitle": "¿Eliminar token?",
-      "deleteSuccess": "Token fue eliminado"
+      "saved": "Token guardado"
     },
     "tokenStatus": {
       "active": "",
@@ -763,7 +777,6 @@
     "enableSuccess": "Descripción del servicio habilitado",
     "idGroupCode": "ID / Código de grupo",
     "lastRefreshed": "Última actualización:",
-    "subsystemNameGroupDesc": "Nombre del subsistema / Descripción del grupo",
     "noMatches": "Sin registros coincidentes",
     "openApi3Added": "Servicio OpenApi3 agregado",
     "openapiDetails": "Detalles OpenAPI 3",
@@ -781,6 +794,7 @@
       "internal_server_ssl_error": "La verificación de los certificados del servidor interno falló. ¿Es correcta y accesible la URL del servidor de origen desde el Servidor de Seguridad?",
       "internal_server_ssl_handshake_error": "El TLS handshake con el servidor de origen falló. Falta el certificado del servidor en la configuración:"
     },
+    "subsystemNameGroupDesc": "Nombre del subsistema / Descripción del grupo",
     "timeout": "Tiempo de espera agotado",
     "timeoutSec": "Tiempo de espera (s)",
     "timeoutTooltip": "Duración máxima del tiempo de espera de una solicitud, en segundos",
@@ -801,36 +815,6 @@
     "wsdlAdded": "WSDL agregado",
     "wsdlDescription": "Descripción de WSDL",
     "wsdlDetails": "Detalles de WSDL"
-  },
-  "ssTlsCertificate": {
-    "certificateImported": "Certificado importado",
-    "exportCertificate": "Exportar certificado",
-    "generateCsr": "Generar CSR",
-    "generateInternalCsr": {
-      "cancel": "Cancelar",
-      "done": "Hecho",
-      "step1": {
-        "description": "1) Primero, proporciona un nombre distinguido",
-        "label": "Nombre distinguido",
-        "placeholder": "CN = miservidorseguridad.ejemplo.com, O = Mi organización, C = ee",
-        "tooltip": "El nombre distinguido (DN) identifica de manera única a una entidad en un certificado X.509. Los siguientes tipos de atributos se encuentran comúnmente en el DN: CN = nombre común, O = nombre de la organización, C = Código de país."
-      },
-      "step2": {
-        "description": "2) Genera una nueva CSR y guárdala en un lugar seguro",
-        "generateCSR": "Generar CSR"
-      },
-      "title": "Generar solicitud de firma de certificado TLS"
-    },
-    "generateKey": "Generar clave",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "¿Generar una nueva clave y certificado TLS para el servidor de seguridad?",
-      "explanation": "El sistema generará una nueva clave TLS para el servidor de seguridad y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
-      "success": "Nueva clave y certificado TLS generados correctamente",
-      "title": "Clave TLS del servidor de seguridad"
-    },
-    "importCertificate": "Importar certificado",
-    "keyCertTitle": "Clave y certificado TLS",
-    "keyText": "Clave TLS interna"
   },
   "stores": {
     "user": {
@@ -920,7 +904,7 @@
         "add": {
           "button": "Agregar",
           "dialog": {
-            "info": "Servicios de marca de tiempo de confianza:",
+            "info": "Servicios de marca de tiempo de confianza",
             "success": "Servicio de marca de tiempo agregado",
             "title": "Agregar servicio de marca de tiempo"
           }
@@ -938,9 +922,9 @@
           }
         },
         "header": {
+          "costType": "Tipo de costo",
           "serviceURL": "URL de servicio",
-          "timestampingService": "Servicio de marca de tiempo",
-          "costType": "Tipo de costo"
+          "timestampingService": "Servicio de marca de tiempo"
         }
       },
       "title": "Servicios de marca de tiempo"
@@ -956,9 +940,9 @@
       "services": "Servicios"
     },
     "diagnostics": {
+      "connectionTesting": "Prueba de conexión",
       "overview": "Resumen",
-      "traffic": "Tráfico",
-      "connectionTesting": "Prueba de conexión"
+      "traffic": "Tráfico"
     },
     "keys": {
       "apiKey": "Clave de API",
@@ -978,6 +962,22 @@
     "settings": {
       "backupAndRestore": "Copia de seguridad y restauración",
       "systemParameters": "Parámetros del sistema"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN = miservidorseguridad.ejemplo.com, O = Mi organización, C = ee"
+    },
+    "generateKey": {
+      "confirmation": "¿Generar una nueva clave y certificado TLS para el servidor de seguridad?",
+      "explanation": "El sistema generará una nueva clave TLS para el servidor de seguridad y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
+      "success": "Nueva clave y certificado TLS generados correctamente",
+      "title": "Clave TLS del servidor de seguridad"
+    },
+    "key": "Clave y certificado TLS",
+    "title": "Clave TLS del servidor de seguridad",
+    "uploadCertificate": {
+      "success": "Certificado importado"
     }
   },
   "token": {

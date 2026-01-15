@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,19 +29,12 @@ import { ServiceCandidate } from '@/ui-types';
 import { compareByServiceCode } from '@/util/sorting';
 
 // returns whether given access right is for given service
-const isNotAccessRightToService = (
-  service: Service,
-  accessRight: AccessRight,
-): boolean => accessRight.service_code !== service.service_code;
+const isNotAccessRightToService = (service: Service, accessRight: AccessRight): boolean =>
+  accessRight.service_code !== service.service_code;
 
 // returns whether accessrights list contains any access that is for given service
-const noAccessRightsToService = (
-  service: Service,
-  accessRights: AccessRight[],
-): boolean =>
-  accessRights.every((accessRight: AccessRight) =>
-    isNotAccessRightToService(service, accessRight),
-  );
+const noAccessRightsToService = (service: Service, accessRights: AccessRight[]): boolean =>
+  accessRights.every((accessRight: AccessRight) => isNotAccessRightToService(service, accessRight));
 
 /**
  * Returns clients services that can be added to the service client.
@@ -56,16 +50,10 @@ export const serviceCandidatesForServiceClient = (
   return (
     clientServiceDescriptions
       // pick all services from service descriptions
-      .reduce(
-        (curr: Service[], next: ServiceDescription) =>
-          curr.concat(...next.services),
-        [],
-      )
+      .reduce((curr: Service[], next: ServiceDescription) => curr.concat(...next.services), [])
       .sort(compareByServiceCode)
       // filter out services where this service client has access right already
-      .filter((service: Service) =>
-        noAccessRightsToService(service, serviceClientAccessRights),
-      )
+      .filter((service: Service) => noAccessRightsToService(service, serviceClientAccessRights))
       // map to service candidates
       .map(
         (service: Service): ServiceCandidate => ({

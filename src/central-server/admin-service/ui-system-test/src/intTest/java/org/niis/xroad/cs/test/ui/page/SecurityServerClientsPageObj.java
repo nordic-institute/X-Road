@@ -38,19 +38,19 @@ public class SecurityServerClientsPageObj {
     private static final int SUBSYSTEM_CLMN_IDX = 4;
 
     public SelenideElement listRowOf(String memberName, String memberCode, String memberClass, String subsystem) {
-        var xpath = "//div[@data-test='security-server-clients-view']//table/tbody/tr[(normalize-space(td[1]/div/text()) = '%s') "
+        var xpath = "//section[@data-test='security-server-clients-view']//table/tbody/tr[contains(td[1]/div/span,'%s') "
                 + " and (td[2] = '%s') and (td[3] = '%s') and (td[4] = '%s')]";
 
         return $x(String.format(xpath, memberName, memberClass, memberCode, subsystem));
     }
 
     public SelenideElement subsystemColumnHeader() {
-        var xpath = "//div[@data-test='security-server-clients-view']//thead/tr/th[%d]";
+        var xpath = "//section[@data-test='security-server-clients-view']//thead/tr/th[%d]";
         return $x(String.format(xpath, SUBSYSTEM_CLMN_IDX));
     }
 
     public ElementsCollection subsystemValues() {
-        var xpath = "//div[@data-test='security-server-clients-view']//tbody";
+        var xpath = "//section[@data-test='security-server-clients-view']//tbody";
         return $x(xpath).findAll(String.format("tr>td:nth-child(%d)", SUBSYSTEM_CLMN_IDX));
     }
 }

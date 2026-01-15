@@ -1,0 +1,73 @@
+---
+- name: Configure SoftHSM token for X-Road
+  become: true
+  when:
+    - "'ubuntu_hsm_ss' in group_names"
+  block:
+    - name: Ensure apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install SoftHSM2
+      apt:
+        name: softhsm2
+        state: present
+
+    - name: Ensure 'xroad' user is in 'softhsm' group
+      user:
+        name: xroad
+        append: yes
+        groups: softhsm
+
+    - name: Check existing SoftHSM slots for token label
+      command: softhsm2-util --show-slots
+      register: softhsm_slots
+      changed_when: false
+
+    - name: Initialize SoftHSM token (idempotent if label already present)
+      command: >
+        softhsm2-util --init-token
+        --slot 0
+        --label "{{ hwtokens_label }}"
+        --so-pin "{{ hwtokens_so_pin }}"
+        --pin "{{ hwtokens_user_pin }}"
+      when: softhsm_slots.stdout is not search("Label\\s*:\\s*{{ hwtokens_label | regex_escape() }}")
+      register: init_result
+      changed_when: init_result.rc == 0
+
+    - name: Show token initialization status
+      debug:
+        msg: >-
+          {{ "Token already present; no changes made."
+             if softhsm_slots.stdout is search("Label\\s*:\\s*{{ hwtokens_label | regex_escape() }}")
+             else "The token has been initialized." }}
+
+    - name: Capture SoftHSM2 slot id for label
+      shell: >
+        softhsm2-util --show-slots | awk '/^Slot / { slot=$2 } /Label: *{{ hwtokens_label }}/ { print slot }'
+      register: softhsm2_slot_id
+      changed_when: false
+
+    - name: Append SoftHSM2 signer module to end of local.yaml
+      ansible.builtin.blockinfile:
+        path: /etc/xroad/conf.d/local.yaml
+        insertafter: EOF
+        marker: "# {mark} SoftHSM2 signer module"
+        block: |
+          # hardware token configuration:
+            signer:
+              modules:
+                softhsm2:
+                  library: /usr/lib/softhsm/libsofthsm2.so
+                  os-locking-ok: true
+                  library-cant-create-os-threads: true
+                  slot-ids: {{ softhsm2_slot_id.stdout | trim }}
+
+    - name: Recursively chown tokens to xroad
+      become: true
+      ansible.builtin.file:
+        path: /var/lib/softhsm/tokens
+        state: directory
+        owner: xroad
+        recurse: yes

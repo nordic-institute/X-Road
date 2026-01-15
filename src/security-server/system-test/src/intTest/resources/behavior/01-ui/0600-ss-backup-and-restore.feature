@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @BackupAndRestore
 Feature: 0600 - SS: Backup and Restore
 
@@ -16,6 +17,7 @@ Feature: 0600 - SS: Backup and Restore
     When Configuration backup is deleted
     Then Configuration backup count is equal to 0
 
+  @Download
   Scenario: Configuration backup can be downloaded and uploaded
     Given Configuration backup is created
     When Configuration backup is downloaded
@@ -24,6 +26,7 @@ Feature: 0600 - SS: Backup and Restore
     When Configuration backup is uploaded
     Then Configuration backup count is equal to 1
 
+  @Download
   Scenario: Already existing configuration backup is overwritten on upload
     When Configuration backup count is equal to 1
     And Configuration backup is downloaded
@@ -32,25 +35,27 @@ Feature: 0600 - SS: Backup and Restore
 
   Scenario: Configuration can be restored from backup
     Given Clients tab is selected
-    And Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "SAVED" is present in the list
-    And Client "random-sub-2" with id "DEV:COM:1234:random-sub-2" and status "SAVED" is missing in the list
+    And Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "Saved" is present in the list
+    And Client "random-sub-2" with id "DEV:COM:1234:random-sub-2" and status "Saved" is missing in the list
     When Subsystem add page is opened for Client "Test member"
     And Subsystem code is set to "random-sub-2"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed
     And snackbar is closed
-    Then Client "random-sub-2" with id "DEV:COM:1234:random-sub-2" and status "SAVED" is present in the list
+    Then Client "random-sub-2" with id "DEV:COM:1234:random-sub-2" and status "Saved" is present in the list
     When Settings tab is selected
     And Backup and Restore sub-tab is selected
     And Configuration backup count is equal to 1
     Then Configuration can be successfully restored from backup
-    When Clients tab is selected
-    Then Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "SAVED" is present in the list
-    Then Client "random-sub-2" with id "DEV:COM:1234:random-sub-2" and status "SAVED" is missing in the list
-
-  Scenario: Configuration backups can be filtered
-    Given Configuration backup count is equal to 1
     When Configuration backup is created
     Then Configuration backup count is equal to 2
+    When Clients tab is selected
+    Then Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "Saved" is present in the list
+    Then Client "random-sub-2" with id "DEV:COM:1234:random-sub-2" and status "Saved" is missing in the list
+
+  Scenario: Configuration backups can be filtered
+    Given Configuration backup count is equal to 2
+    When Configuration backup is created
+    Then Configuration backup count is equal to 3
     When Configuration backup filter is set to last created backup
     Then Configuration backup count is equal to 1

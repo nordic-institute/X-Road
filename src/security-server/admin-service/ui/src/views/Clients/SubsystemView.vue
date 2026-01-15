@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,71 +25,68 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView>
+  <XrdView translated-title :breadcrumbs="breadcrumbs">
     <template #title>
-      <subsystem-name :name="title" />
-      <template v-if="!clientLoading">
-        {{ $t('client.subsystemTitleSuffix') }}
-      </template>
+      <div class="title-view font-weight-bold">
+        <subsystem-name :name="title" />
+        <template v-if="!clientLoading">
+          <span class="opacity-60 font-weight-regular">{{ $t('client.subsystemTitleSuffix') }}</span>
+        </template>
+      </div>
     </template>
-    <template #header-buttons>
+    <template #append-header>
+      <v-spacer />
       <DisableClientButton
         v-if="showDisable"
         :id="id"
         v-tooltip="tooltip"
-        class="ml-5"
+        class="ml-2"
         :disabled="client?.is_management_services_provider"
         @done="fetchData"
       />
-      <EnableClientButton
-        v-if="showEnable"
-        :id="id"
-        class="ml-5"
-        @done="fetchData"
-      />
-      <DeleteClientButton v-if="showDelete" :id="id" class="ml-5" />
-      <UnregisterClientButton
-        v-if="showUnregister"
-        :id="id"
-        class="ml-5"
-        @done="fetchData"
-      />
+      <EnableClientButton v-if="showEnable" :id="id" class="ml-2" @done="fetchData" />
+      <DeleteClientButton v-if="showDelete" :id="id" class="ml-2" />
+      <UnregisterClientButton v-if="showUnregister" :id="id" class="ml-2" @done="fetchData" />
       <RenameClientButton
         v-if="showRename"
         :id="id"
-        class="pl-5"
+        class="pl-2"
         :subsystem-name="subsystemName"
         :client-status="client?.status"
         @done="fetchData"
       />
     </template>
+    <template #tabs>
+      <SubsystemTabs :id="id" />
+    </template>
 
     <router-view />
-  </XrdTitledView>
+  </XrdView>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
 import DisableClientButton from '@/components/client/DisableClientButton.vue';
 import EnableClientButton from '@/components/client/EnableClientButton.vue';
 import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import { ClientStatus, RenameStatus } from '@/openapi-types';
-import { XrdTitledView } from '@niis/shared-ui';
+import { XrdView, Breadcrumb, useNotifications } from '@niis/shared-ui';
 import RenameClientButton from '@/components/client/RenameClientButton.vue';
 import { useSystem } from '@/store/modules/system';
 import SubsystemName from '@/components/client/SubsystemName.vue';
+import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
 
 export default defineComponent({
   components: {
+    SubsystemTabs,
+    XrdView,
     SubsystemName,
     RenameClientButton,
-    XrdTitledView,
     EnableClientButton,
     DisableClientButton,
     UnregisterClientButton,
@@ -99,6 +97,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+  },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
   },
   data() {
     return {
@@ -129,32 +131,25 @@ export default defineComponent({
       return this.client?.subsystem_name || '';
     },
     showUnregister(): boolean {
-      if (!this.client) return false;
+      if (!this.client?.status) return false;
       return (
-        this.client &&
         this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-        [
-          ClientStatus.REGISTERED,
-          ClientStatus.REGISTRATION_IN_PROGRESS,
-          ClientStatus.DISABLED,
-        ].includes(this.client.status)
+        [ClientStatus.REGISTERED, ClientStatus.REGISTRATION_IN_PROGRESS, ClientStatus.DISABLED].includes(this.client.status)
       );
     },
     showRename(): boolean {
+      if (!this.client?.status) return false;
       return (
-        this.client &&
         this.doesSupportSubsystemNames &&
         this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
         RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
-        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(
-          this.client.status,
-        )
+        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(this.client.status)
       );
     },
 
     showDelete(): boolean {
       if (
-        !this.client ||
+        !this.client?.status ||
         (this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
           [
             ClientStatus.REGISTERED,
@@ -171,31 +166,35 @@ export default defineComponent({
     },
 
     showDisable(): boolean {
-      return (
-        !!this.client &&
-        this.client.status === ClientStatus.REGISTERED &&
-        this.hasPermission(Permissions.DISABLE_CLIENT)
-      );
+      return !!this.client && this.client.status === ClientStatus.REGISTERED && this.hasPermission(Permissions.DISABLE_CLIENT);
     },
 
     showEnable(): boolean {
-      return (
-        !!this.client &&
-        this.client.status === ClientStatus.DISABLED &&
-        this.hasPermission(Permissions.ENABLE_CLIENT)
-      );
+      return !!this.client && this.client.status === ClientStatus.DISABLED && this.hasPermission(Permissions.ENABLE_CLIENT);
+    },
+    breadcrumbs() {
+      return [
+        {
+          title: 'tab.main.clients',
+          to: {
+            name: RouteName.Clients,
+          },
+        },
+      ] as Breadcrumb[];
     },
   },
-  created() {
-    this.fetchData(this.id);
+  watch: {
+    id: {
+      immediate: true,
+      handler() {
+        this.fetchData(this.id);
+      },
+    },
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
     ...mapActions(useClient, ['fetchClient']),
     fetchData(id: string): void {
-      this.fetchClient(id).catch((error) => {
-        this.showError(error);
-      });
+      this.fetchClient(id).catch((error) => this.addError(error, { navigate: true }));
     },
   },
 });

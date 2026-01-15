@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:keyConf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <device>
+        <deviceType>softToken</deviceType>
+        <friendlyName>softToken-0</friendlyName>
+        <id>0</id>
+        <pinIndex>0</pinIndex>
+        <key usage="AUTHENTICATION">
+            <friendlyName>Auth key</friendlyName>
+            <label>Auth key</label>
+            <keyId>E67CCA8E9B3DA52DB740CDCDC0926F356F431063</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8jWpRCjP+NCTTHdpab5DjCzt4Yi5KQi48vz6yjLAR4A5WhoN4PDi9sienylWQrXATT5ajjTlHaDEPcW8q0elUfD8f1wWqv/uGswfd4PHbydMNntRqyu1CobGFQrAwxr6a4Ikhv785q5aLxI/F3Ub161diubYC7/EEeTJJEmVpiv21M60z27PcGI14g0hbUKQEGyukWQCvpcXDxZCSLJORhwMVScQ/JF81uDOHCYp9lw5X1nbddCryPRrGzYr45tOU+3mUwU/Og4UTQSOua1z19brS7YpgvGBhMOp5F9sJYYgQGZXXWy5HGeiJu5oVeWPhxUFQaxTVguhkEZY5OVCzQIDAQAB</publicKey>
+            <cert active="true" id="D7D15F0ED1A1320EBA0190C838506B60EC07C994">
+                <contents>MIIEbTCCAlWgAwIBAgIBAzANBgkqhkiG9w0BAQsFADArMRcwFQYDVQQKDA5YLVJvYWQgVGVzdCBDQTEQMA4GA1UEAwwHVGVzdCBDQTAeFw0yNTAyMjcwODQwNDZaFw00NTAyMjIwODQwNDZaMEsxCzAJBgNVBAYTAkZJMRQwEgYDVQQKDAtUZXN0IG1lbWJlcjEQMA4GA1UEAwwHeHJkLXNzMDEUMBIGA1UEBRMLREVWL1NTMC9DT00wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDyNalEKM/40JNMd2lpvkOMLO3hiLkpCLjy/PrKMsBHgDlaGg3g8OL2yJ6fKVZCtcBNPlqONOUdoMQ9xbyrR6VR8Px/XBaq/+4azB93g8dvJ0w2e1GrK7UKhsYVCsDDGvprgiSG/vzmrlovEj8XdRvXrV2K5tgLv8QR5MkkSZWmK/bUzrTPbs9wYjXiDSFtQpAQbK6RZAK+lxcPFkJIsk5GHAxVJxD8kXzW4M4cJin2XDlfWdt10KvI9GsbNivjm05T7eZTBT86DhRNBI65rXPX1utLtimC8YGEw6nkX2wlhiBAZlddbLkcZ6Im7mhV5Y+HFQVBrFNWC6GQRljk5ULNAgMBAAGjfDB6MAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgO4MB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAdBgNVHQ4EFgQUMpbjRQF6QZzWKzqt4czCirJo3rwwHwYDVR0jBBgwFoAUY2lTOGoltGtV/t4VgRrPmouVvzgwDQYJKoZIhvcNAQELBQADggIBACALBepGr5bRrXXNnr0PUQCU5rjAqv28NGxSdznVe8Df1Lz3v0gHmfy8TCX0naF4eUqw2I4NsqEnu4L2qxr+klknz+X6qLFQaUXiUe/dC4Dh2gxc8gGANzKWdXoKCATpgr2d1rYTcvokOMtrus91Ch3t09vi80FcyZEbVStI/vHT1q5lq37swpNzVv0XuAQB6Op+ufvFTw/1FS4V0cKEfbRdd6egFTZ0NXZS+gNe/zgUadoxXbO0aefnNjuErLVwm5IofnQlRN3M+0wqn5nlCE4tzPKMQUaxwCqcjau/MskfalU/OKWwwXE3tN7aMgDWWTXf6z37lQ00bvn7lLN4hTLUje2NKCgr70Y/xmAHIEdWAaKaispSQltHYixf8zm9ZY1sPDYv+wYOHSQi6xMBLFO9tMw2d2IEcgTfftJ118H9OGu4b27ox3KYnMK6Iq2E7GjXk/bpaYI5jU6rxTLOi2gAGOzEeqOOGt+94fOpPgqt+xK9z4EffuD0m2C5tMACLmw+7TQ+60nI0hVt7LOlplKfy+np4K/wuwhcSdRAGeejVMoEqaefQYUqj1l8JX2OJ4MewMu3F5CXK7PmLJK/K4edHc+L2bnfYuDsIQZgvg8ZmDJOHecAX052LxsaFgWJHiHHcxqZvZ9iQTgjFRvgyrHYlidHV6EVT1t0mdFZqwOQ</contents>
+                <status>registered</status>
+                <nextRenewalTime>2045-02-08T08:40:46.000Z</nextRenewalTime>
+            </cert>
+            <signMechanismName>CKM_RSA_PKCS</signMechanismName>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>Sign key</friendlyName>
+            <label>Sign key</label>
+            <keyId>056A952E76B40A46C07628C7B13E5934E39A9C78</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoR0Yz6qnGBLjGYjZR9D1gShOg0oC0OdBpoxYDBZ40N+/DY3JNUzzcLNeH7X3/E+QQQlKJl3cuLuKxkHkkjymOTNdtTTAv4w35Ginbb4theZ/1ma3QGaPSdESKfw26/RZsHf4qIZMSmNM6+6DUf57AhyODemXyNolPPuHTp8Tq/LwcPFE+TwRR/BiCorj0yafykSkg7hfHr+EAuilxk+kNFqThb08buYsHYeVfF8JoQAM5NL56wTxFMp6eSOO7EsirGMj+y0+TEMZ8a4ofiVEnPN69qJzIJnx9akUFxV2b5+YpWi1GuNw3PqBxTx/8aNFeU9hoUpQ7W5h1soWWyrxqQIDAQAB</publicKey>
+            <cert active="true" id="E3DC911F8E2EB7AD3BE2D65748F6B7048936EDFE">
+                <memberId ns2:objectType="MEMBER">
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>COM</ns2:memberClass>
+                    <ns2:memberCode>1234</ns2:memberCode>
+                </memberId>
+                <contents>MIIESzCCAjOgAwIBAgIBBDANBgkqhkiG9w0BAQsFADArMRcwFQYDVQQKDA5YLVJvYWQgVGVzdCBDQTEQMA4GA1UEAwwHVGVzdCBDQTAeFw0yNTAyMjcwODQwNDlaFw00NTAyMjIwODQwNDlaMEgxCzAJBgNVBAYTAkZJMRQwEgYDVQQKDAtUZXN0IG1lbWJlcjENMAsGA1UEAwwEMTIzNDEUMBIGA1UEBRMLREVWL1NTMC9DT00wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQChHRjPqqcYEuMZiNlH0PWBKE6DSgLQ50GmjFgMFnjQ378Njck1TPNws14ftff8T5BBCUomXdy4u4rGQeSSPKY5M121NMC/jDfkaKdtvi2F5n/WZrdAZo9J0RIp/Dbr9Fmwd/iohkxKY0zr7oNR/nsCHI4N6ZfI2iU8+4dOnxOr8vBw8UT5PBFH8GIKiuPTJp/KRKSDuF8ev4QC6KXGT6Q0WpOFvTxu5iwdh5V8XwmhAAzk0vnrBPEUynp5I47sSyKsYyP7LT5MQxnxrih+JUSc83r2onMgmfH1qRQXFXZvn5ilaLUa43Dc+oHFPH/xo0V5T2GhSlDtbmHWyhZbKvGpAgMBAAGjXTBbMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgZAMB0GA1UdDgQWBBROYou+TxqDwfPjgLBA5Ik8e/2bIzAfBgNVHSMEGDAWgBRjaVM4aiW0a1X+3hWBGs+ai5W/ODANBgkqhkiG9w0BAQsFAAOCAgEAFDOcJIMLKaU1VnzAJSfx7lPFE3I4qycjQmKMsp9af8qrZC/OtuWR48KOQ5PTaTvKpO5phrIpV4t7kPoyqozz12EXfcmao7dJvXqqpEWk78h3xPRff/yUrZ7EiGwlvngzkMVry6fzL1kkMaYNj9BAIpjz+XQwtmOp6N7f4jhCowj/z28ScRfOtmrhPR/ruTscLRKv/QCbIuQ9pnKKmLL1yGbvK6HkvpsT5m/CXmU0MqiaId+r9aZX251W5vjKw4LZpOnZ0QWaMyA1Xan83QUYtLp+/1frxHjAMZVr1HoI44pAjzmhX//sQrTmccyt7KqXUGIq6e9JMWRdgWgjzjk97xiY5Tp+VZz1mLKW4OP9RU5D0OD/J9GszO+4Ov30PY8pQ6uvtSmtRRq43AjFp1nMgd7/XO0aBIlWNoJKjip6wYYakq6flQz2Ym84+DcYW4jHAr8q1E1AFBhit0/wNCE0fMU4re5ntVt7TjS/lOZc/w5OoB0+h6EvYmEf0GjUw1R+aA+HGUGjNx2N30OVE+80HDBMimO2Kcw/oZNR6dbR10jBKoBQJEEFHSFi7FcddBCDcY1/asxiLB34wyjau1KSZQxKq1uGmB5l+QA5IwJ1sDxbH77LVNjaPYMTuwVC8VP/Fs6b4G6jPxeR6Fj0DdZWwgw7UoB9M13a1VnW6nPB26E=</contents>
+                <status>registered</status>
+                <nextRenewalTime>2045-02-08T08:40:49.000Z</nextRenewalTime>
+            </cert>
+            <signMechanismName>CKM_RSA_PKCS</signMechanismName>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>TestClient SIGN</friendlyName>
+            <label>TestClient</label>
+            <keyId>A1B0BEB1E088E3A291AEEC57FB04400BF17D3E0D</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzNqJJoIa1hcPGnY2768V8b/xLcgjdQQ9Dk7KQmAtKj/7EwqfFGbVyaltXZwCWE82yVtHlPToz1Mr73qXz+twZ/+j6SxWNBmJLlHpP0E7RV9OI6e7YuJWh4GgaCe5VT7Rywwrfp3vrtSM4C1Lg2dml32W1gX58Xd3fMHVGqh7GgtKQOVWpB4+8aq1NJEJp1F5+dSn+5039oV7iWyOSyJvWam4kXq/fgl93IiH0yfEuv/a+qUJEO5lG5v5tCHXPSmCMd83sfTqRL7O69AozagH5gEkCVg9m570SuL+OmSxh8PuZ3FyFW3Y2ibPruw9CnYMIJJPjcsEIpVXI3bftsx3LQIDAQAB</publicKey>
+            <certRequest id="7335B22C6337FA2502C027C7F6E4FF30D62E0534">
+                <memberId ns2:objectType="MEMBER">
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>COM</ns2:memberClass>
+                    <ns2:memberCode>4321</ns2:memberCode>
+                </memberId>
+                <subjectName>C=FI, O=Organization Test, serialNumber=DEV/SS1/COM, CN=1234</subjectName>
+                <subjectAlternativeName>ss1</subjectAlternativeName>
+                <certificateProfile>ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider</certificateProfile>
+            </certRequest>
+            <cert active="true" id="84E4773AFCC4051226ACAEF9AC256AAE4059EE93">
+                <memberId ns2:objectType="MEMBER">
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>COM</ns2:memberClass>
+                    <ns2:memberCode>4321</ns2:memberCode>
+                </memberId>
+                <contents>MIIERDCCAiygAwIBAgIBCDANBgkqhkiG9w0BAQsFADArMRcwFQYDVQQKDA5YLVJvYWQgVGVzdCBDQTEQMA4GA1UEAwwHVGVzdCBDQTAeFw0yNTAyMjgwOTIyNTVaFw00NTAyMjMwOTIyNTVaMEExCzAJBgNVBAYTAkZJMQ0wCwYDVQQKDAR0ZXN0MQ0wCwYDVQQDDAQ0MzIxMRQwEgYDVQQFEwtERVYvU1MwL0NPTTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMzaiSaCGtYXDxp2Nu+vFfG/8S3II3UEPQ5OykJgLSo/+xMKnxRm1cmpbV2cAlhPNslbR5T06M9TK+96l8/rcGf/o+ksVjQZiS5R6T9BO0VfTiOnu2LiVoeBoGgnuVU+0csMK36d767UjOAtS4NnZpd9ltYF+fF3d3zB1RqoexoLSkDlVqQePvGqtTSRCadRefnUp/udN/aFe4lsjksib1mpuJF6v34JfdyIh9MnxLr/2vqlCRDuZRub+bQh1z0pgjHfN7H06kS+zuvQKM2oB+YBJAlYPZue9Eri/jpksYfD7mdxchVt2Nomz67sPQp2DCCST43LBCKVVyN237bMdy0CAwEAAaNdMFswCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCBkAwHQYDVR0OBBYEFAHAxWWIfTMyiFjUfxtP087ZFWiKMB8GA1UdIwQYMBaAFGNpUzhqJbRrVf7eFYEaz5qLlb84MA0GCSqGSIb3DQEBCwUAA4ICAQCSnX6DxwUDtTobj6yUPANbAOErfwegQOdh9WuP+goMP3VRraOGPbAARs2W+EA1VJsXchsyMaOINZZK2GULQXJNbofpdiToph07HMVTg2Rc4xdHX+ZCq8SrxHW0WG8uYutmTJgmuKZ8+tYg8j/T/XE7oZTwBmFIrnwUqLSNSpNGC4EODTFIOY7HXZvPhdAOQ8G9hzqaka3ztf5TempnfkOY+71l4eLj5voB/TGSqP2LcboTWa3oZhX6Qhm9OWqrdS5pOzFoiDX1bQiyCQtWSxyySYQJpmKAIgLUfQRvN+pa+VaVou068r4W1epyvDgRyvReYVYvshPCr3tarL523dKT6+RPHcPpZgjWwghuYsMtJPJ8EomC6QA8s09q/4xmfZ0w133LTqomptTGvqL9WICtcyBi5XPO6to563tAblVaFtfIKQ79AJQgDiHpkexe5ys/tFxQ+jFJFixAH89T+0+FSyr/obBMriMkMxaKtDnbp20/sq66jzV8nyxgvdgMVtMRL02ykmFjG0dmdeL8WDHdIffH69xNds1jbE8RRLgvTvXB0zydzHZsfsfwR2gEDc5GZKZfMVqzmF6MK4kwV962wDOZi2vI5c+VGHEiP7qf5s1VCSJnhDZdxWfnxUzuY1g+0EJFoznAri1kc2jU0/Xj+lOJOG8sfj9NBHbPa/0NcA==</contents>
+                <status>registered</status>
+                <nextRenewalTime>2045-02-09T09:22:55.000Z</nextRenewalTime>
+                <ocspVerifyBeforeActivationError></ocspVerifyBeforeActivationError>
+            </cert>
+            <signMechanismName>CKM_RSA_PKCS</signMechanismName>
+        </key>
+    </device>
+    <device>
+        <deviceType>hsm_ncipher</deviceType>
+        <id>2</id>
+        <tokenId>66d15b9bec133e04</tokenId>
+        <slotId>thekey</slotId>
+        <pinIndex>1</pinIndex>
+        <key usage="SIGNING">
+            <friendlyName>Signing key of producer</friendlyName>
+            <keyId>02d66d5589f5b8626875ef99a11a84f7b2aa202f</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArMsw+thnw3cctKEnjgFvemv4a7M2x58tcY9PigbEHUyT9zrp/c29ANJMqqozZ0uBwBIUQGRXgPww5h5JphmtOS+IRAZCg9PKuJgh/6R08ut5BJQTgfHV/vZsoaFqD9y7JlKmDoU6Tas/LNsnBT/+1GIzETdeEuRpXzJJWE5S56UD61yu7ZgOQcV+UUfza4CNnE8oF3W1sn2+BwCbsmyeb2Jz9JiIjxfYdL0RQZ058xyVfl29OHscTa6j6w4CO52OWtobViNGOS/mz4tHZ8UidVs/RmHP4ASNOAPl9sJ5dbiX8tvFUa9wYT+FksTYMY6JzR9W1BLHtEedLPmLORW/HQIDAQAB</publicKey>
+            <cert active="true" id="0154d0eada503b2df90202c8e8382de9f5988c01">
+                <memberId ns2:objectType="MEMBER">
+                    <ns2:xRoadInstance>EE</ns2:xRoadInstance>
+                    <ns2:memberClass>BUSINESS</ns2:memberClass>
+                    <ns2:memberCode>producer</ns2:memberCode>
+                </memberId>
+                <contents>MIIDiDCCAnCgAwIBAgIIC/Tasr5oaKswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTMwMjExMTIyMjQzWhcNMTUwMjExMTIyMjQzWjATMREwDwYDVQQDDAhjb25zdW1lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJnc3kMx4hbH6LPmpeXkt3Lwj6EdRnmPGc0YjR0lZMC4qJVPocXtfmN+1MyUbhQONP2UgWWswqDZTKwrycfx9DOlBaOfbUkt4GG8/D1HR3rdmIENC7XI5mYGlic7J/b1qQSLsGAzTPmRMRZ4jKMPb1lcrPnZxT+0VZcAy28eMZ4kf4YsdfsmgdZVqwtIt/TZv7d6Y9Ku0Ty0UeSQ0jgb5FxnCXRKL3edrOVfhXcYbXzPC7i91xHfqWm74hu63jGvlpN6zM598Tgc7ZhCnc83SF3571TO1q2Msqw4pCK8AVI6chJa+237lK+EU+nmlq+c+WZM+kveP75WrlNNtsxBny8CAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9zdGF0dXMvb2NzcDAdBgNVHQ4EFgQU+vRmVYcwfCkcSkxoRzxtyALpTt4wDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBABNtG8An2Kx/tXwvFRSelDCRwHsgcyX5enF73t+xGAOs8J8cEXZ24vFMP/Dn+uu9fUE/ZxypaWUDnUUGrnxbcGnPuyy3BrON88//Q9LdEZGJarNdRQXKQkC4FwXzLK+ha6PRqFgAj2ztCwt9QUIvrCnfomfhpCE6ivOUrcml3Sps2l3HtZcizfwVEysOEyNaZM6XtDcvPYeWoXuuJCsQc4qJWjoLvM1eC6qqqXNLoolVB5BWshuSNhwNyKMjxxsW08GCd9jJYMvasoDX+jQCUctEsZVTJRPVUNrOL3zRpWzZtt2+3yZ3dGp7uGri6TjsakMAS+QU65Ha+bfBXx87hwE=</contents>
+            </cert>
+        </key>
+    </device>
+</ns3:keyConf>
+</ns3:keyConf>

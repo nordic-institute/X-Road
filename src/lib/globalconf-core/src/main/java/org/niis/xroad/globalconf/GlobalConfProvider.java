@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.globalconf;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
@@ -155,10 +156,12 @@ public interface GlobalConfProvider {
      * Addresses are ordered based on ocsp-prioritization-strategy system property.
      *
      * @param member the member certificate
+     * @param prioritizationStrategy the strategy that defines the ordering and filtering of OCSP responders
      * @return list of OCSP responder addresses
      *
      */
-    List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException;
+    List<String> getOrderedOcspResponderAddresses(X509Certificate member, ServicePrioritizationStrategy prioritizationStrategy)
+            throws CertificateEncodingException, IOException;
 
 
     /**
@@ -357,14 +360,6 @@ public interface GlobalConfProvider {
     Set<String> getSourceAddresses(String instanceIdentifier);
 
     /**
-     * Returns all allowed federation instances.
-     * Also taking into account the value of the {@code configuration-client.allowed-federations} property.
-     *
-     * @return a set of allowed federation instances
-     */
-    Set<String> getAllowedFederationInstances();
-
-    /**
      * Returns the configuration directory path for the given instance identifier.
      *
      * @param instanceIdentifier the instance identifier
@@ -398,10 +393,10 @@ public interface GlobalConfProvider {
      * @param instanceIdentifier instance id
      * @param cert               intermediate or top CA cert
      * @return ApprovedCAInfo (for the top CA)
-     * @throws CodedException if something went wrong, for example
+     * @throws XrdRuntimeException if something went wrong, for example
      *                        {@code cert} was not an approved CA cert
      */
-    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
+    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert);
 
     /**
      * Returns access to various GlobalConf extensions.

@@ -27,11 +27,11 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.mail.MailNotificationType;
-import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.converter.MailNotificationTypeMapping;
+import org.niis.xroad.securityserver.restapi.mail.MailNotificationType;
+import org.niis.xroad.securityserver.restapi.mail.MailService;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailStatusDto;

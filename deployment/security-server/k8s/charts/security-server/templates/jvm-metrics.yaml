@@ -1,0 +1,11 @@
+{{/* JMX Exporter ConfigMap */}}
+{{- if .Values.jvmMetrics.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-jmx-exporter-config
+data:
+  jmx-exporter-config.yaml: |-
+{{ .Values.jvmMetrics.jmxExporter.config | indent 4 }}
+---
+{{- end }}

@@ -53,7 +53,7 @@ public class SslSelectFastestProxy extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
                 return Arrays.asList("server.invalid.", "localhost", "127.0.0,1");
