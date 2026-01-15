@@ -60,9 +60,9 @@ public class ApiWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
     @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain apiWebSecurityFilterChain(HttpSecurity http,
-                                                         ApiKeyAuthenticationManager apiKeyAuthenticationManager,
-                                                         Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,
-                                                         @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
+            ApiKeyAuthenticationManager apiKeyAuthenticationManager,
+            Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,
+            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
