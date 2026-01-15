@@ -40,6 +40,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -59,9 +60,9 @@ public class ApiWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
     @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain apiWebSecurityFilterChain(HttpSecurity http,
-                                                         ApiKeyAuthenticationManager apiKeyAuthenticationManager,
-                                                         Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,
-                                                         @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
+            ApiKeyAuthenticationManager apiKeyAuthenticationManager,
+            Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,
+            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
@@ -74,15 +75,17 @@ public class ApiWebSecurityConfig {
                 .securityMatcher("/api/**")
                 .addFilter(filter)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.NEVER))
-                .authorizeHttpRequests(customizer -> customizer.anyRequest().authenticated())
+                .authorizeHttpRequests(customizer -> customizer
+                        .requestMatchers(HttpMethod.OPTIONS).denyAll()
+                        .anyRequest().authenticated())
                 .exceptionHandling(customizer -> customizer.authenticationEntryPoint(http401AuthenticationEntryPoint))
                 .csrf(customizer -> customizer
                         .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
                         // we require csrf protection only if there is a session alive
                         .requireCsrfProtectionMatcher(ApiWebSecurityConfig::sessionExists)
                         // CsrfFilter always generates a new token in the repo -> prevent with lazy
-                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite)))
-                )
+                        .csrfTokenRepository(
+                                new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite))))
                 .anonymous(AbstractHttpConfigurer::disable)
                 .headers(headerPolicyDirectives("default-src 'none'"))
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -105,7 +108,8 @@ public class ApiWebSecurityConfig {
     /**
      * Disable session request cache to prevent extra session creation when api
      * calls fail.
-     * This breaks (access restricted thymeleaf page -> auth error -> login -> redirect to restricted page)
+     * This breaks (access restricted thymeleaf page -> auth error -> login ->
+     * redirect to restricted page)
      * flow, but we do not need it in our app.
      */
     @Bean

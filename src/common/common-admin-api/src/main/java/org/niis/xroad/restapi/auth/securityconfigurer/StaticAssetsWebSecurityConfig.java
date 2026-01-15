@@ -34,6 +34,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 
@@ -43,33 +44,32 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerP
 @Configuration
 public class StaticAssetsWebSecurityConfig {
 
-
-    @Bean
-    @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .securityMatcher(
-                        "/favicon.ico",
-                        "/",
-                        "/index.html",
-                        "/img/**",
-                        "/css/**",
-                        "/js/**",
-                        "/fonts/**",
-                        "/assets/**",
-                        "/.well-known/**"
-                )
-                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
-                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-                                + "style-src 'self' 'unsafe-inline' ;"
-                                + "font-src data: 'self'"
-                        )
-                )
-                .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
-                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .build();
-    }
+        @Bean
+        @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+        @ArchUnitSuppressed("NoVanillaExceptions")
+        public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
+                return http
+                                .securityMatcher(
+                                                "/favicon.ico",
+                                                "/",
+                                                "/index.html",
+                                                "/img/**",
+                                                "/css/**",
+                                                "/js/**",
+                                                "/fonts/**",
+                                                "/assets/**",
+                                                "/.well-known/**")
+                                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
+                                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                                                + "style-src 'self' 'unsafe-inline' ;"
+                                                + "font-src data: 'self'"))
+                                .authorizeHttpRequests(customizer -> customizer
+                                                .requestMatchers(HttpMethod.OPTIONS).denyAll()
+                                                .anyRequest().permitAll())
+                                .sessionManagement(customizer -> customizer
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .formLogin(AbstractHttpConfigurer::disable)
+                                .build();
+        }
 }

@@ -39,8 +39,11 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
@@ -83,8 +86,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private final KeyConfProvider keyConfProvider;
 
     public ClientRestMessageHandler(MessageProcessorFactory messageProcessorFactory,
-                                    ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                    KeyConfProvider keyConfProvider, OpMonitoringBuffer opMonitoringBuffer) {
+            ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+            KeyConfProvider keyConfProvider, OpMonitoringBuffer opMonitoringBuffer) {
         super(messageProcessorFactory, true, opMonitoringBuffer);
         this.proxyProperties = proxyProperties;
         this.globalConfProvider = globalConfProvider;
@@ -93,16 +96,23 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                          OpMonitoringData opMonitoringData) {
+            OpMonitoringData opMonitoringData) {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
-            verifyCanProcess();
+            verifyCanProcess(request);
             return messageProcessorFactory.createClientRestMessageProcessor(request, response, opMonitoringData);
         }
         return null;
     }
 
-    private void verifyCanProcess() {
+    private void verifyCanProcess(RequestWrapper request) {
+        if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+            throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD)
+                    .details("OPTIONS request method not allowed")
+                    .origin(ErrorOrigin.CLIENT)
+                    .build();
+        }
+
         globalConfProvider.verifyValidity();
 
         if (!proxyProperties.sslEnabled()) {
@@ -119,9 +129,9 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     public void sendErrorResponse(Request request,
-                                  Response response,
-                                  Callback callback,
-                                  XrdRuntimeException ex) throws IOException {
+            Response response,
+            Callback callback,
+            XrdRuntimeException ex) throws IOException {
         if (ex.getErrorCode().startsWith("server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {
