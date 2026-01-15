@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.7  
+Version: 1.8  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                           | Author             |
@@ -18,6 +18,7 @@ Document ID: ARC-OPMOND
 | 17.03.2025 | 1.5     | Syntax and styling                                                    | Pauline Dimmek     |
 | 26.03.2025 | 1.6     | Added field xRoadVersion and example for producer side REST request   | Eneli Reimets      |
 | 10.07.2025 | 1.7     | Added info about operational data query in fixed intervals using gRPC | Mikk-Erik Bachmann |
+| 15.01.2026 | 1.8     | Update schema file locations                                          | Mohamed Elbeltagy  |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -180,7 +181,7 @@ Figure 2 shows the deployment diagram.
 
 ### A.1 JSON-Schema for Store Operational Monitoring Data Request
 
-The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/service/op-monitor/op-monitor-core/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
 
 ### A.2 Example Store Operational Monitoring Data Request
 
@@ -322,7 +323,7 @@ The first record of the store request reflects successfully mediated SOAP reques
 
 ### A.3 JSON-Schema for Store Operational Monitoring Data Response
 
-The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/service/op-monitor/op-monitor-core/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
 
 ### A.4 Example Store Operational Monitoring Data Responses
 
