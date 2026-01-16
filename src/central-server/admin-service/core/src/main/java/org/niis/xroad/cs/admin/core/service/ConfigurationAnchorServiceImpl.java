@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -45,6 +44,7 @@ import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchorWithFile;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceGlobalConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
@@ -86,6 +86,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
 
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final SystemParameterService systemParameterService;
+    private final AdminServiceGlobalConfigProperties adminServiceGlobalConfigProperties;
     private final AuditEventHelper auditEventHelper;
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus haConfigStatus;
@@ -188,8 +189,8 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
     private String buildGlobalDownloadUrl(final String sourceType, final String haNodeName, final boolean isHttps) {
         final var csAddress = systemParameterService.getCentralServerAddress(haNodeName);
         final String sourceDirectory = INTERNAL.name().equalsIgnoreCase(sourceType)
-                ? SystemProperties.getCenterInternalDirectory()
-                : SystemProperties.getCenterExternalDirectory();
+                ? adminServiceGlobalConfigProperties.getInternalDirectory()
+                : adminServiceGlobalConfigProperties.getExternalDirectory();
         final String protocol = isHttps ? "https" : "http";
 
         return String.format("%s://%s/%s", protocol, csAddress, sourceDirectory);

@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.common.managementrequest;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.Soap;
@@ -40,6 +40,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.AddressChangeRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegWithoutCertRequest;
@@ -51,8 +52,10 @@ import org.niis.xroad.common.managementrequest.model.MaintenanceModeDisableReque
 import org.niis.xroad.common.managementrequest.model.MaintenanceModeEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -61,12 +64,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
+import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 
 /**
  * Sends various management requests. Authentication certificate registration
@@ -79,8 +81,10 @@ public final class ManagementRequestSender {
     private final GlobalConfProvider globalConfProvider;
     private final ManagementRequestClient managementRequestClient;
     private final SignerRpcClient signerRpcClient;
-    private final String securityServerUrl;
+    private final SignerSignClient signerSignClient;
+    private final String managementProxyServerUrl;
     private final ManagementRequestBuilder builder;
+    private final DigestAlgorithm signatureDigestAlgorithm;
 
     /**
      * Creates the sender for the user ID, client and receiver used in
@@ -89,21 +93,27 @@ public final class ManagementRequestSender {
      * @param sender   the sender
      * @param receiver the receiver
      */
-    public ManagementRequestSender(GlobalConfProvider globalConfProvider, SignerRpcClient signerRpcClient, ClientId sender,
-                                   ClientId receiver, String securityServerUrl) {
+    public ManagementRequestSender(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
+                                   SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                                   ClientId sender, ClientId receiver, String managementProxyServerUrl,
+                                   DigestAlgorithm signatureDigestAlgorithm,
+                                   int connectTimeout, int socketTimeout, boolean isEnabledPooledConnectionReuse) {
         this.globalConfProvider = globalConfProvider;
         this.signerRpcClient = signerRpcClient;
+        this.signerSignClient = signerSignClient;
         this.builder = new ManagementRequestBuilder(sender, receiver);
-        this.securityServerUrl = securityServerUrl;
-        this.managementRequestClient = new ManagementRequestClient(globalConfProvider);
+        this.managementProxyServerUrl = managementProxyServerUrl;
+        this.managementRequestClient = new ManagementRequestClient(vaultKeyProvider, globalConfProvider,
+                connectTimeout, socketTimeout, isEnabledPooledConnectionReuse);
+        this.signatureDigestAlgorithm = signatureDigestAlgorithm;
     }
 
     private URI getCentralServiceURI() throws URISyntaxException {
         return new URI(globalConfProvider.getManagementRequestServiceAddress());
     }
 
-    private URI getSecurityServerURI() throws URISyntaxException {
-        return new URI(securityServerUrl);
+    private URI getManagementProxyServerUrl() throws URISyntaxException {
+        return new URI(managementProxyServerUrl);
     }
 
     // -- Management request send methods -------------------------------------
@@ -125,13 +135,17 @@ public final class ManagementRequestSender {
             throws Exception {
         if (dryRun && authCert.length == 0) {
             try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
-                return send(sender, getCentralServiceURI(), new AuthCertRegWithoutCertRequest(signerRpcClient, authCert,
-                        securityServer.getOwner(), builder.buildAuthCertRegRequest(securityServer, address, authCert, true)));
+                return send(sender, getCentralServiceURI(), new AuthCertRegWithoutCertRequest(signerRpcClient, signerSignClient,
+                        authCert, securityServer.getOwner(),
+                        builder.buildAuthCertRegRequest(securityServer, address, authCert, true),
+                        signatureDigestAlgorithm));
             }
         }
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
-            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, authCert, securityServer.getOwner(),
-                    builder.buildAuthCertRegRequest(securityServer, address, authCert, dryRun)));
+            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, signerSignClient,
+                    authCert, securityServer.getOwner(),
+                    builder.buildAuthCertRegRequest(securityServer, address, authCert, dryRun),
+                    signatureDigestAlgorithm));
         }
     }
 
@@ -161,9 +175,9 @@ public final class ManagementRequestSender {
      */
     public Integer sendAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new AddressChangeRequest(signerRpcClient, securityServer.getOwner(),
-                            builder.buildAddressChangeRequest(securityServer, address)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new AddressChangeRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
+                            builder.buildAddressChangeRequest(securityServer, address), signatureDigestAlgorithm));
         }
     }
 
@@ -177,9 +191,9 @@ public final class ManagementRequestSender {
      */
     public Integer sendMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new MaintenanceModeEnableRequest(signerRpcClient, securityServer.getOwner(),
-                            builder.buildMaintenanceModeEnableRequest(securityServer, message)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new MaintenanceModeEnableRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeEnableRequest(securityServer, message), signatureDigestAlgorithm));
         }
     }
 
@@ -192,9 +206,9 @@ public final class ManagementRequestSender {
      */
     public Integer sendMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new MaintenanceModeDisableRequest(signerRpcClient, securityServer.getOwner(),
-                            builder.buildMaintenanceModeDisableRequest(securityServer)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new MaintenanceModeDisableRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeDisableRequest(securityServer), signatureDigestAlgorithm));
         }
     }
 
@@ -208,8 +222,9 @@ public final class ManagementRequestSender {
      */
     public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId, String clientName) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new ClientRegRequest(signerRpcClient, clientId, builder.buildClientRegRequest(securityServer, clientId, clientName)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new ClientRegRequest(signerRpcClient, signerSignClient,
+                            clientId, builder.buildClientRegRequest(securityServer, clientId, clientName), signatureDigestAlgorithm));
         }
     }
 
@@ -238,33 +253,37 @@ public final class ManagementRequestSender {
     public Integer sendOwnerChangeRequest(SecurityServerId.Conf securityServer,
                                           ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new OwnerChangeRequest(signerRpcClient, clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new OwnerChangeRequest(signerRpcClient, signerSignClient,
+                            clientId, builder.buildOwnerChangeRequest(securityServer, clientId), signatureDigestAlgorithm));
         }
     }
 
     public Integer sendClientDisableRequest(SecurityServerId.Conf securityServer,
                                             ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new ClientDisableRequest(signerRpcClient, clientId, builder.buildClientDisableRequest(securityServer, clientId)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new ClientDisableRequest(signerRpcClient, signerSignClient,
+                            clientId, builder.buildClientDisableRequest(securityServer, clientId),
+                            signatureDigestAlgorithm));
         }
     }
 
     public Integer sendClientEnableRequest(SecurityServerId.Conf securityServer,
                                            ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new ClientEnableRequest(signerRpcClient, clientId, builder.buildClientEnableRequest(securityServer, clientId)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new ClientEnableRequest(signerRpcClient, signerSignClient,
+                            clientId, builder.buildClientEnableRequest(securityServer, clientId), signatureDigestAlgorithm));
         }
     }
 
     public Integer sendClientRenameRequest(SecurityServerId.Conf securityServer,
                                            ClientId.Conf clientId, String subsystemName) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
-                    new ClientRenameRequest(signerRpcClient, clientId,
-                            builder.buildClientRenameRequest(securityServer, clientId, subsystemName)));
+            return send(sender, getManagementProxyServerUrl(),
+                    new ClientRenameRequest(signerRpcClient, signerSignClient, clientId,
+                            builder.buildClientRenameRequest(securityServer, clientId, subsystemName), signatureDigestAlgorithm));
         }
     }
 
@@ -273,7 +292,7 @@ public final class ManagementRequestSender {
     private Integer sendToProxy(SoapMessageImpl request) throws Exception {
         try (HttpSender sender =
                      managementRequestClient.createProxyHttpSender()) {
-            return send(sender, getSecurityServerURI(),
+            return send(sender, getManagementProxyServerUrl(),
                     new SimpleManagementRequest(request));
         }
     }
@@ -329,7 +348,7 @@ public final class ManagementRequestSender {
                 getBaseContentType(sender.getResponseContentType());
         if (baseContentType == null
                 || !baseContentType.equalsIgnoreCase(expectedContentType)) {
-            throw new CodedException(X_HTTP_ERROR,
+            throw XrdRuntimeException.systemException(HTTP_ERROR,
                     "Unexpected or no content type (%s) in response",
                     baseContentType);
         }
@@ -338,16 +357,16 @@ public final class ManagementRequestSender {
                 sender.getResponseContent());
         if (response instanceof SoapFault soapFault) {
             // Server responded with fault
-            throw soapFault.toCodedException();
+            throw soapFault.toXrdRuntimeException();
         }
 
         if (!(response instanceof SoapMessageImpl responseMessage)) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Got unexpected response message " + response);
         }
 
         if (!responseMessage.isResponse()) {
-            throw new CodedException(X_INTERNAL_ERROR,
+            throw XrdRuntimeException.systemInternalError(
                     "Expected response message");
         }
 

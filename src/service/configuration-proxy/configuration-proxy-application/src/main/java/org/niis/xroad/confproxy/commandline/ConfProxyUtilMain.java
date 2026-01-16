@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +33,10 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.confproxy.SystemPropertiesLoader;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.lang.reflect.InvocationTargetException;
@@ -42,7 +44,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
+import static org.niis.xroad.confproxy.SystemProperties.CONF_FILE_CONFPROXY;
 
 /**
  * Main program for launching configuration proxy utility tools.
@@ -64,10 +66,9 @@ public final class ConfProxyUtilMain {
 
     /**
      * Configuration proxy utility tool program entry point.
-     *
      * @param args program args
      */
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws Exception {
         try {
             setup();
             runUtilWithArgs(args);
@@ -75,15 +76,32 @@ public final class ConfProxyUtilMain {
             System.err.println(e.getMessage());
             log.error("Error while running confproxy util:", e);
         } finally {
-            signerRpcClient.destroy();
+            signerRpcClient.close();
         }
     }
 
     /**
      * Initialize configuration proxy utility program components.
      */
+    @Deprecated
     static void setup() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        signerRpcClient = new SignerRpcClient();
+        var factory = new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
+        signerRpcClient = new SignerRpcClient(factory, new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
+
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        });
         signerRpcClient.init();
 
         cmdLineParser = new DefaultParser();
@@ -91,7 +109,6 @@ public final class ConfProxyUtilMain {
 
     /**
      * Executes the utility program with the provided argument list.
-     *
      * @param args program arguments
      * @throws Exception if any errors occur during execution
      */
@@ -106,14 +123,13 @@ public final class ConfProxyUtilMain {
 
     /**
      * Creates an utility program instance of the provided class name.
-     *
      * @param className name of the utility program class
      * @return an instance of the requested utility program
      */
     @SuppressWarnings("unchecked")
     static ConfProxyUtil createUtilInstance(final String className)
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException {
+                   InstantiationException, IllegalAccessException {
         Class<ConfProxyUtil> utilClass =
                 (Class<ConfProxyUtil>) Class.forName(className);
         return utilClass.getConstructor(SignerRpcClient.class).newInstance(signerRpcClient);

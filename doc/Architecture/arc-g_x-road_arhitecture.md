@@ -2,8 +2,8 @@
 
 **X-Road Architecture**
 
-Version: 1.14  
-01.06.2023
+Version: 1.15  
+11.11.2025
 <!-- 16 pages -->
 Doc. ID: ARC-G
 
@@ -12,28 +12,29 @@ Doc. ID: ARC-G
 
 ## Version history
 
- Date       | Version | Description                                                                                                   | Author
- ---------- |---------|---------------------------------------------------------------------------------------------------------------| --------------------
- 02.06.2015 | 0.1     | Initial version                                                                                               | Margus Freudenthal
- 03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal
- 08.09.2015 | 0.3     | Made editorial changes                                                                                        | Vello Hanson
- 08.09.2015 | 0.4     | Added signed document download interface and UIs to component diagram, added components to deployment diagram | Margus Freudenthal
- 17.09.2015 | 0.5     | Incorporated feedback from Vitali                                                                             | Margus Freudenthal
- 18.09.2015 | 1.0     | Editorial changes made                                                                                        | Imbi Nõgisto
- 13.10.2015 | 1.1     | Incorporated feedback from Vitali                                                                             | Ilja Kromonov
- 28.10.2015 | 1.2     | Typos fixed                                                                                                   | Siim Annuk
- 16.12.2015 | 1.3     | Add environmental monitoring                                                                                  | Ilkka Seppälä
- 20.12.2016 | 1.4     | Added operational monitoring                                                                                  | Kristo Heero
- 20.02.2017 | 1.5     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF          | Toomas Mölder
- 21.12.2017 | 1.6     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered                             | Antti Luoma
- 02.03.2018 | 1.7     | Moved terms and abbreviations into the terms document, added terms reference and document links               | Tatu Repo
- 02.11.2018 | 1.8     | Described environmental monitoring daemon and its interfaces                                                  | Ilkka Seppälä
- 16.04.2019 | 1.9     | Added REST support and X-Road Message Protocol for REST                                                       | Petteri Kivimäki
- 28.02.2021 | 1.10    | Update Figure 1 and Figure 2                                                                                  | Petteri Kivimäki
- 07.09.2021 | 1.11    | Fix broken link                                                                                               | Ilkka Seppälä
- 23.09.2022 | 1.12    | Added new Registration Web Service                                                                            | Eneli Reimets
- 01.06.2023 | 1.13    | Update references                                                                                             | Petteri Kivimäki
- 17.03.2025 | 1.14    | Syntax and styling                                                                                            | Pauline Dimmek
+| Date       | Version | Description                                                                                                   | Author             |
+|------------|---------|---------------------------------------------------------------------------------------------------------------|--------------------|
+| 02.06.2015 | 0.1     | Initial version                                                                                               | Margus Freudenthal |
+| 03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal |
+| 08.09.2015 | 0.3     | Made editorial changes                                                                                        | Vello Hanson       |
+| 08.09.2015 | 0.4     | Added signed document download interface and UIs to component diagram, added components to deployment diagram | Margus Freudenthal |
+| 17.09.2015 | 0.5     | Incorporated feedback from Vitali                                                                             | Margus Freudenthal |
+| 18.09.2015 | 1.0     | Editorial changes made                                                                                        | Imbi Nõgisto       |
+| 13.10.2015 | 1.1     | Incorporated feedback from Vitali                                                                             | Ilja Kromonov      |
+| 28.10.2015 | 1.2     | Typos fixed                                                                                                   | Siim Annuk         |
+| 16.12.2015 | 1.3     | Add environmental monitoring                                                                                  | Ilkka Seppälä      |
+| 20.12.2016 | 1.4     | Added operational monitoring                                                                                  | Kristo Heero       |
+| 20.02.2017 | 1.5     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF          | Toomas Mölder      |
+| 21.12.2017 | 1.6     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered                             | Antti Luoma        |
+| 02.03.2018 | 1.7     | Moved terms and abbreviations into the terms document, added terms reference and document links               | Tatu Repo          |
+| 02.11.2018 | 1.8     | Described environmental monitoring daemon and its interfaces                                                  | Ilkka Seppälä      |
+| 16.04.2019 | 1.9     | Added REST support and X-Road Message Protocol for REST                                                       | Petteri Kivimäki   |
+| 28.02.2021 | 1.10    | Update Figure 1 and Figure 2                                                                                  | Petteri Kivimäki   |
+| 07.09.2021 | 1.11    | Fix broken link                                                                                               | Ilkka Seppälä      |
+| 23.09.2022 | 1.12    | Added new Registration Web Service                                                                            | Eneli Reimets      |
+| 01.06.2023 | 1.13    | Update references                                                                                             | Petteri Kivimäki   |
+| 17.03.2025 | 1.14    | Syntax and styling                                                                                            | Pauline Dimmek     |
+| 11.11.2025 | 1.15    | Drop JMX interfaces                                                                                           | Justas Samuolis    |
 
 ## Table of Contents
 
@@ -71,10 +72,8 @@ Doc. ID: ARC-G
     - [3.11 Store Operational Monitoring Data](#311-store-operational-monitoring-data)
     - [3.12 Operational Monitoring Query](#312-operational-monitoring-query)
     - [3.13 Operational Monitoring Protocol](#313-operational-monitoring-protocol)
-    - [3.14 Operational Monitoring JMX](#314-operational-monitoring-jmx)
-    - [3.15 Environmental Monitoring Protocol](#315-environmental-monitoring-protocol)
-    - [3.16 Environmental Monitoring JMX](#316-environmental-monitoring-jmx)
-    - [3.17 Environmental Monitoring Query](#317-environmental-monitoring-query)
+    - [3.14 Environmental Monitoring Protocol](#314-environmental-monitoring-protocol)
+    - [3.15 Environmental Monitoring Query](#315-environmental-monitoring-query)
   - [4 Deployment View](#4-deployment-view)
 
 <!-- tocstop -->
@@ -121,29 +120,29 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.4 References
 
-1.  <a id="Ref_ARC-CP" class="anchor"></a>\[ARC-CP\] X-Road: Configuration Proxy Architecture. Document ID: [ARC-CP](arc-cp_x-road_configuration_proxy_architecture.md).
+1. <a id="Ref_ARC-CP" class="anchor"></a>\[ARC-CP\] X-Road: Configuration Proxy Architecture. Document ID: [ARC-CP](arc-cp_x-road_configuration_proxy_architecture.md).
 
-2.  <a id="Ref_ARC-CS" class="anchor"></a>\[ARC-CS\] X-Road: Central Server Architecture. Document ID: [ARC-CS](arc-cs_x-road_central_server_architecture.md).
+2. <a id="Ref_ARC-CS" class="anchor"></a>\[ARC-CS\] X-Road: Central Server Architecture. Document ID: [ARC-CS](arc-cs_x-road_central_server_architecture.md).
 
-3.  <a id="Ref_ARC-SS" class="anchor"></a>\[ARC-SS\] X-Road: Security Server Architecture. Document ID: [ARC-SS](arc-ss_x-road_security_server_architecture.md).
+3. <a id="Ref_ARC-SS" class="anchor"></a>\[ARC-SS\] X-Road: Security Server Architecture. Document ID: [ARC-SS](arc-ss_x-road_security_server_architecture.md).
 
-4.  <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
+4. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
 
-5.  <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
+5. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
 
-6.  <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
+6. <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 
-7.  <a id="Ref_EIDAS" class="anchor"></a>\[EIDAS\] EU Regulation No 910/2014 – Regulation (EU) No 910/2014 of the European Parliament and of the Council of 23 July 2014 on electronic identification and trust services for electronic transactions in the internal market and repealing Directive 1999/93/EC
+7. <a id="Ref_EIDAS" class="anchor"></a>\[EIDAS\] EU Regulation No 910/2014 – Regulation (EU) No 910/2014 of the European Parliament and of the Council of 23 July 2014 on electronic identification and trust services for electronic transactions in the internal market and repealing Directive 1999/93/EC
 
-8.  <a id="Ref_OCSP" class="anchor"></a>\[OCSP\] X.509 Internet Public Key Infrastructure Online Certificate Status Protocol - OCSP. Internet Engineering Task Force, RFC 6960, 2013.
+8. <a id="Ref_OCSP" class="anchor"></a>\[OCSP\] X.509 Internet Public Key Infrastructure Online Certificate Status Protocol - OCSP. Internet Engineering Task Force, RFC 6960, 2013.
 
-9.  <a id="Ref_PKCS10" class="anchor"></a>\[PKCS10\] Certification Request Syntax Standard. RSA Laboratories, PKCS \#10.
+9. <a id="Ref_PKCS10" class="anchor"></a>\[PKCS10\] Certification Request Syntax Standard. RSA Laboratories, PKCS \#10.
 
 10. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
 11. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
-12.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
+12. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
 13. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
 
@@ -151,23 +150,21 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 15. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
 
-16. <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).
+16. <a id="Ref_SOAP" class="anchor"></a>\[SOAP\] Simple Object Access Protocol (SOAP) 1.1, 2000.
 
-17. <a id="Ref_SOAP" class="anchor"></a>\[SOAP\] Simple Object Access Protocol (SOAP) 1.1, 2000.
+17. <a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Internet Engineering Task Force, RFC 3161, 2001.
 
-18. <a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Intenet Engineering Task Force, RFC 3161, 2001.
+18. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
-19. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
+19. <a id="Ref_WSDL" class="anchor"></a>\[WSDL\] Web Services Description Language (WSDL) 1.1, 2001.
 
-20. <a id="Ref_WSDL" class="anchor"></a>\[WSDL\] Web Services Description Language (WSDL) 1.1, 2001.
+20. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
 
-21. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
+21. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
-22. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+22. <a id="Ref_OPENAPI" class="anchor"></a>\[OPENAPI\] OpenAPI Specification 3.0.0. 26th July 2017.
 
-23. <a id="Ref_OPENAPI" class="anchor"></a>\[OPENAPI\] OpenAPI Specification 3.0.0. 26th July 2017.
-
-24.  <a id="Ref_PR-REST" class="anchor"></a>\[PR-REST\] X-Road Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
+23. <a id="Ref_PR-REST" class="anchor"></a>\[PR-REST\] X-Road Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
 
 ## 2 System Components
 
@@ -207,7 +204,7 @@ The security server manages two types of keys. The authentication keys are assig
 
 The security server downloads and caches up-to-date global configuration and certificate validity information (see Section [3.7](#37-ocsp-protocol)). Caching allows the security server to operate even when the information sources are unavailable.
 
-The security server contains an optional monitoring component that keeps track of environmental properties such as running processes, available disk space, installed packages etc. The monitoring component publishes this data via environmental monitoring service (see Section [3.11](#311-store-operational-monitoring-data)) and monitoring JMX (see Section [3.12](#312-operational-monitoring-query)) interfaces.
+The security server contains an optional monitoring component that keeps track of environmental properties such as running processes, available disk space, installed packages etc. The monitoring component publishes this data via environmental monitoring service (see Section [3.11](#311-store-operational-monitoring-data)).
 
 
 ### 2.3 Information System
@@ -365,23 +362,12 @@ The interface is described in more detail in \[[ARC-OPMOND](#Ref_ARC-OPMOND)\].
 
 This interface is used by external monitoring systems to gather operational information of the security server. The protocol is synchronous RPC style protocol that is initiated by the external monitoring system. The protocol is described in more detail in \[[PR-OPMON](#Ref_PR-OPMON)\].
 
-
-### 3.14 Operational Monitoring JMX
-
-This interface is used by a local monitoring system (e.g. Zabbix) to gather local operational health data of the security server via JMXMP. The interface is described in more detail in \[[ARC-OPMOND](#Ref_ARC-OPMOND)\] and \[[PR-OPMONJMX](#Ref_PR-OPMONJMX)\].
-
-
-### 3.15 Environmental Monitoring Protocol
+### 3.14 Environmental Monitoring Protocol
 
 The environmental monitoring interface responds to queries for monitoring environmental data from security server's serverproxy interface. The environmental monitoring data is collected by environmental monitoring service.
 
 
-### 3.16 Environmental Monitoring JMX
-
-The environmental monitoring JMX service publishes environmental monitoring data via JMX interface. The environmental monitoring data is collected by environmental monitoring service.
-
-
-### 3.17 Environmental Monitoring Query
+### 3.15 Environmental Monitoring Query
 
 The environmental monitoring query interface is used by the X-Road security server to retrieve environmental monitoring data from the environmental monitoring daemon.
 

@@ -5,19 +5,25 @@
     "addServiceClientsTitle": "Add Subjects",
     "addSubjectsSuccess": "Access rights added successfully",
     "id": "ID",
-    "subsystemName": "Subsystem Name / Group Description",
     "removeAllText": "Are you sure you want to remove access rights from all clients?",
     "removeAllTitle": "Remove all access rights?",
     "removeSuccess": "Access rights removed successfully",
     "removeText": "Are you sure you want to remove access rights from this client?",
     "removeTitle": "Remove access rights?",
     "rightsGiven": "Access Rights given",
+    "subsystemName": "Subsystem Name / Group Description",
     "title": "Access Rights"
   },
   "action": {
     "disable": "Disable",
     "enable": "Enable",
     "order": "Order"
+  },
+  "adminUsers": {
+    "role": {
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
+    }
   },
   "alert": {
     "warningCount": "Amount of same warnings"
@@ -119,21 +125,23 @@
     "member": "Member",
     "memberClass": "Member Class",
     "memberCode": "Member Code",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Member Name",
     "name": "Name",
     "owner": "Owner",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Status",
     "statusText": {
-      "deletionInProgress": "DELETION IN PROGRESS",
-      "disabled": "DISABLED",
-      "disablingInProgress": "DISABLING IN PROGRESS",
-      "enablingInProgress": "ENABLING IN PROGRESS",
-      "globalError": "GLOBAL ERROR",
+      "deletionInProgress": "Deletion in progress",
+      "disabled": "Disabled",
+      "disablingInProgress": "Disabling in progress",
+      "enablingInProgress": "Enabling in progress",
+      "globalError": "Global error",
       "nameSet": "Name change will be applied on client registration",
       "nameSubmitted": "Name change is submitted",
-      "registered": "REGISTERED",
-      "registrationInProgress": "REGISTRATION IN PROGRESS",
-      "saved": "SAVED"
+      "registered": "Registered",
+      "registrationInProgress": "Registration in progress",
+      "saved": "Saved"
     },
     "subsystemCode": "Subsystem Code",
     "subsystemName": "Subsystem Name",
@@ -178,6 +186,17 @@
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
     },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Authentication certificate registration service",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Central Server"
+      },
+      "ok": "Everything ok",
+      "test": "Test"
+    },
     "costType": "Cost Type",
     "downloadReport": "Download Diagnostic Report",
     "encryption": {
@@ -211,9 +230,9 @@
         "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
         "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
         "ERROR_CODE_UNINITIALIZED": "The configuration client is initialising.",
-        "WAITING": "The configuration client is initialising.",
         "OK": "Everything ok",
-        "UNKNOWN": "Unknown"
+        "UNKNOWN": "Unknown",
+        "WAITING": "The configuration client is initialising."
       },
       "last_successful_url": "Last successful URL",
       "title": "Global configuration"
@@ -241,25 +260,25 @@
         "title": "Different mail notification statuses available"
       },
       "recipientsEmails": "Recipients' emails",
-      "status": "Status",
       "sentTestMail": "Send test e-mail",
+      "status": "Status",
       "title": "Mail notification status",
       "type": {
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications",
         "ACME_FAILURE": "ACME failure notifications",
         "ACME_SUCCESS": "ACME success notifications",
-        "AUTH_CERT_REGISTERED": "AUTH certificate registered notifications",
-        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
-        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
+        "AUTH_CERT_REGISTERED": "AUTH certificate registered notifications"
       },
       "types": "Mail notification types"
     },
     "maintenanceMode": {
-      "enableTitle": "Enable maintenance mode",
-      "enableConfirm": "Do you want to enable maintenance mode?",
-      "enableSuccess": "Maintenance mode enabling in progress",
-      "disableTitle": "Disable maintenance mode",
       "disableConfirm": "Do you want to disable maintenance mode?",
       "disableSuccess": "Maintenance mode disabling in progress",
+      "disableTitle": "Disable maintenance mode",
+      "enableConfirm": "Do you want to enable maintenance mode?",
+      "enableSuccess": "Maintenance mode enabling in progress",
+      "enableTitle": "Enable maintenance mode",
       "forbiddenEnable": "Maintenance mode cannot be enabled for a management services provider",
       "label": "Maintenance mode:",
       "status": {
@@ -279,9 +298,9 @@
         "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
         "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "Unable to verify the OCSP response",
         "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
-        "WAITING": "Status request not sent yet",
         "OK": "Everything ok",
-        "UNKNOWN": "Unknown"
+        "UNKNOWN": "Unknown",
+        "WAITING": "Status request not sent yet"
       },
       "title": "OCSP responders"
     },
@@ -305,29 +324,32 @@
         "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
         "ERROR_CODE_UNKNOWN_HOST": "Connection error, unknown host",
-        "WAITING": "Connection ok, no timestamp request made yet",
         "OK": "Everything ok",
-        "UNKNOWN": "Unknown"
+        "UNKNOWN": "Unknown",
+        "WAITING": "Connection ok, no timestamp request made yet"
       },
       "title": "Timestamping"
     },
     "traffic": {
-      "period": "Period",
-      "periodInfo": "Select start and end",
-      "date": "Date",
-      "time": "Time",
-      "party": "Party",
-      "partyInfo": "Service, subsystem, member",
       "client": "Client",
-      "service": "Service",
+      "date": "Date",
+      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring).",
+      "disabledTitle": "Operational Data Monitoring Is Disabled",
       "exchangeRole": "Exchange role",
       "exchangeRoleInfo": "Producer or Consumer",
+      "failedRequests": "Failed requests",
+      "failure": "Failure",
+      "party": "Party",
+      "partyInfo": "Service, subsystem, member",
+      "period": "Period",
+      "periodInfo": "Select start and end",
       "producer": "Producer",
+      "service": "Service",
       "status": "Status",
       "statusInfo": "Message exchange status",
       "success": "Success",
-      "failure": "Failure",
       "successfulRequests": "Successful requests",
+      "time": "Time",
       "failedRequests": "Failed requests",
       "disabledTitle": "Operational Data Monitoring Is Disabled",
       "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
@@ -459,17 +481,18 @@
     "global_conf_missing_verification_cert": "Cannot find verification certificate (certificate hash {0}) to verify signature of global configuration",
     "global_conf_outdated": "Global configuration is outdated",
     "global_conf_parsing_downloaded_conf_directory_failure": "Failed to parse downloaded global configuration directory from {0}",
-    "global_conf_part_invalid_instance_identifier": "Global configuration part file {0} has invalid instance identifier",
     "global_conf_part_download_failure": "Failed to download global configuration part",
     "global_conf_part_downloaded_file_integrity_failure": "Failed to verify downloaded global configuration part integrity of {0}",
     "global_conf_part_downloaded_hash_failure": "Failed to get hash for downloaded global configuration part",
     "global_conf_part_file_expiration_date_update_failure": "Failed to update expiration date of global configuration part file",
     "global_conf_part_file_hash_failure": "Failed to get hash for existing global configuration file",
     "global_conf_part_file_save_failure": "Failed to save global configuration part file to {0}",
+    "global_conf_part_invalid_instance_identifier": "Global configuration part file {0} has invalid instance identifier",
     "global_conf_signature_decode_failure": "Failed to decode signature of global configuration",
     "global_conf_signature_verification_failure": "Failed to verify signature of global configuration",
     "gpg_key_generation_failed": "GPG keypair generation failed",
     "gpg_key_generation_interrupted": "GPG keypair generation interrupted",
+    "http_error": "HTTP error",
     "identifier_not_found": "Identifier not found",
     "illegal_generated_endpoint_remove": "Removing the generated endpoint is not allowed",
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
@@ -518,7 +541,6 @@
       "no_timestamping_provider_found": "No timestamping services configured",
       "reading_timestamp_response_failed": "Could not read timestamp response. The response should have valid ASN.1 structure",
       "timestamp_non_granted_response": "Status in timestamping response is not 'granted' nor 'grantedWithMods'. (status: {0} statusString: {1} failInfo: {2})",
-      "timestamping_non_ok_response": "Timestamping response did not return 'OK' HTTP status. Response was: {0}, {1}",
       "timestamp_provider_connection_failed": "Network error: connection to timestamping service failed",
       "timestamp_record_save_failure": "Could not save timestamp record to the database",
       "timestamp_request_timed_out": "Connection timed out. Check the network connection.",
@@ -527,11 +549,11 @@
       "timestamp_signer_verification_failed": "Failed to verify timestamp signer information. Verifier message: {0}",
       "timestamp_token_encoding_failed": "Timestamp token der encoding failed",
       "timestamp_token_signer_info_not_found": "Could not get signer information from the timestamp token",
+      "timestamping_non_ok_response": "Timestamping response did not return 'OK' HTTP status. Response was: {0}, {1}",
       "tsp_certificate_not_found": "Could not find TSP certificate",
       "updating_message_signature_failed": "Updating the message signature properties in the database failed"
     },
     "network_error": "Network error",
-    "http_error": "HTTP error",
     "ocsp_connection_error": "Unable to connect to the OCSP responder",
     "ocsp_failed": "Unable to fetch response from the OCSP responder",
     "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
@@ -568,7 +590,6 @@
     "wrong_servicedescription_type": "Wrong service description type",
     "wsdl_download_failed": "WSDL download failed",
     "wsdl_exists": "WSDL exists",
-    "wsdl_validator_interrupted": "WSDL validator interrupted",
     "wsdl_validator_not_executable": "WSDL validator is not executable"
   },
   "fields": {
@@ -602,7 +623,8 @@
     },
     "maintenanceModeMessage": "Maintenance mode message",
     "memberCode": "Member Code",
-    "path": "path",
+    "method": "Method",
+    "path": "Path",
     "pin": "PIN",
     "securityServerAddress": "Security Server address",
     "serialNumber": "Serial Number",
@@ -733,19 +755,20 @@
     "importCertOcspVerifyWarning": "Could not activate certificate, because OCSP Responses could not be verified. Error message: {errorMessage}",
     "importCertSuccess": "Uploading certificate succeeded",
     "incorrectPin": "Incorrect PIN. Please try again.",
-    "keyAlgorithm": "Key Algorithm:",
+    "keyAlgorithm": "Key Algorithm",
     "keyDeleted": "Key deleted",
-    "keyId": "Key ID:",
+    "keyId": "Key ID",
     "keyInfo": "Key information",
     "keyLabelInput": "Key label",
     "keySaved": "Key saved",
-    "label": "Label:",
+    "label": "Label",
     "logIn": "Log in",
     "logOut": "Log out",
     "logOutText": "Log out of the token?",
     "logOutTitle": "Log out",
     "loggedIn": "Logged in token",
     "loggedOut": "Logged out of token",
+    "name": "Name",
     "noIssues": "No issues",
     "ocsp": "OCSP",
     "ocspStatus": {
@@ -757,7 +780,7 @@
       "unknown": "Unknown"
     },
     "orderAcmeCertificate": "Order Certificate",
-    "readOnly": "Read-only:",
+    "readOnly": "Read-only",
     "registrationRequest": "Registration request",
     "renewal": "Automatic Renewal",
     "request": "Request",
@@ -765,13 +788,13 @@
     "signKeyCert": "SIGN Keys and Certificates",
     "status": "Status",
     "token": {
+      "deleteSuccess": "Token was deleted",
+      "deleteText": "Are you sure that you want to delete this token and all associated information from the server configuration?",
+      "deleteTitle": "Delete token?",
       "details": "Token details",
       "id": "Token ID:",
       "info": "Token information",
-      "saved": "Token saved",
-      "deleteText": "Are you sure that you want to delete this token and all associated information from the server configuration?",
-      "deleteTitle": "Delete token?",
-      "deleteSuccess": "Token was deleted"
+      "saved": "Token saved"
     },
     "tokenStatus": {
       "active": "",
@@ -853,6 +876,7 @@
     "serviceCode": "Service code",
     "serviceSelectionStep": "Servicecode",
     "servicesStep": "Services",
+    "subjectType": "Subject type",
     "title": "Title"
   },
   "services": {
@@ -867,11 +891,12 @@
     "disableNotice": "Disable notice",
     "disableSuccess": "Service description disabled",
     "disableTitle": "Disable?",
+    "editRest": "Edit REST",
     "editUrl": "Edit URL",
+    "editWsdl": "Edit WSDL",
     "enableSuccess": "Service description enabled",
     "idGroupCode": "ID / Group code",
     "lastRefreshed": "Last refreshed: ",
-    "subsystemNameGroupDesc": "Subsystem name / Group description",
     "noMatches": "No matching records",
     "openApi3Added": "OpenApi3 service added",
     "openapiDetails": "OpenAPI 3 details",
@@ -889,6 +914,11 @@
       "internal_server_ssl_error": "Checking internal server certificates failed. Is the upstream server URL correct and accessible by the Security Server?",
       "internal_server_ssl_handshake_error": "TLS handshake with the upstream server failed, server certificate missing from configuration:"
     },
+    "status": {
+      "disabled": "Disabled",
+      "enabled": "Enabled"
+    },
+    "subsystemNameGroupDesc": "Subsystem name / Group description",
     "timeout": "Timeout",
     "timeoutSec": "Timeout (s)",
     "timeoutTooltip": "The maximum duration of a request to the service, in seconds",
@@ -909,36 +939,6 @@
     "wsdlAdded": "WSDL added",
     "wsdlDescription": "WSDL Description",
     "wsdlDetails": "WSDL details"
-  },
-  "ssTlsCertificate": {
-    "certificateImported": "Certificate imported",
-    "exportCertificate": "Export cert.",
-    "generateCsr": "Generate CSR",
-    "generateInternalCsr": {
-      "cancel": "CANCEL",
-      "done": "DONE",
-      "step1": {
-        "description": "1) First, provide a distinguished name",
-        "label": "Distinguished name",
-        "placeholder": "CN=mysecurityserver.example.com, O=My Organization, C=EE",
-        "tooltip": "The Distinguished Name (DN) uniquely identifies an entity in an X.509 certificate. The following attribute types are commonly found in the DN: CN = Common name, O = Organization name, C = Country code."
-      },
-      "step2": {
-        "description": "2) Generate a new CSR and save it into a safe place",
-        "generateCSR": "Generate CSR"
-      },
-      "title": "Generate TLS Certificate Signing Request"
-    },
-    "generateKey": "Generate key",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "Generate a new Security Server TLS key and certificate?",
-      "explanation": "The system will generate a new Security Server TLS key and a self-signed certificate, replacing the existing key and certificate.",
-      "success": "New Security Server TLS key and certificate generated successfully",
-      "title": "Security Server TLS Key"
-    },
-    "importCertificate": "Import cert.",
-    "keyCertTitle": "TLS Key and Certificate",
-    "keyText": "Internal TLS Key"
   },
   "stores": {
     "user": {
@@ -1029,7 +1029,7 @@
         "add": {
           "button": "Add",
           "dialog": {
-            "info": "Trusted Timestamping services:",
+            "info": "Trusted Timestamping services",
             "success": "Timestamping service added",
             "title": "Add Timestamping Service"
           }
@@ -1047,9 +1047,9 @@
           }
         },
         "header": {
+          "costType": "Cost Type",
           "serviceURL": "Service URL",
-          "timestampingService": "Timestamping Service",
-          "costType": "Cost Type"
+          "timestampingService": "Timestamping Service"
         }
       },
       "title": "Timestamping Services"
@@ -1063,6 +1063,11 @@
       "localGroups": "Local groups",
       "serviceClients": "Service clients",
       "services": "Services"
+    },
+    "diagnostics": {
+      "connectionTesting": "Connection Testing",
+      "overview": "Overview",
+      "traffic": "Traffic"
     },
     "keys": {
       "apiKey": "API Keys",
@@ -1080,13 +1085,27 @@
       "parameters": "Service Parameters"
     },
     "settings": {
+      "adminUsers": "Admin Users",
       "backupAndRestore": "Backup And Restore",
       "systemParameters": "System Parameters"
+    }
+  },
+  "tlsCertificates": {
+    "downloadSuccess": "Security Server TLS certificate successfully downloaded",
+    "generateCsr": {
+      "example": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
     },
-    "diagnostics": {
-      "overview": "Overview",
-      "traffic": "Traffic",
-      "connectionTesting": "Connection Testing"
+    "generateKey": {
+      "confirmation": "Generate a new Security Server TLS key and certificate?",
+      "explanation": "The system will generate a new Security Server TLS key and a self-signed certificate, replacing the existing key and certificate.",
+      "success": "New Security Server TLS key and certificate generated successfully",
+      "title": "Security Server TLS Key"
+    },
+    "key": "TLS Key and Certificate",
+    "title": "Security Server TLS Key",
+    "uploadCertificate": {
+      "success": "Certificate imported",
+      "title": "Upload Security Server TLS certificate"
     }
   },
   "token": {

@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-message"))
+  implementation(project(":lib:vault-core"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:signer:signer-client"))
 

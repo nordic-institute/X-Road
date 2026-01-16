@@ -18,7 +18,7 @@ sonarqube {
     property("sonar.exclusions", "**/build/generated-sources/**")
     property(
       "sonar.coverage.jacoco.xmlReportPaths",
-      "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"
+      "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml"
     )
 
     property("sonar.issue.ignore.multicriteria", "e1")
@@ -36,6 +36,19 @@ dependencies {
   subprojects {
     pluginManager.withPlugin("java") {
       jacocoAggregation(project)
+    }
+  }
+}
+
+allprojects {
+  configurations.all {
+    resolutionStrategy {
+      eachDependency {
+        if (requested.group == "jakarta.xml.bind" && requested.name == "jakarta.xml.bind-api") {
+          useVersion("4.0.2")
+          because("newer version will fail decoding base64 strings with white space. https://github.com/jakartaee/jaxb-api/issues/325")
+        }
+      }
     }
   }
 }
@@ -93,6 +106,6 @@ tasks.named("assemble") {
 }
 
 tasks.named("sonar") {
-  dependsOn("testCodeCoverageReport")
+  dependsOn(tasks.named("jacocoAggregatedReport"))
   onlyIf { System.getenv("SONAR_TOKEN") != null }
 }

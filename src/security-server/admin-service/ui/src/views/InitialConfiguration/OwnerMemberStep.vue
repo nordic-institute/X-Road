@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,98 +25,80 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="step-content-wrapper">
-    <div class="wizard-step-form-content">
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberName')"
-          :help-text="$t('wizard.client.memberNameTooltip')"
-        />
-        <div
-          v-if="memberName"
-          class="readonly-info-field"
-          data-test="selected-member-name"
-        >
-          {{ memberName }}
-        </div>
-        <div v-else class="readonly-info-field"></div>
+  <XrdWizardStep title="wizard.memberName" sub-title="wizard.client.memberNameTooltip">
+    <v-slide-y-transition>
+      <div v-if="memberName" class="readonly-info-field" data-test="selected-member-name">
+        {{ memberName }}
       </div>
+    </v-slide-y-transition>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberClass')"
-          :help-text="$t('wizard.client.memberClassTooltip')"
-        />
+    <XrdFormBlock>
+      <XrdFormBlockRow description="wizard.client.memberClassTooltip" adjust-against-content>
         <v-select
+          v-model="memberClassMdl"
           v-bind="memberClassRef"
+          data-test="member-class-input"
+          class="xrd"
+          :label="$t('wizard.memberClass')"
           :items="memberClassItems"
           :disabled="isServerOwnerInitialized"
-          data-test="member-class-input"
-          class="wizard-form-input"
-        ></v-select>
-      </div>
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberCode')"
-          :help-text="$t('wizard.client.memberCodeTooltip')"
         />
+      </XrdFormBlockRow>
+      <XrdFormBlockRow description="wizard.client.memberCodeTooltip" adjust-against-content>
         <v-text-field
+          v-model="memberCodeMdl"
           v-bind="memberCodeRef"
-          class="wizard-form-input"
-          type="text"
-          :disabled="isServerOwnerInitialized"
-          autofocus
           data-test="member-code-input"
-        ></v-text-field>
-      </div>
-
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('fields.securityServerCode')"
-          :help-text="$t('initialConfiguration.member.serverCodeHelp')"
-        />
-        <v-text-field
-          v-bind="securityServerCodeRef"
-          class="wizard-form-input"
+          class="xrd"
           type="text"
-          :disabled="isServerCodeInitialized"
+          autofocus
+          :label="$t('wizard.memberCode')"
+          :disabled="isServerOwnerInitialized"
+        />
+      </XrdFormBlockRow>
+      <XrdFormBlockRow description="initialConfiguration.member.serverCodeHelp" adjust-against-content>
+        <v-text-field
+          v-model="securityServerCodeMdl"
+          v-bind="securityServerCodeRef"
           data-test="security-server-code-input"
-        ></v-text-field>
-      </div>
-    </div>
-    <div class="button-footer">
-      <v-spacer></v-spacer>
-      <div>
-        <xrd-button
-          v-if="showPreviousButton"
-          outlined
-          class="previous-button"
-          data-test="previous-button"
-          @click="previous"
-          >{{ $t('action.previous') }}
-        </xrd-button>
-        <xrd-button
-          :disabled="!meta.valid"
-          data-test="owner-member-save-button"
-          @click="done"
-          >{{ $t(saveButtonText) }}
-        </xrd-button>
-      </div>
-    </div>
-  </div>
+          class="xrd"
+          type="text"
+          :label="$t('fields.securityServerCode')"
+          :disabled="isServerCodeInitialized"
+        />
+      </XrdFormBlockRow>
+    </XrdFormBlock>
+
+    <template #footer>
+      <v-spacer />
+
+      <XrdBtn
+        v-if="showPreviousButton"
+        data-test="previous-button"
+        class="previous-button mr-4"
+        text="action.previous"
+        variant="outlined"
+        @click="previous"
+      />
+      <XrdBtn data-test="owner-member-save-button" variant="flat" :text="saveButtonText" :disabled="!meta.valid" @click="done" />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
 import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { useForm } from 'vee-validate';
+
+import { useNotifications, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, veeDefaultFieldConfig } from '@niis/shared-ui';
+
 import { useGeneral } from '@/store/modules/general';
-import { useUser } from '@/store/modules/user';
 import { useInitializeServer } from '@/store/modules/initializeServer';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
+  components: { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn },
   props: {
     saveButtonText: {
       type: String,
@@ -128,53 +111,42 @@ export default defineComponent({
   },
   emits: ['done', 'previous'],
   setup() {
+    const { addError } = useNotifications();
     const { currentSecurityServer } = useUser();
-    const { meta, values, validateField, setFieldValue, defineComponentBinds } =
-      useForm({
-        validationSchema: {
-          memberClass: 'required',
-          memberCode: 'required|xrdIdentifier',
-          securityServerCode: 'required|xrdIdentifier',
-        },
-        initialValues: {
-          memberClass: currentSecurityServer.member_class,
-          memberCode: currentSecurityServer.member_code,
-          securityServerCode: currentSecurityServer.server_code,
-        },
-      });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
+    const { meta, values, validateField, setFieldValue, defineField } = useForm({
+      validationSchema: {
+        memberClass: 'required',
+        memberCode: 'required|xrdIdentifier',
+        securityServerCode: 'required|xrdIdentifier',
+      },
+      initialValues: {
+        memberClass: currentSecurityServer?.member_class,
+        memberCode: currentSecurityServer?.member_code,
+        securityServerCode: currentSecurityServer?.server_code,
       },
     });
-    const memberClassRef = defineComponentBinds('memberClass', componentConfig);
-    const memberCodeRef = defineComponentBinds('memberCode', componentConfig);
-    const securityServerCodeRef = defineComponentBinds(
-      'securityServerCode',
-      componentConfig,
-    );
+    const componentConfig = veeDefaultFieldConfig();
+    const [memberClassMdl, memberClassRef] = defineField('memberClass', componentConfig);
+    const [memberCodeMdl, memberCodeRef] = defineField('memberCode', componentConfig);
+    const [securityServerCodeMdl, securityServerCodeRef] = defineField('securityServerCode', componentConfig);
     return {
       meta,
       values,
       validateField,
       setFieldValue,
       memberClassRef,
+      memberClassMdl,
       memberCodeRef,
+      memberCodeMdl,
       securityServerCodeRef,
+      securityServerCodeMdl,
+      addError,
     };
   },
   computed: {
     ...mapState(useGeneral, ['memberClassesCurrentInstance', 'memberName']),
-    ...mapState(useUser, [
-      'currentSecurityServer',
-      'isServerCodeInitialized',
-      'isServerOwnerInitialized',
-    ]),
-    ...mapState(useInitializeServer, [
-      'initServerMemberClass',
-      'initServerMemberCode',
-      'initServerSSCode',
-    ]),
+    ...mapState(useUser, ['currentSecurityServer', 'isServerCodeInitialized', 'isServerOwnerInitialized']),
+    ...mapState(useInitializeServer, ['initServerMemberClass', 'initServerMemberCode', 'initServerSSCode']),
     memberClassItems() {
       return this.memberClassesCurrentInstance.map((memberClass) => ({
         title: memberClass,
@@ -207,23 +179,15 @@ export default defineComponent({
         // this can happen if anchor is not ready
         return;
       }
-      this.showError(error);
+      this.addError(error);
     });
 
     this.updateMemberName();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useInitializeServer, [
-      'storeInitServerSSCode',
-      'storeInitServerMemberClass',
-      'storeInitServerMemberCode',
-    ]),
+    ...mapActions(useInitializeServer, ['storeInitServerSSCode', 'storeInitServerMemberClass', 'storeInitServerMemberCode']),
 
-    ...mapActions(useGeneral, [
-      'fetchMemberClassesForCurrentInstance',
-      'fetchMemberName',
-    ]),
+    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance', 'fetchMemberName']),
 
     done(): void {
       this.storeInitServerMemberClass(this.values.memberClass);
@@ -236,19 +200,13 @@ export default defineComponent({
     },
 
     async updateMemberName(): Promise<void> {
-      if (
-        (await this.validateField('memberClass')).valid &&
-        (await this.validateField('memberCode')).valid
-      ) {
-        this.fetchMemberName(
-          this.values.memberClass!,
-          this.values.memberCode!,
-        ).catch((error) => {
+      if ((await this.validateField('memberClass')).valid && (await this.validateField('memberCode')).valid) {
+        this.fetchMemberName(this.values.memberClass!, this.values.memberCode!).catch((error) => {
           if (error.response.status === 404) {
             // no match found
             return;
           }
-          this.showError(error);
+          this.addError(error);
         });
       }
     },
@@ -257,11 +215,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-
 .readonly-info-field {
   max-width: 405px;
   height: 60px;
-  padding-top: 12px;
 }
 </style>

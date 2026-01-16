@@ -37,12 +37,12 @@ import org.niis.xroad.cs.test.api.FeignSubsystemsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.junit.Assert.fail;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.test.util.AssertionErrors.fail;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SubsystemsApiStepDefs extends BaseStepDefs {

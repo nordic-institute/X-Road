@@ -27,19 +27,23 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import com.google.protobuf.ByteString;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
-import org.springframework.stereotype.Component;
 
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.findTokenIdForKeyId;
-
-@Component
+@ApplicationScoped
+@RequiredArgsConstructor
 public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificateReq, SignCertificateResp> {
+    private final TokenWorkerProvider tokenWorkerProvider;
+    private final TokenLookup tokenLookup;
 
     @Override
     protected SignCertificateResp handle(SignCertificateReq request) {
-        final byte[] signedCertificate = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+        final byte[] signedCertificate = tokenWorkerProvider.getTokenWorker(tokenLookup.findTokenIdForKeyId(request.getKeyId()))
                 .handleSignCertificate(request);
 
         return SignCertificateResp.newBuilder()
