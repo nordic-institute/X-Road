@@ -51,7 +51,7 @@ public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
     /**
      * Constructs a confproxy-create-instance utility program instance.
      */
-    ConfProxyUtilCreateInstance(SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilCreateInstance(SignerRpcClient signerRpcClient) {
         super("confproxy-create-instance", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE);
