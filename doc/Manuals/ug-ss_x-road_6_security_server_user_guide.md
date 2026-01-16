@@ -3605,9 +3605,9 @@ eab-credentials:
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
 
-# This is a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server.
+# This is the password for the PKCS #12 keystore of the ACME Server account. The password is populated automatically by the Security Server.
 # Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password: 
+account-keystore-password:
 
 ```
 
