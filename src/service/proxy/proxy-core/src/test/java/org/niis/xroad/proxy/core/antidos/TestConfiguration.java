@@ -30,7 +30,60 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-class TestConfiguration extends AntiDosConfiguration {
-    private final int minFreeFileHandles;
-    private final double maxCpuLoad;
+class TestConfiguration implements AntiDosConfiguration {
+
+    public static TestConfiguration of(int minFreeFileHandles, double maxCpuLoad) {
+        return new TestConfiguration() {
+            @Override
+            public double getMaxCpuLoad() {
+                return maxCpuLoad;
+            }
+
+            @Override
+            public double getMaxHeapUsage() {
+                return 1.1;
+            }
+
+            @Override
+            public int getMaxParallelConnections() {
+                return 5000;
+            }
+
+            @Override
+            public int getMinFreeFileHandles() {
+                return minFreeFileHandles;
+            }
+
+            @Override
+            public boolean enabled() {
+                return true;
+            }
+        };
+    }
+
+    @Override
+    public double getMaxCpuLoad() {
+        return 0;
+    }
+
+    @Override
+    public double getMaxHeapUsage() {
+        return 0;
+    }
+
+    @Override
+    public int getMaxParallelConnections() {
+        return 0;
+    }
+
+    @Override
+    public int getMinFreeFileHandles() {
+        return 0;
+    }
+
+    @Override
+    public boolean enabled() {
+        return false;
+    }
+
 }

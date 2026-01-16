@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,100 +26,75 @@
  */
 
 import { defineStore } from 'pinia';
-import {
-  Endpoint,
-  Service,
-  ServiceClient,
-  ServiceDescription,
-} from '@/openapi-types';
+import { Endpoint, Service, ServiceClient, ServiceUpdate, ServiceClients } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { sortServiceDescriptionServices } from '@/util/sorting';
 
 export interface ServicesState {
-  expandedServiceDescriptions: string[];
-  service: Service;
+  service?: Service;
   serviceClients: ServiceClient[];
-  serviceDescriptions: ServiceDescription[];
+}
+
+function serviceBaseUrl(serviceId: string, appendPath = '') {
+  const encodedId = encodePathParameter(serviceId);
+  return `/services/${encodedId}` + appendPath;
+}
+
+function endpointsBaseUrl(endpointId: string, appendPath = '') {
+  const encodedId = encodePathParameter(endpointId);
+  return `/endpoints/${encodedId}` + appendPath;
 }
 
 export const useServices = defineStore('services', {
   state: (): ServicesState => {
     return {
-      expandedServiceDescriptions: [],
-      service: {
-        id: '',
-        service_code: '',
-        timeout: 0,
-        ssl_auth: undefined,
-        url: '',
-      },
+      service: undefined,
       serviceClients: [],
-      serviceDescriptions: [],
     };
   },
   persist: {
     pick: ['service', 'serviceClients', 'serviceDescriptions'],
   },
   getters: {
-    descExpanded: (state) => (id: string) => {
-      return state.expandedServiceDescriptions.includes(id);
-    },
     endpoints: (state) => {
-      if (!state.service.endpoints) {
+      if (!state.service?.endpoints) {
         return [];
       }
-      return state.service.endpoints.filter(
-        (endpoint: Endpoint) =>
-          !(endpoint.method === '*' && endpoint.path === '**'),
-      );
+      return state.service.endpoints.filter((endpoint: Endpoint) => !(endpoint.method === '*' && endpoint.path === '**'));
     },
   },
 
   actions: {
-    expandDesc(id: string) {
-      this.expandedServiceDescriptions.push(id);
-      this.expandedServiceDescriptions = [
-        ...new Set(this.expandedServiceDescriptions),
-      ];
+    async fetchService(serviceId: string) {
+      return api.get<Service>(serviceBaseUrl(serviceId)).then((res) => this.setService(res.data));
     },
-
-    hideDesc(id: string) {
-      this.expandedServiceDescriptions =
-        this.expandedServiceDescriptions.filter((item) => item !== id);
-    },
-
     setService(service: Service) {
       service.endpoints = sortEndpoints(service.endpoints);
       this.service = service;
+      return service;
     },
-
-    setServiceClients(serviceClients: ServiceClient[]) {
-      this.serviceClients = serviceClients;
+    async updateService(serviceId: string, serviceUpdate: ServiceUpdate) {
+      return api.patch<Service>(serviceBaseUrl(serviceId), serviceUpdate).then((res) => this.setService(res.data));
     },
-
-    fetchServiceDescriptions(clientId: string, sort = true) {
+    async fetchServiceClients(serviceId: string) {
+      return api.get<ServiceClient[]>(serviceBaseUrl(serviceId, '/service-clients')).then((res) => (this.serviceClients = res.data));
+    },
+    async addServiceClients(serviceId: string, serviceClients: ServiceClients) {
+      return api.post(serviceBaseUrl(serviceId, '/service-clients'), serviceClients);
+    },
+    async removeServiceClients(serviceId: string, serviceClients: ServiceClients) {
+      return api.post(serviceBaseUrl(serviceId, '/service-clients/delete'), serviceClients);
+    },
+    async addEndpoint(serviceId: string, endpoint: Endpoint) {
+      return api.post(serviceBaseUrl(serviceId, '/endpoints'), endpoint);
+    },
+    async deleteEndpoint(id: string) {
       return api
-        .get<ServiceDescription[]>(
-          `/clients/${encodePathParameter(clientId)}/service-descriptions`,
-        )
-        .then((res) => {
-          const serviceDescriptions: ServiceDescription[] = res.data;
-          this.serviceDescriptions = sort
-            ? serviceDescriptions.map(sortServiceDescriptionServices)
-            : serviceDescriptions;
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-    deleteEndpoint(id: string) {
-      return api
-        .remove(`/endpoints/${encodePathParameter(id)}`)
-        .then((res) => {
-          this.service.endpoints?.forEach((item, index) => {
+        .remove(endpointsBaseUrl(id))
+        .then(() => {
+          this.service?.endpoints?.forEach((item, index) => {
             if (item.id === id) {
-              this.service.endpoints?.splice(index, 1);
+              this.service?.endpoints?.splice(index, 1);
             }
           });
         })
@@ -126,40 +102,40 @@ export const useServices = defineStore('services', {
           throw error;
         });
     },
-    updateEndpoint(endpoint: Endpoint) {
+    async updateEndpoint(endpoint: Endpoint) {
       if (!endpoint.id) {
         throw new Error('Unable to save endpoint: Endpoint id not defined!');
       }
-      return api
-        .patch<Endpoint>(
-          `/endpoints/${encodePathParameter(endpoint.id)}`,
-          endpoint,
-        )
-        .then((res) => {
-          if (this.service.endpoints) {
-            const endpointIndex = this.service.endpoints.findIndex(
-              (e) => e.id === endpoint.id,
-            );
-            if (endpointIndex) {
-              const endpoints = [...this.service.endpoints];
-              endpoints[endpointIndex] = res.data;
-              this.service.endpoints = sortEndpoints(endpoints);
-            }
+      return api.patch<Endpoint>(endpointsBaseUrl(endpoint.id), endpoint).then((res) => {
+        if (this.service?.endpoints) {
+          const endpointIndex = this.service.endpoints.findIndex((e) => e.id === endpoint.id);
+          if (endpointIndex) {
+            const endpoints = [...this.service.endpoints];
+            endpoints[endpointIndex] = res.data;
+            this.service.endpoints = sortEndpoints(endpoints);
           }
-        })
-        .catch((error) => {
-          throw error;
-        });
+        }
+      });
+    },
+    async removeEndpointServiceClients(id: string, toDelete: ServiceClients) {
+      return api.post(endpointsBaseUrl(id, '/service-clients/delete'), toDelete);
+    },
+    async addEndpointServiceClients(id: string, toAdd: ServiceClients) {
+      return api.post<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients'), toAdd).then((res) => res.data);
+    },
+    async fetchEndpoint(id: string) {
+      return api.get<Endpoint>(endpointsBaseUrl(id)).then((res) => res.data);
+    },
+    async fetchEndpointServiceClients(id: string) {
+      return api.get<ServiceClient[]>(endpointsBaseUrl(id, '/service-clients')).then((res) => res.data);
     },
   },
 });
 
 function sortEndpoints(endpoints: Endpoint[] | undefined) {
   return endpoints?.sort((a: Endpoint, b: Endpoint) => {
-    const sortByGenerated =
-      a.generated === b.generated ? 0 : a.generated ? -1 : 1;
-    const sortByPathSlashCount =
-      a.path.split('/').length - b.path.split('/').length;
+    const sortByGenerated = a.generated === b.generated ? 0 : a.generated ? -1 : 1;
+    const sortByPathSlashCount = a.path.split('/').length - b.path.split('/').length;
     const sortByPathLength = a.path.length - b.path.length;
     return sortByGenerated || sortByPathSlashCount || sortByPathLength;
   });

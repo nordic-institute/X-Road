@@ -25,28 +25,81 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
+import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-final class ServiceHandlerLoader {
+import java.util.ArrayList;
+import java.util.Collection;
 
-    private ServiceHandlerLoader() {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class ServiceHandlerLoader {
+    private final ServerConfProvider serverConfProvider;
+    private final GlobalConfProvider globalConfProvider;
+    private final MonitorRpcClient monitorRpcClient;
+    private final CommonProperties commonProperties;
+    private final ProxyProperties proxyProperties;
+    private final VaultClient vaultClient;
+
+    private CloseableHttpClient opMonitorHttpClient = null;
+
+    @PostConstruct
+    public void init() {
+        try {
+            if (proxyProperties.addon().opMonitor().enabled()) {
+                opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                        proxyProperties.addon().opMonitor().connection(), vaultClient,
+                        serverConfProvider.getSSLKey());
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
-    static ServiceHandler load(String className, ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-        try {
-            Class<?> clazz = Class.forName(className);
-            if (!AbstractServiceHandler.class.isAssignableFrom(clazz)) {
-                throw XrdRuntimeException.systemInternalError(
-                        "Failed to load service handler. Handler must implement AbstractServiceHandler: " + className);
-            }
+    @PreDestroy
+    public void destroy() {
+        IOUtils.closeQuietly(opMonitorHttpClient);
+    }
 
-            return (ServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class, GlobalConfProvider.class)
-                    .newInstance(serverConfProvider, globalConfProvider);
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to load service handler: " + className, e);
+    Collection<ServiceHandler> loadSoapServiceHandlers() {
+        Collection<ServiceHandler> handlers = new ArrayList<>();
+        if (proxyProperties.addon().metaservices().enabled()) {
+            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                    proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers()));
         }
+        if (proxyProperties.addon().opMonitor().enabled()) {
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, proxyProperties.addon().opMonitor(),
+                    opMonitorHttpClient, proxyProperties.clientProxy().poolEnableConnectionReuse()));
+        }
+        if (proxyProperties.addon().proxyMonitor().enabled()) {
+            handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
+        }
+        return handlers;
+    }
+
+    Collection<RestServiceHandler> loadRestServiceHandlers() {
+        Collection<RestServiceHandler> handlers = new ArrayList<>();
+        if (proxyProperties.addon().metaservices().enabled()) {
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),
+                    proxyProperties.clientProxy().clientTlsCiphers(), commonProperties.tempFilesPath()));
+        }
+        return handlers;
     }
 
 }

@@ -1,15 +1,16 @@
 # X-Road: Operational Monitoring Testing Strategy <!-- omit in toc -->
 
-Version: 0.9  
+Version: 0.10  
 Doc. ID: TEST-OPMONSTRAT
 
-| Date       | Version | Description                                                         | Author           |
-|------------|---------|---------------------------------------------------------------------|------------------|
-|            | 0.5     | Initial version                                                     |                  |
-| 23.01.2017 | 0.6     | Added license text, table of contents and version history           | Sami Kallio      |
-| 05.03.2018 | 0.7     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo        | 
-| 05.02.2020 | 0.8     | Update information about the test suites.                           | Ilkka Seppälä    | 
-| 01.06.2023 | 0.9     | Update references                                                   | Petteri Kivimäki |
+| Date       | Version | Description                                                         | Author            |
+|------------|---------|---------------------------------------------------------------------|-------------------|
+|            | 0.5     | Initial version                                                     |                   |
+| 23.01.2017 | 0.6     | Added license text, table of contents and version history           | Sami Kallio       |
+| 05.03.2018 | 0.7     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo         | 
+| 05.02.2020 | 0.8     | Update information about the test suites.                           | Ilkka Seppälä     | 
+| 01.06.2023 | 0.9     | Update references                                                   | Petteri Kivimäki  |
+| 11.11.2025 | 0.10    | Drop JMX interfaces                                                 | Justas Samuolis   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -92,8 +93,6 @@ Generally, unit tests are used for testing the behaviour of single units of code
 The required coverage and scope of unit tests have not been defined for this project. Thus, unit tests will be written for units of code that implement protocols, conversion between data formats etc, including tests against invalid or unexpected input. Such units of code will be isolated for testability.
 
 For larger components that are used for control logic, system-wide data exchange as well as configuration, unit tests are not justified and will not be written. The behaviour and error handling of such components will be covered by automated or manual integration tests.
-
-Unit tests will not be written for third-party protocol implementations (such as JMXMP).
 
 ## 5 Tools, Languages and Libraries
 

@@ -122,7 +122,7 @@ class GlobalConfSignTest {
         @Override
         public byte[] sign(String keyId, SignAlgorithm algorithm, byte[] digest) {
             try {
-                SignAlgorithm signAlgorithm = KeyManagers.getFor(KeyAlgorithm.RSA).getSoftwareTokenSignAlgorithm();
+                SignAlgorithm signAlgorithm = new KeyManagers(2048, "secp256r1").getFor(KeyAlgorithm.RSA).getSoftwareTokenSignAlgorithm();
                 byte[] data = SignDataPreparer.of(algorithm).prepare(digest);
                 Signature signature = Signature.getInstance(signAlgorithm.name(), BOUNCY_CASTLE);
                 signature.initSign(privateKey);
@@ -131,6 +131,11 @@ class GlobalConfSignTest {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Override
+        public boolean isEnforcedTokenPinPolicy() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

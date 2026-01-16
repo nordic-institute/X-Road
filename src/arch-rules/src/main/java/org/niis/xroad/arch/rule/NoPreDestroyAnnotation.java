@@ -28,18 +28,33 @@ package org.niis.xroad.arch.rule;
 import com.societegenerale.commons.plugin.rules.ArchRuleTest;
 import com.societegenerale.commons.plugin.service.ScopePathProvider;
 import com.societegenerale.commons.plugin.utils.ArchUtils;
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
-import jakarta.annotation.PreDestroy;
 
 import java.util.Collection;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
+
 public class NoPreDestroyAnnotation implements ArchRuleTest {
+
+    private static final String PRE_DESTROY = "jakarta.annotation.PreDestroy";
+    private static final String APPLICATION_SCOPED = "jakarta.enterprise.context.ApplicationScoped";
+    private static final String SINGLETON = "jakarta.inject.Singleton";
+
+    private static final String REASON = """
+            For Quarkus only @PreDestroy annotation is allowed in @ApplicationScoped and @Singleton classes.
+            Otherwise @Producer and @Disposer methods should be used.
+
+            For Spring DisposableBean interface should be used instead of @PostConstruct annotation,
+            except for @ApplicationScoped and @Singleton classes.
+            """;
 
     @Override
     public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
-        ArchRuleDefinition.noMethods().should().beAnnotatedWith(PreDestroy.class)
-                .because("InitializingBean interface should be used instead of @PreDestroy annotation")
+        noMethods().that().areDeclaredInClassesThat().areNotAnnotatedWith(APPLICATION_SCOPED)
+                .and().areDeclaredInClassesThat().areNotAnnotatedWith(SINGLETON)
+                .should().beAnnotatedWith(PRE_DESTROY)
+                .because(REASON)
                 .allowEmptyShould(false)
                 .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
     }
+
 }

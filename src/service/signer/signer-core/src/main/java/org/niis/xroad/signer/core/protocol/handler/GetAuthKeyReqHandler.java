@@ -25,12 +25,12 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.PasswordStore;
 
+import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
@@ -40,25 +40,26 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.passwordstore.PasswordStore;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.TokenPinManager;
 import org.niis.xroad.signer.core.tokenmanager.module.SoftwareModuleType;
-import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenType;
-import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil;
-import org.niis.xroad.signer.proto.AuthKeyInfoProto;
+import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
+import org.niis.xroad.signer.proto.AuthKeyProto;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotActive;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialized;
 
@@ -66,21 +67,23 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotInitialize
  * Handles authentication key retrieval requests.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
-public class GetAuthKeyReqHandler
-        extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyInfoProto> {
+public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyProto> {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
+    private final TokenLookup tokenLookup;
+    private final TokenPinManager tokenPinManager;
 
     @Override
     @SuppressWarnings({"squid:S3776"})
-    protected AuthKeyInfoProto handle(GetAuthKeyReq request) {
+    protected AuthKeyProto handle(GetAuthKeyReq request) {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}", securityServer);
 
         validateToken();
 
-        for (TokenInfo tokenInfo : TokenManager.listTokens()) {
+        for (TokenInfo tokenInfo : tokenLookup.listTokens()) {
             if (!SoftwareModuleType.TYPE.equals(tokenInfo.getType())) {
                 log.trace("Ignoring {} module", tokenInfo.getType());
                 continue;
@@ -102,7 +105,7 @@ public class GetAuthKeyReqHandler
                     try {
                         if (authCertValid(certInfo, securityServer)) {
                             log.trace("Found suitable authentication key {}", keyInfo.getId());
-                            return authKeyResponse(keyInfo, certInfo);
+                            return resolveResponse(keyInfo, certInfo);
                         }
                     } catch (Exception e) {
                         throw XrdRuntimeException.systemException(e);
@@ -111,34 +114,27 @@ public class GetAuthKeyReqHandler
             }
         }
 
-        throw CodedException.tr(X_KEY_NOT_FOUND,
-                "auth_key_not_found_for_server",
-                "Could not find active authentication key for "
-                        + "security server '%s'", securityServer);
+        throw XrdRuntimeException.systemException(KEY_NOT_FOUND,
+                "Could not find active authentication key for security server '%s'".formatted(securityServer));
     }
 
-    private void validateToken() throws CodedException {
-        if (!SoftwareTokenUtil.isTokenInitialized()) {
-            throw tokenNotInitialized(SoftwareTokenType.ID);
-        }
+    private AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
+        final var password = PasswordStore.getPassword(SoftwareTokenDefinition.ID);
 
-        if (!TokenManager.isTokenActive(SoftwareTokenType.ID)) {
-            throw tokenNotActive(SoftwareTokenType.ID);
-        }
-    }
-
-    private AuthKeyInfoProto authKeyResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
-        String alias = keyInfo.getId();
-        String keyStoreFileName = SoftwareTokenUtil.getKeyStoreFileName(alias);
-        var password = PasswordStore.getPassword(SoftwareTokenType.ID);
-
-        var builder = AuthKeyInfoProto.newBuilder()
-                .setAlias(alias)
-                .setKeyStoreFileName(keyStoreFileName)
+        final var builder = AuthKeyProto.newBuilder()
+                .setAlias(keyInfo.getId())
+                .setKeyStore(getKeyStore(keyInfo.getId()))
                 .setCert(certInfo.asMessage());
 
         password.ifPresent(passwd -> builder.setPassword(new String(passwd)));
         return builder.build();
+    }
+
+    private ByteString getKeyStore(String keyId) {
+        log.trace("Loading authentication key from database");
+        return tokenLookup.getSoftwareTokenKeyStore(keyId)
+                .map(ByteString::copyFrom)
+                .orElseThrow(() -> XrdRuntimeException.systemInternalError("Key not found in key store: " + keyId));
     }
 
     private boolean authCertValid(CertificateInfo certInfo, SecurityServerId securityServer)
@@ -195,14 +191,21 @@ public class GetAuthKeyReqHandler
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
         X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, subject);
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider, verifierOptions);
+        OcspVerifier verifier = ocspVerifierFactory.create(globalConfProvider, verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
-    private static boolean isRegistered(String status) {
-        return status != null
-                && status.startsWith(CertificateInfo.STATUS_REGISTERED);
+    private void validateToken() {
+        if (!tokenPinManager.tokenHasPin(SoftwareTokenDefinition.ID)) {
+            throw tokenNotInitialized(SoftwareTokenDefinition.ID);
+        }
+
+        if (!tokenLookup.isTokenActive(SoftwareTokenDefinition.ID)) {
+            throw tokenNotActive(SoftwareTokenDefinition.ID);
+        }
     }
 
-
+    private static boolean isRegistered(String status) {
+        return status != null && status.startsWith(CertificateInfo.STATUS_REGISTERED);
+    }
 }

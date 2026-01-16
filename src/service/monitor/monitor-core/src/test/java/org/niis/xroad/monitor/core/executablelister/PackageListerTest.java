@@ -31,10 +31,9 @@ import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.monitor.core.JmxStringifiedData;
+import org.niis.xroad.monitor.core.StringifiedData;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,11 +54,10 @@ class PackageListerTest {
      */
     @BeforeEach
     void setup() throws Exception {
-
         packageOutputString = FileUtils.readFileToString(new File(RESOURCE_PATH + "ubuntu-packagelist.txt"),
                 StandardCharsets.UTF_8.toString());
 
-        log.info("string=" + packageOutputString);
+        log.info("string={}", packageOutputString);
     }
 
     @Test
@@ -68,21 +66,21 @@ class PackageListerTest {
 
         PackageLister testPackageLister = new PackageLister() {
             @Override
-            ProcessOutputs executeProcess() throws IOException, InterruptedException {
+            ProcessOutputs executeProcess() {
                 ProcessOutputs fakeOutputs = new ProcessOutputs();
                 fakeOutputs.setOut(packageOutputString);
                 return fakeOutputs;
             }
         };
-        JmxStringifiedData<PackageInfo> data = testPackageLister.list();
+        StringifiedData<PackageInfo> data = testPackageLister.list();
         assertEquals(8, data.getDtoData().size());
-        assertEquals(8, data.getJmxStringData().size()); // header row included
+        assertEquals(8, data.getStringData().size()); // header row included
 
-        PackageInfo info = data.getDtoData().iterator().next();
+        PackageInfo info = data.getDtoData().getFirst();
         assertEquals("account-plugin-aim", info.getName());
         assertEquals("3.8.6-0ubuntu9.2", info.getVersion());
 
-        String jmxData = data.getJmxStringData().get(0);
-        assertEquals("account-plugin-aim/3.8.6-0ubuntu9.2", jmxData);
+        String stringData = data.getStringData().getFirst();
+        assertEquals("account-plugin-aim/3.8.6-0ubuntu9.2", stringData);
     }
 }

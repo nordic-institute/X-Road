@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -38,7 +36,9 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import com.codahale.metrics.MetricRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -70,11 +70,14 @@ class QueryRequestProcessor {
     QueryRequestProcessor(GlobalConfProvider globalConfProvider,
                           RequestWrapper request,
                           ResponseWrapper response,
-                          MetricRegistry healthMetricRegistry) {
+                          MetricRegistry healthMetricRegistry,
+                          OperationalDataRecordManager operationalDataRecordManager,
+                          OpMonitorProperties opMonitorProperties) {
         this.request = request;
         this.response = response;
 
-        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider);
+        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider, operationalDataRecordManager,
+                opMonitorProperties);
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 
@@ -122,8 +125,8 @@ class QueryRequestProcessor {
                                 responseContentTypeAssigner());
                         break;
                     default:
-                        throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
-                                "Unknown service: '%s'", requestSoap.getService());
+                        throw XrdRuntimeException.systemInternalError(
+                                "Unknown service: '%s'".formatted(requestSoap.getService()));
                 }
             }
         }
@@ -148,7 +151,7 @@ class QueryRequestProcessor {
         public void fault(SoapFault fault) throws Exception {
             log.error("Received fault {}", fault.getXml());
 
-            throw fault.toCodedException();
+            throw fault.toXrdRuntimeException();
         }
     }
 

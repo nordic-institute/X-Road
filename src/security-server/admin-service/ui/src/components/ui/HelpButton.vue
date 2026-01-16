@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,34 +25,21 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="help-wrap" @click="helpClick()">
-    <v-hover v-slot="{ isHovering }">
-      <xrd-icon-base
-        :color="isHovering ? '#663cdc' : '#575169'"
-        class="help-icon"
-      >
-        <xrd-icon-tooltip />
-      </xrd-icon-base>
-    </v-hover>
+  <div class="help-wrap">
+    <v-btn class="xrd" icon="help" variant="text" density="compact" @click="helpClick()" />
 
-    <xrd-help-dialog
-      :dialog="showHelp"
-      :title="helpTitle"
-      :text="helpText"
-      @cancel="closeHelp"
-    >
-      <v-img v-if="helpImage" :src="helpImage"></v-img>
-    </xrd-help-dialog>
+    <XrdHelpDialog v-if="showHelp" :title="helpTitle" :text="helpText" @cancel="closeHelp">
+      <v-img v-if="helpImage" class="border xrd-rounded-12" :src="helpImage" />
+    </XrdHelpDialog>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { XrdHelpDialog, XrdIconTooltip } from '@niis/shared-ui';
+import { XrdHelpDialog } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    XrdIconTooltip,
     XrdHelpDialog,
   },
   props: {
@@ -83,17 +71,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.help-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.help-icon {
-  margin-left: 20px;
-  margin-bottom: 4px;
-  font-size: 22px;
-  cursor: pointer;
-}
-</style>
+<style lang="scss" scoped></style>

@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0540 - SS: Client OpenApi REST services
 

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -35,6 +34,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import javax.net.ssl.HostnameVerifier;
@@ -48,7 +48,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
@@ -87,7 +87,7 @@ class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
             checkServerTrusted(getServiceId(context), cert);
         } catch (Exception e) {
             IOUtils.closeQuietly(connected);
-            throw new CodedException(X_SSL_AUTH_FAILED, e);
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, e);
         }
 
         return connected;

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
+  <XrdConfirmDialog
     title="members.member.subsystems.deleteSubsystem"
     accept-button-text="action.delete"
     focus-on-accept
@@ -33,35 +33,33 @@
     @accept="deleteSubsystem"
   >
     <template #text>
-      <div data-test="delete-subsystem">
-        <i18n-t
-          scope="global"
-          keypath="members.member.subsystems.areYouSureDelete"
-        >
+      <span data-test="delete-subsystem" class="font-weight-regular body-regular">
+        <i18n-t scope="global" keypath="members.member.subsystems.areYouSureDelete">
           <template #subsystemCode>
-            <b>{{ subsystemCode }}</b>
+            <span class="font-weight-bold">{{ subsystemCode }}</span>
           </template>
           <template #memberId>
-            <b>{{ shortMemberId }}</b>
+            <span class="font-weight-bold">{{ shortMemberId }}</span>
           </template>
         </i18n-t>
-      </div>
+      </span>
     </template>
-  </xrd-confirm-dialog>
+  </XrdConfirmDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useMember } from '@/store/modules/members';
 import { useSystem } from '@/store/modules/system';
-import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
+import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdConfirmDialog },
   props: {
     subsystemCode: {
       type: String,
@@ -73,6 +71,10 @@ export default defineComponent({
     },
   },
   emits: ['delete', 'cancel'],
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
+  },
   data() {
     return {
       loading: false,
@@ -86,26 +88,21 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
     },
     deleteSubsystem(): void {
       this.loading = true;
       this.subsystemStore
-        .deleteById(
-          toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
-        )
+        .deleteById(toIdentifier(this.member.client_id) + ':' + this.subsystemCode)
         .then(() => {
-          this.showSuccess(
-            this.$t('members.member.subsystems.subsystemSuccessfullyDeleted', {
-              subsystemCode: this.subsystemCode,
-            }),
-          );
+          this.addSuccessMessage('members.member.subsystems.subsystemSuccessfullyDeleted', {
+            subsystemCode: this.subsystemCode,
+          });
           this.$emit('delete');
         })
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
           this.$emit('cancel');
         })
         .finally(() => {
