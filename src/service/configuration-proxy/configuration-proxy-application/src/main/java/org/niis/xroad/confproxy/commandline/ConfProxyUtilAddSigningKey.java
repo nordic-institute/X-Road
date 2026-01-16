@@ -48,7 +48,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
     /**
      * Constructs a confproxy-add-signing-key utility program instance.
      */
-    ConfProxyUtilAddSigningKey(SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilAddSigningKey(SignerRpcClient signerRpcClient) {
         super("confproxy-add-signing-key", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
