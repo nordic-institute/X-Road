@@ -40,7 +40,7 @@ feign = "13.6"
 testCucumber = "7.32.0"
 testContainers = "2.0.2"
 testAllure = "2.31.0"
-testSelenide = "7.13.0"
+testSelenide = "7.12.3"
 shadowPlugin = "8.3.9"
 edc = "0.16.0-SNAPSHOT"
 
