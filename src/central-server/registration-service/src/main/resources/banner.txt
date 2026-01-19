@@ -1,4 +1,3 @@
-:: X-Road 7 Central Server ${application.formatted-version} ::
-:: Registration Service ::
+:: X-Road 8 Central Server - Registration Service ${application.formatted-version} ::
 :: Spring Boot ${spring-boot.formatted-version} ::
 :: ${java.runtime.name} ${java.runtime.version} ::

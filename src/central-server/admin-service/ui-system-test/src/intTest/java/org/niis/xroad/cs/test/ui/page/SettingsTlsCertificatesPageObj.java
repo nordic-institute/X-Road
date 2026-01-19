@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -59,25 +60,15 @@ public class SettingsTlsCertificatesPageObj {
         return $x("//button[@data-test='management-service-certificate-generateCsr']");
     }
 
-    public static class CreateCsrDialog {
+    public static class CreateCsrDialog extends Dialog {
+
         public SelenideElement distinguishedName() {
             var xpath = "//div[@data-test='enter-distinguished-name']";
             return $x(xpath);
         }
 
         public SelenideElement btnGenerateCsr() {
-            var xpath = "//button[@data-test='dialog-save-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnCancel() {
-            var xpath = "//button[@data-test='dialog-cancel-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement dialog() {
-            var xpath = "//div[@data-test='dialog-simple']";
-            return $x(xpath);
+            return btnSave();
         }
     }
 }

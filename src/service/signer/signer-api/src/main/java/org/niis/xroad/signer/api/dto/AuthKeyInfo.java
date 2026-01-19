@@ -25,24 +25,14 @@
  */
 package org.niis.xroad.signer.api.dto;
 
-import lombok.ToString;
-import lombok.Value;
-
-import java.io.Serializable;
+import java.security.PrivateKey;
 
 /**
  * Authentication key info DTO.
+ *
+ * @param alias alias of the key
+ * @param key   private key
+ * @param cert  certificate info
  */
-@Value
-@ToString(exclude = {"password"})
-public class AuthKeyInfo implements Serializable {
-
-    private final String alias;
-
-    private final String keyStoreFileName;
-
-    private final char[] password;
-
-    private final CertificateInfo cert;
-
+public record AuthKeyInfo(String alias, PrivateKey key, CertificateInfo cert) {
 }

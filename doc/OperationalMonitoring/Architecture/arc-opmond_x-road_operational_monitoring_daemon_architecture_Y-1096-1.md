@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.8  
+Version: 1.9  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                           | Author             |
@@ -18,7 +18,8 @@ Document ID: ARC-OPMOND
 | 17.03.2025 | 1.5     | Syntax and styling                                                    | Pauline Dimmek     |
 | 26.03.2025 | 1.6     | Added field xRoadVersion and example for producer side REST request   | Eneli Reimets      |
 | 10.07.2025 | 1.7     | Added info about operational data query in fixed intervals using gRPC | Mikk-Erik Bachmann |
-| 15.01.2026 | 1.8     | Update schema file locations                                          | Mohamed Elbeltagy  |
+| 11.11.2025 | 1.8     | Drop JMX interface                                                    | Justas Samuolis    |
+| 15.01.2026 | 1.9     | Update schema file locations                                          | Mohamed Elbeltagy  |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -39,8 +40,7 @@ Document ID: ARC-OPMOND
   - [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
   - [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
   - [3.3 Operational Monitoring Query in Fixed Intervals](#33-operational-monitoring-query-in-fixed-intervals)
-  - [3.4 Operational Monitoring JMX](#34-operational-monitoring-jmx)
-  - [3.5 Download Configuration](#35-download-configuration)
+  - [3.4 Download Configuration](#34-download-configuration)
 - [4 Deployment View](#4-deployment-view)
 - [Appendix A Store Operational Monitoring Data Messages](#appendix-a-store-operational-monitoring-data-messages)
   - [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
@@ -78,7 +78,6 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 <a name="PR-GCONF"/>**PR-GCONF** -- X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).  
 <a name="PR-MESS"/>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
 <a name="PR-OPMON"/>**PR-OPMON** -- X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
-<a name="PR-OPMONJMX"/>**PR-OPMONJMX** -- X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="PSQL"/>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
 <a name="ARC-TEC"/>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).  
 <a name="Ref_TERMS" class="anchor"/>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
@@ -100,7 +99,7 @@ The operational monitoring daemon main is a standalone Java daemon application t
 
 #### 2.1.1 Operational Monitoring Database
 
-The operational monitoring database component collects operational monitoring data of the X-Road security server(s) via *store operational monitoring data* interface. Operational data is stored in a PostgreSQL [[PSQL]](#PSQL) database. Additionally operational health data statistics are updated and made available via JMXMP.
+The operational monitoring database component collects operational monitoring data of the X-Road security server(s) via *store operational monitoring data* interface. Operational data is stored in a PostgreSQL [[PSQL]](#PSQL) database.
 
 Outdated data records are deleted periodically from the database according to the monitoring daemon configuration.
 
@@ -144,21 +143,7 @@ The monitoring of the security servers is not the main functionality of the X-Ro
 
 This query is used by the Security Server to retrieve operational monitoring data in fixed intervals so that it can be used to visualize the request traffic in the UI. It will return the count of successful and failed requests in each time interval. GRPC is used to make this query by other services.
 
-### 3.4 Operational Monitoring JMX
-
-This interface is used by a local monitoring system (e.g. Zabbix) to gather local operational health data of the security server via JMXMP. The interface is described in more detail in [[PR-OPMONJMX]](#PR-OPMONJMX).
-
-With the default configuration, JMX is disabled. JMX is enabled by adding the required configuration in `/etc/xroad/services/local.properties` file. The file is opened for editing and changes are made on the `XROAD_OPMON_PARAMS` variable value. After the `XROAD_OPMON_PARAMS` variable value has been updated, the `xroad-opmonitor` service must be restarted.
-                                                 
-The example configuration below enables JMX, binds it to port `9011` on any available interface with SSL and password authentication enabled:
- 
- ```bash
-XROAD_OPMON_PARAMS=-Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=9011 -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.ssl=true
- ```
-
-The monitoring of the security servers is not the main functionality of the X-Road system, therefore the availability and responsiveness of this service is not paramount.
-
-### 3.5 Download Configuration
+### 3.4 Download Configuration
 
 The operational monitoring daemon downloads the generated global configuration files from a configuration source.
 

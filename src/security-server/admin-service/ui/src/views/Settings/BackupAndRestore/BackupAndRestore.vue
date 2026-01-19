@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +25,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView
-    data-test="backup-restore-view"
-    class="xrd-view-common"
-    title-key="tab.settings.backupAndRestore"
-  >
-    <template #append-title>
-      <xrd-search v-model="search" class="ml-5 mb-1" />
+  <XrdView data-test="backup-restore-view" title="tab.main.settings">
+    <template #tabs>
+      <SettingsTabs />
     </template>
-    <template #header-buttons>
-      <xrd-backups-toolbar
-        accepts=".gpg"
-        :can-backup="canBackup"
-        :backup-handler="backupHandler()"
-        @create-backup="fetchData"
-        @upload-backup="fetchData"
-      />
-    </template>
-    <xrd-backups-data-table
+
+    <XrdBackupsDataTable
+      accepts=".gpg"
       :can-backup="canBackup"
       :backups="backups"
-      :filter="search"
       :loading="loadingBackups"
       :backup-handler="backupHandler()"
       @delete="fetchData"
+      @create-backup="fetchData"
+      @upload-backup="fetchData"
     />
-  </XrdTitledView>
+  </XrdView>
 </template>
 
 <script lang="ts">
@@ -58,40 +49,23 @@
  */
 import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
-import { Backup, BackupExt } from '@/openapi-types';
-import { mapActions, mapState } from 'pinia';
+import { Backup } from '@/openapi-types';
+import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { useNotifications } from '@/store/modules/notifications';
-import { saveResponseAsFile } from '@/util/helpers';
-import {
-  BackupHandler,
-  BackupItem,
-  XrdBackupsDataTable,
-  XrdBackupsToolbar,
-} from '@niis/shared-ui';
-
-const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
-  const formData = new FormData();
-  formData.set('file', backupFile, backupFile.name);
-  return api
-    .post<BackupItem>(
-      `/backups/upload?ignore_warnings=${ignoreWarnings}`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      },
-    )
-    .then((resp) => resp.data);
-};
+import { XrdView, useNotifications, BackupHandler, XrdBackupsDataTable } from '@niis/shared-ui';
+import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
+import { useBackups } from '@/store/modules/backups';
 
 export default defineComponent({
   components: {
-    XrdBackupsToolbar,
+    SettingsTabs,
+    XrdView,
     XrdBackupsDataTable,
+  },
+  setup() {
+    const { addError } = useNotifications();
+    const backupStore = useBackups();
+    return { addError, backupStore };
   },
   data() {
     return {
@@ -114,64 +88,25 @@ export default defineComponent({
     this.fetchData();
   },
   methods: {
-    ...mapActions(useNotifications, [
-      'showError',
-      'showSuccess',
-      'showWarningMessage',
-    ]),
     backupHandler(): BackupHandler {
       return {
-        showError: this.showError,
-        showSuccess: this.displaySuccess,
-        showWarning: this.displayWarning,
-        create: this.createBackup,
-        upload: uploadBackup,
-        delete: this.deleteBackup,
-        download: this.downloadBackup,
-        restore: this.restoreBackup,
+        create: this.backupStore.createBackup,
+        upload: this.backupStore.uploadBackup,
+        delete: this.backupStore.deleteBackup,
+        download: this.backupStore.downloadBackup,
+        restore: this.backupStore.restoreBackup,
       };
     },
-    fetchData() {
+    async fetchData() {
       this.loadingBackups = true;
-      return api
-        .get<Backup[]>('/backups')
-        .then((res) => {
-          this.backups = res.data.sort((a, b) => {
-            return b.created_at.localeCompare(a.created_at);
-          });
-        })
-        .catch((error) => this.showError(error))
+      return this.backupStore
+        .fetchData()
+        .then((data) => (this.backups = data))
+        .catch((error) => this.addError(error))
         .finally(() => (this.loadingBackups = false));
-    },
-    createBackup() {
-      this.creatingBackup = true;
-      return api
-        .post<BackupExt>('/backups/ext', null)
-        .then((resp) => resp.data);
-    },
-    deleteBackup(filename: string) {
-      return api.remove(`/backups/${encodePathParameter(filename)}`);
-    },
-    downloadBackup(fileName: string) {
-      return api
-        .get(`/backups/${encodePathParameter(fileName)}/download`, {
-          responseType: 'blob',
-        })
-        .then((resp) => saveResponseAsFile(resp, fileName));
-    },
-    restoreBackup(fileName: string) {
-      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
-    },
-    displaySuccess(textKey: string, data: Record<string, unknown> = {}) {
-      this.showSuccess(this.$t(textKey, data));
-    },
-    displayWarning(textKey: string, data: Record<string, unknown> = {}) {
-      this.showWarningMessage(this.$t(textKey, data));
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-</style>
+<style lang="scss" scoped></style>

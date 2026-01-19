@@ -37,6 +37,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class CertificateAuthority {
     private Integer id;
+    private Integer certificationServiceId;
     private CertificateDetails caCertificate;
     private List<OcspResponder> ocspResponders;
     private Instant createdAt;

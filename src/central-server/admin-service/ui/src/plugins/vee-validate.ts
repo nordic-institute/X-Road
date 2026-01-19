@@ -96,18 +96,15 @@ export default {
       return true;
     });
 
-    defineRule(
-      'address',
-      (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
-        if (!value) {
-          return true;
-        }
-        if (/[^a-zA-Z\d-.]/.test(value)) {
-          const field = t('fields.' + ctx.field);
-          return t('validation.messages.address', { field });
-        }
+    defineRule('address', (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
+      if (!value) {
         return true;
-      },
-    );
+      }
+      if (/[^a-zA-Z\d-.]/.test(value)) {
+        const field = t('fields.' + ctx.field);
+        return t('validation.messages.address', { field });
+      }
+      return true;
+    });
   },
 };

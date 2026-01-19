@@ -174,10 +174,10 @@ paths:
       description:
         <h3>Uploads new security server backup to the system.</h3>
         <p>Note that it is possible to overwrite an existing backup file with the same name.
-          <ul>
-            <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
-            <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = true will overwrite the existing backup.</li>
-          </ul>
+        <ul>
+        <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
+        <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = true will overwrite the existing backup.</li>
+        </ul>
         </p>
         <p>The warning response has a warning code <code>warning_file_already_exists</code> and the metadata field contains the name of the existing backup</p>
       parameters:
@@ -354,11 +354,9 @@ paths:
       requestBody:
         description: certificate to import
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: certificate file
+              $ref: '#/components/schemas/CertificateFile'
       responses:
         '201':
           description: certificate created
@@ -881,10 +879,10 @@ paths:
       description:
         <h3>Adds new client to the system.</h3>
         <p>The client id will be validated and if the validation fails a validation error is returned. Note that with this endpoint it is possible to add an unregistered member as a client.
-          <ul>
-            <li>Attempt to add an unregistered member with <code>ClientAdd.ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
-            <li>Attempt to add an unregistered member with <code>ClientAdd.ignore_warnings</code> = true succeeds.</li>
-          </ul>
+        <ul>
+        <li>Attempt to add an unregistered member with <code>ClientAdd.ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
+        <li>Attempt to add an unregistered member with <code>ClientAdd.ignore_warnings</code> = true succeeds.</li>
+        </ul>
         </p>
         <p>When trying to add an unregister client, the error response has an error code <code>unregistered_member</code> and the metadata field contains the identifier of the unregistered client</p>
       requestBody:
@@ -1620,11 +1618,9 @@ paths:
       requestBody:
         description: certificate to add
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: certificate file
+              $ref: '#/components/schemas/CertificateFile'
       responses:
         '201':
           description: certificate added
@@ -1837,15 +1833,15 @@ paths:
       description:
         <h3>Administrator adds a new service description for the client.</h3>
         <p>
-          This endpoint can also return metadata in the error response if adding the service description fails due to invalid URLs, already existing service description or already existing services.
-          If adding the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
-          If adding the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
-          If adding the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
+        This endpoint can also return metadata in the error response if adding the service description fails due to invalid URLs, already existing service description or already existing services.
+        If adding the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+        If adding the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
+        If adding the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
         </p>
         <p>
-          This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionAdd.ignore_warnings</code> = true.
-          If <code>ServiceDescriptionAdd.ignore_warnings</code> = false, a warnings response will be returned if WSDL or OpenAPI3 validation fails and validation warnings are returned.
-          The warnings will have the warning code <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code> depending on which type the service description is. The metadata of the warning contains the output of the validator itself.
+        This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionAdd.ignore_warnings</code> = true.
+        If <code>ServiceDescriptionAdd.ignore_warnings</code> = false, a warnings response will be returned if WSDL or OpenAPI3 validation fails and validation warnings are returned.
+        The warnings will have the warning code <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code> depending on which type the service description is. The metadata of the warning contains the output of the validator itself.
         </p>
       parameters:
         - in: path
@@ -1897,15 +1893,15 @@ paths:
           description:
             <h3>An existing item already exists</h3>
             <p>
-              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
+            If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
             </p>
             <p>
-              In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
-              <ul>
-                <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
-                <li>C1 = duplicate service full code</li>
-                <li>U1 = URL of the existing WSDL that has the duplicate</li>
-              </ul>
+            In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
+            <ul>
+            <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
+            <li>C1 = duplicate service full code</li>
+            <li>U1 = URL of the existing WSDL that has the duplicate</li>
+            </ul>
             </p>
             <strong>See the example</strong>
           content:
@@ -2638,35 +2634,35 @@ paths:
       description:
         <h3>Administrator initializes a new Security Server with the provided initial configuration.</h3>
         <p>
-          This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
-          If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
-          <ul>
-            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
-            <li>x = the minimum length of the pin code</li>
-            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
-          </ul>
-          Other possible error code is <code>invalid_init_params</code> which can have any one or more of the following strings in the metadata field
-          <ul>
-            <li>server_code_not_provided</li>
-            <li>member_class_not_provided</li>
-            <li>member_code_not_provided</li>
-            <li>pin_code_not_provided</li>
-            <li>server_code_exists</li>
-            <li>member_class_exists</li>
-            <li>member_code_exists</li>
-            <li>pin_code_exists</li>
-          </ul>
+        This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
+        If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
+        <ul>
+        <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+        <li>x = the minimum length of the pin code</li>
+        <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+        </ul>
+        Other possible error code is <code>invalid_init_params</code> which can have any one or more of the following strings in the metadata field
+        <ul>
+        <li>server_code_not_provided</li>
+        <li>member_class_not_provided</li>
+        <li>member_code_not_provided</li>
+        <li>pin_code_not_provided</li>
+        <li>server_code_exists</li>
+        <li>member_class_exists</li>
+        <li>member_code_exists</li>
+        <li>pin_code_exists</li>
+        </ul>
         </p>
         <p>
-          This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
-          If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
-          <ul>
-            <li>server code has already been set for this Security Server (warning code <code>init_servercode_exists</code>)</li>
-            <li>server owner has already been set for this Security Server(warning code <code>init_server_owner_exists</code>)</li>
-            <li>software token has already been initialized in this Security Server(warning code <code>init_software_token_initialized</code>)</li>
-            <li>the provided owner member is unregistered(warning code <code>init_unregistered_member</code>)</li>
-            <li>the provided server id is already in use by another Security Server(warning code <code>init_server_id_exists</code>)</li>
-          </ul>
+        This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
+        If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
+        <ul>
+        <li>server code has already been set for this Security Server (warning code <code>init_servercode_exists</code>)</li>
+        <li>server owner has already been set for this Security Server(warning code <code>init_server_owner_exists</code>)</li>
+        <li>software token has already been initialized in this Security Server(warning code <code>init_software_token_initialized</code>)</li>
+        <li>the provided owner member is unregistered(warning code <code>init_unregistered_member</code>)</li>
+        <li>the provided server id is already in use by another Security Server(warning code <code>init_server_id_exists</code>)</li>
+        </ul>
         </p>
         <strong>See the '400' response examples</strong>
       requestBody:
@@ -3002,11 +2998,11 @@ paths:
         <h3>Administrator deletes the key.</h3>
         <p>This endpoint can also return metadata in the error response if sending an auth cert deletion management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
         <p>
-          Note that with this endpoint it's possible to delete an authentication key with a registered authentication certificate.
-          <ul>
-            <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
-            <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = true succeeds. The authentication certificate is first unregistered, and the key and certificate are deleted after that.</li>
-          </ul>
+        Note that with this endpoint it's possible to delete an authentication key with a registered authentication certificate.
+        <ul>
+        <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
+        <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = true succeeds. The authentication certificate is first unregistered, and the key and certificate are deleted after that.</li>
+        </ul>
         <p>When trying to delete an authentication key with a registered authentication certificate, the warning response has a warning code <code>auth_key_with_registered_cert_warning</code> and the metadata field contains the key id of the key</p>
         </p>
       parameters:
@@ -3021,7 +3017,7 @@ paths:
         - in: query
           name: ignore_warnings
           description: if true, any ignorable warnings are ignored. if false (or missing),
-                    any warnings cause request to fail
+            any warnings cause request to fail
           required: false
           schema:
             type: boolean
@@ -3589,12 +3585,12 @@ paths:
       description:
         <h3>Administrator updates the service.</h3>
         <p>
-          This endpoint can return a warnings response which can be ignored by setting <code>ServiceUpdate.ignore_warnings</code> = true.
-          If <code>ServiceUpdate.ignore_warnings</code> = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true
-          <ul>
-            <li>SSL authentication is set to true, but https connection to the service URL fails because SSL handshake fails</li>
-            <li>SSL authentication is set to true, but https connection to the service URL fails because of other errors (e.g. host unreachable)</li>
-          </ul>
+        This endpoint can return a warnings response which can be ignored by setting <code>ServiceUpdate.ignore_warnings</code> = true.
+        If <code>ServiceUpdate.ignore_warnings</code> = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true
+        <ul>
+        <li>SSL authentication is set to true, but https connection to the service URL fails because SSL handshake fails</li>
+        <li>SSL authentication is set to true, but https connection to the service URL fails because of other errors (e.g. host unreachable)</li>
+        </ul>
         </p>
       parameters:
         - in: path
@@ -4199,19 +4195,19 @@ paths:
       description:
         <h3>Administrator updates the selected service description.</h3>
         <p>
-          This endpoint can also return metadata in the error response if updating the service description fails due to invalid URLs, already existing service description or already existing services.
-          If updating the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
-          If updating the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
-          If updating the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
+        This endpoint can also return metadata in the error response if updating the service description fails due to invalid URLs, already existing service description or already existing services.
+        If updating the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+        If updating the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
+        If updating the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
         </p>
         <p>
-          This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionUpdate.ignore_warnings</code> = true.
-          If <code>ServiceDescriptionUpdate.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
-          <ul>
-            <li>WSDL or OpenAPI3 validation fails and validation warnings are returned (warning code will be either <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code>)</li>
-            <li>existing services will be removed (warning code <code>deleting_services</code> and the warning metadata contains a list of service codes that will be removed)</li>
-            <li>new services will be added (warning code <code>adding_services</code> and the warning metadata contains a list of service codes that will be added)</li>
-          </ul>
+        This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionUpdate.ignore_warnings</code> = true.
+        If <code>ServiceDescriptionUpdate.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
+        <ul>
+        <li>WSDL or OpenAPI3 validation fails and validation warnings are returned (warning code will be either <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code>)</li>
+        <li>existing services will be removed (warning code <code>deleting_services</code> and the warning metadata contains a list of service codes that will be removed)</li>
+        <li>new services will be added (warning code <code>adding_services</code> and the warning metadata contains a list of service codes that will be added)</li>
+        </ul>
         </p>
       parameters:
         - in: path
@@ -4261,15 +4257,15 @@ paths:
           description:
             <h3>An existing item already exists</h3>
             <p>
-              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
+            If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
             </p>
             <p>
-              In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
-              <ul>
-                <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
-                <li>C1 = duplicate service full code</li>
-                <li>U1 = URL of the existing WSDL that has the duplicate</li>
-              </ul>
+            In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
+            <ul>
+            <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
+            <li>C1 = duplicate service full code</li>
+            <li>U1 = URL of the existing WSDL that has the duplicate</li>
+            </ul>
             </p>
             <strong>See the example</strong>
           content:
@@ -4386,19 +4382,19 @@ paths:
       description:
         <h3>Administrator refreshes service description.</h3>
         <p>
-          This endpoint can also return metadata in the error response if refreshing the service description fails due to invalid URLs, already existing service description or already existing services.
-          If refreshing the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
-          If refreshing the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
-          If refreshing the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
+        This endpoint can also return metadata in the error response if refreshing the service description fails due to invalid URLs, already existing service description or already existing services.
+        If refreshing the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+        If refreshing the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
+        If refreshing the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
         </p>
         <p>
-          This endpoint can return a warnings response which can be ignored by setting <code>IgnoreWarnings.ignore_warnings</code> = true.
-          If <code>IgnoreWarnings.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
+        This endpoint can return a warnings response which can be ignored by setting <code>IgnoreWarnings.ignore_warnings</code> = true.
+        If <code>IgnoreWarnings.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
         <ul>
-          <li>WSDL or OpenAPI3 validation fails and validation warnings are returned (warning code will be either <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code>)</li>
-          <li>existing services will be removed (warning code <code>deleting_services</code> and the warning metadata contains a list of service codes that will be removed)</li>
-          <li>new services will be added (warning code <code>adding_services</code> and the warning metadata contains a list of service codes that will be added)</li>
-          </ul>
+        <li>WSDL or OpenAPI3 validation fails and validation warnings are returned (warning code will be either <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code>)</li>
+        <li>existing services will be removed (warning code <code>deleting_services</code> and the warning metadata contains a list of service codes that will be removed)</li>
+        <li>new services will be added (warning code <code>adding_services</code> and the warning metadata contains a list of service codes that will be added)</li>
+        </ul>
         </p>
       parameters:
         - in: path
@@ -4446,15 +4442,15 @@ paths:
           description:
             <h3>An existing item already exists</h3>
             <p>
-              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
+            If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
             </p>
             <p>
-              In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
-              <ul>
-                <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
-                <li>C1 = duplicate service full code</li>
-                <li>U1 = URL of the existing WSDL that has the duplicate</li>
-              </ul>
+            In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
+            <ul>
+            <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
+            <li>C1 = duplicate service full code</li>
+            <li>U1 = URL of the existing WSDL that has the duplicate</li>
+            </ul>
             </p>
             <strong>See the example</strong>
           content:
@@ -4539,17 +4535,15 @@ paths:
       description:
         <h3>Administrator uploads a new configuration anchor file in the security server's initialization phase.</h3>
         <p>
-          Calls to this endpoint only succeed if a configuration anchor is not already found – meaning that <b>this endpoint can only be used when initializing a new security server</b>.
-          For updating the anchor for an already initialized security server use the <code>PUT /system/anchor</code> endpoint instead.
+        Calls to this endpoint only succeed if a configuration anchor is not already found – meaning that <b>this endpoint can only be used when initializing a new security server</b>.
+        For updating the anchor for an already initialized security server use the <code>PUT /system/anchor</code> endpoint instead.
         </p>
       requestBody:
         description: configuration anchor
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: configuration anchor file
+              $ref: '#/components/schemas/AnchorFile'
       responses:
         '201':
           description: configuration anchor uploaded
@@ -4575,17 +4569,15 @@ paths:
       description:
         <h3>Administrator uploads a configuration anchor file anytime after the Security Server has been initialized.</h3>
         <p>
-          <b>Note that this only works if there already exists an anchor that can be replaced.</b>
-          When initalizing a new Security Server, use the endpoint <code>POST /system/anchor</code> instead.
+        <b>Note that this only works if there already exists an anchor that can be replaced.</b>
+        When initalizing a new Security Server, use the endpoint <code>POST /system/anchor</code> instead.
         </p>
       requestBody:
         description: configuration anchor
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: configuration anchor file
+              $ref: '#/components/schemas/AnchorFile'
       responses:
         '201':
           description: configuration anchor uploaded
@@ -4625,11 +4617,9 @@ paths:
       requestBody:
         description: configuration anchor
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: configuration anchor file
+              $ref: '#/components/schemas/AnchorFile'
       responses:
         '201':
           description: configuration anchor uploaded
@@ -4807,11 +4797,9 @@ paths:
       requestBody:
         description: certificate to add
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: certificate file
+              $ref: '#/components/schemas/CertificateFile'
       responses:
         '200':
           description: tls certificate imported
@@ -5049,6 +5037,26 @@ paths:
           description: request has been refused
         '500':
           description: internal server error
+  /system/auth-provider-type:
+    get:
+      tags:
+        - system
+      summary: get the authentication provider type
+      operationId: getAuthProviderType
+      description: <h3>Administrator views the authentication provider type</h3>
+      responses:
+        '200':
+          description: authentication provider type information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthProviderTypeResponse'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: internal server error
   /system/version:
     get:
       tags:
@@ -5102,31 +5110,31 @@ paths:
         '500':
           description: internal server error
   /system/maintenance-mode/enable:
-      put:
-        tags:
-          - system
-        summary: enable maintenance mode of the security server
-        operationId: enableMaintenanceMode
-        description: <h3>Administrator enables maintenance mode of the security server.</h3>
-        requestBody:
-          description: Optional message about maintenance mode
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MaintenanceModeMessage'
-        responses:
-          '204':
-            description: enable maintenance mode request was successful
-          '400':
-            description: request was invalid
-          '401':
-            description: authentication credentials are missing
-          '403':
-            description: request has been refused
-          '404':
-            description: resource requested does not exists
-          '500':
-            description: internal server error
+    put:
+      tags:
+        - system
+      summary: enable maintenance mode of the security server
+      operationId: enableMaintenanceMode
+      description: <h3>Administrator enables maintenance mode of the security server.</h3>
+      requestBody:
+        description: Optional message about maintenance mode
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceModeMessage'
+      responses:
+        '204':
+          description: enable maintenance mode request was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
   /system/maintenance-mode/disable:
     put:
       tags:
@@ -5587,13 +5595,13 @@ paths:
         <h3>Administrator updates the software token pin code.</h3>
         <p>This operation supports updating the pin code of a software token only.</p>
         <p>
-          This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
-          If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
-          <ul>
-            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
-            <li>x = the minimum length of the pin code</li>
-            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
-          </ul>
+        This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
+        If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
+        <ul>
+        <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+        <li>x = the minimum length of the pin code</li>
+        <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+        </ul>
         </p>
       parameters:
         - in: path
@@ -6372,10 +6380,30 @@ components:
       type: object
       description: security server backup archive file
       properties:
-        file:
+        backup:
           type: string
           format: binary
           description: backup archive file
+    CertificateFile:
+      type: object
+      description: certificate file
+      properties:
+        certificate:
+          description: the certificate file
+          format: binary
+          type: string
+      required:
+        - certificate
+    AnchorFile:
+      type: object
+      description: Anchor File
+      properties:
+        anchor:
+          description: the anchor file
+          format: binary
+          type: string
+      required:
+        - anchor
     TokenCertificateSigningRequest:
       type: object
       description: CSR for certificate that is stored in a Token. Also includes the possible actions that can be
@@ -7114,6 +7142,14 @@ components:
           example: description
           minLength: 1
           maxLength: 255
+        client_id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
+          example: FI:GOV:123:ABC
+          readOnly: true
+          minLength: 1
+          maxLength: 255
         member_count:
           type: integer
           format: int32
@@ -7470,9 +7506,9 @@ components:
       description:
         <p>The enum can have three different values</p>
         <ul>
-          <li>PRIMARY, which is the primary node in a high availability setup</li>
-          <li>SECONDARY, which is a secondary node in a high availability setup – a read-only server</li>
-          <li>STANDALONE,when there are no load balancer or high availability configured</li>
+        <li>PRIMARY, which is the primary node in a high availability setup</li>
+        <li>SECONDARY, which is a secondary node in a high availability setup – a read-only server</li>
+        <li>STANDALONE,when there are no load balancer or high availability configured</li>
         </ul>
       example: PRIMARY
       enum:
@@ -7487,6 +7523,27 @@ components:
       properties:
         node_type:
           $ref: '#/components/schemas/NodeType'
+    AuthProviderType:
+      type: string
+      format: enum
+      description:
+        <p>The enum can have three different values</p>
+        <ul>
+        <li>PAM</li>
+        <li>DATABASE</li>
+        </ul>
+      example: PAM
+      enum:
+        - PAM
+        - DATABASE
+    AuthProviderTypeResponse:
+      type: object
+      description: Response object containing the authentication provider type of the Security Server
+      required:
+        - auth_provider_type
+      properties:
+        auth_provider_type:
+          $ref: '#/components/schemas/AuthProviderType'
     OcspResponder:
       type: object
       description: OCSP responder
@@ -7675,6 +7732,8 @@ components:
         - service_code
         - url
         - timeout
+        - service_description_id
+        - client_id
       properties:
         id:
           type: string
@@ -7683,6 +7742,17 @@ components:
           example: CS:ORG:Client:myService.v1
           minLength: 1
           maxLength: 1279
+        service_description_id:
+          type: string
+          description: unique identifier
+          example: 123
+        client_id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 255
         full_service_code:
           type: string
           format: text
@@ -7797,6 +7867,14 @@ components:
           type: string
           example: example_service_code
           description: service code
+        client_id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
+          example: FI:GOV:123:ABC
+          readOnly: true
+          minLength: 1
+          maxLength: 255
         method:
           type: string
           description: http method mapped to this endpoint

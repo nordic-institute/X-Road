@@ -3,6 +3,35 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
+    <changeSet id="restore-database-user" author="ricardas" context="int-test">
+        <comment>Restore database user that was dropped during Liquibase execution.</comment>
+        <sql splitStatements="false">
+            <![CDATA[
+            DO $$
+            BEGIN
+              CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
+              EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'User ${db_user} already exists';
+            END
+            $$;
+            DO $$
+            BEGIN
+              GRANT "${db_user}" TO "postgres";
+              EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Role membership already exists';
+            END
+            $$;
+            GRANT TEMPORARY, CONNECT ON DATABASE "centerui_production" TO "${db_user}";
+            GRANT USAGE ON SCHEMA public TO "${db_user}";
+            GRANT USAGE ON SCHEMA centerui TO "${db_user}";
+            GRANT SELECT, UPDATE, INSERT, DELETE ON ALL TABLES IN SCHEMA centerui TO "${db_user}";
+            GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA centerui TO "${db_user}";
+            GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA centerui TO "${db_user}";
+            REVOKE INSERT, UPDATE, DELETE ON databasechangelog, databasechangeloglock FROM "${db_user}";
+            ]]>
+        </sql>
+    </changeSet>
+
     <changeSet id="apikey-testdata" author="ricardas">
         <comment>Add default apiKey which can be used for scenarios which do not case about permissions.
         </comment>

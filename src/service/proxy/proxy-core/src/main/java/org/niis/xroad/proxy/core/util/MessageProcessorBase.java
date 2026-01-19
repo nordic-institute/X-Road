@@ -25,43 +25,16 @@
  */
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadId;
-import ee.ria.xroad.common.message.RestRequest;
-import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
-import org.niis.xroad.serverconf.model.DescriptionType;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
-import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Optional;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP_ACTION;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 /**
  * Base class for message processors.
@@ -69,7 +42,12 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
 public abstract class MessageProcessorBase {
-    protected final CommonBeanProxy commonBeanProxy;
+    protected final ProxyProperties proxyProperties;
+    protected final GlobalConfProvider globalConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+    protected final ClientAuthenticationService clientAuthenticationService;
+
+    protected final OpMonitoringDataHelper opMonitoringDataHelper;
 
     /**
      * The servlet request.
@@ -86,29 +64,33 @@ public abstract class MessageProcessorBase {
      */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(CommonBeanProxy commonBeanProxy,
-                                   RequestWrapper request,
-                                   ResponseWrapper response,
+    protected MessageProcessorBase(RequestWrapper request, ResponseWrapper response,
+                                   ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                   ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
                                    HttpClient httpClient) {
-        this.commonBeanProxy = commonBeanProxy;
+        this.proxyProperties = proxyProperties;
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
         this.jRequest = request;
         this.jResponse = response;
         this.httpClient = httpClient;
+        this.clientAuthenticationService = clientAuthenticationService;
 
-        commonBeanProxy.globalConfProvider.verifyValidity();
+        this.opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+        this.globalConfProvider.verifyValidity();
     }
 
     /**
      * Returns a new instance of http sender.
      */
     protected HttpSender createHttpSender() {
-        return new HttpSender(httpClient);
+        return new HttpSender(httpClient, proxyProperties.clientProxy().poolEnableConnectionReuse());
     }
 
     /**
      * Called when processing started.
      */
-    protected void preprocess() throws Exception {
+    protected void preprocess() {
     }
 
     /**
@@ -125,206 +107,9 @@ public abstract class MessageProcessorBase {
     public abstract void process() throws Exception;
 
     /**
-     * Update operational monitoring data with SOAP message header data and
-     * the size of the message.
-     *
-     * @param opMonitoringData monitoring data to update
-     * @param soapMessage      SOAP message
-     */
-    protected static void updateOpMonitoringDataBySoapMessage(
-            OpMonitoringData opMonitoringData, SoapMessageImpl soapMessage) {
-        if (opMonitoringData != null && soapMessage != null) {
-            opMonitoringData.setClientId(soapMessage.getClient());
-            opMonitoringData.setServiceId(soapMessage.getService());
-            opMonitoringData.setMessageId(soapMessage.getQueryId());
-            opMonitoringData.setMessageUserId(soapMessage.getUserId());
-            opMonitoringData.setMessageIssue(soapMessage.getIssue());
-            opMonitoringData.setRepresentedParty(
-                    soapMessage.getRepresentedParty());
-            opMonitoringData.setMessageProtocolVersion(
-                    soapMessage.getProtocolVersion());
-            opMonitoringData.setServiceType(DescriptionType.WSDL.name());
-            opMonitoringData.setRequestSize(soapMessage.getBytes().length);
-            opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
-        }
-    }
-
-    /**
-     * Update operational monitoring data with REST message header data
-     */
-    protected void updateOpMonitoringDataByRestRequest(OpMonitoringData opMonitoringData, RestRequest request) {
-        if (opMonitoringData != null && request != null) {
-            opMonitoringData.setClientId(request.getSender());
-            opMonitoringData.setServiceId(request.getServiceId());
-            opMonitoringData.setMessageId(request.getQueryId());
-            opMonitoringData.setMessageUserId(request.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
-            opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
-            opMonitoringData.setRepresentedParty(request.getRepresentedParty());
-            opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
-            opMonitoringData.setServiceType(Optional.ofNullable(
-                    commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
-            opMonitoringData.setRestMethod(request.getVerb().name());
-            // we log rest path data only for PRODUCER
-            opMonitoringData.setRestPath(opMonitoringData.isProducer()
-                    ? getNormalizedServicePath(request.getServicePath()) : null);
-            opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
-        }
-    }
-
-    private String getNormalizedServicePath(String servicePath) {
-        return Optional.ofNullable(servicePath)
-                .map(UriUtils::decodeAndNormalize)
-                .orElse(servicePath);
-    }
-
-    /**
      * Check that message transfer was successful.
      */
     public boolean verifyMessageExchangeSucceeded() {
-        return true;
-    }
-
-    protected String getSecurityServerAddress() {
-        return commonBeanProxy.globalConfProvider.getSecurityServerAddress(commonBeanProxy.serverConfProvider.getIdentifier());
-    }
-
-    /**
-     * Validates SOAPAction header value.
-     * Valid header values are: (empty string),(""),("URI-reference")
-     * In addition, this implementation allows missing (null) header.
-     *
-     * @return the argument as-is if it is valid
-     * @throws CodedException if the argument is invalid
-     * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
-     */
-    @SuppressWarnings("java:S3516")
-    protected static String validateSoapActionHeader(String soapAction) {
-        if (soapAction == null || soapAction.isEmpty() || "\"\"".equals(soapAction)) {
-            //allow missing, empty and "" SoapAction
-            return soapAction;
-        }
-
-        final int lastIndex = soapAction.length() - 1;
-        if (lastIndex > 1 && soapAction.charAt(0) == '"' && soapAction.charAt(lastIndex) == '"') {
-            try {
-                // try to parse the URI, ignore result
-                new URI(soapAction.substring(1, lastIndex));
-                return soapAction;
-            } catch (URISyntaxException e) {
-                throw new CodedException(X_INVALID_SOAP_ACTION, e, "Malformed SOAPAction header");
-            }
-        }
-        throw new CodedException(X_INVALID_SOAP_ACTION, "Malformed SOAPAction header");
-    }
-
-    /**
-     * Logs a warning if identifier contains invalid characters.
-     */
-    protected static boolean checkIdentifier(final XRoadId id) {
-        if (id != null) {
-            if (!validateIdentifierField(id.getXRoadInstance())) {
-                log.warn("Invalid character(s) in identifier {}", id);
-                return false;
-            }
-
-            for (String f : id.getFieldsForStringFormat()) {
-                if (f != null && !validateIdentifierField(f)) {
-                    log.warn("Invalid character(s) in identifier {}", id);
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Verifies the authentication for the client certificate.
-     *
-     * @param client the client identifier
-     * @param auth   the authentication data of the information system
-     */
-    protected void verifyClientAuthentication(ClientId client,
-                                              IsAuthenticationData auth)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-
-        IsAuthentication isAuthentication = commonBeanProxy.serverConfProvider.getIsAuthentication(client);
-        if (isAuthentication == null) {
-            // Means the client was not found in the server conf.
-            // The getIsAuthentication method implemented in ServerConfCommonImpl
-            // checks if the client exists; if it does, returns the
-            // isAuthentication value or NOSSL if no value is specified.
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Client '%s' not found", client);
-        }
-
-        log.trace("IS authentication for client '{}' is: {}", client,
-                isAuthentication);
-
-        if (isAuthentication == IsAuthentication.SSLNOAUTH
-                && auth.isPlaintextConnection()) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
-                    "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection", client);
-        } else if (isAuthentication == IsAuthentication.SSLAUTH) {
-            if (auth.cert() == null) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies HTTPS but did not supply"
-                                + " TLS certificate", client);
-            }
-
-            if (auth.cert().equals(commonBeanProxy.serverConfProvider.getSSLKey().getCertChain()[0])) {
-                // do not check certificates for local TLS connections
-                return;
-            }
-
-            List<X509Certificate> isCerts = commonBeanProxy.serverConfProvider.getIsCerts(client);
-            if (isCerts.isEmpty()) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) has no IS certificates", client);
-            }
-
-            if (!isCerts.contains(auth.cert())) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate does not match any"
-                                + " IS certificates", client);
-            }
-
-            clientIsCertPeriodValidatation(client, auth.cert());
-        }
-    }
-
-    private void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) {
-        try {
-            cert.checkValidity();
-        } catch (CertificateExpiredException e) {
-            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate is expired", client);
-            } else {
-                log.warn("Client {} TLS certificate is expired", client);
-            }
-        } catch (CertificateNotYetValidException e) {
-            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate is not yet valid", client);
-            } else {
-                log.warn("Client {} TLS certificate is not yet valid", client);
-            }
-        }
-    }
-
-    private static boolean validateIdentifierField(final CharSequence field) {
-        for (int i = 0; i < field.length(); i++) {
-            final char c = field.charAt(i);
-            //ISO control char
-            if (c <= '\u001f' || (c >= '\u007f' && c <= '\u009f')) {
-                return false;
-            }
-            //Forbidden chars
-            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\' || c == '\u200b' || c == '\ufeff') {
-                return false;
-            }
-            //"normalized path" check is redundant since path separators (/,\) are forbidden
-        }
         return true;
     }
 

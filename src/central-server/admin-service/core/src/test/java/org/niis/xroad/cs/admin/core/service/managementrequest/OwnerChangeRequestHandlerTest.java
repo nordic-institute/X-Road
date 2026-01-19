@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,18 +34,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
-import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
@@ -62,7 +64,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static ee.ria.xroad.common.SystemProperties.CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertThrows;
@@ -99,6 +100,7 @@ class OwnerChangeRequestHandlerTest {
     private final ServerClientRepository serverClients = mock(ServerClientRepository.class);
     private final RequestMapper requestMapper = mock(RequestMapper.class);
     private final GlobalGroupMemberService groupMemberService = mock(GlobalGroupMemberService.class);
+    private final ManagementServiceConfigProperties managementServiceConfigProperties = mock(ManagementServiceConfigProperties.class);
     @Mock
     private OwnerChangeRequestEntity ownerChangeRequestEntity;
     @Mock
@@ -114,19 +116,19 @@ class OwnerChangeRequestHandlerTest {
     private XRoadMemberEntity currentOwnerMock;
 
     private final OwnerChangeRequestHandler ownerChangeRequestHandler = new OwnerChangeRequestHandler(members, ownerChangeRequestRepository,
-            serverIds, memberIds, servers, serverClients, groupMemberService, requestMapper);
+            serverIds, memberIds, servers, serverClients, groupMemberService, requestMapper, managementServiceConfigProperties);
 
     private final ClientId clientId = MemberId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
     private final XRoadMemberEntity xRoadMemberEntity =
             new XRoadMemberEntity("name", clientId, new MemberClassEntity(MEMBER_CLASS, "description"));
-    private final ClientIdEntity clientIdEntity = ClientIdEntity.ensure(clientId);
+    private final ClientIdEntity clientIdEntity = ClientIdEntityFactory.ensure(clientId);
     private final SecurityServerId securityServerId = SecurityServerId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, "SERVER-CODE");
     private final SecurityServerIdEntity securityServerIdEntity = SecurityServerIdEntity.create(securityServerId);
 
 
     @Test
     void canAutoApproveFalse() {
-        System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "true");
+        when(managementServiceConfigProperties.isAutoApproveOwnerChangeRequests()).thenReturn(true);
         when(members.findMember(clientId)).thenReturn(Optional.empty());
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
@@ -136,7 +138,7 @@ class OwnerChangeRequestHandlerTest {
 
     @Test
     void canAutoApproveFalse2() {
-        System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "false");
+        when(managementServiceConfigProperties.isAutoApproveOwnerChangeRequests()).thenReturn(false);
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
@@ -147,7 +149,7 @@ class OwnerChangeRequestHandlerTest {
 
     @Test
     void canAutoApproveTrue() {
-        System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "true");
+        when(managementServiceConfigProperties.isAutoApproveOwnerChangeRequests()).thenReturn(true);
         when(members.findMember(clientId)).thenReturn(Optional.of(mock(XRoadMemberEntity.class)));
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);

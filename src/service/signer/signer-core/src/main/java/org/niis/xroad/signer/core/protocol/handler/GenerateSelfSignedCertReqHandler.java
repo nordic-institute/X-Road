@@ -25,13 +25,13 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,14 +49,14 @@ import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -67,7 +67,6 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Date;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
@@ -77,29 +76,32 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
  */
 @Slf4j
 @SuppressWarnings("deprecation")
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<GenerateSelfSignedCertReq, GenerateSelfSignedCertResp> {
+    private final SignerProperties signerProperties;
     private final SignReqHandler signReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
+    private final TokenLookup tokenLookup;
+    private final KeyManagers keyManagers;
 
     @Override
     protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) {
-        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
+        TokenAndKey tokenAndKey = tokenLookup.findTokenAndKey(request.getKeyId());
 
-        if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
+        if (!tokenLookup.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
         if (tokenAndKey.key().getPublicKey() == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", request.getKeyId());
+            throw XrdRuntimeException.systemInternalError("Key '%s' has no public key".formatted(request.getKeyId()));
         }
 
         try {
-            PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
+            PublicKey pk = keyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
 
             SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(
-                    SystemProperties.getSelfSignedCertDigestAlgorithm(),
+                    DigestAlgorithm.ofName(signerProperties.selfsignedCertDigestAlgorithm()),
                     tokenAndKey.getSignMechanism()
             );
 

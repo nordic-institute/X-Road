@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0510 - SS: Client Local groups
 

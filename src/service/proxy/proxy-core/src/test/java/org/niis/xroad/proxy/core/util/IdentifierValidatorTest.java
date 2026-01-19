@@ -30,10 +30,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -44,7 +44,7 @@ public class IdentifierValidatorTest {
     @Test
     public void testCheckIdentifierValid() {
         final ServiceId valid = ServiceId.Conf.create("TEST", "CLASS", "CO DE", null, "SERVICE");
-        assertTrue(MessageProcessorBase.checkIdentifier(valid));
+        assertTrue(IdentifierValidator.checkIdentifier(valid));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class IdentifierValidatorTest {
                 ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"),
         };
         for (XRoadId id : cases) {
-            assertFalse(MessageProcessorBase.checkIdentifier(id));
+            assertFalse(IdentifierValidator.checkIdentifier(id));
         }
 
     }

@@ -36,9 +36,9 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ClientAddStepDefs extends BaseUiStepDefs {
@@ -54,10 +54,9 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
         clientPageObj.addClientDetails.btnNext().shouldBe(disabled);
 
         clientPageObj.addClientDetails.btnSelectClient().click();
-        clientPageObj.addClientDetails.btnAddSelected().shouldBe(disabled);
-
-        clientPageObj.addClientDetails.radioClientById(client).click();
-        clientPageObj.addClientDetails.btnAddSelected().click();
+        clientPageObj.selectClientDialog.btnSave().shouldBe(disabled);
+        vRadio(clientPageObj.selectClientDialog.radioClientById(client)).click();
+        clientPageObj.selectClientDialog.btnSave().click();
 
         String[] idParts = client.split(":");
 

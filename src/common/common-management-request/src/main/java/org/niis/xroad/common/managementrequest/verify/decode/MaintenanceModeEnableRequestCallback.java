@@ -33,12 +33,14 @@ import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 public class MaintenanceModeEnableRequestCallback extends BaseServerRequestCallback<MaintenanceModeEnableRequestType> {
 
     public MaintenanceModeEnableRequestCallback(GlobalConfProvider globalConfProvider,
+                                               OcspVerifierFactory ocspVerifierFactory,
                                                ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, rootCallback, ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST);
+        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST);
     }
 
     @Override

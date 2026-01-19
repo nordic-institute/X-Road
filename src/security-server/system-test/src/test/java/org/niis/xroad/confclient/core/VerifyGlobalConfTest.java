@@ -29,6 +29,7 @@ package org.niis.xroad.confclient.core;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
@@ -47,6 +48,9 @@ class VerifyGlobalConfTest {
     private static final String CONF_ROOT = SYSTEM_TEST_RESOURCES + "/nginx-container-files/var/lib/xroad/public";
     private static final String ANCHOR_PATH = SYSTEM_TEST_RESOURCES + "/files/trusted-anchor/configuration_anchor_CS_internal.xml";
 
+    @Mock
+    private static HttpUrlConnectionConfigurer connectionConfigurer;
+
     @Test
     void verifySystemTestGlobalConfiguration(@TempDir Path confDownloadDir) {
         var anchor = new ConfigurationAnchor(ANCHOR_PATH);
@@ -62,7 +66,7 @@ class VerifyGlobalConfTest {
     private static class MockConfigurationDownloader extends ConfigurationDownloader {
 
         MockConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
-            super(globalConfigurationDir, configurationVersion);
+            super(connectionConfigurer, globalConfigurationDir, configurationVersion);
         }
 
         @Override
