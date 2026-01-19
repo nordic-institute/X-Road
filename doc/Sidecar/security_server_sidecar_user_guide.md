@@ -380,9 +380,8 @@ The memory allocation for the Proxy Service can be configured using helper scrip
 Security Server Sidecar provides built-in support for hardware security tokens, requiring only configuration.
 
 1. Make the PKCS\#11 provider library (and any required additional files) available in the sidecar container by mounting them as volumes.
-2. Add the path to the PKCS\#11 library to the file `/etc/xroad/devices.ini` in the sidecar container.
+2. Create the `devices.ini` file under your mount for `/etc/xroad` and add the path for the PKCS\#11 library inside it (note that the library path should match the path inside the container you chose in the last step).
     * More information on how to configure the `devices.ini` file itself can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
-    * It is recommended to also mount the configured `devices.ini` file to avoid having to manually edit it inside the container.
 3. Restarting the Security Service Sidecar container might be required:
 
     ```bash
