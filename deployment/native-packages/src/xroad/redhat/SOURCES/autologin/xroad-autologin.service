@@ -3,7 +3,7 @@ Description=X-Road Automatic Token Login
 After=xroad-signer.service
 
 [Service]
-Type=oneshot
+Type=simple
 User=xroad
 Group=xroad
 ExecStart=/usr/share/xroad/autologin/xroad-autologin-retry.sh
