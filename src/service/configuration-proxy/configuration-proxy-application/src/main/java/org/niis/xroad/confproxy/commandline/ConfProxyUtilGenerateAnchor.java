@@ -58,7 +58,7 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
     /**
      * Constructs a confproxy-generate-anchor utility program instance.
      */
-    ConfProxyUtilGenerateAnchor(SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilGenerateAnchor(SignerRpcClient signerRpcClient) {
         super("confproxy-generate-anchor", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
