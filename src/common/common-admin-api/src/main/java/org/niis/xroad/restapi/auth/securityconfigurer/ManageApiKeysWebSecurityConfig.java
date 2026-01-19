@@ -53,44 +53,44 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerP
 @Configuration
 public class ManageApiKeysWebSecurityConfig {
 
-        public static final String KEY_MANAGEMENT_AUTHENTICATION = "keyManagementAuthentication";
+    public static final String KEY_MANAGEMENT_AUTHENTICATION = "keyManagementAuthentication";
 
-        @Bean
-        @Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
-        @ArchUnitSuppressed("NoVanillaExceptions")
-        public SecurityFilterChain manageApiSecurityFilterChain(HttpSecurity http,
-                        CommonModuleEndpointPaths commonModuleEndpointPaths,
-                        @Qualifier(KEY_MANAGEMENT_AUTHENTICATION) AuthenticationProvider authenticationProvider,
-                        @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
-                        throws Exception {
+    @Bean
+    @Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public SecurityFilterChain manageApiSecurityFilterChain(HttpSecurity http,
+                                                            CommonModuleEndpointPaths commonModuleEndpointPaths,
+                                                            @Qualifier(KEY_MANAGEMENT_AUTHENTICATION) AuthenticationProvider authenticationProvider,
+                                                            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
+            throws Exception {
 
-                return http
-                                .securityMatcher(commonModuleEndpointPaths.getApiKeysPath() + "/**")
-                                .authenticationProvider(authenticationProvider)
-                                .authorizeHttpRequests(customizer -> customizer
-                                                .requestMatchers(HttpMethod.OPTIONS).denyAll()
-                                                .anyRequest()
-                                                .authenticated())
-                                .sessionManagement(customizer -> customizer
-                                                .sessionCreationPolicy(SessionCreationPolicy.NEVER))
-                                .httpBasic(Customizer.withDefaults())
-                                .anonymous(AbstractHttpConfigurer::disable)
-                                .headers(headerPolicyDirectives("default-src 'none'"))
-                                .csrf(customizer -> customizer
-                                                .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
-                                                .requireCsrfProtectionMatcher(
-                                                                ManageApiKeysWebSecurityConfig::sessionExists)
-                                                .csrfTokenRepository(new LazyCsrfTokenRepository(
-                                                                new CookieAndSessionCsrfTokenRepository(sameSite))))
-                                .formLogin(AbstractHttpConfigurer::disable)
-                                .build();
-        }
+        return http
+                .securityMatcher(commonModuleEndpointPaths.getApiKeysPath() + "/**")
+                .authenticationProvider(authenticationProvider)
+                .authorizeHttpRequests(customizer -> customizer
+                        .requestMatchers(HttpMethod.OPTIONS).denyAll()
+                        .anyRequest()
+                        .authenticated())
+                .sessionManagement(customizer -> customizer
+                        .sessionCreationPolicy(SessionCreationPolicy.NEVER))
+                .httpBasic(Customizer.withDefaults())
+                .anonymous(AbstractHttpConfigurer::disable)
+                .headers(headerPolicyDirectives("default-src 'none'"))
+                .csrf(customizer -> customizer
+                        .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
+                        .requireCsrfProtectionMatcher(
+                                ManageApiKeysWebSecurityConfig::sessionExists)
+                        .csrfTokenRepository(new LazyCsrfTokenRepository(
+                                new CookieAndSessionCsrfTokenRepository(sameSite))))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .build();
+    }
 
-        /**
-         * Check if an alive session exists
-         */
-        private static boolean sessionExists(HttpServletRequest request) {
-                return request.getSession(false) != null;
-        }
+    /**
+     * Check if an alive session exists
+     */
+    private static boolean sessionExists(HttpServletRequest request) {
+        return request.getSession(false) != null;
+    }
 
 }
