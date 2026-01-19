@@ -73,7 +73,9 @@ public class OcspResponderDiagnosticConverter {
         ocspResponder.setUrl(diagnosticsStatus.getDescription());
         CostType ocspResponderCostType =
                 globalConfProvider.getOcspResponderCostType(globalConfProvider.getInstanceIdentifier(), diagnosticsStatus.getDescription());
-        ocspResponder.setCostType(CostTypeDto.fromValue(ocspResponderCostType.name()));
+        if (ocspResponderCostType != null) {
+            ocspResponder.setCostType(CostTypeDto.fromValue(ocspResponderCostType.name()));
+        }
         if (diagnosticsStatus.getErrorCode() != null) {
             ocspResponder.setError(new CodeWithDetailsDto(diagnosticsStatus.getErrorCode().code())
                     .metadata(diagnosticsStatus.getErrorCodeMetadata()));
