@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,65 +27,117 @@
 import { configure, defineRule } from 'vee-validate';
 import {
   between,
-  confirmed,
-  email,
+  is,
   max,
   min,
   required,
+  url,
+  one_of,
+  email,
+  confirmed,
 } from '@vee-validate/rules';
+import { isIP } from 'is-ip';
 import { i18n } from '@niis/shared-ui';
-import * as Helpers from '@/util/helpers';
+import * as Helpers from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
+
+function _param(params: unknown, idx: number): unknown {
+  if (params) {
+    return (params as unknown[])[idx];
+  }
+  return undefined;
+}
 
 export function createValidators() {
   return {
     install() {
+      const { t } = i18n.global;
+
+      // Common for both security and central server
       configure({
-        generateMessage: (ctx: FieldValidationMetaInfo): string => {
-          const field = ctx.label || i18n.global.t(`fields.${ctx.field}`);
+        generateMessage: (ctx: FieldValidationMetaInfo) => {
+          const field = ctx.label || (t(`fields.${ctx.field}`) as string);
           const args: Record<string, unknown> = { field };
-          const ruleParams = ctx.rule?.params;
+
           switch (ctx.rule?.name) {
-            case 'max': {
-              args.length = Array.isArray(ruleParams)
-                ? ruleParams?.[0]
-                : ruleParams?.['max'];
+            case 'max':
+            case 'min': {
+              args.length = _param(ctx.rule.params, 0);
               break;
             }
-            case 'min': {
-              args.length = Array.isArray(ruleParams)
-                ? ruleParams?.[0]
-                : ruleParams?.['min'];
+            case 'is': {
+              args.other = _param(ctx.rule.params, 0);
               break;
             }
             case 'between': {
-              args.min = Array.isArray(ruleParams)
-                ? ruleParams?.[0]
-                : ruleParams?.['min'];
-              args.max = Array.isArray(ruleParams)
-                ? ruleParams?.[1]
-                : ruleParams?.['max'];
+              args.min = _param(ctx.rule.params, 0);
+              args.max = _param(ctx.rule.params, 1);
               break;
             }
           }
-          return i18n.global.t(`validation.messages.${ctx.rule?.name}`, args);
+
+          return t(`validation.messages.${ctx.rule?.name}`, args) as string;
         },
       });
 
       // Install required rule and message.
       defineRule('required', required);
 
-      // Install email rule and message.
-      defineRule('email', email);
-
       // Install min rule and message.
       defineRule('min', min);
 
-      // Install min rule and message.
+      // Install max rule and message.
       defineRule('max', max);
 
       // Install between rule and message.
       defineRule('between', between);
+
+      defineRule('address', (value: string, _params: unknown, ctx: FieldValidationMetaInfo) => {
+        if (!value) {
+          return true;
+        }
+        if (/[^a-zA-Z\d-.]/.test(value)) {
+          const field = t('fields.' + ctx.field);
+          return t('validation.messages.address', { field });
+        }
+        return true;
+      });
+
+      defineRule('validDescription', (value: string) => {
+        if (!value) {
+          return true;
+        }
+        if (/[^a-zA-Z0-9\-_,.;:!? ]/.test(value)) {
+          return t('customValidation.description');
+        }
+        return true;
+      });
+
+      // Central server specific
+
+      // Install is rule and message.
+      defineRule('is', is);
+
+      defineRule('url', url);
+
+      defineRule('one_of', one_of);
+
+      defineRule('ipAddresses', (value: string) => {
+        if (!value) {
+          return true;
+        }
+        for (const ipAddress of value.split(',')) {
+          if (!isIP(ipAddress.trim())) {
+            return t('customValidation.invalidIpAddress');
+          }
+        }
+        return true;
+      });
+
+      // Security server specific
+
+      // Install email rule and message.
+      defineRule('email', email);
 
       // Install the confirmed rule for cross-field validation (password confirm)
       defineRule('confirmed', confirmed);
@@ -118,32 +171,6 @@ export function createValidators() {
         }
         return i18n.global.t('customValidation.invalidEndpoint');
       });
-
-      defineRule(
-        'address',
-        (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
-          if (!value) {
-            return true;
-          }
-          if (/[^a-zA-Z\d-.]/.test(value)) {
-            const field = i18n.global.t('fields.' + ctx.field);
-            return i18n.global.t('validation.messages.address', { field });
-          }
-          return true;
-        },
-      );
-      defineRule(
-        'validDescription',
-        (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
-          if (!value) {
-            return true;
-          }
-          if (/[^a-zA-Z0-9\-_,.;:!? ]/.test(value)) {
-            return i18n.global.t('customValidation.description');
-          }
-          return true;
-        },
-      );
     },
   };
 }
