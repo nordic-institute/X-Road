@@ -29,10 +29,10 @@
       command: >
         softhsm2-util --init-token
         --slot 0
-        --label "{{ hwtokens_label }}"
-        --so-pin "{{ hwtokens_so_pin }}"
-        --pin "{{ hwtokens_user_pin }}"
-      when: softhsm_slots.stdout is not search("Label\\s*:\\s*{{ hwtokens_label | regex_escape() }}")
+        --label "{{ hwtoken_label }}"
+        --so-pin "{{ hwtoken_so_pin }}"
+        --pin "{{ hwtoken_user_pin }}"
+      when: softhsm_slots.stdout is not search("Label\\s*:\\s*{{ hwtoken_label | regex_escape() }}")
       register: init_result
       changed_when: init_result.rc == 0
 
@@ -40,12 +40,12 @@
       debug:
         msg: >-
           {{ "Token already present; no changes made."
-             if softhsm_slots.stdout is search("Label\\s*:\\s*{{ hwtokens_label | regex_escape() }}")
+             if softhsm_slots.stdout is search("Label\\s*:\\s*{{ hwtoken_label | regex_escape() }}")
              else "The token has been initialized." }}
 
     - name: Capture SoftHSM2 slot id for label
       shell: >
-        softhsm2-util --show-slots | awk '/^Slot / { slot=$2 } /Label: *{{ hwtokens_label }}/ { print slot }'
+        softhsm2-util --show-slots | awk '/^Slot / { slot=$2 } /Label: *{{ hwtoken_label }}/ { print slot }'
       register: softhsm2_slot_id
       changed_when: false
 
@@ -63,7 +63,7 @@
                   os-locking-ok: true
                   library-cant-create-os-threads: true
                   slot-ids: {{ softhsm2_slot_id.stdout | trim }}
-                  token_id_format = 1
+                  token_id_format: 1
 
     - name: Recursively chown tokens to xroad
       become: true
