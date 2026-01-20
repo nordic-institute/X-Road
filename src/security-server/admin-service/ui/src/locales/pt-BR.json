@@ -172,7 +172,8 @@
     "invalidEndpoint": "O endpoint contém caracteres ilegais",
     "invalidUrl": "URL inválida",
     "invalidXrdIdentifier": "O identificador contém caracteres inválidos",
-    "requiredIf": "O campo {fieldName} é obrigatório"
+    "requiredIf": "O campo {fieldName} é obrigatório",
+    "description": "Use apenas caracteres válidos na descrição"
   },
   "diagnostics": {
     "addOnStatus": {

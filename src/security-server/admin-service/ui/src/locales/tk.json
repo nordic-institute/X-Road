@@ -155,7 +155,8 @@
     "invalidEndpoint": "Ahyrky nokatynda rugsat berilemdik nyşanlar bar",
     "invalidUrl": "URL dogry däl",
     "invalidXrdIdentifier": "Identifikatoryň belgisinde rugsat berilemdik nyşanlar bar",
-    "requiredIf": "{fieldName} meýdança hökmany"
+    "requiredIf": "{fieldName} meýdança hökmany",
+    "description": "Beýany meýdançasynda diňe dogry nyşanlary ulanyň"
   },
   "diagnostics": {
     "addOnStatus": {

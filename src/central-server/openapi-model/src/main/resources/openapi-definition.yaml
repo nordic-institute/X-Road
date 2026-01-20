@@ -3723,6 +3723,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
           type: string
       required:
         - code
@@ -3737,6 +3738,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
           type: string
       required:
         - description
@@ -4107,6 +4109,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
           type: string
       required:
         - description

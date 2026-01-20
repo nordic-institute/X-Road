@@ -61,7 +61,6 @@ import {
   XrdTitledView,
 } from '@niis/shared-ui';
 import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
 import './filters';
 import App from './App.vue';
 import router from './router';
@@ -72,7 +71,7 @@ import { createLanguageHelper } from './plugins/i18n';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createFilters } from '@/filters';
-import { createValidators } from '@/plugins/vee-validate';
+import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
 import provider from '@/plugins/provider';
 
 const pinia = createPinia();

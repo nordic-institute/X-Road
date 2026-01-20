@@ -19,6 +19,13 @@ Feature: 0340 - CS: Settings -> Global Resources
       | security-server-owners | present    |
       | e2e-test-group         | present    |
 
+  Scenario: Global group is added with invalid description
+    Given Global group security-server-owners is present in list
+    When Add Global Group button is clicked
+    And Dialog Save button is of disabled status
+    And Add Global Group dialog is submitted with code "e2e-test-group" and invalid description
+    Then Error message for group description is displayed
+
   Scenario: Global group is added and listed
     Given Global group security-server-owners is present in list
     When Add Global Group button is clicked
@@ -26,3 +33,10 @@ Feature: 0340 - CS: Settings -> Global Resources
     And Add Global Group dialog is submitted with code "no:colons" and description "Colons not allowed"
     Then Error message for group code is displayed with text "Use valid identifier characters only"
     And Dialog Save button is of disabled status
+
+  Scenario: Global group is edited with invalid description
+    Given Global group security-server-owners is present in list
+    When Add Global Group button is clicked
+    And Dialog Save button is of disabled status
+    And Add Global Group dialog is submitted with code "e2e-test-group" and invalid description
+    Then Error message for group description is displayed

@@ -14,7 +14,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "Field must contain IP address or multiple addresses separated by comma",
-    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
+    "description": "Use valid description characters only"
   },
   "error_code": {
     "backup_deletion_failed": "Failed to delete backup",

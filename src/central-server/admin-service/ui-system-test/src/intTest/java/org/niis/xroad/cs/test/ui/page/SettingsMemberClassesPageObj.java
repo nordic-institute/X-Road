@@ -95,5 +95,9 @@ public class SettingsMemberClassesPageObj {
         public SelenideElement inputMemberClassDescription() {
             return $x("//div[@data-test='system-settings-member-class-description-edit-field']");
         }
+
+        public SelenideElement inputMemberClassDescriptionValidation() {
+            return inputMemberClassDescription().$x(".//div[@class='v-messages__message']");
+        }
     }
 }
