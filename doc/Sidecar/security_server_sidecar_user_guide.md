@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.20
+Version: 1.21
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -28,6 +28,7 @@ Doc. ID: UG-SS-SIDECAR
 | 02.04.2025 | 1.18    | Added autologin paragraph                               | Mikk-Erik Bachmann        |
 | 28.08.2025 | 1.19    | Added paragraph about custom ACME challenge port number | Mikk-Erik Bachmann        |
 | 14.10.2025 | 1.20    | Document multiple token autologin support               | Raido Kaju                |
+| 18.12.2025 | 1.21    | Added hardware token installation paragraph             | Marc David                |
 
 ## License
 
@@ -57,7 +58,8 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
   * [3.2 Enabling ACME Support](#32-enabling-acme-support)
   * [3.3 Configuring the memory allocation for the Proxy Service](#33-configuring-the-memory-allocation-for-the-proxy-service)
-  * [3.4 Autologin](#34-autologin)
+  * [3.4 Installing Support for Hardware Tokens](#34-installing-support-for-hardware-tokens)
+  * [3.5 Autologin](#35-autologin)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
@@ -373,7 +375,20 @@ For Sidecar, it is possible to use a different ACME challenge port from the defa
 
 The memory allocation for the Proxy Service can be configured using helper script `/usr/share/xroad/scripts/proxy_memory_helper.sh`. More information about the usage of this script is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
-### 3.4 Autologin
+### 3.4 Installing Support for Hardware Tokens
+
+Security Server Sidecar provides built-in support for hardware security tokens, requiring only configuration.
+
+1. Make the PKCS\#11 provider library (and any required additional files) available in the sidecar container by mounting them as volumes.
+2. Create the `devices.ini` file under your mount for `/etc/xroad` and add the path for the PKCS\#11 library inside it (note that the library path should match the path inside the container you chose in the last step).
+    * More information on how to configure the `devices.ini` file itself can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
+3. Restarting the Security Service Sidecar container might be required:
+
+    ```bash
+    docker restart <sidecar container name>
+    ```
+
+### 3.5 Autologin
 
 The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)).
 
