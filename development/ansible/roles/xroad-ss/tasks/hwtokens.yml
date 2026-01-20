@@ -63,7 +63,7 @@
                   os-locking-ok: true
                   library-cant-create-os-threads: true
                   slot-ids: {{ softhsm2_slot_id.stdout | trim }}
-                  token_id_format: 1
+                  token-id-format: 1
 
     - name: Recursively chown tokens to xroad
       become: true
