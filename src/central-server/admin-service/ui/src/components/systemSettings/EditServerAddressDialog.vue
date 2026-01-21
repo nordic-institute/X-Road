@@ -68,7 +68,7 @@ const emit = defineEmits(['save', 'cancel']);
 const { updateCentralServerAddress } = useSystem();
 
 const { meta, setFieldError, defineField, handleSubmit } = useForm({
-  validationSchema: { serviceAddress: 'required' },
+  validationSchema: { serviceAddress: 'required|address' },
   initialValues: { serviceAddress: props.serviceAddress },
 });
 const [address, addressAttrs] = defineField('serviceAddress', {
