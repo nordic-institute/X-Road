@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS).denyAll()
                         .requestMatchers(HttpMethod.POST, "/managementservice", "/managementservice/").permitAll()
                         .anyRequest().denyAll())
                 .headers(AbstractHttpConfigurer::disable)

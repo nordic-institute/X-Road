@@ -30,6 +30,7 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpMethod;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -81,32 +82,29 @@ public class FormLoginWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
     @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
-                                                            @Qualifier(FORM_LOGIN_AUTHENTICATION)
-                                                            AuthenticationProvider authenticationProvider,
+                                                            @Qualifier(FORM_LOGIN_AUTHENTICATION) AuthenticationProvider authenticationProvider,
                                                             @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
 
         return http
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(customizer -> customizer
+                        .requestMatchers(HttpMethod.OPTIONS).denyAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(LOGIN_URL).permitAll()
                         .requestMatchers("/logout").fullyAuthenticated()
                         .requestMatchers("/api/**").denyAll()
-                        .anyRequest().denyAll()
-                )
+                        .anyRequest().denyAll())
                 .csrf(customizer -> customizer
                         .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
                         .ignoringRequestMatchers(LOGIN_URL)
-                        .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite))
-                )
+                        .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite)))
                 .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline'"))
                 .formLogin(customizer -> customizer
                         .loginPage(LOGIN_URL)
                         .successHandler(formLoginStatusCodeSuccessHandler())
                         .failureHandler(statusCode401AuthenticationFailureHandler())
-                        .permitAll()
-                )
+                        .permitAll())
                 .logout(customizer -> customizer
                         .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                         .addLogoutHandler(new AuditLoggingLogoutHandler())
@@ -127,7 +125,9 @@ public class FormLoginWebSecurityConfig {
     }
 
     /**
-     * authentication failure handler which does not redirect but just returns a http status code
+     * authentication failure handler which does not redirect but just returns a
+     * http status code
+     *
      * @return the constructed AuthenticationFailureHandler handler
      */
     private static AuthenticationFailureHandler statusCode401AuthenticationFailureHandler() {
@@ -143,7 +143,9 @@ public class FormLoginWebSecurityConfig {
     }
 
     /**
-     * form login success handler which does not redirect but just returns a http status code
+     * form login success handler which does not redirect but just returns a http
+     * status code
+     *
      * @return the constructed AuthenticationSuccessHandler handler
      */
     private static AuthenticationSuccessHandler formLoginStatusCodeSuccessHandler() {
@@ -158,11 +160,11 @@ public class FormLoginWebSecurityConfig {
         };
     }
 
-
     private static final class CsrfCookieFilter extends OncePerRequestFilter {
 
         @Override
-        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                        FilterChain filterChain)
                 throws ServletException, IOException {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
             // Render the token value to a cookie by causing the deferred token to be loaded
