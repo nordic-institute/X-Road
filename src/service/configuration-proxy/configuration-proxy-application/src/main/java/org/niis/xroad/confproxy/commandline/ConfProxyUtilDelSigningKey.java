@@ -41,7 +41,7 @@ public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
     /**
      * Constructs a confproxy-del-signing-key utility program instance.
      */
-    ConfProxyUtilDelSigningKey(SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilDelSigningKey(SignerRpcClient signerRpcClient) {
         super("confproxy-del-signing-key", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
