@@ -133,7 +133,11 @@ public class BasicACMECertificateProfileInfoProvider
                     // Member code
                     new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.ORGANIZATION_NAME_CN,
                             params.getMemberName())
-                            .setReadOnly(true)
+                            .setReadOnly(true),
+
+                    // server DNS name as subject alternative name
+                    new EnumLocalizedFieldDescriptionImpl("subjectAltName", DnFieldLabelLocalizationKey.SUBJECT_ALTERNATIVE_NAME, "")
+                            .setReadOnly(false),
             });
 
             instanceIdentifier = params.getClientId().getXRoadInstance();

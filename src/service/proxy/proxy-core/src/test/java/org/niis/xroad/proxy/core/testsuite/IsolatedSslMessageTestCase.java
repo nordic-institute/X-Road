@@ -31,5 +31,6 @@ import org.niis.xroad.proxy.core.test.MessageTestCase;
 /**
  * Base class for testcases run independently
  */
+@SuppressWarnings("squid:S2187")
 public class IsolatedSslMessageTestCase extends MessageTestCase {
 }

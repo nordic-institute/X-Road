@@ -51,7 +51,7 @@ public final class CacheInputStream extends FilterInputStream {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         //NOP
     }
 
