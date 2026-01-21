@@ -30,7 +30,6 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpMethod;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -41,6 +40,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
@@ -82,7 +82,8 @@ public class FormLoginWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
     @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
-                                                            @Qualifier(FORM_LOGIN_AUTHENTICATION) AuthenticationProvider authenticationProvider,
+                                                            @Qualifier(FORM_LOGIN_AUTHENTICATION)
+                                                            AuthenticationProvider authenticationProvider,
                                                             @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
 

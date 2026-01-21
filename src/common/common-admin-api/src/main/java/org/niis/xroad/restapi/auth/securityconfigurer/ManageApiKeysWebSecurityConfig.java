@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,7 +41,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
-import org.springframework.http.HttpMethod;
 
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.csrfTokenRequestAttributeHandler;
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
@@ -59,7 +59,8 @@ public class ManageApiKeysWebSecurityConfig {
     @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain manageApiSecurityFilterChain(HttpSecurity http,
                                                             CommonModuleEndpointPaths commonModuleEndpointPaths,
-                                                            @Qualifier(KEY_MANAGEMENT_AUTHENTICATION) AuthenticationProvider authenticationProvider,
+                                                            @Qualifier(KEY_MANAGEMENT_AUTHENTICATION)
+                                                            AuthenticationProvider authenticationProvider,
                                                             @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
 
