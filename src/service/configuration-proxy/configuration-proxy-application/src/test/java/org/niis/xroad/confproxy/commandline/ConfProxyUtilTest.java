@@ -36,7 +36,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ConfProxyUtilTest {
+class ConfProxyUtilTest {
 
     private static final String RUNNER = "org.niis.xroad.confproxy.commandline.ConfProxyUtilTest$CliTestRunner";
 
