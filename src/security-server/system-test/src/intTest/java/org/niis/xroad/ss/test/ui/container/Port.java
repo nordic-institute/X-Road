@@ -32,7 +32,8 @@ public final class Port {
             PROXY_HTTP = 8080,
             DB = 5432,
             PROXY_HEALTHCHECK = 5558,
-            TEST_CA = 8888;
+            TEST_CA = 8888,
+            DS_CONTROL_PLANE_MANAGEMENT = 8081;
 
     private Port() {
     }

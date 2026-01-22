@@ -61,9 +61,11 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String NGINX = "nginx";
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
     public static final String OPENBAO = "openbao";
+    public static final String DS_CONTROL_PLANE = "ds-control-plane";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
+    private static final String COMPOSE_SYSTEMTEST_DS_FILE = "compose.systemtest.ds.yaml";
 
     private final ObjectMapper objectMapper;
 
@@ -76,7 +78,8 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public ComposeContainer initEnv() {
         return new ComposeContainer("ss-",
                 new File(coreProperties.resourceDir() + COMPOSE_SS_FILE),
-                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_FILE))
+                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_FILE),
+                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_DS_FILE))
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
@@ -84,6 +87,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
                 .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
@@ -93,7 +97,8 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
                 .withLogConsumer(NGINX, createLogConsumer(NGINX))
-                .withLogConsumer(TESTCA, createLogConsumer(TESTCA));
+                .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE));
     }
 
     @Override

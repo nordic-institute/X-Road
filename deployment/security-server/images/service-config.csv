@@ -9,6 +9,8 @@ configuration-client,quarkus/Dockerfile,service/configuration-client/configurati
 signer,quarkus/Dockerfile,service/signer/signer-application,ss-signer,build/quarkus-app,base-images/ss-baseline-signer-runtime,-
 softtoken-signer,quarkus/Dockerfile,service/softtoken-signer/softtoken-signer-application,ss-softtoken-signer,build/quarkus-app,base-images/ss-baseline-runtime,-
 backup-manager,quarkus/Dockerfile,service/backup-manager/backup-manager-application,ss-backup-manager,build/quarkus-app,base-images/ss-baseline-backup-manager-runtime,-
+ds-control-plane,quarkus/Dockerfile,service/ds-control-plane/ds-control-plane-application,ds-control-plane,build/quarkus-app,base-images/ss-baseline-runtime,-
+ds-data-plane,quarkus/Dockerfile,service/ds-data-plane/ds-data-plane-application,ds-data-plane,build/quarkus-app,base-images/ss-baseline-runtime,-
 admin-service,admin-service/Dockerfile,security-server/admin-service/application,ss-proxy-ui-api,build/libs,base-images/ss-baseline-runtime,-
 db-messagelog-init,init-db/Dockerfile,lib/messagelog-core,ss-db-messagelog-init,build/resources/main/liquibase,-,CHANGELOG_FILE=messagelog-changelog.xml
 db-opmonitor-init,init-db/Dockerfile,service/op-monitor/op-monitor-db,ss-db-opmonitor-init,build/resources/main/liquibase,-,CHANGELOG_FILE=op-monitor-changelog.xml

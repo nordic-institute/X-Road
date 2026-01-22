@@ -1,0 +1,81 @@
+services:
+  db-ds-control-plane:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=ds_control_plane_admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-control-plane
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  ds-control-plane:
+    image: ${DS_CONTROL_PLANE_IMG:-localhost:5555/ds-control-plane}
+    pull_policy: always
+    environment:
+      - HOSTNAME=ds-control-plane
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      # admin permissions required to create schema on startup
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD=ds_control_plane_admin_secret
+      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    ports:
+        - "0:8081"
+        - "0:8181"
+        - "0:8282"
+        - "0:9999" # debug port
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+    depends_on:
+      db-ds-control-plane:
+        condition: service_healthy
+      configuration-client:
+        condition: service_healthy
+      mock-jwks-server:
+        condition: service_healthy
+
+  mock-jwks-server:
+    image: python:3.11-alpine
+    command: >
+      sh -c "
+        mkdir -p  /tmp/jwks &&
+        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
+        python3 -m http.server 8080 --directory /tmp/jwks
+      "
+    ports:
+      - "0:8080"
+    networks:
+      - xrd-ss-network
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
+    volumes:
+      - ./files/jwks/:/jwks

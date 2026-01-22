@@ -41,7 +41,8 @@ intTestComposeEnv {
     "PROXY_IMG" to "ss-proxy",
     "PROXY_UI_IMG" to "ss-proxy-ui-api",
     "BACKUP_MANAGER_IMG" to "ss-backup-manager",
-    "OP_MONITOR_IMG" to "ss-op-monitor"
+    "OP_MONITOR_IMG" to "ss-op-monitor",
+    "DS_CONTROL_PLANE_IMG" to "ds-control-plane"
   )
 }
 

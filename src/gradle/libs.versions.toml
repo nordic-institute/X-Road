@@ -276,6 +276,8 @@ edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", ver
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-iam-dcp-trustedissuers = { module = "org.eclipse.edc:decentralized-claims-issuers-configuration", version.ref = "edc" }
 
+edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
+
 # BOM modules
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
@@ -293,12 +295,13 @@ metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 edc-dcp = [
-  "edc-crypto-verifiablecredentials-jwt",
-  "edc-crypto-verifiablecredentials-ldp",
-  "edc-iam-dcp-core",
+#  "edc-crypto-verifiablecredentials-jwt",
+#  "edc-crypto-verifiablecredentials-ldp",
+#  "edc-iam-dcp-core",
   "edc-oauth2-client",
-  "edc-iam-decentralized",
-  "edc-iam-dcp-trustedissuers",
+#  "edc-iam-decentralized",
+#  "edc-iam-dcp-trustedissuers",
+  "edc-iam-mock"
 ]
 edc-connector = [
   "edc-boot",

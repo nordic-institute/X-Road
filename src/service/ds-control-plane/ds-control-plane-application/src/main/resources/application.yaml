@@ -38,8 +38,8 @@ edc:
     id: participantContextId
   dsp:
     callback:
-      address: http://host.docker.internal:8282/api/dsp
-  hostname: host.docker.internal
+      address: http://${HOSTNAME}:8282/api/dsp
+  hostname: ${HOSTNAME}
   component:
     id: DSP-compatibility-test
   transfer:

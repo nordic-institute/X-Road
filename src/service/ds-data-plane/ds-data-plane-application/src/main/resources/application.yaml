@@ -53,9 +53,9 @@ edc:
             alias: public-key
   datasource:
     default:
-      url: jdbc:postgresql://localhost:5432/edc
-      user: edc
-      password: password
+      url: ${xroad.db.ds-data-plane.hibernate.connection.url}
+      user: ${xroad.db.ds-data-plane.hibernate.connection.username}
+      password: ${xroad.db.ds-data-plane.hibernate.connection.password}
     #      slot: edc_cdc_slot
   sql:
     schema:
