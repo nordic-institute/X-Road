@@ -105,13 +105,19 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
             OpMonitoringData opMonitoringData) {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
-            verifyCanProcess();
+            verifyCanProcess(request);
             return messageProcessorFactory.createClientRestMessageProcessor(request, response, opMonitoringData);
         }
         return null;
     }
 
-    private void verifyCanProcess() {
+    private void verifyCanProcess(RequestWrapper request) {
+        if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+            throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD)
+                    .details("OPTIONS request method not allowed")
+                    .origin(ErrorOrigin.CLIENT)
+                    .build();
+        }
 
         globalConfProvider.verifyValidity();
 
