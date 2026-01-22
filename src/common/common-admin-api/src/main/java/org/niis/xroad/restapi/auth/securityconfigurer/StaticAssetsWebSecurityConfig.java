@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -33,7 +34,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.http.HttpMethod;
 
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 
@@ -42,6 +42,7 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerP
  */
 @Configuration
 public class StaticAssetsWebSecurityConfig {
+
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
@@ -57,17 +58,16 @@ public class StaticAssetsWebSecurityConfig {
                         "/js/**",
                         "/fonts/**",
                         "/assets/**",
-                        "/public/translations/**")
-                .headers(headerPolicyDirectives("default-src 'none'; "
-                        + "img-src 'self' data:; "
-                        + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-                        + "style-src 'self' 'unsafe-inline' ;"
-                        + "font-src data: 'self'"))
-                .authorizeHttpRequests(customizer -> customizer
-                        .requestMatchers(HttpMethod.OPTIONS).denyAll()
-                        .anyRequest().permitAll())
-                .sessionManagement(customizer -> customizer
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        "/.well-known/**"
+                )
+                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
+                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                                + "style-src 'self' 'unsafe-inline' ;"
+                                + "font-src data: 'self'"
+                        )
+                )
+                .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
+                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .build();
