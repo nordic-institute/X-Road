@@ -38,10 +38,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,20 +82,17 @@ class LoadedTokenSessionPoolTest {
 
         // Create the mock ManagedPKCS11Session instance beforehand
         ManagedPKCS11Session managedSessionMockInstance = mock(ManagedPKCS11Session.class);
-        when(managedSessionMockInstance.login()).thenReturn(true); // Successful login
+        when(managedSessionMockInstance.login(PIN)).thenReturn(true); // Successful login
         when(managedSessionMockInstance.getSessionHandle()).thenReturn(54321L);
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
-             MockedStatic<ManagedPKCS11Session> managedSessionStaticMock = mockStatic(ManagedPKCS11Session.class)) {
-
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
+        try (MockedStatic<ManagedPKCS11Session> managedSessionStaticMock = mockStatic(ManagedPKCS11Session.class)) {
 
             // Configure the static mock to return the pre-defined instance
             managedSessionStaticMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
                     .thenReturn(managedSessionMockInstance);
 
             // When
-            HardwareTokenSessionPool pool = new HardwareTokenSessionPool(properties, token, TOKEN_ID);
+            HardwareTokenSessionPool pool = new HardwareTokenSessionPool(properties, token, TOKEN_ID, PIN);
 
             // Then
             assertNotNull(pool);
@@ -110,8 +105,7 @@ class LoadedTokenSessionPoolTest {
 
             // Verify session creation and login during prefill (minIdle = 1)
             managedSessionStaticMock.verify(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID), times(1));
-            verify(managedSessionMockInstance).login(); // Verify login on the instance
-            passwordStoreMock.verify(() -> PasswordStore.getPassword(TOKEN_ID), times(1)); // Pin fetched for login
+            verify(managedSessionMockInstance).login(PIN); // Verify login on the instance
 
             pool.close();
             verify(managedSessionMockInstance).close(); // Verify session closed on pool close
@@ -122,7 +116,7 @@ class LoadedTokenSessionPoolTest {
     void shouldFailInitializationIfTokenIsNull() {
         // When & Assert
         XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
-            new HardwareTokenSessionPool(properties, null, TOKEN_ID);
+            new HardwareTokenSessionPool(properties, null, TOKEN_ID, PIN);
         });
         assertThat(thrown.getMessage()).contains("Token is null for pool initialization");
     }
@@ -139,20 +133,17 @@ class LoadedTokenSessionPoolTest {
 
         // When & Assert
         XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
-            try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
-                 MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
-
-                passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
+            try (MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 
                 managedSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
                         .thenAnswer(invocation -> {
                             ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
-                            when(managedSession.login()).thenReturn(false); // Login fails
+                            when(managedSession.login(PIN)).thenReturn(false); // Login fails
                             doNothing().when(managedSession).close(); // Mock close to prevent NPE in factory create failure path
                             return managedSession;
                         });
 
-                new HardwareTokenSessionPool(properties, token, TOKEN_ID); // This should throw
+                new HardwareTokenSessionPool(properties, token, TOKEN_ID, PIN); // This should throw
             }
         });
         assertThat(thrown.getMessage()).contains("Failed to pre-fill session pool for token " + TOKEN_ID);
@@ -168,21 +159,17 @@ class LoadedTokenSessionPoolTest {
 
         // When & Assert
         XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> {
-            try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
-                 MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
-
-                passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.empty()); // No PIN
-
-                managedSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
+            try (MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
+                managedSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))  // Empty PIN
                         .thenAnswer(invocation -> mock(ManagedPKCS11Session.class));
 
-                new HardwareTokenSessionPool(properties, token, TOKEN_ID); // This should throw
+                new HardwareTokenSessionPool(properties, token, TOKEN_ID, "".toCharArray()); // This should throw
             }
         });
         assertThat(thrown.getMessage()).contains("Failed to pre-fill session pool for token " + TOKEN_ID);
         // Check the underlying cause reported by the factory is about the missing PIN
         assertThat(thrown.getCause()).isInstanceOf(XrdRuntimeException.class);
-        assertThat(thrown.getCause().getMessage()).contains("PIN not available in PasswordStore");
+        assertThat(thrown.getCause().getMessage()).contains("PIN not available");
 
     }
 
@@ -196,17 +183,14 @@ class LoadedTokenSessionPoolTest {
         when(session.getSessionInfo()).thenReturn(sessionInfo); // Needed for validation during borrow
         when(sessionInfo.getState()).thenReturn(State.RO_USER_FUNCTIONS); // Needed for validation
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
-             MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
-
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
+        try (MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
             when(managedSession.get()).thenReturn(session);
-            when(managedSession.login()).thenReturn(true);
+            when(managedSession.login(PIN)).thenReturn(true);
             when(managedSession.getSessionHandle()).thenReturn(111L);
             managedSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
 
-            HardwareTokenSessionPool pool = new HardwareTokenSessionPool(properties, token, TOKEN_ID);
+            HardwareTokenSessionPool pool = new HardwareTokenSessionPool(properties, token, TOKEN_ID, PIN);
 
             // Use a spy to verify borrow/return on the actual pool instance
             GenericObjectPool<ManagedPKCS11Session> actualPool = spy(getInternalPool(pool));
@@ -239,18 +223,16 @@ class LoadedTokenSessionPoolTest {
         when(session.getSessionInfo()).thenReturn(sessionInfo); // Needed for validation during borrow
         when(sessionInfo.getState()).thenReturn(State.RO_USER_FUNCTIONS); // Needed for validation
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class);
-             MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
+        try (MockedStatic<ManagedPKCS11Session> managedSessionMock = mockStatic(ManagedPKCS11Session.class)) {
 
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
             ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
             when(managedSession.get()).thenReturn(session);
-            when(managedSession.login()).thenReturn(true);
+            when(managedSession.login(PIN)).thenReturn(true);
             when(managedSession.getSessionHandle()).thenReturn(222L);
             managedSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
 
 
-            HardwareTokenSessionPool pool = new HardwareTokenSessionPool(properties, token, TOKEN_ID);
+            HardwareTokenSessionPool pool = new HardwareTokenSessionPool(properties, token, TOKEN_ID, PIN);
             GenericObjectPool<ManagedPKCS11Session> actualPool = spy(getInternalPool(pool));
             setInternalPool(pool, actualPool); // Replace internal pool with spy
 
@@ -278,7 +260,7 @@ class LoadedTokenSessionPoolTest {
         when(sessionInfo.getState()).thenReturn(State.RO_USER_FUNCTIONS); // Needed for validateObject call
 
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
-                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);
+                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID, PIN);
 
         ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
         when(managedSession.get()).thenReturn(session);
@@ -293,7 +275,7 @@ class LoadedTokenSessionPoolTest {
     void sessionValidationShouldFailIfSessionIsNull() {
         // Given
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
-                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);
+                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID, PIN);
 
         // When & Assert
         assertFalse(factory.validateObject(new org.apache.commons.pool2.impl.DefaultPooledObject<>(null)));
@@ -303,7 +285,7 @@ class LoadedTokenSessionPoolTest {
     void sessionValidationShouldFailIfGetSessionInfoThrows() throws Exception {
         // Given
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
-                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);
+                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID, PIN);
 
         ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
         when(managedSession.get()).thenReturn(session);
@@ -319,7 +301,7 @@ class LoadedTokenSessionPoolTest {
     void sessionValidationShouldFailIfStateIsNull() throws Exception {
         // Given
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
-                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);
+                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID, PIN);
 
         ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
         when(managedSession.get()).thenReturn(session);
@@ -336,7 +318,7 @@ class LoadedTokenSessionPoolTest {
     void destroyObjectShouldCloseSession() {
         // Given
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
-                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);
+                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID, PIN);
         ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
         when(managedSession.getSessionHandle()).thenReturn(999L); // For logging
 
@@ -351,7 +333,7 @@ class LoadedTokenSessionPoolTest {
     void destroyObjectShouldHandleCloseException() {
         // Given
         HardwareTokenSessionPool.ManagedPKCS11SessionFactory factory =
-                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID);
+                new HardwareTokenSessionPool.ManagedPKCS11SessionFactory(token, TOKEN_ID, PIN);
         ManagedPKCS11Session managedSession = mock(ManagedPKCS11Session.class);
         when(managedSession.getSessionHandle()).thenReturn(888L); // For logging
         doThrow(new RuntimeException("Close failed")).when(managedSession).close();

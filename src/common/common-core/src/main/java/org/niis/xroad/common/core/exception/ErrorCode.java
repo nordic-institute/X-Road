@@ -302,7 +302,9 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     PGP_INTERNAL_ERROR("pgp_internal_error"),
     PGP_ENCODE_FAILED("pgp_encode_failed"),
-    PGP_ENCRYPTION_KEYS_MISSING("pgp_encryption_keys_missing");
+    PGP_ENCRYPTION_KEYS_MISSING("pgp_encryption_keys_missing"),
+
+    TOKEN_PIN_MISSING("token_pin_missing");
 
     private final String code;
 

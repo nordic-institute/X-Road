@@ -35,20 +35,19 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 import org.niis.xroad.signer.core.config.SignerProperties;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenPinManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
+import org.niis.xroad.signer.core.tokenpinstore.TokenPinStoreProvider;
 import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -67,7 +66,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -87,9 +85,10 @@ class SoftwareTokenWorkerFactoryTest {
     private final TokenInfo tokenInfo = mock(TokenInfo.class);
     private final KeyManagers keyManagers = new KeyManagers(2048, "secp256r1");
     private final SignatureGenerator signatureGenerator = new SignatureGenerator(keyManagers);
+    private final TokenPinStoreProvider tokenPinStoreProvider = mock(TokenPinStoreProvider.class);
 
     private final SoftwareTokenWorkerFactory factory = new SoftwareTokenWorkerFactory(signerProperties, tokenManager, keyManager,
-            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers, signatureGenerator);
+            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers, signatureGenerator, tokenPinStoreProvider);
 
     private static final String TOKEN_ID = "token-id";
     private static final String KEY_ID = "key-id";
@@ -112,10 +111,8 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.of(
                 IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
-            tokenWorker.refresh();
-        }
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
+        tokenWorker.refresh();
 
         verify(tokenManager, times(2)).setTokenActive(TOKEN_ID, true);
         verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.OK);
@@ -136,13 +133,11 @@ class SoftwareTokenWorkerFactoryTest {
     }
 
     @Test
-    void testRefreshNoPinInPasswordStore() {
+    void testRefreshNoPinInTokenPinStoreProvider() {
         when(pinManager.tokenHasPin(TOKEN_ID)).thenReturn(true);
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.empty());
-            tokenWorker.refresh();
-        }
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(new char[0]));
+        tokenWorker.refresh();
 
         verify(tokenManager).setTokenActive(TOKEN_ID, false);
         verify(tokenRegistry).refresh();
@@ -159,15 +154,12 @@ class SoftwareTokenWorkerFactoryTest {
 
         when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(true);
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("pin".toCharArray()));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of("pin".toCharArray()));
+        tokenWorker.handleGenerateKey(genKeyReq);
 
-            tokenWorker.handleGenerateKey(genKeyReq);
-
-            verify(keyManager).addKey(eq(TOKEN_ID), isA(String.class), any(), any(), eq(CKM_RSA_PKCS), eq("keyLabel"), eq("keyLabel"));
-            verify(keyManager).setKeyAvailable(isA(String.class), eq(true));
-            verify(tokenLookup).findKeyInfo(isA(String.class));
-        }
+        verify(keyManager).addKey(eq(TOKEN_ID), isA(String.class), any(), any(), eq(CKM_RSA_PKCS), eq("keyLabel"), eq("keyLabel"));
+        verify(keyManager).setKeyAvailable(isA(String.class), eq(true));
+        verify(tokenLookup).findKeyInfo(isA(String.class));
     }
 
     @Test
@@ -199,15 +191,13 @@ class SoftwareTokenWorkerFactoryTest {
 
         when(pinManager.verifyTokenPin(TOKEN_ID, oldPIN)).thenReturn(true);
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
 
-            tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN);
+        tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN);
 
-            passwordStoreMock.verify(() -> PasswordStore.storePassword(TOKEN_ID, null));
-            verify(tokenManager).setTokenActive(TOKEN_ID, false);
-            verify(pinManager).updateTokenPin(TOKEN_ID, oldPIN, newPIN);
-        }
+        verify(tokenPinStoreProvider).clearPin(TOKEN_ID);
+        verify(tokenManager).setTokenActive(TOKEN_ID, false);
+        verify(pinManager).updateTokenPin(TOKEN_ID, oldPIN, newPIN);
     }
 
     @Test
@@ -216,16 +206,14 @@ class SoftwareTokenWorkerFactoryTest {
 
         when(pinManager.verifyTokenPin(TOKEN_ID, oldPIN)).thenReturn(false);
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
 
-            var thrown = assertThrows(XrdRuntimeException.class,
-                    () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), new char[0]));
+        var thrown = assertThrows(XrdRuntimeException.class,
+                () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), new char[0]));
 
-            assertEquals("PIN incorrect", thrown.getDetails());
+        assertEquals("PIN incorrect", thrown.getDetails());
 
-            verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.USER_PIN_INCORRECT);
-        }
+        verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.USER_PIN_INCORRECT);
     }
 
     @Test
@@ -236,14 +224,12 @@ class SoftwareTokenWorkerFactoryTest {
         when(pinManager.verifyTokenPin(TOKEN_ID, oldPIN)).thenReturn(true);
         doThrow(XrdRuntimeException.systemInternalError("fail")).when(pinManager).updateTokenPin(TOKEN_ID, oldPIN, newPIN);
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of((oldPIN)));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(oldPIN));
 
-            assertThrows(XrdRuntimeException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN));
+        assertThrows(XrdRuntimeException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN));
 
-            passwordStoreMock.verify(() -> PasswordStore.storePassword(TOKEN_ID, null), never());
-            verify(tokenManager, never()).setTokenActive(TOKEN_ID, false);
-        }
+        verify(tokenPinStoreProvider, never()).clearPin(TOKEN_ID);
+        verify(tokenManager, never()).setTokenActive(TOKEN_ID, false);
     }
 
     @Test
@@ -274,12 +260,10 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.of(
                 IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
 
-            var signature = tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3});
-            assertNotNull(signature);
-        }
+        var signature = tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3});
+        assertNotNull(signature);
     }
 
     @Test
@@ -326,13 +310,11 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(
                 Optional.of(IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
-        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
-            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
 
-            var result = tokenWorker.signCertificate(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "CN=Test",
-                    TestCertUtil.getCaCert().getPublicKey());
-            assertNotNull(result);
-        }
+        var result = tokenWorker.signCertificate(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "CN=Test",
+                TestCertUtil.getCaCert().getPublicKey());
+        assertNotNull(result);
     }
 
 }

@@ -41,10 +41,10 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.common.SignReqHandler;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenpinstore.TokenPinStoreProvider;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.Algorithm;
@@ -62,6 +62,7 @@ import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 
 /**
@@ -76,9 +77,10 @@ public abstract class AbstractTokenWorker extends SignReqHandler implements Toke
     protected final KeyManager keyManager;
     protected final TokenLookup tokenLookup;
     protected final KeyManagers keyManagers;
+    protected final TokenPinStoreProvider tokenPinStoreProvider;
 
-    AbstractTokenWorker(TokenInfo tokenInfo, TokenManager tokenManager,
-                        KeyManager keyManager, TokenLookup tokenLookup, KeyManagers keyManagers) {
+    AbstractTokenWorker(TokenInfo tokenInfo, TokenManager tokenManager, KeyManager keyManager,
+                        TokenLookup tokenLookup, KeyManagers keyManagers, TokenPinStoreProvider tokenPinStoreProvider) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
 
@@ -86,15 +88,16 @@ public abstract class AbstractTokenWorker extends SignReqHandler implements Toke
         this.keyManager = keyManager;
         this.tokenLookup = tokenLookup;
         this.keyManagers = keyManagers;
+        this.tokenPinStoreProvider = tokenPinStoreProvider;
     }
 
     @Override
     public void handleActivateToken(ActivateTokenReq message) {
         try {
             if (!message.getActivate()) {
-                PasswordStore.storePassword(message.getTokenId(), null);
+                tokenPinStoreProvider.clearPin(message.getTokenId());
             } else if (message.hasPin()) {
-                PasswordStore.storePassword(message.getTokenId(), message.getPin().toByteArray());
+                tokenPinStoreProvider.addPin(message.getTokenId(), byteToChar(message.getPin().toByteArray()));
             }
 
             activateToken(message);
@@ -153,10 +156,6 @@ public abstract class AbstractTokenWorker extends SignReqHandler implements Toke
 
     protected boolean isKeyMissing(String keyId) {
         return tokenLookup.getKeyInfo(keyId) == null;
-    }
-
-    protected boolean isPinStored() {
-        return PasswordStore.getPassword(tokenId).isPresent();
     }
 
     protected String getWorkerId() {

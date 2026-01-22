@@ -34,12 +34,15 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
+import org.niis.xroad.signer.core.tokenpinstore.AutoLoginService;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
@@ -57,6 +60,8 @@ public class ModuleManager implements TokenWorkerProvider {
     private final HardwareModuleWorkerFactory hardwareModuleWorkerFactory;
     private final SignerHwTokenAddonProperties hwTokenAddonProperties;
     private final ModuleConf moduleConf;
+    private final ExecutorService autoLoginExecutor = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
+    private final AutoLoginService autoLoginService;
 
     @SuppressWarnings("java:S3077")
     private volatile Map<String, AbstractModuleWorker> moduleWorkers = Collections.emptyMap();
@@ -69,6 +74,7 @@ public class ModuleManager implements TokenWorkerProvider {
         } catch (Exception e) {
             log.error("Failed to initialize token worker!", e);
         }
+        autoLoginExecutor.execute(autoLoginService::execute);
     }
 
     public synchronized void refresh() {

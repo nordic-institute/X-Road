@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,35 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.passwordstore;
+package org.niis.xroad.signer.core.tokenpinstore;
 
-import org.junit.jupiter.api.Test;
+import java.util.Optional;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.niis.xroad.signer.core.passwordstore.PasswordStore.getPassword;
-import static org.niis.xroad.signer.core.passwordstore.PasswordStore.storePassword;
-
-public class PasswordStoreTest {
-
-    @Test
-    public void runTest() {
-        getPassword("foo"); // Just check if get on empty DB works.
-
-        storePassword("foo", null);
-        storePassword("bar", null);
-
-        assertNull(getPassword("foo").orElse(null));
-
-        storePassword("foo", "fooPwd".getBytes(UTF_8));
-        storePassword("bar", "barPwd".getBytes(UTF_8));
-
-        assertArrayEquals("fooPwd".toCharArray(), getPassword("foo").orElseThrow());
-        assertArrayEquals("barPwd".toCharArray(), getPassword("bar").orElseThrow());
-
-        storePassword("foo", null);
-        assertNull(getPassword("foo").orElse(null));
-        assertArrayEquals("barPwd".toCharArray(), getPassword("bar").orElseThrow());
-    }
+public interface TokenPinStoreProvider {
+    Optional<char[]> getPin(String tokenId);
+    void addPin(String id, char[] password);
+    void clearPin(String id);
 }

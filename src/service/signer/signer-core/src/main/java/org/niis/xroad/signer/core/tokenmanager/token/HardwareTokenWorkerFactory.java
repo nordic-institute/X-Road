@@ -55,12 +55,12 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.helper.KeyPairHelpers;
+import org.niis.xroad.signer.core.tokenpinstore.TokenPinStoreProvider;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -111,8 +111,8 @@ public class HardwareTokenWorkerFactory {
     private final KeyManagers keyManagers;
     private final KeyPairHelpers keyPairHelpers;
 
-    public HardwareTokenWorker create(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
-        return new HardwareTokenWorker(tokenInfo, tokenDefinition);
+    public HardwareTokenWorker create(TokenInfo tokenInfo, TokenDefinition tokenDefinition, TokenPinStoreProvider tokenPinStoreProvider) {
+        return new HardwareTokenWorker(tokenInfo, tokenDefinition, tokenPinStoreProvider);
     }
 
     public final class HardwareTokenWorker extends AbstractTokenWorker implements HardwareTokenSigner.SignPrivateKeyProvider {
@@ -128,12 +128,13 @@ public class HardwareTokenWorkerFactory {
          * @param tokenInfo       the token info
          * @param tokenDefinition the token type
          */
-        private HardwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
+        private HardwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition, TokenPinStoreProvider tokenPinStoreProvider) {
             super(tokenInfo,
                     HardwareTokenWorkerFactory.this.tokenManager,
                     HardwareTokenWorkerFactory.this.keyManager,
                     HardwareTokenWorkerFactory.this.tokenLookup,
-                    HardwareTokenWorkerFactory.this.keyManagers);
+                    HardwareTokenWorkerFactory.this.keyManagers,
+                    tokenPinStoreProvider);
 
             this.tokenDefinition = tokenDefinition;
         }
@@ -546,9 +547,9 @@ public class HardwareTokenWorkerFactory {
 
         private void login() throws TokenException {
 
-            if (PasswordStore.getPassword(tokenId).isEmpty()) {
+            var pin = tokenPinStoreProvider.getPin(tokenId);
+            if (pin.isEmpty()) {
                 log.debug("Cannot login, no password stored");
-
                 return;
             }
 
@@ -557,13 +558,13 @@ public class HardwareTokenWorkerFactory {
             try {
                 //Prepare management session
                 var managementSession = getActiveManagementSessionProvider();
-                if (managementSession.login()) {
+                if (managementSession.login(pin.get())) {
                     log.info("User successfully logged in");
                     tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
                     tokenManager.setTokenActive(tokenId, true);
                     managementSession.executeWithSession(this::loadPrivateKeys);
                 }
-                this.signer = HardwareTokenSigner.create(this, tokenDefinition, getToken(), tokenId, hwTokenAddonProperties);
+                this.signer = HardwareTokenSigner.create(this, tokenDefinition, getToken(), tokenId, pin.get(), hwTokenAddonProperties);
             } catch (PKCS11Exception e) {
                 setTokenStatusFromErrorCode(e.getErrorCode());
 

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.config;
+package org.niis.xroad.signer.core.tokenpinstore;
 
-import io.quarkus.runtime.Startup;
-import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
-import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
-import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 
+import java.util.Optional;
+
+/**
+ * Password store provider that uses OpenBao/Vault for secure PIN storage.
+ * PINs are Base64-encoded before storage and decoded on retrieval.
+ */
 @Slf4j
-public class SignerConfig {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class VaultTokenPinStoreProvider implements TokenPinStoreProvider {
 
-    @ApplicationScoped
-    @Startup
-    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker,
-                                                          GlobalConfProvider globalConfProvider,
-                                                          SignerProperties signerProperties) {
-        if (signerProperties.ocspResponseRetrievalActive()) {
-            var scheduler = new OcspClientExecuteSchedulerImpl(ocspClientWorker, globalConfProvider, signerProperties);
-            scheduler.init();
-            return scheduler;
-        } else {
-            return new OcspClientExecuteScheduler.NoopScheduler();
-        }
+    private final VaultClient vaultClient;
+
+    @Override
+    public Optional<char[]> getPin(String tokenId) {
+        return vaultClient.getTokenPin(tokenId);
     }
 
-    @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+    @Override
+    public void addPin(String tokenId, char[] pin) {
+        vaultClient.setTokenPin(tokenId, pin);
+        log.info("Stored PIN for token {} into Vault", tokenId);
     }
 
+    @Override
+    public void clearPin(String tokenId) {
+        vaultClient.deleteTokenPin(tokenId);
+        log.info("Cleared PIN for token {} from Vault", tokenId);
+    }
 }

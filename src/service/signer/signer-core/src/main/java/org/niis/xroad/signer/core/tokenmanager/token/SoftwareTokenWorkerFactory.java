@@ -54,13 +54,13 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.common.softtoken.SignatureGenerator;
 import org.niis.xroad.signer.core.config.SignerProperties;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenPinManager;
 import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
+import org.niis.xroad.signer.core.tokenpinstore.TokenPinStoreProvider;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
@@ -114,9 +114,10 @@ public class SoftwareTokenWorkerFactory {
     private final TokenRegistry tokenRegistry;
     private final KeyManagers keyManagers;
     private final SignatureGenerator signatureGenerator;
+    private final TokenPinStoreProvider tokenPinStoreProvider;
 
     public SoftwareTokenWorker create(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
-        return new SoftwareTokenWorker(tokenInfo, tokenDefinition);
+        return new SoftwareTokenWorker(tokenInfo, tokenDefinition, tokenPinStoreProvider);
     }
 
     public final class SoftwareTokenWorker extends AbstractTokenWorker {
@@ -130,12 +131,13 @@ public class SoftwareTokenWorkerFactory {
          *
          * @param tokenInfo the token info
          */
-        private SoftwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
+        private SoftwareTokenWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition, TokenPinStoreProvider tokenPinStoreProvider) {
             super(tokenInfo,
                     SoftwareTokenWorkerFactory.this.tokenManager,
                     SoftwareTokenWorkerFactory.this.keyManager,
                     SoftwareTokenWorkerFactory.this.tokenLookup,
-                    SoftwareTokenWorkerFactory.this.keyManagers);
+                    SoftwareTokenWorkerFactory.this.keyManagers,
+                    tokenPinStoreProvider);
 
             this.tokenDefinition = tokenDefinition;
         }
@@ -269,6 +271,10 @@ public class SoftwareTokenWorkerFactory {
             return certPath.getEncoded("PEM");
         }
 
+        private boolean isPinStored() {
+            return tokenPinStoreProvider.getPin(tokenId).isPresent();
+        }
+
         private void updateStatus() {
             boolean isInitialized = pinManager.tokenHasPin(tokenId);
 
@@ -386,7 +392,7 @@ public class SoftwareTokenWorkerFactory {
                 pinManager.updateTokenPin(tokenId, oldPin, newPin);
 
                 // Clear pin from pwstore and deactivate token
-                PasswordStore.storePassword(tokenId, null);
+                tokenPinStoreProvider.clearPin(tokenId);
                 deactivateToken();
 
                 log.info("Updating the software token pin was successful!");
@@ -400,13 +406,15 @@ public class SoftwareTokenWorkerFactory {
 
         private void activateToken() {
             try {
-                verifyPin(PasswordStore.getPassword(tokenId).orElse(null));
+                verifyPin(tokenPinStoreProvider.getPin(tokenId).orElse(null));
 
                 tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
                 tokenManager.setTokenActive(tokenId, true);
             } catch (XrdRuntimeException e) {
                 if (e.isCausedBy(ErrorCode.TOKEN_PIN_INCORRECT)) {
                     tokenManager.setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
+                } else if (e.isCausedBy(ErrorCode.TOKEN_NOT_INITIALIZED)) {
+                    tokenManager.setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
                 }
 
                 throw e;
@@ -443,7 +451,7 @@ public class SoftwareTokenWorkerFactory {
         }
 
         private char[] getPin() {
-            final char[] pin = PasswordStore.getPassword(tokenId).orElse(null);
+            final char[] pin = tokenPinStoreProvider.getPin(tokenId).orElse(null);
             verifyPinProvided(pin);
 
             return pin;

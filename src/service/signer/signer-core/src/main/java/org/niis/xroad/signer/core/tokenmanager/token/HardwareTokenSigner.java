@@ -59,12 +59,14 @@ public class HardwareTokenSigner implements Closeable {
 
     private final Supplier<SessionProvider> sessionSupplier;
 
+    private final char[] pin;
+
     public static HardwareTokenSigner create(SignPrivateKeyProvider privateKeyProvider,
                                              TokenDefinition tokenDefinition,
-                                             Token token, String tokenId, SignerHwTokenAddonProperties properties) {
+                                             Token token, String tokenId, char[] pin, SignerHwTokenAddonProperties properties) {
         Supplier<SessionProvider> session;
         if (properties.poolEnabled()) {
-            final var sessionPool = new HardwareTokenSessionPool(properties, token, tokenId);
+            final var sessionPool = new HardwareTokenSessionPool(properties, token, tokenId, pin);
             session = () -> {
                 try {
                     return sessionPool;
@@ -78,11 +80,11 @@ public class HardwareTokenSigner implements Closeable {
             session = privateKeyProvider::getManagementSessionProvider;
             log.info("HSM sign session pool is disabled for token '{}'. Management session will be used.", tokenId);
         }
-        return new HardwareTokenSigner(privateKeyProvider, tokenDefinition, session);
+        return new HardwareTokenSigner(privateKeyProvider, tokenDefinition, pin, session);
     }
 
     HardwareTokenSigner(SignPrivateKeyProvider privateKeyProvider,
-                        TokenDefinition tokenDefinition, Supplier<SessionProvider> sessionSupplier) {
+                        TokenDefinition tokenDefinition, char[] pin, Supplier<SessionProvider> sessionSupplier) {
         var tempSignMechanisms = new HashMap<SignAlgorithm, Mechanism>();
 
 
@@ -97,6 +99,7 @@ public class HardwareTokenSigner implements Closeable {
         this.signMechanisms = Map.copyOf(tempSignMechanisms);
         this.pinVerificationPerSigning = tokenDefinition.pinVerificationPerSigning();
         this.sessionSupplier = sessionSupplier;
+        this.pin = pin;
     }
 
     protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) {
@@ -143,7 +146,7 @@ public class HardwareTokenSigner implements Closeable {
     private void pinVerificationPerSigningLogin(ManagedPKCS11Session session) {
         if (pinVerificationPerSigning) {
             try {
-                session.login();
+                session.login(pin);
             } catch (Exception e) {
                 log.warn("Login failed", e);
 
