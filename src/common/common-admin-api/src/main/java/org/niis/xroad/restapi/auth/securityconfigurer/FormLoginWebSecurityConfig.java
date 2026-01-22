@@ -82,15 +82,13 @@ public class FormLoginWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
     @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
-                                                            @Qualifier(FORM_LOGIN_AUTHENTICATION)
-                                                            AuthenticationProvider authenticationProvider,
-                                                            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
+            @Qualifier(FORM_LOGIN_AUTHENTICATION) AuthenticationProvider authenticationProvider,
+            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
 
         return http
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(customizer -> customizer
-                        .requestMatchers(HttpMethod.OPTIONS).denyAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(LOGIN_URL).permitAll()
                         .requestMatchers("/logout").fullyAuthenticated()
@@ -135,7 +133,7 @@ public class FormLoginWebSecurityConfig {
         return new SimpleUrlAuthenticationFailureHandler() {
             @Override
             public void onAuthenticationFailure(HttpServletRequest request,
-                                                HttpServletResponse response, AuthenticationException exception)
+                    HttpServletResponse response, AuthenticationException exception)
                     throws IOException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
@@ -153,7 +151,7 @@ public class FormLoginWebSecurityConfig {
         return new SimpleUrlAuthenticationSuccessHandler() {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request,
-                                                HttpServletResponse response, Authentication authentication)
+                    HttpServletResponse response, Authentication authentication)
                     throws IOException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().println("OK");
@@ -165,7 +163,7 @@ public class FormLoginWebSecurityConfig {
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                        FilterChain filterChain)
+                FilterChain filterChain)
                 throws ServletException, IOException {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
             // Render the token value to a cookie by causing the deferred token to be loaded
