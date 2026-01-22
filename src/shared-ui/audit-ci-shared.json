@@ -3,5 +3,7 @@
   "skip-dev": false,
   "package-manager": "auto",
   "allowlist": [
+    "GHSA-r6q2-hw4h-h46w|* > tar*",
+    "GHSA-8qq5-rm4j-mr97|* > tar*"
   ]
 }
