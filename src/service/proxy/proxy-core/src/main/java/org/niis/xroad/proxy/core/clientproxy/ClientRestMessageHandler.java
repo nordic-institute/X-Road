@@ -83,8 +83,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private final KeyConfProvider keyConfProvider;
 
     public ClientRestMessageHandler(MessageProcessorFactory messageProcessorFactory,
-            ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-            KeyConfProvider keyConfProvider, OpMonitoringBuffer opMonitoringBuffer) {
+                                    ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                    KeyConfProvider keyConfProvider, OpMonitoringBuffer opMonitoringBuffer) {
         super(messageProcessorFactory, true, opMonitoringBuffer);
         this.proxyProperties = proxyProperties;
         this.globalConfProvider = globalConfProvider;
@@ -93,7 +93,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-            OpMonitoringData opMonitoringData) {
+                                                          OpMonitoringData opMonitoringData) {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
@@ -103,7 +103,6 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     private void verifyCanProcess() {
-
         globalConfProvider.verifyValidity();
 
         if (!proxyProperties.sslEnabled()) {
@@ -120,9 +119,9 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     public void sendErrorResponse(Request request,
-            Response response,
-            Callback callback,
-            XrdRuntimeException ex) throws IOException {
+                                  Response response,
+                                  Callback callback,
+                                  XrdRuntimeException ex) throws IOException {
         if (ex.getErrorCode().startsWith("server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -42,32 +43,33 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerP
 @Configuration
 public class StaticAssetsWebSecurityConfig {
 
-        @Bean
-        @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
-        @ArchUnitSuppressed("NoVanillaExceptions")
-        public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
-                return http
-                                .securityMatcher(
-                                                "/favicon.ico",
-                                                "/",
-                                                "/index.html",
-                                                "/img/**",
-                                                "/css/**",
-                                                "/js/**",
-                                                "/fonts/**",
-                                                "/assets/**",
-                                                "/public/translations/**")
-                                .headers(headerPolicyDirectives("default-src 'none'; "
-                                                + "img-src 'self' data:; "
-                                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-                                                + "style-src 'self' 'unsafe-inline' ;"
-                                                + "font-src data: 'self'"))
-                                .authorizeHttpRequests(customizer -> customizer
-                                                .anyRequest().permitAll())
-                                .sessionManagement(customizer -> customizer
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .csrf(AbstractHttpConfigurer::disable)
-                                .formLogin(AbstractHttpConfigurer::disable)
-                                .build();
-        }
+
+    @Bean
+    @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher(
+                        "/favicon.ico",
+                        "/",
+                        "/index.html",
+                        "/img/**",
+                        "/css/**",
+                        "/js/**",
+                        "/fonts/**",
+                        "/assets/**",
+                        "/.well-known/**"
+                )
+                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
+                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                                + "style-src 'self' 'unsafe-inline' ;"
+                                + "font-src data: 'self'"
+                        )
+                )
+                .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
+                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .build();
+    }
 }
