@@ -135,7 +135,7 @@ public final class WsdlParser {
 
     private static Exception clarifyWsdlParsingException(Exception e) {
         if (identicalOperationsUnderSamePort(e)) {
-            return XrdRuntimeException.businessException(ErrorCode.INTERNAL_ERROR)
+            return XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                     .details("WSDL violates specification: " + e.getMessage())
                     .build();
         }

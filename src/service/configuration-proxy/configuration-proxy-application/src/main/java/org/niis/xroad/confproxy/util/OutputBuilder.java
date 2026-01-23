@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confproxy.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -39,12 +38,14 @@ import org.apache.commons.io.input.TeeInputStream;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.eclipse.jetty.util.MultiPartWriter;
 import org.niis.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.SystemProperties;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 import org.niis.xroad.globalconf.util.HashCalculator;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -92,6 +93,7 @@ public class OutputBuilder implements AutoCloseable {
             DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"));
 
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final VersionedConfigurationDirectory confDir;
     private final ConfProxyProperties conf;
     private final int version;
@@ -108,15 +110,16 @@ public class OutputBuilder implements AutoCloseable {
     /**
      * Constructs an output builder for the given global configuration directory
      * and configuration proxy instance configuration.
-     *
      * @param confDirectory global configuration to be processed
      * @param configuration configuration proxy instance configuration
      * @throws IOException in case of errors when a temporary directory
      */
-    public OutputBuilder(SignerRpcClient signerRpcClient, VersionedConfigurationDirectory confDirectory,
+    public OutputBuilder(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                         VersionedConfigurationDirectory confDirectory,
                          ConfProxyProperties configuration, int version)
             throws IOException {
         this.signerRpcClient = signerRpcClient;
+        this.signerSignClient = signerSignClient;
         this.confDir = confDirectory;
         this.conf = configuration;
         this.version = version;
@@ -146,7 +149,6 @@ public class OutputBuilder implements AutoCloseable {
     /**
      * Moves the signed global configuration to the location where it is
      * accessible to clients.
-     *
      * @throws IOException in case of unsuccessful file operations
      */
     public final void move() throws IOException {
@@ -166,7 +168,6 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Cleans up any remaining temporary files.
-     *
      * @throws IOException in case of unsuccessful file operations
      */
     @Override
@@ -177,7 +178,6 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Setup reference data and temporary directory for the output builder.
-     *
      * @throws IOException if temporary directory could not be created
      */
     private void setup() throws IOException {
@@ -205,7 +205,6 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Generates global configuration directory content MIME.
-     *
      * @param mimeContent output stream to write to
      */
     private void build(final ByteArrayOutputStream mimeContent) throws IOException {
@@ -267,7 +266,6 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Signs the global configuration directory content.
-     *
      * @param contentBytes configuration directory content bytes
      * @param mimeContent  output stream to write to
      * @throws Exception if errors are encountered while writing
@@ -309,7 +307,6 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Computes the verification hash of the certificate at the given path.
-     *
      * @param certPath path to the certificate file
      * @return verification hash for the certificate
      */
@@ -324,7 +321,6 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Opens a stream for writing the configuration file describes by the metadata to the target location.
-     *
      * @param targetPath location to write the file to
      * @param metadata   describes the configuration file
      * @return output stream for writing the file
@@ -343,7 +339,6 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Appends the metadata and hash of a configuration file to the content inside the encoder.
-     *
      * @param encoder     generates the configuration directory mime from the given file content
      * @param instance    configuration proxy instance name
      * @param metadata    describes the configuration file
@@ -383,14 +378,13 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Generates the signature of the configuration directory data.
-     *
      * @param keyId                id of the key used for signing
      * @param signatureAlgorithmId if of the algorithm used for signing
      * @param digest               digest bytes of the directory content
      * @return the configuration directory signature string (base64)
      */
     private String getSignature(final String keyId, final SignAlgorithm signatureAlgorithmId, final byte[] digest) {
-        byte[] signature = signerRpcClient.sign(keyId, signatureAlgorithmId, digest);
+        byte[] signature = signerSignClient.sign(keyId, signatureAlgorithmId, digest);
 
         return encodeBase64(signature);
     }

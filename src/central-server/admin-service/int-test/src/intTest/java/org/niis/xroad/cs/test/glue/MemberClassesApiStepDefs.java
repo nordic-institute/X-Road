@@ -38,9 +38,9 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.ERROR_RESPONSE_BODY;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -53,7 +53,8 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
 
     @Step("member class {string} is created")
     public void memberClassIsCreated(String memberClassCode) {
-        memberClassIsCreatedWithDescriptionClassDescription(memberClassCode, "Description for member class " + memberClassCode);
+        memberClassIsCreatedWithDescriptionClassDescription(memberClassCode,
+                "Description for member class " + memberClassCode);
     }
 
     @Step("member class {string} is created with description {string}")

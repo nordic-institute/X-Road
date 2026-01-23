@@ -33,7 +33,7 @@ import static com.codeborne.selenide.Selenide.$x;
 public class InitializationPageObj {
 
     public SelenideElement initializationView() {
-        return $x("//div[@data-test='central-server-initialization-page-title']");
+        return $x("//div[@data-test='central-server-initialization-page']");
     }
 
     public SelenideElement initializationPhaseId() {

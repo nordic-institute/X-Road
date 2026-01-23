@@ -30,8 +30,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 
 /**
  * Client sends normal message. Service responds with response that
@@ -50,7 +50,7 @@ public class ServerClientInconsistency extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_SERVICE_FAILED_X,
-                X_INCONSISTENT_RESPONSE);
+        assertErrorCode(SERVER_CLIENTPROXY_X, SERVICE_FAILED.code(),
+                INCONSISTENT_RESPONSE.code());
     }
 }

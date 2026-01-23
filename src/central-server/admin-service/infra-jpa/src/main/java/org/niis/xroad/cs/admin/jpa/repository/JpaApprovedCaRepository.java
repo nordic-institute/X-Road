@@ -26,11 +26,16 @@
 package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
+import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface JpaApprovedCaRepository extends JpaRepository<ApprovedCaEntity, Integer>, ApprovedCaRepository {
-
+    @Query("select aca.id FROM ApprovedCaEntity aca WHERE aca.caInfo = :caInfoEntity")
+    Optional<Integer> findApprovedCaIdByCaId(CaInfoEntity caInfoEntity);
 }

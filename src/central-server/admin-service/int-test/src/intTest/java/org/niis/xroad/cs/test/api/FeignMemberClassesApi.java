@@ -30,6 +30,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.MemberClassesApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "memberClassesApi", path = "/api/v1")
+@FeignClient
 public interface FeignMemberClassesApi extends MemberClassesApi {
 }

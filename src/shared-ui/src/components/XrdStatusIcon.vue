@@ -26,60 +26,50 @@
  -->
 <template>
   <div>
-    <v-icon v-if="status === 'ok'" size="small" color="#0CC177" icon="icon-Checked" />
-    <v-icon v-if="status === 'ok-disabled'" size="small" color="#575169" icon="icon-Checked" />
-    <v-icon v-else-if="status === 'saved'" size="x-large" color="#211E1E" icon="icon-Checkmark" />
-    <v-icon v-else-if="status === 'progress-register'" size="small" color="#0CC177" icon="icon-In-progress" />
-    <v-icon v-else-if="status === 'progress-register-disabled'" size="small" color="#575169" icon="icon-In-progress" />
-    <v-icon v-else-if="status === 'progress-delete'" size="small" color="#211E1E" icon="icon-Cancel" />
-    <v-icon v-else-if="status === 'name-set'" size="small" color="#211E1E" icon="icon-Edit" />
-    <v-icon v-else-if="status === 'name-submitted'" size="small" color="#0CC177" icon="icon-Edit" />
-    <v-icon v-else-if="status === 'error'" size="small" color="#EC4040" icon="icon-Error" />
-    <v-icon v-else-if="status === 'error-disabled'" size="small" color="#575169" icon="icon-Error" />
-    <v-icon v-else-if="status === 'pending'" size="small" color="#F5A623" icon="icon-Error" />
-    <v-icon v-else-if="status === 'pending-disabled'" size="small" color="#575169" icon="icon-Error" />
+    <v-icon :color="color" :icon="icon" />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { XrdIconCancel, XrdIconChecked, XrdIconCheckmark, XrdIconError, XrdIconInProgress } from './icons';
+<script lang="ts" setup>
+import { Status, statusToType } from '../types';
+import { computed } from 'vue';
 
 /**
  * General purpose component for status icon with color
  */
-export default defineComponent({
-  props: {
-    status: {
-      type: String,
-      required: true,
-      validator: (val: string) =>
-        [
-          '',
-          'ok',
-          'ok-disabled',
-          'saved',
-          'progress-register',
-          'progress-register-disabled',
-          'progress-delete',
-          'error',
-          'error-disabled',
-          'pending',
-          'pending-disabled',
-          'name-set',
-          'name-submitted',
-        ].includes(val),
-    },
-  },
-  data() {
-    return {
-      XrdIconError,
-      XrdIconChecked,
-      XrdIconCheckmark,
-      XrdIconInProgress,
-      XrdIconCancel,
-    };
-  },
+
+const props = defineProps<{ status: Status }>();
+
+const color = computed(() => statusToType(props.status));
+const icon = computed(() => {
+  switch (props.status) {
+    case 'ok':
+      return 'check_circle__filled';
+    case 'ok-disabled':
+      return 'check_circle__filled';
+    case 'saved':
+      return 'check';
+    case 'progress-register':
+      return 'cached';
+    case 'progress-register-disabled':
+      return 'cached';
+    case 'progress-delete':
+      return 'cached';
+    case 'error':
+      return 'error__filled';
+    case 'error-disabled':
+      return 'error__filled';
+    case 'pending':
+      return 'cached';
+    case 'pending-disabled':
+      return 'error__filled';
+    case 'name-set':
+      return 'edit_square';
+    case 'name-submitted':
+      return 'edit_square';
+    default:
+      return 'error__filled';
+  }
 });
 </script>
 

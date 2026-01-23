@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,7 +25,7 @@
  * THE SOFTWARE.
  */
 import * as api from '@/util/api';
-import { Client } from '@/openapi-types';
+import { Client, ClientAdd } from '@/openapi-types';
 import { createClientId, deepClone, Mutable } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
@@ -41,6 +42,7 @@ export interface ClientsState {
   members: ExtendedClient[]; // all local members, virtual and real
   realMembers: ExtendedClient[]; // local actual real members, owner +1
   subsystems: ExtendedClient[];
+  searchingClients: boolean;
   allSubsystems: Client[];
 }
 
@@ -54,6 +56,7 @@ export const useClients = defineStore('clients', {
       members: [],
       subsystems: [],
       realMembers: [],
+      searchingClients: false,
       allSubsystems: [] as Client[],
     };
   },
@@ -77,6 +80,16 @@ export const useClients = defineStore('clients', {
           this.clientsLoading = false;
         });
     },
+    async searchClients(query: Record<string, string | boolean>) {
+      this.searchingClients = true;
+      return api
+        .get<Client[]>('/clients', { params: query })
+        .then((res) => res.data)
+        .finally(() => (this.searchingClients = false));
+    },
+    async addClient(clientAdd: ClientAdd) {
+      return api.post<Client>('/clients', clientAdd).then((res) => res.data);
+    },
     async fetchAllSubsystems(instance: string) {
       return api
         .get<Client[]>('/clients', {
@@ -85,7 +98,7 @@ export const useClients = defineStore('clients', {
             show_members: false,
             internal_search: false,
             include_management_service_check: true,
-          }
+          },
         })
         .then((res) => {
           this.allSubsystems = res.data;
@@ -143,11 +156,7 @@ export const useClients = defineStore('clients', {
           }
 
           // Create "virtual member" id
-          clone.id = createClientId(
-            element.instance_id,
-            element.member_class,
-            element.member_code,
-          );
+          clone.id = createClientId(element.instance_id, element.member_class, element.member_code);
 
           clone.subsystem_code = undefined;
 
@@ -162,7 +171,7 @@ export const useClients = defineStore('clients', {
         // Push subsystems to an array
         if (element.subsystem_code) {
           const clone = deepClone(element) as ExtendedClient;
-          clone.visibleName = clone.subsystem_name || clone.subsystem_code;
+          clone.visibleName = clone.subsystem_name || clone.subsystem_code || '';
           clone.type = ClientTypes.SUBSYSTEM;
 
           subsystems.push(clone);

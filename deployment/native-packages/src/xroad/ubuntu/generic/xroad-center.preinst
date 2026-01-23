@@ -1,0 +1,94 @@
+#!/bin/bash
+
+. /usr/share/debconf/confmodule
+
+if [ "$1" = "upgrade" ]; then
+  if dpkg --compare-versions "#LAST_SUPPORTED_VERSION#" gt "$2"; then
+    echo "ERROR: Upgrade supported from #LAST_SUPPORTED_VERSION# or newer" >&2
+    exit 1
+  fi
+
+fi
+
+handle_error() {
+  ERR=$1
+  db_reset xroad-common/cert-generation-retry
+  db_reset xroad-common/cert-generation-error
+  db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+  db_beginblock
+  db_input critical xroad-common/cert-generation-error || true
+  db_input critical xroad-common/cert-generation-retry || true
+  db_endblock
+  db_go
+
+  db_get xroad-common/cert-generation-retry
+  if [ "$RET" = false ]; then
+    exit 1
+  fi
+
+  echo "Retrying certificate generation"
+}
+
+#check certificate and request necessary subject information from user
+create_global_configuration_certificate() {
+  if [[ ! -r /etc/xroad/ssl/global-conf.crt || ! -r /etc/xroad/ssl/global-conf.key || ! -r /etc/xroad/ssl/global-conf.p12 ]]; then
+    echo "Generating new global-conf.[crt|key|p12] files "
+    HOST=$(hostname -f)
+    if ((${#HOST} > 64)); then
+      HOST="$(hostname -s)"
+    fi
+
+    LIST=
+    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done
+    ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+    db_subst xroad-common/global-conf-subject HOST "$HOST"
+    db_subst xroad-common/global-conf-altsubject ALT "$ALT"
+
+    while :; do
+      db_get xroad-common/global-conf-subject
+      [ -z "$RET" ] && db_set xroad-common/global-conf-subject "/CN=$HOST"
+      db_get xroad-common/global-conf-altsubject
+      [ -z "$RET" ] && db_set xroad-common/global-conf-altsubject "$ALT"
+
+      db_beginblock
+      db_input critical xroad-common/global-conf-subject || true
+      db_input critical xroad-common/global-conf-altsubject || true
+      db_endblock
+      db_go
+
+      db_get xroad-common/global-conf-subject
+      subj="$RET"
+      db_get xroad-common/global-conf-altsubject
+      altn="$RET"
+      if [ -z "$subj" ]; then
+        subj="/CN=$HOST"
+      fi
+      if [ -z "$altn" ]; then
+        altn="$ALT"
+      fi
+
+      echo "generating new global configuration TLS key/self-signed-certificate with $subj and $altn"
+      if ! /usr/share/xroad/scripts/generate_certificate.sh -n global-conf -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err; then
+        ERR=$(</tmp/cert.err)
+        rm -f /tmp/cert.err
+        handle_error "$ERR"
+        db_fset xroad-common/global-conf-subject seen false
+        db_fset xroad-common/global-conf-altsubject seen false
+        continue
+      fi
+
+      break
+
+    done
+  fi
+}
+
+create_global_configuration_certificate
+
+db_stop
+
+# Free potentially occupied ports when upgrading from legacy installation
+if [[ "$1" = "upgrade" ]]; then
+  invoke-rc.d --quiet nginx try-restart &>/dev/null || true
+fi

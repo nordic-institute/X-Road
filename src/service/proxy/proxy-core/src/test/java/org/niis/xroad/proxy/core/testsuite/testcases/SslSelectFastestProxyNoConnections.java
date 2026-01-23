@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
  * Tests that correct error occurs when none of the hosts can be connected to.
@@ -55,7 +55,7 @@ public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
                 return Arrays.asList("foo.invalid.", "bar.invalid.", "127.0.0,1");
@@ -66,6 +66,6 @@ public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
     @Override
     protected void validateFaultResponse(Message receivedResponse)
             throws Exception {
-        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
+        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, NETWORK_ERROR.code());
     }
 }

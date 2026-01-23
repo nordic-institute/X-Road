@@ -35,6 +35,7 @@ import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
+import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -52,7 +53,7 @@ import static org.niis.xroad.common.CostType.UNDEFINED;
 import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.NON_REPUDIATION;
 
 @ActiveProfiles("test")
-@SpringBootTest(classes = {ApprovedTsaMapperImpl.class, CertificateConverter.class, KeyUsageConverter.class})
+@SpringBootTest(classes = {ApprovedTsaMapperImpl.class, CertificateConverter.class, KeyUsageConverter.class, ApprovedCaRepository.class})
 class ApprovedTsaMapperTest {
 
     private static final int ID = 123;

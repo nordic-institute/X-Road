@@ -25,111 +25,131 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+
+import io.quarkus.vault.VaultKVSecretEngine;
+import io.quarkus.vault.VaultPKISecretEngineFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
-import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
-import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
-import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
-import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
-import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
-import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponder;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.signature.SimpleSigner;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
+import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.niis.xroad.signer.client.SignerSignClient;
 
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class,
-        ProxyOpMonitoringConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
-})
-@Configuration
-@ArchUnitSuppressed("NoVanillaExceptions")
-public class ProxyConfig {
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.util.stream.Stream;
 
-    @Bean
-    MessageSigner messageSigner(SignerRpcClient signerRpcClient) {
-        return new BatchSigner(signerRpcClient);
+import static java.util.Arrays.stream;
+
+@Slf4j
+class ProxyConfig {
+
+    @ApplicationScoped
+    VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
+        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
     }
 
-    @Bean
-    SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                          MessageSigner messageSigner) {
-        return new SigningCtxProviderImpl(globalConfProvider, keyConfProvider, messageSigner);
+    @ApplicationScoped
+    VaultClient vaultClient(VaultKeyClient vaultKeyClient, VaultKVSecretEngine kvSecretEngine) {
+        QuarkusVaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine);
+        try {
+            ensureInternalTlsKeyPresent(vaultKeyClient, vaultClient);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+        return vaultClient;
     }
 
-    @Bean
-    CommonBeanProxy commonBeanProxy(GlobalConfProvider globalConfProvider,
-                                    KeyConfProvider keyConfProvider,
-                                    SigningCtxProvider signingCtxProvider,
-                                    ServerConfProvider serverConfProvider,
-                                    CertChainFactory certChainFactory,
-                                    CertHelper certHelper) {
-        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
-                certHelper);
+    private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient) throws CertificateException,
+            IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        try {
+            vaultClient.getInternalTlsCredentials();
+        } catch (Exception e) {
+            log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
+            VaultKeyClient.VaultKeyData vaultKeyData = vaultKeyClient.provisionNewCerts();
+            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                    .toArray(X509Certificate[]::new);
+            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createInternalTlsCredentials(internalTlsKey);
+            log.info("Successfully created internal TLS credentials");
+        }
     }
 
-    @Bean
-    ClientProxy clientProxy(CommonBeanProxy commonBeanProxy,
-                            GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
+    @ApplicationScoped
+    static class OpMonitoringBufferInitializer {
+
+        @ApplicationScoped
+        OpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider,
+                                              ProxyProperties proxyProperties,
+                                              VaultClient vaultClient)
+                throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+                InvalidKeySpecException, KeyManagementException {
+
+            if (proxyProperties.addon().opMonitor().enabled()) {
+                log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
+                var opMonitoringBuffer = new OpMonitoringBufferImpl(
+                        serverConfProvider, proxyProperties.addon().opMonitor(), vaultClient,
+                        proxyProperties.clientProxy().poolEnableConnectionReuse());
+                opMonitoringBuffer.init();
+                return opMonitoringBuffer;
+            } else {
+                log.debug("Initializing NoOpMonitoringBuffer");
+                return new NoOpMonitoringBuffer();
+            }
+        }
+
+        public void cleanup(@Disposes OpMonitoringBuffer opMonitoringBuffer) {
+            if (opMonitoringBuffer instanceof OpMonitoringBufferImpl impl)
+                impl.destroy();
+        }
+
     }
 
-    @Bean
-    CertHelper certHelper(GlobalConfProvider globalConfProvider) {
-        return new CertHelper(globalConfProvider);
+
+    @ApplicationScoped
+    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
+                                          ServerConfCommonProperties serverConfProperties,
+                                          GlobalConfProvider globalConfProvider,
+                                          VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
-    @Bean
-    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
-        return new CertChainFactory(globalConfProvider);
+    @ApplicationScoped
+    MessageSigner messageSigner(ProxyProperties properties, SignerSignClient signerSignClient,
+                                SignerRpcClient signerRpcClient, SignerRpcChannelProperties signerRpcChannelProperties) {
+        if (properties.batchSigningEnabled()) {
+            return new BatchSigner(signerRpcClient, signerSignClient, signerRpcChannelProperties);
+        } else {
+            return new SimpleSigner(signerSignClient);
+        }
     }
 
-    @Bean
-    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
-    }
-
-    @Bean
-    ServerProxy serverProxy(CommonBeanProxy commonBeanProxy) throws Exception {
-        return new ServerProxy(commonBeanProxy);
-    }
-
-    @Bean
-    CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        return new CertHashBasedOcspResponder(keyConfProvider);
-    }
-
-    @Bean
-    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
-        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
-    }
-
-    @Bean
-    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
-        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
+    public void dispose(@Disposes MessageSigner messageSigner) {
+        if (messageSigner instanceof BatchSigner batchSigner) {
+            batchSigner.destroy();
+        }
     }
 }

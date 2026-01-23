@@ -26,33 +26,38 @@
  */
 package org.niis.xroad.serverconf.impl;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.EncoderUtils;
 
 import org.hibernate.Session;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
-import org.niis.xroad.serverconf.impl.entity.LocalGroupIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
-import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.Date;
+import java.util.Map;
 
-import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
+import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
+import static org.niis.xroad.common.properties.ConfigUtils.initConfiguration;
 
 /**
  * Contains server conf test utility methods.
@@ -103,40 +108,50 @@ public final class TestUtil {
                     + "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC"
                     + "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
 
+
+    static Map<String, String> serverConfHibernateProperties = Map.of(
+            "xroad.db.serverconf.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
+            "xroad.db.serverconf.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+            "xroad.db.serverconf.hibernate.connection.url", "jdbc:hsqldb:mem:serverconf",
+            "xroad.db.serverconf.hibernate.connection.username", "serverconf",
+            "xroad.db.serverconf.hibernate.connection.password", "serverconf",
+            "xroad.db.serverconf.hibernate.hbm2ddl.auto", "create-drop"
+    );
+    static ServerConfDbProperties serverConfDbProperties = initConfiguration(ServerConfDbProperties.class, serverConfHibernateProperties);
+    static ServerConfCommonProperties serverConfProperties = defaultConfiguration(ServerConfCommonProperties.class);
+
     private TestUtil() {
     }
 
     /**
      * Creates in-memory test database and fills it with test data.
+     *
      * @throws Exception if an error occurs
      */
-    public static void prepareDB() throws Exception {
-        System.setProperty(
-                SystemProperties.DATABASE_PROPERTIES,
-                "src/test/resources/hibernate.properties");
-
-        prepareDB(true);
+    public static void prepareDB(DatabaseCtx ctx) throws Exception {
+        prepareDB(ctx, true);
     }
 
     /**
      * Creates in-memory test database and fills it with test data.
+     *
      * @param clean if true, database is cleaned
      * @throws Exception if an error occurs
      */
-    public static void prepareDB(boolean clean) throws Exception {
+    public static void prepareDB(DatabaseCtx ctx, boolean clean) throws Exception {
         if (clean) {
-            cleanDB();
+            cleanDB(ctx);
         }
 
-        doInTransaction(session -> {
+        ctx.doInTransaction(session -> {
             ServerConfEntity conf = createTestData(session);
             session.persist(conf);
             return null;
         });
     }
 
-    static void cleanDB() throws Exception {
-        doInTransaction(session -> {
+    static void cleanDB(DatabaseCtx ctx) throws Exception {
+        ctx.doInTransaction(session -> {
             var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database
@@ -176,7 +191,7 @@ public final class TestUtil {
                 case 1:
                     client.setIsAuthentication("SSLAUTH");
                     CertificateEntity ct = new CertificateEntity();
-                    ct.setData(decodeBase64(BASE64_CERT));
+                    ct.setData(EncoderUtils.decodeBase64(BASE64_CERT));
                     client.getCertificates().add(ct);
                     break;
                 case 2:
@@ -220,11 +235,7 @@ public final class TestUtil {
             }
 
             String serviceCode = service(1, 1);
-            final EndpointEntity endpoint = new EndpointEntity();
-            endpoint.setServiceCode(serviceCode);
-            endpoint.setMethod("*");
-            endpoint.setPath("**");
-            endpoint.setGenerated(false);
+            final EndpointEntity endpoint = EndpointEntity.create(client, serviceCode, "*", "**", false);
             session.persist(endpoint);
 
             client.getEndpoints().add(endpoint);
@@ -232,7 +243,7 @@ public final class TestUtil {
             client.getAccessRights().add(
                     createAccessRight(endpoint, client.getIdentifier()));
 
-            ClientIdEntity cl = ClientIdEntity.createMember("XX", "memberClass", "memberCode" + i);
+            ClientIdEntity cl = MemberIdEntity.create("XX", "memberClass", "memberCode" + i);
             session.persist(cl);
             client.getAccessRights().add(createAccessRight(endpoint, cl));
 
@@ -256,20 +267,12 @@ public final class TestUtil {
             service.setTitle(SERVICE_TITLE + "REST");
             service.setServiceCode("rest");
 
-            EndpointEntity restEndpoint = new EndpointEntity();
-            restEndpoint.setServiceCode(service.getServiceCode());
-            restEndpoint.setMethod("GET");
-            restEndpoint.setPath("/api/**");
-            restEndpoint.setGenerated(false);
+            EndpointEntity restEndpoint = EndpointEntity.create(client, service.getServiceCode(), "GET", "/api/**", false);
             session.persist(restEndpoint);
             client.getEndpoints().add(restEndpoint);
             client.getAccessRights().add(createAccessRight(restEndpoint, client.getIdentifier()));
 
-            EndpointEntity restEndpoint2 = new EndpointEntity();
-            restEndpoint2.setServiceCode(service.getServiceCode());
-            restEndpoint2.setMethod("POST");
-            restEndpoint2.setPath("/api/test/*");
-            restEndpoint2.setGenerated(false);
+            EndpointEntity restEndpoint2 = EndpointEntity.create(client, service.getServiceCode(), "POST", "/api/test/*", false);
             session.persist(restEndpoint2);
             client.getEndpoints().add(restEndpoint2);
             client.getAccessRights().add(createAccessRight(restEndpoint2, client.getIdentifier()));
@@ -278,6 +281,7 @@ public final class TestUtil {
             localGroup.setGroupCode("localGroup" + i);
             localGroup.setDescription("local group description");
             localGroup.setUpdated(new Date());
+            localGroup.setClient(client);
             GroupMemberEntity localGroupMember = new GroupMemberEntity();
             localGroupMember.setAdded(new Date());
             localGroupMember.setGroupMemberId(cl);

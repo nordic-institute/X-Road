@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -41,10 +40,12 @@ import lombok.Getter;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,11 +59,10 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_VALIDATION;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.assertAddress;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifySignature;
@@ -86,10 +86,11 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     private AuthCertRegRequestType authCertRegRequestType;
 
     public AuthCertRegRequestDecoderCallback(GlobalConfProvider globalConfProvider,
+                                             OcspVerifierFactory ocspVerifierFactory,
                                              ManagementRequestVerifier.DecoderCallback rootCallback) {
         this.globalConfProvider = globalConfProvider;
         this.rootCallback = rootCallback;
-        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider);
+        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider, ocspVerifierFactory);
     }
 
     @Override
@@ -107,7 +108,7 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         } else if (ownerCertOcspBytes == null) {
             ownerCertOcspBytes = IOUtils.toByteArray(content);
         } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart");
+            throw XrdRuntimeException.systemInternalError("Unexpected content in multipart");
         }
     }
 
@@ -142,12 +143,12 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
 
         final X509Certificate authCert = CryptoUtils.readCertificate(this.authCertBytes);
         if (!verifyAuthCert(authCert)) {
-            throw new CodedException(X_CERT_VALIDATION, "Authentication certificate is not valid");
+            throw XrdRuntimeException.systemException(CERT_VALIDATION, "Authentication certificate is not valid");
         }
 
         final byte[] dataToVerify = soap.getBytes();
         if (!verifySignature(authCert, authSignatureBytes, authSignatureAlgoId, dataToVerify)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Auth signature verification failed");
+            throw XrdRuntimeException.systemException(INVALID_SIGNATURE_VALUE, "Auth signature verification failed");
         }
 
         final X509Certificate ownerCert = CryptoUtils.readCertificate(this.ownerCertBytes);
@@ -155,12 +156,12 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         managementRequestCertVerifier.verifyCertificate(ownerCert, ownerCertOcsp);
 
         if (!verifySignature(ownerCert, ownerSignatureBytes, ownerSignatureAlgoId, dataToVerify)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Owner signature verification failed.");
+            throw XrdRuntimeException.systemException(INVALID_SIGNATURE_VALUE, "Owner signature verification failed.");
         }
 
         if (!globalConfProvider.getManagementRequestService().equals(soap.getService().getClientId())
                 || !globalConfProvider.getInstanceIdentifier().equals(soap.getClient().getXRoadInstance())) {
-            throw new CodedException(X_INVALID_REQUEST,
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
                     "Invalid management service address. Contact central server administrator.");
         }
 
@@ -168,13 +169,13 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         validateServerId(serverId);
 
         if (!Objects.equals(soap.getClient(), serverId.getOwner())) {
-            throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Sender does not match server owner.");
         }
 
         // Verify that the attached authentication certificate matches the one in
         // the request. Note: reason for the redundancy is unclear.
         if (!Arrays.equals(this.authCertBytes, authCertRegRequestType.getAuthCert())) {
-            throw new CodedException(X_CERT_VALIDATION, "Authentication certificates do not match.");
+            throw XrdRuntimeException.systemException(CERT_VALIDATION, "Authentication certificates do not match.");
         }
 
         // verify that the subject id from the certificate matches the one
@@ -183,9 +184,8 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         ClientId idFromCert = getClientIdFromCert(ownerCert, idFromReq);
 
         if (!idFromReq.equals(idFromCert)) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Subject identifier (%s) in certificate does not match"
-                            + " security server owner identifier (%s) in request",
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Subject identifier (%s) in certificate does not match security server owner identifier (%s) in request",
                     idFromCert, idFromReq);
         }
 
