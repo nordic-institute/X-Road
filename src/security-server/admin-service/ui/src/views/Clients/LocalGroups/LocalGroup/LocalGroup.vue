@@ -195,7 +195,7 @@ export default defineComponent({
   },
   setup() {
     const { addError, addSuccessMessage } = useNotifications();
-    const { meta, setValue, value, errors } = useField<string>('description', 'required|max:255');
+    const { meta, setValue, value, errors } = useField<string>('description', 'required|max:255|validDescription');
     return { meta, setValue, value, errors, addError, addSuccessMessage };
   },
   data() {
