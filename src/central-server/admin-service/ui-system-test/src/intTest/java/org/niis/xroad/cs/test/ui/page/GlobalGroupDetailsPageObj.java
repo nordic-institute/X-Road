@@ -46,7 +46,7 @@ public class GlobalGroupDetailsPageObj {
     }
 
     public SelenideElement btnEditDescription() {
-        final var xpath = "//article[@data-test='global-resources-view']//button[@data-test='info-card-edit-button']";
+        final var xpath = "//div[@data-test='global-resources-view']//button[@data-test='global-group-edit-button']";
         return $x(xpath);
     }
 
