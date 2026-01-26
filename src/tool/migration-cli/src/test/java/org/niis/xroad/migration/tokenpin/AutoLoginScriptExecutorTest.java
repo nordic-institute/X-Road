@@ -51,7 +51,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_successfulScript_returnsOutput() throws IOException {
+    void executeSuccessfulScriptReturnsOutput() throws IOException {
         // Given: Script that outputs a PIN
         Path script = createScript("#!/bin/bash\necho 'secret123'");
 
@@ -66,7 +66,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_exitCode127_markedAsSuccess() throws IOException {
+    void executeExitCode127MarkedAsSuccess() throws IOException {
         // Given: Script that exits with 127
         Path script = createScript("#!/bin/bash\nexit 127");
 
@@ -81,7 +81,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_scriptFails_returnsFailure() throws IOException {
+    void executeScriptFailsReturnsFailure() throws IOException {
         // Given: Script that fails
         Path script = createScript("#!/bin/bash\necho 'error' >&2\nexit 1");
 
@@ -95,7 +95,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_scriptNotFound_throwsIOException() {
+    void executeScriptNotFoundThrowsIOException() {
         // Given: Non-existent script
         Path script = tempDir.resolve("nonexistent.sh");
 
@@ -106,7 +106,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_scriptNotExecutable_throwsIOException() throws IOException {
+    void executeScriptNotExecutableThrowsIOException() throws IOException {
         // Given: Non-executable script
         Path script = tempDir.resolve("notexec.sh");
         Files.writeString(script, "#!/bin/bash\necho 'test'");
@@ -119,7 +119,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_scriptTimeout_throwsIOException() throws IOException {
+    void executeScriptTimeoutThrowsIOException() throws IOException {
         // Given: Script that hangs (use a very short sleep to be reliable)
         Path script = createScript("#!/bin/bash\nsleep 10");
         // Use a very short timeout to ensure the test completes quickly
@@ -132,7 +132,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_multiTokenOutput_capturesAll() throws IOException {
+    void executeMultiTokenOutputCapturesAll() throws IOException {
         // Given: Script that outputs multiple tokens
         Path script = createScript("""
                 #!/bin/bash
@@ -150,7 +150,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_stderrCaptured_separately() throws IOException {
+    void executeStderrCapturedSeparately() throws IOException {
         // Given: Script with both stdout and stderr
         Path script = createScript("""
                 #!/bin/bash
@@ -167,7 +167,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_emptyOutput_hasPinsReturnsFalse() throws IOException {
+    void executeEmptyOutputHasPinsReturnsFalse() throws IOException {
         // Given: Script that outputs nothing
         Path script = createScript("#!/bin/bash\nexit 0");
 
@@ -181,7 +181,7 @@ class AutoLoginScriptExecutorTest {
     }
 
     @Test
-    void execute_nonZeroNonSpecialExitCode_markedAsFailure() throws IOException {
+    void executeNonZeroNonSpecialExitCodeMarkedAsFailure() throws IOException {
         // Given: Script that exits with non-zero, non-127 code
         Path script = createScript("#!/bin/bash\nexit 2");
 

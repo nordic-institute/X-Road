@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class TokenPinParsingTest {
 
     @Test
-    void tokenPin_validInputs_createsRecord() {
+    void tokenPinValidInputsCreatesRecord() {
         // Given/When
         TokenPin pin = new TokenPin("0", "secret123");
 
@@ -43,43 +43,43 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void tokenPin_nullTokenId_throwsException() {
+    void tokenPinNullTokenIdThrowsException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new TokenPin(null, "secret"));
     }
 
     @Test
-    void tokenPin_blankTokenId_throwsException() {
+    void tokenPinBlankTokenIdThrowsException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new TokenPin("  ", "secret"));
     }
 
     @Test
-    void tokenPin_emptyTokenId_throwsException() {
+    void tokenPinEmptyTokenIdThrowsException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new TokenPin("", "secret"));
     }
 
     @Test
-    void tokenPin_nullPin_throwsException() {
+    void tokenPinNullPinThrowsException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new TokenPin("0", null));
     }
 
     @Test
-    void tokenPin_blankPin_throwsException() {
+    void tokenPinBlankPinThrowsException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new TokenPin("0", "  "));
     }
 
     @Test
-    void tokenPin_emptyPin_throwsException() {
+    void tokenPinEmptyPinThrowsException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new TokenPin("0", ""));
     }
 
     @Test
-    void tokenPin_tokenIdWithHyphens_allowed() {
+    void tokenPinTokenIdWithHyphensAllowed() {
         // Given/When
         TokenPin pin = new TokenPin("softtoken-1", "secret");
 
@@ -88,7 +88,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void tokenPin_tokenIdWithUnderscores_allowed() {
+    void tokenPinTokenIdWithUnderscoresAllowed() {
         // Given/When
         TokenPin pin = new TokenPin("soft_token_1", "secret");
 
@@ -97,7 +97,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void tokenPin_pinWithColons_allowed() {
+    void tokenPinPinWithColonsAllowed() {
         // Given/When: PIN containing colons should be preserved
         TokenPin pin = new TokenPin("0", "secret:with:colons");
 
@@ -106,7 +106,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void tokenPin_pinWithSpecialChars_allowed() {
+    void tokenPinPinWithSpecialCharsAllowed() {
         // Given/When
         TokenPin pin = new TokenPin("0", "s3cr3t!@#$%");
 
@@ -115,7 +115,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void scriptExecutionResult_exitCode0_successAndHasPins() {
+    void scriptExecutionResultExitCode0SuccessAndHasPins() {
         // Given
         ScriptExecutionResult result = new ScriptExecutionResult(true, "secret", "", 0);
 
@@ -126,7 +126,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void scriptExecutionResult_exitCode127_successButNoPins() {
+    void scriptExecutionResultExitCode127SuccessButNoPins() {
         // Given
         ScriptExecutionResult result = new ScriptExecutionResult(true, "", "no pin", 127);
 
@@ -137,7 +137,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void scriptExecutionResult_exitCode1_failureNoPins() {
+    void scriptExecutionResultExitCode1FailureNoPins() {
         // Given
         ScriptExecutionResult result = new ScriptExecutionResult(false, "", "error", 1);
 
@@ -148,7 +148,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void scriptExecutionResult_emptyOutput_noPins() {
+    void scriptExecutionResultEmptyOutputNoPins() {
         // Given
         ScriptExecutionResult result = new ScriptExecutionResult(true, "", "", 0);
 
@@ -158,7 +158,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void scriptExecutionResult_blankOutput_noPins() {
+    void scriptExecutionResultBlankOutputNoPins() {
         // Given
         ScriptExecutionResult result = new ScriptExecutionResult(true, "   ", "", 0);
 
@@ -168,7 +168,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void migrationResult_success_factory() {
+    void migrationResultSuccessFactory() {
         // Given/When
         TokenPinMigrationResult result = TokenPinMigrationResult.success(java.util.List.of("0", "1"));
 
@@ -179,7 +179,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void migrationResult_failed_factory() {
+    void migrationResultFailedFactory() {
         // Given/When
         TokenPinMigrationResult result = TokenPinMigrationResult.failed("Test error");
 
@@ -190,7 +190,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void migrationResult_skipped_isSuccessful() {
+    void migrationResultSkippedIsSuccessful() {
         // Given/When
         TokenPinMigrationResult result = TokenPinMigrationResult.skipped("No PINs");
 
@@ -200,7 +200,7 @@ class TokenPinParsingTest {
     }
 
     @Test
-    void migrationResult_partialSuccess_factory() {
+    void migrationResultPartialSuccessFactory() {
         // Given/When
         TokenPinMigrationResult result = TokenPinMigrationResult.partialSuccess(
                 java.util.List.of("0"),

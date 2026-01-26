@@ -67,6 +67,7 @@ public class AutoLoginScriptExecutor {
      * @return ScriptExecutionResult with output, error output, and exit code
      * @throws IOException If script not found, not executable, or execution fails critically
      */
+    @SuppressWarnings("checkstyle:MagicNumber")
     public ScriptExecutionResult execute(Path scriptPath) throws IOException {
         log.debug("Executing fetch-pin script: {}", scriptPath);
 

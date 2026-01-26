@@ -33,6 +33,7 @@ package org.niis.xroad.migration.tokenpin;
  * @param errorOutput Script stderr content
  * @param exitCode Script exit code (0, 127, or error)
  */
+@SuppressWarnings("checkstyle:MagicNumber")
 public record ScriptExecutionResult(
         boolean success,
         String output,

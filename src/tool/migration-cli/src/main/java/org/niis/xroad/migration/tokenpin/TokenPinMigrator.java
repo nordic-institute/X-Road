@@ -61,32 +61,15 @@ public class TokenPinMigrator {
     public TokenPinMigrationResult migrateFromScript(Path scriptPath) throws IOException {
         log.info("Starting PIN migration from autologin script: {}", scriptPath);
 
-        // 1. Validate script exists and is executable
-        if (!Files.exists(scriptPath)) {
-            throw new IOException("Script not found: " + scriptPath);
-        }
-        if (!Files.isExecutable(scriptPath)) {
-            throw new IOException("Script not executable: " + scriptPath);
-        }
+        validateScript(scriptPath);
 
-        // 2. Execute fetch-pin script
         ScriptExecutionResult scriptResult = scriptExecutor.execute(scriptPath);
 
-        // 3. Handle exit code 127 (no PINs available - non-fatal)
-        if (scriptResult.isPinUnavailable()) {
-            log.info("No PINs available (exit code 127), skipping migration");
-            return TokenPinMigrationResult.skipped("No PINs available from script");
+        TokenPinMigrationResult earlyResult = handleScriptResult(scriptResult);
+        if (earlyResult != null) {
+            return earlyResult;
         }
 
-        // 4. Handle script failure
-        if (!scriptResult.success()) {
-            log.error("Script execution failed with exit code {}: {}",
-                    scriptResult.exitCode(), scriptResult.errorOutput());
-            return TokenPinMigrationResult.failed(
-                    "Script failed with exit code " + scriptResult.exitCode() + ": " + scriptResult.errorOutput());
-        }
-
-        // 5. Parse script output
         List<TokenPin> tokenPins;
         try {
             tokenPins = parsePinOutput(scriptResult.output());
@@ -102,49 +85,82 @@ public class TokenPinMigrator {
 
         log.info("Parsed {} token PIN(s) from script output", tokenPins.size());
 
-        // 6. Store each PIN in OpenBao
+        return migrateTokenPins(tokenPins);
+    }
+
+    private void validateScript(Path scriptPath) throws IOException {
+        if (!Files.exists(scriptPath)) {
+            throw new IOException("Script not found: " + scriptPath);
+        }
+        if (!Files.isExecutable(scriptPath)) {
+            throw new IOException("Script not executable: " + scriptPath);
+        }
+    }
+
+    private TokenPinMigrationResult handleScriptResult(ScriptExecutionResult scriptResult) {
+        if (scriptResult.isPinUnavailable()) {
+            log.info("No PINs available (exit code 127), skipping migration");
+            return TokenPinMigrationResult.skipped("No PINs available from script");
+        }
+        if (!scriptResult.success()) {
+            log.error("Script execution failed with exit code {}: {}",
+                    scriptResult.exitCode(), scriptResult.errorOutput());
+            return TokenPinMigrationResult.failed(
+                    "Script failed with exit code " + scriptResult.exitCode() + ": " + scriptResult.errorOutput());
+        }
+        return null;
+    }
+
+    private TokenPinMigrationResult migrateTokenPins(List<TokenPin> tokenPins) {
         List<String> successfulTokens = new ArrayList<>();
         List<String> skippedTokens = new ArrayList<>();
         Map<String, String> failedTokens = new HashMap<>();
 
         for (TokenPin tokenPin : tokenPins) {
-            try {
-                // Check if PIN already exists (no-overwrite policy)
-                Optional<char[]> existing = vaultClient.getTokenPin(tokenPin.tokenId());
-                if (existing.isPresent()) {
-                    log.info("PIN for token {} already exists in OpenBao, skipping", tokenPin.tokenId());
-                    skippedTokens.add(tokenPin.tokenId());
-                    continue;
-                }
-
-                // Store PIN
-                vaultClient.setTokenPin(tokenPin.tokenId(), tokenPin.pin().toCharArray());
-                log.info("Stored PIN for token {} in OpenBao", tokenPin.tokenId());
-
-                // Verify storage
-                if (!verifyPinInVault(tokenPin.tokenId())) {
-                    log.error("PIN verification failed for token {}", tokenPin.tokenId());
-                    failedTokens.put(tokenPin.tokenId(), "Verification failed after storage");
-                    continue;
-                }
-
-                successfulTokens.add(tokenPin.tokenId());
-                log.info("Migrated PIN for token {} to OpenBao", tokenPin.tokenId());
-
-            } catch (Exception e) {
-                log.error("Failed to migrate PIN for token {}: {}", tokenPin.tokenId(), e.getMessage());
-                failedTokens.put(tokenPin.tokenId(), e.getMessage());
-            }
+            migrateTokenPin(tokenPin, successfulTokens, skippedTokens, failedTokens);
         }
 
-        // 7. Return appropriate result
+        return buildMigrationResult(successfulTokens, skippedTokens, failedTokens);
+    }
+
+    private void migrateTokenPin(TokenPin tokenPin, List<String> successfulTokens,
+                                  List<String> skippedTokens, Map<String, String> failedTokens) {
+        try {
+            Optional<char[]> existing = vaultClient.getTokenPin(tokenPin.tokenId());
+            if (existing.isPresent()) {
+                log.info("PIN for token {} already exists in OpenBao, skipping", tokenPin.tokenId());
+                skippedTokens.add(tokenPin.tokenId());
+                return;
+            }
+
+            vaultClient.setTokenPin(tokenPin.tokenId(), tokenPin.pin().toCharArray());
+            log.info("Stored PIN for token {} in OpenBao", tokenPin.tokenId());
+
+            if (!verifyPinInVault(tokenPin.tokenId())) {
+                log.error("PIN verification failed for token {}", tokenPin.tokenId());
+                failedTokens.put(tokenPin.tokenId(), "Verification failed after storage");
+                return;
+            }
+
+            successfulTokens.add(tokenPin.tokenId());
+            log.info("Migrated PIN for token {} to OpenBao", tokenPin.tokenId());
+
+        } catch (Exception e) {
+            log.error("Failed to migrate PIN for token {}: {}", tokenPin.tokenId(), e.getMessage());
+            failedTokens.put(tokenPin.tokenId(), e.getMessage());
+        }
+    }
+
+    private TokenPinMigrationResult buildMigrationResult(List<String> successfulTokens,
+                                                          List<String> skippedTokens,
+                                                          Map<String, String> failedTokens) {
         if (failedTokens.isEmpty() && skippedTokens.isEmpty()) {
             return TokenPinMigrationResult.success(successfulTokens);
-        } else if (successfulTokens.isEmpty() && skippedTokens.isEmpty()) {
-            return TokenPinMigrationResult.failed("All tokens failed to migrate");
-        } else {
-            return TokenPinMigrationResult.partialSuccess(successfulTokens, skippedTokens, failedTokens);
         }
+        if (successfulTokens.isEmpty() && skippedTokens.isEmpty()) {
+            return TokenPinMigrationResult.failed("All tokens failed to migrate");
+        }
+        return TokenPinMigrationResult.partialSuccess(successfulTokens, skippedTokens, failedTokens);
     }
 
     /**

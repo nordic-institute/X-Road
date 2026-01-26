@@ -29,9 +29,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.migration.signer.KeyConfMigrator;
-import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
-import org.niis.xroad.migration.tokenpin.TokenPinMigrationResult;
-import org.niis.xroad.migration.tokenpin.TokenPinMigrator;
 
 import java.io.File;
 import java.nio.file.Files;

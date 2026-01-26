@@ -63,7 +63,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_singlePin_success() throws IOException {
+    void migrateFromScriptSinglePinSuccess() throws IOException {
         // Given: script returns single PIN
         Path script = createExecutableScript();
         when(mockExecutor.execute(any()))
@@ -82,7 +82,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_multiToken_success() throws IOException {
+    void migrateFromScriptMultiTokenSuccess() throws IOException {
         // Given: script returns multiple tokens
         Path script = createExecutableScript();
         String output = "0:secret123\nsofttoken-1:another\n";
@@ -108,7 +108,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_exitCode127_skipped() throws IOException {
+    void migrateFromScriptExitCode127Skipped() throws IOException {
         // Given: script returns exit code 127
         Path script = createExecutableScript();
         when(mockExecutor.execute(any()))
@@ -124,7 +124,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_existingPin_skipped() throws IOException {
+    void migrateFromScriptExistingPinSkipped() throws IOException {
         // Given: PIN already exists in OpenBao
         Path script = createExecutableScript();
         when(mockExecutor.execute(any()))
@@ -141,7 +141,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_duplicateTokenId_failed() throws IOException {
+    void migrateFromScriptDuplicateTokenIdFailed() throws IOException {
         // Given: script output has duplicate token ID
         Path script = createExecutableScript();
         String output = "0:secret1\n0:secret2\n";
@@ -157,7 +157,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_emptyOutput_skipped() throws IOException {
+    void migrateFromScriptEmptyOutputSkipped() throws IOException {
         // Given: script returns empty output
         Path script = createExecutableScript();
         when(mockExecutor.execute(any()))
@@ -172,7 +172,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_scriptFailure_failed() throws IOException {
+    void migrateFromScriptScriptFailureFailed() throws IOException {
         // Given: script execution fails
         Path script = createExecutableScript();
         when(mockExecutor.execute(any()))
@@ -187,7 +187,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void migrateFromScript_verificationFails_partialSuccess() throws IOException {
+    void migrateFromScriptVerificationFailsPartialSuccess() throws IOException {
         // Given: script returns two tokens but one fails verification
         Path script = createExecutableScript();
         String output = "0:secret1\n1:secret2\n";
@@ -212,7 +212,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void verifyPinInVault_existingPin_returnsTrue() {
+    void verifyPinInVaultExistingPinReturnsTrue() {
         // Given: PIN exists in vault
         when(mockVaultClient.getTokenPin("0"))
                 .thenReturn(Optional.of("secret".toCharArray()));
@@ -225,7 +225,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void verifyPinInVault_missingPin_returnsFalse() {
+    void verifyPinInVaultMissingPinReturnsFalse() {
         // Given: PIN does not exist in vault
         when(mockVaultClient.getTokenPin("0"))
                 .thenReturn(Optional.empty());
@@ -238,7 +238,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void verifyPinInVault_emptyPin_returnsFalse() {
+    void verifyPinInVaultEmptyPinReturnsFalse() {
         // Given: PIN is empty
         when(mockVaultClient.getTokenPin("0"))
                 .thenReturn(Optional.of(new char[0]));
@@ -251,7 +251,7 @@ class TokenPinMigratorTest {
     }
 
     @Test
-    void verifyPinInVault_vaultThrows_returnsFalse() {
+    void verifyPinInVaultVaultThrowsReturnsFalse() {
         // Given: VaultClient throws exception
         when(mockVaultClient.getTokenPin("0"))
                 .thenThrow(new RuntimeException("Vault error"));
