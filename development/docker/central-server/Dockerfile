@@ -39,7 +39,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -63,7 +63,7 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \

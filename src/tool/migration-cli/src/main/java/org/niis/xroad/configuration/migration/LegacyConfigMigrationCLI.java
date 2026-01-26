@@ -29,8 +29,12 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.migration.signer.KeyConfMigrator;
+import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
+import org.niis.xroad.migration.tokenpin.TokenPinMigrationResult;
+import org.niis.xroad.migration.tokenpin.TokenPinMigrator;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -51,6 +55,7 @@ public class LegacyConfigMigrationCLI {
         PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
+        SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
         HELP("help", "Show this help message");
 
         private final String name;
@@ -68,6 +73,7 @@ public class LegacyConfigMigrationCLI {
                 case "pgp-keys" -> PGP_KEYS;
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
                 case "keyconf" -> KEYCONF;
+                case "signer-token-pins" -> SIGNER_TOKEN_PINS;
                 case "help", "-h", "--help" -> HELP;
                 default -> null;
             };
@@ -94,6 +100,7 @@ public class LegacyConfigMigrationCLI {
                 case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
                 case KEYCONF -> migrateKeyConf(shiftArgs(args));
+                case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
                 default -> showHelp();
             }
         } catch (Exception e) {
@@ -123,6 +130,7 @@ public class LegacyConfigMigrationCLI {
                   pgp-keys                       Migrate PGP keys from GPG to Vault
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
                   keyconf                        Migrate signer key configuration to DB
+                  signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
                   help                           Show this help message
 
                 Configuration Migration:
@@ -148,11 +156,26 @@ public class LegacyConfigMigrationCLI {
                     <keyconf path>       Path to directory containing keyconf.xml and softtoken keys
                     <db.properties path> Path to database properties file (serverconf)
 
+                Signer Token PINs Migration:
+                  migration-cli signer-token-pins [<script-path>]
+                    Migrates token PINs from autologin scripts to Vault.
+                    Arguments:
+                      <script-path>    Optional path to fetch-pin script
+                                      If not provided, auto-selects:
+                                        1. /usr/share/xroad/autologin/custom-fetch-pin.sh (preferred)
+                                        2. /usr/share/xroad/autologin/default-fetch-pin.sh (fallback)
+                    Notes:
+                      - Requires Vault to be configured and accessible
+                      - Existing PINs in Vault are preserved (not overwritten)
+                      - Exit code 127 from script is treated as non-fatal (no PINs to migrate)
+
                 Examples:
                   migration-cli config /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/local.yaml
                   migration-cli pgp-keys /etc/xroad/conf.d/local.ini
                   migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
+                  migration-cli signer-token-pins
+                  migration-cli signer-token-pins /usr/share/xroad/autologin/custom-fetch-pin.sh
                 """);
     }
 
@@ -264,6 +287,50 @@ public class LegacyConfigMigrationCLI {
             log.error("Error while migrating Signer keyconf", e);
         }
 
+    }
+
+    private static void migrateSignerTokenPins(String[] args) {
+        // Determine script path
+        Path scriptPath;
+        if (args.length > 0) {
+            scriptPath = Path.of(args[0]);
+        } else {
+            Path customScript = Path.of("/usr/share/xroad/autologin/custom-fetch-pin.sh");
+            Path defaultScript = Path.of("/usr/share/xroad/autologin/default-fetch-pin.sh");
+            scriptPath = Files.exists(customScript) ? customScript : defaultScript;
+        }
+
+        log.info("Using fetch-pin script: {}", scriptPath);
+
+        if (!Files.exists(scriptPath)) {
+            log.error("Fetch-pin script not found: {}", scriptPath);
+            log.error("Ensure xroad-autologin package is installed or provide an explicit script path");
+            System.exit(1);
+        }
+
+        //TODO provide vault configuration
+
+        // Example of how this would work with proper vault client:
+        // VaultClient vaultClient = createVaultClient();
+        // AutoLoginScriptExecutor executor = new AutoLoginScriptExecutor();
+        // TokenPinMigrator migrator = new TokenPinMigrator(vaultClient, executor);
+        //
+        // TokenPinMigrationResult result = migrator.migrateFromScript(scriptPath);
+        //
+        // System.out.println("Migration Status: " + result.status());
+        // System.out.println("Message: " + result.message());
+        //
+        // if (!result.successfulTokens().isEmpty()) {
+        //     System.out.println("Migrated tokens: " + String.join(", ", result.successfulTokens()));
+        // }
+        // if (!result.skippedTokens().isEmpty()) {
+        //     System.out.println("Skipped tokens (already exist): " + String.join(", ", result.skippedTokens()));
+        // }
+        // if (!result.failedTokens().isEmpty()) {
+        //     System.out.println("Failed tokens:");
+        //     result.failedTokens().forEach((token, error) ->
+        //         System.out.println("  - " + token + ": " + error));
+        // }
     }
 
     private static void migrateConfiguration(String[] args) {

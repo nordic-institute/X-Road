@@ -38,12 +38,10 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     xroad-proxy-ui-api \
     xroad-opmonitor \
     xroad-monitor \
-    xroad-autologin \
     xroad-database-remote \
   && apt-get -qq clean
 
 COPY --chown=xroad:xroad files/override-docker.ini files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
-COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 
 RUN rm -f \
     /etc/xroad/db.properties \
