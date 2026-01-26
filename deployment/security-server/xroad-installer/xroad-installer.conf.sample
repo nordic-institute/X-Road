@@ -1,0 +1,84 @@
+# X-Road Security Server Installer Configuration Sample
+# --------------------------------------------------
+# Use this file to provide pre-defined values for the installer.
+# To use it, run: sudo ./xroad-installer.sh --config-file xroad-installer.conf
+
+# 1. Admin User Configuration
+# The username for the X-Road administration user.
+#XROAD_ADMIN_USERNAME=xrd
+
+# The password for the X-Road administration user.
+#XROAD_ADMIN_PASSWORD=your-secure-password
+
+# 2. Database Configuration
+# Select database type: "local" (default) or "remote".
+#XROAD_DB_TYPE=local
+
+# For remote database: specify host and port (e.g., "192.168.1.123:5432").
+#XROAD_DB_CONNECTION_HOST_PORT=localhost:5432
+
+# Remote database superuser name (usually "postgres").
+#XROAD_DB_USER=postgres
+
+# Remote database superuser password.
+#XROAD_DB_PASSWORD=your-secure-password
+
+# Custom libpq connection properties (e.g., for SSL/TLS).
+# Example: "PGSSLMODE=verify-full\nPGSSLROOTCERT=/path/to/ca.crt"
+#XROAD_DB_LIBPQ_CONTENT=
+
+# 3. Secret Store Configuration
+# Select secret store type: "local" (default) or "remote".
+XROAD_SECRET_STORE_TYPE=local
+
+# 4. TLS Configuration
+# Common Name (CN) for the TLS certificate (usually the FQDN).
+#XROAD_TLS_HOSTNAME=ss.example.com
+
+# Subject Alternative Names (SAN) for the TLS certificate.
+# Format: IP:1.2.3.4,DNS:ss.example.com
+#XROAD_TLS_ALT_NAMES=IP:127.0.0.1,DNS:localhost
+
+# 5. Package Configuration
+# X-Road package to install. Options include:
+# xroad-securityserver-ee (Estonia)
+# xroad-securityserver-fi (Finland)
+# xroad-securityserver-is (Iceland)
+# xroad-securityserver-fo (Faroe Islands)
+#XROAD_SS_PACKAGE=xroad-securityserver
+
+# 6. Repository Configuration (Ubuntu/Debian)
+# URL to the GPG key for signing the repositories.
+#XROAD_REPO_DEB_GPG_KEY_URL=https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg
+
+# X-Road software repository component name.
+#XROAD_REPO_DEB=xroad8-snapshot-deb
+
+# X-Road dependencies repository component name.
+#XROAD_REPO_DEB_DEPENDENCIES=xroad-dependencies-deb
+
+# Repository Configuration (RHEL)
+# URL to the GPG key for signing the RPM repositories.
+#XROAD_REPO_RPM_GPG_KEY_URL=https://artifactory.niis.org/api/gpg/key/public
+
+# X-Road software repository component name for RHEL.
+#XROAD_REPO_RPM=xroad8-snapshot-rpm
+
+# X-Road dependencies repository component name for RHEL.
+#XROAD_REPO_RPM_DEPENDENCIES=xroad-dependencies-rpm
+
+# General Repository Settings
+# Base URL for the Artifactory or repository server.
+#XROAD_REPO_BASE_URL=https://artifactory.niis.org
+
+# 7. Proxy Memory Configuration
+# Memory settings for the proxy service (JVM heap size).
+# Examples: 
+# "512m 1g" (Explicit min/max)
+# "r" (Recommended calculation based on RAM)
+# "d" (Default)
+#XROAD_PROXY_MEM_SETTING="512m 1g"
+
+# 8. Other Options
+# Set to "true" to skip system requirements check.
+#XROAD_SKIP_REQUIREMENTS_CHECK="false"
