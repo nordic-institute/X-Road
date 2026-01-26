@@ -110,3 +110,14 @@ export function saveResponseAsFile(response: AxiosResponse, defaultFileName = 'c
   document.body.removeChild(link);
   URL.revokeObjectURL(link.href);
 }
+
+// Checks if the given WSDL URL valid
+export function isValidWsdlURL(str: string): boolean {
+  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
+  return pattern.test(str);
+}
+
+// Checks if the given REST URL is valid
+export function isValidRestURL(str: string): boolean {
+  return isValidWsdlURL(str);
+}

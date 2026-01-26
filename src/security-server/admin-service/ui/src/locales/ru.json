@@ -157,7 +157,8 @@
     "invalidEndpoint": "Конечная точка содержит недопустимые символы",
     "invalidUrl": "URL недействителен",
     "invalidXrdIdentifier": "Значение идентификатора содержит недопустимые символы",
-    "requiredIf": "Поле {fieldName} обязательно"
+    "requiredIf": "Поле {fieldName} обязательно",
+    "description": "Используйте только допустимые символы в описании"
   },
   "diagnostics": {
     "addOnStatus": {

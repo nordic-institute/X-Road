@@ -118,7 +118,7 @@ const isManagementServiceProvider = ref(false);
 const statusText = ref(undefined as string | undefined);
 let refreshHandle = 0;
 
-const { meta, errors, value: noticeMessage, resetField } = useField('message', 'max:255', { initialValue: '' });
+const { meta, errors, value: noticeMessage, resetField } = useField('message', 'max:255|validDescription', { initialValue: '' });
 
 const { hasPermission } = useUser();
 const { fetchMaintenanceModeState, enableMaintenanceMode, disableMaintenanceMode } = useSystem();

@@ -174,7 +174,8 @@
     "invalidEndpoint": "Otspunkt sisaldab lubamatuid märke",
     "invalidUrl": "URL on kehtetu",
     "invalidXrdIdentifier": "Identifikaatori väärtus sisaldab lubamatuid märke",
-    "requiredIf": "Väli {fieldName} on nõutav"
+    "requiredIf": "Väli {fieldName} on nõutav",
+    "description": "Kasutage ainult kehtivaid kirjelduse märke"
   },
   "diagnostics": {
     "addOnStatus": {

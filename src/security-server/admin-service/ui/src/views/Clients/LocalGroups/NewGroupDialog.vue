@@ -85,7 +85,7 @@ export default defineComponent({
     const { meta, defineField, resetForm } = useForm({
       validationSchema: {
         code: 'required|max:255',
-        description: 'required|max:255',
+        description: 'required|max:255|validDescription',
       },
       initialValues: {
         code: '',
