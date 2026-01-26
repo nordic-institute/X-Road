@@ -66,7 +66,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     /**
      * Constructs a confproxy-generate-anchor utility program instance.
      */
-    ConfProxyUtilViewConf(SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilViewConf(SignerRpcClient signerRpcClient) {
         super("confproxy-view-conf", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)

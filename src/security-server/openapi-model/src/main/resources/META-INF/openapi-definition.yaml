@@ -7191,6 +7191,7 @@ components:
           example: description
           minLength: 1
           maxLength: 255
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
     LocalGroupDescription:
       type: object
       required:
@@ -7202,6 +7203,7 @@ components:
           format: text
           minLength: 1
           maxLength: 255
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
       example:
         name: This is an awesome local group!
     GlobalConfDiagnostics:
@@ -7659,6 +7661,7 @@ components:
           description: optional message describing maintenance mode
           format: text
           maxLength: 255
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
       example:
         message: End on 14. May
     MaintenanceMode:

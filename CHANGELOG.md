@@ -3,6 +3,40 @@
 ## 8.0.0 - UNRELEASED
 
 ## 7.8.0 - UNRELEASED
+- XRDDEV-2734: Improve the method by which the operational monitoring component on the Security Server resolves its internal IP.
+- XRDDEV-2919: Allow ACME HTTP challenge port to be customised. This helps in cases where the host or container doesn’t have port 80 available to bind to, but the user still wants to use ACME.
+- XRDDEV-2921: Improve the diagnostics information available on the diagnostics page of the Security Server user interface regarding the global configuration and TSA connections.
+- XRDDEV-2922: Add functionality to the Central Server to support diagnostic checks for global configuration and authentication certificate registration initiated from the Security Server.
+- XRDDEV-2923: Add functionality to the Security Server that allows testing connections to peer Security Servers and clients via the diagnostics page. This enables Security Server administrators to verify connections to other Security Servers and clients, for example, to confirm that the required firewall configurations are in place.
+- XRDDEV-2933: Improve global configuration download client behavior and implement a better retry logic with exponential back-off to decrease the chances of a deadlock.
+- XRDDEV-2947: Fix an issue on the Security Server where adding a member to a local group would cause identifier entries to be duplicated.
+- XRDDEV-2949: Fix an issue that caused the backup restore process to override the local db_libpq.env override file.
+- XRDDEV-2950: Merge translation contribution to the Estonian language by TaaviMeinberg.
+- XRDDEV-2968: Merge a Security Server Sidecar contribution by tuomari. This improvement allows providing the Security Server UI user password as a hash(SHA512) by passing the XROAD_ADMIN_PWD_HASH environmental variable.
+- XRDDEV-2973: Merge translation contribution to the Portuguese language by georgeroliveira.
+- XRDDEV-2977: Add a new input field to the Central Server UI to define which CSR format should be used with a specific CA. The format is mandatory when adding a new CA or updating and existing one.
+- XRDDEV-2978: Add support for automatically selecting the supported CSR format during the certificate request flow in the Security Server UI. When the CSR format is automatically selected, the CSR format menu is read-only and its value cannot be changed. Automatic selection is enabled when the supported CSR format is defined for the selected CA on the Central Server.
+- XRDDEV-2979: Add functionality to the Central Server UI to allow marking CA’s and TSA’s as being free or paid. When adding a new trust service or updating and existing one, marking them as free or paid is mandatory.
+- XRDDEV-2980: Add support for configuring the strategy used to determine which CA or TSA service is used on the Security Server.
+- XRDDEV-2981: Add functionality to apply the selected trust service strategy for proxy communications on the Security Server.
+- XRDDEV-3004: Fix an issue where the value of the “Updated date” field is not correctly updated when a global group is changed in the Central Server UI.
+- XRDDEV-3014: Fix an issue on the Security Server UI, where long member names in the local group management view didn’t wrap correctly, causing the “Remove” button to be hidden.
+- XRDDEV-3018: Fix an issue where the configuration client was erroneously started on the Central Server after a backup was restored.
+- XRDDEV-3020: Add functionality to the autologin script to handle multiple tokens, allowing both software and hardware tokens to be logged in automatically.
+- XRDDEV-3025: Fix a bug where the header of the keys and certificates page in the Security Server UI was not visible.
+- XRDDEV-3033: Fix an inconsistency on the Security Server UI where the column was named “member name”, when the actual contents were “subsystem name”.
+- XRDDEV-3042: Fix issue where the key-management-api-whitelist and regular-api-whitelist were not configurable for the Central Server REST API. The parameters can now be set under the [admin-service] block and behave the same way they do for the Security Server REST API.
+- XRDDEV-3044: Review memory usage of X-Road 7 components. Increased the messagelog addon module's metaspace default from 80M to 90M.
+- XRDDEV-3047: Add a new version of the basic certificate profile that supports ACME. The new profile is identical to the existing one but includes the SAN field required by ACME. The new basic profile can be used by setting the following CertificateProfileInfo value on the Central Server:
+- XRDDEV-3048: Install the hardware token module addon as baseline in the Security Server Sidecar so that hardware tokens can be used with it. The addon is now included in all the Security Server Sidecar variants.
+- XRDDEV-3049: Migrate to the ECharts JS library on the Security Server UI due to licensing changes in the original charting library used.
+- XRDDEV-3050: Fix an issue in the Security Server initialisation flow that was caused by the “Served id exists” warning.
+- XRDDEV-3062: Fix an issue with the PEM CSR format when used with ACME.
+- XRDDEV-3064: Implement automatic account-keystore-password for ACME in acme.yml. Before the change, the password had to be manually defined by the Security Server administrator. After the change, the password is generated automatically by the Security Server.
+
+## 7.7.1 - 2025-12-23
+- XRDDEV-3049: As a Developer I want to replace our charting library for a library that has a better license so that we don't have licensing issues
+- XRDDEV-3054: Resolve issue where using wildcard expressions in REST path mappings lead to a vulnerability to path traversal attacks in certain cases
 
 ## 7.7.0 - 2025-07-08
 - XRDDEV-55: As a Product Owner I want that the memory allocated for Proxy component will be automatically adjusted at init phase of Security Server to correlate the amount of RAM memory to optimize the performance

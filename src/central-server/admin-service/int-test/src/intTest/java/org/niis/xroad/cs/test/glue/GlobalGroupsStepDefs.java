@@ -134,13 +134,18 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
         final GlobalGroupDescriptionDto dto = new GlobalGroupDescriptionDto()
                 .description(description);
 
-        final ResponseEntity<GlobalGroupResourceDto> response =
-                globalGroupsApi.updateGlobalGroupDescription(groupCode, dto);
+        try {
+            final ResponseEntity<GlobalGroupResourceDto> response =
+                    globalGroupsApi.updateGlobalGroupDescription(groupCode, dto);
 
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(description, "body.description"))
-                .execute();
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(OK))
+                    .assertion(equalsAssertion(description, "body.description"))
+                    .execute();
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
     }
 
     @Step("global group {string} description is {string}")

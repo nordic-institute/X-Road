@@ -66,7 +66,7 @@ public class OcspResponderDiagnosticConverterTest {
         GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
         when(globalConfProvider.getOcspResponderCostType("DEV", URL_1)).thenReturn(CostType.FREE);
-        when(globalConfProvider.getOcspResponderCostType("DEV", URL_2)).thenReturn(CostType.PAID);
+        when(globalConfProvider.getOcspResponderCostType("DEV", URL_2)).thenReturn(null);
 
         ocspResponderDiagnosticConverter = new OcspResponderDiagnosticConverter(globalConfProvider);
     }
@@ -137,7 +137,7 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(null, secondDiagnostic.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_2, secondDiagnostic.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_2, secondDiagnostic.getOcspResponders().get(0).getUrl());
-        assertEquals(CostTypeDto.PAID, secondDiagnostic.getOcspResponders().get(0).getCostType());
+        assertEquals(null, secondDiagnostic.getOcspResponders().get(0).getCostType());
 
         assertEquals(ErrorCode.OCSP_RESPONSE_PARSING_FAILURE.code(), secondDiagnostic.getOcspResponders()
                 .get(1).getError().getCode());

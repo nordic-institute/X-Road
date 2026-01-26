@@ -8,6 +8,11 @@ Feature: 0480 - CS: Manage Global Group members
     And CentralServer Settings tab is selected
     And Global Resources sub-tab is selected
 
+  Scenario: Global group description is edited with invalid description
+    Given user opens global group: "security-server-owners" details
+    And user presses edit description button and invalid description is entered
+    Then Error message for global group description is displayed
+
   Scenario: Member or subsystem cannot be added to server owner group
     Given user opens global group: "security-server-owners" details
     And group has 0 members

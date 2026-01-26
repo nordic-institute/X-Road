@@ -103,6 +103,18 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
         validateMemberClassResponse(response, OK, code, description);
     }
 
+    @Step("member class {string} description is updated with invalid description {string}")
+    public void memberClassInvalidDescriptionIsUpdated(String code, String description) {
+        final MemberClassDescriptionDto dto = new MemberClassDescriptionDto()
+                .description(description);
+        try {
+            memberClassesApi.updateMemberClass(code, dto);
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
     @Step("member class list contains {int} items")
     public void memberClassListContainsItems(int count) {
         final ResponseEntity<List<MemberClassDto>> response = memberClassesApi.getMemberClasses();

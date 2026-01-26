@@ -30,12 +30,12 @@ jobs:
       service_image_tag: ${{ steps.build-config.outputs.service_image_tag }}
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
@@ -49,14 +49,14 @@ jobs:
           free-disk-space: false
 
       - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
       - name: Build, test and package code setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'Build environment setup'
@@ -170,7 +170,7 @@ jobs:
           compression-level: '0'
 
       - name: Upload opmonitor-int-test
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: opmonitor-int-test-jar
           path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test-1.0.jar
@@ -231,7 +231,7 @@ jobs:
           list-tests: 'failed'
 
       - name: Build, test and package code execution measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'Build, unit tests and packaging'
@@ -303,13 +303,13 @@ jobs:
           show-packages: 'true'
 
       - name: Packaging and upload artifacts measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: get-measurement
           label: 'Packaging and upload artifacts'
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
           pr-comment: true

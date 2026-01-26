@@ -174,7 +174,8 @@
     "invalidEndpoint": "Otspunkt sisaldab lubamatuid märke",
     "invalidUrl": "URL on kehtetu",
     "invalidXrdIdentifier": "Identifikaatori väärtus sisaldab lubamatuid märke",
-    "requiredIf": "Väli {fieldName} on nõutav"
+    "requiredIf": "Väli {fieldName} on nõutav",
+    "description": "Kasutage ainult kehtivaid kirjelduse märke"
   },
   "diagnostics": {
     "addOnStatus": {
@@ -390,6 +391,8 @@
       "account_creation_failure": "Konto loomine ACME serveris ebaõnnestus. Kui välise konto sidumine on nõutav, siis veenduge, et acme.yml failis on konfigureeritud õiged identsustõendid",
       "account_key_pair_error": "Võtmepaari hankimine ACME serveri kontole ebaõnnestus",
       "account_keystore_password_missing": "ACME konto võtmehoidla parool puudub acme.yml konfiguratsioonifailis",
+      "acme_yaml_missing": "ACME konfiguratsioonifail acme.yml puudub",
+      "acme_yaml_account_keystore_password_update_error": "ACME konto võtmehoidla parooli uuendamine acme.yml konfiguratsioonifailis ebaõnnestus",
       "authorization_failure": "Volitamine ebaõnnestus. Tavaliselt seotud pretensiooni valideerimise tõrkega, mis on nõutav domeeni omandi tõendamiseks",
       "authorization_wait_failure": "Volitamise lõpule viimise ootamine ebaõnnestus",
       "certificate_failure": "Sertifikaadi hankimine ACME serverilt ebaõnnestus",
@@ -472,6 +475,7 @@
     "invalid_init_params": "Kehtetud lähtestamisparameetrid",
     "invalid_instance_identifier": "Kehtetu juhtumi identifikaator",
     "invalid_member_class": "Kehtetu liikmeklass",
+    "invalid_pem_csr": "Kehtetu PEM CSR",
     "invalid_service_client_id": "Kehtetu teenuse kliendi ID",
     "invalid_service_url": "Kehtetu teenuse URL",
     "invalid_wsdl": "Kehtetu WSDL",
@@ -994,7 +998,7 @@
       "services": "Teenused"
     },
     "diagnostics": {
-      "connectionTesting": "Ühenduse testimine",
+      "connectionTesting": "Ühenduste testimine",
       "overview": "Ülevaade",
       "traffic": "Päringute statistika"
     },

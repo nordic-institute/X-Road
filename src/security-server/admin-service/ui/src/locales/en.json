@@ -180,7 +180,8 @@
     "invalidEndpoint": "Endpoint contains illegal characters",
     "invalidUrl": "URL is not valid",
     "invalidXrdIdentifier": "Identifier value contains illegal characters",
-    "requiredIf": "The {fieldName} field is required"
+    "requiredIf": "The {fieldName} field is required",
+    "description": "Use valid description characters only"
   },
   "diagnostics": {
     "addOnStatus": {
@@ -401,6 +402,8 @@
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
       "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
+      "acme_yaml_missing": "ACME configuration file acme.yml is missing",
+      "acme_yaml_account_keystore_password_update_error": "Updating ACME account keystore password in acme.yml configuration file failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",
       "certificate_failure": "Getting the Certificate from the ACME server failed",
@@ -503,6 +506,7 @@
     "invalid_init_params": "Invalid initialisation parameters",
     "invalid_instance_identifier": "Invalid instance identifier",
     "invalid_member_class": "Invalid member class",
+    "invalid_pem_csr": "Invalid PEM CSR",
     "invalid_service_client_id": "Invalid service client ID",
     "invalid_service_url": "Invalid service url",
     "invalid_wsdl": "Invalid WSDL",

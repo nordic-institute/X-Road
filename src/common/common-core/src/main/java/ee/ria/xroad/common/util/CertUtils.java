@@ -71,10 +71,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -505,5 +507,23 @@ public final class CertUtils {
      */
     public static String identify(X509Certificate certificate) {
         return certificate.getIssuerX500Principal() + " " + certificate.getSerialNumber();
+    }
+
+    public static byte[] convertPemCsrToDer(byte[] pemCsr) {
+        try (PEMParser pemParser = new PEMParser(
+                new InputStreamReader(new ByteArrayInputStream(pemCsr), StandardCharsets.UTF_8))) {
+            Object object = pemParser.readObject();
+            if (!(object instanceof PKCS10CertificationRequest csr)) {
+                throw XrdRuntimeException.systemException(ErrorCode.INVALID_PEM_CSR)
+                        .details("Invalid PEM object type, expected PKCS10CertificationRequest")
+                        .build();
+            }
+            return csr.getEncoded();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.INVALID_PEM_CSR)
+                    .details("Failed to parse PEM CSR")
+                    .cause(e)
+                    .build();
+        }
     }
 }

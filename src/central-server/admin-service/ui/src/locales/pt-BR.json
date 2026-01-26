@@ -14,7 +14,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "O campo deve conter um endereço IP ou vários endereços separados por vírgula",
-    "invalidUrl": "URL inválida. Exemplos de formatos válidos: 'http://www.exemplo.com', 'https://www.exemplo.com'"
+    "invalidUrl": "URL inválida. Exemplos de formatos válidos: 'http://www.exemplo.com', 'https://www.exemplo.com'",
+    "description": "Use apenas caracteres válidos na descrição"
   },
   "error_code": {
     "backup_deletion_failed": "Falha ao excluir o backup",

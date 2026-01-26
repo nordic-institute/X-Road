@@ -1,6 +1,6 @@
 # X-Road: Autologin User Guide
 
-Version: 1.5
+Version: 1.6
 Doc. ID: UG-AUTOLOGIN
 
 
@@ -12,6 +12,7 @@ Doc. ID: UG-AUTOLOGIN
 | 11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                                                       |
 | 26.09.2022 | 1.4     | Remove Ubuntu 18.04 support                                                                       |
 | 14.10.2025 | 1.5     | Add multiple token support documentation                                                          |
+| 29.12.2025 | 1.6     | Updated implementation details to reflect changes to autologin service and script.                |
 
 ## Table of Contents
 
@@ -87,7 +88,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 * Creates a new service `xroad-autologin`
 * Service is started after `xroad-signer` has started
 * On RHEL/Ubuntu 20.04, service calls wrapper script `/usr/share/xroad/autologin/xroad-autologin-retry.sh` which in turn calls `autologin.expect`
-  * Wrapper script handles retries in error situations.
+  * Service handles retries in error situations.
 * Service tries to enter the PIN code using script `signer-console`
   * If the PIN was correct or incorrect, it exits
   * If an error occurred (for example because `xroad-signer` has not yet fully started or been initialised), it keeps retrying indefinitely

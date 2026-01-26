@@ -65,7 +65,9 @@ public class BasicACMECertificateProfileInfoProviderTest {
                 ).setReadOnly(true),
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.ORGANIZATION_NAME_CN,
                         "foobar"
-                ).setReadOnly(true)
+                ).setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("subjectAltName", DnFieldLabelLocalizationKey.SUBJECT_ALTERNATIVE_NAME, "")
+                        .setReadOnly(false),
         };
         assertArrayEquals(
                 "Did not get expected fields",

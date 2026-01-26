@@ -61,6 +61,19 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
                 .shouldBe(enabled)
                 .click();
     }
+    @Step("Local group {string} with invalid description is added")
+    public void addLocalGroupWithInvalidDescription(String name) {
+        clientInfoPageObj.localGroups.btnAddLocalGroup()
+                .shouldBe(visible)
+                .click();
+
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+        vTextField(clientInfoPageObj.localGroups.inputLocalGroupCode()).setValue(name);
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+        vTextField(clientInfoPageObj.localGroups.inputLocalGroupDescription()).setValue("invalid-desc$€");
+        commonPageObj.dialog.btnSave()
+                .shouldBe(disabled);
+    }
 
     @Step("Local group {string} is {selenideValidation} in the list")
     public void groupExists(String group, ParameterMappers.SelenideValidation selenideValidation) {
@@ -134,6 +147,13 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
             commonPageObj.snackBar.success().shouldHave(text("Description saved"));
             commonPageObj.snackBar.btnClose().click();
         }
+    }
+
+    @Step("Local group description is set to invalid description")
+    public void setInvalidDescription() {
+        vTextField(clientInfoPageObj.localGroups.details.inputLocalGroupDescription())
+                .clear()
+                .setValue("invaliddesc$€");
     }
 
     @Step("Local group search dialog is opened and members for instance {string} and member class {string} are filtered")
