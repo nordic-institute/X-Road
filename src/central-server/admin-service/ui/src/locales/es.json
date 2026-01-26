@@ -1,10 +1,4 @@
 {
-  "403": {
-    "goBack": "Volver",
-    "mainTitle": "Permiso denegado",
-    "text": "Parece que no tienes el permiso para ver esta página. Si crees que esto es un error, verifica si has iniciado sesión en la cuenta correcta o comunícate con tu Administrador para preguntar sobre tus permisos.",
-    "topTitle": "Denegado"
-  },
   "action": {
     "approve": "Aprobar",
     "decline": "Rechazar",
@@ -18,7 +12,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "El campo debe contener una dirección IP o múltiples direcciones separadas por coma",
-    "invalidUrl": "La URL no es válida, ejemplos de formatos de URL válidos: 'http://www.ejemplo.com', 'https://www.ejemplo.com'"
+    "invalidUrl": "La URL no es válida, ejemplos de formatos de URL válidos: 'http://www.ejemplo.com', 'https://www.ejemplo.com'",
+    "description": "Use únicamente caracteres válidos en la descripción"
   },
   "error_code": {
     "backup_deletion_failed": "No se pudo eliminar la copia de seguridad",
@@ -193,7 +188,6 @@
     "navigation": {
       "back": "Atrás"
     },
-    "pageNotFound": "Ups, página no encontrada",
     "register": "Registro",
     "search": "Buscar",
     "server": "Servidor",
@@ -639,6 +633,7 @@
     "certProfileInput": "Información del perfil de certificado",
     "certProfileInputExplanation": "Nombre de clase totalmente calificado (FQDN) que implementa la interfaz ee.ria.xroad.common.certificateprofile.certificateProfileInfoprovider",
     "certificationServices": "Servicios de certificación",
+    "defaultCsrFormat": "Formato CSR predeterminado",
     "timestampingService": {
       "addedSuccessfully": "Servicio de marca de tiempo agregado correctamente",
       "dialog": {
@@ -656,6 +651,12 @@
     },
     "timestampingServices": "Servicios de marca de tiempo",
     "trustService": {
+      "cost": "Costo",
+      "costType": {
+        "FREE": "Gratis",
+        "PAID": "Pago",
+        "UNDEFINED": "No definido"
+      },
       "delete": {
         "action": "Eliminar el servicio de confianza",
         "confirmationDialog": {
@@ -717,16 +718,11 @@
         "acmeCapable": "Esta CA se puede usar para Acme",
         "acmeNotCapable": "Esta CA no se puede usar para Acme",
         "certProfile": "Información del perfil de certificado (nombre de clase totalmente calificado (FQDN) que implementa la interfaz ee.ria.xroad.common.certificateProfileInfoprovider)",
+        "defaultCsrFormat": "Formato CSR predeterminado (seleccionado automáticamente al crear nuevas claves de autenticación y firma con esta AC; se puede cambiar manualmente)",
         "saveSuccess": "Configuración de CA guardada correctamente",
         "tlsAuth": "Esta CA solo se puede usar para la autenticación TLS"
       },
       "timestampingService": {
-        "cost": "Costo",
-        "costValues": {
-          "FREE": "Gratis",
-          "PAID": "Pago",
-          "UNDEFINED": "No definido"
-        },
         "delete": {
           "dialog": {
             "message": "¿Estás seguro de que quieres eliminar el servicio de marca de tiempo con la URL {URL}?",

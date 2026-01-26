@@ -3,4 +3,5 @@
 ../../../../src/xroad/default-configuration/confclient-logback.xml etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/confclient-logback-service.xml etc/xroad/conf.d
 ../../../../../service/configuration-client/configuration-client-application/build/libs/configuration-client-1.0.jar usr/share/xroad/jlib/
-
+../../../../../LICENSE.txt usr/share/doc/xroad-confclient/
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-confclient/

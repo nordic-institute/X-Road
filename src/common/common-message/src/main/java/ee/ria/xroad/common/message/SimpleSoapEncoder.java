@@ -55,7 +55,7 @@ public class SimpleSoapEncoder implements SoapMessageEncoder {
     }
 
     @Override
-    public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
+    public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws IOException {
         if (additionalHeaders != null && !additionalHeaders.isEmpty()) {
             throw new IllegalArgumentException("Additional headers not supported!");
         }
@@ -64,7 +64,7 @@ public class SimpleSoapEncoder implements SoapMessageEncoder {
 
     @Override
     public void attachment(String contentType, InputStream content,
-                           Map<String, String> additionalHeaders) throws Exception {
+                           Map<String, String> additionalHeaders) {
         throw new UnsupportedOperationException("Attachments are not supported!");
     }
 

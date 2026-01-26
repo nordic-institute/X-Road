@@ -47,6 +47,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -54,6 +55,8 @@ import java.util.function.Consumer;
  */
 @Slf4j
 public class RpcServer {
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 30;
+
     private final Server server;
 
     public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
@@ -79,10 +82,15 @@ public class RpcServer {
     }
 
     @PreDestroy
-    public void destroy() throws Exception {
+    public void destroy() throws InterruptedException {
         if (server != null) {
             log.info("Shutting down RPC server..");
             server.shutdown();
+
+            if (!server.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                log.warn("RPC server did not terminate gracefully within timeout, forcing shutdown");
+                server.shutdownNow();
+            }
             log.info("Shutting down RPC server.. Success!");
         }
     }

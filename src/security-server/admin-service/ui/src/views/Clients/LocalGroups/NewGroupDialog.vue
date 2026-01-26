@@ -63,14 +63,25 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { PublicPathState, useForm } from "vee-validate";
+import { PublicPathState, useForm } from 'vee-validate';
 
 export default defineComponent({
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+    dialog: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  emits: ['cancel', 'group-added'],
   setup() {
     const { meta, defineField, resetForm } = useForm({
       validationSchema: {
         code: 'required|max:255',
-        description: 'required|max:255',
+        description: 'required|max:255|validDescription',
       },
       initialValues: {
         code: '',
@@ -83,20 +94,12 @@ export default defineComponent({
       },
     });
     const [code, codeAttrs] = defineField('code', componentConfig);
-    const [description, descriptionAttrs] = defineField('description', componentConfig);
+    const [description, descriptionAttrs] = defineField(
+      'description',
+      componentConfig,
+    );
     return { meta, code, codeAttrs, description, descriptionAttrs, resetForm };
   },
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  emits: ['cancel', 'group-added'],
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {

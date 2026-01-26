@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -32,13 +33,11 @@ import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
-import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
@@ -58,11 +57,13 @@ import org.springframework.context.annotation.Import;
         ProxyDiagnosticsConfig.class,
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class,
+        ProxyOpMonitoringConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         ServerConfBeanConfig.class,
 })
 @Configuration
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ProxyConfig {
 
     @Bean
@@ -119,11 +120,6 @@ public class ProxyConfig {
     @Bean
     CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
         return new CertHashBasedOcspResponder(keyConfProvider);
-    }
-
-    @Bean
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
-        return OpMonitoring.init(serverConfProvider);
     }
 
     @Bean

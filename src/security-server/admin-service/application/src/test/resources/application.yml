@@ -13,20 +13,12 @@ spring:
     defer-datasource-initialization: true
   profiles:
     active: test
+  main:
+    banner-mode: off
 
 logging:
   level:
-    root: INFO
-    ee:
-      ria: DEBUG
-    org:
-      niis: DEBUG
-      springframework:
-        security: INFO
-        transaction:
-          interceptor: INFO
-        orm:
-          jpa: DEBUG
+    root: OFF
 
 ratelimit:
   requests:

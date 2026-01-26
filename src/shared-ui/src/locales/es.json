@@ -1,4 +1,15 @@
 {
+  "403": {
+    "goBack": "Volver",
+    "mainTitle": "Permiso denegado",
+    "text": "Parece que no tienes el permiso para ver esta página. Si crees que esto es un error, verifica si has iniciado sesión en la cuenta correcta o comunícate con tu Administrador para preguntar sobre tus permisos.",
+    "topTitle": "Denegado"
+  },
+  "404": {
+    "pageNotFound": "404 - Página no encontrada",
+    "text": "Ups, página no encontrada",
+    "textUnicorn": "Error 404"
+  },
   "action": {
     "activate": "Activar",
     "add": "Agregar",
@@ -152,14 +163,14 @@
     "backup_generation_failed": "No se pudo generar la copia de seguridad",
     "backup_restore_interrupted": "La restauración de la copia de seguridad ha sido interrumpida",
     "core": {
-      "Signer": {
-        "CertNotFound": "No se encuentra el certificado",
-        "KeyNotFound": "No se encuentra la clave",
-        "NetworkError": "El firmante no es actualmente accesible.",
-        "PinIncorrect": "PIN no válido",
-        "TokenNotAvailable": "El token no está disponible",
-        "TokenNotFound": "No se encuentra el token",
-        "UnknownMember": "X -Road Core - Signer: miembro desconocido"
+      "signer": {
+        "cert_not_found": "No se encuentra el certificado",
+        "key_not_found": "No se encuentra la clave",
+        "network_error": "El firmante no es actualmente accesible.",
+        "pin_incorrect": "PIN no válido",
+        "token_not_available": "El token no está disponible",
+        "token_not_found": "No se encuentra el token",
+        "unknown_member": "X -Road Core - Signer: miembro desconocido"
       }
     },
     "generate_backup_interrupted": "La generación de la copia de seguridad ha sido interrumpida",

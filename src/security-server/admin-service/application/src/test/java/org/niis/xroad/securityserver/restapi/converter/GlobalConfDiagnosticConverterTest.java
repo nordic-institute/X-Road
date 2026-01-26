@@ -26,12 +26,11 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticStatus;
+import ee.ria.xroad.common.DiagnosticsStatus;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 
@@ -56,9 +55,8 @@ public class GlobalConfDiagnosticConverterTest {
     @Test
     public void convertSingleGlobalConfDiagnostics() {
         GlobalConfDiagnosticsDto globalConfDiagnostics = globalConfDiagnosticConverter.convert(new DiagnosticsStatus(
-                DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE, NEXT_UPDATE));
+                DiagnosticStatus.OK, PREVIOUS_UPDATE, NEXT_UPDATE));
 
-        assertEquals(ConfigurationStatusDto.SUCCESS, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClassDto.OK, globalConfDiagnostics.getStatusClass());
         assertEquals(PREVIOUS_UPDATE, globalConfDiagnostics.getPrevUpdateAt());
         assertEquals(NEXT_UPDATE, globalConfDiagnostics.getNextUpdateAt());

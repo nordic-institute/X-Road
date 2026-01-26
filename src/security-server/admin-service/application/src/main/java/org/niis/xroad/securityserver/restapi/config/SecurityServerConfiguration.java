@@ -43,6 +43,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.List;
 
 import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
@@ -77,7 +80,7 @@ public class SecurityServerConfiguration {
 
     @Bean
     @Profile("nontest")
-    public MonitorClient monitorClient() throws Exception {
+    public MonitorClient monitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return new MonitorClient();
     }
 
@@ -101,5 +104,4 @@ public class SecurityServerConfiguration {
     public XrdProcessesCollector xrdProcessesCollector(MonitorClient monitorClient) {
         return new XrdProcessesCollector(monitorClient);
     }
-
 }

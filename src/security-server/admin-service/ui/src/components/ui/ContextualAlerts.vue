@@ -26,27 +26,32 @@
 <template>
   <!-- Error -->
   <v-container
-    v-if="notifications.errorNotifications && notifications.errorNotifications.length > 0"
+    v-if="
+      notifications.errorNotifications &&
+      notifications.errorNotifications.length > 0
+    "
     fluid
     class="alerts-container px-3"
   >
-    <error-notification v-for="notification in notifications.errorNotifications"
-                        :key="notification.timeAdded"
-                        :notification="notification" />
+    <XrdErrorNotification
+      v-for="notification in notifications.errorNotifications"
+      :key="notification.timeAdded"
+      :notification="notification"
+      @close="notifications.deleteNotification($event.timeAdded)"
+    />
   </v-container>
 </template>
 
 <script lang="ts" setup>
 import { useNotifications } from '@/store/modules/notifications';
 
-import ErrorNotification from '@/components/ui/ErrorNotification.vue';
+import { XrdErrorNotification } from '@niis/shared-ui';
 
 const notifications = useNotifications();
-
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -55,5 +60,4 @@ const notifications = useNotifications();
     margin-bottom: 4px;
   }
 }
-
 </style>

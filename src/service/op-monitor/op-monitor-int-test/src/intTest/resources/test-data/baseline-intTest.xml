@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet id="operational-testdata" author="mb">
+        <comment>Add security server request traffic operational data for integration tests
+        </comment>
+        <sql>
+            INSERT INTO operational_data (id, monitoring_data_ts, security_server_internal_ip,
+                                          client_xroad_instance, client_member_class, client_member_code,
+                                          client_subsystem_code, request_in_ts, response_out_ts, security_server_type,
+                                          succeeded, service_xroad_instance, service_member_class, service_member_code,
+                                          service_subsystem_code, service_code, service_version)
+            VALUES (1, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
+                    'DEV', 'COM', '1234', 'System1',
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '11 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '12 minutes') * 1000,
+                    'Client',
+                    TRUE,
+                    'DEV', 'COM', '4321', 'Service1', 'xroadGetRandom', 'v1');
+
+            INSERT INTO operational_data (id, monitoring_data_ts, security_server_internal_ip,
+                                          client_xroad_instance, client_member_class, client_member_code,
+                                          client_subsystem_code, request_in_ts, response_out_ts, security_server_type,
+                                          succeeded, service_xroad_instance, service_member_class, service_member_code,
+                                          service_subsystem_code, service_code, service_version)
+            VALUES (2, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
+                    'DEV', 'COM', '1234', 'System1',
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '11 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '12 minutes') * 1000,
+                    'Client',
+                    TRUE,
+                    'DEV', 'COM', '4321', 'Service1', 'xroadGetRandom', 'v1');
+
+            INSERT INTO operational_data (id, monitoring_data_ts, security_server_internal_ip,
+                                          client_xroad_instance, client_member_class, client_member_code,
+                                          client_subsystem_code, request_in_ts, response_out_ts, security_server_type,
+                                          succeeded, service_xroad_instance, service_member_class, service_member_code,
+                                          service_subsystem_code, service_code, service_version)
+            VALUES (3, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
+                    'DEV', 'COM', '1234', 'System1',
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '11 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '12 minutes') * 1000,
+                    'Client',
+                    FALSE,
+                    'DEV', 'COM', '4321', 'Service1', 'xroadGetRandom', 'v1');
+
+            INSERT INTO operational_data (id, monitoring_data_ts, security_server_internal_ip,
+                                          request_in_ts, response_out_ts, security_server_type,
+                                          succeeded, service_xroad_instance, service_member_class, service_member_code,
+                                          service_subsystem_code)
+            VALUES (4, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '45 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '46 minutes') * 1000,
+                    'Producer',
+                    TRUE,
+                    'DEV', 'COM', '1234', 'System1');
+
+            INSERT INTO operational_data (id, monitoring_data_ts, security_server_internal_ip,
+                                          request_in_ts, response_out_ts, security_server_type,
+                                          succeeded, service_xroad_instance, service_member_class, service_member_code,
+                                          service_subsystem_code, service_code, service_version)
+            VALUES (5, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '45 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '46 minutes') * 1000,
+                    'Producer',
+                    TRUE,
+                    'DEV', 'COM', '1234', 'Service9', 'getTopSecret', 'v2');
+
+            INSERT INTO operational_data (id, monitoring_data_ts, security_server_internal_ip,
+                                          request_in_ts, response_out_ts, security_server_type,
+                                          succeeded, service_xroad_instance, service_member_class, service_member_code,
+                                          service_subsystem_code, service_code, service_version)
+            VALUES (6, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '121 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '122 minutes') * 1000,
+                    'Producer',
+                    TRUE,
+                    'DEV', 'COM', '1234', 'Service9', 'getTopSecret', 'v2');
+
+            INSERT INTO operational_data (id, monitoring_data_ts, security_server_internal_ip,
+                                          request_in_ts, response_out_ts, security_server_type,
+                                          succeeded, service_xroad_instance, service_member_class, service_member_code,
+                                          service_subsystem_code, service_code, service_version)
+            VALUES (7, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '121 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '122 minutes') * 1000,
+                    'Producer',
+                    FALSE,
+                    'DEV', 'COM', '1234', 'Service9', 'getTopSecret', 'v2');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

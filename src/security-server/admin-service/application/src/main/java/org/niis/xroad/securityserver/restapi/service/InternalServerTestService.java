@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.config.CustomClientTlsSSLSocketFactory;
 import org.niis.xroad.securityserver.restapi.wsdl.HostnameVerifiers;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
@@ -47,11 +48,16 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -66,6 +72,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 public class InternalServerTestService {
+    private static final String TLS = "TLS";
     private final ServerConfProvider serverConfProvider;
 
     /**
@@ -77,27 +84,30 @@ public class InternalServerTestService {
      * @throws Exception in case connection fails
      */
     public void testHttpsConnection(
-            List<CertificateEntity> trustedCerts, String url) throws Exception {
+            List<CertificateEntity> trustedCerts, String url)
+            throws IOException, UnrecoverableKeyException, CertificateException, KeyStoreException,
+            NoSuchAlgorithmException, KeyManagementException {
 
         List<X509Certificate> trustedX509Certs = new ArrayList<>();
         for (CertificateEntity trustedCert : trustedCerts) {
             trustedX509Certs.add(CryptoUtils.readCertificate(trustedCert.getData()));
         }
 
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        SSLContext ctx = SSLContext.getInstance(TLS);
         ctx.init(createServiceKeyManager(),
                 new TrustManager[]{new ServiceTrustManager(trustedX509Certs)},
                 new SecureRandom());
 
         HttpsURLConnection con = (HttpsURLConnection) (new URL(url).openConnection());
 
-        con.setSSLSocketFactory(ctx.getSocketFactory());
+        con.setSSLSocketFactory(new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory()));
         con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
 
         con.connect();
     }
 
-    private KeyManager[] createServiceKeyManager() throws Exception {
+    private KeyManager[] createServiceKeyManager()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {

@@ -1,4 +1,9 @@
 ---
-debug: true
+debug: false
+
+spring:
+  main:
+    banner-mode: off
+
 logging:
   config: classpath:centralserver-admin-service-test-logback.xml

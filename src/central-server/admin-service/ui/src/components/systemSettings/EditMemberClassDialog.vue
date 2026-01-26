@@ -81,7 +81,7 @@ const emit = defineEmits(['save', 'cancel']);
 const { meta, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: {
     code: 'required|min:1|max:255',
-    description: 'required|min:1',
+    description: 'required|min:1|validDescription',
   },
   initialValues: {
     code: props.memberClass?.code || '',
@@ -95,9 +95,10 @@ const [description, descriptionAttrs] = defineField('description', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { loading, showSuccess, showOrTranslateErrors, t } = useBasicForm(setFieldError, {
-    code: 'memberClassDto.code',
-    description: 'memberClassDescriptionDto.description',
+const { loading, showSuccess, showOrTranslateErrors, t } = useBasicForm(
+  setFieldError,
+  {
+    code: 'memberClassDto.code'
   },
 );
 const { add, update } = useMemberClass();

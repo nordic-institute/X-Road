@@ -29,7 +29,8 @@ package org.niis.xroad.globalconf.model;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
-import lombok.SneakyThrows;
+import jakarta.xml.bind.JAXBException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ObjectFactory;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.PrivateParametersType;
 
@@ -54,9 +55,12 @@ public class PrivateParametersV2Marshaller extends AbstractParametersMarshaller<
     }
 
 
-    @SneakyThrows
     private static JAXBContext createJaxbContext() {
-        return JAXBContext.newInstance(ObjectFactory.class);
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
 }

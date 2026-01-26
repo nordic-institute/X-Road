@@ -39,8 +39,7 @@
  * Component for sorting icon (up and down)
  */
 import { defineComponent } from 'vue';
-import { Colors } from '@/global';
-import { XrdIconSortingArrow } from '@niis/shared-ui';
+import { Colors, XrdIconSortingArrow } from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdIconSortingArrow },
@@ -78,6 +77,7 @@ export default defineComponent({
   transform: rotate(-180deg) translateY(-4px);
   transition-duration: 0s;
 }
+
 .arrow-down {
   transition-duration: 0s;
   transform: translateY(-4px);

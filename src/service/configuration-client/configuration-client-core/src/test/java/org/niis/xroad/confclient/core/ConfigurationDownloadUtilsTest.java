@@ -26,6 +26,7 @@
 package org.niis.xroad.confclient.core;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.globalconf.util.GlobalConfUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,6 @@ class ConfigurationDownloadUtilsTest {
 
     @Test
     void withHttpsReturnStartWithHttpAndNotWithHttpsFalse() {
-        assertFalse(ConfigurationDownloadUtils.startWithHttpAndNotWithHttps("https://"));
+        assertFalse(GlobalConfUtils.startWithHttpAndNotWithHttps("https://"));
     }
 }

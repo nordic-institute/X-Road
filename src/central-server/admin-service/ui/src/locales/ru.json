@@ -1,10 +1,4 @@
 {
-  "403": {
-    "goBack": "Вернуться назад",
-    "mainTitle": "Доступ запрещён",
-    "text": "Похоже, у вас нет разрешения для просмотра этой страницы. Если вы считаете, что это ошибка, проверьте, вошли ли вы в правильную учетную запись, или свяжитесь с вашим администратором, чтобы узнать о ваших разрешениях.",
-    "topTitle": "Запрещено"
-  },
   "action": {
     "approve": "Одобрить",
     "decline": "Отклонить",
@@ -18,7 +12,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "Поле должно содержать IP-адрес или несколько адресов, разделённых запятой",
-    "invalidUrl": "URL недействителен. Примеры действительных форматов URL: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL недействителен. Примеры действительных форматов URL: 'http://www.example.com', 'https://www.example.com'",
+    "description": "Используйте только допустимые символы в описании"
   },
   "error_code": {
     "backup_deletion_failed": "Не удалось удалить резервную копию",
@@ -193,7 +188,6 @@
     "navigation": {
       "back": "Назад"
     },
-    "pageNotFound": "упс, страница не найдена",
     "register": "Зарегистрироваться",
     "search": "Поиск",
     "server": "Сервер",
@@ -634,6 +628,7 @@
     "certProfileInput": "Информация о профиле сертификата",
     "certProfileInputExplanation": "Полное имя класса, реализующего интерфейс ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Сервисы сертификации",
+    "defaultCsrFormat": "Формат CSR по умолчанию",
     "timestampingService": {
       "addedSuccessfully": "Служба временных меток успешно добавлена",
       "dialog": {
@@ -651,6 +646,12 @@
     },
     "timestampingServices": "Службы временных меток",
     "trustService": {
+      "cost": "Стоимость",
+      "costType": {
+        "FREE": "Бесплатно",
+        "PAID": "Платно",
+        "UNDEFINED": "Не определено"
+      },
       "delete": {
         "action": "Удалить службу доверия",
         "confirmationDialog": {
@@ -712,16 +713,11 @@
         "acmeCapable": "Этот CA может использоваться для ACME",
         "acmeNotCapable": "Этот CA не может использоваться для ACME",
         "certProfile": "Информация о профиле сертификата (полное имя класса, реализующего интерфейс ee.ria.xroad.common.CertificateProfileInfoProvider)",
+        "defaultCsrFormat": "Формат CSR по умолчанию (выбирается автоматически при создании новых ключей аутентификации и подписи с этим УЦ; можно изменить вручную)",
         "saveSuccess": "Настройки CA успешно сохранены",
         "tlsAuth": "Этот CA может использоваться только для TLS-аутентификации"
       },
       "timestampingService": {
-        "cost": "Стоимость",
-        "costValues": {
-          "FREE": "Бесплатно",
-          "PAID": "Платно",
-          "UNDEFINED": "Не определено"
-        },
         "delete": {
           "dialog": {
             "message": "Вы уверены, что хотите удалить службу временных меток с URL {url}?",

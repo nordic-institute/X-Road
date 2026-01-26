@@ -27,10 +27,15 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 
 @Profile("!test")
 @Configuration
@@ -39,6 +44,11 @@ class RpcClientsConfig {
     @Bean
     SignerRpcClient signerRpcClient() {
         return new SignerRpcClient();
+    }
+
+    @Bean
+    public OpMonitorClient opMonitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+        return new OpMonitorClient();
     }
 
 }

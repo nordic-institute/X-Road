@@ -67,7 +67,7 @@
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -99,11 +99,12 @@ import {
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import DateTime from '@/components/ui/DateTime.vue';
-import { XrdIconCertificate } from '@niis/shared-ui';
+import { XrdIconCertificate, XrdDataTableFooter } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
+    XrdDataTableFooter,
     DateTime,
     DeleteAuthenticationCertificateDialog,
     XrdIconCertificate,
@@ -204,26 +205,13 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .icon-cell {
   color: colors.$Purple100;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 </style>

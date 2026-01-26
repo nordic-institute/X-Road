@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.common.rpc.client;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.SystemProperties;
 
 import com.google.protobuf.Any;
@@ -43,18 +43,25 @@ import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.rpc.error.CodedExceptionProto;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 @Slf4j
 public final class RpcClient<C extends RpcClient.ExecutionContext> {
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 30;
     private static final int DEFAULT_DEADLINE_MILLIS = 60 * 1000;
 
     private final long rpcDeadlineMillis;
@@ -72,12 +79,14 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
     }
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(
-            String host, int port, ExecutionContextFactory<C> contextFactory) throws Exception {
+            String host, int port, ExecutionContextFactory<C> contextFactory)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return newClient(host, port, DEFAULT_DEADLINE_MILLIS, contextFactory);
     }
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(
-            String host, int port, int clientTimeoutMillis, ExecutionContextFactory<C> contextFactory) throws Exception {
+            String host, int port, int clientTimeoutMillis, ExecutionContextFactory<C> contextFactory)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         var credentials = SystemProperties.isGrpcInternalTlsEnabled()
                 ? RpcCredentialsConfigurer.createClientCredentials() : InsecureRpcCredentialsConfigurer.createClientCredentials();
 
@@ -108,7 +117,18 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
         if (channel.isShutdown()) {
             log.warn("gRPC client is already shutdown!");
         } else {
-            channel.shutdown();
+            log.info("Shutting down RPC client...");
+            try {
+                channel.shutdown();
+                if (!channel.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    log.warn("RPC channel did not terminate gracefully within 30 seconds");
+                    channel.shutdownNow();
+                }
+                log.info("RPC client shutdown completed");
+            } catch (Exception e) {
+                log.error("Error shutting down RPC client", e);
+                channel.shutdownNow();
+            }
         }
     }
 
@@ -116,14 +136,15 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
         grpcCall.exec(executionContext);
     }
 
-    public <V> V execute(RpcExecution<V, C> grpcCall) throws Exception {
+    public <V> V execute(RpcExecution<V, C> grpcCall) {
         try {
             return grpcCall.exec(executionContext);
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw CodedException.tr(X_NETWORK_ERROR, "signer_client_timeout",
-                                "Signer client timed out. Deadline: " + rpcDeadlineMillis + " ms")
-                        .withPrefix(SIGNER_X);
+                throw XrdRuntimeException.systemException(NETWORK_ERROR)
+                        .origin(ErrorOrigin.SIGNER)
+                        .details("gRPC client timed out. Deadline: %s ms".formatted(rpcDeadlineMillis))
+                        .build();
             }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
             if (status != null) {
@@ -135,13 +156,26 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
 
     private void handleGenericStatusRuntimeException(com.google.rpc.Status status) {
         for (Any any : status.getDetailsList()) {
-            if (any.is(CodedExceptionProto.class)) {
+            if (any.is(XrdRuntimeExceptionProto.class)) {
                 try {
-                    final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
-                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
-                            .withPrefix(SIGNER_X);
+                    final var ce = any.unpack(XrdRuntimeExceptionProto.class);
+
+                    var errorDeviation = ErrorCode.withCode(ce.getErrorCode());
+                    var exceptionBuilder = XrdRuntimeException.systemException(errorDeviation)
+                            .origin(ErrorOrigin.SIGNER)
+                            .identifier(ce.getIdentifier())
+                            .details(ce.getDetails())
+                            .httpStatus(ce.getHttpStatus() > 0 ? HttpStatus.fromCode(ce.getHttpStatus()) : null);
+
+                    if (!ce.getErrorMetadataList().isEmpty()) {
+                        exceptionBuilder.metadataItems(ce.getErrorMetadataList());
+                    }
+                    throw exceptionBuilder.build();
                 } catch (InvalidProtocolBufferException e) {
-                    throw new RuntimeException("Failed to parse grpc message", e);
+                    throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+                            .cause(e)
+                            .details("Failed to parse CodedExceptionProto from gRPC status details")
+                            .build();
                 }
             }
         }
@@ -154,7 +188,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
          *
          * @return computed result
          */
-        V exec(C ctx) throws Exception;
+        V exec(C ctx);
     }
 
     @FunctionalInterface

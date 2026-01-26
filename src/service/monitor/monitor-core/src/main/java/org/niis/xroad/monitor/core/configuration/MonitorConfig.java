@@ -47,6 +47,9 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.List;
 
 @Slf4j
@@ -59,7 +62,8 @@ public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getEnvMonitorPort(),
@@ -82,7 +86,8 @@ public class MonitorConfig {
     }
 
     @Bean
-    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
+    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return new SystemMetricsSensor(taskScheduler);
     }
 

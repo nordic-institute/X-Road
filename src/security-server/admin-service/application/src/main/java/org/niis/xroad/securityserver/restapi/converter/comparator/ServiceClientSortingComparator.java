@@ -38,7 +38,7 @@ import java.util.Comparator;
 public class ServiceClientSortingComparator implements Comparator<ServiceClientDto> {
 
     /**
-     * Compare ServiceClient objects using member name / group description as the primary sort key, and client id
+     * Compare ServiceClient objects using subsystem name / group description as the primary sort key, and client id
      * as the secondary sort key.
      * @param c1
      * @param c2

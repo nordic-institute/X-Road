@@ -108,7 +108,7 @@ import { defaultItemsPerPageOptions } from '@/util/defaults';
 import DateTime from '@/components/ui/DateTime.vue';
 import { computed, reactive, ref, watch } from 'vue';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { ManagementRequestStatus } from '@/openapi-types';
 import { debounce } from '@/util/helpers';
 
@@ -118,12 +118,15 @@ const dataQuery = reactive({} as DataQuery);
 const itemsPerPageOptions = defaultItemsPerPageOptions(50);
 
 const managementRequests = useManagementRequests();
-const { showError } = useNotifications()
-const { t } = i18n.global;
+const { showError } = useNotifications();
+const { t } = useI18n();
 
 const showOnlyPending = computed({
   get(): boolean {
-    return managementRequests.currentFilter.status === ManagementRequestStatus.WAITING;
+    return (
+      managementRequests.currentFilter.status ===
+      ManagementRequestStatus.WAITING
+    );
   },
   set(value: boolean) {
     managementRequests.currentFilter.status = value
@@ -139,52 +142,56 @@ const filterQuery = computed({
   set(value: string) {
     managementRequests.currentFilter.query = value;
   },
-})
+});
 
-const headers = computed(() => [
-  {
-    title: t('global.id') as string,
-    align: 'start',
-    key: 'id',
-  },
-  {
-    title: t('global.created') as string,
-    align: 'start',
-    key: 'created_at',
-  },
-  {
-    title: t('global.type') as string,
-    align: 'start',
-    key: 'type',
-  },
-  {
-    title: t(
-      'managementRequests.securityServerOwnerName',
-    ) as string,
-    align: 'start',
-    key: 'security_server_owner',
-  },
-  {
-    title: t('managementRequests.securityServerId') as string,
-    align: 'start',
-    key: 'security_server_id',
-  },
-  {
-    title: t('global.status') as string,
-    align: 'start',
-    key: 'status',
-  },
-  {
-    title: '',
-    sortable: false,
-    key: 'button',
-  },
-] as DataTableHeader[]);
+const headers = computed(
+  () =>
+    [
+      {
+        title: t('global.id') as string,
+        align: 'start',
+        key: 'id',
+      },
+      {
+        title: t('global.created') as string,
+        align: 'start',
+        key: 'created_at',
+      },
+      {
+        title: t('global.type') as string,
+        align: 'start',
+        key: 'type',
+      },
+      {
+        title: t('managementRequests.securityServerOwnerName') as string,
+        align: 'start',
+        key: 'security_server_owner',
+      },
+      {
+        title: t('managementRequests.securityServerId') as string,
+        align: 'start',
+        key: 'security_server_id',
+      },
+      {
+        title: t('global.status') as string,
+        align: 'start',
+        key: 'status',
+      },
+      {
+        title: '',
+        sortable: false,
+        key: 'button',
+      },
+    ] as DataTableHeader[],
+);
 
-watch(filterQuery, debounce(() => {
-  // Debounce is used to reduce unnecessary api calls
-  fetchItems();
-}, 600));
+watch(
+  filterQuery,
+  debounce(() => {
+    // Debounce is used to reduce unnecessary api calls
+    fetchItems();
+  }, 600),
+);
 
 async function changeOptions({ itemsPerPage, page, sortBy }) {
   dataQuery.itemsPerPage = itemsPerPage;
@@ -198,25 +205,15 @@ async function fetchItems() {
   loading.value = true;
 
   try {
-    await managementRequests.find(
-      dataQuery,
-      managementRequests.currentFilter,
-    );
+    await managementRequests.find(dataQuery, managementRequests.currentFilter);
   } catch (error: unknown) {
     showError(error);
   } finally {
     loading.value = false;
   }
 }
-
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-
-.custom-checkbox {
-  .v-label {
-    font-size: 14px;
-  }
-}
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

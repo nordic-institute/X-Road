@@ -27,8 +27,6 @@ package ee.ria.xroad.common.asic;
 
 import ee.ria.xroad.common.CodedException;
 
-import lombok.SneakyThrows;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
@@ -43,18 +41,18 @@ public final class AsicUtils {
 
     /**
      * Prepares the provided string for use in filenames.
+     *
      * @param str the string
      * @return resulting string with unsuitable characters escaped
      */
-    @SneakyThrows
     public static String escapeString(String str) {
-        String urlEncoded =
-                URLEncoder.encode(str, StandardCharsets.UTF_8);
+        String urlEncoded = URLEncoder.encode(str, StandardCharsets.UTF_8);
         return urlEncoded.replace("/", "%2F");
     }
 
     /**
      * Generates the output in case of failed verification.
+     *
      * @param cause throwable that caused the failure
      * @return failed verification output string
      */
@@ -66,6 +64,7 @@ public final class AsicUtils {
 
     /**
      * Generates the output in case of successful verification.
+     *
      * @param verifier container verifier that was successful
      * @return successful verification output string
      */
@@ -109,6 +108,7 @@ public final class AsicUtils {
 
     /**
      * Truncates string to certain length
+     *
      * @return string delimited to given length
      */
     public static String truncate(String s, int max) {

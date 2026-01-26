@@ -31,6 +31,9 @@
     <td :class="{ disabled: !messageLogEnabled }">
       {{ timestampingService.url }}
     </td>
+    <td :class="{ disabled: !messageLogEnabled }">
+      {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+    </td>
     <td class="pr-4">
       <xrd-button
         v-if="showDeleteTsp"
@@ -114,8 +117,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
 
 .disabled {
   color: colors.$WarmGrey100;

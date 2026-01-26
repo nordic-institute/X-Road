@@ -28,10 +28,10 @@ import { Client } from '@/openapi-types';
 import { createClientId, deepClone, Mutable } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
-import { i18n } from '@/plugins/i18n';
+import { i18n } from '@niis/shared-ui';
 import { defineStore } from 'pinia';
 
-const UNKNOWN_NAME: string = i18n.global.t('client.unknownMember') as string;
+const unknownName = () => i18n.global.t('client.unknownMember') as string;
 
 export interface ClientsState {
   clients: Client[];
@@ -41,6 +41,7 @@ export interface ClientsState {
   members: ExtendedClient[]; // all local members, virtual and real
   realMembers: ExtendedClient[]; // local actual real members, owner +1
   subsystems: ExtendedClient[];
+  allSubsystems: Client[];
 }
 
 export const useClients = defineStore('clients', {
@@ -53,6 +54,7 @@ export const useClients = defineStore('clients', {
       members: [],
       subsystems: [],
       realMembers: [],
+      allSubsystems: [] as Client[],
     };
   },
   getters: {
@@ -60,7 +62,7 @@ export const useClients = defineStore('clients', {
   },
 
   actions: {
-    fetchClients() {
+    async fetchClients() {
       this.clientsLoading = true;
 
       return api
@@ -73,6 +75,23 @@ export const useClients = defineStore('clients', {
         })
         .finally(() => {
           this.clientsLoading = false;
+        });
+    },
+    async fetchAllSubsystems(instance: string) {
+      return api
+        .get<Client[]>('/clients', {
+          params: {
+            instance: instance,
+            show_members: false,
+            internal_search: false,
+            include_management_service_check: true,
+          }
+        })
+        .then((res) => {
+          this.allSubsystems = res.data;
+        })
+        .catch((error) => {
+          throw error;
         });
     },
     storeClients(clients: Client[]) {
@@ -89,7 +108,7 @@ export const useClients = defineStore('clients', {
           const clone = deepClone(element) as ExtendedClient;
           clone.type = ClientTypes.OWNER_MEMBER;
           clone.subsystem_code = undefined;
-          clone.visibleName = clone.member_name || UNKNOWN_NAME;
+          clone.visibleName = clone.member_name || unknownName();
 
           if (element.owner) {
             clone.type = ClientTypes.OWNER_MEMBER;
@@ -133,7 +152,7 @@ export const useClients = defineStore('clients', {
           clone.subsystem_code = undefined;
 
           // Create a name from member_name
-          clone.visibleName = clone.member_name || UNKNOWN_NAME;
+          clone.visibleName = clone.member_name || unknownName();
 
           clone.status = undefined;
 
@@ -143,7 +162,7 @@ export const useClients = defineStore('clients', {
         // Push subsystems to an array
         if (element.subsystem_code) {
           const clone = deepClone(element) as ExtendedClient;
-          clone.visibleName = clone.subsystem_name || '';
+          clone.visibleName = clone.subsystem_name || clone.subsystem_code;
           clone.type = ClientTypes.SUBSYSTEM;
 
           subsystems.push(clone);

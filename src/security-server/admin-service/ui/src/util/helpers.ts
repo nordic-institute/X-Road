@@ -57,17 +57,6 @@ export function selectedFilter<T extends object, K extends keyof T>(
   return filtered;
 }
 
-// Checks if the given WSDL URL valid
-export function isValidWsdlURL(str: string): boolean {
-  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
-  return !!pattern.test(str);
-}
-
-// Checks if the given REST URL is valid
-export function isValidRestURL(str: string): boolean {
-  return isValidWsdlURL(str);
-}
-
 // Save response data as a file
 export function saveResponseAsFile(
   response: AxiosResponse,
@@ -176,27 +165,6 @@ export function isEmpty(str: string | []): boolean {
 export type Mutable<T> = {
   -readonly [K in keyof T]: T[K];
 };
-
-// Helper to copy text to clipboard
-export function toClipboard(val: string): void {
-  // If a dialog is overlaying the entire page we need to put the textbox inside it, otherwise it doesn't get copied
-  const container =
-    document.getElementsByClassName('v-dialog--active')[0] || document.body;
-  const tempValueContainer = document.createElement('input');
-  tempValueContainer.setAttribute('type', 'text');
-  tempValueContainer.style.zIndex = '300';
-  tempValueContainer.style.opacity = '0';
-  tempValueContainer.style.filter = 'alpha(opacity=0)';
-  tempValueContainer.setAttribute(
-    'data-test',
-    'generated-temp-value-container',
-  );
-  tempValueContainer.value = val;
-  container.appendChild(tempValueContainer);
-  tempValueContainer.select();
-  document.execCommand('copy');
-  container.removeChild(tempValueContainer);
-}
 
 // Deep clones an object or array using JSON
 export function deepClone<T>(value: T): T {

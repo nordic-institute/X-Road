@@ -28,29 +28,41 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
+import org.niis.xroad.restapi.converter.ServiceIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;
+import org.niis.xroad.securityserver.restapi.converter.ConnectionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.converter.GlobalConfStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.converter.OperationalInfoConverter;
 import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfConnectionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.service.DiagnosticConnectionService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.core.io.Resource;
@@ -61,6 +73,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
@@ -80,6 +93,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final DiagnosticService diagnosticService;
+    private final DiagnosticConnectionService diagnosticConnectionService;
     private final DiagnosticReportService diagnosticReportService;
     private final GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
     private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
@@ -88,6 +102,12 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final BackupEncryptionStatusConverter backupEncryptionStatusConverter;
     private final MessageLogEncryptionStatusConverter messageLogEncryptionStatusConverter;
     private final ProxyMemoryUsageStatusConverter proxyMemoryUsageStatusConverter;
+    private final OperationalInfoConverter operationalInfoConverter;
+    private final ClientIdConverter clientIdConverter;
+    private final SecurityServerIdConverter securityServerIdConverter;
+    private final ServiceIdConverter serviceIdConverter;
+    private final ConnectionStatusConverter connectionStatusConverter;
+    private final GlobalConfStatusConverter globalConfStatusConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -105,7 +125,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<Set<OcspResponderDiagnosticsDto>> getOcspRespondersDiagnostics() {
+    public ResponseEntity<Set<CaOcspDiagnosticsDto>> getOcspRespondersDiagnostics() {
         List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
         return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
@@ -152,6 +172,50 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     public ResponseEntity<ProxyMemoryUsageStatusDto> getProxyMemoryUsage() {
         ProxyMemory proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
         return new ResponseEntity<>(proxyMemoryUsageStatusConverter.convert(proxyMemoryUsage), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<List<OperationalDataIntervalDto>> getOperationalDataIntervals(OffsetDateTime recordsFrom,
+                                                                                        OffsetDateTime recordsTo,
+                                                                                        Integer interval,
+                                                                                        String securityServerType,
+                                                                                        String memberId,
+                                                                                        String serviceId) {
+        List<OperationalDataInterval> opDataIntervals = diagnosticService.getOperationalDataIntervals(
+                recordsFrom.toInstant().toEpochMilli(),
+                recordsTo.toInstant().toEpochMilli(),
+                interval,
+                securityServerType,
+                memberId != null ? clientIdConverter.convertId(memberId) : null,
+                serviceId != null ? serviceIdConverter.convertId(serviceId) : null);
+        return new ResponseEntity<>(operationalInfoConverter.convert(opDataIntervals), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<ConnectionStatusDto> getAuthCertReqStatus() {
+        return new ResponseEntity<>(connectionStatusConverter.convert(diagnosticConnectionService.getAuthCertReqStatus()), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<List<GlobalConfConnectionStatusDto>> getGlobalConfStatus() {
+        return new ResponseEntity<>(globalConfStatusConverter.convert(diagnosticConnectionService.getGlobalConfStatus()), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<ConnectionStatusDto> getOtherSecurityServerStatus(String protocolType, String clientId, String targetClientId,
+                                                                            String securityServerId) {
+        return new ResponseEntity<>(connectionStatusConverter.convert(
+                diagnosticConnectionService.getOtherSecurityServerStatus(
+                        ServiceProtocolType.valueOf(protocolType),
+                        clientIdConverter.convertId(clientId),
+                        clientIdConverter.convertId(targetClientId),
+                        securityServerIdConverter.convertId(securityServerId)
+                )),
+                HttpStatus.OK);
     }
 
     private String systemInformationFilename() {

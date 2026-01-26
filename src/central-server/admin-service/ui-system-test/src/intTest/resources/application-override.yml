@@ -2,7 +2,7 @@
 logging:
   level:
     ROOT: INFO
-    cucumber: TRACE
+    cucumber: INFO
     org.springframework: INFO
     org:
       openqa:
@@ -23,6 +23,8 @@ test-automation:
   containers:
     testable-container:
       reuse-between-runs: false
+      directory-mounts:
+        - "/var/log/xroad/:build/cs-container-logs/" # useful for debugging. This will attach logs
   selenide:
     browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)
     browser-size: "1280x900"

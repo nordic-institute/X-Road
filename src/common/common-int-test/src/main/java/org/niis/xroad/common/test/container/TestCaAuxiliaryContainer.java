@@ -43,7 +43,6 @@ import org.springframework.stereotype.Component;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -72,17 +71,15 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
 
     @NotNull
     @Override
+    @SneakyThrows
+    @SuppressWarnings({"checkstyle:SneakyThrowsCheck", "squid:S2095"})
     public TestCaContainer configure() {
         var logDirPath = Paths.get("build/ca-container-logs/");
         var logDir = logDirPath.toFile();
         logDir.mkdirs();
 
         if (SystemUtils.IS_OS_UNIX) {
-            try {
-                Files.setPosixFilePermissions(logDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            Files.setPosixFilePermissions(logDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
         }
         return new TestCaContainer(imageDefinition())
                 .withExposedPorts(8899, 8887, 8888, 8889)
@@ -91,7 +88,6 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
                 .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(192 * 1024 * 1024L));
     }
 
-    @SneakyThrows
     private ImageFromDockerfile imageDefinition() {
         log.info("Initializing test-ca..");
 

@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.98  
+Version: 2.104  
 Doc. ID: UG-SS
 
 ---
@@ -127,8 +127,12 @@ Doc. ID: UG-SS
 | 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 | 30.04.2025 | 2.97    | Added ACME challenge port environment variable toggle                                                                                                                                                                                                                                                                                                                                                       | Mikk-Erik Bachmann   |
 | 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
-
-
+| 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
+| 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
+| 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
+| 01.12.2025 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
+| 07.12.2025 | 2.103   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
+| 15.12.2025 | 2.104   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -154,10 +158,12 @@ Doc. ID: UG-SS
     - [3.1.1 Generating a Signing Key and Certificate Signing Request](#311-generating-a-signing-key-and-certificate-signing-request)
     - [3.1.2 Importing a Certificate from the Local File System](#312-importing-a-certificate-from-the-local-file-system)
     - [3.1.3 Importing a Certificate from a Security Token](#313-importing-a-certificate-from-a-security-token)
+    - [3.1.4 Ordering the Signing Certificate from the ACME server](#314-ordering-the-signing-certificate-from-the-acme-server)
   - [3.2 Configuring the Authentication Key and Certificate for the Security Server](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)
     - [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
     - [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
     - [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
+    - [3.2.4 Ordering the Authentication Certificate from the ACME server](#324-ordering-the-authentication-certificate-from-the-acme-server)
   - [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
     - [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
   - [3.4 Changing the Security Server Owner](#34-changing-the-security-server-owner)
@@ -240,10 +246,16 @@ Doc. ID: UG-SS
   - [13.4 Backup Encryption Configuration](#134-backup-encryption-configuration)
   - [13.5 Verifying Backup Archive Consistency](#135-verifying-backup-archive-consistency)
 - [14 Diagnostics](#14-diagnostics)
-  - [14.1 Examine Security Server services status information](#141-examine-security-server-services-status-information)
-  - [14.2 Examine Security Server Java version information](#142-examine-security-server-java-version-information)
-  - [14.3 Examine Security Server encryption status information](#143-examine-security-server-encryption-status-information)
-  - [14.4 Download diagnostics report](#144-download-diagnostics-report)
+  - [14.1 Diagnostics Overview](#141-diagnostics-overview)
+    - [14.1.1 Examine Security Server services status information](#1411-examine-security-server-services-status-information)
+    - [14.1.2 Examine Security Server Java version information](#1412-examine-security-server-java-version-information)
+    - [14.1.3 Examine Security Server encryption status information](#1413-examine-security-server-encryption-status-information)
+    - [14.1.4 Download diagnostics report](#1414-download-diagnostics-report)
+  - [14.2 Security Server Traffic](#142-security-server-traffic)
+  - [14.3 Security Server Connection Testing](#143-security-server-connection-testing)
+- [14.3.1 Testing the connection to the Central Server](#1431-testing-the-connection-to-the-central-server)
+- [14.3.2 Testing the connection to other Security Servers](#1432-testing-the-connection-to-other-security-servers)
+- [14.3.3 Testing the connection to Management Security Server](#1433-testing-the-connection-to-management-security-server)
 - [15 Operational Monitoring](#15-operational-monitoring)
   - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -276,13 +288,13 @@ Doc. ID: UG-SS
   - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
-    - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
+  - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
 - [25 Migrating to EC Based Authentication and Signing Certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
-  - [25.1 Steps to Enable EC Based Certificates](#251-Steps-to-enable-EC-based-certificates)
-  - [25.2 Backwards Compatibility](#252-Backwards-compatibility)
+  - [25.1 Steps to Enable EC Based Certificates](#251-steps-to-enable-ec-based-certificates)
+  - [25.2 Backwards Compatibility](#252-backwards-compatibility)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -616,6 +628,8 @@ To generate a Signing key and a Certificate Signing Request, follow these steps.
 
        4. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
 
+          Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
        5. Click **CONTINUE**
 
     3. In the dialog that opens
@@ -722,6 +736,8 @@ The **background colors** of the devices, keys and certificate are explained in 
 
        3. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
 
+          Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
        4. Click **CONTINUE**
 
     3. In the dialog that opens
@@ -745,21 +761,23 @@ To generate a certificate signing request (CSR) for the authentication key, foll
 
 3.  On the row of the desired key, click **Generate CSR**. In the dialog that opens
 
-    2.1  Select the certificate usage policy from the **Usage** drop down list (AUTH for authentication certificates);
+    1.   Select the certificate usage policy from the **Usage** drop down list (AUTH for authentication certificates);
 
-    2.2  select the issuer of the certificate from the **Certification Service** drop-down list;
+    2.  select the issuer of the certificate from the **Certification Service** drop-down list;
 
-    2.3  select the format of the certificate signing request (PEM or DER), according to the certification service provider's requirements
+    3.  select the format of the certificate signing request (PEM or DER), according to the certification service provider's requirements
 
-    2.4  click **CONTINUE**;
+        Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
 
-3.  In the form that opens, review the information that will be included in the CSR and fill in the empty fields, if needed.
+    4.  click **CONTINUE**;
 
-4.  Click **GENERATE CSR** to complete the generation of the CSR and save the prompted file to the local file system.
+4.  In the form that opens, review the information that will be included in the CSR and fill in the empty fields, if needed.
+
+5.  Click **GENERATE CSR** to complete the generation of the CSR and save the prompted file to the local file system.
 
     1. Or click **ORDER CERTIFICATE** to also use the CSR to immediately make an order to the ACME server if the chosen Certification Service supports it.
 
-5. Click **DONE**
+6. Click **DONE**
 
 After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system. (In case of a successful ACME order, the certificate will also be imported to the Security Server and be shown under the key's row instead of the CSR.)
 
@@ -974,6 +992,8 @@ Follow these steps.
 
     4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **NEXT**.
 
+        Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
     5. Generate CSR page: Fill in empty CSR fields as needed (like **Organization Name (O)** and **Subject Alternative Name (SAN)**) that are based on the certificate profile that the chosen CA uses, and click **NEXT**
 
        1. If the CA supports it, an ACME certificate order can be made with the generated CSR by checking the "**Order certificate from ACME Server with the generated CSR and import the returned certificate to the token.**" checkbox.
@@ -1123,7 +1143,7 @@ To enable client subsystem, follow these steps.
 2.  In the window that opens, click **ENABLE** and then click **YES** in the confirmation dialog.
 
 
-### 4.8 Renaming Client subsystem
+### 4.8 Renaming Client Subsystem
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
@@ -1719,7 +1739,7 @@ The connection method for information systems in the **service provider role** i
 
 - HTTP – the service/adapter URL begins with "**http:**//...".
 
-- HTTPS – the service/adapter URL begins with "**https**://".
+- HTTPS – the service/adapter URL begins with "**https:**//...".
   - If **Verify TLS certificate** checkbox is left unchecked it means that service provider information system's TLS certificate is not verified and trusted by default.
   - If **Verify TLS certificate** checkbox is checked it means that service provider information system's TLS certificate is verified. In order to make the information system's TLS certificate trusted, it must be added into Security Server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
   - When the service provider information system needs to verify the Security Server's internal TLS certificate, the certificate must be first exported and then imported into the service provider information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
@@ -2557,7 +2577,14 @@ for backup archive consistency verification.
 
 Click on **DIAGNOSTICS** in the **Navigation tabs**.
 
-On the Diagnostics page you can view the status information of:
+Diangostics view contains the following tabs:
+- **Overview** – overview of the Security Server status information
+- **Traffic** – visual overview of the Security Server traffic
+- **Connection Testing** – test connectivity to the Central Server and other Security Servers
+
+### 14.1 Diagnostics Overview
+
+On the Diagnostics Overview page you can view the status information of:
 
 - Security Server services;
     - global configuration client;
@@ -2569,7 +2596,7 @@ On the Diagnostics page you can view the status information of:
     - message log archive encryption and grouping;
     - message log database encryption.
 
-### 14.1 Examine Security Server services status information
+#### 14.1.1 Examine Security Server services status information
 
 Security server services status information covers the following services:
 
@@ -2590,7 +2617,7 @@ The status message offers more detailed information on the current status.
 
 If a section of the diagnostics view appears empty, it means that there either is no configured service available or that checking the service status has failed. If sections are empty, try refreshing the diagnostics view or check the service configuration.
 
-### 14.2 Examine Security Server Java version information
+#### 14.1.2 Examine Security Server Java version information
 
 Security server Java version information provides the following details:
 
@@ -2609,7 +2636,7 @@ The status colors indicate the following:
 - **Red indicator** – Security Server's java version number isn't supported
 - **Green indicator** – Security Server's java version number is supported
 
-### 14.3 Examine Security Server encryption status information
+#### 14.1.3 Examine Security Server encryption status information
 
 **Backup encryption status**
 
@@ -2632,7 +2659,7 @@ The status colors indicate the following:
 - **Red indicator** – there's an error with checking the message log archive encryption status
 - **Yellow indicator** – message log archive encryption is disabled
 - **Green indicator** – message log archive encryption is enabled
--
+
 **Message log database encryption status**
 
 The status shows is the message log database encryption `enabled` or `disabled`.
@@ -2642,7 +2669,7 @@ The status colors indicate the following:
 - **Yellow indicator** – message log database encryption is disabled
 - **Green indicator** – message log database encryption is enabled
 
-### 14.4 Download diagnostics report
+#### 14.1.4 Download diagnostics report
 
 It is possible to download a diagnostics report file which can be included as additional information when registering issues for the Security Server.
 File includes following information:
@@ -2659,6 +2686,84 @@ File includes following information:
 - Is maintenance mode enabled
 
 File is in JSON format and can be downloaded by clicking the **Download diagnostics report** button.
+
+### 14.2 Security Server Traffic
+
+The "Traffic" tab in Diagnostics page displays a graph representation of number of requests passed through the Security Server. 
+
+**NOTE:** Security Server Traffic view depends on data collected by Operational Data Monitoring add-on (`xroad-addon-opmonitoring`), which must be installed to enable traffic view.
+
+By default, the page displays all the requests handled during the last 7 days. The displayed data can be filtered using controls on top of the page:
+- **Period** - start and end date/time of the period to display.
+- **Party** - member, subsystem, or service participating in the message exchange. The service dropdown displays only the services defined by the selected subsystem. If no subsystem is selected or subsystem has no defined services, the service dropdown is disabled.
+- **Exchange role** - the role of this Security Server in the message exchange. The options are "Producer" and "Consumer".
+- **Status** - the status of the message exchange. The options are "Success" and "Failure".
+
+### 14.3 Security Server Connection Testing
+
+The "Connection Testing" tab in the Diagnostics page allows testing connectivity from the Security Server to the Central Server and other Security Servers.
+
+The page is divided into three logical blocks:
+- Central Server
+- Other Security Server 
+- Management Security Server
+
+Each block contains predefined tests that validate communication with the corresponding service. Test results include a status indicator ("Green" or "Red") and a detailed message to assist troubleshooting.
+
+A **Test** button next to each row allows re-running the specific connection test.
+
+## 14.3.1 Testing the connection to the Central Server
+
+This block allows verifying that the Security Server can reach the Central Server and download the configuration necessary for normal operation.
+
+**Global Configuration Download**
+
+Tests ports `80` and `443` to verify that the Global Configuration can be downloaded from the Central Server. If the Central Server is clustered, then all clustered node addresses are included in the test. For federated instances, if the `configuration-client.allowed-federations` property is enabled, the configuration download URLs for the allowed federated instances are also included. Note that even if the global configuration contains multiple federated instances, not all of them may be enabled on the Security Server.
+
+✔ `Everything ok` — indicates that the Central Server global configuration access via `HTTP`/`HTTPS` on ports `80`/`443` is reachable.
+
+Examples of error messages:
+- `Connection error, unknown host - cs: Name or service not known` — the Central Server hostname cannot be resolved. Check DNS configuration.
+- `IO error - (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException...` — the Security Server doesn't trust the CA that issued Central Server's TLS certificate. The root certificate of the CA that was used to issue Central Server's TLS certificate must be added to the Security Server's Java truststore. For the guidelines on Publish global configuration over HTTPS, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+
+**Authentication Certificate Registration Service**
+
+Tests connectivity to the Central Server on port `4001` (used by the registration service and must be accessible by every Security Server registered to the ecosystem).
+
+✔ `Everything ok` — indicates that the Authentication Certificate Registration Service is reachable and that the Security Server’s authentication certificate has been added. However, only the existence of the authentication certificate is checked, not its validity.
+
+Examples of error messages:
+- `Connection error, unknown host - cs: Name or service not known | Certificate not found - No auth cert found` — the Central Server hostname cannot be resolved, and the Security Server has no authentication certificate added.
+- `Certificate not found - No auth cert found` —  there are no connection issues, but the Security Server's authentication certificate has not been added.
+
+## 14.3.2 Testing the connection to other Security Servers
+
+This block enables testing communication with any other Security Server in the same X-Road instance (or federated instances). The functionality uses the `listMethods` meta service to test communication with other Security Servers. Passing the test requires that the target Security Server allows incoming connections to ports `5500` and `5577` from the source Security Server.
+
+Field descriptions:
+- **Source Client** — a list of members and subsystems registered on the client Security Server that can be used as a Source Client. 
+- **REST/SOAP** - the protocol (`REST` or `SOAP`) that's used to complete the connection test. 
+- **Target Instance** - the X-Road instance where the Target Client is registered. This can be the same instance where the Source Client is registered or a federated instance. 
+- **Target Client** - a list of clients registered on other Security Servers. Also, clients registered on the same Security Server with the Source Client are included to allow local testing. If federation is enabled and federated instances exist in the configuration, registered clients of federated instances are included as well. 
+- **Target Security Server** — a list of Security Servers where the Target Client is registered. If the Target Client is registered on multiple Security Servers, all of them are listed for selection.
+
+✔ `Everything ok` — indicates that there are no network, configuration, or certificate issues preventing communication between the two Security Server client.
+
+Examples of error messages:
+- `server.clientproxy.ssl_authentication_failed - Security server has no valid authentication certificate`.
+
+## 14.3.3 Testing the connection to Management Security Server
+
+This block tests communication with the Management Security Server, including capability to send management requests (such as client register, client disable, ...).
+
+Field descriptions:
+- **Source Client** - the owner member of the client Security Server. 
+- **REST/SOAP** - `SOAP` since management services only support `SOAP`. 
+- **Target Instance** - the same instance where the Source Client is registered. 
+- **Target Client** - the subsystem providing the management services. 
+- **Target Security Server** - if management services are registered on multiple Security Servers, the user is able to select the desired target Security Server.
+
+✔ `Everything ok` - indicates that there are no network, configuration, or certificate issues preventing communication with the management Security Server.
 
 ## 15 Operational Monitoring
 
@@ -2811,6 +2916,39 @@ The generated certificate, in the file `opmonitor.crt`, must be copied to the co
 [op-monitor]
 tls-certificate = <path/to/external/daemon/tls/cert>
 ```
+
+For the request traffic visualization on the Security Server UI Diagnostics page, gRPC keystore and truststore also need to be configured on both ends. Certificate that corresponds to the key in external Operational Monitoring gRPC keystore needs to be added to the gRPC truststore on the Security Server side and vice versa - Security Server's gRPC certificate needs to be added to the external monitoring daemon's truststore. The gRPC keystore and truststore system parameters are described in \[[UGSYSPAR](#31-common-parameters--common)\].
+
+You can use java `keytool` and `openssl` when working with gRPC keystores and truststores:
+
+* **Example 1 - extracting certificate in pem format from existing p12 keystore in default location**:
+
+    ```shell
+    openssl pkcs12 -in /var/run/xroad/xroad-grpc-internal-keystore.p12 -nokeys -out <path/to/cert>
+    ```
+
+* **Example 2 - importing existing certificate in pem format to new or existing truststore in p12 format**:
+
+    ```shell
+    keytool -importcert \
+      -file <path/to/cert> \       
+      -alias <suitable unique alias for security server> \
+      -keystore <path/to/truststore> \
+      -storetype PKCS12 \                                        
+      -storepass <truststorepassword>
+    ```
+    and then in `/etc/xroad/local.ini` add:
+
+    ```properties
+    ...
+    [common]
+    grpc-internal-keystore=<path/to/keystore>
+    grpc-internal-keystore-password=<keystorepassword>
+    grpc-internal-truststore=<path/to/truststore>
+    grpc-internal-truststore-password=<truststorepassword>
+    ...
+    ```
+  _Note: By default Security Server gRPC keystore and truststore are one and the same with a single key and certificate that is shared by different applications which all sit on the same machine. But in case of multiple hosts and certificates it's recommended to have keystore and truststore be separate: the keystore has the local application's key and truststore has certificates of trusted external applications that communicate with it over the network._
 
 For the external operational daemon to be used, the proxy service at the Security Server must be restarted:
 
@@ -3488,7 +3626,7 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time. Also, activating the received certificates is a manual task.
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time.
 
 The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
 
@@ -3504,15 +3642,23 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
+When an authentication certificate is automatically renewed using ACME, the authentication certificate registration request is automatically sent to the Central Server for approval. In all other situations, the authentication certificate registration request must be sent manually.
+
+The certificate renewal process can be fully automated by enabling automatic certificate activation. In that case, all the steps of the renewal process are automated and email notifications are sent to a defined email address to notify about the success or failure of different phases.
+
 **Automatic certificate activation**
 
-It is also possible to let the Security Server automatically activate new certificate once it is ordered for signing certificates or once it is registered for authentication certificates. This behaviour can be controlled by respective [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports automatic activation of new certificates that have been ordered using ACME. Sign certificates are automatically activated when they're imported to the Security Server while authentication certificates are activated once they've been registered on the Central Server. By default, automatic activation is disabled. This behaviour can be controlled by the `proxy-ui-api.automatic-activate-auth-certificate` and `proxy-ui-api.automatic-activate-acme-sign-certificate` system properties. The properties can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
 
 **E-mail notifications**
 
-The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure, authentication certificate registration success and signing and authentication certificate automatic activation success or failure. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in the following cases and they can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api):
 
-The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
+* Authentication and sign certificate renewal success and failure.
+* Authentication certificate registration success.
+* Signing and authentication certificate automatic activation success and failure.
+
+A member-specific e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server. Therefore, defining the email address is mandatory even if the email notifications are disabled. If the member-specific email address is missing from the `mail.yml` configuration file, ordering a certificate from the ACME Server will fail.
 
 For the e-mail notifications to work, an external mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail.yml` configuration file. The configuration include:
 
@@ -3522,21 +3668,44 @@ For the e-mail notifications to work, an external mail server needs to be config
 * **password** - used for authentication to the mail server.
 * **use-ssl-tls** - if "true", then full `ssl/tls` protocol is used for connection. If "false" or missing, then `starttls` protocol is used instead.
 
-The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page.
+The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page. It's strongly recommended to use the test email feature to validate the mail server's configuration.
+
+Example of the `/etc/xroad/conf.d/mail.yml` file contents (can be found from `/etc/xroad/conf.d/mail.example.yml`):
+
+```yaml
+# host name and port number used to connect to the mail server
+host: mail.example.org
+port: 587
+# credentials used for authentication to the mail server
+username: testuser
+password: secret
+# if "true", then full `SSL/TLS` protocol is used for connection. If "false" or missing, then `STARTTLS` protocol is used instead.
+use-ssl-tls: true
+
+# Contact emails for each Member used for notifications and when ordering certificates from the ACME Servers.
+# The key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+# should also be surrounded by quotation marks to allow for ':' (both single and double work).
+# When ordering Authentication Certificates, Security Server owner's Member ID is used.
+contacts:
+  'EU:COM:1234567-8': member1@example.com
+  'EU:GOV:9090909-1': member2@example.com
+```
 
 **Enable connections from the ACME server**
 
 The Security Server has a `[proxy-ui-api]` parameter [acme-challenge-port-enabled](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) that defines whether the Security Server listens to incoming ACME challenge requests on port 80. The default value for this parameter is `false` which means that  the Security Server does not listen on port 80. The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
-This parameter can be overriden by an environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED` which takes precedence when both are set.
+This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED` which takes precedence when both are set.
 
 **Member-specific configuration**
 
-Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). An example file is added by the installer when installing or upgrading X-Road to version 7.5. The configurations to be added are:
+Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
-2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server, when communicating with the ACME Server.
+2. `account-keystore-password` -  the password for the ACME Server account PKCS #12 keystore. The password is populated automatically by the Security Server when communicating with the ACME Server. When ACME is used for the first time, the keystore is generated automatically using this password. If the value of this property is left empty, the Security Server generates a random password and stores it in the acme.yml file. If the value of this property is not empty, the provided value is used as the password for the generated keystore file.
 
-There are currently two ways to let the ACME server know which type of certificate to return (the chosen CA also needs to support them). The first one, which sends profile ids for authentication and signing certificates in http header, does not require any further configuration on the Security Server side. The second one uses certificate type specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**".
+**Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
+
+There are currently two ways to let the ACME server know which type of certificate (authentication or sign certificate) to return. The way that should be used depends on the ACME Server and the options it supports. The first one, which sends profile ids for authentication and signing certificates in http header, does not require any certificate type-specific configuration on the Security Server side. Instead, the second one uses certificate type-specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**". If you are not sure which configuration option should be used, please contact your X-Road Operator or CA for assistance.
 
 Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`):
 
@@ -3570,9 +3739,9 @@ eab-credentials:
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
 
-# This is a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server.
+# This is the password for the PKCS #12 keystore of the ACME Server account. The password is populated automatically by the Security Server.
 # Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password: acmep12Password1234
+account-keystore-password:
 
 ```
 

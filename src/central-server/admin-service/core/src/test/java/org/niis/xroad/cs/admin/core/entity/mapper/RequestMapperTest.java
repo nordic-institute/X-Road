@@ -46,9 +46,11 @@ import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = {RequestMapperImpl.class, ClientIdMapperImpl.class, SecurityServerIdMapperImpl.class})
 class RequestMapperTest {
     private static final byte[] CERT = {1, 0, 1};

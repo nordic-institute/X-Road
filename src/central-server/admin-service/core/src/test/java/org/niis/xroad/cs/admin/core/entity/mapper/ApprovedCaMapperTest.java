@@ -32,14 +32,17 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = {ApprovedCaMapperImpl.class})
 class ApprovedCaMapperTest {
     private static final String URL = "https://github.com";
@@ -59,6 +62,7 @@ class ApprovedCaMapperTest {
         source.setIdentifierDecoderMethodName("DecoderMethodName");
         source.setCertProfileInfo("certProfileInfo");
         source.getIntermediateCaInfos().add(getCaInfoEntity());
+        source.setDefaultCsrFormat(CsrFormat.DER.name());
         source.setAcmeServerDirectoryUrl("http://test-acme-server");
         source.setAcmeServerIpAddress("12.34.56.78");
         source.setAuthCertProfileId("5");
@@ -73,6 +77,7 @@ class ApprovedCaMapperTest {
         assertThat(result.getIdentifierDecoderMethodName()).isEqualTo(source.getIdentifierDecoderMethodName());
         assertThat(result.getCertProfileInfo()).isEqualTo(source.getCertProfileInfo());
         assertThat(result.getIntermediateCaInfos()).hasSize(1);
+        assertThat(result.getDefaultCsrFormat()).isEqualTo(CsrFormat.DER);
         assertThat(result.getAcmeServerDirectoryUrl()).isEqualTo(source.getAcmeServerDirectoryUrl());
         assertThat(result.getAcmeServerIpAddress()).isEqualTo(source.getAcmeServerIpAddress());
         assertThat(result.getAuthenticationCertificateProfileId()).isEqualTo(source.getAuthCertProfileId());

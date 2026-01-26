@@ -25,7 +25,12 @@
  */
 
 import { defineStore } from 'pinia';
-import { Endpoint, Service, ServiceClient, ServiceDescription } from '@/openapi-types';
+import {
+  Endpoint,
+  Service,
+  ServiceClient,
+  ServiceDescription,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { sortServiceDescriptionServices } from '@/util/sorting';
@@ -53,7 +58,7 @@ export const useServices = defineStore('services', {
     };
   },
   persist: {
-    paths: ['service', 'serviceClients', 'serviceDescriptions'],
+    pick: ['service', 'serviceClients', 'serviceDescriptions'],
   },
   getters: {
     descExpanded: (state) => (id: string) => {
@@ -73,12 +78,14 @@ export const useServices = defineStore('services', {
   actions: {
     expandDesc(id: string) {
       this.expandedServiceDescriptions.push(id);
-      this.expandedServiceDescriptions = [...new Set(this.expandedServiceDescriptions)];
+      this.expandedServiceDescriptions = [
+        ...new Set(this.expandedServiceDescriptions),
+      ];
     },
 
     hideDesc(id: string) {
-      this.expandedServiceDescriptions = this.expandedServiceDescriptions
-        .filter(item => item !== id);
+      this.expandedServiceDescriptions =
+        this.expandedServiceDescriptions.filter((item) => item !== id);
     },
 
     setService(service: Service) {

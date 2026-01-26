@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.converter;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
@@ -54,6 +55,9 @@ public class OcspResponderConverter {
         }
         var ocspInfo = new OcspInfoEntity(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());
         ocspInfo.setCaInfo(ocspInfo.getCaInfo());
+        if (ocspResponder.getCostType() != null) {
+            ocspInfo.setCostType(ocspResponder.getCostType().name());
+        }
 
         return ocspInfo;
     }
@@ -65,7 +69,8 @@ public class OcspResponderConverter {
                 .setUrl(ocspInfo.getUrl())
                 .setCertificate(ocspInfo.getCert())
                 .setCreatedAt(ocspInfo.getCreatedAt())
-                .setUpdatedAt(ocspInfo.getUpdatedAt());
+                .setUpdatedAt(ocspInfo.getUpdatedAt())
+                .setCostType(ocspInfo.getCostType() != null ? CostType.valueOf(ocspInfo.getCostType()) : CostType.UNDEFINED);
     }
 
 }

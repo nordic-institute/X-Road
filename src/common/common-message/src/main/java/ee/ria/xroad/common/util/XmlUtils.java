@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.xml.security.c14n.Canonicalizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -48,6 +47,7 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -56,7 +56,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
@@ -121,32 +121,33 @@ public final class XmlUtils {
 
     /**
      * Creates a new document object from the given String
+     *
      * @param xml the xml string
      * @return the created document
-     * @throws Exception if an error occurs
      */
-    public static Document parseDocument(String xml) throws Exception {
+    public static Document parseDocument(String xml) throws ParserConfigurationException, IOException, SAXException {
         return XmlUtils.parseDocument(IOUtils.toInputStream(xml, StandardCharsets.UTF_8));
     }
 
     /**
      * Creates a new document object from the given input stream containing the document XML.
+     *
      * @param documentXml the input stream containing the XML
      * @return the created document object
-     * @throws Exception if an error occurs
      */
-    public static Document parseDocument(InputStream documentXml) throws Exception {
+    public static Document parseDocument(InputStream documentXml) throws ParserConfigurationException, IOException, SAXException {
         return parseDocument(documentXml, true);
     }
 
     /**
      * Creates a new document object from the given input stream containing the document XML.
+     *
      * @param documentXml    the input stream containing the XML
      * @param namespaceAware flag indicating namespace awareness
      * @return the created document object
-     * @throws Exception if an error occurs
      */
-    public static Document parseDocument(InputStream documentXml, boolean namespaceAware) throws Exception {
+    public static Document parseDocument(InputStream documentXml, boolean namespaceAware)
+            throws ParserConfigurationException, IOException, SAXException {
         if (namespaceAware) {
             return NAMESPACE_AWARE_DOCUMENT_PARSING_FACTORY.newDocumentBuilder().parse(documentXml);
         } else {
@@ -156,11 +157,11 @@ public final class XmlUtils {
 
     /**
      * Returns String representation of the the XML node (document or element).
+     *
      * @param node the node
      * @return string representation of the input
-     * @throws Exception if an error occurs
      */
-    public static String toXml(Node node) throws Exception {
+    public static String toXml(Node node) throws TransformerException {
         Source source = new DOMSource(node);
         StringWriter writer = new StringWriter();
         Result result = new StreamResult(writer);
@@ -173,6 +174,7 @@ public final class XmlUtils {
 
     /**
      * Returns the first element matching the given tag name.
+     *
      * @param doc     the document from which to search the element
      * @param tagName the name of the tag to match
      * @return optional containing the element or empty if the element cannot be found
@@ -184,31 +186,8 @@ public final class XmlUtils {
     }
 
     /**
-     * Returns an element matching the given xpath expression and using the specified namespace context.
-     * @param parent    the parent element from which to search
-     * @param xpathExpr the xpath expression
-     * @param nsCtx     the namespace context (can be null)
-     * @return the element or null if the element cannot be found or the xpath expression is invalid
-     */
-    public static Element getElementXPathNS(Element parent, String xpathExpr, NamespaceContext nsCtx) {
-        try {
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xpath = factory.newXPath();
-
-            if (nsCtx != null) {
-                xpath.setNamespaceContext(nsCtx);
-            }
-
-            return (Element) xpath.evaluate(xpathExpr, parent, XPathConstants.NODE);
-        } catch (XPathExpressionException e) {
-            log.warn(ELEMENT_NOT_FOUND_WARNING, e.getMessage(), e);
-
-            return null;
-        }
-    }
-
-    /**
      * Returns a list of elements matching the given xpath expression and using the specified namespace context.
+     *
      * @param parent    the parent element from which to search
      * @param xpathExpr the xpath expression
      * @param nsCtx     the namespace context (can be null)
@@ -234,6 +213,7 @@ public final class XmlUtils {
     /**
      * Returns the element that has an ID attribute matching the input.
      * The search is performed using XPath evaluation.
+     *
      * @param doc the document
      * @param id  the id
      * @return the element or null, if the element cannot be found
@@ -255,48 +235,36 @@ public final class XmlUtils {
         }
     }
 
-    /**
-     * Calculates and return the result of canonicalization of the specified node, using the specified
-     * canonicalization method.
-     * @param algorithmUri the URI of the canonicalization algorithm that is known to the class Canonicalizer.
-     * @param node         the node to canonicalize
-     * @return the c14n result.
-     * @throws Exception if any errors occur
-     */
-    public static byte[] canonicalize(String algorithmUri, Node node) throws Exception {
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        Canonicalizer.getInstance(algorithmUri).canonicalizeSubtree(node, buf);
-        return buf.toByteArray();
-    }
 
     /**
      * Pretty prints the document to string using default charset
+     *
      * @param xml the xml document as string
      * @return pretty printed document as String
-     * @throws Exception if any errors occur
      */
-    public static String prettyPrintXml(String xml) throws Exception {
+    public static String prettyPrintXml(String xml)
+            throws ParserConfigurationException, IOException, SAXException, TransformerException {
         return prettyPrintXml(parseDocument(xml));
     }
 
     /**
      * Pretty prints the document to string using default charset.
+     *
      * @param document the document
      * @return printed document in String form
-     * @throws Exception if any errors occur
      */
-    public static String prettyPrintXml(Document document) throws Exception {
+    public static String prettyPrintXml(Document document) throws TransformerException {
         return prettyPrintXml(document, "UTF-8", DEFAULT_INDENT);
     }
 
     /**
      * Pretty prints the document to string using specified charset.
+     *
      * @param document the document
      * @param charset  the charset
      * @return printed document in String form
-     * @throws Exception if any errors occur
      */
-    public static String prettyPrintXml(Document document, String charset, int indent) throws Exception {
+    public static String prettyPrintXml(Document document, String charset, int indent) throws TransformerException {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
@@ -314,7 +282,6 @@ public final class XmlUtils {
 
     /**
      * Creates DocumentBuilderFactory and sets the features of the factory
-     * @return
      */
     public static DocumentBuilderFactory createDocumentBuilderFactory() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -336,8 +303,6 @@ public final class XmlUtils {
 
     /**
      * Creates XMLReader and sets the features of the reader
-     * @return
-     * @throws SAXException
      */
     public static XMLReader createXmlReader() throws SAXException, ParserConfigurationException {
         var factory = SAXParserFactory.newInstance();

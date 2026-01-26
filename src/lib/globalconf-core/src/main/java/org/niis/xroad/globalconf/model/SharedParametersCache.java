@@ -32,7 +32,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -66,14 +65,14 @@ public class SharedParametersCache {
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SharedParameters.SecurityServer> securityServersById = new HashMap<>();
+    private final Map<ClientId, Set<SharedParameters.SecurityServer>> securityServersByClientId = new HashMap<>();
     private final Map<String, SharedParameters.SecurityServer> securityServersByAddress = new HashMap<>();
 
     public String getInstanceIdentifier() {
         return sharedParameters.getInstanceIdentifier();
     }
 
-    @SneakyThrows
-    SharedParametersCache(@NonNull SharedParameters sharedParameters) {
+    SharedParametersCache(@NonNull SharedParameters sharedParameters) throws CertificateEncodingException, IOException {
         this.sharedParameters = sharedParameters;
 
         cacheCaCerts();
@@ -158,6 +157,7 @@ public class SharedParametersCache {
     }
 
     private void addServerClient(ClientId client, SharedParameters.SecurityServer server) {
+        addToMap(securityServersByClientId, client, server);
         // Add the mapping from client to security server address.
         if (isNotBlank(server.getAddress())) {
             addToMap(memberAddresses, client, server.getAddress());

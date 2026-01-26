@@ -38,7 +38,9 @@ import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataType
 import ee.ria.xroad.opmonitordaemon.message.SearchCriteriaType;
 
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -72,7 +74,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
 
     @Override
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
-                       Consumer<String> contentTypeCallback) throws Exception {
+                       Consumer<String> contentTypeCallback) throws JAXBException, SOAPException, IOException {
         log.trace("handle()");
 
         ClientId clientId = requestSoap.getClient();
@@ -224,7 +226,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     }
 
     protected ClientId getClientForFilter(ClientId clientId,
-                                          SecurityServerId serverId) throws Exception {
+                                          SecurityServerId serverId) {
         return !isMonitoringClient(clientId)
                 && !isServerOwner(clientId, serverId) ? clientId : null;
     }
@@ -233,8 +235,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
         return clientId != null && clientId.equals(globalConfProvider.getGlobalConfExtensions().getMonitoringClient());
     }
 
-    private boolean isServerOwner(ClientId clientId, SecurityServerId serverId)
-            throws Exception {
+    private boolean isServerOwner(ClientId clientId, SecurityServerId serverId) {
         return serverId != null
                 && clientId.equals(globalConfProvider.getServerOwner(serverId));
     }

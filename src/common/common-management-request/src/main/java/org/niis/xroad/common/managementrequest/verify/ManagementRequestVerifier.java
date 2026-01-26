@@ -43,6 +43,7 @@ import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.decode.AddressChangeRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.AuthCertDeletionRequestDecoderCallback;
@@ -58,6 +59,7 @@ import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDe
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
@@ -105,6 +107,7 @@ public final class ManagementRequestVerifier {
      * @return management request message
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public Result readRequest(String contentType, InputStream inputStream) throws Exception {
 
         if (!globalConfProvider.isValid()) {
@@ -168,7 +171,7 @@ public final class ManagementRequestVerifier {
 
         @Override
         public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
-                throws Exception {
+                throws IOException {
             if (managementRequestDecoderCallback != null) {
                 managementRequestDecoderCallback.attachment(content, additionalHeaders);
             } else {

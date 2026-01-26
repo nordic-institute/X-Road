@@ -55,7 +55,6 @@ import { useMember } from '@/store/modules/members';
 import { useI18n } from 'vue-i18n';
 import { useNotifications } from '@/store/modules/notifications';
 
-
 const props = defineProps({
   server: {
     type: Object as PropType<SecurityServer>,
@@ -78,20 +77,21 @@ const emit = defineEmits(['cancel', 'unregister']);
 
 function unregister() {
   loading.value = true;
-  memberStore.unregister(props.member.client_id.encoded_id, props.server.server_id.encoded_id)
+  memberStore
+    .unregister(
+      props.member.client_id.encoded_id,
+      props.server.server_id.encoded_id,
+    )
     .then(() => {
       showSuccess(
-        t(
-          'members.member.details.memberSuccessfullyUnregistered',
-          {
-            memberCode: props.member.client_id.member_code,
-            serverCode: props.server.server_id.server_code,
-          },
-        ),
+        t('members.member.details.memberSuccessfullyUnregistered', {
+          memberCode: props.member.client_id.member_code,
+          serverCode: props.server.server_id.server_code,
+        }),
       );
       emit('unregister');
     })
     .catch((error) => showError(error))
-    .finally(() => loading.value = false);
+    .finally(() => (loading.value = false));
 }
 </script>

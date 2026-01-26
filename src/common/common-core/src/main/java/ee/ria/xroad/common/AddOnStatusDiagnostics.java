@@ -38,4 +38,5 @@ import lombok.Value;
 @AllArgsConstructor
 public class AddOnStatusDiagnostics {
     boolean messageLogEnabled;
+    boolean opMonitoringEnabled;
 }

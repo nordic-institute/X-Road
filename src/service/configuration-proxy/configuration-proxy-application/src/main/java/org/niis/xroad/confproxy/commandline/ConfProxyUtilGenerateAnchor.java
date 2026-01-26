@@ -31,6 +31,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
@@ -51,12 +52,13 @@ import java.util.TimeZone;
  * Utility tool for creating an anchor file that is used for downloading
  * the generated global configuration.
  */
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
 
     /**
      * Constructs a confproxy-generate-anchor utility program instance.
      */
-    ConfProxyUtilGenerateAnchor(SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilGenerateAnchor(SignerRpcClient signerRpcClient) {
         super("confproxy-generate-anchor", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)

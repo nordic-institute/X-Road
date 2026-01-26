@@ -67,6 +67,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
@@ -80,7 +82,9 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,6 +109,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private static final String SERVERPROXY_REST_SERVICE_HANDLERS = SystemProperties.PREFIX
@@ -263,7 +268,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
-            public void rest(RestRequest message) throws Exception {
+            public void rest(RestRequest message) throws CertificateEncodingException, IOException {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
@@ -319,7 +324,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySslClientCert() throws Exception {
+    private void verifySslClientCert() throws CertificateEncodingException, IOException {
         if (requestMessage.getOcspResponses().isEmpty()) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Cannot verify TLS certificate, corresponding OCSP response is missing");
@@ -330,7 +335,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 clientSslCerts[clientSslCerts.length - 1]);
 
         if (trustAnchor == null) {
-            throw new Exception("Unable to find trust anchor");
+            throw XrdRuntimeException.systemInternalError("Unable to find trust anchor");
         }
 
         try {
@@ -411,8 +416,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         if (encoder != null) {
             CodedException exception;
-            if (ex instanceof CodedException.Fault) {
-                exception = (CodedException.Fault) ex;
+            if (ex instanceof CodedException.Fault fault) {
+                exception = fault;
             } else {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
@@ -474,10 +479,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
+        @ArchUnitSuppressed("NoVanillaExceptions")
         public void startHandling(RequestWrapper request, ProxyMessage requestProxyMessage,
                                   ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                                   HttpClient restClient, HttpClient opMonitorClient,
-                                  OpMonitoringData monitoringData) throws Exception {
+                                  OpMonitoringData monitoringData) throws IOException {
             String address = serverConfProvider.getServiceAddress(requestProxyMessage.getRest().getServiceId());
             if (address == null || address.isEmpty()) {
                 throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
@@ -572,7 +578,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void finishHandling() throws Exception {
+        public void finishHandling() {
             // NOP
         }
     }

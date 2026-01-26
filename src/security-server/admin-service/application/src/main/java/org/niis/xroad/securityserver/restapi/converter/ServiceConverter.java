@@ -29,8 +29,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.ServiceIdConverter;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
@@ -38,15 +38,11 @@ import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
 import org.niis.xroad.serverconf.model.Service;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
 
 /**
  * Convert Service related data between openapi and service domain classes
@@ -63,6 +59,7 @@ public class ServiceConverter {
 
     private final EndpointConverter endpointConverter;
     private final EndpointHelper endpointHelper;
+    private final ServiceIdConverter serviceIdConverter;
 
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
@@ -126,11 +123,9 @@ public class ServiceConverter {
      * @return ClientId
      */
     public ClientId parseClientId(String encodedId) {
-        validateEncodedString(encodedId);
-        String encodedClientId = encodedId.substring(0, encodedId.lastIndexOf(
-                ENCODED_ID_SEPARATOR));
-        return clientIdConverter.convertId(encodedClientId);
+        return serviceIdConverter.parseClientId(encodedId);
     }
+
 
     /**
      * parse service code including version from encoded service id
@@ -138,18 +133,7 @@ public class ServiceConverter {
      * @return ClientId
      */
     public String parseFullServiceCode(String encodedId) {
-        validateEncodedString(encodedId);
-        List<String> parts = new ArrayList<>(
-                Arrays.asList(encodedId.split(
-                        String.valueOf(ENCODED_ID_SEPARATOR))));
-        return parts.get(parts.size() - 1);
+        return serviceIdConverter.parseFullServiceCode(encodedId);
     }
 
-    private void validateEncodedString(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId,
-                ENCODED_ID_SEPARATOR);
-        if (separators != FULL_SERVICE_CODE_INDEX) {
-            throw new BadRequestException("Invalid service id " + encodedId, INVALID_ENCODED_ID.build());
-        }
-    }
 }

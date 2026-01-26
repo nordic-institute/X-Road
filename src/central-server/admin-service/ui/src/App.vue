@@ -35,41 +35,38 @@
         </transition>
       </router-view>
     </v-main>
-    <snack-bar />
-    <app-footer v-if="loginView" />
+    <XrdSnackBar
+      :success-notifications="notificationStore.successNotifications"
+      @close="notificationStore.deleteSuccessNotification($event.timeAdded)"
+    />
+    <XrdAppFooter v-if="loginView" />
   </v-app>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 // The root component of the Vue app
-import { defineComponent } from 'vue';
-import SnackBar from '@/components/ui/SnackBar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
+import { computed } from 'vue';
+import { XrdAppFooter, XrdSnackBar } from '@niis/shared-ui';
+import AppToolbar from '@/layouts/AppToolbar.vue';
 import { RouteName } from '@/global';
+import { useRoute } from 'vue-router';
+import { useNotifications } from '@/store/modules/notifications';
 
-export default defineComponent({
-  name: 'App',
+const route = useRoute();
+const notificationStore = useNotifications();
 
-  components: {
-    AppFooter,
-    AppToolbar,
-    SnackBar,
-  },
-  computed: {
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
-    },
-  },
+const loginView = computed(() => {
+  return route.name !== RouteName.Login;
 });
 </script>
 
+<!-- eslint-disable-next-line  vue-scoped-css/enforce-style-type -->
 <style lang="scss">
-@use '@/assets/global-style' as *;
+@use '@niis/shared-ui/src/assets/global-style.scss';
 </style>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .fade-enter-active,
 .fade-leave-active {

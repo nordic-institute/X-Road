@@ -64,6 +64,7 @@ public class TestSimpleManagementRequestBuilder {
     }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
     public TestSimpleManagementRequest build() {
         var builder = new TestManagementRequestBuilder(senderClientId, receiverClientId);
 

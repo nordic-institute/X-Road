@@ -44,12 +44,11 @@
     <div class="px-4 description-field">
       <template v-if="canEditDescription">
         <v-text-field
-            v-model="value"
+          v-model="value"
           variant="outlined"
           :label="$t('localGroup.description')"
-
           data-test="local-group-edit-description-input"
-            :error-messages="errors"
+          :error-messages="errors"
           @change="saveDescription"
         ></v-text-field>
       </template>
@@ -82,7 +81,10 @@
     </div>
 
     <v-card flat>
-      <table data-test="group-members-table" class="xrd-table group-members-table">
+      <table
+        data-test="group-members-table"
+        class="xrd-table group-members-table"
+      >
         <thead>
           <tr>
             <th>{{ $t('localGroup.memberName') }}</th>
@@ -97,7 +99,7 @@
             <tr v-for="groupMember in group.members" :key="groupMember.id">
               <td>{{ groupMember.member_name }}</td>
               <td>
-                <subsystem-name :name="groupMember.subsystem_name" />
+                <subsystem-name :name="getSubsystemDisplayName(groupMember)" />
               </td>
               <td data-test="client-id">{{ groupMember.id }}</td>
               <td>{{ $filters.formatDateTime(groupMember.created_at) }}</td>
@@ -173,17 +175,13 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useField } from "vee-validate";
+import { useField } from 'vee-validate';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
     SubsystemName,
     AddMembersDialog,
-  },
-  setup() {
-    const { meta, setValue, value, errors } = useField<string>('description', 'required|max:255');
-    return { meta, setValue, value, errors };
   },
   props: {
     clientId: {
@@ -194,6 +192,13 @@ export default defineComponent({
       type: String,
       required: true,
     },
+  },
+  setup() {
+    const { meta, setValue, value, errors } = useField<string>(
+      'description',
+      'required|max:255|validDescription',
+    );
+    return { meta, setValue, value, errors };
   },
   data() {
     return {
@@ -235,24 +240,28 @@ export default defineComponent({
       this.$router.back();
     },
 
+    getSubsystemDisplayName(groupMember: GroupMember): string {
+      return groupMember.subsystem_name ?? groupMember.id.substring(groupMember.id.lastIndexOf(':') + 1);
+    },
+
     saveDescription(): void {
       if (this.meta.valid) {
-      api
-        .patch<LocalGroup>(
-          `/local-groups/${encodePathParameter(this.groupId)}`,
-          {
-            description: this.value,
-          },
-        )
-        .then((res) => {
-          this.showSuccess(this.$t('localGroup.descSaved'));
-          this.group = res.data;
-          this.groupCode = res.data.code;
-          this.setValue(res.data.description);
-        })
-        .catch((error) => {
-          this.showError(error);
-        });
+        api
+          .patch<LocalGroup>(
+            `/local-groups/${encodePathParameter(this.groupId)}`,
+            {
+              description: this.value,
+            },
+          )
+          .then((res) => {
+            this.showSuccess(this.$t('localGroup.descSaved'));
+            this.group = res.data;
+            this.groupCode = res.data.code;
+            this.setValue(res.data.description);
+          })
+          .catch((error) => {
+            this.showError(error);
+          });
       }
     },
 
@@ -365,8 +374,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .group-members-row {
   width: 100%;
@@ -399,6 +408,12 @@ export default defineComponent({
 
 .group-members-table {
   margin-top: 10px;
+}
+
+.group-members-table td {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 250px;
 }
 
 .add-members-button {

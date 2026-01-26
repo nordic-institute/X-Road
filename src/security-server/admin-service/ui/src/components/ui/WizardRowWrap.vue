@@ -25,10 +25,7 @@
  -->
 <template>
   <div class="wizard-row-wrap">
-    <xrd-form-label
-      :label-text="label"
-      :help-text="tooltip"
-    />
+    <xrd-form-label :label-text="label" :help-text="tooltip" />
     <slot></slot>
   </div>
 </template>

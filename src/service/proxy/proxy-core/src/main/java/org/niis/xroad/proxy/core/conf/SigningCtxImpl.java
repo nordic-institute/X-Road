@@ -38,6 +38,8 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 import org.niis.xroad.proxy.core.signedmessage.SigningKey;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +70,7 @@ public class SigningCtxImpl implements SigningCtx {
     private final X509Certificate cert;
 
     @Override
-    public SignatureData buildSignature(SignatureBuilder builder) throws Exception {
+    public SignatureData buildSignature(SignatureBuilder builder) throws CertificateEncodingException, IOException {
         List<X509Certificate> extraCerts = getIntermediateCaCerts();
         List<OCSPResp> ocspResponses = getOcspResponses(extraCerts);
 
@@ -79,7 +81,7 @@ public class SigningCtxImpl implements SigningCtx {
         return builder.build(key, SystemProperties.getProxyMessageSignDigestName());
     }
 
-    private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws Exception {
+    private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws CertificateEncodingException, IOException {
         List<X509Certificate> allCerts = new ArrayList<>(certs.size() + 1);
         allCerts.add(cert);
         allCerts.addAll(certs);
@@ -87,7 +89,7 @@ public class SigningCtxImpl implements SigningCtx {
         return keyConfProvider.getAllOcspResponses(allCerts);
     }
 
-    private List<X509Certificate> getIntermediateCaCerts() throws Exception {
+    private List<X509Certificate> getIntermediateCaCerts() throws CertificateEncodingException, IOException {
         CertChain chain = globalConfProvider.getCertChain(subject.getXRoadInstance(), cert);
 
         if (chain == null) {

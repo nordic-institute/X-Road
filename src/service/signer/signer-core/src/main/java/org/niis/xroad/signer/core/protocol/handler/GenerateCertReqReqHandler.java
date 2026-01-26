@@ -30,7 +30,8 @@ import ee.ria.xroad.common.CodedException;
 import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenType;
 import org.niis.xroad.signer.core.util.TokenAndKey;
@@ -50,7 +51,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateCertRequestReq, GenerateCertRequestResp> {
 
     @Override
-    protected GenerateCertRequestResp handle(GenerateCertRequestReq request) throws Exception {
+    protected GenerateCertRequestResp handle(GenerateCertRequestReq request) {
         TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
 
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
@@ -64,19 +65,23 @@ public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateC
                     "Authentication certificate requests can only be created under software tokens");
         }
 
-        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
-                request.getSubjectAltName(), request.getKeyUsage());
+        try {
+            PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
+                    request.getSubjectAltName(), request.getKeyUsage());
 
-        String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(),
-                request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
-                request.getSubjectName(), request.getSubjectAltName(), request.getKeyUsage(),
-                request.getCertificateProfile());
+            String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(),
+                    request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
+                    request.getSubjectName(), request.getSubjectAltName(), request.getKeyUsage(),
+                    request.getCertificateProfile());
 
-        return GenerateCertRequestResp.newBuilder()
-                .setCertReqId(certReqId)
-                .setCertRequest(ByteString.copyFrom(convert(generatedRequest, request.getFormat())))
-                .setFormat(request.getFormat())
-                .build();
+            return GenerateCertRequestResp.newBuilder()
+                    .setCertReqId(certReqId)
+                    .setCertRequest(ByteString.copyFrom(convert(generatedRequest, request.getFormat())))
+                    .setFormat(request.getFormat())
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
 }

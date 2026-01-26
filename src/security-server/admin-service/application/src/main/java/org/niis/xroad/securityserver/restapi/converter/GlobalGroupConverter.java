@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
 
 /**
  * Helper to convert GlobalGroups

@@ -53,7 +53,7 @@ public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCall
     protected abstract ClientId getClient();
 
     @Override
-    protected void verifyMessage() throws Exception {
+    protected void verifyMessage() {
         super.verifyMessage();
 
         // Verify that the subject id from the certificate matches the one
@@ -79,7 +79,7 @@ public abstract class BaseClientRequestCallback<T> extends BaseServerRequestCall
         }
     }
 
-    private ClientId getClientIdFromCert(X509Certificate cert) throws Exception {
+    private ClientId getClientIdFromCert(X509Certificate cert) {
         return globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         ClientId.Conf.create(

@@ -26,20 +26,14 @@
  -->
 <template>
   <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onFileInputChange"
-    />
+    <input v-show="false" ref="fileInput" type="file" :accept="accepts" @change="onFileInputChange" />
     <slot :upload="upload" :filedrop="onFileDrop" :errors="errors" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { FileUploadResult } from '../types';
+import { FileUploadResult } from '../utils';
 
 // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
 
@@ -51,25 +45,30 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
-  (e: 'file-changed', value: FileUploadResult): void
+  (e: 'file-changed', value: FileUploadResult): void;
 }>();
 const fileInput = ref(null);
 const errors = ref([] as string[]);
 
 function _asRegexPart(fragment: string): string {
   if (fragment.includes('/')) {
-    return fragment.replace('*', '\\w*')
+    return fragment.replace('*', '\\w*');
   } else if (fragment.startsWith('.')) {
     return '.+\\' + fragment + '$';
   }
   return '';
 }
 
-const typesRg = computed(() => new RegExp(props.accepts
-  .split(',')
-  .map(item => _asRegexPart(item.trim()))
-  .filter(item => item)
-  .join('|')));
+const typesRg = computed(
+  () =>
+    new RegExp(
+      props.accepts
+        .split(',')
+        .map((item) => _asRegexPart(item.trim()))
+        .filter((item) => item)
+        .join('|'),
+    ),
+);
 
 function upload() {
   if (fileInput.value) {
@@ -101,8 +100,7 @@ function onFileDrop(event: DragEvent) {
     return;
   }
 
-  const files = [...event.dataTransfer.files]
-    .filter(item => typesRg.value.test(item.type) || typesRg.value.test(item.name));
+  const files = [...event.dataTransfer.files].filter((item) => typesRg.value.test(item.type) || typesRg.value.test(item.name));
 
   if (!files.length) {
     errors.value.push('not-allowed-type');
@@ -119,7 +117,7 @@ function onFileInputChange(event: Event) {
   if (!files) {
     return; // No files uploaded
   }
-  _handleFile(files[0])
+  _handleFile(files[0]);
 }
 </script>
 

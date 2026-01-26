@@ -39,7 +39,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_FAILED;
 
 @Slf4j
 @RequiredArgsConstructor

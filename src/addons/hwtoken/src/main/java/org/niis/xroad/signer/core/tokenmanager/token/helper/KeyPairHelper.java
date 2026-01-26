@@ -33,6 +33,9 @@ import iaik.pkcs.pkcs11.objects.PublicKey;
 import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 
+import java.io.IOException;
+import java.security.spec.InvalidKeySpecException;
+
 public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper {
 
     KeyPair createKeypair(Session activeSession,
@@ -40,7 +43,7 @@ public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper 
                           PubKeyAttributes pubKeyAttributes,
                           PrivKeyAttributes privKeyAttributes) throws TokenException;
 
-    byte[] generateX509PublicKey(PublicKey publicKey) throws Exception;
+    byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException, IOException;
 
     static KeyPairHelper of(KeyAlgorithm algorithm) {
         return switch (algorithm) {

@@ -31,11 +31,11 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.core.signature.SignatureCtx;
 import org.niis.xroad.proxy.core.signedmessage.SigningKey;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
 
@@ -65,7 +65,9 @@ public class TestSigningKey implements SigningKey {
     }
 
     @Override
-    public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) throws Exception {
+    @SneakyThrows
+    @SuppressWarnings("checkstyle:SneakyThrowsCheck")
+    public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) {
         log.debug("calculateSignature({}, {})", request, digestAlgoId);
 
         SignatureCtx ctx = new SignatureCtx(getSignatureAlgorithmId(digestAlgoId));
@@ -88,7 +90,7 @@ public class TestSigningKey implements SigningKey {
         return signature.sign();
     }
 
-    private static SignAlgorithm getSignatureAlgorithmId(DigestAlgorithm digestAlgorithmId) throws NoSuchAlgorithmException {
+    private static SignAlgorithm getSignatureAlgorithmId(DigestAlgorithm digestAlgorithmId) {
         return SignAlgorithm.ofDigestAndMechanism(digestAlgorithmId, SIGNING_MECHANISM_NAME);
     }
 }

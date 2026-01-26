@@ -1,10 +1,4 @@
 {
-  "403": {
-    "goBack": "Yzyňa dolan",
-    "mainTitle": "Rugsat berilmedi",
-    "text": "Bu sahypany görmek üçin rugsadyňyz ýoga meňzeýär.Eger-de siz bu ýalňyş diýip pikir edýän bolsaňyz, onda dogry akkaunda girenligiňizi barlaň ýa-da öz rugsadyňyz barada administratorа ýüzleniň.",
-    "topTitle": "Gadagan"
-  },
   "action": {
     "approve": "Tassykla",
     "decline": "Ret et",
@@ -18,7 +12,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "Meýdançada bir ýa-da otur bilen bölünen birnäçe IP salgylary bolmaly",
-    "invalidUrl": "URL nädogry, dogry URL formatlarynyň nusgalary: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL nädogry, dogry URL formatlarynyň nusgalary: 'http://www.example.com', 'https://www.example.com'",
+    "description": "Beýany meýdançasynda diňe dogry nyşanlary ulanyň"
   },
   "error_code": {
     "backup_deletion_failed": "Ätiýaçlyk nusgasyny pozup bolmady",
@@ -193,7 +188,6 @@
     "navigation": {
       "back": "Yza"
     },
-    "pageNotFound": "bagyşlaň, sahypa tapylmady",
     "register": "Hasaba alyş",
     "search": "Gözleg",
     "server": "Serwer",
@@ -634,6 +628,7 @@
     "certProfileInput": "Şahadatnamanyň profil maglumatlary",
     "certProfileInputExplanation": "ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interfeýsi ýerine ýetirýän klassyň doly ady",
     "certificationServices": "Şahadatnama boýunça hyzmatlary",
+    "defaultCsrFormat": "Deslapky CSR formaty",
     "timestampingService": {
       "addedSuccessfully": "Wagt bellemek hyzmaty üstünlikli goşuldy",
       "dialog": {
@@ -651,6 +646,12 @@
     },
     "timestampingServices": "Wagt bellemek hyzmatlary",
     "trustService": {
+      "cost": "Bahasy",
+      "costType": {
+        "FREE": "Mugt",
+        "PAID": "Tölenen",
+        "UNDEFINED": "Kesgitlenmedik"
+      },
       "delete": {
         "action": "Ynam hyzmatyny poz",
         "confirmationDialog": {
@@ -712,16 +713,11 @@
         "acmeCapable": "Bu CA ACME üçin ulanylyp bilner",
         "acmeNotCapable": "Bu CA ACME üçin ulanylyp bilinmer",
         "certProfile": "ee.ria.xroad.common.CertificateProfileInfoProvider interfeýsi ýerine ýetiriji şahadatnamanyň (klassyň doly ady) profili barada maglumat",
+        "defaultCsrFormat": "Öňünden bellenen CSR formaty (bu CA bilen täze tassyklama we gol çekiş açarlary döredilende awtomatiki saýlanýar; el bilen üýtgedilip bilner)",
         "saveSuccess": "CA sazlamalary üstünlikli ýatda saklanyldy",
         "tlsAuth": "Bu CA diňe TLS-niň hakykylygyny tassyklamak üçin ulanylyp bilner"
       },
       "timestampingService": {
-        "cost": "Bahasy",
-        "costValues": {
-          "FREE": "Mugt",
-          "PAID": "Tölenen",
-          "UNDEFINED": "Kesgitlenmedik"
-        },
         "delete": {
           "dialog": {
             "message": "Siz dogurdanam {url} URL-ly wagty bellemek gullugyny pozmak isleýärsiňizmi?",

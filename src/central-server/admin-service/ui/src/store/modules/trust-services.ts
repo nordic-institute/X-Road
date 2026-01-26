@@ -31,6 +31,7 @@ import {
   CertificateDetails,
   CertificationServiceFileAndSettings,
   CertificationServiceSettings,
+  CostType,
   OcspResponder,
   TimestampingService,
 } from '@/openapi-types';
@@ -77,6 +78,7 @@ export const useCertificationService = defineStore('certificationService', {
       );
       formData.append('tls_auth', newCas.tls_auth || '');
       formData.append('certificate', newCas.certificate);
+      formData.append('default_csr_format', newCas.default_csr_format);
       formData.append(
         'acme_server_directory_url',
         newCas.acme_server_directory_url || '',
@@ -151,9 +153,10 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath)
         .then((resp) => (this.currentOcspResponders = resp.data));
     },
-    addOcspResponder(url: string, certificate: File | undefined) {
+    addOcspResponder(url: string, costType: string, certificate: File | undefined) {
       const formData = new FormData();
       formData.append('url', url);
+      formData.append('cost_type', costType);
       if (certificate) {
         formData.append('certificate', certificate);
       }
@@ -165,10 +168,12 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
     updateOcspResponder(
       id: number,
       url: string,
+      costType: string,
       certificate: File | undefined,
     ) {
       const formData = new FormData();
       formData.append('url', url);
+      formData.append('cost_type', costType);
       if (certificate) {
         formData.append('certificate', certificate);
       }
@@ -216,9 +221,9 @@ export const useIntermediateCasService = defineStore('intermediateCasService', {
       if (!this.currentCs) return;
 
       return axios
-        .get<CertificateAuthority[]>(
-          `/certification-services/${this.currentCs.id}/intermediate-cas`,
-        )
+        .get<
+          CertificateAuthority[]
+        >(`/certification-services/${this.currentCs.id}/intermediate-cas`)
         .then((resp) => (this.currentIntermediateCas = resp.data));
     },
     getIntermediateCa(id: number) {
@@ -265,9 +270,10 @@ export const useTimestampingServicesStore = defineStore(
           .delete(`/timestamping-services/${id}`)
           .finally(() => this.fetchTimestampingServices());
       },
-      addTimestampingService(url: string, certificate: File) {
+      addTimestampingService(url: string, costType: string, certificate: File) {
         const formData = new FormData();
-        formData.append('url', url || '');
+        formData.append('url', url);
+        formData.append('cost_type', costType);
         formData.append('certificate', certificate);
         return axios
           .post('/timestamping-services', formData)
@@ -276,10 +282,12 @@ export const useTimestampingServicesStore = defineStore(
       updateTimestampingService(
         id: number,
         url: string,
+        costType: string,
         certificate: File | undefined,
       ) {
         const formData = new FormData();
-        formData.append('url', url || '');
+        formData.append('url', url);
+        formData.append('cost_type', costType);
         if (certificate) {
           formData.append('certificate', certificate);
         }
@@ -289,4 +297,8 @@ export const useTimestampingServicesStore = defineStore(
       },
     },
   },
+);
+
+export const definedCostTypes: CostType[] = Object.values(CostType).filter(
+  (v) => v !== CostType.UNDEFINED,
 );

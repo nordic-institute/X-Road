@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.OutputStream;
 import java.util.Map.Entry;
@@ -83,6 +84,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
     private final MetricRegistry healthMetricRegistry;
 
     @Override
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
                        Consumer<String> contentTypeCallback) throws Exception {
         log.trace("handle()");
@@ -107,6 +109,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
     }
 
     @SuppressWarnings("unchecked")
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private JAXBElement<?> buildHealthDataResponse(ClientId.Conf clientId) throws Exception {
         GetSecurityServerHealthDataResponseType healthDataResponse =
                 OBJECT_FACTORY.createGetSecurityServerHealthDataResponseType();

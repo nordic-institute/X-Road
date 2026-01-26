@@ -153,7 +153,7 @@
       <table class="xrd-table group-members-table">
         <thead>
           <tr>
-            <th>{{ $t('services.memberNameGroupDesc') }}</th>
+            <th>{{ $t('services.subsystemNameGroupDesc') }}</th>
             <th>{{ $t('services.idGroupCode') }}</th>
             <th>{{ $t('general.type') }}</th>
             <th>{{ $t('accessRights.rightsGiven') }}</th>
@@ -504,8 +504,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .apply-to-all {
   display: flex;

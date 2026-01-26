@@ -48,7 +48,7 @@ public class AddressChangeRequestCallback extends BaseServerRequestCallback<Addr
     }
 
     @Override
-    protected void verifyMessage() throws Exception {
+    protected void verifyMessage() {
         super.verifyMessage();
 
         assertAddress(getRequest().getAddress());

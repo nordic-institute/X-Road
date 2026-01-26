@@ -58,6 +58,14 @@
         </div>
       </template>
 
+      <template #[`item.cost_type`]="{ item }">
+        {{
+          $t(
+            'trustServices.trustService.costType.' + item.cost_type,
+          )
+        }}
+      </template>
+
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button
@@ -89,7 +97,7 @@
       </template>
 
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -138,12 +146,12 @@ import {
 import EditOcspResponderDialog from '@/components/ocspResponders/EditOcspResponderDialog.vue';
 import { RouteName } from '@/global';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DataTableToolbar,
     EditOcspResponderDialog,
     AddOcspResponderDialog,
@@ -182,6 +190,13 @@ export default defineComponent({
           ) as string,
           align: 'start',
           key: 'url',
+        },
+        {
+          title: this.$t(
+            'trustServices.trustService.cost',
+          ) as string,
+          align: 'center',
+          key: 'cost_type',
         },
         {
           title: '',
@@ -247,5 +262,5 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

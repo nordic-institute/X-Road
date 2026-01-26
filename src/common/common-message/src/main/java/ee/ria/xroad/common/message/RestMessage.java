@@ -36,6 +36,7 @@ import org.apache.http.message.BasicHeader;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
@@ -101,6 +102,7 @@ public abstract class RestMessage {
 
     /**
      * Finds header value as a String
+     *
      * @param name http header name
      * @return http header value as a String or null if header not found
      */
@@ -119,12 +121,13 @@ public abstract class RestMessage {
 
     /**
      * Create rest message from message bytes
+     *
      * @param messageBytes
      * @return parsed rest message (response or request)
      * @see RestResponse
      * @see RestRequest
      */
-    public static RestMessage of(byte[] messageBytes) throws Exception {
+    public static RestMessage of(byte[] messageBytes) throws IOException, URISyntaxException {
         if (messageBytes != null && messageBytes.length > 0) {
             if (messageBytes[0] >= '1' && messageBytes[0] <= '9') {
                 return RestResponse.of(messageBytes);

@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.18  
+Version: 1.21
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -26,6 +26,9 @@ Doc. ID: UG-SS-SIDECAR
 | 18.02.2025 | 1.16    | Configuring memory allocation fo proxy service          | Ovidijus Narkevičius      |
 | 26.03.2025 | 1.17    | Syntax and styling                                      | Pauline Dimmek            |
 | 02.04.2025 | 1.18    | Added autologin paragraph                               | Mikk-Erik Bachmann        |
+| 28.08.2025 | 1.19    | Added paragraph about custom ACME challenge port number | Mikk-Erik Bachmann        |
+| 14.10.2025 | 1.20    | Document multiple token autologin support               | Raido Kaju                |
+| 18.12.2025 | 1.21    | Added hardware token installation paragraph             | Marc David                |
 
 ## License
 
@@ -55,7 +58,8 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
   * [3.2 Enabling ACME Support](#32-enabling-acme-support)
   * [3.3 Configuring the memory allocation for the Proxy Service](#33-configuring-the-memory-allocation-for-the-proxy-service)
-  * [3.4 Autologin](#34-autologin)
+  * [3.4 Installing Support for Hardware Tokens](#34-installing-support-for-hardware-tokens)
+  * [3.5 Autologin](#35-autologin)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
@@ -172,6 +176,8 @@ docker run --detach \
   -e XROAD_TOKEN_PIN=<token pin> \
   -e XROAD_ADMIN_USER=<admin user> \
   -e XROAD_ADMIN_PASSWORD=<admin password> \
+  # Alternatively a password hash for admin can be used
+  # -e XROAD_ADMIN_PWD_HASH=<admin password hash>
   # Optional parameters - BEGIN
   -v <config-volume>:/etc/xroad \
   -v <archive-volume>:/var/lib/xroad \
@@ -183,6 +189,9 @@ docker run --detach \
   # Optional parameters - END
   niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
+
+Hash for admin user can be generated with multiple tools. Note that yescrypt ( `$y$xxxx` ) hash is not supported in older xroad images.
+A SHA512 hash can be generated with `mkpasswd -m SHA-512` or with docker command `docker run --rm -it docker.io/serversideup/mkpasswd -m SHA-512`
 
 Note! This command persists all configuration inside the Sidecar container which means that state is lost when the container is destroyed.
 In production use, either persistent volumes should be used. Using a separate database is recommended.
@@ -367,15 +376,50 @@ See [UG-SYSPAR](#Ref_UG-SYSPAR) for configuration details.
 Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
+For Sidecar, it is possible to use a different ACME challenge port from the default 80. For this, set the environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT` to the desired port number and map it to a host port 80 when starting the container (ACME Servers always use port 80 for HTTP-01 challenge).
+
 ### 3.3 Configuring the memory allocation for the Proxy Service
 
 The memory allocation for the Proxy Service can be configured using helper script `/usr/share/xroad/scripts/proxy_memory_helper.sh`. More information about the usage of this script is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
-### 3.4 Autologin
+### 3.4 Installing Support for Hardware Tokens
 
-The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)). 
+Security Server Sidecar provides built-in support for hardware security tokens, requiring only configuration.
 
-For Sidecar, Autologin uses a custom script `custom-fetch-pin.sh` which looks at the environment variable `XROAD_TOKEN_PIN` first. This is set in the above example with a flag `-e XROAD_TOKEN_PIN=<token pin>`. When the Security Server is initialized for the first time, the token pin configured in the third step needs to match this variable. Given that for the autologin to succeed the token needs to be initialized and xroad-signer needs to be running, there can be retry statements in the logs when the autologin process starts before one of these things has happened. Eventually the autologin process should exit with a log message `xroad-autologin (exit status 0; expected)` which indicates that the autologin has succeeded. When the environment variable is not set, autologin might fail because by default the sidecar container doesn't have the token pin in its fallback location `/etc/xroad/autologin`. This file can be manually added with the correct pin if having the pin as plain text in that file is acceptable.
+1. Make the PKCS\#11 provider library (and any required additional files) available in the sidecar container by mounting them as volumes.
+2. Create the `devices.ini` file under your mount for `/etc/xroad` and add the path for the PKCS\#11 library inside it (note that the library path should match the path inside the container you chose in the last step).
+    * More information on how to configure the `devices.ini` file itself can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
+3. Restarting the Security Service Sidecar container might be required:
+
+    ```bash
+    docker restart <sidecar container name>
+    ```
+
+### 3.5 Autologin
+
+The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)).
+
+For Sidecar, Autologin uses a custom script `custom-fetch-pin.sh` which supports both single and multiple token configurations:
+
+Single token configuration:
+
+* Set the environment variable `XROAD_TOKEN_PIN` (e.g., `-e XROAD_TOKEN_PIN=<token pin>`)
+* This PIN will be used for token ID 0
+* When the Security Server is initialized for the first time, the token pin configured needs to match this variable
+
+Multiple tokens configuration:
+
+* Set environment variables in the format `XROAD_TOKEN_<id>_PIN` where `<id>` is the token ID
+* Example: `-e XROAD_TOKEN_0_PIN=1234 -e XROAD_TOKEN_1_PIN=5678`
+* Each token will be logged in with its respective PIN
+* If using numbered tokens (other than 0), multiple token PINs must be provided
+
+Fallback configuration:
+
+* If no environment variables are set, the script will read from `/etc/xroad/autologin`
+* This file can contain either a single PIN (for token 0) or multiple lines in the format `token-id:token-pin`
+
+Given that for the autologin to succeed the token needs to be initialized and xroad-signer needs to be running, there can be retry statements in the logs when the autologin process starts before one of these things has happened. Eventually the autologin process should exit with a log message `xroad-autologin (exit status 0; expected)` which indicates that the autologin has succeeded.
 
 ## 4 Upgrading
 

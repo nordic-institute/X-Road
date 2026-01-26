@@ -34,17 +34,19 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
@@ -78,7 +80,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
     }
 
     @Override
-    public boolean handle(Request request, Response response, Callback callback) throws Exception {
+    public boolean handle(Request request, Response response, Callback callback) throws IOException {
         final var target = request.getHttpURI().getPath();
         try {
             if (STORE_DATA_PATH.equals(target)) {
@@ -133,14 +135,14 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
                                     Callback callback) throws IOException {
         try {
             if (!isPostRequest(request)) {
-                throw new RuntimeException(invalidMethodError(request));
+                throw XrdRuntimeException.systemInternalError(invalidMethodError(request));
             }
 
             String contentType = MimeUtils.getBaseContentType(
                     getContentType(request));
 
             if (!MimeTypes.JSON.equalsIgnoreCase(contentType)) {
-                throw new RuntimeException(invalidContentTypeError(request,
+                throw XrdRuntimeException.systemInternalError(invalidContentTypeError(request,
                         MimeTypes.JSON));
             }
 
@@ -192,10 +194,12 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
         sendJsonResponse(response, callback, OK_RESPONSE_BYTES);
     }
 
-    @SneakyThrows
     private static byte[] getOkResponseBytes() {
-        return OBJECT_WRITER.writeValueAsString(new StoreOpMonitoringDataResponse()).getBytes(
-                MimeUtils.UTF8);
+        try {
+            return OBJECT_WRITER.writeValueAsString(new StoreOpMonitoringDataResponse()).getBytes(MimeUtils.UTF8);
+        } catch (JsonProcessingException | UnsupportedEncodingException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private static void sendJsonResponse(Response response,

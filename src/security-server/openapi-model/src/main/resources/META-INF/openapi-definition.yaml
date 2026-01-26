@@ -51,8 +51,8 @@ tags:
     description: token certificates endpoints
   - name: tokens
     description: tokens endpoints
-  - name: xroad-instances
-    description: xroad-instances endpoints
+  - name: x-road-instances
+    description: x-road-instances endpoints
 paths:
   /backups:
     get:
@@ -843,6 +843,13 @@ paths:
           schema:
             type: boolean
             default: false
+        - in: query
+          name: include_management_service_check
+          description: add info, is this subsystem management service provider or not
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: list of clients
@@ -1236,6 +1243,46 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
+  /clients/{id}/security-servers:
+    get:
+      tags:
+        - clients
+      summary: get all clients security servers
+      operationId: getClientSecurityServers
+      description: <h3>Administrator views the details of clients security servers.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '200':
+          description: list of SecurityServer objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of SecurityServer objects
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /clients/{id}/service-clients:
     get:
       tags:
@@ -2243,7 +2290,7 @@ paths:
                 description: array of ocsp responder diagnostics objects
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/OcspResponderDiagnostics'
+                  $ref: '#/components/schemas/CaOcspDiagnostics'
         '400':
           description: request was invalid
         '401':
@@ -2380,6 +2427,198 @@ paths:
                 $ref: '#/components/schemas/ProxyMemoryUsageStatus'
         '400':
           description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/auth-cert-req-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view authentication certificate registration request status
+      operationId: getAuthCertReqStatus
+      description: <h3>Administrator views the authentication certificate registration request status.</h3>
+      responses:
+        '200':
+          description: authentication certificate registration request status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/global-conf-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view global configuration download connection status
+      operationId: getGlobalConfStatus
+      description: <h3>Administrator views global configuration download connection status.</h3>
+      responses:
+        '200':
+          description: global configuration download connection status
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of statuses for the global configuration download connection
+                items:
+                  $ref: '#/components/schemas/GlobalConfConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/other-security-server-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view other security server connection status
+      operationId: getOtherSecurityServerStatus
+      description: <h3>Administrator views the other security server connection status.</h3>
+      parameters:
+        - in: query
+          name: protocol_type
+          description: service protocol type, must be REST or SOAP
+          required: true
+          schema:
+            type: string
+            enum:
+              - REST
+              - SOAP
+            example: REST
+        - in: query
+          name: client_id
+          description: clientId of the current security server. <instance_id>:<member_class>:<member_code>:<subsystem_code>. Subsystem code is optional.
+          example: FI:GOV:123:Subsystem
+          required: true
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: target_client_id
+          description: targetClientId of the other security server. <instance_id>:<member_class>:<member_code>:<subsystem_code>.
+          example: FI:GOV:123:Subsystem
+          required: true
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: security_server_id
+          description: securityServerId of the other security server. <instance_id>:<member_class>:<member_code>:<server_code>.
+          example: FI:GOV:123:DEV
+          required: true
+          schema:
+            type: string
+            format: text
+      responses:
+        '200':
+          description: other security server connection status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/operational-monitoring:
+    get:
+      tags:
+        - diagnostics
+      summary: view operational information
+      operationId: getOperationalDataIntervals
+      description: <h3>Administrator views the Security Server's operational information on diagnostics page</h3>
+      parameters:
+        - in: query
+          name: records_from
+          description: the earliest time for the queried requests being made
+          required: true
+          schema:
+            type: string
+            format: date-time
+            example: '2025-05-15T00:00:00.001Z'
+        - in: query
+          name: records_to
+          description: the latest time for the queried requests being made
+          required: true
+          schema:
+            type: string
+            format: date-time
+            example: '2025-05-15T00:00:00.001Z'
+        - in: query
+          name: interval
+          description: interval in minutes the requests are divided into
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: '15'
+        - in: query
+          name: security_server_type
+          description: whether this Security Server was a 'Client' or a 'Producer'
+          example: 'Client'
+          required: false
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: member_id
+          description: clientId of the Member who made or received the request. <instance_id>:<member_class>:<member_code>:<subsystem_code>. Subsystem code is optional.
+          example: FI:GOV:123:Subsystem
+          required: false
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: service_id
+          description: serviceId of the Service that received the request. <instance_id>:<member_class>:<member_code>:<subsystem_code>:<service_code>.<version_number>. Version number is optional.
+          example: FI:GOV:123:Subsystem:MyService.V1
+          required: false
+          schema:
+            type: string
+            format: text
+      responses:
+        '200':
+          description: operational information to be visualized
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of operational info objects
+                items:
+                  $ref: '#/components/schemas/OperationalDataInterval'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4768,6 +5007,28 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
+  /system/timestamping-services/prioritization-strategy:
+    get:
+      tags:
+        - system
+      summary: get timestamping services prioritization strategy
+      operationId: getTimestampingPrioritizationStrategy
+      description: <h3>Administrator views the timestamping prioritization strategy.</h3>
+      responses:
+        '200':
+          description: Timestamping prioritization strategy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicePrioritizationStrategy'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: internal server error
   /system/node-type:
     get:
       tags:
@@ -5085,6 +5346,28 @@ paths:
           description: request has been refused
         '409':
           description: an existing item already exists, outdated global conf or token not logged in
+        '500':
+          description: internal server error
+  /certificate-authorities/ocsp-prioritization-strategy:
+    get:
+      tags:
+        - certificate-authorities
+      summary: get OCSP responders prioritization strategy
+      operationId: getOcspPrioritizationStrategy
+      description: <h3>Administrator views the OCSP prioritization strategy.</h3>
+      responses:
+        '200':
+          description: OCSP prioritization strategy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicePrioritizationStrategy'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
         '500':
           description: internal server error
   /mail/mail-notification-status:
@@ -5527,24 +5810,21 @@ paths:
   /xroad-instances:
     get:
       tags:
-        - xroad-instances
-      summary: get list of known xroad instance identifiers
-      operationId: getXroadInstances
-      description: <h3>Administrator lists xroad instance identifiers</h3>
+        - x-road-instances
+      summary: get list of known x-road instance identifiers
+      operationId: getXRoadInstances
+      description: <h3>Administrator lists x-road instance identifiers</h3>
       responses:
         '200':
-          description: xroad instance identifiers
+          description: x-road instance identifiers
           content:
             application/json:
               schema:
-                type: array
-                description: array of xroad instance identifiers
-                uniqueItems: true
-                items:
-                  type: string
-                  format: text
-                  minLength: 1
-                  maxLength: 255
+               type: array
+               uniqueItems: true
+               description: array of x-road instance identifiers
+               items:
+                 $ref: '#/components/schemas/XRoadInstance'
         '400':
           description: request was invalid
         '401':
@@ -5799,11 +6079,16 @@ components:
       description: addon module statuses
       required:
         - messagelog_enabled
+        - opmonitoring_enabled
       properties:
         messagelog_enabled:
           type: boolean
           readOnly: true
           description: MessageLog status
+        opmonitoring_enabled:
+          type: boolean
+          readOnly: true
+          description: OpMonitoring status
     BackupEncryptionStatus:
       type: object
       description: backup encryption statuses
@@ -5902,6 +6187,53 @@ components:
           type: boolean
           readOnly: true
           description: Is usage over threshold
+    ConnectionStatus:
+      type: object
+      description: connection status
+      required:
+        - status_class
+        - error
+      properties:
+        status_class:
+          readOnly: true
+          description: connection status class
+          allOf:
+            - $ref: '#/components/schemas/DiagnosticStatusClass'
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
+    GlobalConfConnectionStatus:
+      type: object
+      description: global configuration download connection status
+      required:
+        - download_url
+        - connection_status
+      properties:
+        download_url:
+          type: string
+          format: text
+          minLength: 1
+          maxLength: 255
+          description: download url of the global configuration
+        connection_status:
+          $ref: '#/components/schemas/ConnectionStatus'
+    XRoadInstance:
+      type: object
+      description: x-road instance
+      required:
+        - identifier
+        - local
+      properties:
+        identifier:
+          type: string
+          readOnly: true
+          format: text
+          minLength: 1
+          maxLength: 255
+          description: x-road instance identifier
+        local:
+          type: boolean
+          readOnly: true
+          description: is this the local x-road instance
     MailNotificationStatus:
       type: object
       description: automatic e-mail notification status
@@ -5967,6 +6299,22 @@ components:
       enum:
         - success # Sending mail was a success
         - error # Sending mail failed
+    OperationalDataInterval:
+      type: object
+      description: Operational information to be visualized
+      properties:
+        interval_start_time:
+          type: string
+          format: date-time
+          description: The beginning of this time window
+        success_count:
+          description: number of successful requests in this time window
+          type: integer
+          format: int64
+        failure_count:
+          description: number of failed requests in this time window
+          type: integer
+          format: int64
     Anchor:
       type: object
       description: security server anchor
@@ -6116,7 +6464,7 @@ components:
           $ref: '#/components/schemas/CertificateStatus'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-    OcspResponderDiagnostics:
+    CaOcspDiagnostics:
       type: object
       description: Ocsp responder diagnostics
       required:
@@ -6135,7 +6483,7 @@ components:
           type: array
           readOnly: true
           items:
-            $ref: '#/components/schemas/OcspResponder'
+            $ref: '#/components/schemas/OcspResponderDiagnostics'
     CertificateDetails:
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -6341,6 +6689,8 @@ components:
           example: org.example.TestCertificateInfoProvider
           minLength: 1
           maxLength: 1024
+        default_csr_format:
+          $ref: '#/components/schemas/CsrFormat'
         acme_capable:
           type: boolean
           description: if certificate authority supports ACME
@@ -6351,6 +6701,11 @@ components:
           items:
             type: string
             format: text
+        ocsp_responders:
+          type: array
+          description: list of ocsp responders for this CA
+          items:
+            $ref: '#/components/schemas/OcspResponder'
     CertificateStatus:
       type: string
       format: enum
@@ -6541,20 +6896,6 @@ components:
         - ENABLING_IN_PROGRESS
     CodeWithDetails:
       $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
-    ConfigurationStatus:
-      type: string
-      format: enum
-      description: configuration status
-      example: SUCCESS
-      enum:
-        - SUCCESS # Everything ok
-        - ERROR_CODE_INTERNAL # Internal error occurred.
-        - ERROR_CODE_INVALID_SIGNATURE_VALUE # Invalid signature value.
-        - ERROR_CODE_EXPIRED_CONF # The downloaded global configuration has expired.
-        - ERROR_CODE_CANNOT_DOWNLOAD_CONF # Unable to download global configuration. Check network connection to global configuration provider.
-        - ERROR_CODE_MISSING_PRIVATE_PARAMS # The downloaded global configuration did not contain private parameters
-        - ERROR_CODE_UNINITIALIZED # The configuration client is initializing.
-        - UNKNOWN
     ConnectionType:
       type: string
       format: enum
@@ -6814,6 +7155,7 @@ components:
           example: description
           minLength: 1
           maxLength: 255
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
     LocalGroupDescription:
       type: object
       required:
@@ -6825,6 +7167,7 @@ components:
           format: text
           minLength: 1
           maxLength: 255
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
       example:
         name: This is an awesome local group!
     GlobalConfDiagnostics:
@@ -6832,7 +7175,6 @@ components:
       description: global configuration diagnostics
       required:
         - status_class
-        - status_code
         - prev_update_at
         - next_update_at
       properties:
@@ -6841,11 +7183,6 @@ components:
           description: diagnostics status class
           allOf:
             - $ref: '#/components/schemas/DiagnosticStatusClass'
-        status_code:
-          readOnly: true
-          description: diagnostics status code
-          allOf:
-            - $ref: '#/components/schemas/ConfigurationStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -6862,6 +7199,16 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
+        last_successful_url:
+          type: string
+          format: uri
+          description: last successful configuration source URL
+          example: https://example.org/configuration
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
     GroupMember:
       type: object
       description: group member
@@ -7144,11 +7491,27 @@ components:
           $ref: '#/components/schemas/NodeType'
     OcspResponder:
       type: object
+      description: OCSP responder
+      required:
+        - url
+        - cost_type
+      properties:
+        url:
+          type: string
+          format: url
+          description: url of the OCSP responder
+          example: http://dev.xroad.rocks:123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        cost_type:
+          $ref: '#/components/schemas/CostType'
+    OcspResponderDiagnostics:
+      type: object
       description: OCSP responder diagnostics
       required:
         - url
         - status_class
-        - status_code
         - next_update_at
       properties:
         url:
@@ -7159,10 +7522,10 @@ components:
           minLength: 1
           maxLength: 255
           readOnly: true
+        cost_type:
+          $ref: '#/components/schemas/CostType'
         status_class:
           $ref: '#/components/schemas/DiagnosticStatusClass'
-        status_code:
-          $ref: '#/components/schemas/OcspStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -7179,19 +7542,8 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    OcspStatus:
-      type: string
-      format: enum
-      description: OCSP responder status
-      example: SUCCESS
-      enum:
-        - SUCCESS # Everything ok
-        - ERROR_CODE_OCSP_CONNECTION_ERROR # Unable to connect to the OCSP responder.
-        - ERROR_CODE_OCSP_FAILED # Unable to fetch response from the OCSP responder.
-        - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
-        - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
-        - ERROR_CODE_OCSP_RESPONSE_UNVERIFIED # Unable to verify OCSP response.
-        - UNKNOWN
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
     OrphanInformation:
       type: object
       properties:
@@ -7252,6 +7604,7 @@ components:
           description: optional message describing maintenance mode
           format: text
           maxLength: 255
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
       example:
         message: End on 14. May
     MaintenanceMode:
@@ -7653,6 +8006,17 @@ components:
           default: false
         type:
           $ref: '#/components/schemas/ServiceType'
+    ServicePrioritizationStrategy:
+      type: string
+      format: enum
+      description: service prioritization strategy
+      example: FREE_FIRST
+      enum:
+        - ONLY_FREE
+        - ONLY_PAID
+        - FREE_FIRST
+        - PAID_FIRST
+        - NONE
     ServiceType:
       type: string
       format: text
@@ -7678,6 +8042,7 @@ components:
       required:
         - name
         - url
+        - cost_type
       properties:
         name:
           type: string
@@ -7693,13 +8058,14 @@ components:
           example: http://dev.xroad.rocks:123
           minLength: 1
           maxLength: 255
+        cost_type:
+          $ref: '#/components/schemas/CostType'
     TimestampingServiceDiagnostics:
       type: object
       description: timestamping service diagnostics
       required:
         - url
         - status_class
-        - status_code
         - prev_update_at
       properties:
         url:
@@ -7710,10 +8076,10 @@ components:
           minLength: 1
           maxLength: 255
           readOnly: true
+        cost_type:
+          $ref: '#/components/schemas/CostType'
         status_class:
           $ref: '#/components/schemas/DiagnosticStatusClass'
-        status_code:
-          $ref: '#/components/schemas/TimestampingStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -7722,18 +8088,17 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    TimestampingStatus:
-      type: string
-      format: enum
-      description: timestamping status
-      example: SUCCESS
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
+    CostType:
+      description: cost type for services like TSP-s and OCSP responders
       enum:
-        - SUCCESS # Everything ok
-        - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT # Connection to the timestamp server timed out. Check the network connection to the timestamp server.
-        - ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL # Malformed timestamp server URL. Check the URL.
-        - ERROR_CODE_TIMESTAMP_UNINITIALIZED # Connection ok, no timestamp request made yet.
-        - ERROR_CODE_INTERNAL # Internal error occurred.
-        - UNKNOWN
+        - FREE
+        - PAID
+        - UNDEFINED
+      example: FREE
+      format: enum
+      type: string
     Token:
       type: object
       description: Token. Also includes the possible actions that can be done to this object,

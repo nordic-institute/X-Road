@@ -1,0 +1,10 @@
+---
+debug: false
+
+spring:
+  main:
+    banner-mode: off
+
+logging:
+  level:
+    ROOT: ERROR

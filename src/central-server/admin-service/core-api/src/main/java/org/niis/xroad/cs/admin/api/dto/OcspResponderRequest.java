@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.niis.xroad.common.CostType;
 
 @Data
 @Accessors(chain = true)
@@ -37,5 +38,6 @@ public class OcspResponderRequest {
     private Integer id;
     private String url;
     private byte[] certificate;
+    private CostType costType;
 
 }

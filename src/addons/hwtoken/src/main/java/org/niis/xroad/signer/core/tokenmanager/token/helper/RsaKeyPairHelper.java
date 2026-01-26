@@ -41,6 +41,7 @@ import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.math.BigInteger;
+import java.security.spec.InvalidKeySpecException;
 
 public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey, RSAPrivateKey> implements KeyPairHelper {
 
@@ -68,7 +69,7 @@ public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey,
     }
 
     @Override
-    public byte[] generateX509PublicKey(PublicKey publicKey) throws Exception {
+    public byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException {
         if (!(publicKey instanceof RSAPublicKey rsaPublicKey)) {
             throw new CryptoException("Invalid type of public key: " + publicKey.getClass());
         }

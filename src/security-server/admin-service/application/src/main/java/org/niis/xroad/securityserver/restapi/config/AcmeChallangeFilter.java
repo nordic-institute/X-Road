@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -45,13 +47,14 @@ public class AcmeChallangeFilter implements Filter {
     @SuppressWarnings("checkstyle:MagicNumber")
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         boolean isAcmeChallenge = ((HttpServletRequest) request).getRequestURI().startsWith("/.well-known/acme-challenge");
-        if (request.getServerPort() == 80 && !isAcmeChallenge) {
-            log.warn("only ACME challenge endpoint should be used on port 80!");
+        int acmeChallengePort = SystemProperties.getAcmeChallengePort();
+        if (request.getServerPort() == acmeChallengePort && !isAcmeChallenge) {
+            log.warn("only ACME challenge endpoint should be used on port {}!", acmeChallengePort);
             ((HttpServletResponse) response).sendError(404);
             return;
         }
-        if (request.getServerPort() != 80 && isAcmeChallenge) {
-            log.warn("ACME challenge endpoint should not be accessible from any port other than 80!");
+        if (request.getServerPort() != acmeChallengePort && isAcmeChallenge) {
+            log.warn("ACME challenge endpoint should not be accessible from any port other than {}!", acmeChallengePort);
             ((HttpServletResponse) response).sendError(404);
             return;
         }

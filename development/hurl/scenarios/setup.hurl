@@ -159,6 +159,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 certificate_profile_info: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
 tls_auth: false
+default_csr_format: DER
 acme_server_directory_url: http://{{ca_host}}:8887
 certificate: file,ca/ca.pem;
 
@@ -172,6 +173,7 @@ POST https://{{cs_host}}:4000/api/v1/certification-services/{{ca_id}}/ocsp-respo
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 url: http://{{ca_host}}:8888
+cost_type: FREE
 certificate: file,ca/ocsp.pem;
 
 HTTP 201
@@ -181,6 +183,7 @@ POST https://{{cs_host}}:4000/api/v1/timestamping-services
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 url: http://{{ca_host}}:8899
+cost_type: FREE
 certificate: file,ca/tsa.pem;
 
 
@@ -232,16 +235,6 @@ Content-Type: application/json
 }
 
 HTTP 201
-
-# Log in to the Security Servers token
-PUT https://{{ss0_host}}:4000/api/v1/tokens/0/login
-X-XSRF-TOKEN: {{ss0_xsrf_token}}
-Content-Type: application/json
-{
-  "password": "Secret1234"
-}
-
-HTTP *
 
 # Get the CA name
 GET https://{{ss0_host}}:4000/api/v1/certificate-authorities
@@ -543,12 +536,14 @@ HTTP 200
 [Captures]
 tsa_name: jsonpath "$[0].name"
 tsa_url: jsonpath "$[0].url"
+cost_type: jsonpath "$[0].cost_type"
 
 POST https://{{ss0_host}}:4000/api/v1/system/timestamping-services
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "name": "{{tsa_name}}",
-  "url": "{{tsa_url}}"
+  "url": "{{tsa_url}}",
+  "cost_type": "{{cost_type}}"
 }
 
 HTTP 201
@@ -592,16 +587,6 @@ Content-Type: application/json
 }
 
 HTTP 201
-
-# Log in to the Security Servers token
-PUT https://{{ss1_host}}:4000/api/v1/tokens/0/login
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
-Content-Type: application/json
-{
-  "password": "Secret1234"
-}
-
-HTTP *
 
 # Add auth key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
@@ -672,8 +657,17 @@ HTTP 201
 [Captures]
 ss1_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
+# Get first hardware token
+GET https://{{ss1_host}}:4000/api/v1/tokens
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+ss1_token_id: jsonpath "$[?(@.type == 'HARDWARE')].id" nth 0
+
 # Add sign key to the Security Server token
-POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
+POST https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/keys-with-csrs
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
@@ -779,7 +773,8 @@ POST https://{{ss1_host}}:4000/api/v1/system/timestamping-services
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 {
   "name": "{{tsa_name}}",
-  "url": "{{tsa_url}}"
+  "url": "{{tsa_url}}",
+  "cost_type": "{{cost_type}}"
 }
 
 HTTP 201
@@ -917,7 +912,7 @@ HTTP 201
 ss1_test-consumer_id: jsonpath "$.id"
 
 # Add test-consumer sign key to the SS1 Security Server token
-POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
+POST https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/keys-with-csrs
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {

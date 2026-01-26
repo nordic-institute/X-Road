@@ -27,9 +27,12 @@
 <template>
   <div v-if="show" class="emptystate-wrapper">
     <div v-if="loading && skeletonType">
-      <v-skeleton-loader :type="skeletonType" class="mb-6" />
-      <v-skeleton-loader :type="skeletonType" class="mb-6" />
-      <v-skeleton-loader :type="skeletonType" />
+      <v-skeleton-loader
+        v-for="n in skeletonCount"
+        :key="n"
+        :type="skeletonType"
+        class="mb-6"
+      />
     </div>
 
     <div v-else-if="loading" class="empty-text">
@@ -86,6 +89,10 @@ export default defineComponent({
       required: false,
       default: undefined,
     },
+    skeletonCount: {
+      type: Number,
+      default: 3,
+    },
   },
   computed: {
     showNoItems() {
@@ -104,8 +111,8 @@ export default defineComponent({
         return true;
       }
       return this.showNoItems;
-    }
-  }
+    },
+  },
 });
 </script>
 

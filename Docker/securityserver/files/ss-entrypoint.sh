@@ -29,13 +29,6 @@ else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
 
-if [  -n "$XROAD_TOKEN_PIN" ]
-then
-    echo "XROAD_TOKEN_PIN variable set, writing to /etc/xroad/autologin"
-    echo "$XROAD_TOKEN_PIN" > /etc/xroad/autologin
-    unset XROAD_TOKEN_PIN
-fi
-
 log "Enabling public postgres access.."
 sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
 sed -ri 's/host    replication     all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/*/main/pg_hba.conf

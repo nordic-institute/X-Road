@@ -1,22 +1,11 @@
 {
-  "403": {
-    "goBack": "Go back",
-    "mainTitle": "Permission denied",
-    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
-    "topTitle": "Forbidden"
-  },
-  "404": {
-    "pageNotFound": "404 - page not found",
-    "text": "Seems like you found the",
-    "textUnicorn": "unicorn"
-  },
   "accessRights": {
     "addServiceClients": "Add subjects",
     "addServiceClientsSuccess": "Access rights added successfully",
     "addServiceClientsTitle": "Add Subjects",
     "addSubjectsSuccess": "Access rights added successfully",
     "id": "ID",
-    "memberName": "Member Name / Group Description",
+    "subsystemName": "Subsystem Name / Group Description",
     "removeAllText": "Are you sure you want to remove access rights from all clients?",
     "removeAllTitle": "Remove all access rights?",
     "removeSuccess": "Access rights removed successfully",
@@ -148,6 +137,7 @@
     },
     "subsystemCode": "Subsystem Code",
     "subsystemName": "Subsystem Name",
+    "subsystemTitleSuffix": " (@:general.subsystem)",
     "unknownMember": "unknown member"
   },
   "clients": {
@@ -182,12 +172,14 @@
     "invalidEndpoint": "Endpoint contains illegal characters",
     "invalidUrl": "URL is not valid",
     "invalidXrdIdentifier": "Identifier value contains illegal characters",
-    "requiredIf": "The {fieldName} field is required"
+    "requiredIf": "The {fieldName} field is required",
+    "description": "Use valid description characters only"
   },
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
     },
+    "costType": "Cost Type",
     "downloadReport": "Download Diagnostic Report",
     "encryption": {
       "backup": {
@@ -214,15 +206,17 @@
     },
     "globalConfiguration": {
       "configurationStatus": {
-        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check the network connection.",
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
         "ERROR_CODE_INTERNAL": "Internal error occurred.",
         "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
         "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
         "ERROR_CODE_UNINITIALIZED": "The configuration client is initialising.",
-        "SUCCESS": "Everything ok",
+        "WAITING": "The configuration client is initialising.",
+        "OK": "Everything ok",
         "UNKNOWN": "Unknown"
       },
+      "last_successful_url": "Last successful URL",
       "title": "Global configuration"
     },
     "javaVersion": {
@@ -248,6 +242,8 @@
         "title": "Different mail notification statuses available"
       },
       "recipientsEmails": "Recipients' emails",
+      "status": "Status",
+      "sentTestMail": "Send test e-mail",
       "title": "Mail notification status",
       "type": {
         "ACME_FAILURE": "ACME failure notifications",
@@ -256,8 +252,7 @@
         "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
         "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
       },
-      "types": "Mail notification types",
-      "status": "Status"
+      "types": "Mail notification types"
     },
     "maintenanceMode": {
       "enableTitle": "Enable maintenance mode",
@@ -285,7 +280,8 @@
         "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
         "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "Unable to verify the OCSP response",
         "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
-        "SUCCESS": "Everything ok",
+        "WAITING": "Status request not sent yet",
+        "OK": "Everything ok",
         "UNKNOWN": "Unknown"
       },
       "title": "OCSP responders"
@@ -307,12 +303,59 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Internal error occurred",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection to global configuration provider.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
-        "SUCCESS": "Everything ok",
+        "ERROR_CODE_UNKNOWN_HOST": "Connection error, unknown host",
+        "WAITING": "Connection ok, no timestamp request made yet",
+        "OK": "Everything ok",
         "UNKNOWN": "Unknown"
       },
       "title": "Timestamping"
+    },
+    "traffic": {
+      "period": "Period",
+      "periodInfo": "Select start and end",
+      "date": "Date",
+      "time": "Time",
+      "party": "Party",
+      "partyInfo": "Service, subsystem, member",
+      "client": "Client",
+      "service": "Service",
+      "exchangeRole": "Exchange role",
+      "exchangeRoleInfo": "Producer or Consumer",
+      "producer": "Producer",
+      "status": "Status",
+      "statusInfo": "Message exchange status",
+      "success": "Success",
+      "failure": "Failure",
+      "successfulRequests": "Successful requests",
+      "failedRequests": "Failed requests",
+      "disabledTitle": "Operational Data Monitoring Is Disabled",
+      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Everything ok",
+      "test": "Test",
+      "centralServer": {
+        "authCertRequest": "Authentication certificate registration service",
+        "globalConf": "Global configuration download",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Central Server"
+      },
+      "management": {
+        "title": "Management Security Server"
+      },
+      "securityServer": {
+        "client": "Client",
+        "sourceClient": "Source Client",
+        "rest": "REST",
+        "securityServer":  "Security Server",
+        "soap": "SOAP",
+        "title": "Other Security Server",
+        "target": "Target",
+        "targetClient": "Target Client"
+      }
     }
   },
   "endpoints": {
@@ -337,6 +380,8 @@
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
       "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
+      "acme_yaml_missing": "ACME configuration file acme.yml is missing",
+      "acme_yaml_account_keystore_password_update_error": "Updating ACME account keystore password in acme.yml configuration file failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",
       "certificate_failure": "Getting the Certificate from the ACME server failed",
@@ -396,14 +441,34 @@
       }
     },
     "csr_not_found": "CSR not found",
+    "database_error": "Database error",
     "diagnostic_request_failed": "Diagnostic request failed",
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
+    "failed_to_save_instance_identifier": "Failed to save instance identifier to a file",
     "forbidden_disable_management_service_client": "The management services provider cannot be deactivated.",
     "forbidden_enable_maintenance_mode_for_management_service": "The management services provider cannot be deactivated.",
     "global_conf_download_request_failed": "Global configuration download request failed",
+    "global_conf_download_url_connection_failure": "Failed to open connection to the global configuration download url",
+    "global_conf_get_version_failed": "Failed to determine global configuration version from the url",
+    "global_conf_header_field_missing": "Global configuration response is missing required header field {0}",
+    "global_conf_header_field_missing_parameter": "Global configuration response header field {0} is missing parameter {1}",
+    "global_conf_header_field_wrong_value": "Global configuration response header field {0} has wrong value (value: {1}, expected: {2})",
+    "global_conf_missing_signed_data": "Global configuration is missing signed data",
+    "global_conf_missing_signed_data_expiration_date": "Global configuration signed data is missing expiration date",
+    "global_conf_missing_verification_cert": "Cannot find verification certificate (certificate hash {0}) to verify signature of global configuration",
     "global_conf_outdated": "Global configuration is outdated",
+    "global_conf_parsing_downloaded_conf_directory_failure": "Failed to parse downloaded global configuration directory from {0}",
+    "global_conf_part_invalid_instance_identifier": "Global configuration part file {0} has invalid instance identifier",
+    "global_conf_part_download_failure": "Failed to download global configuration part",
+    "global_conf_part_downloaded_file_integrity_failure": "Failed to verify downloaded global configuration part integrity of {0}",
+    "global_conf_part_downloaded_hash_failure": "Failed to get hash for downloaded global configuration part",
+    "global_conf_part_file_expiration_date_update_failure": "Failed to update expiration date of global configuration part file",
+    "global_conf_part_file_hash_failure": "Failed to get hash for existing global configuration file",
+    "global_conf_part_file_save_failure": "Failed to save global configuration part file to {0}",
+    "global_conf_signature_decode_failure": "Failed to decode signature of global configuration",
+    "global_conf_signature_verification_failure": "Failed to verify signature of global configuration",
     "gpg_key_generation_failed": "GPG keypair generation failed",
     "gpg_key_generation_interrupted": "GPG keypair generation interrupted",
     "identifier_not_found": "Identifier not found",
@@ -418,18 +483,21 @@
     "invalid_init_params": "Invalid initialisation parameters",
     "invalid_instance_identifier": "Invalid instance identifier",
     "invalid_member_class": "Invalid member class",
+    "invalid_pem_csr": "Invalid PEM CSR",
     "invalid_service_client_id": "Invalid service client ID",
     "invalid_service_url": "Invalid service url",
     "invalid_wsdl": "Invalid WSDL",
     "invalid_wsdl_service_identifier": "Invalid WSDL service identifier",
+    "io_error": "IO error",
     "key_and_cert_generation_failed": "Key and certificate generation failed",
     "key_not_found": "Key not found",
     "local_group_code_already_exists": "Local group code already exists",
     "local_group_member_already_exists": "Local group member already exists",
     "local_group_member_not_found": "Local group member not found",
     "local_group_not_found": "Local group not found",
-    "malformed_anchor": "Malformed anchor",
     "maintenance_mode_change_request_already_submitted": "Maintenance mode change is already pending",
+    "malformed_anchor": "Malformed anchor",
+    "malformed_global_conf": "Malformed global configuration",
     "malformed_url": "Malformed URL",
     "management_request_sending_failed": "Sending of management request failed",
     "member_already_owner": "Member is already the owner",
@@ -438,6 +506,37 @@
     "member_code_exists": "Member code exists",
     "member_code_not_provided": "Member code is not provided",
     "missing_parameter": "Missing parameter",
+    "mlog": {
+      "adding_signature_to_ts_token_failed": "Adding signer certificate to timestamp token failed",
+      "calculating_message_digest_failed": "Calculating message digest failed",
+      "failed_to_build_signature_hash_chain": "Failed to build signature hash chain for batch timestamping",
+      "failed_to_prepare_signature_data": "Failed to prepare signature data for timestamping",
+      "log_manager_unavailable": "Unable to connect to LogManager, immediate timestamping status unavailable",
+      "malformed_timestamp_server_url": "Malformed timestamp server URL. Check the URL.",
+      "message_log_record_not_found": "Could not find log record from the database",
+      "no_log_records_specified": "Cannot timestamp, no log records specified",
+      "no_signature_hashes_specified": "Cannot timestamp, no signature hashes specified",
+      "no_timestamping_provider_found": "No timestamping services configured",
+      "reading_timestamp_response_failed": "Could not read timestamp response. The response should have valid ASN.1 structure",
+      "timestamp_non_granted_response": "Status in timestamping response is not 'granted' nor 'grantedWithMods'. (status: {0} statusString: {1} failInfo: {2})",
+      "timestamping_non_ok_response": "Timestamping response did not return 'OK' HTTP status. Response was: {0}, {1}",
+      "timestamp_provider_connection_failed": "Network error: connection to timestamping service failed",
+      "timestamp_record_save_failure": "Could not save timestamp record to the database",
+      "timestamp_request_timed_out": "Connection timed out. Check the network connection.",
+      "timestamp_response_object_creation_failed": "Could not create RFC 3161 timestamp response object",
+      "timestamp_response_validation_failed": "Timestamp response validation against the request failed",
+      "timestamp_signer_verification_failed": "Failed to verify timestamp signer information. Verifier message: {0}",
+      "timestamp_token_encoding_failed": "Timestamp token der encoding failed",
+      "timestamp_token_signer_info_not_found": "Could not get signer information from the timestamp token",
+      "tsp_certificate_not_found": "Could not find TSP certificate",
+      "updating_message_signature_failed": "Updating the message signature properties in the database failed"
+    },
+    "network_error": "Network error",
+    "http_error": "HTTP error",
+    "ocsp_connection_error": "Unable to connect to the OCSP responder",
+    "ocsp_failed": "Unable to fetch response from the OCSP responder",
+    "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
+    "ocsp_response_verification_failure": "Unable to verify the OCSP response",
     "openapi_parsing_error": "Parsing OpenApi3 description failed",
     "orphans_not_found": "Orphan keys, certificates and/or CSRs that belong to the given client were not found",
     "pin_code_exists": "PIN code exists",
@@ -453,7 +552,7 @@
     "service_code_already_exists": "Service code already exists",
     "service_code_reserved": "The service code provided is reserved for internal system use and cannot be assigned to custom services.",
     "service_description_not_found": "Service description not found",
-    "service_not_found": "service not found",
+    "service_not_found": "Service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
     "software_token_init_failed": "Software token initialisation failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
@@ -462,6 +561,7 @@
       "malformed_csr": "CSR data is malformed"
     },
     "token_not_active": "Token is not active",
+    "unknown_host": "Connection error, unknown host",
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "warnings_detected": "Warnings detected",
@@ -535,7 +635,8 @@
     "name": "Name",
     "subsystem": "subsystem",
     "subsystemCode": "Subsystem code",
-    "type": "Type"
+    "type": "Type",
+    "undefinedSubsystemName": "undefined"
   },
   "global": {
     "appTitle": "X-Road Security Server"
@@ -741,7 +842,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Member/Group code",
     "memberGroupStep": "Member / Group",
-    "name": "Member(Subsystem) name / Group description",
+    "name": "Subsystem name / Group description",
     "noAccessRights": "No access rights to this client",
     "noAvailableServices": "No available services",
     "removeAll": "Remove all",
@@ -771,7 +872,7 @@
     "enableSuccess": "Service description enabled",
     "idGroupCode": "ID / Group code",
     "lastRefreshed": "Last refreshed: ",
-    "memberNameGroupDesc": "Member name / Group description",
+    "subsystemNameGroupDesc": "Subsystem name / Group description",
     "noMatches": "No matching records",
     "openApi3Added": "OpenApi3 service added",
     "openapiDetails": "OpenAPI 3 details",
@@ -852,7 +953,9 @@
           "acmeIpAddresses": "ACME Server IP",
           "distinguishedName": "Distinguished Name",
           "expires": "Expires",
-          "ocspResponse": "OCSP Response"
+          "ocspCostType": "OCSP Cost Type",
+          "ocspResponse": "OCSP Response",
+          "ocspUrl": "OCSP URL"
         },
         "notAvailable": "N/A",
         "ocspResponse": {
@@ -890,6 +993,11 @@
       },
       "title": "Configuration Anchor"
     },
+    "costType": {
+      "FREE": "Free",
+      "PAID": "Paid",
+      "UNDEFINED": "Undefined"
+    },
     "securityServer": {
       "addressChangeInProgress": "CHANGE IN PROGRESS",
       "editDialog": {
@@ -898,6 +1006,24 @@
       "securityServer": "Security Server",
       "serverAddress": "Server address",
       "updateSubmitted": "Security Server address change successfully submitted"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Timestamping prioritization strategy: ",
+        "ONLY_FREE": "use only free timestamping services",
+        "ONLY_PAID": "use only paid timestamping services",
+        "FREE_FIRST": "use free timestamping services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid timestamping services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all timestamping services without prioritization"
+      },
+      "ocsp": {
+        "label": "OCSP prioritization strategy: ",
+        "ONLY_FREE": "use only free OCSP services",
+        "ONLY_PAID": "use only paid OCSP services",
+        "FREE_FIRST": "use free OCSP services first, if all of them fail or none are available then use paid ones",
+        "PAID_FIRST": "use paid OCSP services first, if all of them fail or none are available then use free ones",
+        "NONE": "use all OCSP services without prioritization"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -923,7 +1049,8 @@
         },
         "header": {
           "serviceURL": "Service URL",
-          "timestampingService": "Timestamping Service"
+          "timestampingService": "Timestamping Service",
+          "costType": "Cost Type"
         }
       },
       "title": "Timestamping Services"
@@ -956,6 +1083,11 @@
     "settings": {
       "backupAndRestore": "Backup And Restore",
       "systemParameters": "System Parameters"
+    },
+    "diagnostics": {
+      "overview": "Overview",
+      "traffic": "Traffic",
+      "connectionTesting": "Connection Testing"
     }
   },
   "token": {

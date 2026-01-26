@@ -29,6 +29,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.keys.keyresolver.KeyResolverException;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.ObjectContainer;
 import org.apache.xml.security.signature.Reference;
@@ -36,16 +38,17 @@ import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.Constants;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import javax.xml.transform.TransformerException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -53,23 +56,17 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.signature.Helper.BASE_URI;
-import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_ID;
 import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_TIMESTAMP_TAG;
-import static ee.ria.xroad.common.signature.Helper.ID_TS_MANIFEST;
 import static ee.ria.xroad.common.signature.Helper.ID_TS_ROOT_MANIFEST;
 import static ee.ria.xroad.common.signature.Helper.SIGNATURE_TIMESTAMP_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNATURE_VALUE_ID;
 import static ee.ria.xroad.common.signature.Helper.UNSIGNED_SIGNATURE_PROPS_TAG;
 import static ee.ria.xroad.common.signature.Helper.URI_ATTRIBUTE;
-import static ee.ria.xroad.common.signature.Helper.addManifestReference;
 import static ee.ria.xroad.common.signature.Helper.dsElement;
 import static ee.ria.xroad.common.signature.Helper.elementNotFound;
 import static ee.ria.xroad.common.signature.Helper.getCertificateRefElements;
 import static ee.ria.xroad.common.signature.Helper.getEncapsulatedOCSPValueElements;
 import static ee.ria.xroad.common.signature.Helper.getFirstElementByTagName;
-import static ee.ria.xroad.common.signature.Helper.parseDocument;
 import static ee.ria.xroad.common.signature.Helper.verifyDigest;
 import static ee.ria.xroad.common.signature.Helper.xadesElement;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
@@ -121,7 +118,7 @@ public class Signature {
         } catch (XMLSignatureException e) {
             throw new CodedException(X_MALFORMED_SIGNATURE, e);
         } catch (Exception e) {
-            throw translateException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -168,9 +165,8 @@ public class Signature {
     /**
      * @param uri the uri that is expected to be found in the signature
      * @return true, if the signature contains the specified URI, false otherwise.
-     * @throws Exception if errors occur when reading the signature
      */
-    public boolean references(String uri) throws Exception {
+    public boolean references(String uri) throws XMLSecurityException {
         for (int i = 0; i < xmlSignature.getSignedInfo().getLength(); i++) {
             Reference ref = xmlSignature.getSignedInfo().item(i);
 
@@ -187,7 +183,7 @@ public class Signature {
      * root manifest does not exist, returns empty list.
      * @throws Exception if errors occur when reading the signature
      */
-    public List<Manifest> getTimestampManifests() throws Exception {
+    public List<Manifest> getTimestampManifests() throws XMLSecurityException {
         List<Manifest> manifests = new ArrayList<>();
         Element tsRootManifestElement = XmlUtils.getElementById(document, ID_TS_ROOT_MANIFEST);
 
@@ -208,68 +204,11 @@ public class Signature {
     }
 
     /**
-     * Creates the time stamp manifest and adds it to the signature.
-     *
-     * @param rnd random string to append to the manifest ID
-     * @return the newly created Manifest
-     * @throws Exception in case of any errors
-     */
-    public Manifest createTimestampManifest(String rnd) throws Exception {
-        Manifest manifest = new Manifest(document);
-        manifest.setId(ID_TS_MANIFEST + "-" + rnd);
-
-        // add references
-        addManifestReference(manifest, SIGNATURE_VALUE_ID);
-        //addManifestReference(manifest, COMPLETE_REVOCATION_REFS_ID);
-
-        // this reference is optional
-        if (XmlUtils.getElementById(document, COMPLETE_CERTIFICATE_REFS_ID) != null) {
-            addManifestReference(manifest, COMPLETE_CERTIFICATE_REFS_ID);
-        }
-
-        manifest.addResourceResolver(new IdResolver(document));
-        manifest.generateDigestValues();
-
-        objectContainer.appendChild(manifest.getElement());
-
-        return manifest;
-    }
-
-    /**
-     * @param manifestId ID of the manifest to retrieve
-     * @return reference to the specified manifest. Does not modify the object.
-     * @throws Exception if errors occurred during manifest retrieval
-     */
-    public Reference getManifestRef(String manifestId) throws Exception {
-        Manifest manifest = new Manifest(document);
-
-        addManifestReference(manifest, manifestId);
-        manifest.generateDigestValues();
-
-        return manifest.item(0);
-    }
-
-    /**
-     * Adds a timestamp manifest to this signature.
-     *
-     * @param timestampManifestXml the timestamp manifest XML
-     * @throws Exception if errors occur when parsing the signature document part
-     */
-    public void addTimestampManifest(String timestampManifestXml) throws Exception {
-        Element object = getFirstElementByTagName(document, dsElement(Constants._TAG_OBJECT));
-
-        Document timestampManifestDoc = parseDocument(timestampManifestXml, false);
-        Element timestampManifestElement = timestampManifestDoc.getDocumentElement();
-        object.appendChild(document.importNode(timestampManifestElement, true));
-    }
-
-    /**
      * Adds the SignatureTimeStamp element containing the base64 encoded timestamp DER.
      *
      * @param timestampDer the timestamp bytes
-     * @throws Exception if errors occur when parsing the signature document part
      */
-    public void addSignatureTimestamp(byte[] timestampDer) throws Exception {
+    public void addSignatureTimestamp(byte[] timestampDer) {
         Element encapsulatedTimeStampElement = document.createElement(xadesElement(ENCAPSULATED_TIMESTAMP_TAG));
         encapsulatedTimeStampElement.setTextContent(encodeBase64(timestampDer));
 
@@ -282,9 +221,8 @@ public class Signature {
 
     /**
      * @return the timestamp value as base64 encoded string.
-     * @throws Exception if errors occur when parsing the signature document part
      */
-    public String getSignatureTimestamp() throws Exception {
+    public String getSignatureTimestamp() {
         return getXadesElement(ENCAPSULATED_TIMESTAMP_TAG)
                 .orElseGet(() -> getXadesElement(SIGNATURE_TIMESTAMP_TAG) // For backward compatibility.
                         .orElseThrow(() -> elementNotFound(ENCAPSULATED_TIMESTAMP_TAG)))
@@ -297,9 +235,8 @@ public class Signature {
 
     /**
      * @return the signature as XML String.
-     * @throws Exception if an error occurs
      */
-    public String toXml() throws Exception {
+    public String toXml() throws TransformerException {
         return XmlUtils.toXml(document);
     }
 
@@ -308,15 +245,14 @@ public class Signature {
         try {
             return toXml();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
     /**
      * @return the certificate used to sign this signature.
-     * @throws Exception if errors occur when resolving the certificate
      */
-    public X509Certificate getSigningCertificate() throws Exception {
+    public X509Certificate getSigningCertificate() throws KeyResolverException {
         return xmlSignature.getKeyInfo().getX509Certificate();
     }
 
@@ -357,7 +293,7 @@ public class Signature {
                 }
 
                 extraCertificates.add(x509);
-            } catch (CertificateException | NoSuchAlgorithmException | IOException | OperatorCreationException e) {
+            } catch (CertificateException | IOException e) {
                 throw new CodedException(X_MALFORMED_SIGNATURE, e);
             }
         }
@@ -396,7 +332,7 @@ public class Signature {
     /**
      * Reads the signature element from the document.
      */
-    private void readSignature() throws Exception {
+    private void readSignature() throws XMLSecurityException {
         Element signatureElement = getFirstElementByTagName(document, dsElement(Constants._TAG_SIGNATURE));
         xmlSignature = new XMLSignature(signatureElement, BASE_URI);
     }
@@ -404,7 +340,7 @@ public class Signature {
     /**
      * Reads the object container element from the document.
      */
-    private void readObjectContainer() throws Exception {
+    private void readObjectContainer() throws XMLSecurityException {
         Element objectElement = getFirstElementByTagName(document, dsElement(Constants._TAG_OBJECT));
         objectContainer = new ObjectContainer(objectElement, BASE_URI);
     }

@@ -38,6 +38,7 @@
       <v-text-field
         v-model="code"
         v-bind="codeAttrs"
+        class="pb-2"
         variant="outlined"
         :label="$t('globalResources.code')"
         autofocus
@@ -65,7 +66,7 @@ const emit = defineEmits(['save', 'cancel']);
 const { defineField, meta, handleSubmit, setFieldError } = useForm({
   validationSchema: {
     code: 'required',
-    description: 'required',
+    description: 'required|validDescription',
   },
 });
 const [code, codeAttrs] = defineField('code', {
@@ -95,9 +96,5 @@ const save = handleSubmit((values) => {
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-
-div.v-input {
-  padding-bottom: 8px;
-}
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

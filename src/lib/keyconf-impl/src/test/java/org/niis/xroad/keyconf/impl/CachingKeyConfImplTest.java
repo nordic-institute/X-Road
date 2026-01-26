@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -497,7 +498,8 @@ public class CachingKeyConfImplTest {
             changed.countDown();
         }
 
-        private void delay(long delayMs) throws Exception {
+        @SneakyThrows
+        private void delay(long delayMs) {
             if (cacheReadDelayMs > 0) {
                 log.debug("simulating a slow read");
                 Thread.currentThread().sleep(delayMs);
@@ -505,7 +507,7 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
-        protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
+        protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
 
@@ -518,7 +520,7 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
-        public SigningInfo createSigningInfo(ClientId clientId) throws Exception {
+        public SigningInfo createSigningInfo(ClientId clientId) {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
             return new SigningInfo("keyid", SignMechanism.valueOf("CKM_RSA_PKCS_PSS"), null, null, null, null) {

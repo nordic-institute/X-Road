@@ -27,39 +27,47 @@
 import {
   AddOnStatus,
   BackupEncryptionStatus,
+  ConnectionStatus,
+  GlobalConfConnectionStatus,
   GlobalConfDiagnostics,
   MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
   ProxyMemoryUsageStatus,
-  TimestampingServiceDiagnostics
-} from "@/openapi-types";
+  TimestampingServiceDiagnostics,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
 export interface DiagnosticsState {
-  addOnStatus: AddOnStatus;
+  addOnStatus?: AddOnStatus;
   timestampingServices: TimestampingServiceDiagnostics[];
-  globalConf: GlobalConfDiagnostics;
+  globalConf?: GlobalConfDiagnostics;
   ocspResponderDiagnostics: OcspResponderDiagnostics[];
-  backupEncryptionDiagnostics: BackupEncryptionStatus;
-  messageLogEncryptionDiagnostics: MessageLogEncryptionStatus;
-  proxyMemoryUsageStatus: ProxyMemoryUsageStatus;
+  backupEncryptionDiagnostics?: BackupEncryptionStatus;
+  messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
+  proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
+  authCertReqStatus?: ConnectionStatus;
+  globalConfStatuses: GlobalConfConnectionStatus[];
+  otherSecurityServerStatus?: ConnectionStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
   state: (): DiagnosticsState => {
     return {
-      addOnStatus: undefined as AddOnStatus | undefined,
-      timestampingServices: [] as TimestampingServiceDiagnostics[],
-      globalConf: undefined as GlobalConfDiagnostics | undefined,
-      ocspResponderDiagnostics: [] as OcspResponderDiagnostics[],
-      backupEncryptionDiagnostics: undefined as
-        | BackupEncryptionStatus
-        | undefined,
-      messageLogEncryptionDiagnostics: undefined as
-        | MessageLogEncryptionStatus
-        | undefined,
+      addOnStatus: undefined,
+      timestampingServices: [],
+      globalConf: undefined,
+      ocspResponderDiagnostics: [],
+      backupEncryptionDiagnostics: undefined,
+      messageLogEncryptionDiagnostics: undefined,
+      proxyMemoryUsageStatus: undefined,
+      authCertReqStatus: undefined,
+      globalConfStatuses: [],
+      otherSecurityServerStatus: undefined,
     };
+  },
+  persist: {
+    pick: ['addOnStatus'],
   },
   getters: {
     messageLogEnabled(state): boolean {
@@ -116,11 +124,38 @@ export const useDiagnostics = defineStore('diagnostics', {
     },
     async fetchProxyMemoryDiagnostics() {
       return api
-        .get<ProxyMemoryUsageStatus>(
-          '/diagnostics/proxy-memory-usage-status',
-        )
+        .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
         .then((res) => {
           this.proxyMemoryUsageStatus = res.data;
+        });
+    },
+    async fetchAuthCertReqStatus() {
+      return api
+        .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
+        .then((res) => {
+          this.authCertReqStatus = res.data;
+        });
+    },
+    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string,
+      securityServerId: string) {
+      return api
+        .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
+          params: {
+            protocol_type: protocolType,
+            client_id: clientId,
+            target_client_id: targetClientId,
+            security_server_id: securityServerId
+          }
+        })
+        .then((res) => {
+          this.otherSecurityServerStatus = res.data;
+        });
+    },
+    async fetchGlobalConfStatuses() {
+      return api
+        .get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status')
+        .then((res) => {
+          this.globalConfStatuses = res.data;
         });
     },
   },

@@ -151,6 +151,7 @@ public class SystemPropertiesLoader {
 
     /**
      * Creates a new instance using the default prefix.
+     *
      * @return new loader instance
      */
     public static SystemPropertiesLoader create() {
@@ -159,6 +160,7 @@ public class SystemPropertiesLoader {
 
     /**
      * Creates a new instance using the specified prefix.
+     *
      * @param prefix the prefix
      * @return new loader instance
      */
@@ -169,6 +171,7 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system common INI file should be included when
      * loading.
+     *
      * @return this instance
      */
     public SystemPropertiesLoader withCommon() {
@@ -179,6 +182,7 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system override INI files should not be included when
      * loading.
+     *
      * @return this instance
      */
     public SystemPropertiesLoader withoutOverrides() {
@@ -189,6 +193,7 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system local INI file should be included when
      * loading.
+     *
      * @return this instance
      */
     public SystemPropertiesLoader withLocal() {
@@ -199,6 +204,7 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the addon INI files should be included when
      * loading.
+     *
      * @return this instance
      */
     public SystemPropertiesLoader withAddOn() {
@@ -209,6 +215,7 @@ public class SystemPropertiesLoader {
     /**
      * Specifies that the system common and local INI files should be included
      * when loading.
+     *
      * @return this instance
      */
     public SystemPropertiesLoader withCommonAndLocal() {
@@ -217,6 +224,7 @@ public class SystemPropertiesLoader {
 
     /**
      * Specifies the ini file to be loaded.
+     *
      * @param fileName     the file name of the INI.
      * @param sectionNames optional section names to be parsed from the INI.
      *                     If not specified, all sections are parsed.
@@ -230,6 +238,7 @@ public class SystemPropertiesLoader {
 
     /**
      * Specifies the optional local ini file to be loaded.
+     *
      * @param fileName     the file name of the INI.
      * @param sectionNames optional section names to be parsed from the INI.
      *                     If not specified, all sections are parsed.
@@ -247,6 +256,7 @@ public class SystemPropertiesLoader {
      * are found or loaded, a FileNotFoundException is produced listing the files that could not be loaded.
      * Built to handle alternative module configurations in installations that consist of different components
      * (i.e. configuring Signer in proxy installation or in center installation)
+     *
      * @param filePaths file paths to be loaded alternatively to each other
      * @return this instance for chaining
      */

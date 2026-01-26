@@ -29,13 +29,17 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
+import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.client.SignerRpcClient.GeneratedCertRequestInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,16 +47,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.niis.xroad.signer.proto.CertificateRequestFormat.PEM;
 
 /**
  * test keys api
@@ -72,7 +80,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
     private KeyInfo authKeyInfo;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         signKeyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_SIGN_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.SIGNING).build();
         authKeyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_AUTH_KEY_ID)
@@ -97,7 +105,6 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
                 .getPossibleActionsForCsr(any());
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(keyService)
                 .getPossibleActionsForKey(any());
-
     }
 
     private Object returnKeyInfoOrThrow(String keyId) throws KeyNotFoundException {
@@ -156,6 +163,31 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Set<PossibleActionDto> allActions = new HashSet<>(Arrays.asList(PossibleActionDto.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"GENERATE_AUTH_CERT_REQ"})
+    public void generateCsrReturnsAttachmentWhenSuccessful() {
+        CsrGenerateDto requestDto = new CsrGenerateDto()
+                .keyUsageType(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto.AUTHENTICATION)
+                .memberId(TestUtils.CLIENT_ID_SS1)
+                .caName("Test-CA")
+                .csrFormat(CsrFormatDto.PEM)
+                .subjectFieldValues(Collections.emptyMap())
+                .acmeOrder(false);
+
+        GeneratedCertRequestInfo generatedInfo = new GeneratedCertRequestInfo("csrId", new byte[]{0x01},
+                PEM, TestUtils.getM1Ss1ClientId(),
+                KeyUsageInfo.AUTHENTICATION);
+
+        doReturn(generatedInfo).when(tokenCertificateService).generateCertRequest(any(), any(), any(), any(), any(), any(), any());
+
+        ResponseEntity<org.springframework.core.io.Resource> response = keysApiController.generateCsr(GOOD_AUTH_KEY_ID, requestDto);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(certificateAuthorityService).validateCsrFormat("Test-CA", PEM);
+        verify(tokenCertificateService).generateCertRequest(any(), any(), any(), any(), any(), any(), any());
     }
 
 }

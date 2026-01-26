@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="mb" id="9-add-indexes">
+        <createIndex indexName="idx_request_in_ts" tableName="operational_data">
+            <column name="request_in_ts"/>
+        </createIndex>
+        <createIndex indexName="idx_request_in_ts_succeeded" tableName="operational_data">
+            <column name="request_in_ts"/>
+            <column name="succeeded"/>
+        </createIndex>
+        <createIndex indexName="idx_request_in_ts_security_server_type" tableName="operational_data">
+            <column name="security_server_type"/>
+            <column name="request_in_ts"/>
+        </createIndex>
+        <!-- using sql tag instead of createIndex because createIndex does not support WHERE clause yet. -->
+        <sql>
+            CREATE INDEX idx_request_in_ts_client_subsys
+                ON operational_data (
+                                     client_xroad_instance,
+                                     client_member_class,
+                                     client_member_code,
+                                     client_subsystem_code,
+                                     request_in_ts
+                    )
+                WHERE client_subsystem_code IS NOT NULL;
+        </sql>
+        <sql>
+            CREATE INDEX idx_request_in_ts_client_no_subsys
+                ON operational_data (
+                                     client_xroad_instance,
+                                     client_member_class,
+                                     client_member_code,
+                                     request_in_ts
+                    )
+                WHERE client_subsystem_code IS NULL;
+        </sql>
+        <sql>
+            CREATE INDEX idx_request_in_ts_service_subsys
+                ON operational_data (
+                                     service_xroad_instance,
+                                     service_member_class,
+                                     service_member_code,
+                                     service_subsystem_code,
+                                     request_in_ts
+                    )
+                WHERE service_subsystem_code IS NOT NULL;
+        </sql>
+        <sql>
+            CREATE INDEX idx_request_in_ts_service_no_subsys
+                ON operational_data (
+                                     service_xroad_instance,
+                                     service_member_class,
+                                     service_member_code,
+                                     request_in_ts
+                    )
+                WHERE service_subsystem_code IS NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

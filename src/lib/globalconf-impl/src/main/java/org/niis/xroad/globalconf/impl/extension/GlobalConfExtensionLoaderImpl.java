@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
@@ -59,7 +60,7 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         return reference;
     }
 
-    private void reload() throws Exception {
+    private void reload() {
         lock.lock();
 
         try {
@@ -72,7 +73,8 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         }
     }
 
-    private void load() throws Exception {
+    private void load() throws InvocationTargetException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException {
         lock.lock();
         try {
             if (reference == null) {
@@ -86,7 +88,8 @@ public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
         }
     }
 
-    private void loadFromFS(FileSystemGlobalConfSource.FileSystemFileSource fsSource) throws Exception {
+    private void loadFromFS(FileSystemGlobalConfSource.FileSystemFileSource fsSource)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (fsSource.getExistingPath().isPresent()) {
             log.trace("Loading private parameters from {}", fsSource.getExistingPath().get());
             reference = extensionClass.getDeclaredConstructor().newInstance();

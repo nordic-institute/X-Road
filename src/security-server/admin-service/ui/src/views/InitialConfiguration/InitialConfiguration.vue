@@ -27,7 +27,7 @@
   <v-row align="center" justify="center" class="mt-6">
     <div class="view-wrap">
       <xrd-sub-view-title
-        class="wizard-view-title"
+        class="wizard-view-title pa-4"
         :title="$t('initialConfiguration.title')"
         :show-close="false"
         data-test="wizard-title"
@@ -102,8 +102,8 @@
         :dialog="confirmInitWarning"
         :warnings="warningInfo"
         localization-parent="initialConfiguration.warning"
-        @cancel="confirmInitWarning = false"
-        @accept="acceptInitWarning()"
+        @cancel="cancelInitWarning"
+        @accept="acceptInitWarning"
       ></warningDialog>
     </div>
   </v-row>
@@ -199,6 +199,11 @@ export default defineComponent({
       this.initServer(this.requestPayload);
     },
 
+    cancelInitWarning(): void {
+      this.confirmInitWarning = false;
+      this.pinSaveBusy = false;
+    },
+
     initServer(payload: InitialServerConf): void {
       api
         .post('/initialization', payload)
@@ -226,5 +231,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

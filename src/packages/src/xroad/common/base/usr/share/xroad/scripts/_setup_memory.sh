@@ -130,7 +130,7 @@ function apply_percentile() {
   echo $2*$1/1000 | bc
 }
 
-#Returns total memory in megabytes
+#Returns total memory in bytes
 function get_total_memory() {
   local total_memory=""
 
@@ -144,14 +144,26 @@ function get_total_memory() {
 
   if [[ -z "$memory_limit" || "$memory_limit" == "max" ]]; then
     total_memory="$(free -b | awk '/Mem:/ {print $2}')"
+  else
+    total_memory="$memory_limit"
   fi
 
   echo "$total_memory"
 }
 
-#Returns used memory in megabytes
+#Returns used memory in bytes
 function get_used_memory() {
-  echo "$(free -b | awk '/Mem:/ {print $3}')"
+  local used_memory=""
+
+  if [ -f /sys/fs/cgroup/memory.current ]; then
+    used_memory=$(cat /sys/fs/cgroup/memory.current)
+  elif [ -f /sys/fs/cgroup/memory/memory.usage_in_bytes ]; then
+    used_memory=$(cat /sys/fs/cgroup/memory/memory.usage_in_bytes)
+  else
+    used_memory="$(free -b | awk '/Mem:/ {print $3}')"
+  fi
+
+  echo "$used_memory"
 }
 
 #Calculates memory based on total memory and given percentiles
@@ -181,10 +193,10 @@ calculate_recommended_memory() {
   done
 
   if [[ "$result" -gt "$max_val" ]]; then
-    echo "$max_val"
+    echo "$(to_unit_str "$max_val")"
   elif [[ "$result" -lt "$min_val" ]]; then
-      echo "$min_val"
+    echo "$(to_unit_str "$min_val")"
   else
-    echo "$(to_unit_str $result)"
+    echo "$(to_unit_str "$result")"
   fi
 }

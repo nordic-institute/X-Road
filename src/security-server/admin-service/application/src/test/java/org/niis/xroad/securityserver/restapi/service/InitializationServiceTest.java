@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
@@ -47,7 +48,6 @@ import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.util.ArrayList;
@@ -60,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertWarningWithoutMetadata;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -257,7 +258,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeFailPreRequisites() throws Exception {
+    public void initializeFailPreRequisites() {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
@@ -273,8 +274,8 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeFailToken() throws Exception {
-        doThrow(new SignerException("Error")).when(signerRpcClient).initSoftwareToken(any());
+    public void initializeFailToken() {
+        doThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build()).when(signerRpcClient).initSoftwareToken(any());
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
@@ -285,7 +286,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeFailTokenInvalidPin() throws Exception {
+    public void initializeFailTokenInvalidPin() {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
@@ -296,7 +297,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeFailTokenWeakPin() throws Exception {
+    public void initializeFailTokenWeakPin() {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
@@ -307,7 +308,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializePartialFailRedundantServerCode() throws Exception {
+    public void initializePartialFailRedundantServerCode() {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
@@ -332,7 +333,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializePartialFailOwnerAndSoftTokenOwnerMemberClassMissing() throws Exception {
+    public void initializePartialFailOwnerAndSoftTokenOwnerMemberClassMissing() {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
@@ -347,7 +348,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializePartialFailServerCodeAndSoftTokenPinMissing() throws Exception {
+    public void initializePartialFailServerCodeAndSoftTokenPinMissing() {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
@@ -362,7 +363,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializePartialFailServerCodeMissingAndSoftTokenPinRedundant() throws Exception {
+    public void initializePartialFailServerCodeMissingAndSoftTokenPinRedundant() {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
@@ -378,7 +379,7 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeFailAlreadyFullyInitialized() throws Exception {
+    public void initializeFailAlreadyFullyInitialized() {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);

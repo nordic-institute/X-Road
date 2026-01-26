@@ -1,10 +1,4 @@
 {
-  "403": {
-    "goBack": "Go back",
-    "mainTitle": "Permission denied",
-    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
-    "topTitle": "Forbidden"
-  },
   "action": {
     "addName": "Add subsystem name",
     "approve": "Approve",
@@ -20,7 +14,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "Field must contain IP address or multiple addresses separated by comma",
-    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
+    "description": "Use valid description characters only"
   },
   "error_code": {
     "backup_deletion_failed": "Failed to delete backup",
@@ -195,7 +190,6 @@
     "navigation": {
       "back": "Back"
     },
-    "pageNotFound": "oops, page not found",
     "register": "Register",
     "search": "Search",
     "server": "Server",
@@ -650,6 +644,7 @@
     "certProfileInput": "Certificate profile info",
     "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Certification Services",
+    "defaultCsrFormat": "Default CSR format",
     "timestampingService": {
       "addedSuccessfully": "Timestamping service added successfully",
       "dialog": {
@@ -667,6 +662,12 @@
     },
     "timestampingServices": "Timestamping Services",
     "trustService": {
+      "cost": "Cost",
+      "costType": {
+        "FREE": "Free",
+        "PAID": "Paid",
+        "UNDEFINED": "Undefined"
+      },
       "delete": {
         "action": "Delete trust service",
         "confirmationDialog": {
@@ -728,16 +729,11 @@
         "acmeCapable": "This CA can be used for ACME",
         "acmeNotCapable": "This CA can not be used for ACME",
         "certProfile": "Certificate profile info (fully qualified class name that implements the ee.ria.xroad.common.CertificateProfileInfoProvider interface)",
+        "defaultCsrFormat": "Default CSR format (selected automatically when creating new authentication and signing keys with this CA; can still be manually changed)",
         "saveSuccess": "CA Settings successfully saved",
         "tlsAuth": "This CA can only be used for TLS authentication"
       },
       "timestampingService": {
-        "cost": "Cost",
-        "costValues": {
-          "FREE": "Free",
-          "PAID": "Paid",
-          "UNDEFINED": "Undefined"
-        },
         "delete": {
           "dialog": {
             "message": "Are you sure you want to delete the Timestamping service with the URL {url}?",

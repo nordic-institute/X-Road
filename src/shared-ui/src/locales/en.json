@@ -1,4 +1,15 @@
 {
+  "403": {
+    "goBack": "Go back",
+    "mainTitle": "Permission denied",
+    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "topTitle": "Forbidden"
+  },
+  "404": {
+    "pageNotFound": "404 - page not found",
+    "text": "Seems like you found the",
+    "textUnicorn": "unicorn"
+  },
   "action": {
     "activate": "Activate",
     "add": "Add",
@@ -152,14 +163,14 @@
     "backup_generation_failed": "Failed to generate backup",
     "backup_restore_interrupted": "Backup restoration has been interrupted",
     "core": {
-      "Signer": {
-        "CertNotFound": "Certification is not found",
-        "KeyNotFound": "Key is not found",
-        "NetworkError": "Signer is not currently reachable.",
-        "PinIncorrect": "Invalid PIN",
-        "TokenNotAvailable": "Token is not available",
-        "TokenNotFound": "Token is not found",
-        "UnknownMember": "X-Road core - signer: Unknown member"
+      "signer": {
+        "cert_not_found": "Certification is not found",
+        "key_not_found": "Key is not found",
+        "network_error": "Signer is not currently reachable.",
+        "pin_incorrect": "Invalid PIN",
+        "token_not_available": "Token is not available",
+        "token_not_found": "Token is not found",
+        "unknown_member": "X-Road core - signer: Unknown member"
       }
     },
     "generate_backup_interrupted": "Backup generation has been interrupted",

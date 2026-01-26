@@ -1,4 +1,15 @@
 {
+  "403": {
+    "goBack": " Tagasi",
+    "mainTitle": " Toiming ei ole lubatud",
+    "text": "Näib, et teil pole selle lehekülje vaatamiseks luba. Kui teie arvates on tegemist veaga, siis kontrollige, kas olete õige kontoga sisse logitud või võtke ühendust oma administraatoriga.",
+    "topTitle": "Keelatud"
+  },
+  "404": {
+    "pageNotFound": "404 – lehekülge ei leitud",
+    "text": "Näib, et olete leidnud",
+    "textUnicorn": "ükssarviku"
+  },
   "action": {
     "activate": "Aktiveeri",
     "add": "Lisa",
@@ -152,22 +163,25 @@
     "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
     "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
     "core": {
-      "Signer": {
-        "CertNotFound": "Sertifikaati ei leitud",
-        "KeyNotFound": "Võtit ei leitud",
-        "PinIncorrect": "Vale PIN-kood",
-        "TokenNotAvailable": "Krüptomoodul pole saadaval",
-        "TokenNotFound": " Krüptomoodulit ei leitud",
-        "UnknownMember": "X-Road tarkvara - signeerija: Tundmatu liige"
+      "signer": {
+        "cert_not_found": "Sertifikaati ei leitud",
+        "key_not_found": "Võtit ei leitud",
+        "network_error": "Signer ei ole hetkel kättesaadav",
+        "pin_incorrect": "Vale PIN-kood",
+        "token_not_available": "Krüptomoodul pole saadaval",
+        "token_not_found": " Krüptomoodulit ei leitud",
+        "unknown_member": "X-Road tarkvara - signeerija: Tundmatu liige"
       }
     },
     "generate_backup_interrupted": "Varukoopia loomine katkestatud",
+    "internal_error": "Sisemine viga. Vaata serveri logisid, et leida detailsemat infot",
     "invalid_backup_file": "Kehtetu varundusfail",
     "invalid_certificate": "Vale X.509 sertifikaat",
     "invalid_distinguished_name": "Eristusnimi on kehtetu",
     "invalid_filename": "Kehtetu failinimi",
     "resource_read_failed": "Ressursi lugemine ebaõnnestus",
     "restore_process_failed": "Taastamise protsess ebaõnnestus",
+    "token_fetch_failed": "Krüptomooduli kättesaamisel esines tõrge",
     "token_not_found": "Krüptomoodulit ei leitud",
     "token_weak_pin": "Nõrk PIN",
     "tr": {
@@ -185,6 +199,7 @@
     "password": "Parool",
     "securityServerCode": "Turvaserveri kood",
     "shared": "ühisteek",
+    "subsystemName": "Alamsüsteemi Nimi",
     "username": "LIB-Kasutajanimi"
   },
   "footer": {

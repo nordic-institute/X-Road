@@ -54,6 +54,7 @@
           :items="filteredServiceList"
           item-title="name"
           item-value="name"
+          @update:model-value="onCertServiceChange"
           class="wizard-form-input"
           data-test="csr-certification-service-select"
           variant="outlined"
@@ -68,6 +69,7 @@
         <v-select
           v-bind="csrFormatRef"
           :items="csrFormatList"
+          :disabled="isCsrFormatReadOnly"
           class="wizard-form-input"
           data-test="csr-format-select"
           variant="outlined"
@@ -150,6 +152,12 @@ export default defineComponent({
     ...mapState(useCsr, ['filteredServiceList', 'usage']),
     ...mapWritableState(useCsr, ['csrFormat', 'certificationService']),
     ...mapState(useAddClient, ['selectedMemberId']),
+    isCsrFormatReadOnly(): boolean {
+      return !!this.filteredServiceList.find(
+        (certificateAuthority) =>
+          certificateAuthority.name == this.values.certificationService,
+      )?.default_csr_format;
+    },
   },
 
   watch: {
@@ -172,12 +180,20 @@ export default defineComponent({
     cancel(): void {
       this.$emit('cancel');
     },
+    onCertServiceChange(): void {
+      const ca = this.filteredServiceList.find((ca) => {
+        return ca.name == this.values.certificationService;
+      });
+      if (ca?.default_csr_format) {
+        this.setFieldValue('csrFormat', ca.default_csr_format);
+      }
+    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 
 .readonly-info-field {
   max-width: 300px;

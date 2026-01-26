@@ -25,11 +25,12 @@
  -->
 <template>
   <XrdTitledView title-key="tab.keys.signAndAuthKeys">
-    <template #appendTitle>
+    <template #append-title>
       <help-button
         :help-image="helpImage"
         help-title="keys.helpTitleKeys"
-        help-text="keys.helpTextKeys" />
+        help-text="keys.helpTextKeys"
+      />
 
       <xrd-search v-model="search" class="ml-5 mb-1" />
     </template>
@@ -45,9 +46,9 @@
       <template v-if="filtered && !loading">
         <TokenExpandable
           v-for="token in filtered"
+          :key="token.id"
           data-test="tokens-table"
           class="tokens-table"
-          :key="token.id"
           :token="token"
           @refresh-list="fetchData"
           @token-logout="logoutDialog = true"
@@ -69,7 +70,6 @@
         @cancel="loginDialog = false"
         @save="tokenLogin"
       />
-
     </template>
   </XrdTitledView>
 </template>
@@ -86,7 +86,12 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import helpImage from '@/assets/keys_and_certificates.png';
 
-import { Key, Token, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
+import {
+  Key,
+  Token,
+  TokenCertificate,
+  TokenCertificateSigningRequest,
+} from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 

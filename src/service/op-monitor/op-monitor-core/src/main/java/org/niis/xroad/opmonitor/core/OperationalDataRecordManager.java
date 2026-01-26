@@ -27,12 +27,14 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
@@ -62,32 +64,58 @@ final class OperationalDataRecordManager {
     private OperationalDataRecordManager() {
     }
 
-    static void storeRecords(List<OperationalDataRecord> records, long timestamp) throws Exception {
+    static void storeRecords(List<OperationalDataRecord> records, long timestamp) {
         doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
-    static OperationalDataRecords queryAllRecords() throws Exception {
+    static OperationalDataRecords queryAllRecords() {
         return doInTransaction(OperationalDataRecordManager::queryAllOperationalDataInTransaction);
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) throws Exception {
+    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) {
         return queryRecords(recordsFrom, recordsTo, null, null, new HashSet<>());
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter)
-            throws Exception {
+    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter) {
         return queryRecords(recordsFrom, recordsTo, clientFilter, null, new HashSet<>());
     }
 
     static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
                                                ClientId serviceProviderFilter,
-                                               Set<String> outputFields) throws Exception {
+                                               Set<String> outputFields) {
         OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
         removeMonitoringDataTsIfNotSpecified(records, outputFields);
 
         return records;
+    }
+
+    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(long startTime,
+                                                                                     long endTime,
+                                                                                     int intervalInMinutes,
+                                                                                     OpMonitoringData.SecurityServerType securityServerType,
+                                                                                     ClientId memberId,
+                                                                                     ServiceId serviceId) {
+        return doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
+                startTime,
+                endTime,
+                intervalInMinutes,
+                securityServerType,
+                memberId,
+                serviceId));
+    }
+
+    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
+            Session session,
+            long startTime,
+            long endTime,
+            int intervalInMinutes,
+            OpMonitoringData.SecurityServerType securityServerType,
+            ClientId memberId,
+            ServiceId serviceId) {
+        OperationalDataInTimeIntervalsQuery query = new OperationalDataInTimeIntervalsQuery(session);
+        return query.list(startTime, endTime, intervalInMinutes, securityServerType, memberId, serviceId);
     }
 
     private static Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {

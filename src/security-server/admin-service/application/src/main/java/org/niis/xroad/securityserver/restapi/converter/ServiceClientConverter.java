@@ -47,7 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_CLIENT_TYPE;
 
 /**
@@ -77,7 +77,9 @@ public class ServiceClientConverter {
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClientDto.setName(serviceClient.getSubsystemName());
+                serviceClientDto.setName(serviceClient.getSubsystemName() != null
+                        ? serviceClient.getSubsystemName()
+                        : serviceClientId.getSubsystemCode());
                 serviceClientDto.setId(clientIdConverter.convertId(serviceClientId));
                 serviceClientDto.setServiceClientType(ServiceClientTypeDto.SUBSYSTEM);
                 break;

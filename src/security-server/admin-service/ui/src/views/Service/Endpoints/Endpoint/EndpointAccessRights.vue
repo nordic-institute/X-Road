@@ -55,7 +55,7 @@
     <table class="xrd-table mb-4">
       <thead>
         <tr>
-          <th>{{ $t('accessRights.memberName') }}</th>
+          <th>{{ $t('accessRights.subsystemName') }}</th>
           <th>{{ $t('accessRights.id') }}</th>
           <th>{{ $t('accessRights.rightsGiven') }}</th>
           <th></th>
@@ -248,8 +248,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .group-members-row {
   width: 100%;

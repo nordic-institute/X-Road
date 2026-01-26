@@ -98,7 +98,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     @Override
     public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
+                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
         sender = createHttpSender(opMonitorClient);
@@ -110,7 +110,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public void finishHandling() throws Exception {
+    public void finishHandling() {
         sender.close();
         sender = null;
     }
@@ -121,7 +121,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public InputStream getResponseContent() throws Exception {
+    public InputStream getResponseContent() {
         return sender.getResponseContent();
     }
 
@@ -130,7 +130,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     private void sendRequest(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                             OpMonitoringData opMonitoringData) throws Exception {
+                             OpMonitoringData opMonitoringData) {
         log.trace("sendRequest {}", OP_MONITOR_ADDRESS);
 
         URI opMonitorUri;

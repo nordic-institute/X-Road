@@ -62,7 +62,6 @@ public class ProxyMonitorMetaserviceTest {
 
         System.setProperty("xroad.proxy.jetty-serverproxy-configuration-file", "src/test/resources/serverproxy.xml");
         System.setProperty("xroad.proxy.jetty-clientproxy-configuration-file", "src/test/resources/clientproxy.xml");
-        System.setProperty("logback.configurationFile", "src/test/resources/logback-metaservicetest.xml");
         System.setProperty("xroad.proxy.serverServiceHandlers", "org.niis.xroad.proxy.core.serverproxy.ProxyMonitorServiceHandlerImpl");
         System.setProperty("test.queries.dir", "src/test/queries");
 

@@ -11,7 +11,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.bouncyCastle.bcpg)
-  testImplementation(libs.mockito.core)
 }
 
 tasks.register<Copy>("copyGpg") {

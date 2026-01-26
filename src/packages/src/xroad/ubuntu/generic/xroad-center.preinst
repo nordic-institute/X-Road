@@ -12,6 +12,11 @@ if [ "$1" = "upgrade" ]; then
   source /usr/share/xroad/scripts/_read_cs_db_properties.sh
   prepare_db_props
 
+  # Reading custom libpq ENV variables
+  if [ -f /etc/xroad/db_libpq.env ]; then
+    source /etc/xroad/db_libpq.env
+  fi
+
   psql_query() {
     local query=$1
     PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" \

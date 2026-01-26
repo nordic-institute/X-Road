@@ -31,7 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
-import lombok.SneakyThrows;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -128,7 +127,6 @@ abstract class SharedParametersV3ToXmlConverter {
                 .toList();
     }
 
-    @SneakyThrows
     private byte[] toAuthCertHash(CertHash authCert) {
         return authCert.getHash(DigestAlgorithm.SHA256);
     }

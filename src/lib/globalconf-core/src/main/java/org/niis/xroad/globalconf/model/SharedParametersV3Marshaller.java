@@ -28,7 +28,8 @@ package org.niis.xroad.globalconf.model;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
-import lombok.SneakyThrows;
+import jakarta.xml.bind.JAXBException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v3.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v3.SharedParametersTypeV3;
 
@@ -37,9 +38,12 @@ import javax.xml.validation.Schema;
 public class SharedParametersV3Marshaller extends AbstractSharedParametersMarshaller<SharedParametersTypeV3> {
     private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
-    @SneakyThrows
     private static JAXBContext createJaxbContext() {
-        return JAXBContext.newInstance(ObjectFactory.class);
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override

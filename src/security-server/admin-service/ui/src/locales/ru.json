@@ -1,22 +1,11 @@
 {
-  "403": {
-    "goBack": "Вернуться",
-    "mainTitle": "Доступ запрещен",
-    "text": "Похоже, у вас нет прав для просмотра этой страницы. Если вы считаете, что это ошибка, проверьте, вошли ли вы в правильную учетную запись, или свяжитесь с администратором для получения информации о ваших правах.",
-    "topTitle": "Запрещено"
-  },
-  "404": {
-    "pageNotFound": "404 - страница не найдена",
-    "text": "Похоже, вы нашли",
-    "textUnicorn": "unicorn"
-  },
   "accessRights": {
     "addServiceClients": "Добавить объекты",
     "addServiceClientsSuccess": "Права доступа успешно добавлены",
     "addServiceClientsTitle": "Добавить объекты",
     "addSubjectsSuccess": "Права доступа успешно добавлены",
     "id": "ID",
-    "memberName": "Имя участника / Описание группы",
+    "subsystemName": "Название подсистемы / Описание группы",
     "removeAllText": "Вы уверены, что хотите удалить права доступа у всех клиентов?",
     "removeAllTitle": "Удалить все права доступа?",
     "removeSuccess": "Права доступа успешно удалены",
@@ -166,12 +155,14 @@
     "invalidEndpoint": "Конечная точка содержит недопустимые символы",
     "invalidUrl": "URL недействителен",
     "invalidXrdIdentifier": "Значение идентификатора содержит недопустимые символы",
-    "requiredIf": "Поле {fieldName} обязательно"
+    "requiredIf": "Поле {fieldName} обязательно",
+    "description": "Используйте только допустимые символы в описании"
   },
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Отключено конфигурацией"
     },
+    "costType": "Тип стоимости",
     "encryption": {
       "backup": {
         "configuredKeyId": "Настроенный идентификатор ключа",
@@ -238,12 +229,57 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Произошла внутренняя ошибка",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Неверный URL сервера меток времени. Проверьте URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Время ожидания соединения истекло. Проверьте подключение к сети глобального конфигурационного провайдера.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Время ожидания соединения истекло. Проверьте подключение к сети.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Соединение установлено, запрос метки времени еще не отправлен",
         "SUCCESS": "Все в порядке",
         "UNKNOWN": "Неизвестно"
       },
       "title": "Метки времени"
+    },
+    "traffic": {
+      "period": "Период",
+      "periodInfo": "Выберите начало и конец",
+      "date": "Дата",
+      "time": "Время",
+      "party": "Сторона",
+      "partyInfo": "Служба, подсистема, участник",
+      "client": "Клиент",
+      "service": "Служба",
+      "exchangeRole": "Роль обмена",
+      "exchangeRoleInfo": "Поставщик или Потребитель",
+      "producer": "Поставщик",
+      "status": "Статус",
+      "statusInfo": "Статус обмена сообщениями",
+      "success": "Успех",
+      "failure": "Неудача",
+      "successfulRequests": "Успешные запросы",
+      "failedRequests": "Неудачные запросы",
+      "disabledTitle": "Мониторинг операционных данных отключен",
+      "disabledMessage": "Мониторинг операционных данных отключен для данного Сервера Безопасности. Чтобы включить его, установите дополнение для мониторинга операционных данных (xroad-addon-opmonitoring)."
+    },
+    "connection": {
+      "ok": "Все в порядке",
+      "test": "Тест",
+      "centralServer": {
+        "authCertRequest": "Сервис регистрации сертификатов аутентификации",
+        "globalConf": "Загрузка глобальной конфигурации",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Центральный сервер"
+      },
+      "management": {
+        "title": "Управляющий сервер безопасности"
+      },
+      "securityServer": {
+        "client": "Клиент",
+        "sourceClient": "Исходный клиент",
+        "rest": "REST",
+        "securityServer": "Сервер безопасности",
+        "soap": "SOAP",
+        "title": "Другой сервер безопасности",
+        "target": "Цель",
+        "targetClient": "Целевой клиент"
+      }
     }
   },
   "endpoints": {
@@ -267,6 +303,9 @@
     "acme": {
       "account_creation_failure": "Не удалось создать аккаунт на сервере ACME. Если требуется внешняя привязка аккаунта, проверьте, что в acme.yml указаны правильные учетные данные",
       "account_key_pair_error": "Не удалось получить пару ключей для аккаунта ACME-сервера",
+      "account_keystore_password_missing": "В файле конфигурации acme.yml отсутствует пароль хранилища ключей учетной записи ACME",
+      "acme_yaml_missing": "Отсутствует файл конфигурации ACME acme.yml",
+      "acme_yaml_account_keystore_password_update_error": "Не удалось обновить пароль хранилища ключей учетной записи ACME в файле конфигурации acme.yml",
       "authorization_failure": "Ошибка авторизации. Обычно связано с неудачной проверкой запроса, необходимой для подтверждения владения доменом",
       "authorization_wait_failure": "Не удалось дождаться завершения авторизации",
       "certificate_failure": "Не удалось получить сертификат от сервера ACME",
@@ -355,10 +394,12 @@
     "invalid_init_params": "Недопустимые параметры инициализации",
     "invalid_instance_identifier": "Недопустимый идентификатор экземпляра",
     "invalid_member_class": "Недопустимый класс участника",
+    "invalid_pem_csr": "Недопустимый PEM CSR",
     "invalid_service_client_id": "Недопустимый идентификатор клиента службы",
     "invalid_service_url": "Недопустимый URL службы",
     "invalid_wsdl": "Недопустимый WSDL",
     "invalid_wsdl_service_identifier": "Недопустимый идентификатор службы WSDL",
+    "io_error": "Ошибка ввода/вывода",
     "key_and_cert_generation_failed": "Не удалось создать ключ и сертификат",
     "key_not_found": "Ключ не найден",
     "local_group_code_already_exists": "Код локальной группы уже существует",
@@ -374,6 +415,12 @@
     "member_code_exists": "Код участника существует",
     "member_code_not_provided": "Код участника не указан",
     "missing_parameter": "Отсутствует параметр",
+    "network_error": "Ошибка сети",
+    "http_error": "Ошибка HTTP",
+    "ocsp_connection_error": "Не удалось подключиться к OCSP-ответчику",
+    "ocsp_failed": "Не удалось получить ответ от OCSP-ответчика",
+    "ocsp_response_parsing_failure": "Не удалось разобрать ответ OCSP",
+    "ocsp_response_verification_failure": "Не удалось проверить ответ OCSP",
     "openapi_parsing_error": "Не удалось разобрать описание OpenApi3",
     "orphans_not_found": "Одинокие ключи, сертификаты и/или CSR, принадлежащие данному клиенту, не найдены",
     "pin_code_exists": "PIN-код существует",
@@ -664,7 +711,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Код участника/группы",
     "memberGroupStep": "Участник / Группа",
-    "name": "Имя участника / Описание группы",
+    "name": "Название подсистемы / Описание группы",
     "noAccessRights": "Нет прав доступа к этому клиенту",
     "noAvailableServices": "Нет доступных служб",
     "removeAll": "Удалить все",
@@ -694,7 +741,7 @@
     "enableSuccess": "Описание сервиса включено",
     "idGroupCode": "ID / Код группы",
     "lastRefreshed": "Последнее обновление: ",
-    "memberNameGroupDesc": "Имя участника / Описание группы",
+    "subsystemNameGroupDesc": "Название подсистемы / Описание группы",
     "noMatches": "Нет совпадающих записей",
     "openApi3Added": "Сервис OpenApi3 добавлен",
     "openapiDetails": "Детали OpenAPI 3",
@@ -774,6 +821,7 @@
           "acmeIpAddresses": "IP-адрес сервера ACME",
           "distinguishedName": "Отличительное имя",
           "expires": "Истекает",
+          "ocspCostType": "Тип стоимости OCSP",
           "ocspResponse": "Ответ OCSP"
         },
         "notAvailable": "Не доступно",
@@ -812,6 +860,11 @@
       },
       "title": "Якорь конфигурации"
     },
+    "costType": {
+      "FREE": "Бесплатно",
+      "PAID": "Платно",
+      "UNDEFINED": "Не определено"
+    },
     "securityServer": {
       "addressChangeInProgress": "ИЗМЕНЕНИЕ В ПРОЦЕССЕ",
       "editDialog": {
@@ -820,6 +873,24 @@
       "securityServer": "Сервер безопасности",
       "serverAddress": "Адрес сервера",
       "updateSubmitted": "Изменение адреса сервера безопасности успешно отправлено"
+    },
+    "servicePrioritizationStrategy": {
+      "timestamping": {
+        "label": "Стратегия приоритизации сервисов временных меток: ",
+        "ONLY_FREE": "использовать только бесплатные сервисы временных меток",
+        "ONLY_PAID": "использовать только платные сервисы временных меток",
+        "FREE_FIRST": "использовать сначала бесплатные сервисы временных меток, если все они недоступны или не работают, использовать платные",
+        "PAID_FIRST": "использовать сначала платные сервисы временных меток, если все они недоступны или не работают, использовать бесплатные",
+        "NONE": "использовать все сервисы временных меток без приоритизации"
+      },
+      "ocsp": {
+        "label": "Стратегия приоритизации OCSP: ",
+        "ONLY_FREE": "использовать только бесплатные OCSP сервисы",
+        "ONLY_PAID": "использовать только платные OCSP сервисы",
+        "FREE_FIRST": "использовать сначала бесплатные OCSP сервисы, если все они недоступны или не работают, использовать платные",
+        "PAID_FIRST": "использовать сначала платные OCSP сервисы, если все они недоступны или не работают, использовать бесплатные",
+        "NONE": "использовать все OCSP сервисы без приоритизации"
+      }
     },
     "timestampingServices": {
       "action": {
@@ -845,7 +916,8 @@
         },
         "header": {
           "serviceURL": "URL службы",
-          "timestampingService": "Служба временных меток"
+          "timestampingService": "Служба временных меток",
+          "costType": "Тип стоимости"
         }
       },
       "title": "Службы временных меток"
@@ -859,6 +931,11 @@
       "localGroups": "Локальные группы",
       "serviceClients": "Клиенты службы",
       "services": "Службы"
+    },
+    "diagnostics": {
+      "overview": "Обзор",
+      "traffic": "Трафик",
+      "connectionTesting": "Проверка соединения"
     },
     "keys": {
       "apiKey": "API-ключи",

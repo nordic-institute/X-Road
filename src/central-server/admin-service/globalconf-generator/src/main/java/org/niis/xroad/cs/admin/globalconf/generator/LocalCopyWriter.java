@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,20 +63,24 @@ class LocalCopyWriter {
         this.confExpireTime = confExpireTime;
     }
 
-    @SneakyThrows
     public void write(Collection<ConfigurationPart> configurationParts) {
-        FileUtils.createDirectories(getTargetDir());
+        try {
+            FileUtils.createDirectories(getTargetDir());
 
-        configurationParts.forEach(this::writePart);
+            for (ConfigurationPart part : configurationParts) {
+                writePart(part);
+            }
 
-        writeFileList(configurationParts);
-        writeInstanceIdentifier();
+            writeFileList(configurationParts);
+            writeInstanceIdentifier();
 
-        deleteStaleConfigFiles(configurationParts);
+            deleteStaleConfigFiles(configurationParts);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemInternalError("Failed to write local copy of configuration", e);
+        }
     }
 
-    @SneakyThrows
-    private void writePart(ConfigurationPart configurationPart) {
+    private void writePart(ConfigurationPart configurationPart) throws IOException {
         var filePath = getFilePath(configurationPart);
         var metadataFilePath = metadataFilePath(filePath);
         FileUtils.write(filePath, configurationPart.getData());
@@ -96,8 +100,7 @@ class LocalCopyWriter {
                 instanceIdentifier, EXPIRE_TIME_FORMAT.format(confExpireTime), configurationVersion);
     }
 
-    @SneakyThrows
-    private void writeFileList(Collection<ConfigurationPart> configurationParts) {
+    private void writeFileList(Collection<ConfigurationPart> configurationParts) throws IOException {
         var fileList = configurationParts.stream()
                 .map(this::getFilePath)
                 .map(Path::toAbsolutePath)
@@ -138,11 +141,14 @@ class LocalCopyWriter {
         return localConfDirectory.resolve(FILE_LIST_FILE);
     }
 
-    @SneakyThrows
     private void deleteStaleConfigFile(Path path) {
         log.trace("Deleting stale config file {}", path);
-        Files.delete(path);
-        Files.deleteIfExists(metadataFilePath(path));
+        try {
+            Files.delete(path);
+            Files.deleteIfExists(metadataFilePath(path));
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemInternalError("Failed to delete stale config file " + path, e);
+        }
     }
 
     private static Path metadataFilePath(Path path) {

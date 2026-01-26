@@ -43,8 +43,6 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v5.SecurityServerType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.SharedParametersTypeV5;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.SubsystemType;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +51,7 @@ import java.util.Optional;
 
 public class SharedParametersV5Converter {
 
-    SharedParameters convert(SharedParametersTypeV5 source) throws CertificateEncodingException, IOException {
+    SharedParameters convert(SharedParametersTypeV5 source) {
         String instanceIdentifier = source.getInstanceIdentifier();
         List<SharedParameters.ConfigurationSource> configurationSources = getConfigurationSources(source.getSource());
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
@@ -115,9 +113,9 @@ public class SharedParametersV5Converter {
         Map<String, ClientId> ret = new HashMap<>();
         source.getMember().forEach(member -> {
             ret.put(member.getId(), toClientId(source.getInstanceIdentifier(), member));
-            member.getSubsystem().forEach(subsystem -> {
-                ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem));
-            });
+            member.getSubsystem().forEach(subsystem ->
+                    ret.put(subsystem.getId(), toClientId(source.getInstanceIdentifier(), member, subsystem))
+            );
         });
         return ret;
     }

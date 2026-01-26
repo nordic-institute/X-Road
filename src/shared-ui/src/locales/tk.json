@@ -1,4 +1,15 @@
 {
+  "403": {
+    "goBack": "Yza geç",
+    "mainTitle": "Rugsat berilmedi",
+    "text": "Bu sahypany görmek üçin rugsadyňyz ýoga meňzeýär.Eger-de siz bu ýalňyş diýip pikir edýän bolsaňyz, onda dogry akkaunda girenligiňizi barlaň ýa-da öz rugsadyňyz barada administratorа ýüzleniň.",
+    "topTitle": "Gadagan"
+  },
+  "404": {
+    "pageNotFound": "404 - sahypa tapylmady",
+    "text": "tapan ýaly",
+    "textUnicorn": "unicorn"
+  },
   "action": {
     "activate": "Işe giriz",
     "add": "Goş",
@@ -150,13 +161,13 @@
     "backup_generation_failed": "Äiýaçlyk nusgasy döredilmedi",
     "backup_restore_interrupted": "Äiýaçlyk nusgasynyň dikeldilmegi bölündi",
     "core": {
-      "Signer": {
-        "CertNotFound": "Şahadatnama tapylmady",
-        "KeyNotFound": "Açar tapylmady",
-        "PinIncorrect": "Nädogry PIN",
-        "TokenNotAvailable": "Token elýeterli däl",
-        "TokenNotFound": "Token tapylmady",
-        "UnknownMember": "X-Road ýadrody - gol çekiji: Näbelli agza"
+      "signer": {
+        "cert_not_found": "Şahadatnama tapylmady",
+        "key_not_found": "Açar tapylmady",
+        "pin_incorrect": "Nädogry PIN",
+        "token_not_available": "Token elýeterli däl",
+        "token_not_found": "Token tapylmady",
+        "unknown_member": "X-Road ýadrody - gol çekiji: Näbelli agza"
       }
     },
     "generate_backup_interrupted": "Ätiýaçlyk nusgasynyň döredilmegi bölündi",

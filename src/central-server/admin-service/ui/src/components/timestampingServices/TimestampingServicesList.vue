@@ -59,11 +59,10 @@
             )
           }}
         </template>
-        <template #[`item.cost`]="{ item }">
+        <template #[`item.cost_type`]="{ item }">
           {{
             $t(
-              'trustServices.trustService.timestampingService.costValues.' +
-                item.cost,
+              'trustServices.trustService.costType.' + item.cost_type,
             )
           }}
         </template>
@@ -99,7 +98,7 @@
         </template>
 
         <template #bottom>
-          <custom-data-table-footer />
+          <XrdDataTableFooter />
         </template>
       </v-data-table>
     </xrd-titled-view>
@@ -141,14 +140,13 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader } from '@/ui-types';
-import { XrdTitledView } from '@niis/shared-ui';
+import { XrdTitledView, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     XrdTitledView,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
   },
@@ -199,10 +197,10 @@ export default defineComponent({
         },
         {
           title: this.$t(
-            'trustServices.trustService.timestampingService.cost',
+            'trustServices.trustService.cost',
           ) as string,
           align: 'start',
-          key: 'cost',
+          key: 'cost_type',
         },
         {
           title: '',
@@ -271,5 +269,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

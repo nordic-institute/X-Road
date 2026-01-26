@@ -25,14 +25,26 @@
  */
 package org.niis.xroad.opmonitor.core.config;
 
+import io.grpc.BindableService;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.core.OpMonitorDaemon;
+import org.niis.xroad.opmonitor.core.OpMonitorRpcService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.util.List;
+
+@Slf4j
 @Import({OpMonitorDaemonJobConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class
@@ -41,7 +53,24 @@ import org.springframework.context.annotation.Import;
 public class OpMonitorDaemonRootConfig {
 
     @Bean
-    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws NoSuchAlgorithmException, KeyManagementException {
         return new OpMonitorDaemon(globalConfProvider);
+    }
+
+    @Bean
+    RpcServer rpcServer(final List<BindableService> bindableServices)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+        return RpcServer.newServer(
+                OpMonitoringSystemProperties.getOpMonitorHost(),
+                OpMonitoringSystemProperties.getOpMonitorGrpcPort(),
+                builder -> bindableServices.forEach(bindableService -> {
+                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
+                    builder.addService(bindableService);
+                }));
+    }
+
+    @Bean
+    OpMonitorRpcService opMonitoringService() {
+        return new OpMonitorRpcService();
     }
 }

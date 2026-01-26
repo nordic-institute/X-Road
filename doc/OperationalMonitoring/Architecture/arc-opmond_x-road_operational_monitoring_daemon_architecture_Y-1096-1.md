@@ -1,22 +1,24 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.6  
+Version: 1.8  
 Document ID: ARC-OPMOND
 
-| Date       | Version | Description                                                         | Author           |
-|------------|---------|---------------------------------------------------------------------|------------------|
-|            | 0.5     | Initial version                                                     |                  |
-| 23.01.2017 | 0.6     | Added license text, table of contents and version history           | Sami Kallio      |
-| 02.02.2018 | 0.7     | Technology matrix moved to the ARC-TEC-file                         | Antti Luoma      |
-| 05.03.2018 | 0.8     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo        |
-| 18.02.2019 | 0.9     | New optional field: xRequestId (string)                             | Caro Hautamäki   |
-| 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                         | Ilkka Seppälä    |
-| 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX          | Petteri Kivimäki |
-| 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
-| 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
-| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
-| 17.03.2025 | 1.5     | Syntax and styling                                                  | Pauline Dimmek   |
-| 26.03.2025 | 1.6     | Added field xRoadVersion and example for producer side REST request | Eneli Reimets    |
+| Date       | Version | Description                                                           | Author             |
+|------------|---------|-----------------------------------------------------------------------|--------------------|
+|            | 0.5     | Initial version                                                       |                    |
+| 23.01.2017 | 0.6     | Added license text, table of contents and version history             | Sami Kallio        |
+| 02.02.2018 | 0.7     | Technology matrix moved to the ARC-TEC-file                           | Antti Luoma        |
+| 05.03.2018 | 0.8     | Added terms and abbreviations reference and moved terms to term doc   | Tatu Repo          |
+| 18.02.2019 | 0.9     | New optional field: xRequestId (string)                               | Caro Hautamäki     |
+| 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                           | Ilkka Seppälä      |
+| 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX            | Petteri Kivimäki   |
+| 01.06.2023 | 1.2     | Update references                                                     | Petteri Kivimäki   |
+| 02.10.2024 | 1.3     | Update schema file locations                                          | Justas Samuolis    |
+| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                       | Eneli Reimets      |
+| 17.03.2025 | 1.5     | Syntax and styling                                                    | Pauline Dimmek     |
+| 26.03.2025 | 1.6     | Added field xRoadVersion and example for producer side REST request   | Eneli Reimets      |
+| 10.07.2025 | 1.7     | Added info about operational data query in fixed intervals using gRPC | Mikk-Erik Bachmann |
+| 15.01.2026 | 1.8     | Update schema file locations                                          | Mohamed Elbeltagy  |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -31,12 +33,14 @@ Document ID: ARC-OPMOND
   - [2.1 Operational Monitoring Daemon Main](#21-operational-monitoring-daemon-main)
     - [2.1.1 Operational Monitoring Database](#211-operational-monitoring-database)
     - [2.1.2 Operational Monitoring Service](#212-operational-monitoring-service)
+    - [2.1.3 Operational Monitoring gRPC Service](#213-operational-monitoring-grpc-service)
   - [2.2 Configuration Client](#22-configuration-client)
 - [3 Protocols and Interfaces](#3-protocols-and-interfaces)
   - [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
   - [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
-  - [3.3 Operational Monitoring JMX](#33-operational-monitoring-jmx)
-  - [3.4 Download Configuration](#34-download-configuration)
+  - [3.3 Operational Monitoring Query in Fixed Intervals](#33-operational-monitoring-query-in-fixed-intervals)
+  - [3.4 Operational Monitoring JMX](#34-operational-monitoring-jmx)
+  - [3.5 Download Configuration](#35-download-configuration)
 - [4 Deployment View](#4-deployment-view)
 - [Appendix A Store Operational Monitoring Data Messages](#appendix-a-store-operational-monitoring-data-messages)
   - [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
@@ -84,7 +88,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 Figure 1 shows the main components and interfaces of the monitoring daemon. The components and the interfaces are described in detail in the following sections.
 
-![Operational monitoring daemon component diagram](x-road_operational_monitoring_daemon_components.png)
+![Operational monitoring daemon component diagram](img/x-road_operational_monitoring_daemon_components.svg)
 
 Technologies used in the operational monitoring daemon can be found here: [[ARC-TEC]](#ARC-TEC)
 
@@ -107,6 +111,10 @@ The operational monitoring service receives and processes operational monitoring
 In case the sender of the *get operational monitoring data* request is a regular client, only operational monitoring data records associated with that client are returned. In case the request sender is the central monitoring client (described in the global configuration) or owner of the current security server (described in the global configuration), it has access to all the records.
 
 For performance purposes, the operational monitoring service limits the size of the *get operational monitoring data* response message. The maximum response size is configurable (however, all the records having the same timestamp as the last queried record are still included into the response). In case some queried records still do not fit into the response, the timestamp of the first excluded record is returned in the response to indicate overflow.
+
+#### 2.1.3 Operational Monitoring gRPC Service
+
+The operational monitoring gRPC service is used to retrieve the number of successful and failed requests in fixed time intervals which can be used to visualize the request traffic in a graph. 
 
 ### 2.2 Configuration Client
 
@@ -132,7 +140,11 @@ The operational monitoring query interface is used by the security server to ret
 
 The monitoring of the security servers is not the main functionality of the X-Road system, therefore the availability and responsiveness of this service is not paramount. Operational data records are held in the database and are available for configured days.
 
-### 3.3 Operational Monitoring JMX
+### 3.3 Operational Monitoring query in fixed intervals
+
+This query is used by the Security Server to retrieve operational monitoring data in fixed intervals so that it can be used to visualize the request traffic in the UI. It will return the count of successful and failed requests in each time interval. GRPC is used to make this query by other services.
+
+### 3.4 Operational Monitoring JMX
 
 This interface is used by a local monitoring system (e.g. Zabbix) to gather local operational health data of the security server via JMXMP. The interface is described in more detail in [[PR-OPMONJMX]](#PR-OPMONJMX).
 
@@ -146,7 +158,7 @@ XROAD_OPMON_PARAMS=-Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxre
 
 The monitoring of the security servers is not the main functionality of the X-Road system, therefore the availability and responsiveness of this service is not paramount.
 
-### 3.4 Download Configuration
+### 3.5 Download Configuration
 
 The operational monitoring daemon downloads the generated global configuration files from a configuration source.
 
@@ -158,7 +170,7 @@ The interface is described in more detail in [[ARC-G]](#ARC-G) and [[PR-GCONF]]
 
 Figure 2 shows the deployment diagram.
 
-![Operational monitoring daemon deployment diagram](x-road_operational_monitoring_daemon_deployment.png)
+![Operational monitoring daemon deployment diagram](img/x-road_operational_monitoring_daemon_deployment.png)
 
 **Figure 2. Operational monitoring daemon deployment**
 
@@ -169,7 +181,7 @@ Figure 2 shows the deployment diagram.
 
 ### A.1 JSON-Schema for Store Operational Monitoring Data Request
 
-The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/service/op-monitor/op-monitor-core/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
 
 ### A.2 Example Store Operational Monitoring Data Request
 
@@ -311,7 +323,7 @@ The first record of the store request reflects successfully mediated SOAP reques
 
 ### A.3 JSON-Schema for Store Operational Monitoring Data Response
 
-The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/service/op-monitor/op-monitor-core/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
 
 ### A.4 Example Store Operational Monitoring Data Responses
 

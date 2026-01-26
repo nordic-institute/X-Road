@@ -153,9 +153,9 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public List<String> getTspUrl() {
+    public List<String> getTspUrls() {
         try {
-            return tspCache.get(TSP_URL, super::getTspUrl);
+            return tspCache.get(TSP_URL, super::getTspUrls);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
                 throw (CodedException) e.getCause();

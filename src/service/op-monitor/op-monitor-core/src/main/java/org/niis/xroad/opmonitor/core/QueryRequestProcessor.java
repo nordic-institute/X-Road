@@ -37,6 +37,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.InputStream;
@@ -85,6 +86,7 @@ class QueryRequestProcessor {
      *
      * @throws Exception in case of any errors
      */
+    @ArchUnitSuppressed("NoVanillaExceptions")
     void process() throws Exception {
         try (var handler = new QueryRequestHandler(); var requestIn = request.getInputStream()) {
             SoapMessageDecoder soapMessageDecoder =
@@ -95,10 +97,10 @@ class QueryRequestProcessor {
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private final class QueryRequestHandler implements SoapMessageDecoder.Callback {
         @Override
-        public void soap(SoapMessage message, Map<String, String> headers)
-                throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             if (log.isTraceEnabled()) {
                 log.trace("soap({})", message.getXml());
             }

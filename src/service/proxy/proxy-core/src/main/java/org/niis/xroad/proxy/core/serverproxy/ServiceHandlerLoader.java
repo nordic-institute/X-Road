@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -37,13 +38,14 @@ final class ServiceHandlerLoader {
         try {
             Class<?> clazz = Class.forName(className);
             if (!AbstractServiceHandler.class.isAssignableFrom(clazz)) {
-                throw new RuntimeException("Failed to load service handler. Handler must implement AbstractServiceHandler: " + className);
+                throw XrdRuntimeException.systemInternalError(
+                        "Failed to load service handler. Handler must implement AbstractServiceHandler: " + className);
             }
 
             return (ServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class, GlobalConfProvider.class)
                     .newInstance(serverConfProvider, globalConfProvider);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load service handler: " + className, e);
+            throw XrdRuntimeException.systemInternalError("Failed to load service handler: " + className, e);
         }
     }
 

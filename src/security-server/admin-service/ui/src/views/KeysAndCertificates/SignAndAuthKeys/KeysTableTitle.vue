@@ -58,9 +58,8 @@
 <script lang="ts">
 // View for a token
 import { defineComponent, PropType } from 'vue';
-import { Colors } from '@/global';
+import { Colors, XrdIconChecked, XrdIconError } from '@niis/shared-ui';
 import { CertificateStatus, Key, TokenCertificate } from '@/openapi-types';
-import { XrdIconChecked, XrdIconError } from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdIconError, XrdIconChecked },
@@ -113,8 +112,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .status-wrap {
   text-transform: uppercase;

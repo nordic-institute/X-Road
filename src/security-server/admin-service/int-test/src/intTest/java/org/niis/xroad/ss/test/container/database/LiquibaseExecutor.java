@@ -56,6 +56,7 @@ public class LiquibaseExecutor extends SpringLiquibase {
 
         setChangeLog("classpath:test-data/ss-int-test-changelog.xml");
         setContexts("int-test");
+        setAnalyticsEnabled(false);
 
         this.postgresContextualContainer = postgresContextualContainer;
     }

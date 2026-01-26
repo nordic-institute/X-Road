@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.57  
+Version: 2.59  
 Doc. ID: IG-SS
 
 ---
@@ -77,6 +77,8 @@ Doc. ID: IG-SS
 | 13.02.2025 | 2.55    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
 | 10.03.2025 | 2.56    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
 | 21.03.2025 | 2.57    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
+| 03.06.2025 | 2.58    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets        |
+| 30.06.2025 | 2.59    | Update the method of adding X-Road apt repository                                                                                                                                                                    | Mikk-Erik Bachmann   |
 
 ## License
 
@@ -137,15 +139,18 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 Introduction
 
+
 ### 1.1 Target Audience
 
 The intended audience of this Installation Guide are X-Road Security Server system administrators responsible for installing and using X-Road software. The daily operation and maintenance of the Security Server is covered by its User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
+
 ### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
 
 ### 1.3 References
 
@@ -282,11 +287,11 @@ Requirements to software and settings:
   LC_ALL=en_US.UTF-8
   ```
 
-* Ensure that the packages `locales` and `software-properties-common` are present
-  
-  ```bash
-  sudo apt-get install locales software-properties-common
-  ```
+* Ensure that the packages `locales` and `lsb-release` are present
+
+```bash
+sudo apt-get install locales lsb-release
+```
 
 * Ensure that the locale is available
   
@@ -299,13 +304,13 @@ Requirements to software and settings:
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
 ```bash
-curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
 
 ```bash
-sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
 ```
 
 Update package repository metadata:
@@ -321,13 +326,11 @@ If you are installing the default setup with local PostgreSQL database and want 
 *This is an optional step.* 
 
 Optionally, the Security Server can use a remote database server. To avoid installing the default local PostgreSQL server during Security Server installation, first install the `xroad-database-remote` -package.
-
 ```bash
 sudo apt install xroad-database-remote
 ```
 
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
-
 ```bash
 psql --version
 psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
@@ -336,9 +339,13 @@ psql -h <database host> -U <superuser> -tAc 'show server_version'
 10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
 ```
 
-The Security Server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials.
+The Security Server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
 
-For advanced setup, e.g. when using separate servers for the databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
+For advanced setup, e.g. when using separate servers for the databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7.
+
+For setting up a database connection with SSL certificates, you need to create an additional configuration file `db_libpq.env` in the `/etc/xroad/` folder. For more details see the section „Passing additional parameters to psql“ in [UG-SS](#Ref_UG-SS).
+
+When leaving the database and user creation to the installer, continue with the following steps:
 
 Create the property file:
 
@@ -508,9 +515,11 @@ The support for environmental monitoring functionality on a Security Server is p
 
 During the Security Server initial configuration, the server’s X-Road membership information and the software token’s PIN are set.
 
+
 ### 3.1 Prerequisites
 
 Configuring the Security Server assumes that the Security Server owner is a member of the X-Road.
+
 
 ### 3.2 Reference Data
 
@@ -569,7 +578,7 @@ firewall access rules for specific hosts based on their descriptions.
 
 The Security Server has a special `[proxy]` parameter [connector-host](ug-syspar_x-road_v6_system_parameters.md#32-proxy-parameters-proxy) which determines
 the interfaces that the Security Server uses to listen for incoming connections. The default value for this parameter in the default X-Road packages is `0.0.0.0`,
-which makes the Security Server accept connections from any server. For country-specific defaults, please refer to the system parameters documentation.
+which makes the Security Server accept connections from any server. For country-specific defaults, please refer to the system parameters documentation. 
 
 The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
 
@@ -623,6 +632,7 @@ More information about the required configuration is available in the [Security 
 
 ## 4 Installation Error handling
 
+
 ### 4.1 Cannot Set LC\_ALL to Default Locale
 
 If running the locale command results in the error message
@@ -651,6 +661,7 @@ LC_ALL=en_US.UTF-8
 ```
 
 After updating the system’s locale settings, it is recommended to restart the operating system.
+
 
 ### 4.2 PostgreSQL Is Not UTF8 Compatible
 
@@ -792,6 +803,7 @@ Finally, we can upgrade to our target version 7.3.x as follows.
 apt upgrade xroad-securityserver
 ```
 
+
 ## Annex A Security Server Default Database Properties
 
 `/etc/xroad/db.properties`
@@ -823,6 +835,7 @@ op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
 op-monitor.hibernate.jdbc.use_streams_for_binary = true
 ```
 
+
 ## Annex B Default Database Users
 
 | User             | Database   | Privileges               | Description                                                                              |
@@ -835,17 +848,21 @@ op-monitor.hibernate.jdbc.use_streams_for_binary = true
 | opmonitor_admin  | op-monitor | CREATE,TEMPORARY,CONNECT | The database user used to create/update the op-monitor schema.                           |
 | postgres         | ALL        | ALL                      | PostgreSQL database default superuser.                                                   |
 
+
 ## Annex C Deployment Options
+
 
 ### C.1 General
 
 X-Road Security Server has multiple deployment options. The simplest choice is to have a single Security Server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
+
 
 ### C.2 Local Database
 
 The simplest deployment option is to use a single Security Server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security Server with local database](img/ig-ss_local_db.svg)
+
 
 ### C.3 Remote Database
 
@@ -855,17 +872,20 @@ Security Server supports a variety of cloud databases including AWS RDS and Azur
 
 ![Security Server with remote database](img/ig-ss_remote_db.svg)
 
+
 ### C.4 High Availability Setup
 
 In production systems it's rarely acceptable to have a single point of failure. Security Server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security Server high-availability setup](img/ig-ss_high_availability.svg)
 
+
 ### C.5 Load Balancing Setup
 
 Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a Security Server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
 
 ![Security Server load balancing setup](img/ig-ss_load_balancing.svg)
+
 
 ### C.6 Summary
 

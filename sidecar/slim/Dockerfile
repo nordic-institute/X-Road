@@ -41,6 +41,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     xroad-addon-messagelog \
     xroad-addon-opmonitoring \
     xroad-addon-proxymonitor \
+    xroad-addon-hwtokens \
     xroad-autologin \
     xroad-database-remote \
   && apt-get -qq clean

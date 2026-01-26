@@ -33,14 +33,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
  * A dummy implementation of operational monitoring buffer that does nothing.
  * Actual implementation can be provided by addon.
  */
-class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
+public class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     protected NullOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
         super(serverConfProvider);
     }
 
     @Override
-    public void store(OpMonitoringData data) throws Exception {
+    public void store(OpMonitoringData data) {
         //No-OP
     }
 

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
@@ -55,6 +56,7 @@ import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.cs.admin.core.validation.IpAddressValidator;
 import org.niis.xroad.cs.admin.core.validation.UrlValidator;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.security.cert.CertificateEncodingException;
@@ -84,6 +86,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDI
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
@@ -154,6 +157,7 @@ class CertificationServicesServiceImplTest {
         assertEquals(CA_NAME, certificationService.getName());
         assertEquals(VALID_FROM, certificationService.getNotBefore());
         assertEquals(VALID_TO, certificationService.getNotAfter());
+        assertEquals(CsrFormat.PEM, certificationService.getDefaultCsrFormat());
         assertEquals(ACME_SERVER_DIRECTORY_URL, certificationService.getAcmeServerDirectoryUrl());
         assertEquals(ACME_SERVER_IP_ADDRESS, certificationService.getAcmeServerIpAddress());
         assertTrue(certificationService.getTlsAuth());
@@ -199,12 +203,14 @@ class CertificationServicesServiceImplTest {
         var result = service.addOcspResponder(mockOcspResponderRequest);
 
         assertThat(result).usingRecursiveComparison(RecursiveComparisonConfiguration.builder()
-                        .withIgnoredFields("caId", "certificate")
+                        .withIgnoredFields("caId", "certificate", "costType")
                         .build())
                 .isEqualTo(mockOcspInfo);
+        assertEquals(CostType.PAID, result.getCostType());
         verify(auditDataHelper).put(CA_ID, mockOcspInfo.getCaInfo().getId());
         verify(auditDataHelper).put(OCSP_ID, mockOcspInfo.getId());
         verify(auditDataHelper).put(OCSP_URL, mockOcspInfo.getUrl());
+        verify(auditDataHelper).put(OCSP_COST_TYPE, mockOcspInfo.getCostType());
         verify(auditDataHelper).put(OCSP_CERT_HASH,
                 "B9:CF:6E:A1:BC:98:24:6B:16:68:24:E3:9A:9F:CD:8E:51:B7:05:37:44:68:D4:96:50:D2:22:85:A7:FA:54:2B");
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
@@ -270,6 +276,7 @@ class CertificationServicesServiceImplTest {
         ca.setAuthenticationOnly(true);
         ca.setCertProfileInfo(CERT_PROFILE);
         ca.setCaInfo(caInfo());
+        ca.setDefaultCsrFormat(CsrFormat.PEM.name());
         ca.setAcmeServerDirectoryUrl(ACME_SERVER_DIRECTORY_URL);
         ca.setAcmeServerIpAddress(ACME_SERVER_IP_ADDRESS);
         ca.setIntermediateCaInfos(Set.of(caInfo(), caInfo()));
@@ -295,8 +302,10 @@ class CertificationServicesServiceImplTest {
     }
 
     private OcspInfoEntity ocspInfo() throws CertificateEncodingException {
-        return new OcspInfoEntity(new CaInfoEntity(), "https://flakyocsp:666",
+        OcspInfoEntity ocspInfoEntity = new OcspInfoEntity(new CaInfoEntity(), "https://flakyocsp:666",
                 TestCertUtil.getOcspSigner().certChain[0].getEncoded());
+        ocspInfoEntity.setCostType(CostType.PAID.name());
+        return ocspInfoEntity;
     }
 
 }

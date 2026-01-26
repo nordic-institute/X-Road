@@ -36,6 +36,8 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 
+import java.io.IOException;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
@@ -54,7 +56,7 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
     @Override
     MessageProcessorBase createRequestProcessor(
             RequestWrapper request, ResponseWrapper response,
-            OpMonitoringData opMonitoringData) throws Exception {
+            OpMonitoringData opMonitoringData) throws IOException {
         verifyCanProcess(request);
 
         return new ClientMessageProcessor(commonBeanProxy,

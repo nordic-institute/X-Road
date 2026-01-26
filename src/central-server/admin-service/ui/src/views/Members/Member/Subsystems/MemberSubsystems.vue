@@ -76,7 +76,8 @@
               <rename-subsystem-btn
                 v-if="allowMemberSubsystemRename"
                 :subsystem-name="item.subsystem_name"
-                @click="renameClicked(item)" />
+                @click="renameClicked(item)"
+              />
             </td>
             <td class="unregistered-subsystem" />
             <td class="unregistered-subsystem" />
@@ -113,7 +114,8 @@
               <rename-subsystem-btn
                 v-if="allowMemberSubsystemRename"
                 :subsystem-name="item.subsystem_name"
-                @click="renameClicked(item)" />
+                @click="renameClicked(item)"
+              />
             </td>
             <td>{{ subitem.server_code }}</td>
             <td>{{ subitem.server_owner }}</td>
@@ -174,7 +176,7 @@
         </tbody>
 
         <template #bottom>
-          <custom-data-table-footer />
+          <XrdDataTableFooter />
         </template>
       </v-table>
     </v-card>
@@ -220,7 +222,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useMember } from '@/store/modules/members';
@@ -229,14 +231,18 @@ import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
-import { XrdIconError, XrdIconInProgress } from '@niis/shared-ui';
+import {
+  XrdIconError,
+  XrdIconInProgress,
+  XrdDataTableFooter,
+  Colors,
+} from '@niis/shared-ui';
 import {
   ManagementRequestStatus,
   Subsystem,
   UsedSecurityServers,
 } from '@/openapi-types';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import RenameMemberSubsystemDialog from '@/views/Members/Member/Subsystems/RenameMemberSubsystemDialog.vue';
 import RenameSubsystemBtn from '@/components/members/RenameSubsystemBtn.vue';
 
@@ -252,7 +258,7 @@ export default defineComponent({
   components: {
     RenameSubsystemBtn,
     RenameMemberSubsystemDialog,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DataTableToolbar,
     DeleteMemberSubsystemDialog,
     AddMemberSubsystemDialog,
@@ -302,6 +308,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
 
     this.loading = true;
@@ -325,8 +332,9 @@ export default defineComponent({
       this.showDeleteDialog = true;
     },
     renameClicked(subsystem: Subsystem) {
-      this.clickedSubsystemCode = subsystem.subsystem_id?.subsystem_code as string;
-      this.clickedSubsystemName= subsystem.subsystem_name as string;
+      this.clickedSubsystemCode = subsystem.subsystem_id
+        ?.subsystem_code as string;
+      this.clickedSubsystemName = subsystem.subsystem_name as string;
       this.showRenameDialog = true;
     },
     unregisterClicked(subsystem: Subsystem, subitem: UsedSecurityServers) {
@@ -399,7 +407,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .subsystems-table {
   th {
@@ -415,11 +423,6 @@ export default defineComponent({
   }
 }
 
-.card-corner-button {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .status {
   text-transform: uppercase;
   font-weight: bold;
@@ -427,20 +430,12 @@ export default defineComponent({
 
 .subsystem-actions {
   text-align: right;
-
-  .xrd-clickable {
-    color: colors.$Link;
-    margin-left: 10px;
-  }
 }
 
 .unregistered-subsystem {
   background-color: colors.$WarmGrey30;
 }
 
-.custom-footer {
-  height: 16px;
-}
 tbody tr:last-child td {
   border-bottom: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
 }

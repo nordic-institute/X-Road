@@ -53,39 +53,42 @@ public class TaskQueue {
     private final Timestamper timestamper;
     private final LogManager logManager;
 
-    protected void handleTimestampSucceeded(TimestampSucceeded message) {
+    protected void handleTimestampSucceeded(TimestampSucceeded timestampSucceededResult) {
         log.trace("handleTimestampSucceeded");
 
         if (log.isTraceEnabled()) {
-            log.trace("Time-stamped message records {}", Arrays.toString(message.getMessageRecords()));
+            log.trace("Time-stamped message records {}", Arrays.toString(timestampSucceededResult.getMessageRecords()));
         }
 
         boolean succeeded = true;
         Exception failureCause = null;
 
         try {
-            saveTimestampRecord(message);
+            saveTimestampRecord(timestampSucceededResult);
         } catch (Exception e) {
             log.error("Failed to save time-stamp record to database", e);
-
+            failureCause = e;
             succeeded = false;
         } finally {
             if (succeeded) {
                 indicateSuccess();
                 // If time-stamped records count equals to time-stamp records limit, there are probably
-                // still records to be time-stamped. Init another another time-stamping round to prevent
+                // still records to be time-stamped. Init another time-stamping round to prevent
                 // messagelog records to begin to bloat.
-                if (message.getMessageRecords().length == MessageLogProperties.getTimestampRecordsLimit()) {
+                if (timestampSucceededResult.getMessageRecords().length == MessageLogProperties.getTimestampRecordsLimit()) {
                     log.info("Time-stamped records count equaled to time-stamp records limit");
                     handleStartTimestamping();
                 }
             } else {
-                indicateFailure(failureCause);
+                TimestampFailed timestampFailed = new TimestampFailed(timestampSucceededResult.getMessageRecords(), failureCause);
+                timestampFailed.setErrorsByUrl(timestampSucceededResult.getErrorsByUrl());
+                timestampFailed.putError(timestampSucceededResult.getUrl(), failureCause);
+                indicateFailure(timestampFailed);
             }
         }
     }
 
-    protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
+    protected void saveTimestampRecord(TimestampSucceeded message)  {
         LogManager.saveTimestampRecord(message);
     }
 
@@ -93,10 +96,8 @@ public class TaskQueue {
         sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.SUCCESS);
     }
 
-    /**
-     * @param cause possible exception that caused the failure. Used for diagnostics error code.
-     */
-    private void indicateFailure(Exception cause) {
+    private void indicateFailure(TimestampFailed timestampFailedResult) {
+
         // If the timestamping task queue is currently empty, it means some previous timestamping task was successful
         // already. In that case do not indicate failure to the LogManager, otherwise the message logging may block
         // (in non-timestamp-immediately mode) in case further no more messages are logged until the acceptable
@@ -106,24 +107,19 @@ public class TaskQueue {
         }
 
         // set diagnostics status
-        logManager.putStatusMapFailures(cause);
+        logManager.putStatusMapFailures(timestampFailedResult);
 
         sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.FAILURE);
     }
 
-    /**
-     * Sends timestamping status message to LogManager.
-     *
-     * @param status timestamping status message.
-     */
     private void sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status status) {
         logManager.setTimestampingStatus(new SetTimestampingStatusMessage(status));
     }
 
-    protected void handleTimestampFailed(TimestampFailed message) {
+    protected void handleTimestampFailed(TimestampFailed timestampFailedResult) {
         log.trace("handleTimestampFailed");
 
-        indicateFailure(message.getCause());
+        indicateFailure(timestampFailedResult);
     }
 
     protected void handleStartTimestamping() {
@@ -163,10 +159,10 @@ public class TaskQueue {
 
         final Timestamper.TimestampResult timestampResult = timestamper
                 .handleTimestampTask(createTimestampTask(timestampTasks));
-        if (timestampResult instanceof TimestampSucceeded) {
-            handleTimestampSucceeded((TimestampSucceeded) timestampResult);
-        } else if (timestampResult instanceof TimestampFailed) {
-            handleTimestampFailed((TimestampFailed) timestampResult);
+        if (timestampResult instanceof TimestampSucceeded timestampSucceeded) {
+            handleTimestampSucceeded(timestampSucceeded);
+        } else if (timestampResult instanceof TimestampFailed timestampFailed) {
+            handleTimestampFailed(timestampFailed);
         }
     }
 
