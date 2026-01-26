@@ -16,16 +16,16 @@
     "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
-    "axios": "~1.13.2",
+    "axios": "~1.13.3",
     "dayjs": "^1.11.19",
     "deepmerge": "^4.3.1",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "vee-validate": "^4.15.1",
-    "vue": "^3.5.26",
+    "vue": "^3.5.27",
     "vue-i18n": "^11.2.8",
     "vue-router": "^4.6.4",
-    "vuetify": "3.11.6"
+    "vuetify": "3.11.7"
   },
   "engines": {
     "npm": "use-pnpm",
