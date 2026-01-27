@@ -1,5 +1,5 @@
 @SecurityServer
-Feature: 0250 - SS: Security headers
+Feature: 0230 - SS: Security headers
 
   Scenario: Verify that content security headers are set correctly
     When SecurityServer login page is open

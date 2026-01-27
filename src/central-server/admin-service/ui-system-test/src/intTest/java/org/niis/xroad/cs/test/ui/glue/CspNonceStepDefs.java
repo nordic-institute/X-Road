@@ -25,8 +25,10 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.cs.test.ui.glue;
-import com.codeborne.selenide.WebDriverRunner;
 import io.cucumber.java.en.Then;
+import org.niis.xroad.cs.test.ui.CsSystemTestContainerSetup;
+import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -51,11 +53,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CspNonceStepDefs extends BaseUiStepDefs {
 
+    @Autowired
+    private CsSystemTestContainerSetup systemTestContainerSetup;
+
     @SuppressWarnings("checkstyle:MagicNumber")
     @Then("the response should have a valid CSP nonce in the header and tags")
     public void pageShouldHaveValidCspNonce() throws Exception {
-        String pageUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
-        URL url = URI.create(pageUrl).toURL();
+        BaseComposeSetup.ContainerMapping containerMapping = systemTestContainerSetup
+                .getContainerMapping(CsSystemTestContainerSetup.CS, CsSystemTestContainerSetup.Port.UI);
+        String urlString = "https://" + containerMapping.host() + ":" + containerMapping.port();
+        URL url = URI.create(urlString).toURL();
         HttpsURLConnection conn = getHttpsURLConnection(url);
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "text/html");
