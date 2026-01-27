@@ -29,6 +29,8 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.SystemSettingsParametersPageObj;
 
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemSettingsParametersStepDefsObj extends BaseUiStepDefs {
@@ -60,5 +62,12 @@ public class SystemSettingsParametersStepDefsObj extends BaseUiStepDefs {
     public void centralServerAddressEditDialogIsOpened() {
         systemSettingsParametersPageObj.btnEdit().click();
         systemSettingsParametersPageObj.editDialog.inputCentralServerAddress().shouldBe(Condition.visible);
+    }
+
+    @Step("Error message for system parameters address is displayed")
+    public void globalGroupDescriptionShowsError() {
+        systemSettingsParametersPageObj.editDialog.btnSave().shouldBe(Condition.disabled);
+        systemSettingsParametersPageObj.editDialog.inputCentralServerAddress()
+                .shouldBe(visible).shouldHave(text("The Central Server address field contains invalid characters"));
     }
 }

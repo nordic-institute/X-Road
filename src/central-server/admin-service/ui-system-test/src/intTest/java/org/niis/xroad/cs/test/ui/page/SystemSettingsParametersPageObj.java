@@ -55,5 +55,9 @@ public class SystemSettingsParametersPageObj {
             return $x("//div[@data-test='system-settings-central-server-address-edit-field']");
         }
 
+        public SelenideElement btnSave() {
+            return $x("//button[@data-test='dialog-save-button']");
+        }
+
     }
 }
