@@ -196,26 +196,34 @@ The configuration files are INI files \[[INI](#Ref_INI)\], where each section co
 
 In order to override the default values of system parameters, create or edit the file
 
-	/etc/xroad/conf.d/local.ini
+```bash
+/etc/xroad/conf.d/local.ini
+```
 
 Each system parameter affects a specific server component. To change the value of a system parameter, a section for the affected component must be created in the INI file. The name-value pairs of the system parameters for that component are written under the section, one pair per line.
 
 The following format is used for the sections:
 
-	[ServerComponent]
-	SystemParameterName1=Value1
-	SystemParameterName2=Value2
+```ini
+[ServerComponent]
+SystemParameterName1=Value1
+SystemParameterName2=Value2
+```
 
 For example, to configure the parameter *client-http-port* for the *proxy* component, the following lines must be added to the configuration file:
 
-	[proxy]
-	client-http-port=1234
+```ini
+[proxy]
+client-http-port=1234
+```
 
 Multiple parameters can be configured under the same section:
 
-	[proxy]
-	client-http-port=1234
-	server-listen-port=20000
+```ini
+[proxy]
+client-http-port=1234
+server-listen-port=20000
+```
 
 **NB! Changing the parameter values in the configuration files requires restarting of the server.**
 
@@ -225,19 +233,27 @@ Multiple parameters can be configured under the same section:
 
 The central server database can be accessed with the psql utility using the following command (password is defined in `/etc/xroad/db.properties`):
 
-	psql -U centerui -h localhost centerui_production
+```bash
+psql -U centerui -h localhost centerui_production
+```
 
 The default value of a system parameter can be overridden by adding the parameter name and value to the *system_parameters* table:
 
-	INSERT INTO system_parameters (key, value, created_at, updated_at) VALUES ('parameter_name', 'parameter_value', (now() at time zone 'utc'), (now() at time zone 'utc'));
+```sql
+INSERT INTO system_parameters (key, value, created_at, updated_at) VALUES ('parameter_name', 'parameter_value', (now() at time zone 'utc'), (now() at time zone 'utc'));
+```
 
 To edit the value of a system parameter already inserted into the *system_parameters* table:
 
-	UPDATE system_parameters SET value = '*parameter_value*', updated_at = (now() at time zone 'utc') WHERE key = 'parameter_name';
+```sql
+UPDATE system_parameters SET value = '*parameter_value*', updated_at = (now() at time zone 'utc') WHERE key = 'parameter_name';
+```
 
 To restore the default value of a system parameter, delete the parameter from the *system_parameters* table:
 
-	DELETE FROM system_parameters WHERE key = 'parameter_name';
+```sql
+DELETE FROM system_parameters WHERE key = 'parameter_name';
+```
 
 **NB! Modifying or deleting system parameters other than the ones listed in section** [System Parameters in the Database](#system-parameters-in-the-database) **will cause the system to crash.**
 

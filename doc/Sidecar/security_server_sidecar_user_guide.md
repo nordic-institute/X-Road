@@ -365,7 +365,9 @@ The configuration files are INI files [INI], where each section contains paramet
 
 In order to override the default values of system parameters, create or edit the file
 
-	/etc/xroad/conf.d/local.ini
+```
+/etc/xroad/conf.d/local.ini
+```
 
 See [UG-SYSPAR](#Ref_UG-SYSPAR) for configuration details.
 

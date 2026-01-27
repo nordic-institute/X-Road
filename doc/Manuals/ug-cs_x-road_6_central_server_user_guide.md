@@ -1255,7 +1255,9 @@ Additional keys for backup encryption should be generated and stored outside Cen
 After gpg keypair has been generated, public key can be exported to a file (backupadmin@example.org is the name of the
 key being exported) using this command:
 
-    gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```bash
+gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```
 
 Resulting file `backupadmin.publickey` should be moved to Central Server and imported to back up gpg keyring. Administrator should make sure that the key has not been changed during transfer, for example by validating the key fingerprint.
 
@@ -1283,7 +1285,8 @@ gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
 Add the key id to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
-```bash
+
+```ini
 [center]
 backup-encryption-enabled = true
 backup-encryption-keyids = 87268CC66939CFF3
@@ -1310,7 +1313,9 @@ decrypted and verified in these separate environments.
 
 To export Central Servers backup encryption public key use the following command:
 
-    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceId>
+```bash
+gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceId>
+```
 
 where `<instanceId>` is the Central Server instance id,
 for example, `EE`.
@@ -1718,29 +1723,29 @@ Prerequisites
 
 1. Shutdown X-Road processes.
 
-```bash
-systemctl stop "xroad*"
-```
+    ```bash
+    systemctl stop "xroad*"
+    ```
 
 2. Dump the local database centerui_production to be migrated. The credentials of the database admin user can be found in `/etc/xroad.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
-```bash
-pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui_admin -f centerui_production.dat centerui_production
-```
+    ```bash
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui_admin -f centerui_production.dat centerui_production
+    ```
 
 3. Shut down and mask local postgresql so it won't start when xroad-proxy starts.
 
-```bash
-systemctl stop postgresql
-```
+    ```bash
+    systemctl stop postgresql
+    ```
 
-```bash
-systemctl mask postgresql
-```
+    ```bash
+    systemctl mask postgresql
+    ```
 
 4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows.
 
-```bash
+    ```bash
     psql -h <remote-db-url> -p <remote-db-port> -U postgres
     CREATE DATABASE centerui_production ENCODING 'UTF8';
     REVOKE ALL ON DATABASE centerui_production FROM PUBLIC;
@@ -1760,43 +1765,43 @@ systemctl mask postgresql
     GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA centerui TO centerui;
     GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA centerui TO centerui;
     GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA centerui to centerui;
-```
+    ```
 
 5. Restore the database dumps on the remote database host.
 
-```bash
-pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n centerui -1 -d centerui_production centerui_production.dat
-```
+    ```bash
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n centerui -1 -d centerui_production centerui_production.dat
+    ```
 
 6. Create properties file `/etc/xroad.properties` if it does not exist.
 
-```bash
+    ```bash
     sudo touch /etc/xroad.properties
     sudo chown root:root /etc/xroad.properties
     sudo chmod 600 /etc/xroad.properties
-```
+    ```
 
 7. Make sure `/etc/xroad.properties` is containing the admin user & its password.
 
-```properties
+    ```properties
     centerui.database.admin_user = centerui_admin
     centerui.database.admin_password = <centerui_admin password>
-```
+    ```
 
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
-```properties
+    ```properties
     spring.datasource.username=<database_username>
     spring.datasource.password=<database_password>
     spring.datasource.hikari.data-source-properties.currentSchema=<database_schema>
     spring.datasource.url=jdbc:postgresql://<database_host>:<database_port>/<database>
-```
+    ```
 
 9. Start again the X-Road services.
 
-```bash
-systemctl start "xroad*"
-```
+    ```bash
+    systemctl start "xroad*"
+    ```
 
 ## 19. Additional Security Hardening
 
@@ -1810,7 +1815,7 @@ First step to pass additional configurations is to create `db_libpq.env` file in
 
 Example of file contents:
 
-```bash
+```
 export PGSSLMODE="verify-full"
 export PGSSLCERT="/etc/xroad/ssl/internal.crt"
 export PGSSLKEY="/etc/xroad/ssl/internal.key"

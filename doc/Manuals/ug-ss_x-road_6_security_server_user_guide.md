@@ -432,25 +432,33 @@ User management is carried out on the command line in root user permissions.
 
 To add a new user, enter the command:
 
-    adduser username
+```bash
+adduser username
+```
 
 To grant permissions to the user you created, add it to the corresponding system groups, for example:
 
-    adduser username xroad-security-officer
-    adduser username xroad-registration-officer
-    adduser username xroad-service-administrator
-    adduser username xroad-system-administrator
-    adduser username xroad-securityserver-observer
+```bash
+adduser username xroad-security-officer
+adduser username xroad-registration-officer
+adduser username xroad-service-administrator
+adduser username xroad-system-administrator
+adduser username xroad-securityserver-observer
+```
 
 To remove user permission, remove the user from the corresponding system group, for example:
 
-    deluser username xroad-security-officer
+```bash
+deluser username xroad-security-officer
+```
 
 Modified user permissions are applied only after a user does a new login.
 
 To remove a user, enter:
 
-    deluser username
+```bash
+deluser username
+```
 
 ### 2.3 LDAP user authentication
 
@@ -1513,7 +1521,7 @@ Service providers can configure a minimum required X-Road software version for c
 
 Service providers can configure the required minimum version in the `/etc/xroad/conf.d/local.ini` configuration file using the `proxy.server-min-supported-client-version` system property. For example:
 
-```
+```ini
 [proxy]
 server-min-supported-client-version=7.0.0
 ```
@@ -1968,19 +1976,25 @@ The Security Server periodically composes signed (and timestamped) documents fro
 
 Configuration parameters are defined in INI files \[[INI](#Ref_INI)\], where each section contains the parameters for a particular Security Server component. The default message log configuration is located in the file
 
-    /etc/xroad/conf.d/addons/message-log.ini
+```
+/etc/xroad/conf.d/addons/message-log.ini
+```
 
 In order to override default values, create or edit the file
 
-    /etc/xroad/conf.d/local.ini
+```
+/etc/xroad/conf.d/local.ini
+```
 
 Create the `[message-log]` section (if not present) in the file. Below the start of the section, list the values of the parameters, one per line.
 
 For example, to configure the parameters `archive-path` and `archive-max-filesize`, the following lines must be added to the configuration file:
 
-    [message-log]
-    archive-path=/my/archive/path/
-    archive-max-filesize=67108864
+```ini
+[message-log]
+archive-path=/my/archive/path/
+archive-max-filesize=67108864
+```
 
 
 #### 11.1.1 Common Parameters
@@ -2071,21 +2085,28 @@ Archive files (ZIP containers) are located in the directory specified by the con
 
 The most basic example of an archive file name when the encryption and grouping are switched off:
 
-    mlog-20210901100858-20210901100905-95b1f27097524105.zip
+```bash
+mlog-20210901100858-20210901100905-95b1f27097524105.zip
+```
 
 When the archive encryption switched on:
 
-    mlog-20210901101923-20210901101926-95b1f27097524105.zip.gpg
+```bash
+mlog-20210901101923-20210901101926-95b1f27097524105.zip.gpg
+```
 
 Switching on archive grouping by member produces the following:
 
-    mlog-INSTANCE_CLASS_CODE-20210901102251-20210901102254-95b1f27097524105.zip.gpg
+```bash
+mlog-INSTANCE_CLASS_CODE-20210901102251-20210901102254-95b1f27097524105.zip.gpg
+```
 
 Finally, switching to archive grouping by subsystem gives:
 
-    mlog-INSTANCE_CLASS_CODE_CONSUMERSUBSYSTEM-20210901102521-20210901102524-95b1f27097524105.zip.gpg
-    mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-b1f27097524105ac.zip.gpg
-
+```bash
+mlog-INSTANCE_CLASS_CODE_CONSUMERSUBSYSTEM-20210901102521-20210901102524-95b1f27097524105.zip.gpg
+mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-b1f27097524105ac.zip.gpg
+```
 
 #### 11.1.7 Archive Encryption and Grouping
 
@@ -2123,17 +2144,20 @@ Warning. The archiving process fails if a required key is not present in the gpg
 **Configuration example**
 
 Generate a keypair for encryption with defaults and no expiration and export the public key:
+
 ```bash
 gpg [--homedir <member gpghome>] --quick-generate-key INSTANCE/memberClass/memberCode default default never
 gpg [--homedir <member gpghome>] --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
 ```
 
 Import the public key to the gpg keyring in `archive-gpg-home-directory` and take note of the key id.
+
 ```bash
 gpg --homedir <archive-gpg-home-directory> --import INSTANCE-memberClass-memberCode.pgp
 ```
 
 Edit the key and add ultimate trust.
+
 ```bash
 gpg --homedir <archive-gpg-home-directory> --edit-key <key id>
 ```
@@ -2141,12 +2165,14 @@ gpg --homedir <archive-gpg-home-directory> --edit-key <key id>
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
 Add the mapping to `archive-encryption-keys-config` file (mappings can be edited without restarting X-Road services), e.g.:
-```bash
+
+```
 INSTANCE/memberClass/memberCode = 96F20FF6578A5EF90DFBA18D8C003019508B5637
 ```
 
 Add the mapping file location (`archive-encryption-keys-config`) and grouping level (`archive-grouping`) to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
-```bash
+
+```ini
 [message-log]
 archive-encryption-enabled = true
 archive-grouping = member
@@ -2154,6 +2180,7 @@ archive-encryption-keys-config = /etc/xroad/messagelog/archive-encryption-mappin
 ```
 
 To decrypt the encrypted archives, use the following syntax:
+
 ```bash
 gpg [--homedir <gpghome>] --decrypt <archive name> --output <output file name>
 ```
@@ -2179,8 +2206,10 @@ The archive file has been successfully transferred when the archiving server ret
 
 Override the configuration parameter archive-transfer-command (create or edit the file `etc/xroad/conf.d/local.ini`) to set up a transferring script. For example:
 
-    [message-log]
-    archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
+```ini
+[message-log]
+archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
+```
 
 The message log package contains the CGI script `/usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl` for a demo archiving server for the purpose of testing or development.
 
@@ -2191,35 +2220,45 @@ The message log database can be located outside of the Security Server. The foll
 
 1.  Create a database user at remote database host:
 
-        postgres@db_host:~$ createuser -P messagelog_user
-        Enter password for new role: <messagelog_password>
-        Enter it again: <messagelog_password>
+    ```bash
+    postgres@db_host:~$ createuser -P messagelog_user
+    Enter password for new role: <messagelog_password>
+    Enter it again: <messagelog_password>
+    ```
 
 2.  Create a database owned by the message log user at remote database host:
 
-        postgres@db_host:~$ createdb messagelog_dbname -O messagelog_user -E UTF-8
+    ```bash
+    postgres@db_host:~$ createdb messagelog_dbname -O messagelog_user -E UTF-8
+    ```
 
 3.  Verify connectivity from Security Server to the remote database:
 
-        user@security_server:~$ psql -h db_host -U messagelog_user messagelog_dbname
-        Password for user messagelog_user: <messagelog_password>
-        psql (9.3.9)
-        SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)
-        Type "help" for help.
-        messagelog_dbname=>
+    ```bash
+    user@security_server:~$ psql -h db_host -U messagelog_user messagelog_dbname
+    Password for user messagelog_user: <messagelog_password>
+    psql (9.3.9)
+    SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)
+    Type "help" for help.
+    messagelog_dbname=>
+    ```
 
 4.  Stop xroad-proxy service for reconfiguration:
 
-        root@security_server:~# service xroad-proxy stop
+    ```bash
+    root@security_server:~# service xroad-proxy stop
+    ```
 
 5.  Configure the database connection parameters to achieve encrypted connections, in `/etc/xroad/db.properties`:
 
-        messagelog.hibernate.jdbc.use_streams_for_binary = true
-        messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
-        messagelog.hibernate.connection.driver_class = org.postgresql.Driver
-        messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
-        messagelog.hibernate.connection.username = messagelog_user
-        messagelog.hibernate.connection.password = messagelog_password
+    ```properties
+    messagelog.hibernate.jdbc.use_streams_for_binary = true
+    messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+    messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+    messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
+    messagelog.hibernate.connection.username = messagelog_user
+    messagelog.hibernate.connection.password = messagelog_password
+    ```
 
 6.  Populate database schema by reinstalling messagelog addon package and start xroad-proxy
 
@@ -2267,31 +2306,42 @@ For example:
 
 By default, audit log is located in the file
 
-    /var/log/xroad/audit.log
+```
+/var/log/xroad/audit.log
+```
 
 
 ### 12.1 Changing the Configuration of the Audit Log
 
 The X-Road software writes the audit log to the *syslog* (*rsyslog*) using UDP interface (default port is 514). Corresponding configuration is located in the file
 
-    /etc/rsyslog.d/90-udp.conf
+```
+/etc/rsyslog.d/90-udp.conf
+```
 
 The audit log records are written with level INFO and facility LOCAL0. By default, log records of that level and facility are saved to the X-Road audit log file
 
-    /var/log/xroad/audit.log
+```
+/var/log/xroad/audit.log
+```
 
 The default behavior can be changed by editing the *rsyslog* configuration file
 
-    /etc/rsyslog.d/40-xroad.conf
+```
+/etc/rsyslog.d/40-xroad.conf
+```
 
 Restart the *rsyslog* service to apply the changes made to the configuration file
 
-    service rsyslog restart
+```bash
+service rsyslog restart
+```
 
 The audit log is rotated monthly by *logrotate*. To configure the audit log rotation, edit the *logrotate* configuration file
 
-    /etc/logrotate.d/xroad-proxy
-
+```
+/etc/logrotate.d/xroad-proxy
+```
 
 ### 12.2 Archiving the Audit Log
 
@@ -2369,20 +2419,26 @@ To restore configuration from the command line, the following data must be avail
 
 To find the X-Road ID of the Security Server, the following command can be used:
 
-    cat /etc/xroad/gpghome/openpgp-revocs.d/<file-name>.rev | grep uid
+```bash
+cat /etc/xroad/gpghome/openpgp-revocs.d/<file-name>.rev | grep uid
+```
 
 It is expected that the restore command is run by the xroad user.
 
 In order to restore configuration, the following command should be used:
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -s <Security Server ID> -f <path + filename> [-P -N]
+```bash
+/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+-s <Security Server ID> -f <path + filename> [-P -N]
+```
 
 For example (all on one line):
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -s AA/GOV/TS1OWNER/TS1 \
-    –f /var/lib/xroad/backup/conf_backup_20140703-110438.gpg
+```bash
+/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+-s AA/GOV/TS1OWNER/TS1 \
+–f /var/lib/xroad/backup/conf_backup_20140703-110438.gpg
+```
 
 In case original backup encryption and signing key is lost additional parameters can be specified to skip decryption and/or
 signature verification. Use `-P` command line switch when backup archive is already decrypted externally and `-N` switch to
@@ -2391,13 +2447,17 @@ skip checking archive signature.
 If a backup is restored on a new uninitialized (the initial configuration hasn't been completed) Security Server, the
 Security Server's gpg key must be manually created before restoring the backup:
 
-    /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <Security Server ID>
+```bash
+/usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <Security Server ID>
+```
 
 If it is absolutely necessary to restore the system from a backup made on a different Security Server, the forced mode
 of the restore command can be used with the –F option together with unencrypted backup archive flags. For example (all on one line):
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -F -P –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
+```bash
+/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+-F -P –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
+```
 
 In case backup archives were encrypted they have to be first unencrypted in external safe environment and then securely
 transported to Security Server filesystem.
@@ -2440,7 +2500,9 @@ Additional keys for backup encryption should be generated and stored outside Sec
 After gpg keypair has been generated, public key can be exported to a file (backupadmin@example.org is the name of the
 key being exported) using this command:
 
-    gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```bash
+gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```
 
 Resulting file `backupadmin.publickey` should be moved to Security Server and imported to backup gpg keyring. Administrator should make sure that the key has not been changed during transfer, for example by validating the key fingerprint.
 
@@ -2450,17 +2512,20 @@ them can be used to decrypt backups and thus mount attacks on the Security Serve
 **Configuration example**
 
 Generate a keypair for encryption with defaults and no expiration and export the public key:
+
 ```bash
 gpg [--homedir <admin gpghome>] --quick-generate-key backupadmin@example.org default default never
 gpg [--homedir <admin gpghome>] --export backupadmin@example.org >backupadmin@example.org.pgp
 ```
 
 Import the public key to the gpg keyring in `/etc/xroad/gpghome` directory and take note of the key id.
+
 ```bash
 gpg --homedir /etc/xroad/gpghome --import backupadmin@example.org.pgp
 ```
 
 Edit the key and add ultimate trust.
+
 ```bash
 gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 ```
@@ -2468,6 +2533,7 @@ gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
 Add the key id to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
+
 ```bash
 [proxy]
 backup-encryption-enabled = true
@@ -2495,7 +2561,9 @@ decrypted and verified in these separate environments.
 
 To export Security Servers backup encryption public key use the following command:
 
-    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>
+```bash
+gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>
+```
 
 where `<instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>` is the Security Server id,
 for example, `AA/GOV/TS1OWNER/TS1`.
@@ -2727,20 +2795,28 @@ All overrides to the default configuration values must be made in the file `/etc
 
 If, for any reason, operational data should not be collected and forwarded to the operational monitoring daemon, the parameter size can be set to 0:
 
-    [op-monitor-buffer]
-    size = 0
+```ini
+[op-monitor-buffer]
+size = 0
+```
 
 After the configuration change, the xroad-proxy service must be restarted:
 
-    service xroad-proxy restart
+```bash
+service xroad-proxy restart
+```
 
 In addition, the operational monitoring daemon should be stopped:
 
-    service xroad-opmonitor stop
+```bash
+service xroad-opmonitor stop
+```
 
 For the service to stay stopped after reboot the following command should be run:
 
-    echo manual > /etc/init/xroad-opmonitor.override
+```bash
+echo manual > /etc/init/xroad-opmonitor.override
+```
 
 
 ### 15.2 Operational Monitoring Daemon
@@ -2783,8 +2859,10 @@ For configuring the endpoint of the operational monitoring daemon, the following
 
 If any of these values are changed, both the proxy and the operational monitoring daemon services must be restarted:
 
-    service xroad-proxy restart
-    service xroad-opmonitor restart
+```bash
+service xroad-proxy restart
+service xroad-opmonitor restart
+```
 
 
 #### 15.2.4 Installing an External Operational Monitoring Daemon
@@ -2799,10 +2877,11 @@ For running a separate operational monitoring daemon, the xroad-opmonitor packag
 
 As a result of installation, the following services will be running:
 
-    xroad-confclient
-    xroad-signer
-    xroad-opmonitor
-
+```bash
+xroad-confclient
+xroad-signer
+xroad-opmonitor
+```
 
 #### 15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server
 
@@ -2818,19 +2897,25 @@ The internal TLS certificate of the Security Server is used for authenticating t
 
 In the configuration of the external daemon, the corresponding path must be set in `/etc/xroad/conf.d/local.ini`:
 
-    [op-monitor]
-    client-tls-certificate = <path/to/security/server/internal/cert>
+```ini
+[op-monitor]
+client-tls-certificate = <path/to/security/server/internal/cert>
+```
 
 Next, a TLS key and the corresponding certificate must be generated on the host of the external monitoring daemon as well, using the command
 
-    generate-opmonitor-certificate
+```bash
+generate-opmonitor-certificate
+```
 
 The script will prompt you for standard fields for input to TLS certificates and its output (key files and the certificate) will be generated to the directory `/etc/xroad/ssl`.
 
 The generated certificate, in the file `opmonitor.crt`, must be copied to the corresponding Security Server. The system user `xroad` must have permissions to read this file. Its path at the Security Server must be written to the configuration (note the name of the section, although it is the proxy service that will read the configuration):
 
-    [op-monitor]
-    tls-certificate = <path/to/external/daemon/tls/cert>
+```ini
+[op-monitor]
+tls-certificate = <path/to/external/daemon/tls/cert>
+```
 
 For the request traffic visualization on the Security Server UI Diagnostics page, gRPC keystore and truststore also need to be configured on both ends. Certificate that corresponds to the key in external Operational Monitoring gRPC keystore needs to be added to the gRPC truststore on the Security Server side and vice versa - Security Server's gRPC certificate needs to be added to the external monitoring daemon's truststore. The gRPC keystore and truststore system parameters are described in \[[UGSYSPAR](#31-common-parameters--common)\].
 
@@ -2867,15 +2952,21 @@ You can use java `keytool` and `openssl` when working with gRPC keystores and tr
 
 For the external operational daemon to be used, the proxy service at the Security Server must be restarted:
 
-    service xroad-proxy restart
+```bash
+service xroad-proxy restart
+```
 
 In addition, on the host running the corresponding Security Server, the operational monitoring daemon must be stopped:
 
-    service xroad-opmonitor stop
+```bash
+service xroad-opmonitor stop
+```
 
 For the service to stay stopped after reboot the following command should be run:
 
-    echo manual > /etc/init/xroad-opmonitor.override
+```bash
+echo manual > /etc/init/xroad-opmonitor.override
+```
 
 The configuration anchor (renamed as `configuration-anchor.xml`) file must be manually copied into the directory `/etc/xroad` of the external monitoring daemon in order for configuration client to be able to download the global configuration (by default configuration download interval is 60 seconds). The system user xroad must have permissions to read this file.
 
@@ -2940,11 +3031,15 @@ System services are managed through the *systemd* facility.
 
 **To start a service**, issue the following command as a `root` user:
 
-    service <service> start
+```bash
+service <service> start
+```
 
 **To stop a service**, enter:
 
-    service <service> stop
+```bash
+service <service> stop
+```
 
 Services use the [default unit start rate limits](https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#DefaultStartLimitIntervalSec=).
 An exception to this is `xroad-proxy-ui-api`, which uses a longer start rate limit ([5 starts / 40 seconds](https://github.com/nordic-institute/X-Road/blob/master/src/packages/src/xroad/ubuntu/generic/xroad-proxy-ui-api.service#L5-6))
@@ -3138,7 +3233,6 @@ revocation was successful and `HTTP 404` if key did not exist.
 
 ```bash
 curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -k
-
 ```
 
 #### 19.1.5 API key caching
@@ -3187,6 +3281,7 @@ can be used to find the log messages related to a specific API call.
 The correlation ID header is returned for all requests, both successful and failed ones.
 
 For example, these log messages are related to an API call with correlation ID `3d5f193102435242`:
+
 ```
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.c.HttpSessionSecurityContextRepository - The HttpSession is currently null, and the HttpSessionSecurityContextRepository is prohibited from creating an HttpSession (because the allowSessionCreation property is false) - SecurityContext thus not stored for next request
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.niis.xroad.restapi.exceptions.ConflictException: local group with code koodi6 already added]
@@ -3515,7 +3610,7 @@ First step to pass additional configurations is to create `db_libpq.env` file in
 
 Example of file contents:
 
-```bash
+```
 export PGSSLMODE="verify-full"
 export PGSSLCERT="/etc/xroad/ssl/internal.crt"
 export PGSSLKEY="/etc/xroad/ssl/internal.key"
