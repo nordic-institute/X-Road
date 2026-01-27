@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,179 +25,175 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat">
-    <v-card-text class="xrd-card-text">
+  <XrdCard class="mb-4">
+    <v-container fluid>
       <v-row dense>
-        <v-col cols="3">
-          <xrd-form-label
-            :label-text="$t('diagnostics.traffic.period')"
-            :help-text="$t('diagnostics.traffic.periodInfo')"
-          />
-        </v-col>
-        <v-col cols="auto">
+        <v-col cols="2" align-self="end">
           <v-date-input
             v-model="filters.startDate"
-            class="date-input"
-            :label="$t('diagnostics.traffic.date')"
+            class="xrd date-input"
             prepend-inner-icon="$calendar"
             prepend-icon=""
+            hide-details
             data-test="period-start-date"
-          ></v-date-input>
+            :label="$t('diagnostics.traffic.date')"
+          />
         </v-col>
-        <v-col cols="auto">
+        <v-col cols="1" align-self="end">
           <v-text-field
             v-model="filters.startTime"
             v-maska="'##:##'"
-            class="time-input"
+            class="xrd time-input"
+            hide-details
             :label="$t('diagnostics.traffic.time')"
             data-test="period-start-time"
-          ></v-text-field>
+          />
         </v-col>
-        <v-col cols="auto"><span class="range-separator"></span></v-col>
-        <v-col cols="auto">
+        <v-col cols="2"><span class="range-separator"></span></v-col>
+        <v-col cols="2" align-self="end">
           <v-date-input
             v-model="filters.endDate"
-            class="date-input"
+            class="xrd date-input"
             :label="$t('diagnostics.traffic.date')"
             prepend-inner-icon="$calendar"
             prepend-icon=""
+            hide-details
             data-test="period-end-date"
-          ></v-date-input>
+          />
         </v-col>
-        <v-col cols="auto">
+        <v-col cols="1" align-self="end">
           <v-text-field
             v-model="filters.endTime"
             v-maska="'##:##'"
-            class="time-input"
+            class="xrd time-input"
+            hide-details
             :label="$t('diagnostics.traffic.time')"
             data-test="period-end-time"
-          ></v-text-field>
+          />
+        </v-col>
+        <v-col cols="4">
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.period')" :help-text="$t('diagnostics.traffic.periodInfo')" />
+          </v-sheet>
         </v-col>
       </v-row>
       <v-row dense>
-        <v-col cols="3">
-          <xrd-form-label
-            :label-text="$t('diagnostics.traffic.party')"
-            :help-text="$t('diagnostics.traffic.partyInfo')"
-          />
-        </v-col>
-        <v-col cols="5">
+        <v-col cols="4" align-self="end">
           <v-select
             v-model="filters.client"
+            data-test="select-client"
+            class="xrd"
+            item-title="id"
+            item-value="id"
+            hide-details
+            clearable
             :items="clientsStore.clients"
             :label="$t('diagnostics.traffic.client')"
             :loading="clientsLoading"
-            clearable
-            item-title="id"
-            item-value="id"
-            data-test="select-client"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item
-                v-bind="itemProps"
-                :subtitle="item.raw.member_name"
-              ></v-list-item>
+              <v-list-item v-bind="itemProps" :subtitle="item.raw.member_name"></v-list-item>
             </template>
           </v-select>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="4" align-self="end">
           <v-select
             v-model="filters.service"
+            data-test="select-service"
+            class="xrd"
+            item-title="full_service_code"
+            item-value="id"
+            clearable
+            hide-details
             :disabled="!services.length"
             :items="services"
             :label="$t('diagnostics.traffic.service')"
             :loading="servicesLoading"
-            clearable
-            item-title="full_service_code"
-            item-value="id"
-            data-test="select-service"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item
-                v-bind="itemProps"
-                :subtitle="item.raw.title"
-              ></v-list-item>
+              <v-list-item v-bind="itemProps" :subtitle="item.raw.title"></v-list-item>
             </template>
           </v-select>
         </v-col>
+        <v-col cols="4">
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.party')" :help-text="$t('diagnostics.traffic.partyInfo')" />
+          </v-sheet>
+        </v-col>
       </v-row>
       <v-row dense>
-        <v-col cols="3">
-          <xrd-form-label
-            :label-text="$t('diagnostics.traffic.exchangeRole')"
-            :help-text="$t('diagnostics.traffic.exchangeRoleInfo')"
-          />
-        </v-col>
-        <v-col>
+        <v-col align-self="end">
           <v-select
             v-model="filters.exchangeRole"
-            :items="[
-              $t('diagnostics.traffic.producer'),
-              $t('diagnostics.traffic.client'),
-            ]"
-            :label="$t('diagnostics.traffic.exchangeRole')"
-            clearable
             data-test="select-exchangeRole"
+            class="xrd"
+            clearable
+            hide-details
+            :items="[$t('diagnostics.traffic.producer'), $t('diagnostics.traffic.client')]"
+            :label="$t('diagnostics.traffic.exchangeRole')"
           >
           </v-select>
         </v-col>
+        <v-col cols="4">
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.exchangeRole')" :help-text="$t('diagnostics.traffic.exchangeRoleInfo')" />
+          </v-sheet>
+        </v-col>
       </v-row>
       <v-row dense>
-        <v-col cols="3">
-          <xrd-form-label
-            :label-text="$t('diagnostics.traffic.status')"
-            :help-text="$t('diagnostics.traffic.statusInfo')"
-          />
-        </v-col>
-        <v-col>
+        <v-col align-self="end">
           <v-select
             v-model="filters.status"
+            data-test="select-status"
+            class="xrd"
+            clearable
+            hide-details
             :items="[
               { title: $t('diagnostics.traffic.success'), value: true },
               { title: $t('diagnostics.traffic.failure'), value: false },
             ]"
             :label="$t('diagnostics.traffic.status')"
-            clearable
-            data-test="select-status"
           >
           </v-select>
         </v-col>
+        <v-col cols="4">
+          <v-sheet class="pa-3 rounded-lg body-regular font-weight-regular" color="surface-container-high">
+            <XrdFormLabel :label-text="$t('diagnostics.traffic.status')" :help-text="$t('diagnostics.traffic.statusInfo')" />
+          </v-sheet>
+        </v-col>
       </v-row>
-    </v-card-text>
-  </v-card>
-  <v-card height="20rem">
-    <TrafficChart
-      :series="series"
-      :loading="seriesLoading && seriesLoadingDebounced"
-    />
-  </v-card>
+    </v-container>
+  </XrdCard>
+  <XrdCard>
+    <v-container height="20rem" fluid>
+      <TrafficChart :series="series" :loading="seriesLoading && seriesLoadingDebounced" />
+    </v-container>
+  </XrdCard>
 </template>
 
 <script lang="ts" setup>
 import { reactive, Reactive, Ref, ref, watch } from 'vue';
 import { VDateInput } from 'vuetify/labs/VDateInput';
-import { useNotifications } from '@/store/modules/notifications';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';
-import { Colors } from '@niis/shared-ui';
+import { useNotifications, XrdCard, XrdFormLabel, useThemeHelper } from '@niis/shared-ui';
 import { OperationalDataInterval, Service } from '@/openapi-types';
-import { useServices } from '@/store/modules/services';
 import { useClients } from '@/store/modules/clients';
-import TrafficChart, {
-  TrafficSeries,
-} from '@/views/Diagnostics/Traffic/TrafficChart.vue';
+import TrafficChart, { TrafficSeries } from '@/views/Diagnostics/Traffic/TrafficChart.vue';
 import { useI18n } from 'vue-i18n';
 import { debounce } from '@/util/helpers';
+import { useServiceDescriptions } from '@/store/modules/service-descriptions';
 
-const { showError } = useNotifications();
+const { addError } = useNotifications();
 const { t } = useI18n();
+const { colorSuccess, colorError } = useThemeHelper();
 
 const clientsStore = useClients();
 const clientsLoading = ref(true);
 clientsStore
   .fetchClients()
-  .catch(showError)
+  .catch(addError)
   .finally(() => {
     clientsLoading.value = false;
   });
@@ -209,7 +206,7 @@ const seriesLoadingDebounced = ref(false);
 const services: Ref<Array<Service>> = ref([]);
 const servicesLoading = ref(false);
 
-const servicesStore = useServices();
+const serviceDescriptionsStore = useServiceDescriptions();
 
 const filters: Reactive<TrafficFilter> = reactive({
   startDate: dayjs().subtract(7, 'day').toDate(),
@@ -240,7 +237,7 @@ function onFiltersChange(filter: TrafficFilter) {
       lastFetchedTrafficData.value = data;
       series.value = toChartSeries(filter, data);
     })
-    .catch(showError)
+    .catch(addError)
     .finally(() => {
       endSeriesLoading();
     });
@@ -265,23 +262,19 @@ function fetchServices(client?: string) {
 
   if (client) {
     servicesLoading.value = true;
-    servicesStore
+    serviceDescriptionsStore
       .fetchServiceDescriptions(client)
       .then(() => {
-        services.value = servicesStore.serviceDescriptions.flatMap(
-          (sd) => sd.services,
-        );
+        services.value = serviceDescriptionsStore.serviceDescriptions.flatMap((sd) => sd.services);
       })
-      .catch(showError)
+      .catch(addError)
       .finally(() => {
         servicesLoading.value = false;
       });
   }
 }
 
-async function fetchTrafficData(
-  queryParams: GetOperationalDataIntervalsParams,
-): Promise<OperationalDataInterval[]> {
+async function fetchTrafficData(queryParams: GetOperationalDataIntervalsParams): Promise<OperationalDataInterval[]> {
   return axios
     .get<OperationalDataInterval[]>('/diagnostics/operational-monitoring', {
       params: queryParams,
@@ -293,30 +286,21 @@ function onStatusFilterChange(filter: TrafficFilter) {
   series.value = toChartSeries(filter, lastFetchedTrafficData.value);
 }
 
-function toChartSeries(
-  filter: TrafficFilter,
-  data: OperationalDataInterval[],
-): TrafficSeries[] {
+function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]): TrafficSeries[] {
   const value: TrafficSeries[] = [];
 
   if (filter.status ?? true) {
     value.push({
       name: t('diagnostics.traffic.successfulRequests'),
-      color: Colors.Success100,
-      data: data.map((item) => [
-        new Date(item.interval_start_time as string).getTime(),
-        item.success_count ?? 0,
-      ]),
+      color: colorSuccess.value,
+      data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.success_count ?? 0]),
     });
   }
   if (!(filter.status ?? false)) {
     value.push({
       name: t('diagnostics.traffic.failedRequests'),
-      color: Colors.Error,
-      data: data.map((item) => [
-        new Date(item.interval_start_time as string).getTime(),
-        item.failure_count ?? 0,
-      ]),
+      color: colorError.value,
+      data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.failure_count ?? 0]),
     });
   }
   return value;
@@ -331,13 +315,9 @@ function getSecurityServerType(exchangeRole?: string) {
   return undefined;
 }
 
-function toQueryParams(
-  filter: TrafficFilter,
-): GetOperationalDataIntervalsParams {
+function toQueryParams(filter: TrafficFilter): GetOperationalDataIntervalsParams {
   const start = dateWithTime(filter.startDate, filter.startTime);
-  const end = dateWithTime(filter.endDate, filter.endTime)
-    .second(59)
-    .millisecond(999);
+  const end = dateWithTime(filter.endDate, filter.endTime).second(59).millisecond(999);
   return {
     records_from: start.toISOString(),
     records_to: end.toISOString(),
@@ -399,13 +379,5 @@ type TrafficFilter = {
 
 .range-separator::before {
   content: '-';
-}
-
-.time-input {
-  width: 5rem;
-}
-
-.date-input {
-  width: 10rem;
 }
 </style>

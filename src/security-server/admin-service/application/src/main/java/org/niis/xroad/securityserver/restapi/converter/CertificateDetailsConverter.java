@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.serverconf.model.Certificate;
@@ -59,6 +59,7 @@ public class CertificateDetailsConverter {
 
     /**
      * convert Certificate into openapi Certificate class
+     *
      * @param certificate certificate
      * @return CertificateDetailsDto
      */
@@ -69,6 +70,7 @@ public class CertificateDetailsConverter {
 
     /**
      * convert CertificateInfo into openapi Certificate class
+     *
      * @param certificateInfo
      * @return
      */
@@ -80,6 +82,7 @@ public class CertificateDetailsConverter {
     /**
      * convert X509Certificate into openapi Certificate class.
      * certificate.state will be null.
+     *
      * @param x509Certificate
      * @return
      */
@@ -91,15 +94,15 @@ public class CertificateDetailsConverter {
         String subjectAlternativeNames = null;
         try {
             issuerCommonName = CertUtils.getIssuerCommonName(x509Certificate);
-        } catch (CodedException didNotFindIssuerCommonName) {
+        } catch (XrdRuntimeException didNotFindIssuerCommonName) {
         }
         try {
             subjectCommonName = CertUtils.getSubjectCommonName(x509Certificate);
-        } catch (CodedException didNotFindSubjectCommonName) {
+        } catch (XrdRuntimeException didNotFindSubjectCommonName) {
         }
         try {
             subjectAlternativeNames = CertUtils.getSubjectAlternativeNames(x509Certificate);
-        } catch (CodedException certParsingFailed) {
+        } catch (XrdRuntimeException certParsingFailed) {
         }
         certificate.setIssuerCommonName(issuerCommonName);
         certificate.setIssuerDistinguishedName(x509Certificate.getIssuerX500Principal().toString());

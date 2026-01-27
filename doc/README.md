@@ -26,7 +26,6 @@
 - [\[PR-MREST\] Service Metadata Protocol for REST](Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md)
 - [\[PR-GCONF\] Protocol for Downloading Configuration](Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md)
 - [\[PR-OPMON\] Operational Monitoring Protocol](OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
-- [\[PR-OPMONJMX\] Operational Monitoring JMX Protocol](OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
 - [\[PR-ENVMONMES\] Environmental Monitoring Messages](EnvironmentalMonitoring/Monitoring-messages.md)
 
 ## Manuals

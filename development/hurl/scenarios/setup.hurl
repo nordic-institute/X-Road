@@ -190,11 +190,10 @@ certificate: file,ca/tsa.pem;
 # Download global configuration anchor from Central Server
 GET https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/anchor/download
 X-XSRF-TOKEN: {{cs_xsrf_token}}
+[Options]
+output: gconf_anchor.xml
 
 HTTP 200
-
-[Captures]
-gconf_anchor: body
 
 # Initialize management Security Server
 
@@ -215,10 +214,8 @@ ss0_xsrf_token: cookie "XSRF-TOKEN"
 # Add configuration anchor
 POST https://{{ss0_host}}:4000/api/v1/system/anchor
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{gconf_anchor}}
-```
+[MultipartFormData]
+anchor: file,gconf_anchor.xml;
 
 HTTP 201
 
@@ -235,6 +232,16 @@ Content-Type: application/json
 }
 
 HTTP 201
+
+# Log in to the Security Servers token
+PUT https://{{ss0_host}}:4000/api/v1/tokens/0/login
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+Content-Type: application/json
+{
+  "password": "Secret1234"
+}
+
+HTTP *
 
 # Get the CA name
 GET https://{{ss0_host}}:4000/api/v1/certificate-authorities
@@ -256,10 +263,10 @@ Content-Type: application/json
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
     "subject_field_values": {
-      "CN": "{{ss0_host}}",
+      "CN": "{{ss0_proxy}}",
       "C": "FI",
       "O": "Test member",
-      "subjectAltName": "{{ss0_host}}",
+      "subjectAltName": "{{ss0_proxy}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -285,6 +292,8 @@ ss0_auth_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:8888/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss0_auth_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -298,16 +307,12 @@ Content-Disposition: form-data; name="certreq"; filename="auth.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss0_auth_key_cert: body
 
 # Import auth certificate
 POST https://{{ss0_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss0_auth_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss0_auth_key_cert.pem;
 
 HTTP 201
 
@@ -329,7 +334,7 @@ Content-Type: application/json
       "CN": "1234",
       "C": "FI",
       "O": "Test member",
-      "subjectAltName": "{{ss0_host}}",
+      "subjectAltName": "{{ss0_proxy}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -355,6 +360,8 @@ ss0_sign_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:8888/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss0_sign_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -368,16 +375,12 @@ Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss0_sign_key_cert: body
 
 # Import sign certificate
 POST https://{{ss0_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss0_sign_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss0_sign_key_cert.pem;
 
 HTTP 201
 
@@ -389,7 +392,7 @@ ss0_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 PUT https://{{ss0_host}}:4000/api/v1/token-certificates/{{ss0_auth_key_cert_hash}}/register
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
-  "address": "{{ss0_host}}"
+  "address": "{{ss0_proxy}}"
 }
 
 # TODO: This should be 200 according to the OpenAPI description but is 204:
@@ -567,10 +570,8 @@ ss1_xsrf_token: cookie "XSRF-TOKEN"
 # Add configuration anchor
 POST https://{{ss1_host}}:4000/api/v1/system/anchor
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{gconf_anchor}}
-```
+[MultipartFormData]
+anchor: file,gconf_anchor.xml;
 
 HTTP 201
 
@@ -588,6 +589,16 @@ Content-Type: application/json
 
 HTTP 201
 
+# Log in to the Security Servers token
+PUT https://{{ss1_host}}:4000/api/v1/tokens/0/login
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "password": "Secret1234"
+}
+
+HTTP *
+
 # Add auth key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -599,10 +610,10 @@ Content-Type: application/json
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
     "subject_field_values": {
-      "CN": "{{ss1_host}}",
+      "CN": "{{ss1_proxy}}",
       "C": "FI",
       "O": "Test client",
-      "subjectAltName": "{{ss1_host}}",
+      "subjectAltName": "{{ss1_proxy}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -628,6 +639,8 @@ ss1_auth_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:8888/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss1_auth_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -641,16 +654,12 @@ Content-Disposition: form-data; name="certreq"; filename="auth.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss1_auth_key_cert: body
 
 # Import auth certificate
 POST https://{{ss1_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss1_auth_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss1_auth_key_cert.pem;
 
 HTTP 201
 
@@ -665,6 +674,16 @@ HTTP 200
 
 [Captures]
 ss1_token_id: jsonpath "$[?(@.type == 'HARDWARE')].id" nth 0
+
+# Log in to the Security Servers token
+PUT https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/login
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "password": "Secret1234"
+}
+
+HTTP *
 
 # Add sign key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/keys-with-csrs
@@ -681,7 +700,7 @@ Content-Type: application/json
       "CN": "4321",
       "C": "FI",
       "O": "Test client",
-      "subjectAltName": "{{ss1_host}}",
+      "subjectAltName": "{{ss1_proxy}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -707,6 +726,8 @@ ss1_sign_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:8888/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss1_sign_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -720,16 +741,12 @@ Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss1_sign_key_cert: body
 
 # Import sign certificate
 POST https://{{ss1_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss1_sign_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss1_sign_key_cert.pem;
 
 HTTP 201
 
@@ -741,7 +758,7 @@ ss1_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 PUT https://{{ss1_host}}:4000/api/v1/token-certificates/{{ss1_auth_key_cert_hash}}/register
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 {
-  "address": "{{ss1_host}}"
+  "address": "{{ss1_proxy}}"
 }
 
 # TODO: This should be 200 according to the OpenAPI description but is 204:
@@ -926,7 +943,7 @@ Content-Type: application/json
       "CN": "1234",
       "C": "FI",
       "O": "Test Consumer",
-      "subjectAltName": "{{ss1_host}}",
+      "subjectAltName": "{{ss1_proxy}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -951,6 +968,8 @@ test-consumer_sign_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:8888/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: test-consumer_sign_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -964,16 +983,12 @@ Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-test-consumer_sign_key_cert: body
 
 # Import sign certificate
 POST https://{{ss1_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{test-consumer_sign_key_cert}}
-```
+[MultipartFormData]
+certificate: file,test-consumer_sign_key_cert.pem;
 
 
 # Register test-consumer to SS1 Security Server
@@ -1050,6 +1065,26 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 }
 
 HTTP 201
+
+# Add test-consumer access to TestService
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/{{ss1_test-consumer_id}}/access-rights
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "items": [
+    {
+      "service_code": "getRandom"
+    },
+    {
+      "service_code": "helloService"
+    },
+    {
+      "service_code": "listPeople"
+    },
+    {
+      "service_code": "personDetails"
+    }
+  ]
+}
 
 # Enable soap service on ss0
 PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_service_service_id}}/enable

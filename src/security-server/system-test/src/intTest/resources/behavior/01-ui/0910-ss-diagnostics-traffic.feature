@@ -1,5 +1,7 @@
 @SecurityServer
-@Traffic
+@UI
+@Diagnostics
+@DiagnosticsTraffic
 Feature: 0900 - SS:Diagnostics - Traffic
 
   Background:

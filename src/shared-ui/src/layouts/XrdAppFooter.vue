@@ -25,101 +25,87 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-footer class="footer">
-    <v-container class="pb-13">
-      <v-row>
-        <v-col cols="2" class="pt-4">
-          <v-img :src="xroad7LogoUrl" height="35" width="132" max-height="35" max-width="132"></v-img>
-        </v-col>
-        <v-col cols="3" class="footer-col pt-5">
-          <v-row>
-            <v-col>
-              <span class="footer-title">
-                {{ $t('footer.software.title') }}
-              </span>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col class="py-0">
-              {{ $t('footer.software.versionPrefix') }}&nbsp;
-              <span data-test="app-footer-server-version">
-                {{ appInfo }}
-              </span>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              <a rel="noopener" class="footer-link" target="_blank" href="https://x-road.global/feedback">
-                {{ $t('footer.software.feedback') }}
-              </a>
-            </v-col>
-          </v-row>
-        </v-col>
-        <v-col class="footer-col pt-5">
-          <v-row>
-            <v-col>
-              <span class="footer-title">
-                {{ $t('footer.copyright.title') }}
-              </span>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col class="py-0">
-              <a rel="noopener" class="footer-link" href="https://niis.org/" target="_blank">
-                {{ $t('footer.copyright.company') }}
-              </a>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              <a rel="noopener" class="footer-link" href="https://x-road.global/xroad-licence-info" target="_blank">
-                {{ $t('footer.copyright.licenceInfo') }}
-              </a>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-    </v-container>
+  <v-footer class="footer pt-6 pb-6" height="auto">
+    <v-row>
+      <v-col class="pt-4 text-start">
+        <img :src="xroad8LogoUrl" height="40" width="150" alt="Logo" />
+      </v-col>
+      <v-col class="footer-col pt-5">
+        <v-row>
+          <v-col>
+            <span class="body-regular font-weight-bold">
+              {{ $t('footer.software.title') }}
+            </span>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col class="py-0">
+            <span data-test="app-footer-server-version" class="body-regular font-weight-regular">
+              {{ $t('footer.software.versionPrefix') }}&nbsp;{{ appVersion }}
+            </span>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <a
+              rel="noopener"
+              class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
+              target="_blank"
+              href="https://x-road.global/feedback"
+            >
+              {{ $t('footer.software.feedback') }}
+            </a>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col class="footer-col pt-5">
+        <v-row>
+          <v-col>
+            <span class="body-regular font-weight-bold">
+              {{ $t('footer.copyright.title') }}
+            </span>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col class="py-0">
+            <span data-test="app-footer-server-version" class="body-regular font-weight-regular">
+              {{ $t('footer.copyright.company') }}
+            </span>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <a
+              rel="noopener"
+              class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
+              href="https://niis.org/"
+              target="_blank"
+            >
+              {{ $t('footer.copyright.domain') }}
+            </a>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
   </v-footer>
 </template>
 
 <script lang="ts" setup>
-import xroad7Logo from '../assets/xroad7_logo.svg';
-import { computed, inject } from 'vue';
-import { key } from '../utils';
+import logoLight from '../assets/Logo-horizontal-light.svg';
+import logoDark from '../assets/Logo-horizontal-dark.svg';
+import { computed } from 'vue';
+import { useThemeHelper } from '../composables';
 
-const xroad7LogoUrl = xroad7Logo;
+defineProps({
+  appVersion: {
+    type: String,
+    required: true,
+  },
+});
 
-const system = inject(key.system);
+const { isDark } = useThemeHelper();
 
-const appInfo = computed(() => system?.version());
+const xroad8LogoUrl = computed(() => (isDark.value ? logoDark : logoLight));
 </script>
 
-<style lang="scss" scoped>
-@use '../assets/colors';
-
-$text-color: colors.$Black100;
-
-.footer {
-  background: colors.$WarmGrey30;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.footer-title {
-  color: $text-color;
-  font-size: 0.9rem;
-  font-weight: bold;
-}
-
-.footer-col {
-  color: $text-color;
-  font-size: 0.875rem;
-}
-
-.footer-link {
-  color: colors.$Purple100;
-}
-</style>
+<style lang="scss" scoped></style>

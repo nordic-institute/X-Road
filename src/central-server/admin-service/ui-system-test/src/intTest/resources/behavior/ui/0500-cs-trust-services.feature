@@ -1,5 +1,6 @@
 @CentralServer
 @CertificationService
+@TrustServices
 Feature: 0500 - CS: Trust Services
 
   Background:

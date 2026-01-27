@@ -31,10 +31,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.ClientRenameRequest;
 import org.niis.xroad.cs.admin.core.entity.ClientRenameRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
@@ -58,7 +58,6 @@ class ClientRenameRequestHandler implements RequestHandler<ClientRenameRequest> 
     private final RequestRepository<ClientRenameRequestEntity> renameRequests;
     private final SubsystemRepository subsystemRepository;
     private final RequestMapper requestMapper;
-
 
     @Override
     public boolean canAutoApprove(ClientRenameRequest request) {
