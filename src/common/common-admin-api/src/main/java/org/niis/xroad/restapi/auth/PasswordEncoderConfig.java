@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.auth;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -35,16 +36,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class PasswordEncoderConfig {
 
+    public static final String API_KEY_ENCODER = "apiKeyEncoder";
+    public static final String PASSWORD_ENCODER = "passwordEncoder";
+
     /**
-     * we use saltless SHA-256 instead of recommended and default BCrypt to guarantee that
-     * even with heavy REST API usage, hashing does consume large amount of resources.
-     * We are not encoding passwords, but random numbers / UUIDs, so
-     * dictionary attacks or other weaknesses of SHA-256 in relation to
-     * password encoding are not relevant.
-     * @return
+     * For API KEYS encoding we use saltless SHA-256 instead of recommended and default BCrypt
+     * to guarantee that even with heavy REST API usage, hashing does consume large amount of resources.
+     * We are not encoding passwords, but random numbers / UUIDs, so dictionary attacks
+     * or other weaknesses of SHA-256 in relation to password encoding are not relevant.
+     *
+     * @return PasswordEncoder
      */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
+    @Bean(API_KEY_ENCODER)
+    public PasswordEncoder apiKeyEncoder() {
         return new SaltlessPasswordEncoder();
+    }
+
+    /**
+     * To encode passwords for database backed user/pass authentication
+     *
+     * @return PasswordEncoder
+     */
+    @Bean(PASSWORD_ENCODER)
+    public PasswordEncoder passwordEncoder() {
+        return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
 }

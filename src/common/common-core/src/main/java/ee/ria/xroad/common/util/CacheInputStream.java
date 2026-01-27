@@ -37,7 +37,7 @@ import java.nio.channels.SeekableByteChannel;
 public final class CacheInputStream extends FilterInputStream {
     private final long size;
 
-    CacheInputStream(SeekableByteChannel ch) throws IOException {
+    public CacheInputStream(SeekableByteChannel ch) throws IOException {
         this(Channels.newInputStream(ch.position(0)), ch.size());
     }
 

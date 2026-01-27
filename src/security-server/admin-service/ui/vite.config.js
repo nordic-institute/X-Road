@@ -95,6 +95,7 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: 'happy-dom',
+      testTimeout: 15000,
       server: {
         deps: {
           inline: ['vuetify'],

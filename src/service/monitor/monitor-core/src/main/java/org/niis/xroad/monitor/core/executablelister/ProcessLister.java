@@ -28,9 +28,7 @@ package org.niis.xroad.monitor.core.executablelister;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.monitor.core.JmxStringifiedData;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -72,15 +70,6 @@ public class ProcessLister extends AbstractExecLister<ProcessInfo> {
     protected static final String PS_FORMAT = "--format user,pcpu,start_time,pmem,pid,comm";
     protected static final String LIST_PROCESSES_COMMAND = "ps -aew " + PS_FORMAT;
     private static final int NUMBER_OF_FIELDS = 6;
-
-    /**
-     * Program entry point
-     */
-    public static void main(String[] args) throws IOException {
-        JmxStringifiedData<ProcessInfo> p = new ProcessLister().list();
-        System.out.println("raw: " + p.getJmxStringData());
-        System.out.println("parsed: " + p.getDtoData());
-    }
 
     @Override
     protected String getCommand() {

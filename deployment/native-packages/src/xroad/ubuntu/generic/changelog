@@ -1,0 +1,719 @@
+xroad (8.0.0~beta1-0) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 07 Oct 2025 13:29:39 +0000
+
+xroad (7.8.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 07 Aug 2025 08:36:21 +0300
+
+xroad (7.7.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 23 Dec 2025 21:23:07 +0000
+
+xroad (7.7.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 08 Jul 2025 10:59:04 +0300
+
+xroad (7.6.2-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 03 Apr 2025 12:25:51 +0000
+
+xroad (7.6.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 27 Jan 2025 16:10:10 +0200
+
+xroad (7.6.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 19 Dec 2024 13:43:30 +0000
+
+xroad (7.5.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 02 Sep 2024 09:11:51 +0300
+
+xroad (7.5.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 04 Jul 2024 12:13:30 +0300
+
+xroad (7.4.2-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 18 Mar 2024 15:16:26 +0000
+
+xroad (7.4.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Fri, 02 Feb 2024 08:11:44 +0200
+
+xroad (7.4.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Wed, 20 Dec 2023 14:40:00 +0000
+
+xroad (7.3.2-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 07 Aug 2023 06:31:44 +0000
+
+xroad (7.3.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 10 Jul 2023 10:57:09 +0300
+
+xroad (7.3.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 13 Dec 2022 15:34:21 +0200
+
+xroad (7.2.0-0) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 29 Jun 2022 10:34:13 +0300
+
+xroad (7.1.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 18 Aug 2022 13:41:48 +0300
+
+xroad (7.1.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 26 May 2022 14:24:32 +0300
+
+xroad (7.0.3-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 25 Apr 2022 10:27:06 +0300
+
+xroad (7.0.2-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 10 Feb 2022 07:38:52 +0200
+
+xroad (7.0.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 10 Jan 2022 10:10:29 +0200
+
+xroad (7.0.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Fri, 26 Nov 2021 10:39:16 +0200
+
+xroad (6.26.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 23 Mar 2021 08:26:31 +0200
+
+xroad (6.25.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 26 Nov 2020 14:30:19 +0200
+
+xroad (6.24.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 17 Sep 2020 14:20:14 +0300
+
+xroad (6.23.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Wed, 19 Feb 2020 10:28:31 +0200
+
+xroad (6.22.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Thu, 07 Nov 2019 12:13:36 +0200
+
+xroad (6.22.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 22 Oct 2019 13:37:25 +0300
+
+xroad (6.21.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Wed, 22 May 2019 09:42:31 +0300
+
+xroad (6.21.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Wed, 24 Apr 2019 15:33:20 +0300
+
+xroad (6.20.1-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 05 Feb 2019 14:14:14 +0200
+
+xroad (6.20.0-1) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Wed, 23 Jan 2019 12:22:17 +0300
+
+xroad (6.19.0-1) trusty; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Tue, 25 Sep 2018 14:45:17 +0300
+
+xroad (6.18.0-1) trusty; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 14 May 2018 10:10:45 +0300
+
+xroad (6.17.0-1) trusty; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- Gofore Oyj <palveluvayla@gofore.com>  Wed, 14 Feb 2018 16:15:45 +0200
+
+xroad (6.16.0-1) trusty; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz (Ubuntu) and /usr/share/doc/xroad-common/CHANGELOG.md (RHEL)
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 13 Sep 2017 14:55:00 +0300
+
+xroad (6.15.0-1) trusty; urgency=low
+
+  * PVAYLADEV-621 / XRJD #148 Fix environmental monitoring does not return correct value for open file handles.
+  * PVAYLADEV-738 / XRJD #139 Fix concurrency issue in AdminPort synchronous request handling
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 12 May 2017 15:12:36 +0300
+
+xroad (6.14.0-1) trusty; urgency=low
+
+  * XTE-334 / Joint development issue #135: Security Server bugfix:
+    Fixed not correctly functioning timeouts.
+  * XTE-337 / Joint development issue #140: Remove X-Road version 5 migration
+    support. Warning: Central Server database schema changed, old Central
+    Server backups are not usable.
+  * XTE-341 / Joint development issue #142: Security Server: Enable detect
+    connections that have become stale (half-closed) while kept inactive in
+    the connection pool.
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 13 Apr 2017 17:43:23 +0300
+
+xroad (6.13.0-1) trusty; urgency=medium
+
+  * PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and
+    enable logging of akka error events.
+  * PVAYLADEV-729: During a configuration restore from backup, the access rights of the directory /var/lib/xroad for other users will no longer be removed.
+  * PVAYLADEV-726: Fixed an issue where diagnostics view in security server UI was not able to show CA-information that contained special characters.
+  * PVAYLADEV-722: Added support for external load balancing.
+  * PVAYLADEV-714: Added documentation for SecurityServer protocol extension.
+  * PVAYLADEV-709: Added a read-only user role for security server user interface.
+  * PVAYLADEV-707: SOAP Faults wrapped in a multipart message will now be passed to the client. Previously, the security server replaced the fault with a generalized error message.
+  * PVAYLADEV-615: Fix for never ending messagelog archiving. Doing it now in smaller transactions.
+  * PVAYLADEV-704: Added Jenkinsfile to support building Github pull requests in Jenkins.
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 11 Apr 2017 15:46:12 +0300
+
+xroad (6.12.0) trusty; urgency=low
+
+  * XTE-99 / Joint development issue #79: Security Server UI: Added uniqueness
+    check of the entered security server code when initializing the server.
+  * XTE-252 / Joint development issue #53: Security Server: Upgraded embedded
+    Jetty to the version 9.4.2. Due to upgrade SHA1 ciphers are no longer
+    supported for communication between security server and client.
+  * XTE-293: Security Server: A field set used to generate the token ID of the
+    SSCD has been made configurable.
+  * XTE-294 / Joint development issue #84: Security Server: Added configuration
+    file for the OCSP responder Jetty server (and increased max threads size
+    of the thread pool).
+  * XTE-307 / Joint development issue #131: Security Server bugfix: Added
+    missing HTTP header "Connection: close" into the server proxy response in
+    cases error occurs before parsing a service provider's response.
+  * XTE-308 / Joint development issue #132: Security Server bugfix: Added
+    missing read timeout for OCSP responder client.
+  * XTE-310 / Joint development issue #125: Security Server bugfix: SOAP
+    messages with attachments caused in some cases a temopray file handle leak.
+  * XTE-333 / Joint development issue #128: Security Server bugfix: Fixed
+    parsing SOAP messages containing &amp; or &lt; entities.
+  * Security Server: TCP socket SO_LINGER values in the proxy configuration file
+    (proxy.ini) set to -1 according to avoid unexpected data stream closures.
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Thu, 13 Mar 2017 14:16:52 +0200
+
+xroad (6.11.0-1) trusty; urgency=medium
+
+  * PVAYLADEV-609 / PVAYLADEV-703 / Joint development issue #120: Added a partial index to the messagelog database to speed up retrieval of messages requiring timestamping. This should increase proxy performance in cases where the logrecord table is large.
+  * PVAYLADEV-685 / Joint development issue #121: Added a system property to deactivate signer's periodic OCSP-response retrieval on both central server and configuration proxy.
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Thu, 12 Jan 2017 16:37:12 +0300
+
+xroad (6.10.0-1) trusty; urgency=medium
+
+  * PVAYLADEV-684: Change source code directory structure so that doc folder moves to root level and xtee6 folder is renamed to src. Checkstyle configuration moves to src from doc.
+  * PVAYLADEV-670: The document DM-CS central server data model was converted to markdown format and the included ER diagram was done with draw.io tool.
+  * PVAYLADEV-253: Serverproxy ensures that client certificate belongs to registered security server before reading the SOAP message.
+  * PVAYLADEV-369: Environmental monitoring port configuration system property group monitor has been renamed to env-monitor. If the system property monitor.port was previously configured, it has to be done again using env-monitor.port. Monitor sensor intervals are now also configurable as system properties.
+  * PVAYLADEV-657: Added version history table and license text to markdown documentation.
+  * PVAYLADEV-661: Packaging the software is done in Docker container. This includes both deb and rpm packaging.
+  * PVAYLADEV-675: Fixed problem in central server and security server user interface's file upload component. The problem caused the component not to clear properly on close.
+  * PVAYLADEV-680: Fixed problem in Debian changelog that caused warnings on packaging.
+  * PVAYLADEV-682: Added Ansible scripts to create test automation environment.
+  * PVAYLADEV-547: Added Vagrantfile for creating X-Road development boxes. It is possible to run X-Road servers in LXD containers inside the development box.
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 15 Jan 2017 15:03:26 +0300
+
+xroad (6.9.5) trusty; urgency=low
+
+  * XTE-293: Security Server: A field set used to generate the token ID of the SSCD has been made configurable.
+  * XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing &amp; or &lt; entities.
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 27 Mar 2017 16:38:15 +0300
+
+xroad (6.9.4) trusty; urgency=low
+
+  * XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
+  * XTE-319: Security Server UI bugfix: WSDL deletion caused incorrect ACL removal
+  * XTE-322: Security Server bugfix: a typo in the configuration file proxy.ini (client-timeout)
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 13 Feb 2017 18:36:28 +0200
+
+xroad (6.9.3) trusty; urgency=low
+
+  * PVAYLADEV-691: Hotfix for ExecListingSensor init. (Fixes package listing information, etc)
+
+ -- Sami Kallio <sami.kallio@gofore.com>  Fri, 10 Feb 2017 14:05:11 +0200
+
+xroad (6.9.2) trusty; urgency=low
+
+  * PVAYLADEV-662: Fixed proxy memory parameters
+  * PVAYLADEV-662: Altered OCSP fetch interval default value from 3600 to 1200 seconds
+  * PVAYLADEV-662: Converted DM-ML document to markdown format
+  * PVAYLADEV-662: Fixed bug in handling HW token's PIN code
+  * PVAYLADEV-662: Fixed bug in prepare_buildhost.sh script that caused build to fail on a clean machine
+  * PVAYLADEV-656: Added a reading timeout of 60 seconds for OcspClient connections
+  * PVAYLADEV-666: Fixed bug that caused metaservices and environmental monitoring replies to be returned in multipart format
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 23 Jan 2017 13:55:12 +0200
+
+xroad (6.9.1) trusty; urgency=low
+
+  * Updated documents: ARC-OPMOND, UG-OPMONSYSPAR, UG-SS, PR-OPMON, PR-OPMONJMX, TEST_OPMON, TEST_OPMONSTRAT, UC-OPMON
+  * Updated example Zabbix related scripts and configuration files
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Fri, 13 Jan 2017 17:43:07 +0200
+
+xroad (6.9.0-1) trusty; urgency=medium
+
+  * PVAYLADEV-505: Fixed a bug in Security Server's UI that was causing the text in the pop-window to be messed with HTML code in some cases when "Remove selected" button was clicked.
+  * PVAYLADEV-484: Changed the value of Finnish setting for time-stamping of messages (acceptable-timestamp-failure-period parameter). Value was increased from value 1800s to value 18000s. By this change faults related to time-stamping functionality will be decreased.
+  * PVAYLADEV-475 / Joint Development issue #70: Security Server's connection pool functionality improved so that existing and already opened connections will re-used more effectively. Old implementation was always opening a new connection when a new message was sent. This new functionality will boost performance of Security Server several percents. Global settings use the old functionality by default but the Finnish installation packages override the global setting, opting to use the improvements. See the system parameters documentation UG-SYSPAR for more details.
+  * PVAYLADEV-523: An Ansible script for installing the test-CA was created and published in the Github repository. The script will execute the installation automatically without any manual actions needed.
+  * PVAYLADEV-536: Improved OCSP diagnostics and logging when handling a certificate issued by an intermediate (non-root) certificate authority: The certificates are now listed in OCSP diagnostics and a false positive error message is no longer logged.
+  * PVAYLADEV-467 / PVAYLADEV-468 / PVAYLADEV-469 / PVAYLADEV-553 / Joint Development issue #81: Several improvements and checks to make sure there are no security threats related to Security Server's user rights and system generated files:
+    - /var/tmp/xroad and /var/log/xroad folders checked and user rights validated
+    - /var/lib/xroad folder user rights restricted
+    - /var/log/secure and /var/log/up2date folders checked through and validated if files generated here are necessary
+    - /var/log/messages folder checked through and validated if files generated here are necessary. Fixed functionality so that xroad-confclient is not writing log files to this folder if it is running as a service.
+    - N.B! if there are monitoring actions and processed related to xroad-confclient, that are using log files of this folder, the configuration of monitoring must be changed so that the source of logs is from now on /var/log/xroad folder.
+  * PVAYLADEV-556: All installed additional parts of Central Server are seen on UI of Central Server. Earlier some parts that where installed could not be seen on UI.
+  * PVAYLADEV-531: Fixed the bug in functionality of "Unregister" dialog window in security server's "Keys and Certificates" -view so that no nonsensical error messages are shown to user. Erroneous notification was shown if user had created an authentication certificate and then made a request to register it and immediately canceled the request before it was accepted. This caused an unexpected error text from the Keys -table to be translated and the subsequent message to be shown to the user. The underlying error was a fixed removing any unnecessary error messages.
+  * PVAYLADEV-560 / Joint Development issue #65: Improved the handling of OCSP responses at startup phase of Security Server. If at startup the global configuration is expired then the next OCSP validation is scheduled within one minute. In earlier versions this was scheduled within one hour and caused extra delay until OCSP status was 'good'. Also, error message 'Server has no valid authentication' was generated.
+  * PVAYLADEV-489 / PVAYLADEV-571 / Joint Development issue #69: From version 6.9.0 Security Server is supporting new XML schema that makes possible to use a set of different Global Configuration versions. This makes possible that Global Configuration can be updated without breaking the compatibility to the Security Servers that are still using the older version of Global Configuration. Each Security Server knows the correct Global Configuration version it is using and based on this information is able to request that version from the Central Server. Central Server in turn is able to distribute all the Global Configurations that might be in use.
+  * PVAYLADEV-570 / Joint Development issue #69: From version 6.9.0 Configuration Proxy supports a new XML schema that makes it possible to use a set of different Global Configuration versions. Configuration Proxy can download, cache and distribute all the Global Configurations that might be in use.
+  * PVAYLADEV-588 / Joint Development issue #64: Fixed a bug that caused Security Server to start doing duplicate OCSP fetches at the same time. This happened if two or more OCSP related parameter values were changed (almost) at the same time.
+  * PVAYLADEV-457: Improved the INFO level logging information of Signer module so that more information will be written to log. It makes easier to see afterward what Signer has been doing.
+  * PVAYLADEV-607 / Joint Development issue #69: Global Configuration version that is generated and distributed by default can be set both in Central Server and Configuration Proxy (using a parameter value).
+  * PVAYLADEV-616: Fixed a bug in environment monitoring causing file handles not to be closed properly.
+  * PVAYLADEV-618 / Joint Development issue #89: Partial index is created to messagelog database so that non-archived messages will be fetched faster. This change will make the archiver process much faster.
+  * PVAYLADEV-634 / Joint Development issue #96: Fixed a bug in 'Generate certificate request' dialog. A refactored method was not updated to certificate request generation from System Parameters -view which caused the certificate generation to fail with the error message "Undefined method".
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 06 Jan 2017 15:05:03 +0200
+
+xroad (6.8.11) trusty; urgency=low
+
+  * Added documents: PR-OPMON, PR-OPMONJMX, ARC-OPMOND, UG-OPMONSYSPAR
+  * Updated documents: ARC-G, ARC-SS, UC-OPMON, UG-SS, TEST_OPMON, TEST_OPMONSTRAT
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 20 Dec 2016 00:40:15 +0200
+
+xroad (6.8.10) trusty; urgency=low
+
+  * Operational data monitoring improvements and bug fixes
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 12 Dec 2016 13:01:33 +0200
+
+xroad (6.8.9) trusty; urgency=low
+
+  * Operational data monitoring
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 5 Dec 2016 12:49:14 +0200
+
+xroad (6.8.8) trusty; urgency=low
+
+  * CDATA parsing fix (XTE-262)
+  * Converting PR-MESS to Markdown
+
+ -- Vitali Stupin <vitali.stupin@ria.ee>  Thu, 1 Dec 2016 13:45:00 +0300
+
+xroad (6.8.7) trusty; urgency=low
+
+  * DOM parser replacement with SAX parser
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Fri, 21 Sep 2016 14:09:00 +0300
+
+xroad (6.8.6) trusty; urgency=low
+
+  * Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter
+  * Documentation update: apt-get upgrade does not upgrade security server from 6.8.3 to 6.8.5
+  * Added xroad-securityserver conflicts uxp-addon-monitoring <= 6.4.0
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Fri, 30 Sep 2016 14:43:36 +0300
+
+xroad (6.7.13-1) trusty; urgency=low
+
+  * PVAYLADEV-485: Fixed a bug in the message archiver functionality that caused very long filenames or filenames including XML to crash the archiver process.
+  * PVAYLADEV-398: Security Server backup/restore functionality fixed to work also when the existing backup is restored to a clean environment (new installation of a Security Server to a new environment).
+  * PVAYLADEV-238: OCSP dianostic UI now shows the connection status. Color codes:
+   - Green: Ok
+   - Yellow: Unknown status
+   - Red: Connection cannot be established to OCSP service or OCSP response could not be interpreted or no response from OCSP service
+  * PVAYLADEV-360: Namespace prefixes other than 'SOAP-ENV' for SOAP fault messages are now supported. Previously other prefixes caused an error.
+  * PVAYLADEV-424: Improved the messagelog archiver functionality so that it cannot consume an unlimited amount of memory even if there would be tens of thousands of messages to archive.
+  * PVAYLADEV-304: Fixed a situation that caused time-stamping to get stuck if some (rare) preconditions were realized.
+  * PVAYLADEV-351: Performance of Security Server improved by optimizing database queries at the time when Security Server's configuration data is fetched.
+  * PVAYLADEV-454: Adjusted the amount of metaspace memory available for xroad processes so that the signer service does not run out of memory.
+  * PVAYLADEV-416: Added Security Server support for the old Finnish certificate profile used in the FI-DEV environment.
+  * PVAYLADEV-459 / PVAYLADEV-352 / PVAYLADEV-460 / PVAYLADEV-461: Several improvements to OCSP protocol related functionalities:
+    - After a failure to fetch an OCSP respose, fetch retries are now scheduled based on the Fibonacci Sequence. The first retry is done after 10 seconds, then after 20 seconds, then after 30 seconds, 50 seconds, 80 seconds, 130 seconds etc. until a successful OCSP response is fetched.
+    - Validation of OCSP response is done only once per message and the validation result is then stored to cache. If result is needed later, cache will be used for checking the result. This change will make the checking faster.
+    - OCSP responses are fetched by the time interval defined in Global Configuration so that the Security Server is able to operate longer in a case on OCSP service is down.
+    - OCSP response is no longer fetched immediately if ocspFreshnessSeconds or nextUpdate parameter values are changed. This allows the Security Server to operate longer in case the OCSP service is down and the parameters are changed to avoid calling the unreachable OCSP service.
+  * PVAYLADEV-353: Added system parameters to stop the security servers from leaking TCP connections between them. These settings maintain status quo by default so connections are leaked without configuration changes. The prevention is overridden to be enabled in the Finnish installation package. The added configuration options are described in the UG-SYSPAR document. In short, configuring the [proxy] on the server side with server-connector-max-idle-time=120000 will close idle connections after 120 seconds.
+  * PVAYLADEV-455 / PVAYLADEV-458: Updated several Security Server dependency packages to the latest version so that possible vulnerabilities are fixed.
+  * PVAYLADEV-400: Security Server UI: when adding a new subsystem only subsystems that are owned by the organization are visible by default. Previously all the subsystems were visible (all the registered subsystems).
+  * PVAYLADEV-464: Security Server UI: implemented 'Certificate Profile Info' feature for Finnish certificates which allows the UI to automatically fill most of the necessary fields when creating a new certificate request (either sign or auth certificate request).
+  * PVAYLADEV-476: Improved the performance of Security Server by optimizing the caching of global configuration.
+  * Bug fixes and minor enhancements
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 16 Sep 2016 13:41:06 +0300
+
+xroad (6.8.5) trusty; urgency=low
+
+  * Bugfix: it's not possible to send duplicate client registration requests
+    (https://github.com/vrk-kpa/xroad-joint-development/issues/48)
+  * Bugfix: added one missing translation
+  * Updated configuration client test data
+  * Some minor corrections
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 16 Aug 2016 13:54:52 +0300
+
+xroad (6.8.4) trusty; urgency=low
+
+  * Merged with XTEE6 repo
+
+ -- Aktors <info@aktors.ee>  Wed,  11 May 2016 17:33:00 +0300
+
+xroad (6.7.12-1) trusty; urgency=low
+
+  * Fixed security server not starting if xroad-addon-messagelog is not installed
+  * Added connection timeouts to configuration client to prevent hanging problems
+  * In security server's keys and certificates view delete button now removes both key and certificates
+  * Signer reacts to ocspFreshnessSeconds parameter change immediately
+  * OCSP nextUpdate verification can be switched off with optional global configuration part
+  * Fixed bug in xroad-create-cluster.sh script that created the certificates with 30 days expiry period
+  * Fix software token batch signing setting
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 25 Apr 2016 14:51:45 +0300
+
+xroad (6.7.11-1) trusty; urgency=low
+
+  * Minor documentation changes
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 8 Feb 2016 16:32:45 +0200
+
+xroad (6.7.10-1) trusty; urgency=low
+
+  * Change configuration client admin port default to 5675 and make it configurable
+  * Security server message exchange performance optimizations
+  * Security server environmental monitoring
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 26 Jan 2016 10:23:45 +0200
+
+xroad (6.7.9-1) trusty; urgency=low
+
+  * Fix timestamper connection checking
+  * Fix timestamper status when batch timestamping is used
+  * Timestamping diagnostics displays status for all defined timestamping services
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 15 Jan 2016 14:41:01 +0200
+
+xroad (6.7.8-1) trusty; urgency=low
+
+  * Security server offers diagnostics information for time stamping service
+  * Fixed database backup to support generated passwords
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Thu, 7 Jan 2016 14:00:01 +0200
+
+xroad (6.7.7-1) trusty; urgency=low
+
+  * Fixed critical errors found by SonarQube
+  * Added option for requiring strong password for PIN-code
+  * Security server offers diagnostics information for global configuration fetching
+  * Taken to use HTML-attribute data-name to improve testability
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 9 Dec 2015 11:46:12 +0200
+
+xroad (6.7.6-1) trusty; urgency=low
+
+  * Fixed changing of security server configuration anchor
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 27 Nov 2015 12:50:01 +0200
+
+xroad (6.7.5-1) trusty; urgency=low
+
+  * Updated member code/identifier extractor for Finnish instance
+  * Fixed XSS vulnerabilities in central server and security server user interfaces
+  * Security server's internal TLS certificate can be replaced from the UI
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 26 Nov 2015 15:42:01 +0200
+
+xroad (6.7.4-1) trusty; urgency=low
+
+  * Add MIT license header to security server source code
+  * Add LICENSE.info file to security server source code and binaries
+  * Add LICENSE.info file to central server source code and binaries
+  * Add LICENSE.info file to configuration proxy source code and binaries
+  * Add LICENSE file containing MIT license to security server source code and binaries
+  * Fixed 'Global configuration expired' error occurring under heavy load
+  * The password for messagelog and serverconf databases is generated during installation
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 12 Nov 2015 12:48:18 +0200
+
+xroad (6.7.3-1) trusty; urgency=low
+
+  * Add license information
+  * Refactor proxy setup scripts (RHEL)
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 26 Oct 2015 16:10:22 +0300
+
+xroad (6.7.2-1) trusty; urgency=medium
+
+  * Fix nginx configuration (remove X-Frame-Options)
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 19 Oct 2015 11:12:56 +0300
+
+xroad (6.7.1-1) trusty; urgency=low
+
+  * Finnish settings set SHA256withRSA as default signature algorithm
+  * Finnish settings set SHA256withRSA as default CSR signature algorithm
+  * Configurable message body logging
+  * Perfect forward secrecy management services
+  * Security server user interface uses TLSv1.2
+  * Central server user interface uses TLSv1.2
+  * Security server communicates with backend services using TLSv1.2
+  * Perfect forward secrecy for security server user interface
+  * Perfect forward secrecy for central server user interface
+  * Perfect forward secrecy for security server communications with backend services
+  * Fixed SonarQube static analysis blocker issues
+  * Management services use TLSv1.2
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 14 Oct 2015 12:07:08 +0300
+
+xroad (6.7-0) trusty; urgency=low
+
+  * Member Code/Identifier Extractor for Finnish instance
+    o Signing certificate subject DN format supported by the decoder: C=FI,O=<instanceIdentifier>, OU=<memberClass>, CN=<memberCode> (e.g. C=FI, O=FI-DEV, OU=PUB, CN=1234567-8)
+  * Configurable key size for signing and authentication RSA keys
+    o New configuration parameter signer.key-length (default 2048)
+  * Configurable certificate signing request signing algorithm
+    o New configuration parameter signer.csr-signature-algorithm (default: SHA1withRSA)
+  * New security server metapackage with default configuration for Finnish instance
+    o xroad-securityserver-fi
+    o uses SHA256withRSA as signer.csr-signature-algorithm
+  * Fixed atomic save to work between separate file systems
+    o OS temp directory and X-Road software can now reside on different file systems
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 29 Sep 2015 09:36:56 +0300
+
+xroad (6.6-2) trusty; urgency=low
+
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 15 Sep 2015 13:04:42 +0300
+
+xroad (6.6-1) trusty; urgency=low
+
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 10 Sep 2015 15:15:07 +0300
+
+xroad (6.6-0) trusty; urgency=low
+
+  * The "userId" field of the X-Road SOAP message header was made optional
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 30 Jul 2015 14:57:06 +0300
+
+xroad (6.5-1) trusty; urgency=low
+
+  * WSDL reload bugfix
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 23 Jul 2015 13:08:16 +0300
+
+xroad (6.5-0) trusty; urgency=low
+
+  * Possibility to download signed documents and verification configuration
+  * Auditlog
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 30 Jun 2015 12:52:44 +0300
+
+xroad (6.4-1) trusty; urgency=low
+
+   * corrected mime-attachment handling
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 18 Jun 2015 17:08:14 +0300
+
+xroad (6.4-0) trusty; urgency=low
+
+   * User session is closed after inactivity
+   * Data versioning at database level
+   * listClients returns member name
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 25 May 2015 13:27:42 +0300
+
+xroad (6.3-0) trusty; urgency=low
+
+   * Xroad 6.3
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 07 Apr 2015 16:08:54 +0300
+
+xroad (6.2-0) trusty; urgency=low
+
+   [Added modules]
+   * Messagelog
+   * Metaservices
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 31 Mar 2015 11:02:36 +0300
+
+xroad (6.1-2) trusty; urgency=low
+
+   Minor bugfixes for UI.
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 23 Dec 2014 11:08:38 +0200
+
+xroad (6.1-1) trusty; urgency=low
+
+   Minor bugfixes for UI behaviour and for HSM based key handling.
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 15 Dec 2014 23:26:33 +0200
+
+xroad (6.1-0) trusty; urgency=low
+
+   [General]
+   * Added new separately installable component: configuration proxy (xroad-confproxy)
+   * Changed the format and location of system configuration files.
+   * Added support for federating two X-Road instances.
+   * Added new command-line utilities for managing Signer component.
+
+   [Depenencies]
+   * Java 8
+   * Jetty 9
+   * JRuby 1.7.16.1 security fix
+
+   [Central]
+    Many user interface fixes and improvements.
+    Added user interface for managing member classes.
+    Added user interface for configuring management service.
+    Added user interface for configuring system parameters.
+    Added user interface for initializing central server.
+    Changed names of some system parameters.
+    Some system parameters are now automatically filled during installation.
+    Added new configuration file for configuring installation-specific configuration parts (such as identifiermapping.xml).
+    The server-owners group can no longer managed manually.
+    Added foreign keys to databases.
+
+   [Security server]
+   * Many user interface fixes and improvements.
+   * User cannot upload configuration anchor that points to configuration that does not contain private parameters #5092 #PJ, #KJ
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 01 Dec 2014 13:07:34 +0200
+
+xroad (6.0-99.3) trusty; urgency=low
+
+  * version bump
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 08 Sep 2014 09:26:42 +0300
+
+xroad (6.0-99.1) trusty; urgency=low
+
+  * version bump
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 14 Jul 2014 15:42:15 +0300
+
+xroad (6.0-2) trusty; urgency=low
+
+  * package for 14.04
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Wed, 25 June 2014 14:58:20 +0200

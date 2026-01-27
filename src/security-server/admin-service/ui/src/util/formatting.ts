@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,11 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {
-  type CodeWithDetails,
-} from '@/openapi-types';
-import { i18n } from "@niis/shared-ui";
-
+import { type CodeWithDetails } from '@/openapi-types';
+import { i18n, Status } from '@niis/shared-ui';
 
 export function formatErrorForUi(err?: CodeWithDetails): string {
   if (!err) return '';
@@ -49,19 +47,19 @@ export function formatErrorForUi(err?: CodeWithDetails): string {
   const veEntries = Object.entries(validation_errors);
   const veText = veEntries.length
     ? veEntries
-      .map(([field, msgs]) => {
-        const labelKey = buildKey(field);
-        const translated = labelKey ? t(labelKey) : '';
-        const label = translated || field;
-        return `${label}: ${msgs.join(', ')}`;
-      })
-      .join(' | ')
+        .map(([field, msgs]) => {
+          const labelKey = buildKey(field);
+          const translated = labelKey ? t(labelKey) : '';
+          const label = translated || field;
+          return `${label}: ${msgs.join(', ')}`;
+        })
+        .join(' | ')
     : '';
 
   return [header, veText].filter(Boolean).join(' | ');
 }
 
-export function statusIconType(status: string | undefined): string {
+export function statusIconType(status: string | undefined): Status | undefined {
   if (!status) {
     return 'progress-register';
   }

@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0590 - SS: Client list
 

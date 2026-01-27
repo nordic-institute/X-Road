@@ -1,5 +1,7 @@
 # Change Log
 
+## 8.0.0 - UNRELEASED
+
 ## 7.8.0 - UNRELEASED
 - XRDDEV-2734: Improve the method by which the operational monitoring component on the Security Server resolves its internal IP.
 - XRDDEV-2919: Allow ACME HTTP challenge port to be customised. This helps in cases where the host or container doesn’t have port 80 available to bind to, but the user still wants to use ACME.

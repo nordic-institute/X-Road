@@ -28,7 +28,6 @@ package org.niis.xroad.arch.rule;
 import com.societegenerale.commons.plugin.rules.ArchRuleTest;
 import com.societegenerale.commons.plugin.service.ScopePathProvider;
 import com.societegenerale.commons.plugin.utils.ArchUtils;
-import jakarta.annotation.PostConstruct;
 
 import java.util.Collection;
 
@@ -36,10 +35,24 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 public class NoPostConstructAnnotation implements ArchRuleTest {
 
+    private static final String POST_CONSTRUCT = "jakarta.annotation.PostConstruct";
+    private static final String APPLICATION_SCOPED = "jakarta.enterprise.context.ApplicationScoped";
+    private static final String SINGLETON = "jakarta.inject.Singleton";
+
+    private static final String REASON = """
+            For Quarkus only @PostConstruct annotation is allowed in @ApplicationScoped and @Singleton classes.
+            Otherwise @Producer and @Disposer methods should be used.
+
+            For Spring InitializingBean interface should be used instead of @PostConstruct annotation,
+            except for @ApplicationScoped and @Singleton classes.
+            """;
+
     @Override
     public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
-        noMethods().should().beAnnotatedWith(PostConstruct.class)
-                .because("InitializingBean interface should be used instead of @PostConstruct annotation")
+        noMethods().that().areDeclaredInClassesThat().areNotAnnotatedWith(APPLICATION_SCOPED)
+                .and().areDeclaredInClassesThat().areNotAnnotatedWith(SINGLETON)
+                .should().beAnnotatedWith(POST_CONSTRUCT)
+                .because(REASON)
                 .allowEmptyShould(false)
                 .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
     }

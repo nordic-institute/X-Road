@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -40,17 +41,17 @@ public class GlobalGroupDetailsPageObj {
     private final EditDescriptionDialogObj editDescriptionDialogObj = new EditDescriptionDialogObj();
 
     public SelenideElement btnAddMembersButton() {
-        final var xpath = "//article[@data-test='global-resources-view']//button[@data-test='add-member-button']";
+        final var xpath = "//div[@data-test='global-resources-view']//button[@data-test='add-member-button']";
         return $x(xpath);
     }
 
     public SelenideElement btnEditDescription() {
-        final var xpath = "//article[@data-test='global-resources-view']//button[@data-test='info-card-edit-button']";
+        final var xpath = "//div[@data-test='global-resources-view']//button[@data-test='global-group-edit-button']";
         return $x(xpath);
     }
 
     public SelenideElement membersCount() {
-        final var xpath = "//article[@data-test='global-resources-view']//span[@data-test='member-count']";
+        final var xpath = "//div[@data-test='global-resources-view']//span[@data-test='member-count']";
         return $x(xpath);
     }
 
@@ -64,14 +65,11 @@ public class GlobalGroupDetailsPageObj {
 
     public SelenideElement memberRow(final String identifier) {
         final var parts = identifier.split(":");
-        switch (parts.length) {
-            case MEMBER_ID_PARTS:
-                return memberRow(parts[0], parts[1], parts[2]);
-            case SUBSYSTEM_ID_PARTS:
-                return memberRow(parts[0], parts[1], parts[2], parts[SUBSYSTEM_CODE_IDX]);
-            default:
-                throw new IllegalArgumentException("Identifier: " + identifier + " should have 3 or 4 parts");
-        }
+        return switch (parts.length) {
+            case MEMBER_ID_PARTS -> memberRow(parts[0], parts[1], parts[2]);
+            case SUBSYSTEM_ID_PARTS -> memberRow(parts[0], parts[1], parts[2], parts[SUBSYSTEM_CODE_IDX]);
+            default -> throw new IllegalArgumentException("Identifier: " + identifier + " should have 3 or 4 parts");
+        };
     }
 
     public SelenideElement btnDeleteMember(final String identifier) {
@@ -100,16 +98,7 @@ public class GlobalGroupDetailsPageObj {
         return deleteMemberDialogObj;
     }
 
-    public class DeleteMemberDialogObj {
-        public SelenideElement btnDelete() {
-            final var xpath = "//button[@data-test='dialog-save-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnClose() {
-            final var xpath = "//button[@data-test='dialog-cancel-button']";
-            return $x(xpath);
-        }
+    public class DeleteMemberDialogObj  extends Dialog {
 
         public SelenideElement inputCode() {
             final var xpath = "//div[@data-test='verify-member-code']";
@@ -117,17 +106,15 @@ public class GlobalGroupDetailsPageObj {
         }
     }
 
-    public class AddMembersDialogObj {
+    public class AddMembersDialogObj extends Dialog {
+
         public SelenideElement selectableRow(final String identifier) {
             final var parts = identifier.split(":");
-            switch (parts.length) {
-                case MEMBER_ID_PARTS:
-                    return selectableRow(parts[0], parts[1], parts[2]);
-                case SUBSYSTEM_ID_PARTS:
-                    return selectableRow(parts[0], parts[1], parts[2], parts[SUBSYSTEM_CODE_IDX]);
-                default:
-                    throw new IllegalArgumentException("Identifier: " + identifier + " should have 3 or 4 parts");
-            }
+            return switch (parts.length) {
+                case MEMBER_ID_PARTS -> selectableRow(parts[0], parts[1], parts[2]);
+                case SUBSYSTEM_ID_PARTS -> selectableRow(parts[0], parts[1], parts[2], parts[SUBSYSTEM_CODE_IDX]);
+                default -> throw new IllegalArgumentException("Identifier: " + identifier + " should have 3 or 4 parts");
+            };
         }
 
         public SelenideElement rowCheckbox(final String identifier) {
@@ -150,16 +137,6 @@ public class GlobalGroupDetailsPageObj {
                     + "and .//td[@data-test='code' and text()='%s']"
                     + "and .//td[@data-test='subsystem' and text()='%s']]";
             return $x(String.format(xpath, instance, clazz, code, subsystem));
-        }
-
-        public SelenideElement btnAddMembers() {
-            final var xpath = "//button[@data-test='dialog-save-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnClose() {
-            final var xpath = "//button[@data-test='dialog-cancel-button']";
-            return $x(xpath);
         }
 
         public SelenideElement inputFilter() {

@@ -25,16 +25,19 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.DeleteTokenReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+@ApplicationScoped
+@RequiredArgsConstructor
 public class DeleteTokenReqHandler extends AbstractRpcHandler<DeleteTokenReq, Empty> {
+    private final TokenManager tokenManager;
 
     @Override
     protected Empty handle(DeleteTokenReq request) {
@@ -44,7 +47,7 @@ public class DeleteTokenReqHandler extends AbstractRpcHandler<DeleteTokenReq, Em
     }
 
     public void deleteToken(String tokenId) {
-        TokenManager.deleteToken(tokenId);
+        tokenManager.deleteToken(tokenId);
 
         log.info("Token with id '{}' was deleted", tokenId);
     }

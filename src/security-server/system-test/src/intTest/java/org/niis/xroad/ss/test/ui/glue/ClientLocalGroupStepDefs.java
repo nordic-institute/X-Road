@@ -40,8 +40,8 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 import static org.openqa.selenium.Keys.ENTER;
 
 public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
@@ -118,7 +118,7 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.localGroups.details.btnRemove().shouldBe(empty);
         clientInfoPageObj.localGroups.details.btnDelete().shouldNotBe(visible);
 
-        clientInfoPageObj.localGroups.details.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("Local group details are editable")
@@ -127,7 +127,7 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.localGroups.details.btnRemoveAll().shouldBe(visible);
         clientInfoPageObj.localGroups.details.btnDelete().shouldBe(visible);
 
-        clientInfoPageObj.localGroups.details.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("Local group is deleted")
@@ -170,12 +170,12 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
 
     @Step("Following members are added to local group:")
     public void lookupAddMembers(DataTable dataTable) {
-        clientInfoPageObj.localGroups.details.addMember.btnAddSelected().shouldBe(disabled);
+        clientInfoPageObj.localGroups.details.addMember.btnSave().shouldBe(disabled);
         dataTable.asList().forEach(member -> vCheckbox(clientInfoPageObj.localGroups.details.addMember.checkboxSelectMember(member))
                 .scrollIntoView(false)
                 .click());
 
-        clientInfoPageObj.localGroups.details.addMember.btnAddSelected()
+        clientInfoPageObj.localGroups.details.addMember.btnSave()
                 .shouldBe(enabled)
                 .click();
 

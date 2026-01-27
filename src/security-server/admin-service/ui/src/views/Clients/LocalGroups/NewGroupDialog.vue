@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,60 +25,63 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    v-if="dialog"
+  <XrdSimpleDialog
+    :width="620"
     title="localGroup.addLocalGroup"
+    submittable
+    :loading="saving"
     :disable-save="!meta.valid"
-    width="620"
     @save="save"
     @cancel="cancel"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="code"
-          v-bind="codeAttrs"
-          variant="outlined"
-          :label="$t('localGroup.code')"
-          autofocus
-          data-test="add-local-group-code-input"
-        ></v-text-field>
-      </div>
-
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="description"
-          v-bind="descriptionAttrs"
-          :label="$t('localGroup.description')"
-          variant="outlined"
-          data-test="add-local-group-description-input"
-        ></v-text-field>
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="code"
+            v-bind="codeAttrs"
+            data-test="add-local-group-code-input"
+            class="xrd"
+            autofocus
+            :label="$t('localGroup.code')"
+          />
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="description"
+            v-bind="descriptionAttrs"
+            data-test="add-local-group-description-input"
+            class="xrd"
+            :label="$t('localGroup.description')"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { PublicPathState, useForm } from 'vee-validate';
+import { DialogSaveHandler, useNotifications, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
+import { useLocalGroups } from '@/store/modules/local-groups';
 
 export default defineComponent({
+  components: {
+    XrdFormBlock,
+    XrdFormBlockRow,
+    XrdSimpleDialog,
+  },
   props: {
     id: {
       type: String,
       required: true,
     },
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
   },
   emits: ['cancel', 'group-added'],
   setup() {
+    const { addSuccessMessage } = useNotifications();
+    const { addLocalGroup } = useLocalGroups();
     const { meta, defineField, resetForm } = useForm({
       validationSchema: {
         code: 'required|max:255',
@@ -94,38 +98,43 @@ export default defineComponent({
       },
     });
     const [code, codeAttrs] = defineField('code', componentConfig);
-    const [description, descriptionAttrs] = defineField(
-      'description',
-      componentConfig,
-    );
-    return { meta, code, codeAttrs, description, descriptionAttrs, resetForm };
+    const [description, descriptionAttrs] = defineField('description', componentConfig);
+    return {
+      meta,
+      code,
+      codeAttrs,
+      description,
+      descriptionAttrs,
+      resetForm,
+      addSuccessMessage,
+      addLocalGroup,
+    };
+  },
+  data() {
+    return {
+      saving: false,
+    };
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.resetForm();
       this.$emit('cancel');
     },
-    save(): void {
-      api
-        .post(`/clients/${encodePathParameter(this.id)}/local-groups`, {
-          code: this.code,
-          description: this.description,
-        })
+    save(evt: Event, handler: DialogSaveHandler): void {
+      this.saving = true;
+      this.addLocalGroup(this.id, this.code as string, this.description as string)
         .then(() => {
-          this.showSuccess(this.$t('localGroup.localGroupAdded'));
+          this.addSuccessMessage('localGroup.localGroupAdded');
           this.$emit('group-added');
         })
-        .catch((error) => {
-          this.showError(error);
-          this.$emit('cancel');
-        })
-        .finally(() => this.resetForm());
+        .catch((error) => handler.addError(error))
+        .finally(() => {
+          this.saving = false;
+          this.resetForm();
+        });
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>
+<style lang="scss" scoped></style>

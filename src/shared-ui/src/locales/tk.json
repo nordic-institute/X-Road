@@ -30,6 +30,7 @@
     "emptySearch": "Siziň {msg} boýunça gözlegiňiz netije bermedi.",
     "export": "Eksport et",
     "finish": "Tamamla",
+    "generateCsr": "CSR döret",
     "goToFront": "Baş sahypa geç",
     "next": "Indiki",
     "no": "Ýok",
@@ -63,7 +64,8 @@
           "assignedRoles": "Rollar bellenildi",
           "createKeyButton": "Açary döret",
           "name": "Açaryň jikme-jikleri",
-          "note": "BELLIK: Api açary ygtybarly ýerde saklaň. API açary diňe açaryň emele gelen wagty görünýär. Ol gaýtadan berilmer we ony soň alyp bolmaýar."
+          "note": "BELLIK: Api açary ygtybarly ýerde saklaň.",
+          "noteDetail": "API açary diňe açaryň emele gelen wagty görünýär. Ol gaýtadan berilmer we ony soň alyp bolmaýar."
         },
         "roles": {
           "description": "API açary bilen bagly rollary saýlaň. Rollar API açaryna berilýän hukuklary kesgitleýär.",
@@ -191,6 +193,7 @@
   "fields": {
     "code": "Kod",
     "description": "Beýany",
+    "distinguishedName": "Tapawutly at",
     "memberClass": "Agaznyň klassy",
     "password": "Açar sözi",
     "securityServerCode": "Howpsuzlyk serweriň kody",
@@ -200,7 +203,7 @@
   "footer": {
     "copyright": {
       "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "licenceInfo": "Ygtyýarnama barada maglumat",
+      "domain": "niis.org",
       "title": "AWtorlyk hukugy"
     },
     "software": {
@@ -239,6 +242,25 @@
     "noMatches": "Kriteriýa gabat gelýän zat ýok",
     "noServices": "Hyzmatlar ýok",
     "noTokens": "Tokenler ýok"
+  },
+  "tlsCertificates": {
+    "downloadCertificate": "Şahadatnamany ýükle",
+    "downloadSuccess": "Dolandyryş hyzmatlarynyň TLS şahadatnamasy üstünlikli ýüklendi",
+    "generateCsr": {
+      "button": "CSR döret",
+      "content": "Ilki bilen tapawutly at ber. Soňra täze CSR döret we howpsuz ýerde sakla",
+      "distinguishedName": "Tapawutly ady giriziň",
+      "title": "TLS şahadatnamasyna gol çekmek talabyny dörediň",
+      "tooltip": "Tapawutly at (DN) X.509 şahadatnamasyndaky bir zady ýeke-täk kesgitleýär. DN-de aşakdaky atributyň görnüşleri duş gelýär: CN = Umumy at, O = Guramanyň ady, C = Ýurduň kody."
+    },
+    "generateKey": {
+      "button": "Açary gaýtadan döret"
+    },
+    "keyText": "Içki TLS açary",
+    "uploadCertificate": {
+      "button": "Şahadtnamany ýükle",
+      "label": "Şahadatnamanyň faýlyny öz kompýuteriňizden ýükläň"
+    }
   },
   "type": "Görnüş",
   "validation": {

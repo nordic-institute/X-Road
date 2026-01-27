@@ -86,6 +86,8 @@ public class ServiceConverter {
         ServiceDto serviceDto = new ServiceDto();
 
         serviceDto.setId(convertId(service, clientId));
+        serviceDto.setClientId(clientIdConverter.convertId(clientId));
+        serviceDto.setServiceDescriptionId(String.valueOf(service.getServiceDescription().getId()));
         serviceDto.setServiceCode(service.getServiceCode());
         serviceDto.setFullServiceCode(
                 ServiceFormatter.getServiceFullName(service.getServiceCode(), service.getServiceVersion()));

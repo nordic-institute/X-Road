@@ -40,6 +40,7 @@ public class Endpoint implements BaseEndpoint {
     private String serviceCode;
     private String method;
     private String path;
+    private Client client;
     private boolean generated;
 
     protected Endpoint() {
