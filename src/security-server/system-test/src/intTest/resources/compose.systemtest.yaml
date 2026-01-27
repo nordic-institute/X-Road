@@ -7,6 +7,7 @@ services:
 
   signer:
     environment:
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
       - QUARKUS_LOG_LEVEL=INFO
     volumes:

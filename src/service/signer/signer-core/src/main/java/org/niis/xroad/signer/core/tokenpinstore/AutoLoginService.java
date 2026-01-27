@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.config.SignerAutologinProperties;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 
@@ -61,18 +61,18 @@ public class AutoLoginService {
             ErrorCode.LOGIN_FAILED
     );
 
-    private final SignerProperties signerProperties;
+    private final SignerAutologinProperties signerAutologinProperties;
     private final TokenWorkerProvider tokenWorkerProvider;
 
     public void execute() {
-        if (!signerProperties.autologin()) {
+        if (!signerAutologinProperties.enabled()) {
             log.info("Autologin disabled");
             return;
         }
 
-        Map<String, SignerProperties.TokenConfig> tokens = signerProperties.tokens();
+        Map<String, SignerAutologinProperties.TokenConfig> tokens = signerAutologinProperties.tokens();
         if (tokens.isEmpty()) {
-            log.warn("Autologin enabled but no tokens configured in xroad.signer.tokens.*");
+            log.warn("Autologin enabled but no tokens configured in xroad.signer.autologin.tokens.*");
             return;
         }
 
@@ -86,11 +86,11 @@ public class AutoLoginService {
      * Retries on transient errors (token not available, connection errors).
      * Fails immediately on fatal errors (incorrect PIN).
      */
-    private void performAutologin(Map<String, SignerProperties.TokenConfig> tokens) {
+    private void performAutologin(Map<String, SignerAutologinProperties.TokenConfig> tokens) {
         int successCount = 0;
         int failureCount = 0;
 
-        for (Map.Entry<String, SignerProperties.TokenConfig> entry : tokens.entrySet()) {
+        for (Map.Entry<String, SignerAutologinProperties.TokenConfig> entry : tokens.entrySet()) {
             String tokenId = entry.getKey();
             String pin = entry.getValue().pin();
 

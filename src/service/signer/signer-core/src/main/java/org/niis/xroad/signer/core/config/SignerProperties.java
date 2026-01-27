@@ -100,44 +100,4 @@ public interface SignerProperties {
     @WithName("modules")
     Map<String, ModuleProperties> modulesConfig();
 
-    /**
-     * Enable automatic token login on signer startup.
-     * When enabled, tokens will be automatically authenticated using PINs stored in OpenBao.
-     *
-     * @return true if autologin is enabled, false otherwise
-     */
-    @WithDefault("false")
-    boolean autologin();
-
-    /**
-     * Map of token configurations keyed by token ID.
-     * Configuration format:
-     * <pre>
-     * xroad.signer.tokens.0.pin=secret123
-     * xroad.signer.tokens.softtoken-1.pin=another-secret
-     * </pre>
-     * Or via environment variables:
-     * <pre>
-     * XROAD_SIGNER_TOKENS_0_PIN=secret123
-     * XROAD_SIGNER_TOKENS_SOFTTOKEN_1_PIN=another-secret
-     * </pre>
-     *
-     * @return map of token ID to TokenConfig
-     */
-    Map<String, TokenConfig> tokens();
-
-    /**
-     * Configuration for a single token.
-     */
-    interface TokenConfig {
-        /**
-         * Plaintext PIN for the token.
-         * This PIN will be stored in OpenBao on first startup and then retrieved from OpenBao
-         * for subsequent autologin operations.
-         *
-         * @return the token PIN
-         */
-        String pin();
-    }
-
 }
