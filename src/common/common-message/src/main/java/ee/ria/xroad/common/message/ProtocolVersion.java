@@ -78,9 +78,9 @@ public class ProtocolVersion implements ValidatableField {
         // Since the current requirements do not specify semantics for the
         // protocol version, we simply check if the version starts with
         // a predefined string.
-        if (!version.startsWith(CURRENT_VERSION_PREFIX)) {
+        if (!version.startsWith(CURRENT_VERSION_PREFIX) && !version.startsWith("5.")) {
             throw XrdRuntimeException.systemException(INVALID_PROTOCOL_VERSION,
-                    "Invalid protocol version (supported: %s, provided: %s)".formatted(
+                    "Invalid protocol version (supported: %s or 5.x, provided: %s)".formatted(
                     CURRENT_VERSION_PREFIX + 'x', version));
         }
     }

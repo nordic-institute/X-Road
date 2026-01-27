@@ -31,11 +31,13 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.SaxSoapParserImplV2;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.TerminologyTranslationConfig;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -132,6 +134,11 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     private volatile String originalSoapAction;
     private volatile SoapMessageImpl requestSoap;
     private volatile ServiceId requestServiceId;
+
+    /**
+     * True if the original request was V5 (used to trigger V4->V5 response translation).
+     */
+    private volatile boolean originalRequestWasV5;
 
     /**
      * If the request failed, will contain SOAP fault.
@@ -303,10 +310,30 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 ocspVerifierFactory, response,
                 httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
+        if (TerminologyTranslationConfig.getInstance().isServerSoapDecoderV5Enabled()) {
+            decoder.setSoapParserSupplier(SaxSoapParserImplV2::new);
+        }
         try {
             decoder.parse(httpSender.getResponseContent());
         } catch (XrdRuntimeException ex) {
             throw ex.withPrefix(X_SERVICE_FAILED_X);
+        }
+
+        // Scenario 5: Translate response V4 -> V5 if original request was V5
+        if (originalRequestWasV5
+                && TerminologyTranslationConfig.getInstance().isOutputToServerIsInV4()
+                && response.getSoap() != null
+                && response.getSoap().getProtocolVersion().startsWith("4.")) {
+            log.info("Translating V4 Response to V5 for Client (Scenario 5)");
+            try {
+                SoapMessageImpl v5Response = ee.ria.xroad.common.message.ProtocolTranslator.getInstance().translateToV5(response.getSoap());
+                if (v5Response != null) {
+                    response.setSoap(v5Response);
+                }
+            } catch (Exception e) {
+                log.error("Failed to translate response to V5", e);
+                // Continue with V4 response (or throw?) - failing safe by continuing?
+            }
         }
 
         updateOpMonitoringDataByResponse(decoder);
@@ -460,8 +487,10 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     @WithSpan
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
+            var parser = TerminologyTranslationConfig.getInstance().isClientSoapDecoderV5Enabled() ?
+                    new SaxSoapParserImplV2() : new SaxSoapParserImpl();
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(jRequest.getContentType(),
-                    handler, new SaxSoapParserImpl());
+                    handler, parser);
             try {
                 originalSoapAction = SoapUtils.validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
                 soapMessageDecoder.parse(jRequest.getInputStream());
@@ -485,6 +514,18 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             }
 
             requestSoap = (SoapMessageImpl) message;
+
+            if (requestSoap.getProtocolVersion().startsWith("5.")) {
+                ClientSoapMessageProcessor.this.originalRequestWasV5 = true;
+            }
+
+            // Scenario 5: Down-convert V5 -> V4 if configured (for Legacy Server)
+            if (TerminologyTranslationConfig.getInstance().isOutputToServerIsInV4()
+                    && originalRequestWasV5) {
+                log.info("Translating V5 Request to V4 for Legacy Server (Scenario 5)");
+                requestSoap = ee.ria.xroad.common.message.ProtocolTranslator.getInstance().translateToV4(requestSoap);
+            }
+
             requestServiceId = requestSoap.getService();
 
             opMonitoringDataHelper.updateOpMonitoringDataBySoapMessage(opMonitoringData, requestSoap);

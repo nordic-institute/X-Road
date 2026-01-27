@@ -31,13 +31,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.AttachmentStream;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.SaxSoapParserImplV2;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.TerminologyTranslationConfig;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -259,11 +260,56 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            handler.startHandling(jRequest, requestMessage, opMonitoringData);
+            ProxyMessage messageToSend = translateRequestIfNeeded(requestMessage);
+            handler.startHandling(jRequest, messageToSend, opMonitoringData);
             parseResponse(handler);
         } finally {
             handler.finishHandling();
         }
+    }
+
+    private ProxyMessage translateRequestIfNeeded(ProxyMessage input) {
+        boolean outputToProviderIsInV4 = ee.ria.xroad.common.message.TerminologyTranslationConfig.getInstance().isOutputToProviderIsInV4();
+
+        if (outputToProviderIsInV4 && input.getSoap().getProtocolVersion().startsWith("5.")) {
+            log.debug("Translating Request V5 -> V4 for Provider IS");
+            SoapMessageImpl translatedSoap = ee.ria.xroad.common.message.ProtocolTranslator.getInstance()
+                    .translateToV4(input.getSoap());
+            return createTranslatedProxyMessage(input, translatedSoap);
+        }
+
+        if (!outputToProviderIsInV4 && input.getSoap().getProtocolVersion().startsWith("4.")) {
+            log.debug("Translating Request V4 -> V5 for Provider IS");
+            SoapMessageImpl translatedSoap = ee.ria.xroad.common.message.ProtocolTranslator.getInstance()
+                    .translateToV5(input.getSoap());
+            return createTranslatedProxyMessage(input, translatedSoap);
+        }
+
+        return input;
+    }
+
+    private ProxyMessage createTranslatedProxyMessage(ProxyMessage input, SoapMessageImpl translatedSoap) {
+        return new ProxyMessage(input.getSoapContentType(), tempFilesPath) {
+            @Override
+            public SoapMessageImpl getSoap() {
+                return translatedSoap;
+            }
+
+            @Override
+            public List<AttachmentStream> getAttachments() {
+                return input.getAttachments();
+            }
+
+            @Override
+            public boolean hasAttachments() {
+                return !input.getAttachments().isEmpty();
+            }
+
+            @Override
+            public void writeSoapContent(java.io.OutputStream out) throws IOException {
+                out.write(translatedSoap.getBytes());
+            }
+        };
     }
 
     private void readMessage() throws Exception {
@@ -295,6 +341,9 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         decoder = new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory,
                 requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
+        if (TerminologyTranslationConfig.getInstance().isServerSoapDecoderV5Enabled()) {
+            decoder.setSoapParserSupplier(SaxSoapParserImplV2::new);
+        }
         try {
             decoder.parse(jRequest.getInputStream());
         } catch (XrdRuntimeException e) {
@@ -427,7 +476,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
     }
 
-    private void sendRequest(String serviceAddress, HttpSender httpSender) {
+    private void sendRequest(String serviceAddress, HttpSender httpSender, ProxyMessage messageToSend) {
         log.trace("sendRequest({})", serviceAddress);
 
         URI uri;
@@ -441,7 +490,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         log.info("Sending request to {}", uri);
         try {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(uri, new ProxyMessageSoapEntity(requestMessage));
+            httpSender.doPost(uri, new ProxyMessageSoapEntity(messageToSend));
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
             if (ex instanceof XrdRuntimeException) {
@@ -460,8 +509,20 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
         jResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType());
 
         try (SoapMessageHandler messageHandler = new SoapMessageHandler()) {
+            // Determine output terminology: Provider Request (V5/V4) -> Response (V5/V4)
+            // If Request was V5: return V5. If Request was V4: return V4.
+            // But we must check Config.
+            // Note: requestMessage is the *original* request from Client (V5).
+            String reqVersion = requestMessage.getSoap().getProtocolVersion();
+            ee.ria.xroad.common.message.TerminologyTranslatingParser.OutputTerminology outputTerm =
+                    ee.ria.xroad.common.message.TerminologyTranslationConfig.getInstance()
+                            .getOutputTerminology(reqVersion, false);
+
+            log.debug("Translating Response to meet Client Request Version '{}'. Selected Output Terminology: {}",
+                    reqVersion, outputTerm);
+
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(handler.getResponseContentType(),
-                    messageHandler, new ResponseSoapParserImpl());
+                    messageHandler, new ResponseSoapParserImpl(outputTerm));
             soapMessageDecoder.parse(handler.getResponseContent());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
@@ -592,7 +653,7 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
 
             sender.addHeader("accept-encoding", "");
             sender.addHeader("SOAPAction", originalSoapAction);
-            sendRequest(address, sender);
+            sendRequest(address, sender, proxyRequestMessage);
         }
 
         @Override
@@ -658,12 +719,16 @@ public class ServerSoapMessageProcessor extends MessageProcessorBase {
     /**
      * Soap parser that adds the request message hash to the response message header.
      */
-    private final class ResponseSoapParserImpl extends SaxSoapParserImpl {
+    private final class ResponseSoapParserImpl extends ee.ria.xroad.common.message.TerminologyTranslatingParser {
 
         private boolean inHeader;
         private boolean inBody;
         private boolean inExistingRequestHash;
         private boolean bufferFlushed = true;
+
+        ResponseSoapParserImpl(ee.ria.xroad.common.message.TerminologyTranslatingParser.OutputTerminology outputTerminology) {
+            super(outputTerminology);
+        }
 
         private char[] headerElementTabs;
 

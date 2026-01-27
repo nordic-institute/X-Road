@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    JAXB binding file for identifiers-v4-legacy.xsd
+    Makes generated classes implement IdentifierCommon interface
+-->
+<jxb:bindings xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
+              xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema"
+              jxb:extensionBindingPrefixes="xjc"
+              version="3.0">
+
+    <jxb:globalBindings>
+        <xjc:superInterface name="ee.ria.xroad.common.identifier.IdentifierCommon"/>
+    </jxb:globalBindings>
+
+</jxb:bindings>

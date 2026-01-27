@@ -34,6 +34,7 @@ import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParser;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
@@ -65,6 +66,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MimeTypes.HASH_CHAIN;
@@ -126,6 +128,18 @@ public class ProxyMessageDecoder {
 
     @Getter
     private byte[] restBodyDigest;
+
+    private java.util.function.Supplier<SoapParser> soapParserSupplier = SaxSoapParserImpl::new;
+
+    /**
+     * TODO POC
+     * Sets the supplier for creating SOAP parsers.
+     *
+     * @param supplier the supplier
+     */
+    public void setSoapParserSupplier(Supplier<SoapParser> supplier) {
+        this.soapParserSupplier = supplier;
+    }
 
     /**
      * Construct a message decoder.
@@ -199,7 +213,7 @@ public class ProxyMessageDecoder {
     }
 
     private void parseFault(InputStream is) throws IOException {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = soapParserSupplier.get().parse(MimeTypes.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
             throw XrdRuntimeException.systemException(INVALID_MESSAGE,
                     "Expected fault message, but got reqular SOAP message");
@@ -360,7 +374,7 @@ public class ProxyMessageDecoder {
                             "Invalid content type for SOAP message: %s".formatted(bd.getMimeType()));
             }
 
-            Soap soap = new SaxSoapParserImpl().parse(partContentType, is);
+            Soap soap = soapParserSupplier.get().parse(partContentType, is);
             if (soap instanceof SoapFault) {
                 callback.fault((SoapFault) soap);
             } else {
@@ -525,7 +539,7 @@ public class ProxyMessageDecoder {
                     // party sent SOAP fault instead of signature.
 
                     // Parse the fault message.
-                    Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
+                    Soap soap = soapParserSupplier.get().parse(bd.getMimeType(), is);
                     if (soap instanceof SoapFault) {
                         callback.fault((SoapFault) soap);
                         return; // The nextPart will be set to NONE

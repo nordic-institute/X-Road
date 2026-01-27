@@ -26,10 +26,10 @@
  */
 package org.niis.xroad.proxy.core.test;
 
+import ee.ria.xroad.common.message.SaxSoapParserImplV2;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 
 import lombok.Getter;
@@ -68,6 +68,10 @@ public class Message {
     private int numAttachments = 0;
 
     private Soap soap;
+
+    // Raw XML bytes for POC testing when JAXB parsing fails (e.g., V5 terminology)
+    @Getter
+    private byte[] rawSoapBytes;
 
     /**
      * Constructs a new message from the given input stream with the specified
@@ -116,6 +120,7 @@ public class Message {
 
         if (!(soap instanceof SoapMessageImpl)
                 || !(anotherMessage.soap instanceof SoapMessageImpl)) {
+            log.debug("this.soap is: {}", soap);
             return false;
         }
 
@@ -170,14 +175,18 @@ public class Message {
             // ATTACHMENT
             if (nextPart == 0) { // SOAP
                 try {
-                    soap = new SoapParserImpl().parse(
+                    // Capture raw bytes for POC testing
+                    rawSoapBytes = is.readAllBytes();
+                    java.io.ByteArrayInputStream bis = new java.io.ByteArrayInputStream(rawSoapBytes);
+                    soap = new SaxSoapParserImplV2().parse(
                             contentTypeWithCharset(
                                     bd.getMimeType(),
                                     bd.getCharset()
                             ),
-                            is);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                            bis);
+                } catch (Throwable e) {
+                    // Log but don't fail - soap stays null but rawSoapBytes is available
+                    log.error("Error when parsing SOAP (raw bytes available)", e);
                 }
 
                 nextPart = 1;

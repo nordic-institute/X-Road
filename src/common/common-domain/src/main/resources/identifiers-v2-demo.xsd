@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DEMO XSD for terminology transition feasibility testing.
+    This schema uses xs:choice with JAXB customization for unified property names.
+-->
+<xs:schema elementFormDefault="qualified" jxb:version="3.0" 
+    targetNamespace="http://x-road.eu/xsd/identifiers-v2" 
+    xmlns="http://x-road.eu/xsd/identifiers-v2" 
+    xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    
+    <!-- ============================================================== -->
+    <!-- BASE IDENTIFIER TYPE with xs:choice + JAXB unified properties  -->
+    <!-- ============================================================== -->
+    <xs:complexType name="XRoadIdentifierType">
+        <xs:annotation>
+            <xs:documentation>
+                Globally unique identifier in the X-Road system.
+                Supports both legacy (memberClass) and new (participantClass) terminology.
+                Uses JAXB customization for unified property names.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <!-- xRoadInstance OR dataspaceInstance → unified as "instance" -->
+            <xs:choice minOccurs="0">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <jxb:property name="instance"/>
+                    </xs:appinfo>
+                </xs:annotation>
+                <xs:element ref="xRoadInstance"/>
+                <xs:element ref="dataspaceInstance"/>
+            </xs:choice>
+            <!-- memberClass OR participantClass → unified as "participantClass" -->
+            <xs:choice minOccurs="0">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <jxb:property name="participantClass"/>
+                    </xs:appinfo>
+                </xs:annotation>
+                <xs:element ref="memberClass"/>
+                <xs:element ref="participantClass"/>
+            </xs:choice>
+            <!-- memberCode OR participantCode → unified as "participantCode" -->
+            <xs:choice minOccurs="0">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <jxb:property name="participantCode"/>
+                    </xs:appinfo>
+                </xs:annotation>
+                <xs:element ref="memberCode"/>
+                <xs:element ref="participantCode"/>
+            </xs:choice>
+            <!-- subsystemCode - unchanged -->
+            <xs:element minOccurs="0" ref="subsystemCode"/>
+            <!-- groupCode - unchanged -->
+            <xs:element minOccurs="0" ref="groupCode"/>
+            <!-- serviceCode - unchanged -->
+            <xs:element minOccurs="0" ref="serviceCode"/>
+            <!-- serviceVersion - unchanged -->
+            <xs:element minOccurs="0" ref="serviceVersion"/>
+            <!-- serverCode OR connectorCode → unified as "connectorCode" -->
+            <xs:choice minOccurs="0">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <jxb:property name="connectorCode"/>
+                    </xs:appinfo>
+                </xs:annotation>
+                <xs:element ref="serverCode"/>
+                <xs:element ref="connectorCode"/>
+            </xs:choice>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required"/>
+    </xs:complexType>
+    
+    <!-- ============================================================== -->
+    <!-- OBJECT TYPE ENUMERATION                                        -->
+    <!-- ============================================================== -->
+    <xs:simpleType name="XRoadObjectType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MEMBER"/>
+            <xs:enumeration value="PARTICIPANT"/>
+            <xs:enumeration value="SUBSYSTEM"/>
+            <xs:enumeration value="SERVER"/>
+            <xs:enumeration value="CONNECTOR"/>
+            <xs:enumeration value="GLOBALGROUP"/>
+            <xs:enumeration value="LOCALGROUP"/>
+            <xs:enumeration value="SERVICE"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <!-- ELEMENT DEFINITIONS - LEGACY -->
+    <xs:element name="xRoadInstance" type="xs:string"/>
+    <xs:element name="memberClass" type="xs:string"/>
+    <xs:element name="memberCode" type="xs:string"/>
+    <xs:element name="serverCode" type="xs:string"/>
+    
+    <!-- ELEMENT DEFINITIONS - NEW -->
+    <xs:element name="dataspaceInstance" type="xs:string"/>
+    <xs:element name="participantClass" type="xs:string"/>
+    <xs:element name="participantCode" type="xs:string"/>
+    <xs:element name="connectorCode" type="xs:string"/>
+    
+    <!-- ELEMENT DEFINITIONS - UNCHANGED -->
+    <xs:element name="subsystemCode" type="xs:string"/>
+    <xs:element name="groupCode" type="xs:string"/>
+    <xs:element name="serviceCode" type="xs:string"/>
+    <xs:element name="serviceVersion" type="xs:string"/>
+    <xs:attribute name="objectType" type="XRoadObjectType"/>
+    
+    <!-- DERIVED TYPES -->
+    <xs:complexType name="XRoadClientIdentifierType">
+        <xs:complexContent>
+            <xs:extension base="XRoadIdentifierType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="XRoadSecurityServerIdentifierType">
+        <xs:complexContent>
+            <xs:extension base="XRoadIdentifierType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="XRoadServiceIdentifierType">
+        <xs:complexContent>
+            <xs:extension base="XRoadIdentifierType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="XRoadGlobalGroupIdentifierType">
+        <xs:complexContent>
+            <xs:extension base="XRoadIdentifierType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="XRoadLocalGroupIdentifierType">
+        <xs:complexContent>
+            <xs:extension base="XRoadIdentifierType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+</xs:schema>

@@ -110,6 +110,14 @@ public class ProxyMessage implements ProxyMessageConsumer {
         return soapMessage;
     }
 
+    /**
+     * Update the SOAP message (e.g. after translation).
+     * @param soap the new SOAP message
+     */
+    public void setSoap(SoapMessageImpl soap) {
+        this.soapMessage = soap;
+    }
+
     public RestRequest getRest() {
         return restMessage;
     }
