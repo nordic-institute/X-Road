@@ -169,8 +169,8 @@ function get_used_memory() {
 #Calculates memory based on total memory and given percentiles
 #Arguments:
 #1. Total memory
-#2. Minimum allowed memory in megabytes
-#3. Maximum allowed memory in megabytes
+#2. Minimum allowed memory
+#3. Maximum allowed memory
 #4. global array variable: memory_config. Percentiles list for getting memory based on total memory.
 #For example: ("4000:125" "8000:500") means if total memory is less than 4000 then result is 1/8 of total memory, if less than 8000 then half of total memory.
 #should be listed in ascending order based on total memory part.
