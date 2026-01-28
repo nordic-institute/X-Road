@@ -19,6 +19,28 @@
   tags:
     - ubuntu-container-init
 
+- name: Force IPv4 for APT to prevent IPv6 timeouts
+  raw: echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
+- name: Configure safe APT timeouts
+  raw: |
+    cat <<EOF > /etc/apt/apt.conf.d/99timeouts
+    Acquire::Connect::Timeout "5";
+    Acquire::http::Timeout "10";
+    Acquire::https::Timeout "10";
+    Acquire::Retries "3";
+    EOF
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
+- name: Disable unattended-upgrades
+  raw: systemctl stop unattended-upgrades && systemctl disable unattended-upgrades
+  ignore_errors: yes
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
 - name: Ready all Rocky Linux {{rhel_releasever}} containers
   become: "{{ onMacOs | default(true) }}"
   with_inventory_hostnames: rhel_ss

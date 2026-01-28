@@ -99,7 +99,7 @@ function handleRecreate() {
 
 function handleAnsible() {
 
-  ansible-playbook -i "$INVENTORY_PATH" \
+  ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
     ../../development/ansible/xroad_dev.yml \
     --forks 10 \
     --skip-tags compile,build-packages \
