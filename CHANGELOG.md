@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.8.0 - UNRELEASED
+## 7.8.0 - 2026-01-28
 - XRDDEV-2734: Improve the method by which the operational monitoring component on the Security Server resolves its internal IP.
 - XRDDEV-2919: Allow ACME HTTP challenge port to be customised. This helps in cases where the host or container doesn’t have port 80 available to bind to, but the user still wants to use ACME.
 - XRDDEV-2921: Improve the diagnostics information available on the diagnostics page of the Security Server user interface regarding the global configuration and TSA connections.
@@ -29,8 +29,17 @@
 - XRDDEV-3048: Install the hardware token module addon as baseline in the Security Server Sidecar so that hardware tokens can be used with it. The addon is now included in all the Security Server Sidecar variants.
 - XRDDEV-3049: Migrate to the ECharts JS library on the Security Server UI due to licensing changes in the original charting library used.
 - XRDDEV-3050: Fix an issue in the Security Server initialisation flow that was caused by the “Served id exists” warning.
+- XRDDEV-3061: Installing xroad-autologin package hangs.
 - XRDDEV-3062: Fix an issue with the PEM CSR format when used with ACME.
 - XRDDEV-3064: Implement automatic account-keystore-password for ACME in acme.yml. Before the change, the password had to be manually defined by the Security Server administrator. After the change, the password is generated automatically by the Security Server.
+- XRDDEV-3072: Bug: Improper input validation on the Central Server and Security Server views.
+- XRDDEV-3074: Spike: As a Developer I want to correct our CSP settings so that the web ui is more secure.
+- XRDDEV-3077: BasicACMECertificateProfile should support the SAN field on sign certificates as well as auth certificates.
+- XRDDEV-3079: Fix an issue that caused the “Used Servers” section in the Central Server’s “Member Details” view to be always empty.
+- XRDDEV-3080: Minor issues found during testing of version 7.8.0-beta.
+- XRDDEV-3081: Diagnostics page shows error 500 when the latest version of the global configuration is not available.
+- XRDDEV-3082: Confproxy view conf and create instance commands not working.
+- XRDDEV-3101: Validation error message is not shown when trying to save an invalid Central Server address in the Edit Central Server address view on the Central Server.
 
 ## 7.7.1 - 2025-12-23
 - XRDDEV-3049: As a Developer I want to replace our charting library for a library that has a better license so that we don't have licensing issues
