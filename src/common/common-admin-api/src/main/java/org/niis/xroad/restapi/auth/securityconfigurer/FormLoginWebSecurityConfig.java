@@ -100,7 +100,7 @@ public class FormLoginWebSecurityConfig {
                         .ignoringRequestMatchers(LOGIN_URL)
                         .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite))
                 )
-                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline'"))
+                .headers(headerPolicyDirectives("default-src 'self'"))
                 .formLogin(customizer -> customizer
                         .loginPage(LOGIN_URL)
                         .successHandler(formLoginStatusCodeSuccessHandler())

@@ -52,6 +52,9 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
         'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
       },
     },
+    html: {
+      cspNonce: '__CSP_NONCE__',
+    },
     css: {
       preprocessorOptions: {
         scss: {

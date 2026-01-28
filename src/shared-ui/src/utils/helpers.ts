@@ -121,3 +121,11 @@ export function isValidWsdlURL(str: string): boolean {
 export function isValidRestURL(str: string): boolean {
   return isValidWsdlURL(str);
 }
+
+// Read nonce from meta tag
+export function getNonce(): string | undefined {
+  const meta = document.querySelector('meta[name="csp-nonce"]');
+  const nonce = meta?.getAttribute('content') || undefined;
+  console.log('CSP Nonce:', nonce);
+  return nonce;
+}
