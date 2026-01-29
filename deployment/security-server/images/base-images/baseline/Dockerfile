@@ -1,6 +1,13 @@
 ARG REGISTRY=localhost:5555
 FROM eclipse-temurin:21-jre
 
+# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
+RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+
 RUN groupadd --system --gid 999 xroad && \
     useradd --system  \
     --uid 999  \
