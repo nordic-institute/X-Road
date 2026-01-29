@@ -39,6 +39,7 @@ import org.niis.xroad.backupmanager.proto.CreateBackupReq;
 import org.niis.xroad.backupmanager.proto.DeleteBackupReq;
 import org.niis.xroad.backupmanager.proto.DownloadBackupReq;
 import org.niis.xroad.backupmanager.proto.GenerateGpgKeyReq;
+import org.niis.xroad.backupmanager.proto.HasGpgKeyResp;
 import org.niis.xroad.backupmanager.proto.ListBackupsResp;
 import org.niis.xroad.backupmanager.proto.RestoreBackupReq;
 import org.niis.xroad.backupmanager.proto.UploadBackupReq;
@@ -113,6 +114,13 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
             backupHandler.generateGpgKey(request.getKeyName());
             return Empty.getDefaultInstance();
         });
+    }
+
+    @Override
+    public void hasGpgKey(Empty request, StreamObserver<HasGpgKeyResp> responseObserver) {
+        rpcResponseHandler.handleRequest(responseObserver, () -> HasGpgKeyResp.newBuilder()
+                .setHasGpgKey(backupHandler.hasGpgKey())
+                .build());
     }
 
     @Override

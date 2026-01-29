@@ -27,6 +27,8 @@ tags:
     description: services' endpoints related endpoints
   - name: initialization
     description: initialization endpoints
+  - name: initialization-v2
+    description: v2 initialization endpoints with granular step tracking
   - name: keys
     description: keys endpoints
   - name: language
@@ -2731,6 +2733,195 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+
+  # V2 Initialization Endpoints - Granular step-based initialization
+  /v2/initialization/status:
+    get:
+      tags:
+        - initialization-v2
+      summary: Get detailed initialization status with granular step tracking
+      operationId: getInitializationStatusV2
+      description: |
+        <h3>Get the complete initialization status with individual step tracking.</h3>
+        <p>Returns the status of each initialization step (SERVERCONF, SOFTTOKEN, GPG_KEY, MLOG_ENCRYPTION)
+        along with overall status and lists of pending/completed/failed steps.</p>
+      responses:
+        '200':
+          description: detailed initialization status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializationStatusV2'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: internal server error
+
+  /v2/initialization/serverconf:
+    post:
+      tags:
+        - initialization-v2
+      summary: Initialize server configuration (code + owner)
+      operationId: initializeServerConf
+      description: |
+        <h3>Initialize the server configuration step.</h3>
+        <p>Sets the security server code and owner. This is the first required step
+        and must be completed before other initialization steps can proceed.</p>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServerConfInitRequest'
+      responses:
+        '201':
+          description: server configuration initialized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitStepResult'
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '409':
+          description: step already completed or prerequisite not met
+        '500':
+          description: internal server error
+
+  /v2/initialization/softtoken:
+    post:
+      tags:
+        - initialization-v2
+      summary: Initialize software token
+      operationId: initializeSoftToken
+      description: |
+        <h3>Initialize the software token step.</h3>
+        <p>Creates and initializes the software token with the provided PIN.
+        Requires SERVERCONF step to be completed first.</p>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoftTokenInitRequest'
+      responses:
+        '201':
+          description: software token initialized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitStepResult'
+        '400':
+          description: request was invalid (e.g., weak PIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '409':
+          description: step already completed or prerequisite not met
+        '500':
+          description: internal server error
+
+  /v2/initialization/gpg-key:
+    post:
+      tags:
+        - initialization-v2
+      summary: Generate GPG key for backup encryption
+      operationId: initializeGpgKey
+      description: |
+        <h3>Initialize the GPG key step.</h3>
+        <p>Generates the GPG key pair used for backup encryption.
+        Requires SERVERCONF step to be completed first.</p>
+      responses:
+        '201':
+          description: GPG key generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitStepResult'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '409':
+          description: step already completed or prerequisite not met
+        '500':
+          description: internal server error
+
+  /v2/initialization/messagelog-encryption:
+    post:
+      tags:
+        - initialization-v2
+      summary: Initialize message log encryption
+      operationId: initializeMessageLogEncryption
+      description: |
+        <h3>Initialize the message log encryption step.</h3>
+        <p>Generates encryption keys for message log archival and database encryption.
+        Requires SERVERCONF step to be completed first.</p>
+      responses:
+        '201':
+          description: message log encryption initialized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitStepResult'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '409':
+          description: step already completed or prerequisite not met
+        '500':
+          description: internal server error
+
+  /v2/initialization/run-all:
+    post:
+      tags:
+        - initialization-v2
+      summary: Run all pending initialization steps
+      operationId: runAllInitializationSteps
+      description: |
+        <h3>Execute all pending initialization steps in order.</h3>
+        <p>Runs SERVERCONF, SOFTTOKEN, GPG_KEY, and MLOG_ENCRYPTION steps sequentially,
+        skipping any that are already completed. Stops on first failure.</p>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FullInitRequestV2'
+      responses:
+        '200':
+          description: initialization status after execution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializationStatusV2'
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '409':
+          description: anchor not imported
+        '500':
+          description: internal server error
+
   /local-groups/{group_id}:
     get:
       tags:
@@ -7313,6 +7504,211 @@ components:
         enforce_token_pin_policy:
           type: boolean
           description: whether the token pin policy is enforced or not
+
+    # V2 Initialization Schemas
+    InitializationStep:
+      type: string
+      description: Individual initialization step identifier
+      enum:
+        - SERVERCONF
+        - SOFTTOKEN
+        - GPG_KEY
+        - MLOG_ENCRYPTION
+
+    InitializationStepStatus:
+      type: string
+      description: Status of an initialization step
+      enum:
+        - NOT_STARTED
+        - IN_PROGRESS
+        - COMPLETED
+        - FAILED
+        - SKIPPED
+        - UNKNOWN
+
+    InitializationOverallStatus:
+      type: string
+      description: Overall initialization status
+      enum:
+        - NOT_STARTED
+        - IN_PROGRESS
+        - PARTIALLY_COMPLETED
+        - FAILED
+        - COMPLETED
+
+    InitializationStepInfo:
+      type: object
+      description: Detailed status information for a single initialization step
+      required:
+        - step
+        - status
+        - retryable
+      properties:
+        step:
+          $ref: '#/components/schemas/InitializationStep'
+        status:
+          $ref: '#/components/schemas/InitializationStepStatus'
+        started_at:
+          type: string
+          format: date-time
+          description: when the step started executing
+        completed_at:
+          type: string
+          format: date-time
+          description: when the step completed
+        error_message:
+          type: string
+          description: human-readable error message if failed
+        error_code:
+          type: string
+          description: machine-readable error code if failed
+        retryable:
+          type: boolean
+          description: whether this step can be retried after failure
+
+    InitializationStatusV2:
+      type: object
+      description: Complete initialization status with granular step tracking
+      required:
+        - overall_status
+        - anchor_imported
+        - steps
+        - pending_steps
+        - failed_steps
+        - completed_steps
+        - fully_initialized
+      properties:
+        overall_status:
+          $ref: '#/components/schemas/InitializationOverallStatus'
+        anchor_imported:
+          type: boolean
+          description: whether the configuration anchor has been imported
+        steps:
+          type: array
+          description: detailed status for each initialization step
+          items:
+            $ref: '#/components/schemas/InitializationStepInfo'
+        pending_steps:
+          type: array
+          description: list of steps that are pending
+          items:
+            $ref: '#/components/schemas/InitializationStep'
+        failed_steps:
+          type: array
+          description: list of steps that have failed
+          items:
+            $ref: '#/components/schemas/InitializationStep'
+        completed_steps:
+          type: array
+          description: list of steps that have completed
+          items:
+            $ref: '#/components/schemas/InitializationStep'
+        fully_initialized:
+          type: boolean
+          description: whether all required steps are completed
+        security_server_id:
+          type: string
+          description: the security server ID if serverconf is initialized
+        token_pin_policy_enforced:
+          type: boolean
+          description: whether token PIN policy is enforced
+
+    InitStepResult:
+      type: object
+      description: Result of executing an initialization step
+      required:
+        - step
+        - status
+        - success
+      properties:
+        step:
+          $ref: '#/components/schemas/InitializationStep'
+        status:
+          $ref: '#/components/schemas/InitializationStepStatus'
+        success:
+          type: boolean
+          description: whether the step executed successfully
+        message:
+          type: string
+          description: optional message about the result
+        error_code:
+          type: string
+          description: error code if failed
+
+    ServerConfInitRequest:
+      type: object
+      description: Request to initialize server configuration
+      required:
+        - security_server_code
+        - owner_member_class
+        - owner_member_code
+      properties:
+        security_server_code:
+          type: string
+          description: code for the security server
+          minLength: 1
+          maxLength: 255
+        owner_member_class:
+          type: string
+          description: member class of the owner
+          minLength: 1
+          maxLength: 255
+        owner_member_code:
+          type: string
+          description: member code of the owner
+          minLength: 1
+          maxLength: 255
+        ignore_warnings:
+          type: boolean
+          description: whether to ignore warnings
+          default: false
+
+    SoftTokenInitRequest:
+      type: object
+      description: Request to initialize software token
+      required:
+        - software_token_pin
+      properties:
+        software_token_pin:
+          type: string
+          description: PIN for the software token
+          minLength: 1
+          maxLength: 255
+
+    FullInitRequestV2:
+      type: object
+      description: Request to run all initialization steps
+      required:
+        - security_server_code
+        - owner_member_class
+        - owner_member_code
+        - software_token_pin
+      properties:
+        security_server_code:
+          type: string
+          description: code for the security server
+          minLength: 1
+          maxLength: 255
+        owner_member_class:
+          type: string
+          description: member class of the owner
+          minLength: 1
+          maxLength: 255
+        owner_member_code:
+          type: string
+          description: member code of the owner
+          minLength: 1
+          maxLength: 255
+        software_token_pin:
+          type: string
+          description: PIN for the software token
+          minLength: 1
+          maxLength: 255
+        ignore_warnings:
+          type: boolean
+          description: whether to ignore warnings
+          default: false
+
     KeyWithCertificateSigningRequestId:
       type: object
       description: Key and TokenCertificateSigningRequest id

@@ -175,6 +175,20 @@ public class FileSystemBackupHandler {
         return backupRepository.storeBackup(name, content);
     }
 
+    public boolean hasGpgKey() {
+        try {
+            String[] args = new String[]{"--homedir", backupManagerProperties.gpgKeysHomePath(),
+                    "--list-keys", "--with-colons"};
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure("gpg", args);
+            return processResult.getProcessOutput().stream()
+                    .anyMatch(line -> line.startsWith("pub:") || line.startsWith("sec:"));
+        } catch (Exception e) {
+            log.warn("Could not check GPG key existence: {}", e.getMessage());
+            return false;
+        }
+    }
+
     public void generateGpgKey(String keyName) {
         String[] args = new String[]{backupManagerProperties.gpgKeysHomePath(), keyName};
         try {
