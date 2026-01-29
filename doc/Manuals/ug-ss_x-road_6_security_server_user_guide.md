@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.104  
+Version: 2.105  
 Doc. ID: UG-SS
 
 ---
@@ -126,13 +126,14 @@ Doc. ID: UG-SS
 | 09.03.2025 | 2.95    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius |
 | 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 | 30.04.2025 | 2.97    | Added ACME challenge port environment variable toggle                                                                                                                                                                                                                                                                                                                                                       | Mikk-Erik Bachmann   |
-| 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
+| 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the Security Server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
 | 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 | 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
 | 01.12.2025 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
 | 07.12.2025 | 2.103   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
 | 15.12.2025 | 2.104   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
+| 29.01.2026 | 2.105   | Added information on how to delete a subsystem from the Security Server                                                                                                                                                                                                                                                                                                                                     | Raido Kaju           |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -181,6 +182,7 @@ Doc. ID: UG-SS
     - [4.7.1 Disabling Client Subsystem](#471-disabling-client-subsystem)
     - [4.7.2 Enabling Client Subsystem](#472-enabling-client-subsystem)
   - [4.8 Renaming Client Subsystem](#48-renaming-client-subsystem)
+  - [4.9 Deleting Client Subsystem](#49-deleting-client-subsystem)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
@@ -1157,6 +1159,9 @@ To rename a client subsystem, follow these steps.
 
 **Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where the latest rename replaces the previous one and rename will be executed on client registration request using last provided name. 
 
+### 4.9 Deleting Client Subsystem
+
+Deleting a client subsystem can be completed by following the steps described in section [4.6 Deleting a Client from the Security Server](#46-deleting-a-client-from-the-security-server). In this context, the subsystem is treated as a client (i.e., a client subsystem).
 
 ## 5 Security Tokens, Keys, and Certificates
 
