@@ -1161,17 +1161,7 @@ To rename a client subsystem, follow these steps.
 
 ### 4.9 Deleting Client Subsystem
 
-**Access rights:** [Registration Officer](#xroad-registration-officer)
-
-To delete a client subsystem, follow these steps.
-
-1. In the **CLIENTS** view click the name of subsystem that you wish to delete
-
-2. In the window that opens, click **Unregister** and then click **YES** in the confirmation dialog. The Security Server automatically sends a client deletion request to the X-Road Central Server and the subsystems status changes to `Deletion in progress`.
-
-3. If the previous operation was successful a **Delete** button is shown on the top of the view, click the button and then click **YES** in the confirmation dialog. The subsystem is now deleted from this Security Server.
-
-**Note:** Propagating the change to the other Security Servers in the X-Road ecosystem might take a few minutes.
+Deleting a client subsystem can be completed by following the steps described in section [4.6 Deleting a Client from the Security Server](#46-deleting-a-client-from-the-security-server). In this context, the subsystem is treated as a client (i.e., a client subsystem).
 
 ## 5 Security Tokens, Keys, and Certificates
 
