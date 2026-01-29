@@ -60,7 +60,7 @@ public class ModuleManager implements TokenWorkerProvider {
     private final HardwareModuleWorkerFactory hardwareModuleWorkerFactory;
     private final SignerHwTokenAddonProperties hwTokenAddonProperties;
     private final ModuleConf moduleConf;
-    private final ExecutorService autoLoginExecutor = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
+    private final ExecutorService autoLoginExecutor = Executors.newSingleThreadExecutor(Thread.ofVirtual().factory());
     private final AutoLoginService autoLoginService;
 
     @SuppressWarnings("java:S3077")
@@ -71,10 +71,10 @@ public class ModuleManager implements TokenWorkerProvider {
         log.info("Initializing module worker of instance {}", getClass().getSimpleName());
         try {
             refresh();
+            autoLoginExecutor.execute(autoLoginService::execute);
         } catch (Exception e) {
             log.error("Failed to initialize token worker!", e);
         }
-        autoLoginExecutor.execute(autoLoginService::execute);
     }
 
     public synchronized void refresh() {

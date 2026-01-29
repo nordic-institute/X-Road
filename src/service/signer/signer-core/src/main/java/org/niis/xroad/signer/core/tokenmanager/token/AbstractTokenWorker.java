@@ -97,7 +97,7 @@ public abstract class AbstractTokenWorker extends SignReqHandler implements Toke
             if (!message.getActivate()) {
                 tokenPinStoreProvider.clearPin(message.getTokenId());
             } else if (message.hasPin()) {
-                tokenPinStoreProvider.addPin(message.getTokenId(), byteToChar(message.getPin().toByteArray()));
+                tokenPinStoreProvider.setPin(message.getTokenId(), byteToChar(message.getPin().toByteArray()));
             }
 
             activateToken(message);

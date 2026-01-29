@@ -47,6 +47,7 @@ import static ee.ria.xroad.common.util.SignerProtoUtils.charToByte;
 @RequiredArgsConstructor
 public class AutoLoginService {
     private static final Duration RETRY_DELAY = Duration.ofSeconds(3);
+    private static final int MAX_RETRY_ATTEMPTS = 100;
 
     private static final Set<ErrorCode> FATAL_ERRORS = Set.of(
             ErrorCode.TOKEN_PIN_INCORRECT
@@ -87,8 +88,6 @@ public class AutoLoginService {
      * Fails immediately on fatal errors (incorrect PIN).
      */
     private void performAutologin(Map<String, SignerAutologinProperties.TokenConfig> tokens) {
-        int successCount = 0;
-        int failureCount = 0;
 
         for (Map.Entry<String, SignerAutologinProperties.TokenConfig> entry : tokens.entrySet()) {
             String tokenId = entry.getKey();
@@ -96,20 +95,19 @@ public class AutoLoginService {
 
             if (pin == null || pin.isBlank()) {
                 log.warn("Skipping token {} - PIN is empty", tokenId);
-                failureCount++;
                 continue;
             }
 
             LoginResult result = loginTokenWithRetry(tokenId, pin.toCharArray());
 
-            if (LoginResult.FATAL_ERROR == result) {
+            if (LoginResult.SUCCESS == result) {
+                log.info("Autologin successful for token {}", tokenId);
+            } else if (LoginResult.FATAL_ERROR == result) {
                 log.error("Fatal error during autologin for token {}, aborting", tokenId);
                 throw XrdRuntimeException.systemInternalError(
                         "Autologin failed with fatal error for token: " + tokenId);
             }
         }
-
-        log.info("Autologin completed: {} successful, {} failed", successCount, failureCount);
     }
 
     /**
@@ -120,8 +118,10 @@ public class AutoLoginService {
      * @return the login result
      */
     private LoginResult loginTokenWithRetry(String tokenId, char[] pin) {
-        while (true) {
-            log.info("(Re)trying to login to token {}", tokenId);
+        int attempts = 0;
+        while (attempts < MAX_RETRY_ATTEMPTS) {
+            attempts++;
+            log.info("Attempting to login to token {} (attempt {}/{})", tokenId, attempts, MAX_RETRY_ATTEMPTS);
 
             try {
                 var activateTokenReq = ActivateTokenReq.newBuilder()
@@ -160,6 +160,8 @@ public class AutoLoginService {
                 sleep(RETRY_DELAY);
             }
         }
+        log.error("Max retry attempts ({}) exceeded for token {}", MAX_RETRY_ATTEMPTS, tokenId);
+        return LoginResult.FATAL_ERROR;
     }
 
     private void sleep(Duration duration) {
@@ -173,7 +175,6 @@ public class AutoLoginService {
 
     private enum LoginResult {
         SUCCESS,
-        FATAL_ERROR,
-        RETRYABLE_ERROR
+        FATAL_ERROR
     }
 }

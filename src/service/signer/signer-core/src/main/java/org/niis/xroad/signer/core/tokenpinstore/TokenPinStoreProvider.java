@@ -30,6 +30,6 @@ import java.util.Optional;
 
 public interface TokenPinStoreProvider {
     Optional<char[]> getPin(String tokenId);
-    void addPin(String id, char[] password);
+    void setPin(String id, char[] password);
     void clearPin(String id);
 }

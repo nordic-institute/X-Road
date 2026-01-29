@@ -50,7 +50,7 @@ public class VaultTokenPinStoreProvider implements TokenPinStoreProvider {
     }
 
     @Override
-    public void addPin(String tokenId, char[] pin) {
+    public void setPin(String tokenId, char[] pin) {
         vaultClient.setTokenPin(tokenId, pin);
         log.info("Stored PIN for token {} into Vault", tokenId);
     }
