@@ -1,5 +1,12 @@
 FROM ubuntu:24.04
 
+# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
+RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+
 # ACME
 ARG A2C_VER=0.35
 ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
