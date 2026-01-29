@@ -31,7 +31,14 @@
     Acquire::http::Timeout "10";
     Acquire::https::Timeout "10";
     Acquire::Retries "3";
+    Acquire::http::LowSpeedLimit "100000"; 
+    Acquire::http::LowSpeedTime "10";
     EOF
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
+- name: Switch to fast Estonian mirror (xtom.ee)
+  raw: sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://mirrors.xtom.ee/ubuntu-ports|g' /etc/apt/sources.list.d/ubuntu.sources
   delegate_to: "{{ item }}"
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
