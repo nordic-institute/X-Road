@@ -71,11 +71,7 @@ public class OcspResponderDiagnosticConverter {
     private OcspResponderDiagnosticsDto convertOcspResponder(DiagnosticsStatus diagnosticsStatus) {
         OcspResponderDiagnosticsDto ocspResponder = new OcspResponderDiagnosticsDto();
         ocspResponder.setUrl(diagnosticsStatus.getDescription());
-        CostType ocspResponderCostType =
-                globalConfProvider.getOcspResponderCostType(globalConfProvider.getInstanceIdentifier(), diagnosticsStatus.getDescription());
-        if (ocspResponderCostType != null) {
-            ocspResponder.setCostType(CostTypeDto.fromValue(ocspResponderCostType.name()));
-        }
+        ocspResponder.setCostType(getCostType(diagnosticsStatus));
         if (diagnosticsStatus.getErrorCode() != null) {
             ocspResponder.setError(new CodeWithDetailsDto(diagnosticsStatus.getErrorCode().code())
                     .metadata(diagnosticsStatus.getErrorCodeMetadata()));
@@ -86,6 +82,12 @@ public class OcspResponderDiagnosticConverter {
         }
         ocspResponder.setNextUpdateAt(diagnosticsStatus.getNextUpdate());
         return ocspResponder;
+    }
+
+    private CostTypeDto getCostType(DiagnosticsStatus diagnosticsStatus) {
+        CostType costType =
+                globalConfProvider.getOcspResponderCostType(globalConfProvider.getInstanceIdentifier(), diagnosticsStatus.getDescription());
+        return costType != null ? CostTypeDto.valueOf(costType.name()) : CostTypeDto.UNDEFINED;
     }
 
     private List<OcspResponderDiagnosticsDto> convertOcspResponders(Iterable<DiagnosticsStatus> statuses) {
