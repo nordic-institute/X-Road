@@ -94,7 +94,7 @@ if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"
 fi
 IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print a[1]}' | paste -sd "," -)
-DNS_LIST="$(hostname -f)$(hostname -s)"
+DNS_LIST="$(hostname -f),$(hostname -s)"
 if ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.common-name' &>/dev/null \
    && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.alt-names' &>/dev/null \
    && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names' &>/dev/null; then
