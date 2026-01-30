@@ -32,7 +32,6 @@ import org.niis.xroad.securityserver.restapi.dto.InitializationStatusV2;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStep;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStepInfo;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStepStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.FullInitRequestV2Dto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitStepResultDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationOverallStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusV2Dto;
@@ -51,7 +50,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_ALL_STEPS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_GPG_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_MLOG_ENCRYPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONF;
@@ -72,14 +70,14 @@ public class InitializationApiControllerV2 implements InitializationV2Api {
     @Override
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InitializationStatusV2Dto> getInitializationStatusV2() {
-        InitializationStatusV2 status = initializationStepService.getInitializationStatusV2();
+        InitializationStatusV2 status = initializationStepService.getInitializationStatus();
         return ResponseEntity.ok(convertStatus(status));
     }
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = INIT_SERVER_CONF)
-    public synchronized ResponseEntity<InitStepResultDto> initializeServerConf(
+    public ResponseEntity<InitStepResultDto> initializeServerConf(
             ServerConfInitRequestDto serverConfInitRequestDto) {
         InitializationStepInfo result = initializationStepService.executeServerConfStep(
                 serverConfInitRequestDto.getSecurityServerCode(),
@@ -92,7 +90,7 @@ public class InitializationApiControllerV2 implements InitializationV2Api {
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = INIT_SOFTTOKEN)
-    public synchronized ResponseEntity<InitStepResultDto> initializeSoftToken(
+    public ResponseEntity<InitStepResultDto> initializeSoftToken(
             SoftTokenInitRequestDto softTokenInitRequestDto) {
         InitializationStepInfo result = initializationStepService.executeSoftTokenStep(
                 softTokenInitRequestDto.getSoftwareTokenPin());
@@ -102,7 +100,7 @@ public class InitializationApiControllerV2 implements InitializationV2Api {
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = INIT_GPG_KEY)
-    public synchronized ResponseEntity<InitStepResultDto> initializeGpgKey() {
+    public ResponseEntity<InitStepResultDto> initializeGpgKey() {
         InitializationStepInfo result = initializationStepService.executeGpgKeyStep();
         return createStepResultResponse(result);
     }
@@ -110,34 +108,20 @@ public class InitializationApiControllerV2 implements InitializationV2Api {
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = INIT_MLOG_ENCRYPTION)
-    public synchronized ResponseEntity<InitStepResultDto> initializeMessageLogEncryption() {
+    public ResponseEntity<InitStepResultDto> initializeMessageLogEncryption() {
         InitializationStepInfo result = initializationStepService.executeMessageLogEncryptionStep();
         return createStepResultResponse(result);
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    @AuditEventMethod(event = INIT_ALL_STEPS)
-    public synchronized ResponseEntity<InitializationStatusV2Dto> runAllInitializationSteps(
-            FullInitRequestV2Dto fullInitRequestV2Dto) {
-        InitializationStatusV2 status = initializationStepService.executeAllPendingSteps(
-                fullInitRequestV2Dto.getSecurityServerCode(),
-                fullInitRequestV2Dto.getOwnerMemberClass(),
-                fullInitRequestV2Dto.getOwnerMemberCode(),
-                fullInitRequestV2Dto.getSoftwareTokenPin(),
-                Boolean.TRUE.equals(fullInitRequestV2Dto.getIgnoreWarnings()));
-        return ResponseEntity.ok(convertStatus(status));
-    }
-
     private ResponseEntity<InitStepResultDto> createStepResultResponse(InitializationStepInfo result) {
-        InitStepResultDto dto = new InitStepResultDto(
-                mapStep(result.getStep()),
-                mapStepStatus(result.getStatus()),
-                result.getStatus() == InitializationStepStatus.COMPLETED);
-        dto.setMessage(result.getErrorMessage());
-        dto.setErrorCode(result.getErrorCode());
+        var dto = new InitStepResultDto(
+                mapStep(result.step()),
+                mapStepStatus(result.status()),
+                result.status() == InitializationStepStatus.COMPLETED);
+        dto.setMessage(result.errorMessage());
+        dto.setErrorCode(result.errorCode());
 
-        HttpStatus httpStatus = result.getStatus() == InitializationStepStatus.COMPLETED
+        var httpStatus = result.status() == InitializationStepStatus.COMPLETED
                 ? HttpStatus.CREATED
                 : HttpStatus.OK;
 
@@ -145,32 +129,32 @@ public class InitializationApiControllerV2 implements InitializationV2Api {
     }
 
     private InitializationStatusV2Dto convertStatus(InitializationStatusV2 status) {
-        InitializationStatusV2Dto dto = new InitializationStatusV2Dto(
-                mapOverallStatus(status.getOverallStatus()),
-                status.isAnchorImported(),
-                status.getSteps().stream().map(this::convertStepInfo).toList(),
-                status.getPendingSteps().stream().map(this::mapStep).toList(),
-                status.getFailedSteps().stream().map(this::mapStep).toList(),
-                status.getCompletedSteps().stream().map(this::mapStep).toList(),
-                status.isFullyInitialized());
-        dto.setSecurityServerId(status.getSecurityServerId());
-        dto.setTokenPinPolicyEnforced(status.getTokenPinPolicyEnforced());
+        var dto = new InitializationStatusV2Dto(
+                mapOverallStatus(status.overallStatus()),
+                status.anchorImported(),
+                status.steps().stream().map(this::convertStepInfo).toList(),
+                status.pendingSteps().stream().map(this::mapStep).toList(),
+                status.failedSteps().stream().map(this::mapStep).toList(),
+                status.completedSteps().stream().map(this::mapStep).toList(),
+                status.fullyInitialized());
+        dto.setSecurityServerId(status.securityServerId());
+        dto.setTokenPinPolicyEnforced(status.tokenPinPolicyEnforced());
         return dto;
     }
 
     private InitializationStepInfoDto convertStepInfo(InitializationStepInfo info) {
-        InitializationStepInfoDto dto = new InitializationStepInfoDto(
-                mapStep(info.getStep()),
-                mapStepStatus(info.getStatus()),
-                info.isRetryable());
-        if (info.getStartedAt() != null) {
-            dto.setStartedAt(OffsetDateTime.ofInstant(info.getStartedAt(), ZoneOffset.UTC));
+        var dto = new InitializationStepInfoDto(
+                mapStep(info.step()),
+                mapStepStatus(info.status()),
+                info.retryable());
+        if (info.startedAt() != null) {
+            dto.setStartedAt(OffsetDateTime.ofInstant(info.startedAt(), ZoneOffset.UTC));
         }
-        if (info.getCompletedAt() != null) {
-            dto.setCompletedAt(OffsetDateTime.ofInstant(info.getCompletedAt(), ZoneOffset.UTC));
+        if (info.completedAt() != null) {
+            dto.setCompletedAt(OffsetDateTime.ofInstant(info.completedAt(), ZoneOffset.UTC));
         }
-        dto.setErrorMessage(info.getErrorMessage());
-        dto.setErrorCode(info.getErrorCode());
+        dto.setErrorMessage(info.errorMessage());
+        dto.setErrorCode(info.errorCode());
         return dto;
     }
 

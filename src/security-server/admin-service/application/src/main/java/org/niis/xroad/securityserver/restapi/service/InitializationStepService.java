@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
@@ -41,7 +39,6 @@ import org.niis.xroad.securityserver.restapi.dto.InitializationStatusV2.OverallS
 import org.niis.xroad.securityserver.restapi.dto.InitializationStep;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStepInfo;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStepStatus;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -85,57 +82,60 @@ public class InitializationStepService {
     /**
      * Get the complete initialization status with granular step tracking.
      */
-    public InitializationStatusV2 getInitializationStatusV2() {
-        boolean anchorImported = systemService.isAnchorImported();
+    public InitializationStatusV2 getInitializationStatus() {
+        var anchorImported = systemService.isAnchorImported();
 
-        List<InitializationStepInfo> steps = new ArrayList<>();
-        List<InitializationStep> pendingSteps = new ArrayList<>();
-        List<InitializationStep> failedSteps = new ArrayList<>();
-        List<InitializationStep> completedSteps = new ArrayList<>();
+        var steps = new ArrayList<InitializationStepInfo>();
+        var pendingSteps = new ArrayList<InitializationStep>();
+        var failedSteps = new ArrayList<InitializationStep>();
+        var completedSteps = new ArrayList<InitializationStep>();
 
-        for (InitializationStep step : InitializationStep.values()) {
-            InitializationStepInfo stepInfo = getStepStatus(step);
+        for (var step : InitializationStep.values()) {
+            var stepInfo = getStepStatus(step);
             steps.add(stepInfo);
 
-            switch (stepInfo.getStatus()) {
+            switch (stepInfo.status()) {
                 case COMPLETED -> completedSteps.add(step);
                 case FAILED -> failedSteps.add(step);
                 case NOT_STARTED, IN_PROGRESS, SKIPPED, UNKNOWN -> pendingSteps.add(step);
-                default -> log.warn("Unhandled step status: {}", stepInfo.getStatus());
+                default -> log.warn("Unhandled step status: {}", stepInfo.status());
             }
         }
 
-        OverallStatus overallStatus = determineOverallStatus(anchorImported, completedSteps, failedSteps);
-        boolean fullyInitialized = completedSteps.size() == InitializationStep.values().length;
+        var overallStatus = determineOverallStatus(anchorImported, completedSteps, failedSteps);
+        var fullyInitialized = completedSteps.size() == InitializationStep.values().length;
 
-        String securityServerId = null;
+        return new InitializationStatusV2(
+                overallStatus,
+                anchorImported,
+                steps,
+                pendingSteps,
+                failedSteps,
+                completedSteps,
+                fullyInitialized,
+                resolveSecurityServerId(),
+                resolveTokenPinPolicyEnforced());
+    }
+
+    private String resolveSecurityServerId() {
         if (serverConfService.isServerCodeInitialized() && serverConfService.isServerOwnerInitialized()) {
             try {
-                SecurityServerId serverId = serverConfService.getSecurityServerId();
-                securityServerId = serverId != null ? serverId.toShortString() : null;
+                var serverId = serverConfService.getSecurityServerId();
+                return serverId != null ? serverId.toShortString() : null;
             } catch (Exception e) {
                 log.warn("Could not get security server ID", e);
             }
         }
+        return null;
+    }
 
-        Boolean tokenPinPolicyEnforced = null;
+    private boolean resolveTokenPinPolicyEnforced() {
         try {
-            tokenPinPolicyEnforced = signerRpcClient.isEnforcedTokenPinPolicy();
+            return signerRpcClient.isEnforcedTokenPinPolicy();
         } catch (Exception e) {
             log.warn("Could not determine token PIN policy enforcement", e);
+            return false;
         }
-
-        return InitializationStatusV2.builder()
-                .overallStatus(overallStatus)
-                .anchorImported(anchorImported)
-                .steps(steps)
-                .pendingSteps(pendingSteps)
-                .failedSteps(failedSteps)
-                .completedSteps(completedSteps)
-                .fullyInitialized(fullyInitialized)
-                .securityServerId(securityServerId)
-                .tokenPinPolicyEnforced(tokenPinPolicyEnforced)
-                .build();
     }
 
     /**
@@ -151,12 +151,8 @@ public class InitializationStepService {
             }
         } catch (Exception e) {
             log.warn("Error checking status for step {}: {}", step, e.getMessage());
-            return InitializationStepInfo.builder()
-                    .step(step)
-                    .status(InitializationStepStatus.UNKNOWN)
-                    .errorMessage(e.getMessage())
-                    .retryable(true)
-                    .build();
+            return new InitializationStepInfo(step, InitializationStepStatus.UNKNOWN,
+                    null, null, e.getMessage(), null, true, null);
         }
     }
 
@@ -177,7 +173,7 @@ public class InitializationStepService {
             log.warn("Could not check GPG key status via RPC, falling back to encryption status: {}", e.getMessage());
             try {
                 var encryptionStatus = backupManagerRpcClient.getEncryptionStatus();
-                boolean hasKeys = encryptionStatus.getBackupEncryptionKeys() != null
+                var hasKeys = encryptionStatus.getBackupEncryptionKeys() != null
                         && !encryptionStatus.getBackupEncryptionKeys().isEmpty();
                 return encryptionStatus.isBackupEncryptionStatus() || hasKeys;
             } catch (Exception ex) {
@@ -189,8 +185,8 @@ public class InitializationStepService {
 
     private boolean isMessageLogEncryptionInitialized() {
         try {
-            boolean archivalKeyExists = vaultClient.getMLogArchivalSigningSecretKey().isPresent();
-            boolean dbKeyExists = !vaultClient.getMLogDBEncryptionSecretKeys().isEmpty();
+            var archivalKeyExists = vaultClient.getMLogArchivalSigningSecretKey().isPresent();
+            var dbKeyExists = !vaultClient.getMLogDBEncryptionSecretKeys().isEmpty();
             return archivalKeyExists && dbKeyExists;
         } catch (Exception e) {
             log.warn("Could not check message log encryption status: {}", e.getMessage());
@@ -204,11 +200,11 @@ public class InitializationStepService {
      * Returns completed info if step is already done (idempotent).
      */
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public InitializationStepInfo executeServerConfStep(String securityServerCode,
+    public synchronized InitializationStepInfo executeServerConfStep(String securityServerCode,
                                                          String ownerMemberClass,
                                                          String ownerMemberCode,
                                                          boolean ignoreWarnings) {
-        InitializationStep step = InitializationStep.SERVERCONF;
+        var step = InitializationStep.SERVERCONF;
         log.info(LOG_EXECUTING_STEP, step);
 
         if (!systemService.isAnchorImported()) {
@@ -220,8 +216,8 @@ public class InitializationStepService {
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
-        String instanceIdentifier = globalConfProvider.getInstanceIdentifier();
-        ClientIdEntity ownerClientId = MemberIdEntity.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
+        var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
+        var ownerClientId = MemberIdEntity.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
 
         auditDataHelper.put(OWNER_IDENTIFIER, ownerClientId);
         auditDataHelper.put(SERVER_CODE, securityServerCode);
@@ -238,8 +234,8 @@ public class InitializationStepService {
      * Returns completed info if step is already done (idempotent).
      */
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public InitializationStepInfo executeSoftTokenStep(String softwareTokenPin) {
-        InitializationStep step = InitializationStep.SOFTTOKEN;
+    public synchronized InitializationStepInfo executeSoftTokenStep(String softwareTokenPin) {
+        var step = InitializationStep.SOFTTOKEN;
         log.info(LOG_EXECUTING_STEP, step);
 
         verifyPrerequisite(step);
@@ -249,7 +245,7 @@ public class InitializationStepService {
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
-        char[] pin = softwareTokenPin.toCharArray();
+        var pin = softwareTokenPin.toCharArray();
         tokenPinValidator.validateSoftwareTokenPin(pin);
         signerRpcClient.initSoftwareToken(pin);
 
@@ -263,8 +259,8 @@ public class InitializationStepService {
      * Returns completed info if step is already done (idempotent).
      */
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public InitializationStepInfo executeGpgKeyStep() {
-        InitializationStep step = InitializationStep.GPG_KEY;
+    public synchronized InitializationStepInfo executeGpgKeyStep() {
+        var step = InitializationStep.GPG_KEY;
         log.info(LOG_EXECUTING_STEP, step);
 
         verifyPrerequisite(step);
@@ -274,7 +270,7 @@ public class InitializationStepService {
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
-        String keyRealName = buildKeyName();
+        var keyRealName = buildKeyName();
         log.info("Generating GPG key pair for {}", keyRealName);
         securityServerBackupService.generateGpgKey(keyRealName);
 
@@ -288,8 +284,8 @@ public class InitializationStepService {
      * Returns completed info if step is already done (idempotent).
      */
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public InitializationStepInfo executeMessageLogEncryptionStep() {
-        InitializationStep step = InitializationStep.MLOG_ENCRYPTION;
+    public synchronized InitializationStepInfo executeMessageLogEncryptionStep() {
+        var step = InitializationStep.MLOG_ENCRYPTION;
         log.info(LOG_EXECUTING_STEP, step);
 
         verifyPrerequisite(step);
@@ -299,40 +295,12 @@ public class InitializationStepService {
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
-        String keyRealName = buildKeyName();
+        var keyRealName = buildKeyName();
         encryptionInitializationService.initializeMessageLogArchivalEncryption(keyRealName);
         encryptionInitializationService.initializeMessageLogDatabaseEncryption();
 
         log.info(LOG_STEP_COMPLETED, step);
         return InitializationStepInfo.completed(step, Instant.now());
-    }
-
-    /**
-     * Execute all pending initialization steps.
-     * Stops on first failure (exception propagates).
-     */
-    @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public InitializationStatusV2 executeAllPendingSteps(String securityServerCode,
-                                                          String ownerMemberClass,
-                                                          String ownerMemberCode,
-                                                          String softwareTokenPin,
-                                                          boolean ignoreWarnings) {
-        log.info("Executing all pending initialization steps");
-
-        for (InitializationStep step : InitializationStep.values()) {
-            if (!isStepCompleted(step)) {
-                switch (step) {
-                    case SERVERCONF -> executeServerConfStep(securityServerCode, ownerMemberClass,
-                            ownerMemberCode, ignoreWarnings);
-                    case SOFTTOKEN -> executeSoftTokenStep(softwareTokenPin);
-                    case GPG_KEY -> executeGpgKeyStep();
-                    case MLOG_ENCRYPTION -> executeMessageLogEncryptionStep();
-                    default -> log.warn("Unknown initialization step: {}", step);
-                }
-            }
-        }
-
-        return getInitializationStatusV2();
     }
 
     private void verifyPrerequisite(InitializationStep step) {
@@ -347,13 +315,13 @@ public class InitializationStepService {
     }
 
     private String buildKeyName() {
-        SecurityServerId serverId = serverConfService.getSecurityServerId();
+        var serverId = serverConfService.getSecurityServerId();
         return serverId.getXRoadInstance() + "/" + serverId.getMemberClass() + "/"
                 + serverId.getMemberCode() + "/" + serverId.getServerCode();
     }
 
     private void createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
-        ServerConfEntity serverConfEntity = serverConfService.getOrCreateServerConfEntity();
+        var serverConfEntity = serverConfService.getOrCreateServerConfEntity();
 
         if (serverConfEntity.getServerCode() == null || serverConfEntity.getServerCode().isEmpty()) {
             serverConfEntity.setServerCode(securityServerCode);

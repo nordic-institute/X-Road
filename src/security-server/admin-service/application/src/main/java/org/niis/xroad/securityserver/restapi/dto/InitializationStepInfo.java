@@ -25,104 +25,37 @@
  */
 package org.niis.xroad.securityserver.restapi.dto;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.time.Instant;
 import java.util.List;
 
-/**
- * DTO containing detailed status information for a single initialization step.
- */
-@Data
-@Builder
-public class InitializationStepInfo {
-    /**
-     * The initialization step this info pertains to.
-     */
-    private InitializationStep step;
+public record InitializationStepInfo(
+        InitializationStep step,
+        InitializationStepStatus status,
+        Instant startedAt,
+        Instant completedAt,
+        String errorMessage,
+        String errorCode,
+        boolean retryable,
+        List<String> metadata
+) {
 
-    /**
-     * Current status of this step.
-     */
-    private InitializationStepStatus status;
-
-    /**
-     * Timestamp when this step started executing.
-     */
-    private Instant startedAt;
-
-    /**
-     * Timestamp when this step completed (successfully or with failure).
-     */
-    private Instant completedAt;
-
-    /**
-     * Human-readable error message if the step failed.
-     */
-    private String errorMessage;
-
-    /**
-     * Machine-readable error code if the step failed.
-     */
-    private String errorCode;
-
-    /**
-     * Whether this step can be retried after a failure.
-     */
-    private boolean retryable;
-
-    /**
-     * Additional metadata or context information.
-     */
-    private List<String> metadata;
-
-    /**
-     * Creates an info object for a step that has not started.
-     */
     public static InitializationStepInfo notStarted(InitializationStep step) {
-        return InitializationStepInfo.builder()
-                .step(step)
-                .status(InitializationStepStatus.NOT_STARTED)
-                .retryable(true)
-                .build();
+        return new InitializationStepInfo(step, InitializationStepStatus.NOT_STARTED,
+                null, null, null, null, true, null);
     }
 
-    /**
-     * Creates an info object for a completed step.
-     */
     public static InitializationStepInfo completed(InitializationStep step, Instant completedAt) {
-        return InitializationStepInfo.builder()
-                .step(step)
-                .status(InitializationStepStatus.COMPLETED)
-                .completedAt(completedAt)
-                .retryable(false)
-                .build();
+        return new InitializationStepInfo(step, InitializationStepStatus.COMPLETED,
+                null, completedAt, null, null, false, null);
     }
 
-    /**
-     * Creates an info object for a failed step.
-     */
     public static InitializationStepInfo failed(InitializationStep step, String errorMessage, String errorCode) {
-        return InitializationStepInfo.builder()
-                .step(step)
-                .status(InitializationStepStatus.FAILED)
-                .completedAt(Instant.now())
-                .errorMessage(errorMessage)
-                .errorCode(errorCode)
-                .retryable(true)
-                .build();
+        return new InitializationStepInfo(step, InitializationStepStatus.FAILED,
+                null, Instant.now(), errorMessage, errorCode, true, null);
     }
 
-    /**
-     * Creates an info object for an in-progress step.
-     */
     public static InitializationStepInfo inProgress(InitializationStep step) {
-        return InitializationStepInfo.builder()
-                .step(step)
-                .status(InitializationStepStatus.IN_PROGRESS)
-                .startedAt(Instant.now())
-                .retryable(false)
-                .build();
+        return new InitializationStepInfo(step, InitializationStepStatus.IN_PROGRESS,
+                Instant.now(), null, null, null, false, null);
     }
 }

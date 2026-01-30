@@ -34,12 +34,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.backupmanager.proto.BackupData;
 import org.niis.xroad.backupmanager.proto.BackupEncryptionStatusResp;
+import org.niis.xroad.backupmanager.proto.BackupGpgStatus;
 import org.niis.xroad.backupmanager.proto.BackupServiceGrpc;
 import org.niis.xroad.backupmanager.proto.CreateBackupReq;
 import org.niis.xroad.backupmanager.proto.DeleteBackupReq;
 import org.niis.xroad.backupmanager.proto.DownloadBackupReq;
 import org.niis.xroad.backupmanager.proto.GenerateGpgKeyReq;
-import org.niis.xroad.backupmanager.proto.HasGpgKeyResp;
 import org.niis.xroad.backupmanager.proto.ListBackupsResp;
 import org.niis.xroad.backupmanager.proto.RestoreBackupReq;
 import org.niis.xroad.backupmanager.proto.UploadBackupReq;
@@ -117,9 +117,9 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
     }
 
     @Override
-    public void hasGpgKey(Empty request, StreamObserver<HasGpgKeyResp> responseObserver) {
-        rpcResponseHandler.handleRequest(responseObserver, () -> HasGpgKeyResp.newBuilder()
-                .setHasGpgKey(backupHandler.hasGpgKey())
+    public void hasGpgKey(Empty request, StreamObserver<BackupGpgStatus> responseObserver) {
+        rpcResponseHandler.handleRequest(responseObserver, () -> BackupGpgStatus.newBuilder()
+                .setInitialized(backupHandler.hasGpgKey())
                 .build());
     }
 

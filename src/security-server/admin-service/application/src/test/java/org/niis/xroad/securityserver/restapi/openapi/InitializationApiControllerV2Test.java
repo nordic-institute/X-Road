@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusV2;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStep;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStepInfo;
-import org.niis.xroad.securityserver.restapi.openapi.model.FullInitRequestV2Dto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitStepResultDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationOverallStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusV2Dto;
@@ -48,19 +47,16 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Tests for InitializationApiControllerV2 - v2 initialization with granular step tracking.
- */
-public class InitializationApiControllerV2Test extends AbstractApiControllerTestContext {
+class InitializationApiControllerV2Test extends AbstractApiControllerTestContext {
 
     @Autowired
     InitializationApiControllerV2 initializationApiControllerV2;
@@ -72,9 +68,9 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser
-    public void getInitializationStatusV2() {
+    void getInitializationStatus() {
         InitializationStatusV2 mockStatus = createMockStatus();
-        when(initializationStepService.getInitializationStatusV2()).thenReturn(mockStatus);
+        when(initializationStepService.getInitializationStatus()).thenReturn(mockStatus);
 
         ResponseEntity<InitializationStatusV2Dto> response = initializationApiControllerV2.getInitializationStatusV2();
 
@@ -87,12 +83,12 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
         assertEquals(4, response.getBody().getPendingSteps().size());
         assertTrue(response.getBody().getFailedSteps().isEmpty());
         assertTrue(response.getBody().getCompletedSteps().isEmpty());
-        verify(initializationStepService).getInitializationStatusV2();
+        verify(initializationStepService).getInitializationStatus();
     }
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void initializeServerConfSuccess() {
+    void initializeServerConfSuccess() {
         InitializationStepInfo mockResult = InitializationStepInfo.completed(
                 InitializationStep.SERVERCONF, Instant.now());
         when(initializationStepService.executeServerConfStep(anyString(), anyString(), anyString(), anyBoolean()))
@@ -113,7 +109,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void initializeServerConfAnchorNotImported() {
+    void initializeServerConfAnchorNotImported() {
         when(initializationStepService.executeServerConfStep(anyString(), anyString(), anyString(), anyBoolean()))
                 .thenThrow(new ConflictException("Configuration anchor must be imported first",
                         new org.niis.xroad.common.core.exception.ErrorDeviation("anchor_not_found")));
@@ -130,7 +126,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void initializeSoftTokenSuccess() {
+    void initializeSoftTokenSuccess() {
         InitializationStepInfo mockResult = InitializationStepInfo.completed(
                 InitializationStep.SOFTTOKEN, Instant.now());
         when(initializationStepService.executeSoftTokenStep(anyString())).thenReturn(mockResult);
@@ -148,7 +144,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void initializeSoftTokenPrerequisiteNotMet() {
+    void initializeSoftTokenPrerequisiteNotMet() {
         when(initializationStepService.executeSoftTokenStep(anyString()))
                 .thenThrow(new ConflictException("SERVERCONF step must be completed before SOFTTOKEN",
                         new org.niis.xroad.common.core.exception.ErrorDeviation("prerequisite_not_met")));
@@ -164,7 +160,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void initializeSoftTokenWeakPin() {
+    void initializeSoftTokenWeakPin() {
         when(initializationStepService.executeSoftTokenStep(anyString()))
                 .thenThrow(new WeakPinException("PIN is too weak", Collections.emptyList()));
 
@@ -179,7 +175,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void initializeGpgKeySuccess() {
+    void initializeGpgKeySuccess() {
         InitializationStepInfo mockResult = InitializationStepInfo.completed(
                 InitializationStep.GPG_KEY, Instant.now());
         when(initializationStepService.executeGpgKeyStep()).thenReturn(mockResult);
@@ -195,7 +191,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void initializeMessageLogEncryptionSuccess() {
+    void initializeMessageLogEncryptionSuccess() {
         InitializationStepInfo mockResult = InitializationStepInfo.completed(
                 InitializationStep.MLOG_ENCRYPTION, Instant.now());
         when(initializationStepService.executeMessageLogEncryptionStep()).thenReturn(mockResult);
@@ -211,51 +207,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void runAllInitializationStepsSuccess() {
-        InitializationStatusV2 mockStatus = createFullyInitializedStatus();
-        when(initializationStepService.executeAllPendingSteps(
-                anyString(), anyString(), anyString(), anyString(), anyBoolean()))
-                .thenReturn(mockStatus);
-
-        FullInitRequestV2Dto request = new FullInitRequestV2Dto(
-                SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE, SOFTWARE_TOKEN_PIN);
-        request.setIgnoreWarnings(true);
-
-        ResponseEntity<InitializationStatusV2Dto> response =
-                initializationApiControllerV2.runAllInitializationSteps(request);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(InitializationOverallStatusDto.COMPLETED, response.getBody().getOverallStatus());
-        assertTrue(response.getBody().getFullyInitialized());
-        assertEquals(4, response.getBody().getCompletedSteps().size());
-        assertTrue(response.getBody().getPendingSteps().isEmpty());
-        assertTrue(response.getBody().getFailedSteps().isEmpty());
-    }
-
-    @Test
-    @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void runAllInitializationStepsPartialFailure() {
-        InitializationStatusV2 mockStatus = createPartiallyCompletedStatus();
-        when(initializationStepService.executeAllPendingSteps(
-                anyString(), anyString(), anyString(), anyString(), anyBoolean()))
-                .thenReturn(mockStatus);
-
-        FullInitRequestV2Dto request = new FullInitRequestV2Dto(
-                SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE, SOFTWARE_TOKEN_PIN);
-
-        ResponseEntity<InitializationStatusV2Dto> response =
-                initializationApiControllerV2.runAllInitializationSteps(request);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(InitializationOverallStatusDto.PARTIALLY_COMPLETED, response.getBody().getOverallStatus());
-        assertFalse(response.getBody().getFullyInitialized());
-    }
-
-    @Test
-    @WithMockUser(authorities = {"INIT_CONFIG"})
-    public void idempotentServerConfReturnsCompleted() {
+    void idempotentServerConfReturnsCompleted() {
         InitializationStepInfo mockResult = InitializationStepInfo.completed(
                 InitializationStep.SERVERCONF, Instant.now());
         when(initializationStepService.executeServerConfStep(anyString(), anyString(), anyString(), anyBoolean()))
@@ -274,74 +226,26 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
     }
 
     private InitializationStatusV2 createMockStatus() {
-        return InitializationStatusV2.builder()
-                .overallStatus(InitializationStatusV2.OverallStatus.NOT_STARTED)
-                .anchorImported(false)
-                .steps(List.of(
+        return new InitializationStatusV2(
+                InitializationStatusV2.OverallStatus.NOT_STARTED,
+                false,
+                List.of(
                         InitializationStepInfo.notStarted(InitializationStep.SERVERCONF),
                         InitializationStepInfo.notStarted(InitializationStep.SOFTTOKEN),
                         InitializationStepInfo.notStarted(InitializationStep.GPG_KEY),
                         InitializationStepInfo.notStarted(InitializationStep.MLOG_ENCRYPTION)
-                ))
-                .pendingSteps(List.of(
+                ),
+                List.of(
                         InitializationStep.SERVERCONF,
                         InitializationStep.SOFTTOKEN,
                         InitializationStep.GPG_KEY,
                         InitializationStep.MLOG_ENCRYPTION
-                ))
-                .failedSteps(List.of())
-                .completedSteps(List.of())
-                .fullyInitialized(false)
-                .build();
+                ),
+                List.of(),
+                List.of(),
+                false,
+                null,
+                false);
     }
 
-    private InitializationStatusV2 createFullyInitializedStatus() {
-        Instant now = Instant.now();
-        return InitializationStatusV2.builder()
-                .overallStatus(InitializationStatusV2.OverallStatus.COMPLETED)
-                .anchorImported(true)
-                .steps(List.of(
-                        InitializationStepInfo.completed(InitializationStep.SERVERCONF, now),
-                        InitializationStepInfo.completed(InitializationStep.SOFTTOKEN, now),
-                        InitializationStepInfo.completed(InitializationStep.GPG_KEY, now),
-                        InitializationStepInfo.completed(InitializationStep.MLOG_ENCRYPTION, now)
-                ))
-                .pendingSteps(List.of())
-                .failedSteps(List.of())
-                .completedSteps(List.of(
-                        InitializationStep.SERVERCONF,
-                        InitializationStep.SOFTTOKEN,
-                        InitializationStep.GPG_KEY,
-                        InitializationStep.MLOG_ENCRYPTION
-                ))
-                .fullyInitialized(true)
-                .securityServerId("DEV/GOV/M1/SS3")
-                .tokenPinPolicyEnforced(true)
-                .build();
-    }
-
-    private InitializationStatusV2 createPartiallyCompletedStatus() {
-        Instant now = Instant.now();
-        return InitializationStatusV2.builder()
-                .overallStatus(InitializationStatusV2.OverallStatus.PARTIALLY_COMPLETED)
-                .anchorImported(true)
-                .steps(List.of(
-                        InitializationStepInfo.completed(InitializationStep.SERVERCONF, now),
-                        InitializationStepInfo.completed(InitializationStep.SOFTTOKEN, now),
-                        InitializationStepInfo.notStarted(InitializationStep.GPG_KEY),
-                        InitializationStepInfo.notStarted(InitializationStep.MLOG_ENCRYPTION)
-                ))
-                .pendingSteps(List.of(
-                        InitializationStep.GPG_KEY,
-                        InitializationStep.MLOG_ENCRYPTION
-                ))
-                .failedSteps(List.of())
-                .completedSteps(List.of(
-                        InitializationStep.SERVERCONF,
-                        InitializationStep.SOFTTOKEN
-                ))
-                .fullyInitialized(false)
-                .securityServerId("DEV/GOV/M1/SS3")
-                .build();
-    }
 }
