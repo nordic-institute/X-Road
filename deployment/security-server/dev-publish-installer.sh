@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Helper script to publish X-Road installer to tmpfile.link
+# !!! NOT FOR PRODUCTION USE!!!
+
+# Helper script to publish X-Road installer to tmpfile.link for easier testing in dev environments.
 # Requirements: curl, jq (optional, will fallback to sed)
 
 PACKAGE_DIR="xroad-installer"
@@ -60,9 +62,9 @@ else
 fi
 
 if [[ -z "$FINAL_LINK" ]]; then
-    echo "Error: Failed to upload ${GET_XROAD_SCRIPT}."
-    echo "Response: $GET_XROAD_RESPONSE"
-    exit 1
+  echo "Error: Failed to upload ${GET_XROAD_SCRIPT}."
+  echo "Response: $GET_XROAD_RESPONSE"
+  exit 1
 fi
 
 echo "----------------------------------------------------------"
