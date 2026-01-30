@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Test;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusV2;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStep;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStepInfo;
@@ -37,7 +38,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStepDto
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStepStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServerConfInitRequestDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SoftTokenInitRequestDto;
-import org.niis.xroad.securityserver.restapi.service.InitializationStepService;
 import org.niis.xroad.securityserver.restapi.service.WeakPinException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -115,15 +115,15 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void initializeServerConfAnchorNotImported() {
         when(initializationStepService.executeServerConfStep(anyString(), anyString(), anyString(), anyBoolean()))
-                .thenThrow(new InitializationStepService.AnchorNotFoundException(
-                        "Configuration anchor must be imported first"));
+                .thenThrow(new ConflictException("Configuration anchor must be imported first",
+                        new org.niis.xroad.common.core.exception.ErrorDeviation("anchor_not_found")));
 
         ServerConfInitRequestDto request = new ServerConfInitRequestDto(
                 SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE);
 
         try {
             initializationApiControllerV2.initializeServerConf(request);
-        } catch (InitializationStepService.AnchorNotFoundException e) {
+        } catch (ConflictException e) {
             assertEquals("Configuration anchor must be imported first", e.getMessage());
         }
     }
@@ -150,14 +150,14 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void initializeSoftTokenPrerequisiteNotMet() {
         when(initializationStepService.executeSoftTokenStep(anyString()))
-                .thenThrow(new InitializationStepService.PrerequisiteNotMetException(
-                        "SERVERCONF step must be completed before SOFTTOKEN"));
+                .thenThrow(new ConflictException("SERVERCONF step must be completed before SOFTTOKEN",
+                        new org.niis.xroad.common.core.exception.ErrorDeviation("prerequisite_not_met")));
 
         SoftTokenInitRequestDto request = new SoftTokenInitRequestDto("weak");
 
         try {
             initializationApiControllerV2.initializeSoftToken(request);
-        } catch (InitializationStepService.PrerequisiteNotMetException e) {
+        } catch (ConflictException e) {
             assertEquals("SERVERCONF step must be completed before SOFTTOKEN", e.getMessage());
         }
     }
@@ -269,6 +269,7 @@ public class InitializationApiControllerV2Test extends AbstractApiControllerTest
 
         assertEquals(HttpStatus.CREATED, response1.getStatusCode());
         assertEquals(HttpStatus.CREATED, response2.getStatusCode());
+        assertNotNull(response2.getBody());
         assertTrue(response2.getBody().getSuccess());
     }
 

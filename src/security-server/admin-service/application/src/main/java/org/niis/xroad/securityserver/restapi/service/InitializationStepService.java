@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.common.exception.ConflictException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.vault.VaultClient;
@@ -55,7 +54,6 @@ import java.util.List;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCHOR_NOT_FOUND;
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SOFTWARE_TOKEN_INIT_FAILED;
 
 /**
  * Service for managing granular initialization steps with tracking and recovery support.
@@ -66,6 +64,10 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SOFT
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class InitializationStepService {
+
+    private static final String LOG_EXECUTING_STEP = "Executing initialization step: {}";
+    private static final String LOG_STEP_ALREADY_COMPLETED = "Step {} already completed, skipping";
+    private static final String LOG_STEP_COMPLETED = "Step {} completed successfully";
 
     private final SystemService systemService;
     private final ServerConfService serverConfService;
@@ -98,12 +100,12 @@ public class InitializationStepService {
             switch (stepInfo.getStatus()) {
                 case COMPLETED -> completedSteps.add(step);
                 case FAILED -> failedSteps.add(step);
-                case NOT_STARTED, UNKNOWN -> pendingSteps.add(step);
-                default -> { }
+                case NOT_STARTED, IN_PROGRESS, SKIPPED, UNKNOWN -> pendingSteps.add(step);
+                default -> log.warn("Unhandled step status: {}", stepInfo.getStatus());
             }
         }
 
-        OverallStatus overallStatus = determineOverallStatus(anchorImported, completedSteps, failedSteps, pendingSteps);
+        OverallStatus overallStatus = determineOverallStatus(anchorImported, completedSteps, failedSteps);
         boolean fullyInitialized = completedSteps.size() == InitializationStep.values().length;
 
         String securityServerId = null;
@@ -207,14 +209,14 @@ public class InitializationStepService {
                                                          String ownerMemberCode,
                                                          boolean ignoreWarnings) {
         InitializationStep step = InitializationStep.SERVERCONF;
-        log.info("Executing initialization step: {}", step);
+        log.info(LOG_EXECUTING_STEP, step);
 
         if (!systemService.isAnchorImported()) {
-            throw new AnchorNotFoundException("Configuration anchor must be imported first");
+            throw new ConflictException("Configuration anchor must be imported first", ANCHOR_NOT_FOUND.build());
         }
 
         if (isStepCompleted(step)) {
-            log.info("Step {} already completed, skipping", step);
+            log.info(LOG_STEP_ALREADY_COMPLETED, step);
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
@@ -226,7 +228,7 @@ public class InitializationStepService {
 
         createInitialServerConf(ownerClientId, securityServerCode);
 
-        log.info("Step {} completed successfully", step);
+        log.info(LOG_STEP_COMPLETED, step);
         return InitializationStepInfo.completed(step, Instant.now());
     }
 
@@ -238,12 +240,12 @@ public class InitializationStepService {
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public InitializationStepInfo executeSoftTokenStep(String softwareTokenPin) {
         InitializationStep step = InitializationStep.SOFTTOKEN;
-        log.info("Executing initialization step: {}", step);
+        log.info(LOG_EXECUTING_STEP, step);
 
         verifyPrerequisite(step);
 
         if (isStepCompleted(step)) {
-            log.info("Step {} already completed, skipping", step);
+            log.info(LOG_STEP_ALREADY_COMPLETED, step);
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
@@ -251,7 +253,7 @@ public class InitializationStepService {
         tokenPinValidator.validateSoftwareTokenPin(pin);
         signerRpcClient.initSoftwareToken(pin);
 
-        log.info("Step {} completed successfully", step);
+        log.info(LOG_STEP_COMPLETED, step);
         return InitializationStepInfo.completed(step, Instant.now());
     }
 
@@ -263,12 +265,12 @@ public class InitializationStepService {
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public InitializationStepInfo executeGpgKeyStep() {
         InitializationStep step = InitializationStep.GPG_KEY;
-        log.info("Executing initialization step: {}", step);
+        log.info(LOG_EXECUTING_STEP, step);
 
         verifyPrerequisite(step);
 
         if (isStepCompleted(step)) {
-            log.info("Step {} already completed, skipping", step);
+            log.info(LOG_STEP_ALREADY_COMPLETED, step);
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
@@ -276,7 +278,7 @@ public class InitializationStepService {
         log.info("Generating GPG key pair for {}", keyRealName);
         securityServerBackupService.generateGpgKey(keyRealName);
 
-        log.info("Step {} completed successfully", step);
+        log.info(LOG_STEP_COMPLETED, step);
         return InitializationStepInfo.completed(step, Instant.now());
     }
 
@@ -288,12 +290,12 @@ public class InitializationStepService {
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public InitializationStepInfo executeMessageLogEncryptionStep() {
         InitializationStep step = InitializationStep.MLOG_ENCRYPTION;
-        log.info("Executing initialization step: {}", step);
+        log.info(LOG_EXECUTING_STEP, step);
 
         verifyPrerequisite(step);
 
         if (isStepCompleted(step)) {
-            log.info("Step {} already completed, skipping", step);
+            log.info(LOG_STEP_ALREADY_COMPLETED, step);
             return InitializationStepInfo.completed(step, Instant.now());
         }
 
@@ -301,7 +303,7 @@ public class InitializationStepService {
         encryptionInitializationService.initializeMessageLogArchivalEncryption(keyRealName);
         encryptionInitializationService.initializeMessageLogDatabaseEncryption();
 
-        log.info("Step {} completed successfully", step);
+        log.info(LOG_STEP_COMPLETED, step);
         return InitializationStepInfo.completed(step, Instant.now());
     }
 
@@ -335,11 +337,12 @@ public class InitializationStepService {
 
     private void verifyPrerequisite(InitializationStep step) {
         if (!systemService.isAnchorImported()) {
-            throw new AnchorNotFoundException("Configuration anchor must be imported first");
+            throw new ConflictException("Configuration anchor must be imported first", ANCHOR_NOT_FOUND.build());
         }
         if (!isStepCompleted(InitializationStep.SERVERCONF)) {
-            throw new PrerequisiteNotMetException(
-                    "SERVERCONF step must be completed before " + step);
+            throw new ConflictException(
+                    "SERVERCONF step must be completed before " + step,
+                    new org.niis.xroad.common.core.exception.ErrorDeviation("prerequisite_not_met"));
         }
     }
 
@@ -349,7 +352,7 @@ public class InitializationStepService {
                 + serverId.getMemberCode() + "/" + serverId.getServerCode();
     }
 
-    private ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
+    private void createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
         ServerConfEntity serverConfEntity = serverConfService.getOrCreateServerConfEntity();
 
         if (serverConfEntity.getServerCode() == null || serverConfEntity.getServerCode().isEmpty()) {
@@ -365,13 +368,11 @@ public class InitializationStepService {
             }
             serverConfEntity.setOwner(ownerClient);
         }
-        return serverConfEntity;
     }
 
     private OverallStatus determineOverallStatus(boolean anchorImported,
                                                   List<InitializationStep> completedSteps,
-                                                  List<InitializationStep> failedSteps,
-                                                  List<InitializationStep> pendingSteps) {
+                                                  List<InitializationStep> failedSteps) {
         if (!anchorImported) {
             return OverallStatus.NOT_STARTED;
         }
@@ -396,21 +397,4 @@ public class InitializationStepService {
         return OverallStatus.PARTIALLY_COMPLETED;
     }
 
-    public static class AnchorNotFoundException extends ConflictException {
-        public AnchorNotFoundException(String msg) {
-            super(msg, ANCHOR_NOT_FOUND.build());
-        }
-    }
-
-    public static class PrerequisiteNotMetException extends ConflictException {
-        public PrerequisiteNotMetException(String msg) {
-            super(msg, new org.niis.xroad.common.core.exception.ErrorDeviation("prerequisite_not_met"));
-        }
-    }
-
-    public static class SoftwareTokenInitException extends InternalServerErrorException {
-        public SoftwareTokenInitException(String msg, Throwable t) {
-            super(msg, t, SOFTWARE_TOKEN_INIT_FAILED.build());
-        }
-    }
 }

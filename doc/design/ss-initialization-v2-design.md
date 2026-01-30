@@ -257,12 +257,12 @@ public InitializationStepInfo executeXxxStep(...) {
 
 ### Error Handling
 
-Service methods throw typed exceptions instead of returning error DTOs:
+Service methods throw exceptions instead of returning error DTOs:
 
 | Exception | HTTP Status | When |
 |-----------|-------------|------|
-| `AnchorNotFoundException` (extends `ConflictException`) | 409 | Anchor not imported |
-| `PrerequisiteNotMetException` (extends `ConflictException`) | 409 | SERVERCONF not completed |
+| `ConflictException` (with `ANCHOR_NOT_FOUND` deviation) | 409 | Anchor not imported |
+| `ConflictException` (with `prerequisite_not_met` deviation) | 409 | SERVERCONF not completed |
 | `WeakPinException` (extends `BadRequestException`) | 400 | PIN validation fails |
 | `InvalidCharactersException` (extends `BadRequestException`) | 400 | PIN has invalid characters |
 | Other exceptions | 500 | Infrastructure failures |
