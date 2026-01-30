@@ -17,6 +17,22 @@ XROAD_DB_USER="${XROAD_DB_USER:-}"
 XROAD_DB_PASSWORD="${XROAD_DB_PASSWORD:-}"
 XROAD_DB_LIBPQ_CONTENT="${XROAD_DB_LIBPQ_CONTENT:-}"
 
+install_remote_db_ubuntu() {
+  if DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-database-remote; then
+    log_info "xroad-database-remote package installed"
+  else
+    log_die "Failed to install xroad-database-remote package"
+  fi
+}
+
+install_remote_db_rhel() {
+  if yum install -y xroad-database-remote; then
+    log_info "xroad-database-remote package installed"
+  else
+    log_die "Failed to install xroad-database-remote package"
+  fi
+}
+
 configure_remote_db() {
   # Remote database configuration
   log_message "Setting up remote database configuration..."
@@ -37,18 +53,9 @@ configure_remote_db() {
     log_die "XROAD_DB_CONNECTION_HOST_PORT environment variable is not set."
   fi
 
-#  if [[ -z "$XROAD_DB_USER" ]]; then
-#    log_warn "XROAD_DB_USER not set, defaulting to 'postgres'"
-#    XROAD_DB_USER="postgres"
-#  fi
-
   # Install xroad-database-remote package
   log_message "Installing xroad-database-remote..."
-  if DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-database-remote; then
-    log_info "xroad-database-remote package installed"
-  else
-    log_die "Failed to install xroad-database-remote package"
-  fi
+  execute_by_os install_remote_db_ubuntu install_remote_db_rhel
 
   # Update /etc/xroad.properties
   log_message "Updating /etc/xroad.properties..."
