@@ -57,7 +57,6 @@ ln -s /usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../../src/common/common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../../src/security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.8.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core-4.19.0.jar
@@ -79,7 +78,6 @@ rm -rf %{buildroot}
 %dir /etc/xroad/conf.d/addons
 %dir /var/lib/xroad
 %config /etc/xroad/services/global.conf
-%config /etc/xroad/conf.d/common.ini
 %config /etc/xroad/ssl/openssl.cnf
 
 %defattr(-,root,root,-)
