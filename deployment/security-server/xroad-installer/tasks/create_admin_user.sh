@@ -61,7 +61,7 @@ create_admin_user_rhel() {
     log_message "  Creating new user: $XROAD_ADMIN_USERNAME"
 
     # Create user with home directory
-    if useradd -m "$XROAD_ADMIN_USERNAME"; then
+    if useradd -m "$XROAD_ADMIN_USERNAME" -c "X-Road admin user"; then
       log_info "User '$XROAD_ADMIN_USERNAME' created successfully"
     else
       log_die "Failed to create user '$XROAD_ADMIN_USERNAME'"

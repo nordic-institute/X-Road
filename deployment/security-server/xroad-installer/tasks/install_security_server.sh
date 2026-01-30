@@ -107,7 +107,7 @@ install_security_server_rhel() {
        log_die "/usr/share/xroad/bin/xroad-add-admin-user not found"
     fi
   else
-     log_warn "XROAD_ADMIN_USERNAME not set, skipping admin user creation. You may need to create it manually using /usr/share/xroad/bin/xroad-add-admin-user.sh."
+    log_warn "XROAD_ADMIN_USERNAME not set, skipping admin user creation. You may need to create it manually using /usr/share/xroad/bin/xroad-add-admin-user.sh."
   fi
 
   log_message "Starting X-Road Security Server..."
