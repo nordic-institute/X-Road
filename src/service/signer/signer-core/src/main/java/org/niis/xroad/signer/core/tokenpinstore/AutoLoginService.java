@@ -27,6 +27,10 @@
 package org.niis.xroad.signer.core.tokenpinstore;
 
 import com.google.protobuf.ByteString;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,34 +40,33 @@ import org.niis.xroad.signer.core.config.SignerAutologinProperties;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
 import static ee.ria.xroad.common.util.SignerProtoUtils.charToByte;
+import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
 
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class AutoLoginService {
-    private static final Duration RETRY_DELAY = Duration.ofSeconds(3);
-    private static final int MAX_RETRY_ATTEMPTS = 100;
+    private static final String RETRY_INSTANCE_NAME = "autologinRetry";
 
     private static final Set<ErrorCode> FATAL_ERRORS = Set.of(
             ErrorCode.TOKEN_PIN_INCORRECT
     );
 
-    private static final Set<ErrorCode> RETRYABLE_ERRORS = Set.of(
-            ErrorCode.TOKEN_NOT_FOUND,
-            ErrorCode.TOKEN_NOT_INITIALIZED,
-            ErrorCode.TOKEN_NOT_AVAILABLE,
-            ErrorCode.HTTP_ERROR,
-            ErrorCode.NETWORK_ERROR,
-            ErrorCode.LOGIN_FAILED
-    );
-
     private final SignerAutologinProperties signerAutologinProperties;
     private final TokenWorkerProvider tokenWorkerProvider;
+
+    private Retry retryInstance;
+
+    @PostConstruct
+    void init() {
+        this.retryInstance = createRetryInstance(signerAutologinProperties.retry());
+        retryInstance.getEventPublisher().onRetry(event ->
+                log.warn("Retrying autologin. Event: {}", event));
+    }
 
     public void execute() {
         if (!signerAutologinProperties.enabled()) {
@@ -82,13 +85,7 @@ public class AutoLoginService {
         performAutologin(tokens);
     }
 
-    /**
-     * Performs automatic login for configured tokens with retry logic.
-     * Retries on transient errors (token not available, connection errors).
-     * Fails immediately on fatal errors (incorrect PIN).
-     */
     private void performAutologin(Map<String, SignerAutologinProperties.TokenConfig> tokens) {
-
         for (Map.Entry<String, SignerAutologinProperties.TokenConfig> entry : tokens.entrySet()) {
             String tokenId = entry.getKey();
             String pin = entry.getValue().pin();
@@ -98,83 +95,68 @@ public class AutoLoginService {
                 continue;
             }
 
-            LoginResult result = loginTokenWithRetry(tokenId, pin.toCharArray());
-
-            if (LoginResult.SUCCESS == result) {
-                log.info("Autologin successful for token {}", tokenId);
-            } else if (LoginResult.FATAL_ERROR == result) {
-                log.error("Fatal error during autologin for token {}, aborting", tokenId);
-                throw XrdRuntimeException.systemInternalError(
-                        "Autologin failed with fatal error for token: " + tokenId);
-            }
-        }
-    }
-
-    /**
-     * Attempts to login to a token with retry logic.
-     *
-     * @param tokenId the token ID
-     * @param pin the token PIN
-     * @return the login result
-     */
-    private LoginResult loginTokenWithRetry(String tokenId, char[] pin) {
-        int attempts = 0;
-        while (attempts < MAX_RETRY_ATTEMPTS) {
-            attempts++;
-            log.info("Attempting to login to token {} (attempt {}/{})", tokenId, attempts, MAX_RETRY_ATTEMPTS);
-
             try {
-                var activateTokenReq = ActivateTokenReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setActivate(true)
-                        .setPin(ByteString.copyFrom(charToByte(pin)))
-                        .build();
-
-                tokenWorkerProvider.getTokenWorker(tokenId).handleActivateToken(activateTokenReq);
-                log.info("Successfully logged in to token {}", tokenId);
-                return LoginResult.SUCCESS;
-
-            } catch (XrdRuntimeException e) {
-                ErrorCode errorCode = ErrorCode.fromCode(e.getErrorCode());
-
-                if (errorCode != null && FATAL_ERRORS.contains(errorCode)) {
-                    log.error("FATAL: Incorrect PIN for token {}", tokenId);
-                    return LoginResult.FATAL_ERROR;
-                }
-
-                if (errorCode != null && RETRYABLE_ERRORS.contains(errorCode)) {
-                    log.warn("Failed to login to token {} ({}), retrying...",
-                            tokenId, e.getErrorCode());
-                    sleep(RETRY_DELAY);
-                    continue;
-                }
-
-                // Unknown error - treat as retryable but log warning
-                log.warn("Unknown error during login to token {}: {}, retrying...",
-                        tokenId, e.getMessage());
-                sleep(RETRY_DELAY);
-
+                loginTokenWithRetry(tokenId, pin.toCharArray());
+                log.info("Autologin successful for token {}", tokenId);
             } catch (Exception e) {
-                log.warn("Unexpected error during login to token {}: {}, retrying...",
-                        tokenId, e.getMessage());
-                sleep(RETRY_DELAY);
+                if (isFatalError(e)) {
+                    log.error("Fatal error during autologin for token {}, aborting", tokenId);
+                    throw XrdRuntimeException.systemInternalError(
+                            "Autologin failed with fatal error for token: " + tokenId, e);
+                }
+                log.error("Autologin failed for token {} after all retries: {}", tokenId, e.getMessage());
+                throw XrdRuntimeException.systemInternalError(
+                        "Autologin failed for token: " + tokenId, e);
             }
         }
-        log.error("Max retry attempts ({}) exceeded for token {}", MAX_RETRY_ATTEMPTS, tokenId);
-        return LoginResult.FATAL_ERROR;
     }
 
-    private void sleep(Duration duration) {
+    private void loginTokenWithRetry(String tokenId, char[] pin) {
         try {
-            Thread.sleep(duration.toMillis());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw XrdRuntimeException.systemInternalError("Autologin interrupted", e);
+            Retry.decorateCheckedRunnable(retryInstance, () -> attemptLogin(tokenId, pin)).run();
+        } catch (Throwable e) {
+            log.error("Error while performing autologin", e);
         }
     }
 
-    private enum LoginResult {
-        SUCCESS,
-        FATAL_ERROR
+    private void attemptLogin(String tokenId, char[] pin) {
+        log.info("Attempting to login to token {}", tokenId);
+
+        var activateTokenReq = ActivateTokenReq.newBuilder()
+                .setTokenId(tokenId)
+                .setActivate(true)
+                .setPin(ByteString.copyFrom(charToByte(pin)))
+                .build();
+
+        tokenWorkerProvider.getTokenWorker(tokenId).handleActivateToken(activateTokenReq);
+        log.info("Successfully logged in to token {}", tokenId);
+    }
+
+    private static Retry createRetryInstance(SignerAutologinProperties.Retry retryProperties) {
+        var retryInterval = ofExponentialBackoff(
+                retryProperties.retryDelay(),
+                retryProperties.retryExponentialBackoffMultiplier());
+
+        RetryConfig retryConfig = RetryConfig.custom()
+                .maxAttempts(retryProperties.retryMaxAttempts() + 1)
+                .intervalFunction(retryInterval)
+                .retryOnException(AutoLoginService::isRetryableError)
+                .failAfterMaxAttempts(true)
+                .build();
+
+        var retryRegistry = RetryRegistry.of(retryConfig);
+        return retryRegistry.retry(RETRY_INSTANCE_NAME, retryConfig);
+    }
+
+    private static boolean isRetryableError(Throwable throwable) {
+        return !isFatalError(throwable);
+    }
+
+    private static boolean isFatalError(Throwable throwable) {
+        if (throwable instanceof XrdRuntimeException xrdException) {
+            ErrorCode errorCode = ErrorCode.fromCode(xrdException.getErrorCode());
+            return errorCode != null && FATAL_ERRORS.contains(errorCode);
+        }
+        return false;
     }
 }

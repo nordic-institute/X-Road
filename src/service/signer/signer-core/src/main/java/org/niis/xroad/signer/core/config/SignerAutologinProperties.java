@@ -31,23 +31,16 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.time.Duration;
 import java.util.Map;
 
-/**
- * Configuration properties for token autologin functionality.
- * Uses a separate prefix to avoid clashing with other SignerProperties.
- */
 @ConfigMapping(prefix = "xroad.signer.autologin")
 public interface SignerAutologinProperties {
 
-    /**
-     * Enable automatic token login on signer startup.
-     * When enabled, tokens will be automatically authenticated using configured PINs.
-     *
-     * @return true if autologin is enabled, false otherwise
-     */
     @WithDefault("false")
     boolean enabled();
+
+    Retry retry();
 
     /**
      * Map of token configurations keyed by token ID.
@@ -67,16 +60,22 @@ public interface SignerAutologinProperties {
     @WithName("tokens")
     Map<String, TokenConfig> tokens();
 
-    /**
-     * Configuration for a single token.
-     */
     interface TokenConfig {
-        /**
-         * Plaintext PIN for the token.
-         * This PIN will be used for automatic token login during signer startup.
-         *
-         * @return the token PIN
-         */
         String pin();
+    }
+
+    interface Retry {
+        String DEFAULT_RETRY_DELAY = "3S";
+        String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.0";
+        String DEFAULT_RETRY_MAX_ATTEMPTS = "20";
+
+        @WithDefault(DEFAULT_RETRY_DELAY)
+        Duration retryDelay();
+
+        @WithDefault(DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER)
+        Double retryExponentialBackoffMultiplier();
+
+        @WithDefault(DEFAULT_RETRY_MAX_ATTEMPTS)
+        int retryMaxAttempts();
     }
 }
