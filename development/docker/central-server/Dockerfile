@@ -6,6 +6,13 @@ ARG PACKAGE_SOURCE
 FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
+RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \

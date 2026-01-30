@@ -88,7 +88,7 @@ get_recommended_xms(){
 get_recommended_xmx(){
   local -r total_mem=$(get_total_memory)
 
-  memory_config=("4g:125" "8g:250" "16g:500" "31g:52")
+  memory_config=("4g:125" "8g:250" "32g:500")
   echo $(calculate_recommended_memory "$total_mem" "512m" "16g")
 }
 

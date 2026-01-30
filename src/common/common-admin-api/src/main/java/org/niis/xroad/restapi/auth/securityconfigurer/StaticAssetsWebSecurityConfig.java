@@ -34,8 +34,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
+import org.springframework.security.web.header.HeaderWriterFilter;
 
 /**
  * Static assets should be open to everyone
@@ -60,12 +59,7 @@ public class StaticAssetsWebSecurityConfig {
                         "/assets/**",
                         "/.well-known/**"
                 )
-                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
-                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-                                + "style-src 'self' 'unsafe-inline' ;"
-                                + "font-src data: 'self'"
-                        )
-                )
+                .addFilterBefore(new CspNonceFilter(),  HeaderWriterFilter.class)
                 .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)

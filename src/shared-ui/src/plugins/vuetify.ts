@@ -31,7 +31,7 @@ import '@fontsource-variable/open-sans';
 import '../assets/global-style.scss';
 
 import { createVuetify } from 'vuetify/framework';
-import { msrAliases, msr, createLightTheme, createDarkTheme, Color } from '../utils';
+import { msrAliases, msr, createLightTheme, createDarkTheme, Color, getNonce } from '../utils';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { i18n } from './i18n';
 import { useI18n } from 'vue-i18n';
@@ -112,6 +112,7 @@ export function createXrdVuetify(appSpecificLight: Color, onAppSpecificLight: Co
       adapter: createVueI18nAdapter({ i18n, useI18n }),
     },
     theme: {
+      cspNonce: getNonce(),
       defaultTheme: localStorage.getItem(XRD_THEME) ?? 'system',
       themes: {
         light: createLightTheme(appSpecificLight, onAppSpecificLight),

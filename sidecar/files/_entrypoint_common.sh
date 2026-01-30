@@ -83,12 +83,17 @@ chown xroad:xroad /etc/xroad /var/lib/xroad /var/tmp/xroad
 if [[ -n "$XROAD_ADMIN_USER" ]] && ! getent passwd "$XROAD_ADMIN_USER" &>/dev/null; then
   # Configure admin user with user-supplied username and password
   log "Creating admin user with user-supplied credentials"
-  useradd -m "${XROAD_ADMIN_USER}" -s /usr/sbin/nologin
-  echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
+  if [[ -n "$XROAD_ADMIN_PWD_HASH" ]]; then
+    useradd -m "${XROAD_ADMIN_USER}" -s /usr/sbin/nologin -p "$XROAD_ADMIN_PWD_HASH"
+  else
+    useradd -m "${XROAD_ADMIN_USER}" -s /usr/sbin/nologin
+    echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
+  fi
   echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
 fi
 XROAD_ADMIN_USER=
 XROAD_ADMIN_PASSWORD=
+XROAD_ADMIN_PWD_HASH=
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
   if [ -f /etc/xroad/VERSION ]; then

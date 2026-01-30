@@ -45,6 +45,9 @@ export default defineConfig(({ mode }) => {
       }),
       basicSsl(),
     ],
+    html: {
+      cspNonce: '__CSP_NONCE__',
+    },
     css: {
       preprocessorOptions: {
         scss: {
