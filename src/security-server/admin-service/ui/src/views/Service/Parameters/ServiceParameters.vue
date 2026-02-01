@@ -166,7 +166,12 @@
               <td class="identifier-wrap">
                 <client-name :service-client="sc" />
               </td>
-              <td class="identifier-wrap">{{ sc.id }}</td>
+              <td
+                v-if="sc.service_client_type === ServiceClientType.LOCALGROUP" class="identifier-wrap"
+              >
+                {{ sc.local_group_code }}
+              </td>
+              <td v-else class="identifier-wrap">{{ sc.id }}</td>
               <td>{{ sc.service_client_type }}</td>
               <td>{{ $filters.formatDateTime(sc.rights_given_at ?? '') }}</td>
               <td>
@@ -246,6 +251,7 @@ import {
   Service,
   ServiceClient,
   ServiceClients,
+  ServiceClientType,
   ServiceUpdate,
 } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
@@ -319,6 +325,9 @@ export default defineComponent({
     };
   },
   computed: {
+    ServiceClientType() {
+      return ServiceClientType
+    },
     ...mapState(useServices, ['service', 'serviceClients']),
     ...mapState(useUser, ['hasPermission']),
     hasServiceClients(): boolean {

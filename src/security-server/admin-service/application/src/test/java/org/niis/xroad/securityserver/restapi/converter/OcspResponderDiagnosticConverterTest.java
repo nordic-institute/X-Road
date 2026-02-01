@@ -137,7 +137,7 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(null, secondDiagnostic.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_2, secondDiagnostic.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_2, secondDiagnostic.getOcspResponders().get(0).getUrl());
-        assertEquals(null, secondDiagnostic.getOcspResponders().get(0).getCostType());
+        assertEquals(CostTypeDto.UNDEFINED, secondDiagnostic.getOcspResponders().get(0).getCostType());
 
         assertEquals(ErrorCode.OCSP_RESPONSE_PARSING_FAILURE.code(), secondDiagnostic.getOcspResponders()
                 .get(1).getError().getCode());

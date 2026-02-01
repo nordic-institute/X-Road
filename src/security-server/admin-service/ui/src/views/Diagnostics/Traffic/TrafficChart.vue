@@ -118,6 +118,7 @@ const chartOptions = computed(() => ({
   },
   tooltip: {
     trigger: 'axis',
+    renderMode: 'richText',
   },
   toolbox: {
     feature: {
