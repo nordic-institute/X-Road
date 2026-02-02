@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confproxy.commandline;
+package org.niis.xroad.confproxy.cli;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

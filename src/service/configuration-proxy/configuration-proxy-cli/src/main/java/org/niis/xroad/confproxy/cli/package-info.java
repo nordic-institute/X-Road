@@ -27,4 +27,4 @@
  * Contains classes related to configuring the configuration proxy from
  * the commandline.
  */
-package org.niis.xroad.confproxy.commandline;
+package org.niis.xroad.confproxy.cli;

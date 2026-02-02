@@ -27,6 +27,7 @@
 package org.niis.xroad.confproxy.commandline;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.confproxy.cli.ConfProxyUtilMain;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;

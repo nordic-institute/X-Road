@@ -9,7 +9,7 @@ die() {
 
 [ "$#" -eq 3 ] || [ "$#" -eq 2 ] || die "trust anchor filename, configuration path and version required, $# provided"
 
-CP="/usr/share/xroad/jlib/configuration-client.jar"
+JAR="/usr/share/xroad/jlib/configuration-client.jar"
 
 XROAD_CONFCLIENT_PARAMS="${XROAD_CONFCLIENT_PARAMS} \
 -Dquarkus.profile=cli,${XROAD_QUARKUS_PROFILES}
