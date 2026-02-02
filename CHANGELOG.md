@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.8.0 - 2026-01-28
+## 7.8.0 - 2026-02-02
 - XRDDEV-2734: Improve the method by which the operational monitoring component on the Security Server resolves its internal IP.
 - XRDDEV-2919: Allow ACME HTTP challenge port to be customised. This helps in cases where the host or container doesn’t have port 80 available to bind to, but the user still wants to use ACME.
 - XRDDEV-2921: Improve the diagnostics information available on the diagnostics page of the Security Server user interface regarding the global configuration and TSA connections.
@@ -40,6 +40,7 @@
 - XRDDEV-3081: Diagnostics page shows error 500 when the latest version of the global configuration is not available.
 - XRDDEV-3082: Confproxy view conf and create instance commands not working.
 - XRDDEV-3101: Validation error message is not shown when trying to save an invalid Central Server address in the Edit Central Server address view on the Central Server.
+- XRDDEV-3105: In the Security Server Admin UI, the Access Rights list view displays the Local Group ID instead of the group code.
 
 ## 7.7.1 - 2025-12-23
 - XRDDEV-3049: As a Developer I want to replace our charting library for a library that has a better license so that we don't have licensing issues
