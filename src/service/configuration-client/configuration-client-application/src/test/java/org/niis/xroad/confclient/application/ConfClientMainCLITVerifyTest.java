@@ -31,7 +31,7 @@ import io.quarkus.test.junit.main.QuarkusMainTest;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
-import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.confclient.common.service.ConfigurationClientService.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 
 @QuarkusMainTest
 @TestProfile(ConfClientCLITestProfile.class)

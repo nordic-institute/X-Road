@@ -1,0 +1,3 @@
+#!/bin/bash
+
+confproxy ${JAR} view-conf $@

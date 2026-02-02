@@ -28,15 +28,16 @@ package org.niis.xroad.confclient.core.config;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
 import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.confclient.core.ConfigurationClient;
-import org.niis.xroad.confclient.core.ConfigurationDownloader;
-import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepository;
-import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryImpl;
-import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryNoopImpl;
-import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
-import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
+import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
+import org.niis.xroad.confclient.common.globalconf.FileBasedProvider;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepository;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepositoryImpl;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepositoryNoopImpl;
+import org.niis.xroad.confclient.common.service.ConfigurationClient;
+import org.niis.xroad.confclient.common.service.ConfigurationClientService;
+import org.niis.xroad.confclient.common.service.ConfigurationDownloader;
+import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
 import org.niis.xroad.confclient.core.globalconf.DBBasedProvider;
-import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
 import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import javax.sql.DataSource;
@@ -77,6 +78,21 @@ public class ConfClientRootConfig {
     @ApplicationScoped
     FSGlobalConfValidator fsGlobalConfValidator() {
         return new FSGlobalConfValidator();
+    }
+
+    @ApplicationScoped
+    HttpUrlConnectionConfigurer httpUrlConnectionConfigurer(ConfigurationClientProperties configurationClientProperties) {
+        return new HttpUrlConnectionConfigurer(configurationClientProperties);
+    }
+
+    @ApplicationScoped
+    ConfigurationClientService configurationClientService(HttpUrlConnectionConfigurer httpUrlConnectionConfigurer,
+                                                          ConfigurationClientProperties configurationClientProperties,
+                                                          CommonProperties commonProperties) {
+        return new ConfigurationClientService(
+                httpUrlConnectionConfigurer,
+                configurationClientProperties,
+                commonProperties::tempFilesPath);
     }
 
 }

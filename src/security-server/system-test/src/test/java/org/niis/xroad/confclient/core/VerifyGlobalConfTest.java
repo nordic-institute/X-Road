@@ -30,6 +30,10 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
+import org.niis.xroad.confclient.common.domain.ConfigurationFile;
+import org.niis.xroad.confclient.common.service.ConfigurationDownloader;
+import org.niis.xroad.confclient.common.service.ConfigurationParser;
+import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
@@ -70,7 +74,7 @@ class VerifyGlobalConfTest {
         }
 
         @Override
-        byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
+        protected byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
             try {
                 return Files.readAllBytes(Path.of(CONF_ROOT, file.getContentLocation()));
             } catch (IOException e) {
@@ -79,7 +83,7 @@ class VerifyGlobalConfTest {
         }
 
         @Override
-        ConfigurationParser getParser() {
+        protected ConfigurationParser getParser() {
             return new ConfigurationParser(this) {
                 @Override
                 @SneakyThrows

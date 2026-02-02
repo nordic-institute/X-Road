@@ -56,9 +56,6 @@ function containsErrorNotification(notifications: Notification[], notification: 
     if (!isErrorNotification(e)) {
       return false;
     }
-    if (notification.error.responseData !== e.error.responseData) {
-      return false;
-    }
 
     if (notification.error.url !== e.error.url) {
       return false;

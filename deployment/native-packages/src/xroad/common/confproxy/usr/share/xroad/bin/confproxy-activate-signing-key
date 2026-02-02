@@ -1,0 +1,4 @@
+#!/bin/bash
+
+confproxy activate-signing-key $@
+

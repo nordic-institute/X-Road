@@ -1,4 +1,15 @@
 ---
+- name: copy CP container configuration files
+  copy:
+    src: "files/cp/"
+    dest: "/"
+    group: "root"
+    owner: "root"
+    mode: "0644"
+    directory_mode: "0755"
+  when: inventory_hostname in groups['cp_servers']
+  tags: dev-configuration
+
 - name: copy CS container configuration files
   copy:
     src: "files/cs/"

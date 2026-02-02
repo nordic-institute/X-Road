@@ -40,7 +40,7 @@
     - build-packages
 
 - name: Apply dev env configuration
-  hosts: ss_servers, cs_servers
+  hosts: ss_servers, cs_servers, cp_servers
   become: true
   strategy: free
   roles:
@@ -82,6 +82,7 @@
     - install
   vars_files:
     - vars_files/local_repo.yml
+    - vars_files/cp_database.yml
 
 - name: Install CA servers
   hosts: ca_servers
