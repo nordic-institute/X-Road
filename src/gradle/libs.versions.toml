@@ -89,6 +89,7 @@ smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-c
 smallrye-config-yaml = { group = "io.smallrye.config", name = "smallrye-config-source-yaml", version.ref = "smallryeConfig" }
 
 resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
+resilience4j-timelimiter = { module = "io.github.resilience4j:resilience4j-timelimiter", version.ref = "resilience4j" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }

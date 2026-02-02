@@ -40,6 +40,7 @@ public interface SignerAutologinProperties {
     @WithDefault("false")
     boolean enabled();
 
+    @WithName("retry")
     Retry retry();
 
     /**
@@ -68,6 +69,7 @@ public interface SignerAutologinProperties {
         String DEFAULT_RETRY_DELAY = "3S";
         String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.0";
         String DEFAULT_RETRY_MAX_ATTEMPTS = "20";
+        String DEFAULT_RETRY_TIMEOUT = "60S";
 
         @WithDefault(DEFAULT_RETRY_DELAY)
         Duration retryDelay();
@@ -77,5 +79,8 @@ public interface SignerAutologinProperties {
 
         @WithDefault(DEFAULT_RETRY_MAX_ATTEMPTS)
         int retryMaxAttempts();
+
+        @WithDefault(DEFAULT_RETRY_TIMEOUT)
+        Duration retryTimeout();
     }
 }

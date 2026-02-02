@@ -19,6 +19,7 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.apache.commonsPool2)
   implementation(libs.resilience4j.retry)
+  implementation(libs.resilience4j.timelimiter)
 
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 

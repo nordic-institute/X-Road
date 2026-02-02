@@ -30,10 +30,13 @@ import com.google.protobuf.ByteString;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerAutologinProperties;
@@ -42,6 +45,7 @@ import org.niis.xroad.signer.proto.ActivateTokenReq;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static ee.ria.xroad.common.util.SignerProtoUtils.charToByte;
 import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
@@ -60,12 +64,15 @@ public class AutoLoginService {
     private final TokenWorkerProvider tokenWorkerProvider;
 
     private Retry retryInstance;
+    private TimeLimiter timeLimiter;
 
     @PostConstruct
     void init() {
         this.retryInstance = createRetryInstance(signerAutologinProperties.retry());
-        retryInstance.getEventPublisher().onRetry(event ->
-                log.warn("Retrying autologin. Event: {}", event));
+        retryInstance.getEventPublisher().onRetry(event -> log.warn("Retrying autologin. Event: {}", event));
+
+        this.timeLimiter = createTimeLimiter(signerAutologinProperties.retry());
+        timeLimiter.getEventPublisher().onTimeout(event -> log.error("Autologin timed out. Event: {}", event));
     }
 
     public void execute() {
@@ -111,12 +118,14 @@ public class AutoLoginService {
         }
     }
 
-    private void loginTokenWithRetry(String tokenId, char[] pin) {
-        try {
-            Retry.decorateCheckedRunnable(retryInstance, () -> attemptLogin(tokenId, pin)).run();
-        } catch (Throwable e) {
-            log.error("Error while performing autologin", e);
-        }
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    private void loginTokenWithRetry(String tokenId, char[] pin) throws Exception {
+        var retrySupplier = Retry.decorateSupplier(retryInstance, () -> {
+            attemptLogin(tokenId, pin);
+            return null;
+        });
+
+        timeLimiter.executeFutureSupplier(() -> CompletableFuture.supplyAsync(retrySupplier));
     }
 
     private void attemptLogin(String tokenId, char[] pin) {
@@ -146,6 +155,15 @@ public class AutoLoginService {
 
         var retryRegistry = RetryRegistry.of(retryConfig);
         return retryRegistry.retry(RETRY_INSTANCE_NAME, retryConfig);
+    }
+
+    private static TimeLimiter createTimeLimiter(SignerAutologinProperties.Retry retryProperties) {
+        TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig.custom()
+                .timeoutDuration(retryProperties.retryTimeout())
+                .cancelRunningFuture(true)
+                .build();
+
+        return TimeLimiter.of("autologinTimelimiter", timeLimiterConfig);
     }
 
     private static boolean isRetryableError(Throwable throwable) {
