@@ -80,6 +80,11 @@ configure_remote_db() {
 
   # Try to use psql to verify connection
   if command -v psql >/dev/null; then
+    # Reading custom libpq ENV variables
+    if [ -f /etc/xroad/db_libpq.env ]; then
+      source /etc/xroad/db_libpq.env
+    fi
+
     local db_host=${XROAD_DB_CONNECTION_HOST_PORT%%:*}
     local db_port=${XROAD_DB_CONNECTION_HOST_PORT##*:}
     if PGPASSWORD="$XROAD_DB_PASSWORD" psql -h "$db_host" -p "$db_port" -U "$XROAD_DB_USER" -c "SELECT 1" >/dev/null 2>&1; then
