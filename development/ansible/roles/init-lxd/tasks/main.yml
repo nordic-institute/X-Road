@@ -37,12 +37,9 @@
   delegate_to: "{{ item }}"
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
-- name: Switch to fast Estonian mirror (xtom.ee)
-  ansible.builtin.replace:
-    path: /etc/apt/sources.list.d/ubuntu.sources
-    regexp: 'http://ports.ubuntu.com/ubuntu-ports'
-    replace: 'http://mirrors.xtom.ee/ubuntu-ports'
-  delegate_to: "{{ item }}"
+- name: Configure Artifactory mirror (Ubuntu)
+  include_tasks: artifactory.yml
+  when: artifactory_url is defined and artifactory_user is defined and artifactory_token is defined
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
 - name: Disable unattended-upgrades
@@ -74,3 +71,8 @@
     arch:
       aarch64: arm64
       x86_64: amd64
+
+- name: Configure Artifactory mirror (Rocky Linux)
+  include_tasks: artifactory.yml
+  when: artifactory_url is defined and artifactory_user is defined and artifactory_token is defined
+  with_inventory_hostnames: rhel_ss

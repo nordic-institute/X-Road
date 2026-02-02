@@ -12,6 +12,22 @@ SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
 SERVICE_CONFIG_CSV="${SCRIPT_DIR}/service-config.csv"
 
+# Resolve Artifactory configuration
+source "${ROOT_DIR}/deployment/.scripts/resolve-artifactory-args.sh"
+resolve_artifactory_args
+
+ARTIFACTORY_BUILD_ARGS=()
+if [[ -n "$ARTIFACTORY_URL" ]]; then
+  ARTIFACTORY_BUILD_ARGS+=(
+    --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
+    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
+    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+  )
+  if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
+    ARTIFACTORY_BUILD_ARGS+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
+  fi
+fi
+
 # Show help
 show_help() {
   cat <<EOF
@@ -245,6 +261,8 @@ for service in "${SERVICES[@]}"; do
     --build-context "license=${BUILD_DIR}"
     --build-context "pkcs11driver=${PKCS11_DIR}"
     --build-context "entrypoint=${context_dir}"
+    --build-context "artifactory-scripts=${ROOT_DIR}/deployment/.scripts"
+    "${ARTIFACTORY_BUILD_ARGS[@]}"
   )
 
   # Add BASE_IMAGE build arg if specified in CSV (pass as-is, Dockerfile constructs full path)

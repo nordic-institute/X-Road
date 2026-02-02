@@ -6,6 +6,15 @@ FROM ${REGISTRY}/${BASE_IMAGE}:${IMAGE_TAG}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Configure Artifactory for APT
+ARG ARTIFACTORY_URL
+ARG ARTIFACTORY_USER
+ARG ARTIFACTORY_CA_CERT
+
+RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
+    --mount=type=secret,id=artifactory_token \
+    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+
 # Install backup/restore dependencies
 RUN apt-get -qq update && \
     apt-get -qq install --no-install-recommends curl postgresql-client && \
@@ -30,4 +39,8 @@ RUN mkdir -p /var/lib/xroad/backup && \
 COPY --chown=xroad:xroad files/ /
 
 RUN chmod 755 /usr/share/xroad/scripts/generate_gpg_keypair.sh
+
+# Cleanup Artifactory configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
+    /bin/bash /tmp/cleanup-artifactory-apt.sh
 

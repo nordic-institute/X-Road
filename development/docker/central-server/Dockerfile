@@ -1,17 +1,18 @@
 # syntax=docker/dockerfile:1
 
 # internal or external
-ARG PACKAGE_SOURCE
+ARG PACKAGE_SOURCE=internal
 
 FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
-RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+ARG ARTIFACTORY_URL
+ARG ARTIFACTORY_USER
+ARG ARTIFACTORY_CA_CERT
+
+RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
+    --mount=type=secret,id=artifactory_token \
+    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
@@ -80,6 +81,9 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
 # Build final image
 FROM centralserver-${PACKAGE_SOURCE} AS final
 
+RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
+    /bin/bash /tmp/cleanup-artifactory-apt.sh
+
 RUN { nginx -s stop ||:; } \
   && rm -f /var/run/nginx.pid \
   && rm -rf /tmp/xroad \
@@ -99,8 +103,10 @@ RUN { nginx -s stop ||:; } \
   && rm -rf var/lib/apt/lists/*
 
 # Setup additional users
-ARG USER_PASSWD=secret
-RUN useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd"
+# Setup additional users
+RUN --mount=type=secret,id=user_passwd \
+    useradd xrd-sys && adduser xrd-sys xroad-system-administrator && \
+    sh -c "echo \"xrd-sys:\$(cat /run/secrets/user_passwd)\" | chpasswd"
 
 COPY --chown=xroad:xroad files/etc /etc/
 

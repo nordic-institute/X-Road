@@ -98,12 +98,25 @@ function handleRecreate() {
 }
 
 function handleAnsible() {
+  # Resolve Artifactory configuration for Ansible
+  source "../../deployment/.scripts/resolve-artifactory-args.sh"
+  resolve_artifactory_args
+
+  local extra_vars=("-e" "onMacOs=$onMacOs")
+  if [[ -n "$ARTIFACTORY_URL" ]] && [[ -n "$ARTIFACTORY_USER" ]] && [[ -n "$ARTIFACTORY_TOKEN" ]]; then
+    extra_vars+=("-e" "artifactory_url=$ARTIFACTORY_URL")
+    extra_vars+=("-e" "artifactory_user=$ARTIFACTORY_USER")
+    extra_vars+=("-e" "artifactory_token=$ARTIFACTORY_TOKEN")
+    if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
+      extra_vars+=("-e" "artifactory_ca_cert=$ARTIFACTORY_CA_CERT")
+    fi
+  fi
 
   ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
     ../../development/ansible/xroad_dev.yml \
     --forks 10 \
     --skip-tags compile,build-packages \
-    -e onMacOs=$onMacOs \
+    "${extra_vars[@]}" \
     -vv
 }
 

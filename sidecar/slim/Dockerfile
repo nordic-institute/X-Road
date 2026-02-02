@@ -1,6 +1,15 @@
 FROM ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Configure Artifactory for APT
+ARG ARTIFACTORY_URL
+ARG ARTIFACTORY_USER
+ARG ARTIFACTORY_CA_CERT
+
+RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
+    --mount=type=secret,id=artifactory_token \
+    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install \
@@ -76,6 +85,10 @@ RUN rm -f \
 COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# Cleanup Artifactory configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
+    /bin/bash /tmp/cleanup-artifactory-apt.sh
 
 CMD ["/root/entrypoint.sh"]
 

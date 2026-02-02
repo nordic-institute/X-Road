@@ -17,6 +17,7 @@ set -e
 # Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../../.scripts/base-script.sh"
+source "${SCRIPT_DIR}/../../../deployment/.scripts/resolve-artifactory-args.sh"
 
 # Default configuration
 GRADLE_PROPERTIES="${XROAD_HOME}/src/gradle.properties"
@@ -28,6 +29,8 @@ VERSION=""
 PACKAGES_PATH=""
 PLATFORMS=""  # Empty by default = build for host platform only
 BUILD_START_TIME=$(date +%s)
+# Set default password for build secrets if not provided
+export USER_PASSWD="${USER_PASSWD:-secret}"
 
 # Help function
 show_help() {
@@ -175,13 +178,30 @@ fi
 log_info "Building central-server-dev image..."
 build_start=$(date +%s)
 
+# Resolve Artifactory configuration (includes credentials and CA cert)
+resolve_artifactory_args
+
 build_cmd=(
   docker buildx build
   --file "$SCRIPT_DIR/Dockerfile"
   --build-arg PACKAGE_SOURCE=internal
   --build-context "perf=$PERF_PATH"
   --build-context "packages=$PACKAGES_PATH"
+  --build-context "artifactory-scripts=${XROAD_HOME}/deployment/.scripts"
+  --secret "id=user_passwd,env=USER_PASSWD"
 )
+
+# Pass Artifactory args if set
+if [[ -n "$ARTIFACTORY_URL" ]] && [[ -n "$ARTIFACTORY_USER" ]] && [[ -n "$ARTIFACTORY_TOKEN" ]]; then
+  build_cmd+=(
+    --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
+    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
+    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+  )
+  if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
+    build_cmd+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
+  fi
+fi
 
 # Add platform flag only if specified
 if [[ -n "$PLATFORMS" ]]; then

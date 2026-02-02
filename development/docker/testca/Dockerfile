@@ -1,11 +1,13 @@
 FROM ubuntu:24.04
 
-# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
-RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+# Configure Artifactory for APT
+ARG ARTIFACTORY_URL
+ARG ARTIFACTORY_USER
+ARG ARTIFACTORY_CA_CERT
+
+RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
+    --mount=type=secret,id=artifactory_token \
+    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
 
 # ACME
 ARG A2C_VER=0.35
@@ -56,6 +58,10 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
 COPY --chown=www-data:www-data build/acme2certifier/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
 COPY --chown=www-data:www-data build/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
 COPY --chown=www-data:www-data build/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
+
+# Cleanup Artifactory configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
+    /bin/bash /tmp/cleanup-artifactory-apt.sh
 
 CMD ["/root/entrypoint.sh"]
 

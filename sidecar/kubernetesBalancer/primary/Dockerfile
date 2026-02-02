@@ -1,6 +1,16 @@
 ARG VERSION
 ARG TAG=niis/xroad-security-server-sidecar
 FROM $TAG:$VERSION
+
+# Configure Artifactory for APT
+ARG ARTIFACTORY_URL
+ARG ARTIFACTORY_USER
+ARG ARTIFACTORY_CA_CERT
+
+RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
+    --mount=type=secret,id=artifactory_token \
+    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+
 RUN apt-get -qq update \
     && apt-get -qq install openssh-server rsync
 
@@ -19,4 +29,9 @@ RUN adduser --system --shell /bin/bash --home /home/xroad-slave --ingroup xroad 
 
 COPY files/balancer-primary-entrypoint.sh /root/entrypoint.sh
 COPY files/primary-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# Cleanup Artifactory configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
+    /bin/bash /tmp/cleanup-artifactory-apt.sh
+
 CMD ["/root/entrypoint.sh"]

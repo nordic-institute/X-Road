@@ -8,15 +8,66 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+# Source Artifactory credential resolver
+source "${ROOT_DIR}/deployment/.scripts/resolve-artifactory-args.sh"
+resolve_artifactory_args
 
 # Configuration from environment variables
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 BUILD_PLATFORMS="${BUILD_PLATFORMS:-}"  # Empty = host platform only
-RELEASE="${1:-}"
 
 # Available releases
-ALL_RELEASES=(deb-jammy deb-noble rpm-el8 rpm-el9)
+ALL_RELEASES=(deb-jammy deb-nole rpm-el8 rpm-el9)
+
+# Parse arguments
+FORCE_BUILD=false
+NO_CACHE=false
+RELEASE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -f|--force)
+      FORCE_BUILD=true
+      shift
+      ;;
+    --no-cache)
+      NO_CACHE=true
+      shift
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+    *)
+      RELEASE="$1"
+      shift
+      ;;
+  esac
+done
+
+# Prepare Artifactory build args
+ARTIFACTORY_BUILD_ARGS=()
+if [[ -n "$ARTIFACTORY_URL" ]] && [[ -n "$ARTIFACTORY_USER" ]] && [[ -n "$ARTIFACTORY_TOKEN" ]]; then
+  # For APT-based builds
+  ARTIFACTORY_BUILD_ARGS_APT=(
+    --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
+    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
+    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+  )
+  # For YUM/DNF-based builds (uses BASE_URL)
+  ARTIFACTORY_BUILD_ARGS_RPM=(
+    --build-arg ARTIFACTORY_BASE_URL="${ARTIFACTORY_URL%/mirror-*}"
+    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
+    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+  )
+  if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
+    ARTIFACTORY_BUILD_ARGS_APT+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
+    ARTIFACTORY_BUILD_ARGS_RPM+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
+  fi
+fi
 
 # Color codes
 isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
@@ -55,11 +106,17 @@ log_success() {
 
 # Validate arguments
 if [[ -z "$RELEASE" ]]; then
-  echo "Usage: $0 <release|all>" >&2
+  echo "Usage: $0 [options] <release|all>" >&2
+  echo "" >&2
+  echo "Options:" >&2
+  echo "  -f, --force     Force build without checking registry" >&2
+  echo "  --no-cache      Build without using cache" >&2
   echo "" >&2
   echo "Examples:" >&2
-  echo "  $0 deb-noble          # Prepare single image" >&2
-  echo "  $0 all                # Prepare all images" >&2
+  echo "  $0 deb-noble              # Prepare single image (pull or build)" >&2
+  echo "  $0 all                    # Prepare all images" >&2
+  echo "  $0 -f all                 # Force rebuild all images" >&2
+  echo "  $0 -f --no-cache rpm-el9  # Force rebuild without cache" >&2
   echo "" >&2
   echo "Available releases: ${ALL_RELEASES[*]}" >&2
   exit 1
@@ -89,25 +146,44 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
   
   log_info "Processing ${release}..."
   log_info "  Image: ${IMAGE_NAME}"
-  
-  # Try to pull from registry
-  log_warn "Attempting to pull from registry..."
-  if docker pull "$IMAGE_NAME" 2>/dev/null; then
-    log_success "Pulled ${release} from registry"
-    continue
+
+  # Try to pull from registry (unless force build)
+  if [[ "$FORCE_BUILD" != "true" ]]; then
+    log_warn "Attempting to pull from registry..."
+    if docker pull "$IMAGE_NAME" 2>/dev/null; then
+      log_success "Pulled ${release} from registry"
+      continue
+    fi
+    log_warn "Could not pull from registry, building..."
+  else
+    log_info "Force build enabled, skipping registry check..."
   fi
-  
-  # Build if pull failed
-  log_warn "Could not pull from registry, building..."
   
   if [[ ! -d "$SCRIPT_DIR/$release" ]]; then
     log_error "Dockerfile directory not found: $SCRIPT_DIR/$release"
     FAILED_BUILDS+=("$release")
     continue
   fi
-  
+
+  # Set appropriate Artifactory build args based on release type
+  if [[ "$release" == deb-* ]]; then
+    ARTIFACTORY_BUILD_ARGS=("${ARTIFACTORY_BUILD_ARGS_APT[@]}")
+  else
+    ARTIFACTORY_BUILD_ARGS=("${ARTIFACTORY_BUILD_ARGS_RPM[@]}")
+  fi
+
+  # Add artifactory-scripts build context
+  ARTIFACTORY_BUILD_ARGS+=(--build-context "artifactory-scripts=${ROOT_DIR}/deployment/.scripts")
+
   BUILD_START=$(date +%s)
-  
+
+  # Build cache flag
+  CACHE_FLAG=()
+  if [[ "$NO_CACHE" == "true" ]]; then
+    CACHE_FLAG=(--no-cache)
+    log_info "  Cache: disabled"
+  fi
+
   if [[ -n "$BUILD_PLATFORMS" ]] && [[ "$BUILD_PLATFORMS" == *","* ]]; then
     # Multi-platform build with buildx
     log_info "  Platforms: ${BUILD_PLATFORMS}"
@@ -115,9 +191,11 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
       --platform "$BUILD_PLATFORMS" \
       --file "$SCRIPT_DIR/$release/Dockerfile" \
       --tag "$IMAGE_NAME" \
+      "${CACHE_FLAG[@]}" \
+      "${ARTIFACTORY_BUILD_ARGS[@]}" \
       --push \
       "$SCRIPT_DIR/$release/" >/dev/null; then
-      
+
       BUILD_END=$(date +%s)
       DURATION=$((BUILD_END - BUILD_START))
       log_success "Built and pushed ${release} (${DURATION}s)"
@@ -132,8 +210,8 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
     else
       log_info "  Platform: host"
     fi
-    
-    if docker build -q -t "$IMAGE_NAME" "$SCRIPT_DIR/$release/"; then
+
+    if docker build -q -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${ARTIFACTORY_BUILD_ARGS[@]}" "$SCRIPT_DIR/$release/"; then
       log_info "  Pushing to registry..."
       if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
         BUILD_END=$(date +%s)

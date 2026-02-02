@@ -25,6 +25,7 @@ USAGE:
 
 OPTIONS:
     --push                  Push images to registry (default: false)
+    --no-artifactory        Skip Artifactory mirror configuration
     --help                  Show this help
 
 ENVIRONMENT VARIABLES:
@@ -52,6 +53,7 @@ EOF
 
 # Parse arguments
 PUSH="true"
+NO_ARTIFACTORY="false"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -60,6 +62,10 @@ while [[ $# -gt 0 ]]; do
     ;;
   --push)
     PUSH="true"
+    shift
+    ;;
+  --no-artifactory)
+    NO_ARTIFACTORY="true"
     shift
     ;;
   -*)
@@ -72,6 +78,24 @@ while [[ $# -gt 0 ]]; do
     ;;
   esac
 done
+
+# Resolve Artifactory configuration (unless --no-artifactory flag is set)
+ARTIFACTORY_BUILD_ARGS=()
+if [[ "$NO_ARTIFACTORY" != "true" ]]; then
+  source "${ROOT_DIR}/deployment/.scripts/resolve-artifactory-args.sh"
+  resolve_artifactory_args
+
+  if [[ -n "${ARTIFACTORY_URL:-}" ]]; then
+    ARTIFACTORY_BUILD_ARGS+=(
+      --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
+      --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
+      --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+    )
+    if [[ -n "${ARTIFACTORY_CA_CERT:-}" ]]; then
+      ARTIFACTORY_BUILD_ARGS+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
+    fi
+  fi
+fi
 
 # Determine registry
 REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
@@ -113,9 +137,13 @@ log_info "Platform: host platform only"
 log_info "Push: $PUSH"
 echo
 
-# Set up Docker Buildx (use default driver for local builds)
+# Setup Docker Buildx for multi-platform builds
 log_info "Setting up Docker Buildx..."
-docker buildx use default 2>/dev/null || docker buildx use orbstack || true
+if ! docker buildx inspect xroad-builder &>/dev/null; then
+  docker buildx create --name xroad-builder --driver docker-container --driver-opt network=host --bootstrap --use
+else
+  docker buildx use xroad-builder
+fi
 
 # Validate required paths exist
 if [[ ! -d "$SECRET_STORE_LOCAL" ]]; then
@@ -145,6 +173,7 @@ build_cmd=(
   --file "$OPENBAO_DOCKERFILE"
   --build-context "openbao-init-ctx=${SECRET_STORE_LOCAL}"
   --tag "$OPENBAO_IMAGE"
+  "${ARTIFACTORY_BUILD_ARGS[@]}"
 )
 
 if [[ "$PUSH" == "true" ]]; then
@@ -167,7 +196,7 @@ fi
 # =============================================================================
 # Build TestCA Development Image
 # =============================================================================
-log_info "Building testca-dev..."
+log_info "Building testca-dev image..."
 build_start=$(date +%s)
 
 TESTCA_IMAGE="${REGISTRY}/testca-dev:${IMAGE_TAG}"
@@ -176,9 +205,16 @@ TESTCA_CONTEXT="$CA_CONTAINER"
 
 build_cmd=(
   docker buildx build
-  --file "$TESTCA_DOCKERFILE"
+  --build-context "artifactory-scripts=${ROOT_DIR}/deployment/.scripts"
+  --push="${PUSH}"
   --tag "$TESTCA_IMAGE"
+  "${ARTIFACTORY_BUILD_ARGS[@]}"
 )
+
+# Add platform flag only if specified
+if [[ -n "$PLATFORMS" ]]; then
+  build_cmd+=(--platform "$PLATFORMS")
+fi
 
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)
@@ -211,6 +247,7 @@ build_cmd=(
   docker buildx build
   --file "$POSTGRES_DEV_DOCKERFILE"
   --tag "$POSTGRES_DEV_IMAGE"
+  "${ARTIFACTORY_BUILD_ARGS[@]}"
 )
 
 if [[ "$PUSH" == "true" ]]; then

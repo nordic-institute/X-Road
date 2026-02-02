@@ -1,15 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 no_cache=""
+no_artifactory=""
 n=1
+args_to_keep=()
 for i in "$@" ; do
     if [[ $i == "--no-cache" ]] ; then
         no_cache="--no-cache"
-        set -- "${@:1:n-1}" "${@:n+1}"
-        break
+    elif [[ $i == "--no-artifactory" ]] ; then
+        no_artifactory="true"
+    else
+        args_to_keep+=("$i")
     fi
-    ((n++))
 done
+set -- "${args_to_keep[@]}"
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
 version="${1:-8.0.0}"
@@ -18,6 +22,22 @@ repo="${3-}"
 dist="${4-}"
 repo_key="${5-}"
 
+# Resolve Artifactory configuration (unless --no-artifactory flag is set)
+ARTIFACTORY_BUILD_ARGS=(--build-context "artifactory-scripts=$dir/../deployment/.scripts")
+if [[ "$no_artifactory" != "true" ]]; then
+  source "$dir/../deployment/.scripts/resolve-artifactory-args.sh"
+  resolve_artifactory_args
+
+  if [[ -n "${ARTIFACTORY_URL-}" ]]; then
+    ARTIFACTORY_BUILD_ARGS+=(
+      --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
+      --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
+      --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+    )
+    [[ -n "${ARTIFACTORY_CA_CERT-}" ]] && ARTIFACTORY_BUILD_ARGS+=(--build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT")
+  fi
+fi
+
 build() {
   echo "BUILDING $tag:$version$2 using ${1#$dir/}"
   local build_args=($no_cache --build-arg "VERSION=$version" --build-arg "TAG=$tag")
@@ -25,7 +45,7 @@ build() {
   [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
   [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
   [[ -n ${LABEL-} ]] && build_args+=(--label "$LABEL")
-  docker build -f "$1" "${build_args[@]}" -t "$tag:$version$2" "$dir"
+  docker build -f "$1" "${build_args[@]}" "${ARTIFACTORY_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
 }
 
 copy_variant_conf() {

@@ -1,0 +1,28 @@
+- name: Gather facts from target container
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+
+- name: Configure Artifactory APT mirror (Debian-based)
+  script:
+    cmd: >-
+      {{ playbook_dir }}/../../deployment/.scripts/configure-artifactory-apt.sh
+      '{{ artifactory_url }}'
+      '{{ artifactory_user }}'
+      '{{ artifactory_ca_cert | default('') }}'
+  environment:
+    ARTIFACTORY_TOKEN: "{{ artifactory_token }}"
+  delegate_to: "{{ item }}"
+  when: hostvars[item].ansible_os_family == "Debian"
+
+- name: Configure Artifactory YUM mirror (RedHat-based)
+  script:
+    cmd: >-
+      {{ playbook_dir }}/../../deployment/.scripts/configure-artifactory-yum.sh
+      '{{ artifactory_url | regex_replace('/mirror-.*$', '') }}'
+      '{{ artifactory_user }}'
+      '{{ artifactory_ca_cert | default('') }}'
+  environment:
+    ARTIFACTORY_TOKEN: "{{ artifactory_token }}"
+  delegate_to: "{{ item }}"
+  when: hostvars[item].ansible_os_family == "RedHat"
