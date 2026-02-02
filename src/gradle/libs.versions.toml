@@ -174,7 +174,7 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.18.0" }
-sonarqube = { id = "org.sonarqube", version = "6.3.1.5724" }
+sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
 protobuf = { id = "com.google.protobuf", version = "0.9.5" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.9" }
