@@ -18,3 +18,7 @@ Description: Insert admin UI and REST API TLS certificate subject name alternati
  .
  Server reports following ip addresses and hostnames: ${ALT}
 
+Template: xroad-common/non_existing_user
+Type: error
+Description: User does not exist
+  Specified user does not exist

@@ -30,8 +30,20 @@ prepare_tls_settings() {
 }
 
 case "$1" in
- configure | reconfigure)
-   prepare_tls_settings
+  configure | reconfigure)
+    prepare_tls_settings
+
+    RET=""
+    db_get xroad-common/username
+    AUSER="$RET"
+
+    if [ -n "$AUSER" ]; then
+      # Use the shared setup_xroad_admin_user.sh script
+      . /usr/share/xroad/scripts/setup_xroad_admin_user.sh
+      setup_xroad_admin_user "$AUSER"
+    else
+      log "WARNING: X-Road admin user not configured."
+    fi
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)

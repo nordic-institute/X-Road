@@ -97,6 +97,7 @@ rm -rf %{buildroot}
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
 %attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_directories.sh
 %attr(755,root,root) /usr/share/xroad/scripts/write_tls_config.sh
+%attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_admin_user.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
@@ -108,7 +109,7 @@ rm -rf %{buildroot}
 %upgrade_check
 
 if ! getent passwd xroad > /dev/null; then
-useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
+  useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
 fi
 
 

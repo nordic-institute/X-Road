@@ -1,12 +1,6 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
-#add groups
-groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
-
-#define groups that are allowed on ss-cluster slaves
-slave_groups="xroad-security-officer xroad-securityserver-observer"
-
 log () { echo >&2 "$@"; }
 
 get_prop() {
@@ -54,35 +48,6 @@ case "$1" in
 
   test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
   test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
-
-  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
-
-  RET=""
-  db_get xroad-common/username
-  AUSER="$RET"
-
-  if [ -n "$AUSER" ]; then
-    groupnames=""
-    if [[ "$node_type" == "slave" ]]; then
-      log "Cluster slave node detected, configuring slave compatible groups"
-      groupnames=$slave_groups
-    else
-      log "Configuring groups"
-      groupnames=$groups
-    fi
-
-    usergroups=" $(id -Gn "$AUSER") "
-    for groupname in $groupnames; do
-      if ! getent group "$groupname" > /dev/null; then
-          groupadd --system "$groupname" || true
-      fi
-      if [[ $usergroups != *" $groupname "* ]]; then
-          usermod -a -G "$groupname" "$AUSER" || true
-      fi
-    done
-  else
-    log "WARNING: X-Road admin user not configured."
-  fi
 
   RET=""
   db_get xroad-common/database-host || RET=""
