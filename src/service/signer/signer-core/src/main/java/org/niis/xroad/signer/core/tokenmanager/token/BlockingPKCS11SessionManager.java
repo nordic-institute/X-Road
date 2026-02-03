@@ -65,8 +65,8 @@ public class BlockingPKCS11SessionManager implements SessionProvider {
         operation.accept(session);
     }
 
-    public synchronized boolean login() throws PKCS11Exception {
-        return session.login();
+    public synchronized boolean login(char[] pin) throws PKCS11Exception {
+        return session.login(pin);
     }
 
     public synchronized boolean logout() throws PKCS11Exception {

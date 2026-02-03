@@ -23,39 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.config;
+package org.niis.xroad.migration.tokenpin;
 
-import io.quarkus.runtime.Startup;
-import io.quarkus.vault.VaultKVSecretEngine;
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
-import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
-import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
-
-@Slf4j
-public class SignerConfig {
-
-    @ApplicationScoped
-    @Startup
-    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker,
-                                                          GlobalConfProvider globalConfProvider,
-                                                          SignerProperties signerProperties) {
-        if (signerProperties.ocspResponseRetrievalActive()) {
-            var scheduler = new OcspClientExecuteSchedulerImpl(ocspClientWorker, globalConfProvider, signerProperties);
-            scheduler.init();
-            return scheduler;
-        } else {
-            return new OcspClientExecuteScheduler.NoopScheduler();
-        }
-    }
-
-    @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
-    }
-
+/**
+ * Status of a token PIN migration operation.
+ */
+public enum MigrationStatus {
+    /** All PINs migrated successfully */
+    SUCCESS,
+    /** Some PINs migrated, some failed */
+    PARTIAL_SUCCESS,
+    /** No PINs migrated */
+    FAILED,
+    /** No PINs to migrate (exit code 127 or empty output) */
+    SKIPPED
 }

@@ -42,10 +42,12 @@ public interface RpcProperties {
         String DEFAULT_RETRY_DELAY = "5S";
         String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
         String DEFAULT_RETRY_MAX_ATTEMPTS = "10";
+        String DEFAULT_RETRY_TIMEOUT = "60S";
 
         Duration refreshInterval();
         Duration retryDelay();
         Double retryExponentialBackoffMultiplier();
         int retryMaxAttempts();
+        Duration retryTimeout();
     }
 }

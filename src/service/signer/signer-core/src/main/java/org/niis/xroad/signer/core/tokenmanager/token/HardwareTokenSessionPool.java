@@ -38,7 +38,6 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
@@ -49,8 +48,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 class HardwareTokenSessionPool implements SessionProvider {
     private final GenericObjectPool<ManagedPKCS11Session> pool;
 
-    HardwareTokenSessionPool(SignerHwTokenAddonProperties properties, Token token, String tokenId) {
-        this.pool = createPool(properties, token, tokenId);
+    HardwareTokenSessionPool(SignerHwTokenAddonProperties properties, Token token, String tokenId, char[] pin) {
+        this.pool = createPool(properties, token, tokenId, pin);
     }
 
     @Override
@@ -86,14 +85,14 @@ class HardwareTokenSessionPool implements SessionProvider {
     }
 
     private static GenericObjectPool<ManagedPKCS11Session> createPool(SignerHwTokenAddonProperties properties,
-                                                                      Token token, String tokenId) {
+                                                                      Token token, String tokenId, char[] pin) {
         log.info("Initializing Apache Commons session pool with settings {} for token {}", properties, tokenId);
 
         if (token == null) {
             throw XrdRuntimeException.systemInternalError("Token is null for pool initialization");
         }
 
-        var factory = new ManagedPKCS11SessionFactory(token, tokenId);
+        var factory = new ManagedPKCS11SessionFactory(token, tokenId, pin);
         GenericObjectPoolConfig<ManagedPKCS11Session> config = new GenericObjectPoolConfig<>();
         config.setMaxTotal(properties.poolMaxTotal());
         config.setMinIdle(properties.poolMinIdle());
@@ -130,6 +129,7 @@ class HardwareTokenSessionPool implements SessionProvider {
     static class ManagedPKCS11SessionFactory extends BasePooledObjectFactory<ManagedPKCS11Session> {
         private final Token token;
         private final String tokenId;
+        private final char[] pin;
 
         @Override
         @ArchUnitSuppressed("NoVanillaExceptions")
@@ -138,12 +138,11 @@ class HardwareTokenSessionPool implements SessionProvider {
 
             var session = ManagedPKCS11Session.openSession(token, tokenId);
 
-            var pin = PasswordStore.getPassword(tokenId);
-            if (pin.isEmpty()) {
+            if (pin == null || pin.length == 0) {
                 throw XrdRuntimeException.systemInternalError(
-                        "PIN not available in PasswordStore for auto-login of pooled session on token " + tokenId);
+                        "PIN not available for auto-login of pooled session on token " + tokenId);
             }
-            if (session.login()) {
+            if (session.login(pin)) {
                 log.debug("Immediate login successful for new pooled session {} on token {}", session.getSessionHandle(), tokenId);
             } else {
                 session.close();

@@ -102,4 +102,19 @@ public class NoopVaultClient implements VaultClient {
     public Map<String, String> getMLogDBEncryptionSecretKeys() {
         return Map.of();
     }
+
+    @Override
+    public void setTokenPin(String tokenId, char[] pin) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public Optional<char[]> getTokenPin(String tokenId) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void deleteTokenPin(String tokenId) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }
