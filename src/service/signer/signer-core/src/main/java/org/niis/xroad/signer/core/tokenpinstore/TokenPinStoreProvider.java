@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.config;
+package org.niis.xroad.signer.core.tokenpinstore;
 
-import io.quarkus.runtime.Startup;
-import io.quarkus.vault.VaultKVSecretEngine;
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
-import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
-import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
+import java.util.Optional;
 
-@Slf4j
-public class SignerConfig {
-
-    @ApplicationScoped
-    @Startup
-    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker,
-                                                          GlobalConfProvider globalConfProvider,
-                                                          SignerProperties signerProperties) {
-        if (signerProperties.ocspResponseRetrievalActive()) {
-            var scheduler = new OcspClientExecuteSchedulerImpl(ocspClientWorker, globalConfProvider, signerProperties);
-            scheduler.init();
-            return scheduler;
-        } else {
-            return new OcspClientExecuteScheduler.NoopScheduler();
-        }
-    }
-
-    @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
-    }
-
+public interface TokenPinStoreProvider {
+    Optional<char[]> getPin(String tokenId);
+    void setPin(String id, char[] password);
+    void clearPin(String id);
 }

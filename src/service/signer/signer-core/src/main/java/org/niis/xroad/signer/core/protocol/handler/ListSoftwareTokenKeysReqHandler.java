@@ -34,10 +34,10 @@ import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenPinManager;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil;
+import org.niis.xroad.signer.core.tokenpinstore.TokenPinStoreProvider;
 import org.niis.xroad.signer.proto.ListSoftwareTokenKeysResp;
 import org.niis.xroad.signer.proto.SoftwareTokenKeyInfo;
 
@@ -58,6 +58,7 @@ public class ListSoftwareTokenKeysReqHandler extends AbstractRpcHandler<Empty, L
 
     private final TokenLookup tokenLookup;
     private final TokenPinManager pinManager;
+    private final TokenPinStoreProvider tokenPinStoreProvider;
 
     @Override
     protected ListSoftwareTokenKeysResp handle(Empty request) {
@@ -106,7 +107,7 @@ public class ListSoftwareTokenKeysReqHandler extends AbstractRpcHandler<Empty, L
     }
 
     private char[] getPin(String tokenId) {
-        final char[] pin = PasswordStore.getPassword(tokenId).orElse(null);
+        final char[] pin = tokenPinStoreProvider.getPin(tokenId).orElse(null);
         verifyPinProvided(pin);
 
         return pin;

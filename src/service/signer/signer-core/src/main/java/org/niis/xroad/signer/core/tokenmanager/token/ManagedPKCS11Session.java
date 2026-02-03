@@ -35,7 +35,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 
 import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
 
@@ -69,15 +68,13 @@ public class ManagedPKCS11Session {
      *
      * @return true if login was successful
      */
-    public boolean login() throws PKCS11Exception {
+    public boolean login(char[] pin) throws PKCS11Exception {
         try {
-            var password = PasswordStore.getPassword(tokenId);
-
-            if (password.isEmpty()) {
+            if (pin == null || pin.length == 0) {
                 log.warn("Cannot login, no password stored for token {}", tokenId);
                 return false;
             }
-            session.login(Session.CKUserType.USER, password.get());
+            session.login(Session.CKUserType.USER, pin);
             log.trace("Successfully logged in to session for token {}", tokenId);
             return true;
         } catch (PKCS11Exception pkcs11Exception) {

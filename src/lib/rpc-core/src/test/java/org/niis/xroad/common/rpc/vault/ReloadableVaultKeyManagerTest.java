@@ -27,6 +27,8 @@
 package org.niis.xroad.common.rpc.vault;
 
 import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,6 +75,7 @@ class ReloadableVaultKeyManagerTest {
     private AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();
 
     private Retry retryInstance;
+    private TimeLimiter timeLimiter;
 
     private AdvancedTlsX509TrustManager trustManager;
 
@@ -102,8 +105,9 @@ class ReloadableVaultKeyManagerTest {
 
 
         retryInstance = spy(ReloadableVaultKeyManager.createRetryInstance(certificateProvisionProperties));
+        timeLimiter = ReloadableVaultKeyManager.createTimeLimiter(certificateProvisionProperties);
         reloadableVaultKeyManager = new ReloadableVaultKeyManager(certificateProvisionProperties, vaultKeyClient, trustManager,
-                keyManager, scheduler, retryInstance);
+                keyManager, scheduler, retryInstance, timeLimiter);
 
     }
 
@@ -219,6 +223,40 @@ class ReloadableVaultKeyManagerTest {
         assertThat(retryInstance.getMetrics().getNumberOfFailedCallsWithRetryAttempt()).isOne();
     }
 
+    @Test
+    void reloadShouldFailOnTimeout() throws Throwable {
+        // Arrange - create a TimeLimiter with a very short timeout
+        TimeLimiterConfig shortTimeoutConfig = TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofMillis(100))
+                .cancelRunningFuture(true)
+                .build();
+        var shortTimeLimiter = TimeLimiter.of("shortTimeoutLimiter", shortTimeoutConfig);
+
+        // Create a new manager with the short timeout
+        var managerWithShortTimeout = new ReloadableVaultKeyManager(
+                certificateProvisionProperties, vaultKeyClient, trustManager,
+                keyManager, scheduler, retryInstance, shortTimeLimiter);
+
+        // Mock provisionNewCerts to take longer than the timeout
+        when(vaultKeyClient.provisionNewCerts()).thenAnswer(invocation -> {
+            Thread.sleep(500); // Sleep longer than the timeout
+            return mock(VaultKeyClient.VaultKeyData.class);
+        });
+
+        // Act - reload should timeout
+        managerWithShortTimeout.reload();
+
+        // Assert
+        // Verify keyManager and trustManager were NEVER updated due to timeout
+        verify(keyManager, never()).updateIdentityCredentials((X509Certificate[]) any(), any());
+        verify(trustManager, never()).updateTrustCredentials((X509Certificate[]) any());
+
+        // Verify the next reload is still scheduled even after timeout
+        verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
+        assertThat(delayCaptor.getValue()).isEqualTo(60L);
+        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
+    }
+
     private static final class TestCertificateProvisioningProperties implements RpcProperties.RpcCertificateProvisioningProperties {
 
         @Override
@@ -269,6 +307,11 @@ class ReloadableVaultKeyManagerTest {
         @Override
         public String secretStorePkiPath() {
             return DEFAULT_SECRET_STORE_PKI_PATH;
+        }
+
+        @Override
+        public Duration retryTimeout() {
+            return Duration.ofSeconds(60);
         }
     }
 }

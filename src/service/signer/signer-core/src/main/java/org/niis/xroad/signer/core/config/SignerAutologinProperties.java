@@ -24,72 +24,62 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.quarkus;
+
+package org.niis.xroad.signer.core.config;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
-import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Map;
 
-import static org.niis.xroad.common.rpc.RpcProperties.PREFIX;
+@ConfigMapping(prefix = "xroad.signer.autologin")
+public interface SignerAutologinProperties {
 
-@ConfigMapping(prefix = PREFIX)
-public interface QuarkusRpcProperties extends RpcProperties {
+    @WithDefault("false")
+    boolean enabled();
 
-    @WithName("use-tls")
-    @WithDefault(DEFAULT_USE_TLS)
-    boolean useTls();
+    @WithName("retry")
+    Retry retry();
 
-    @WithName("certificate-provisioning")
-    QuarkusRpcCertificateProvisioningProperties certificateProvisioning();
+    /**
+     * Map of token configurations keyed by token ID.
+     * Configuration format:
+     * <pre>
+     * xroad.signer.autologin.tokens.0.pin=secret123
+     * xroad.signer.autologin.tokens.softtoken-1.pin=another-secret
+     * </pre>
+     * Or via environment variables:
+     * <pre>
+     * XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=secret123
+     * XROAD_SIGNER_AUTOLOGIN_TOKENS__SOFTTOKEN_1__PIN=another-secret
+     * </pre>
+     *
+     * @return map of token ID to TokenConfig
+     */
+    @WithName("tokens")
+    Map<String, TokenConfig> tokens();
 
-    interface QuarkusRpcCertificateProvisioningProperties extends RpcCertificateProvisioningProperties, CertificateProvisioningProperties {
+    interface TokenConfig {
+        String pin();
+    }
 
-        @WithName("issuance-role-name")
-        @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
-        String issuanceRoleName();
+    interface Retry {
+        String DEFAULT_RETRY_DELAY = "3S";
+        String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.0";
+        String DEFAULT_RETRY_MAX_ATTEMPTS = "20";
+        String DEFAULT_RETRY_TIMEOUT = "60S";
 
-        @WithName("common-name")
-        @WithDefault(DEFAULT_COMMON_NAME)
-        String commonName();
-
-        @WithName("alt-names")
-        @WithDefault("[]")
-        List<String> altNames();
-
-        @WithName("ip-subject-alt-names")
-        @WithDefault("[]")
-        List<String> ipSubjectAltNames();
-
-        @WithName("ttl")
-        @WithDefault(DEFAULT_TTL)
-        Duration ttl();
-
-        @WithName("secret-store-pki-path")
-        @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
-        String secretStorePkiPath();
-
-        @WithName("refresh-interval")
-        @WithDefault(DEFAULT_REFRESH_INTERVAL)
-        Duration refreshInterval();
-
-        @WithName("retry-base-delay")
         @WithDefault(DEFAULT_RETRY_DELAY)
         Duration retryDelay();
 
-        @WithName("retry-exponential-backoff-multiplier")
         @WithDefault(DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER)
         Double retryExponentialBackoffMultiplier();
 
-        @WithName("retry-max-attempts")
         @WithDefault(DEFAULT_RETRY_MAX_ATTEMPTS)
         int retryMaxAttempts();
 
-        @WithName("retry-timeout")
         @WithDefault(DEFAULT_RETRY_TIMEOUT)
         Duration retryTimeout();
     }

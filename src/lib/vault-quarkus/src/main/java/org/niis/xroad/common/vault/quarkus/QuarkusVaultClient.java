@@ -141,6 +141,27 @@ public class QuarkusVaultClient implements VaultClient {
         );
     }
 
+    @Override
+    public void setTokenPin(String tokenId, char[] pin) {
+        var secret = new HashMap<String, String>();
+        secret.put(PIN_KEY, new String(pin));
+        String path = SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId;
+        kvSecretEngine.writeSecret(path, secret);
+    }
+
+    @Override
+    public Optional<char[]> getTokenPin(String tokenId) {
+        String path = SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId;
+        return readSecret(path)
+                .map(secret -> secret.get(PIN_KEY).toCharArray());
+    }
+
+    @Override
+    public void deleteTokenPin(String tokenId) {
+        String path = SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId;
+        kvSecretEngine.deleteSecret(path);
+    }
+
     private Optional<Map<String, String>> readSecret(String path) {
         if (kvSecretEngine == null) {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
