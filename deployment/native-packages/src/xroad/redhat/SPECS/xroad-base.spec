@@ -16,9 +16,6 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-%if 0%{?el7}
-Requires:  rlwrap
-%endif
 Requires:  jre-21-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl, bc, python3, python3-pyyaml
 
@@ -183,11 +180,6 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
-
-%if 0%{?el7}
-%set_default_java_version
-%restart_xroad_services
-%endif
 
 %posttrans -p /bin/bash
 %if 0%{?el8} || 0%{?el9}

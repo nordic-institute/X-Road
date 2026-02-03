@@ -118,11 +118,6 @@ fi
 
 %systemd_post xroad-opmonitor.service
 
-# RHEL7 java-21-* package makes java binaries available since %post scriptlet
-%if 0%{?el7}
-%init_xroad_opmonitor_db
-%endif
-
 %preun
 %systemd_preun xroad-opmonitor.service
 

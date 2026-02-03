@@ -183,11 +183,6 @@ mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
 mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
 
-# RHEL7 java-21-* package makes java binaries available since %post scriptlet
-%if 0%{?el7}
-%execute_init_or_update_resources
-%endif
-
 %preun
 %systemd_preun xroad-proxy.service
 
