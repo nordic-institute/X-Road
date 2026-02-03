@@ -96,6 +96,7 @@ rm -rf %{buildroot}
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.py
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
 %attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_directories.sh
+%attr(755,root,root) /usr/share/xroad/scripts/write_tls_config.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
