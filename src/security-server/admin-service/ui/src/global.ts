@@ -24,8 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { Tab } from '@niis/shared-ui';
-
 // A "single source of truth" for route names
 export enum RouteName {
   BaseRoute = 'base',
@@ -75,6 +73,7 @@ export enum RouteName {
   EndpointAccessRights = 'endpoint-access-rights',
   ServiceClientAccessRights = 'service-client-access-rights',
   InitialConfiguration = 'initial-configuration',
+  InitialConfigurationV2 = 'initial-configuration-v2',
   AddServiceClientAccessRight = 'add-service-client-access-right',
   NotFound = 'not-found',
 }

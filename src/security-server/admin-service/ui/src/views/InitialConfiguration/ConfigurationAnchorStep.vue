@@ -79,6 +79,7 @@ import { useGeneral } from '@/store/modules/general';
 
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import { useSystem } from '@/store/modules/system';
+import { useInitializationV2 } from '@/store/modules/initializationV2';
 
 export default defineComponent({
   components: {
@@ -115,6 +116,9 @@ export default defineComponent({
       this.apiFetchConfigurationAnchor()
         .then((data) => (this.configurationAnchor = data))
         .catch((error) => this.addError(error));
+
+      // Refresh v2 initialization status so anchorImported updates
+      useInitializationV2().fetchStatus();
 
       // Fetch member classes for owner member step after anchor is ready
       this.fetchMemberClassesForCurrentInstance();

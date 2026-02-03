@@ -54,6 +54,7 @@ import ClientTlsCertificateView from '@/views/Clients/InternalServers/TlsCertifi
 import DiagnosticsView from '@/views/Diagnostics/DiagnosticsView.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationView.vue';
+import InitialConfigurationV2View from '@/views/InitialConfiguration/InitialConfigurationV2View.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKeysView.vue';
@@ -100,6 +101,15 @@ const routes: RouteRecordRaw[] = [
         path: '/initial-configuration',
         components: {
           default: InitialConfigurationView,
+          navigation: XrdMainNavigationContainer,
+        },
+        meta: { permissions: [Permissions.INIT_CONFIG] },
+      },
+      {
+        name: RouteName.InitialConfigurationV2,
+        path: '/initial-configuration-v2',
+        components: {
+          default: InitialConfigurationV2View,
           navigation: XrdMainNavigationContainer,
         },
         meta: { permissions: [Permissions.INIT_CONFIG] },

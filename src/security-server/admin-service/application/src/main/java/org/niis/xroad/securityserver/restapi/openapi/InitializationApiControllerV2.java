@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusV2;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStep;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStepInfo;
@@ -59,7 +60,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SOFTTOK
  * V2 Initialization API controller with granular step tracking.
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

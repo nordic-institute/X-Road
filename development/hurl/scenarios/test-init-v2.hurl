@@ -22,7 +22,7 @@ ss0_xsrf_token: cookie "XSRF-TOKEN"
 # ============================================================================
 # Test 1: Get V2 Initialization Status (before any initialization)
 # ============================================================================
-GET https://{{ss0_host}}:{{ss0_port}}/api/v2/initialization/status
+GET https://{{ss0_host}}:{{ss0_port}}/api/v1/v2/initialization/status
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 [Options]
 insecure: true
@@ -41,7 +41,7 @@ jsonpath "$.fully_initialized" exists
 # ============================================================================
 # Test 2: Initialize ServerConf Step
 # ============================================================================
-POST https://{{ss0_host}}:{{ss0_port}}/api/v2/initialization/serverconf
+POST https://{{ss0_host}}:{{ss0_port}}/api/v1/v2/initialization/serverconf
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 [Options]
@@ -63,7 +63,7 @@ jsonpath "$.success" exists
 # ============================================================================
 # Test 3: Initialize SoftToken Step
 # ============================================================================
-POST https://{{ss0_host}}:{{ss0_port}}/api/v2/initialization/softtoken
+POST https://{{ss0_host}}:{{ss0_port}}/api/v1/v2/initialization/softtoken
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 [Options]
@@ -82,7 +82,7 @@ jsonpath "$.success" exists
 # ============================================================================
 # Test 4: Initialize GPG Key Step
 # ============================================================================
-POST https://{{ss0_host}}:{{ss0_port}}/api/v2/initialization/gpg-key
+POST https://{{ss0_host}}:{{ss0_port}}/api/v1/v2/initialization/gpg-key
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 [Options]
 insecure: true
@@ -97,7 +97,7 @@ jsonpath "$.success" exists
 # ============================================================================
 # Test 5: Initialize Message Log Encryption Step
 # ============================================================================
-POST https://{{ss0_host}}:{{ss0_port}}/api/v2/initialization/messagelog-encryption
+POST https://{{ss0_host}}:{{ss0_port}}/api/v1/v2/initialization/messagelog-encryption
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 [Options]
 insecure: true
@@ -112,7 +112,7 @@ jsonpath "$.success" exists
 # ============================================================================
 # Test 6: Get V2 Initialization Status (after initialization)
 # ============================================================================
-GET https://{{ss0_host}}:{{ss0_port}}/api/v2/initialization/status
+GET https://{{ss0_host}}:{{ss0_port}}/api/v1/v2/initialization/status
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 [Options]
 insecure: true
