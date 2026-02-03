@@ -32,8 +32,8 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -62,12 +62,15 @@ public class AutoLoginService {
 
     private final SignerAutologinProperties signerAutologinProperties;
     private final TokenWorkerProvider tokenWorkerProvider;
+    private final Retry retryInstance;
+    private final TimeLimiter timeLimiter;
 
-    private Retry retryInstance;
-    private TimeLimiter timeLimiter;
+    @Inject
+    public AutoLoginService(SignerAutologinProperties signerAutologinProperties,
+                            TokenWorkerProvider tokenWorkerProvider) {
+        this.signerAutologinProperties = signerAutologinProperties;
+        this.tokenWorkerProvider = tokenWorkerProvider;
 
-    @PostConstruct
-    void init() {
         this.retryInstance = createRetryInstance(signerAutologinProperties.retry());
         retryInstance.getEventPublisher().onRetry(event -> log.warn("Retrying autologin. Event: {}", event));
 
@@ -141,7 +144,7 @@ public class AutoLoginService {
         log.info("Successfully logged in to token {}", tokenId);
     }
 
-    private static Retry createRetryInstance(SignerAutologinProperties.Retry retryProperties) {
+    static Retry createRetryInstance(SignerAutologinProperties.Retry retryProperties) {
         var retryInterval = ofExponentialBackoff(
                 retryProperties.retryDelay(),
                 retryProperties.retryExponentialBackoffMultiplier());
@@ -157,7 +160,7 @@ public class AutoLoginService {
         return retryRegistry.retry(RETRY_INSTANCE_NAME, retryConfig);
     }
 
-    private static TimeLimiter createTimeLimiter(SignerAutologinProperties.Retry retryProperties) {
+    static TimeLimiter createTimeLimiter(SignerAutologinProperties.Retry retryProperties) {
         TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig.custom()
                 .timeoutDuration(retryProperties.retryTimeout())
                 .cancelRunningFuture(true)
