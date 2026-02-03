@@ -4,13 +4,11 @@ set -e
 # Setup X-Road admin user with appropriate groups
 #
 # This script creates X-Road groups and adds the specified admin user to them.
-# It's used by various X-Road component installation scripts to ensure consistent
-# user and group configuration.
 
-# Define all X-Road groups
+# All X-Road groups
 groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
 
-# Define groups that are allowed on ss-cluster secondary nodes
+# Groups that are allowed on secondary nodes
 secondary_groups="xroad-security-officer xroad-securityserver-observer"
 
 log() {
