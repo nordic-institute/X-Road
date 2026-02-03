@@ -21,7 +21,6 @@ XROAD_REPO_RPM_DEPENDENCIES="${XROAD_REPO_RPM_DEPENDENCIES:-xroad-dependencies-r
 # Setup repositories for Ubuntu
 setup_repositories_ubuntu() {
   local XROAD_KEYRING_PATH="/usr/share/keyrings/niis-artifactory-keyring.gpg"
-  local XROAD_GPG_KEY_URLDEP_KEYRING_PATH="/usr/share/keyrings/xroad-dependencies-keyring.gpg"
 
   log_message "Setting up repositories for Ubuntu..."
   log_message ""
@@ -55,7 +54,7 @@ setup_repositories_ubuntu() {
 
   {
     echo "deb [signed-by=$XROAD_KEYRING_PATH] $XROAD_REPO_BASE_URL/$XROAD_REPO_DEB $codename-current main"
-    echo "deb [signed-by=$XROAD_GPG_KEY_URLDEP_KEYRING_PATH] $XROAD_REPO_BASE_URL/$XROAD_REPO_DEB_DEPENDENCIES xroad external"
+    echo "deb [signed-by=$XROAD_KEYRING_PATH] $XROAD_REPO_BASE_URL/$XROAD_REPO_DEB_DEPENDENCIES xroad external"
   } | tee "$sources_file" > /dev/null
 
   log_info "Repository configuration added to $sources_file"
