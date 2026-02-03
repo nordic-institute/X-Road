@@ -91,11 +91,11 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/generate_gpg_keypair.sh
 /usr/share/xroad/scripts/_restore_xroad.sh
 /usr/share/xroad/scripts/_backup_restore_common.sh
-/usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
 /usr/share/xroad/scripts/_setup_memory.sh
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.py
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
+%attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_directories.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
@@ -144,33 +144,25 @@ fi
 %verifyscript
 # check validity of xroad user and group
 if [ "`id -u xroad`" -eq 0 ]; then
-echo "The xroad system user must not have uid 0 (root). Please fix this and reinstall this package." >&2
-exit 1
+  echo "The xroad system user must not have uid 0 (root). Please fix this and reinstall this package." >&2
+  exit 1
 fi
 if [ "`id -g xroad`" -eq 0 ]; then
-echo "The xroad system user must not have root as primary group. Please fix this and reinstall this package." >&2
-exit 1
+  echo "The xroad system user must not have root as primary group. Please fix this and reinstall this package." >&2
+  exit 1
 fi
 
 %post
 umask 027
 
-# ensure home directory ownership
-mkdir -p /var/lib/xroad
-su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
-chmod 0755 /var/lib/xroad
-chmod -R go-w /var/lib/xroad
-
-# nicer log directory permissions
-mkdir -p /var/log/xroad
-chmod -R go-w /var/log/xroad
-chmod 1770 /var/log/xroad
-chown xroad:adm /var/log/xroad
-
-#tmp folder
-mkdir -p /var/tmp/xroad
-chmod 1750 /var/tmp/xroad
-chown xroad:xroad /var/tmp/xroad
+echo "Running X-Road setup directories script..."
+if [ -x /usr/share/xroad/scripts/setup_xroad_directories.sh ]; then
+  /usr/share/xroad/scripts/setup_xroad_directories.sh
+  echo "  X-Road directories setup completed."
+else
+  echo "  Script not found or not executable!"
+  exit 1
+fi
 
 #local overrides
 test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties
