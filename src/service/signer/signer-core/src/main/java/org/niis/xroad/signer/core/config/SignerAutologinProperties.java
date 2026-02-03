@@ -44,7 +44,10 @@ public interface SignerAutologinProperties {
     Retry retry();
 
     /**
-     * Map of token configurations keyed by token ID.
+     * Map of token PINs keyed by token ID for initial insertion into OpenBao.
+     * These PINs are stored into OpenBao on startup (if not already present).
+     * The actual autologin process retrieves PINs from OpenBao, not from this configuration.
+     * <p>
      * Configuration format:
      * <pre>
      * xroad.signer.autologin.tokens.0.pin=secret123
@@ -55,8 +58,6 @@ public interface SignerAutologinProperties {
      * XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=secret123
      * XROAD_SIGNER_AUTOLOGIN_TOKENS__SOFTTOKEN_1__PIN=another-secret
      * </pre>
-     *
-     * @return map of token ID to TokenConfig
      */
     @WithName("tokens")
     Map<String, TokenConfig> tokens();
