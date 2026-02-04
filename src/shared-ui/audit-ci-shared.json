@@ -4,6 +4,7 @@
   "package-manager": "auto",
   "allowlist": [
     "GHSA-r6q2-hw4h-h46w|* > tar*",
-    "GHSA-8qq5-rm4j-mr97|* > tar*"
+    "GHSA-8qq5-rm4j-mr97|* > tar*",
+    "GHSA-34x7-hfp2-rc4v|* > tar*"
   ]
 }
