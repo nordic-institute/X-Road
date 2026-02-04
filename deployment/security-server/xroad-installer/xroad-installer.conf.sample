@@ -47,29 +47,27 @@ XROAD_SECRET_STORE_TYPE=local
 # xroad-securityserver-fo (Faroe Islands)
 #XROAD_SS_PACKAGE=xroad-securityserver
 
-# 6. Repository Configuration (Ubuntu/Debian)
-# URL to the GPG key for signing the repositories.
-#XROAD_REPO_DEB_GPG_KEY_URL=https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg
+# 6. Repository Configuration
+# Note: OS-specific defaults are automatically applied based on the detected operating system.
+# These variables work for both Ubuntu/Debian and RHEL systems.
 
-# X-Road software repository component name.
-#XROAD_REPO_DEB=xroad8-snapshot-deb
-
-# X-Road dependencies repository component name.
-#XROAD_REPO_DEB_DEPENDENCIES=xroad-dependencies-deb
-
-# Repository Configuration (RHEL)
-# URL to the GPG key for signing the RPM repositories.
-#XROAD_REPO_RPM_GPG_KEY_URL=https://artifactory.niis.org/api/gpg/key/public
-
-# X-Road software repository component name for RHEL.
-#XROAD_REPO_RPM=xroad8-snapshot-rpm
-
-# X-Road dependencies repository component name for RHEL.
-#XROAD_REPO_RPM_DEPENDENCIES=xroad-dependencies-rpm
-
-# General Repository Settings
 # Base URL for the Artifactory or repository server.
 #XROAD_REPO_BASE_URL=https://artifactory.niis.org
+
+# URL to the GPG key for signing the repositories.
+# Default for DEB: https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg
+# Default for RPM: https://artifactory.niis.org/api/gpg/key/public
+#XROAD_REPO_GPG_KEY_URL=
+
+# X-Road main software repository component name.
+# Default for DEB: xroad8-snapshot-deb
+# Default for RPM: xroad8-snapshot-rpm
+#XROAD_REPO_MAIN=
+
+# X-Road dependencies repository component name.
+# Default for DEB: xroad-dependencies-deb
+# Default for RPM: xroad-dependencies-rpm
+#XROAD_REPO_DEPENDENCIES=
 
 # 7. Proxy Memory Configuration
 # Memory settings for the proxy service (JVM heap size).

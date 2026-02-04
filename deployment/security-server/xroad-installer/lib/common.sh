@@ -121,6 +121,19 @@ detect_os() {
     OS_ID="$ID"
     OS_VERSION_ID="$VERSION_ID"
     OS_NAME="$NAME"
+
+    # Set OS family for grouping related distributions
+    case "$OS_ID" in
+      ubuntu|debian)
+        OS_FAMILY="debian"
+        ;;
+      rhel|rocky|almalinux)
+        OS_FAMILY="rhel"
+        ;;
+      *)
+        OS_FAMILY="$OS_ID"
+        ;;
+    esac
   else
     log_die "Cannot detect OS type"
   fi
@@ -158,15 +171,15 @@ set_prop() {
 }
 
 execute_by_os() {
-#  $1 function for ubuntu
-#  $2 function for rhel
+#  $1 function for debian-based systems
+#  $2 function for rhel-based systems
   detect_os
   log_info "Detected OS: $OS_NAME $OS_VERSION_ID"
 
   local fn
-  case "$OS_ID" in
-    ubuntu) fn="$1" ;;
-    rhel|rocky|almalinux) fn="$2" ;; # todo leave only rhel?
+  case "$OS_FAMILY" in
+    debian) fn="$1" ;;
+    rhel) fn="$2" ;;
     *) handle_os_not_supported "$OS_NAME" "$OS_VERSION_ID"; return $EXIT_ERROR ;;
   esac
 

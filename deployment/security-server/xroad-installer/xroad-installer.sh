@@ -500,7 +500,7 @@ main() {
   log_message "Security Server package installed: $XROAD_SS_PACKAGE"
   log_message ""
   log_message "Next steps:"
-  log_message "  - Review the log file: xroad-installer-<timestamp>.log"
+  log_message "  - Review the log file: ${XROAD_INSTALLER_LOG_FILE:-xroad-installer-<timestamp>.log}"
   log_message "  - Access the Security Server at https://${XROAD_TLS_HOSTNAME:-<your-ip>}:4000/"
   log_message ""
 }
