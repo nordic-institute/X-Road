@@ -38,9 +38,10 @@
 - XRDDEV-3079: Fix an issue that caused the “Used Servers” section in the Central Server’s “Member Details” view to be always empty.
 - XRDDEV-3080: Minor issues found during testing of version 7.8.0-beta.
 - XRDDEV-3081: Diagnostics page shows error 500 when the latest version of the global configuration is not available.
-- XRDDEV-3082: Confproxy view conf and create instance commands not working.
-- XRDDEV-3101: Validation error message is not shown when trying to save an invalid Central Server address in the Edit Central Server address view on the Central Server.
-- XRDDEV-3105: In the Security Server Admin UI, the Access Rights list view displays the Local Group ID instead of the group code.
+- XRDDEV-3082: Fix issues with Configuration Proxy where view configuration and create instance commands were not working with the CLI tool.
+- XRDDEV-3101: Fix issue causing validation message on the Central Server web UI not working correctly for the Central Server address field validation.
+- XRDDEV-3104: Fix issue where the proxy memory setting utility suggested incorrect values in certain cases.
+- XRDDEV-3105: Fix issue in the Security Server web UI, where the Access Rights list showed the Local Group ID instead of the code.
 
 ## 7.7.1 - 2025-12-23
 - XRDDEV-3049: As a Developer I want to replace our charting library for a library that has a better license so that we don't have licensing issues
