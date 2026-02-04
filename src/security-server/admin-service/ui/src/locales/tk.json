@@ -229,7 +229,7 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Içki ýalňyşlyk ýüze çykdy",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Wagt bellemek üçin serweriň nädogry URL-sy. URL-ny belläň",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Baglanma wagty gutardy. Ağ bağlantısını kontrol edin.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Baglanma wagty gutardy. Tor birikmesini barlaň.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Baglanma bar, ýöne wagt belligi üçin talap entäk ýerine ýetirilmedi",
         "SUCCESS": "Hemme zat gowy",
         "UNKNOWN": "Näbelli"
@@ -258,27 +258,27 @@
       "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň."
     },
     "connection": {
-      "ok": "Her şey yolunda",
+      "ok": "Hemmesi tertipde",
       "test": "Test",
       "centralServer": {
-        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi",
-        "globalConf": "Küresel yapılandırma indirme",
+        "authCertRequest": "Tassyklama şahadatnamasy üçin hasaba alyş gullugy",
+        "globalConf": "Global konfigurasiýany ýükläp almak",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "title": "Merkezi Sunucu"
+        "title": "Merkezi serwer"
       },
       "management": {
-        "title": "Yönetim Güvenlik Sunucusu"
+        "title": "Dolandyryş howpsuzlyk serweri"
       },
       "securityServer": {
-        "client": "İstemci",
-        "sourceClient": "Kaynak İstemci",
+        "client": "Müşderi",
+        "sourceClient": "Çeşme müşderi",
         "rest": "REST",
-        "securityServer": "Güvenlik Sunucusu",
+        "securityServer": "Howpsuzlyk serweri",
         "soap": "SOAP",
-        "title": "Diğer Güvenlik Sunucusu",
-        "target": "Hedef",
-        "targetClient": "Hedef İstemci"
+        "title": "Beýleki howpsuzlyk serweri",
+        "target": "Maksat",
+        "targetClient": "Maksat müşderi"
       }
     }
   },
@@ -399,7 +399,7 @@
     "invalid_service_url": "Gulluk url nädogry",
     "invalid_wsdl": "WSDL nädogry",
     "invalid_wsdl_service_identifier": "Gulluk WSDL identifikatory nädogry",
-    "io_error": "G/Ç hatası",
+    "io_error": "Giriş/çykyş ýalňyşlygy",
     "key_and_cert_generation_failed": "Açar we şahadatnama döredilmedi",
     "key_not_found": "Açar tapylmady",
     "local_group_code_already_exists": "Ýerli toparyň kody eýýäm bar",
@@ -415,8 +415,8 @@
     "member_code_exists": "Agzanyň kody bar",
     "member_code_not_provided": "Agzanyň kody görkezilmedi",
     "missing_parameter": "Parametrleri ýok",
-    "network_error": "Ağ hatası",
-    "http_error": "HTTP hatası",
+    "network_error": "Tor ýalňyşlygy",
+    "http_error": "HTTP ýalňyşlygy",
     "ocsp_connection_error": "OCSP jogap berijisine birigip bolmaýar",
     "ocsp_failed": "OCSP jogap berijisinden jogap alyp bolmaýar",
     "ocsp_response_parsing_failure": "OCSP jogabyny seljerip bolmaýar",
