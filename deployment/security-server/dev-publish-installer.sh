@@ -12,10 +12,12 @@ GET_XROAD_SCRIPT="${PACKAGE_DIR}/get-xroad.sh"
 
 echo "Step 1: Preparing files and creating tarball of ${PACKAGE_DIR}..."
 
-# Copy memory scripts from repo root to installer lib
+# Copy required scripts from repo root to installer lib
 REPO_ROOT="../.."
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/base/usr/share/xroad/scripts/_setup_memory.sh" "${PACKAGE_DIR}/lib/"
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/proxy/usr/share/xroad/scripts/proxy_memory_helper.sh" "${PACKAGE_DIR}/lib/"
+cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/helper-scripts/yaml_helper.sh" "${PACKAGE_DIR}/lib/"
+cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/helper-scripts/yaml_helper.py" "${PACKAGE_DIR}/lib/"
 
 # Exclude get-xroad.sh, macOS metadata (._ files), and extended attributes
 COPYFILE_DISABLE=1 tar -czf "$PACKAGE_NAME" --no-xattrs --exclude="get-xroad.sh" --exclude="._*" "$PACKAGE_DIR/"

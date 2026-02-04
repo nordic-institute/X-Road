@@ -21,7 +21,7 @@ setup_prerequisites_ubuntu() {
   log_message "Checking required packages..."
   local packages_to_install=()
 
-  for pkg in locales lsb-release crudini whiptail bc; do
+  for pkg in locales lsb-release crudini whiptail bc python3-yaml; do
     if ! dpkg -s "$pkg" >/dev/null 2>&1; then
       log_message "  $pkg package not found, will install"
       packages_to_install+=("$pkg")
@@ -109,7 +109,7 @@ setup_prerequisites_rhel() {
     log_info "LC_ALL set to $LOCALE"
   fi
 
-  for pkg in yum-utils crudini bc newt; do
+  for pkg in yum-utils crudini bc newt python3-pyyaml; do
     if rpm -q "$pkg" >/dev/null 2>&1; then
       log_info "$pkg already installed"
     else

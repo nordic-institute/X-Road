@@ -1,2 +1,4 @@
 lib/_setup_memory.sh
 lib/proxy_memory_helper.sh
+lib/yaml_helper.py
+lib/yaml_helper.sh

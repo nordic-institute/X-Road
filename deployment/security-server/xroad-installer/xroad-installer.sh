@@ -262,7 +262,7 @@ select_tls_settings() {
 
   # Alt Names (SAN)
   if [ -z "$XROAD_TLS_ALT_NAMES" ]; then
-    if ! XROAD_TLS_ALT_NAMES=$(whiptail --inputbox "Enter the Subject Alternative Names (SAN) for the TLS certificate (comma-separated IPs or DNS names):" 10 78 "$default_alt_names,DNS:$XROAD_TLS_HOSTNAME" --title "TLS Alternative Names Configuration" 3>&1 1>&2 2>&3); then
+    if ! XROAD_TLS_ALT_NAMES=$(whiptail --inputbox "Enter the Subject Alternative Names (SAN) for the TLS certificate (comma-separated IPs or DNS names):" 10 78 "$default_alt_names" --title "TLS Alternative Names Configuration" 3>&1 1>&2 2>&3); then
       log_warn_exit "Installation cancelled by user."
     fi
   fi
@@ -274,13 +274,13 @@ select_tls_settings() {
 # Function to select X-Road package interactively
 select_ss_package() {
   if [ -n "$XROAD_SS_PACKAGE" ]; then
-      return
+    return
   fi
 
   local os_type
   if [ -f /etc/os-release ]; then
-      . /etc/os-release
-      os_type=$ID
+    . /etc/os-release
+    os_type=$ID
   fi
 
   local selection
@@ -339,7 +339,7 @@ select_proxy_memory() {
       3>&1 1>&2 2>&3)
   case "${selection:-d}" in
     r)
-     XROAD_PROXY_MEM_SETTING="${RECOMMENDED_STR}"
+      XROAD_PROXY_MEM_SETTING="${RECOMMENDED_STR}"
       ;;
     d)
       XROAD_PROXY_MEM_SETTING="${DEFAULT_STR}"
@@ -470,6 +470,18 @@ main() {
   log_message ""
 
   select_tls_settings
+  log_message ""
+
+  # Step: Configure TLS Settings
+  if [ -f "$SCRIPT_DIR/tasks/configure_tls.sh" ]; then
+    if ! XROAD_TLS_HOSTNAME="$XROAD_TLS_HOSTNAME" \
+       XROAD_TLS_ALT_NAMES="$XROAD_TLS_ALT_NAMES" \
+       bash "$SCRIPT_DIR/tasks/configure_tls.sh"; then
+      log_die "TLS configuration failed"
+    fi
+  else
+    log_die "configure_tls.sh not found"
+  fi
   log_message ""
 
   # Step: Install Security Server

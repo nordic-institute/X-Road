@@ -50,17 +50,6 @@ install_security_server_ubuntu() {
     set_debconf "xroad-proxy" "xroad-common/database-host" "string" "$XROAD_DB_CONNECTION_HOST_PORT"
   fi
 
-  # Preseed TLS settings
-  if [[ -n "$XROAD_TLS_HOSTNAME" ]]; then
-    set_debconf "xroad-proxy-ui-api" "xroad-common/proxy-ui-api-subject" "string" "$XROAD_TLS_HOSTNAME"
-    set_debconf "xroad-proxy" "xroad-common/service-subject" "string" "$XROAD_TLS_HOSTNAME"
-  fi
-
-  if [[ -n "$XROAD_TLS_ALT_NAMES" ]]; then
-    set_debconf "xroad-proxy-ui-api" "xroad-common/proxy-ui-api-altsubject" "string" "$XROAD_TLS_ALT_NAMES"
-    set_debconf "xroad-proxy" "xroad-common/service-altsubject" "string" "$XROAD_TLS_ALT_NAMES"
-  fi
-
   # Preseed proxy memory
   if [[ -n "$XROAD_PROXY_MEM_SETTING" ]]; then
     set_debconf "xroad-proxy" "xroad-common/proxy-memory" "string" "$XROAD_PROXY_MEM_SETTING"
