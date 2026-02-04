@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -217,7 +218,7 @@ public class OrphanRemovalService {
             }
         } catch (CsrNotFoundException e) {
             // we just internally looked up these items, so them not being found is an internal error
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 

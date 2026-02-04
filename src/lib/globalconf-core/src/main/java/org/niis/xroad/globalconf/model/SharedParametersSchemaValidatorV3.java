@@ -32,6 +32,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
+import java.io.IOException;
 import java.io.StringReader;
 
 public class SharedParametersSchemaValidatorV3 extends SchemaValidator {
@@ -44,19 +45,21 @@ public class SharedParametersSchemaValidatorV3 extends SchemaValidator {
 
     /**
      * Validates the input XML as string against the schema.
+     *
      * @param xml the input XML as string
-     * @throws Exception if validation fails
+     * @throws IOException if validation fails
      */
-    public static void validate(String xml) throws Exception {
+    public static void validate(String xml) throws IOException {
         validate(new StreamSource(new StringReader(xml)));
     }
 
     /**
      * Validates the input source against the schema.
+     *
      * @param source the input source
-     * @throws Exception if validation fails
+     * @throws IOException if validation fails
      */
-    public static void validate(Source source) throws Exception {
+    public static void validate(Source source) throws IOException {
         validate(SCHEMA, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
     }
 

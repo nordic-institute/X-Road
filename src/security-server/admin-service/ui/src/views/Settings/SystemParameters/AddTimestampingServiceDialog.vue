@@ -76,6 +76,9 @@
                   :value="timestampingService.name"
                 />
               </v-col>
+              <v-col class="d-flex align-center">
+                {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+              </v-col>
             </v-row>
           </v-radio-group>
         </v-container>

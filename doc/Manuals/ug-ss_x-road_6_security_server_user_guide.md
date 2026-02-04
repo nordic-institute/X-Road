@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.101  
+Version: 2.105  
 Doc. ID: UG-SS
 
 ---
@@ -126,11 +126,14 @@ Doc. ID: UG-SS
 | 09.03.2025 | 2.95    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius |
 | 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 | 30.04.2025 | 2.97    | Added ACME challenge port environment variable toggle                                                                                                                                                                                                                                                                                                                                                       | Mikk-Erik Bachmann   |
-| 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
+| 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the Security Server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
 | 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 | 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
 | 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
-
+| 01.12.2025 | 2.102   | Added chapter on Security Server Connection Testing                                                                                                                                                                                                                                                                                                                                                         | Eneli Reimets        |
+| 07.12.2025 | 2.103   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
+| 15.12.2025 | 2.104   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
+| 29.01.2026 | 2.105   | Added information on how to delete a subsystem from the Security Server                                                                                                                                                                                                                                                                                                                                     | Raido Kaju           |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -179,6 +182,7 @@ Doc. ID: UG-SS
     - [4.7.1 Disabling Client Subsystem](#471-disabling-client-subsystem)
     - [4.7.2 Enabling Client Subsystem](#472-enabling-client-subsystem)
   - [4.8 Renaming Client Subsystem](#48-renaming-client-subsystem)
+  - [4.9 Deleting Client Subsystem](#49-deleting-client-subsystem)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
@@ -247,9 +251,13 @@ Doc. ID: UG-SS
   - [14.1 Diagnostics Overview](#141-diagnostics-overview)
     - [14.1.1 Examine Security Server services status information](#1411-examine-security-server-services-status-information)
     - [14.1.2 Examine Security Server Java version information](#1412-examine-security-server-java-version-information)
-    - [14.3.3 Examine Security Server encryption status information](#1433-examine-security-server-encryption-status-information)
+    - [14.1.3 Examine Security Server encryption status information](#1413-examine-security-server-encryption-status-information)
     - [14.1.4 Download diagnostics report](#1414-download-diagnostics-report)
   - [14.2 Security Server Traffic](#142-security-server-traffic)
+  - [14.3 Security Server Connection Testing](#143-security-server-connection-testing)
+- [14.3.1 Testing the connection to the Central Server](#1431-testing-the-connection-to-the-central-server)
+- [14.3.2 Testing the connection to other Security Servers](#1432-testing-the-connection-to-other-security-servers)
+- [14.3.3 Testing the connection to Management Security Server](#1433-testing-the-connection-to-management-security-server)
 - [15 Operational Monitoring](#15-operational-monitoring)
   - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -426,25 +434,33 @@ User management is carried out on the command line in root user permissions.
 
 To add a new user, enter the command:
 
-    adduser username
+```bash
+adduser username
+```
 
 To grant permissions to the user you created, add it to the corresponding system groups, for example:
 
-    adduser username xroad-security-officer
-    adduser username xroad-registration-officer
-    adduser username xroad-service-administrator
-    adduser username xroad-system-administrator
-    adduser username xroad-securityserver-observer
+```bash
+adduser username xroad-security-officer
+adduser username xroad-registration-officer
+adduser username xroad-service-administrator
+adduser username xroad-system-administrator
+adduser username xroad-securityserver-observer
+```
 
 To remove user permission, remove the user from the corresponding system group, for example:
 
-    deluser username xroad-security-officer
+```bash
+deluser username xroad-security-officer
+```
 
 Modified user permissions are applied only after a user does a new login.
 
 To remove a user, enter:
 
-    deluser username
+```bash
+deluser username
+```
 
 ### 2.3 LDAP user authentication
 
@@ -614,6 +630,8 @@ To generate a Signing key and a Certificate Signing Request, follow these steps.
 
        4. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
 
+          Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
        5. Click **CONTINUE**
 
     3. In the dialog that opens
@@ -720,6 +738,8 @@ The **background colors** of the devices, keys and certificate are explained in 
 
        3. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
 
+          Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
        4. Click **CONTINUE**
 
     3. In the dialog that opens
@@ -743,21 +763,23 @@ To generate a certificate signing request (CSR) for the authentication key, foll
 
 3.  On the row of the desired key, click **Generate CSR**. In the dialog that opens
 
-    2.1  Select the certificate usage policy from the **Usage** drop down list (AUTH for authentication certificates);
+    1.   Select the certificate usage policy from the **Usage** drop down list (AUTH for authentication certificates);
 
-    2.2  select the issuer of the certificate from the **Certification Service** drop-down list;
+    2.  select the issuer of the certificate from the **Certification Service** drop-down list;
 
-    2.3  select the format of the certificate signing request (PEM or DER), according to the certification service provider's requirements
+    3.  select the format of the certificate signing request (PEM or DER), according to the certification service provider's requirements
 
-    2.4  click **CONTINUE**;
+        Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
 
-3.  In the form that opens, review the information that will be included in the CSR and fill in the empty fields, if needed.
+    4.  click **CONTINUE**;
 
-4.  Click **GENERATE CSR** to complete the generation of the CSR and save the prompted file to the local file system.
+4.  In the form that opens, review the information that will be included in the CSR and fill in the empty fields, if needed.
+
+5.  Click **GENERATE CSR** to complete the generation of the CSR and save the prompted file to the local file system.
 
     1. Or click **ORDER CERTIFICATE** to also use the CSR to immediately make an order to the ACME server if the chosen Certification Service supports it.
 
-5. Click **DONE**
+6. Click **DONE**
 
 After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system. (In case of a successful ACME order, the certificate will also be imported to the Security Server and be shown under the key's row instead of the CSR.)
 
@@ -972,6 +994,8 @@ Follow these steps.
 
     4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **NEXT**.
 
+        Note: If the global configuration specifies a preferred CSR format for the selected Certification Service, that format is preselected and the CSR Format field is read-only.
+
     5. Generate CSR page: Fill in empty CSR fields as needed (like **Organization Name (O)** and **Subject Alternative Name (SAN)**) that are based on the certificate profile that the chosen CA uses, and click **NEXT**
 
        1. If the CA supports it, an ACME certificate order can be made with the generated CSR by checking the "**Order certificate from ACME Server with the generated CSR and import the returned certificate to the token.**" checkbox.
@@ -1135,6 +1159,9 @@ To rename a client subsystem, follow these steps.
 
 **Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where the latest rename replaces the previous one and rename will be executed on client registration request using last provided name. 
 
+### 4.9 Deleting Client Subsystem
+
+Deleting a client subsystem can be completed by following the steps described in section [4.6 Deleting a Client from the Security Server](#46-deleting-a-client-from-the-security-server). In this context, the subsystem is treated as a client (i.e., a client subsystem).
 
 ## 5 Security Tokens, Keys, and Certificates
 
@@ -1499,7 +1526,7 @@ Service providers can configure a minimum required X-Road software version for c
 
 Service providers can configure the required minimum version in the `/etc/xroad/conf.d/local.ini` configuration file using the `proxy.server-min-supported-client-version` system property. For example:
 
-```
+```ini
 [proxy]
 server-min-supported-client-version=7.0.0
 ```
@@ -1954,19 +1981,25 @@ The Security Server periodically composes signed (and timestamped) documents fro
 
 Configuration parameters are defined in INI files \[[INI](#Ref_INI)\], where each section contains the parameters for a particular Security Server component. The default message log configuration is located in the file
 
-    /etc/xroad/conf.d/addons/message-log.ini
+```
+/etc/xroad/conf.d/addons/message-log.ini
+```
 
 In order to override default values, create or edit the file
 
-    /etc/xroad/conf.d/local.ini
+```
+/etc/xroad/conf.d/local.ini
+```
 
 Create the `[message-log]` section (if not present) in the file. Below the start of the section, list the values of the parameters, one per line.
 
 For example, to configure the parameters `archive-path` and `archive-max-filesize`, the following lines must be added to the configuration file:
 
-    [message-log]
-    archive-path=/my/archive/path/
-    archive-max-filesize=67108864
+```ini
+[message-log]
+archive-path=/my/archive/path/
+archive-max-filesize=67108864
+```
 
 
 #### 11.1.1 Common Parameters
@@ -2057,21 +2090,28 @@ Archive files (ZIP containers) are located in the directory specified by the con
 
 The most basic example of an archive file name when the encryption and grouping are switched off:
 
-    mlog-20210901100858-20210901100905-95b1f27097524105.zip
+```bash
+mlog-20210901100858-20210901100905-95b1f27097524105.zip
+```
 
 When the archive encryption switched on:
 
-    mlog-20210901101923-20210901101926-95b1f27097524105.zip.gpg
+```bash
+mlog-20210901101923-20210901101926-95b1f27097524105.zip.gpg
+```
 
 Switching on archive grouping by member produces the following:
 
-    mlog-INSTANCE_CLASS_CODE-20210901102251-20210901102254-95b1f27097524105.zip.gpg
+```bash
+mlog-INSTANCE_CLASS_CODE-20210901102251-20210901102254-95b1f27097524105.zip.gpg
+```
 
 Finally, switching to archive grouping by subsystem gives:
 
-    mlog-INSTANCE_CLASS_CODE_CONSUMERSUBSYSTEM-20210901102521-20210901102524-95b1f27097524105.zip.gpg
-    mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-b1f27097524105ac.zip.gpg
-
+```bash
+mlog-INSTANCE_CLASS_CODE_CONSUMERSUBSYSTEM-20210901102521-20210901102524-95b1f27097524105.zip.gpg
+mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-b1f27097524105ac.zip.gpg
+```
 
 #### 11.1.7 Archive Encryption and Grouping
 
@@ -2109,17 +2149,20 @@ Warning. The archiving process fails if a required key is not present in the gpg
 **Configuration example**
 
 Generate a keypair for encryption with defaults and no expiration and export the public key:
+
 ```bash
 gpg [--homedir <member gpghome>] --quick-generate-key INSTANCE/memberClass/memberCode default default never
 gpg [--homedir <member gpghome>] --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
 ```
 
 Import the public key to the gpg keyring in `archive-gpg-home-directory` and take note of the key id.
+
 ```bash
 gpg --homedir <archive-gpg-home-directory> --import INSTANCE-memberClass-memberCode.pgp
 ```
 
 Edit the key and add ultimate trust.
+
 ```bash
 gpg --homedir <archive-gpg-home-directory> --edit-key <key id>
 ```
@@ -2127,12 +2170,14 @@ gpg --homedir <archive-gpg-home-directory> --edit-key <key id>
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
 Add the mapping to `archive-encryption-keys-config` file (mappings can be edited without restarting X-Road services), e.g.:
-```bash
+
+```
 INSTANCE/memberClass/memberCode = 96F20FF6578A5EF90DFBA18D8C003019508B5637
 ```
 
 Add the mapping file location (`archive-encryption-keys-config`) and grouping level (`archive-grouping`) to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
-```bash
+
+```ini
 [message-log]
 archive-encryption-enabled = true
 archive-grouping = member
@@ -2140,6 +2185,7 @@ archive-encryption-keys-config = /etc/xroad/messagelog/archive-encryption-mappin
 ```
 
 To decrypt the encrypted archives, use the following syntax:
+
 ```bash
 gpg [--homedir <gpghome>] --decrypt <archive name> --output <output file name>
 ```
@@ -2165,8 +2211,10 @@ The archive file has been successfully transferred when the archiving server ret
 
 Override the configuration parameter archive-transfer-command (create or edit the file `etc/xroad/conf.d/local.ini`) to set up a transferring script. For example:
 
-    [message-log]
-    archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
+```ini
+[message-log]
+archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
+```
 
 The message log package contains the CGI script `/usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl` for a demo archiving server for the purpose of testing or development.
 
@@ -2177,35 +2225,45 @@ The message log database can be located outside of the Security Server. The foll
 
 1.  Create a database user at remote database host:
 
-        postgres@db_host:~$ createuser -P messagelog_user
-        Enter password for new role: <messagelog_password>
-        Enter it again: <messagelog_password>
+    ```bash
+    postgres@db_host:~$ createuser -P messagelog_user
+    Enter password for new role: <messagelog_password>
+    Enter it again: <messagelog_password>
+    ```
 
 2.  Create a database owned by the message log user at remote database host:
 
-        postgres@db_host:~$ createdb messagelog_dbname -O messagelog_user -E UTF-8
+    ```bash
+    postgres@db_host:~$ createdb messagelog_dbname -O messagelog_user -E UTF-8
+    ```
 
 3.  Verify connectivity from Security Server to the remote database:
 
-        user@security_server:~$ psql -h db_host -U messagelog_user messagelog_dbname
-        Password for user messagelog_user: <messagelog_password>
-        psql (9.3.9)
-        SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)
-        Type "help" for help.
-        messagelog_dbname=>
+    ```bash
+    user@security_server:~$ psql -h db_host -U messagelog_user messagelog_dbname
+    Password for user messagelog_user: <messagelog_password>
+    psql (9.3.9)
+    SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)
+    Type "help" for help.
+    messagelog_dbname=>
+    ```
 
 4.  Stop xroad-proxy service for reconfiguration:
 
-        root@security_server:~# service xroad-proxy stop
+    ```bash
+    root@security_server:~# service xroad-proxy stop
+    ```
 
 5.  Configure the database connection parameters to achieve encrypted connections, in `/etc/xroad/db.properties`:
 
-        messagelog.hibernate.jdbc.use_streams_for_binary = true
-        messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
-        messagelog.hibernate.connection.driver_class = org.postgresql.Driver
-        messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
-        messagelog.hibernate.connection.username = messagelog_user
-        messagelog.hibernate.connection.password = messagelog_password
+    ```properties
+    messagelog.hibernate.jdbc.use_streams_for_binary = true
+    messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+    messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+    messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
+    messagelog.hibernate.connection.username = messagelog_user
+    messagelog.hibernate.connection.password = messagelog_password
+    ```
 
 6.  Populate database schema by reinstalling messagelog addon package and start xroad-proxy
 
@@ -2253,31 +2311,42 @@ For example:
 
 By default, audit log is located in the file
 
-    /var/log/xroad/audit.log
+```
+/var/log/xroad/audit.log
+```
 
 
 ### 12.1 Changing the Configuration of the Audit Log
 
 The X-Road software writes the audit log to the *syslog* (*rsyslog*) using UDP interface (default port is 514). Corresponding configuration is located in the file
 
-    /etc/rsyslog.d/90-udp.conf
+```
+/etc/rsyslog.d/90-udp.conf
+```
 
 The audit log records are written with level INFO and facility LOCAL0. By default, log records of that level and facility are saved to the X-Road audit log file
 
-    /var/log/xroad/audit.log
+```
+/var/log/xroad/audit.log
+```
 
 The default behavior can be changed by editing the *rsyslog* configuration file
 
-    /etc/rsyslog.d/40-xroad.conf
+```
+/etc/rsyslog.d/40-xroad.conf
+```
 
 Restart the *rsyslog* service to apply the changes made to the configuration file
 
-    service rsyslog restart
+```bash
+service rsyslog restart
+```
 
 The audit log is rotated monthly by *logrotate*. To configure the audit log rotation, edit the *logrotate* configuration file
 
-    /etc/logrotate.d/xroad-proxy
-
+```
+/etc/logrotate.d/xroad-proxy
+```
 
 ### 12.2 Archiving the Audit Log
 
@@ -2355,20 +2424,26 @@ To restore configuration from the command line, the following data must be avail
 
 To find the X-Road ID of the Security Server, the following command can be used:
 
-    cat /etc/xroad/gpghome/openpgp-revocs.d/<file-name>.rev | grep uid
+```bash
+cat /etc/xroad/gpghome/openpgp-revocs.d/<file-name>.rev | grep uid
+```
 
 It is expected that the restore command is run by the xroad user.
 
 In order to restore configuration, the following command should be used:
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -s <Security Server ID> -f <path + filename> [-P -N]
+```bash
+/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+-s <Security Server ID> -f <path + filename> [-P -N]
+```
 
 For example (all on one line):
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -s AA/GOV/TS1OWNER/TS1 \
-    –f /var/lib/xroad/backup/conf_backup_20140703-110438.gpg
+```bash
+/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+-s AA/GOV/TS1OWNER/TS1 \
+–f /var/lib/xroad/backup/conf_backup_20140703-110438.gpg
+```
 
 In case original backup encryption and signing key is lost additional parameters can be specified to skip decryption and/or
 signature verification. Use `-P` command line switch when backup archive is already decrypted externally and `-N` switch to
@@ -2377,13 +2452,17 @@ skip checking archive signature.
 If a backup is restored on a new uninitialized (the initial configuration hasn't been completed) Security Server, the
 Security Server's gpg key must be manually created before restoring the backup:
 
-    /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <Security Server ID>
+```bash
+/usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <Security Server ID>
+```
 
 If it is absolutely necessary to restore the system from a backup made on a different Security Server, the forced mode
 of the restore command can be used with the –F option together with unencrypted backup archive flags. For example (all on one line):
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -F -P –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
+```bash
+/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+-F -P –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
+```
 
 In case backup archives were encrypted they have to be first unencrypted in external safe environment and then securely
 transported to Security Server filesystem.
@@ -2426,7 +2505,9 @@ Additional keys for backup encryption should be generated and stored outside Sec
 After gpg keypair has been generated, public key can be exported to a file (backupadmin@example.org is the name of the
 key being exported) using this command:
 
-    gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```bash
+gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```
 
 Resulting file `backupadmin.publickey` should be moved to Security Server and imported to backup gpg keyring. Administrator should make sure that the key has not been changed during transfer, for example by validating the key fingerprint.
 
@@ -2436,17 +2517,20 @@ them can be used to decrypt backups and thus mount attacks on the Security Serve
 **Configuration example**
 
 Generate a keypair for encryption with defaults and no expiration and export the public key:
+
 ```bash
 gpg [--homedir <admin gpghome>] --quick-generate-key backupadmin@example.org default default never
 gpg [--homedir <admin gpghome>] --export backupadmin@example.org >backupadmin@example.org.pgp
 ```
 
 Import the public key to the gpg keyring in `/etc/xroad/gpghome` directory and take note of the key id.
+
 ```bash
 gpg --homedir /etc/xroad/gpghome --import backupadmin@example.org.pgp
 ```
 
 Edit the key and add ultimate trust.
+
 ```bash
 gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 ```
@@ -2454,6 +2538,7 @@ gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
 Add the key id to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
+
 ```bash
 [proxy]
 backup-encryption-enabled = true
@@ -2481,7 +2566,9 @@ decrypted and verified in these separate environments.
 
 To export Security Servers backup encryption public key use the following command:
 
-    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>
+```bash
+gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>
+```
 
 where `<instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>` is the Security Server id,
 for example, `AA/GOV/TS1OWNER/TS1`.
@@ -2498,6 +2585,7 @@ Click on **DIAGNOSTICS** in the **Navigation tabs**.
 Diangostics view contains the following tabs:
 - **Overview** – overview of the Security Server status information
 - **Traffic** – visual overview of the Security Server traffic
+- **Connection Testing** – test connectivity to the Central Server and other Security Servers
 
 ### 14.1 Diagnostics Overview
 
@@ -2553,7 +2641,7 @@ The status colors indicate the following:
 - **Red indicator** – Security Server's java version number isn't supported
 - **Green indicator** – Security Server's java version number is supported
 
-#### 14.3.3 Examine Security Server encryption status information
+#### 14.1.3 Examine Security Server encryption status information
 
 **Backup encryption status**
 
@@ -2616,6 +2704,72 @@ By default, the page displays all the requests handled during the last 7 days. T
 - **Exchange role** - the role of this Security Server in the message exchange. The options are "Producer" and "Consumer".
 - **Status** - the status of the message exchange. The options are "Success" and "Failure".
 
+### 14.3 Security Server Connection Testing
+
+The "Connection Testing" tab in the Diagnostics page allows testing connectivity from the Security Server to the Central Server and other Security Servers.
+
+The page is divided into three logical blocks:
+- Central Server
+- Other Security Server 
+- Management Security Server
+
+Each block contains predefined tests that validate communication with the corresponding service. Test results include a status indicator ("Green" or "Red") and a detailed message to assist troubleshooting.
+
+A **Test** button next to each row allows re-running the specific connection test.
+
+## 14.3.1 Testing the connection to the Central Server
+
+This block allows verifying that the Security Server can reach the Central Server and download the configuration necessary for normal operation.
+
+**Global Configuration Download**
+
+Tests ports `80` and `443` to verify that the Global Configuration can be downloaded from the Central Server. If the Central Server is clustered, then all clustered node addresses are included in the test. For federated instances, if the `configuration-client.allowed-federations` property is enabled, the configuration download URLs for the allowed federated instances are also included. Note that even if the global configuration contains multiple federated instances, not all of them may be enabled on the Security Server.
+
+✔ `Everything ok` — indicates that the Central Server global configuration access via `HTTP`/`HTTPS` on ports `80`/`443` is reachable.
+
+Examples of error messages:
+- `Connection error, unknown host - cs: Name or service not known` — the Central Server hostname cannot be resolved. Check DNS configuration.
+- `IO error - (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException...` — the Security Server doesn't trust the CA that issued Central Server's TLS certificate. The root certificate of the CA that was used to issue Central Server's TLS certificate must be added to the Security Server's Java truststore. For the guidelines on Publish global configuration over HTTPS, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+
+**Authentication Certificate Registration Service**
+
+Tests connectivity to the Central Server on port `4001` (used by the registration service and must be accessible by every Security Server registered to the ecosystem).
+
+✔ `Everything ok` — indicates that the Authentication Certificate Registration Service is reachable and that the Security Server’s authentication certificate has been added. However, only the existence of the authentication certificate is checked, not its validity.
+
+Examples of error messages:
+- `Connection error, unknown host - cs: Name or service not known | Certificate not found - No auth cert found` — the Central Server hostname cannot be resolved, and the Security Server has no authentication certificate added.
+- `Certificate not found - No auth cert found` —  there are no connection issues, but the Security Server's authentication certificate has not been added.
+
+## 14.3.2 Testing the connection to other Security Servers
+
+This block enables testing communication with any other Security Server in the same X-Road instance (or federated instances). The functionality uses the `listMethods` meta service to test communication with other Security Servers. Passing the test requires that the target Security Server allows incoming connections to ports `5500` and `5577` from the source Security Server.
+
+Field descriptions:
+- **Source Client** — a list of members and subsystems registered on the client Security Server that can be used as a Source Client. 
+- **REST/SOAP** - the protocol (`REST` or `SOAP`) that's used to complete the connection test. 
+- **Target Instance** - the X-Road instance where the Target Client is registered. This can be the same instance where the Source Client is registered or a federated instance. 
+- **Target Client** - a list of clients registered on other Security Servers. Also, clients registered on the same Security Server with the Source Client are included to allow local testing. If federation is enabled and federated instances exist in the configuration, registered clients of federated instances are included as well. 
+- **Target Security Server** — a list of Security Servers where the Target Client is registered. If the Target Client is registered on multiple Security Servers, all of them are listed for selection.
+
+✔ `Everything ok` — indicates that there are no network, configuration, or certificate issues preventing communication between the two Security Server client.
+
+Examples of error messages:
+- `server.clientproxy.ssl_authentication_failed - Security server has no valid authentication certificate`.
+
+## 14.3.3 Testing the connection to Management Security Server
+
+This block tests communication with the Management Security Server, including capability to send management requests (such as client register, client disable, ...).
+
+Field descriptions:
+- **Source Client** - the owner member of the client Security Server. 
+- **REST/SOAP** - `SOAP` since management services only support `SOAP`. 
+- **Target Instance** - the same instance where the Source Client is registered. 
+- **Target Client** - the subsystem providing the management services. 
+- **Target Security Server** - if management services are registered on multiple Security Servers, the user is able to select the desired target Security Server.
+
+✔ `Everything ok` - indicates that there are no network, configuration, or certificate issues preventing communication with the management Security Server.
+
 ## 15 Operational Monitoring
 
 **Operational monitoring data** contains data about request exchange (such as the ID-s of the client and the service, various attributes of the message read from the message header, request and response timestamps, SOAP sizes etc.) of the X-Road Security Server(s).
@@ -2646,20 +2800,28 @@ All overrides to the default configuration values must be made in the file `/etc
 
 If, for any reason, operational data should not be collected and forwarded to the operational monitoring daemon, the parameter size can be set to 0:
 
-    [op-monitor-buffer]
-    size = 0
+```ini
+[op-monitor-buffer]
+size = 0
+```
 
 After the configuration change, the xroad-proxy service must be restarted:
 
-    service xroad-proxy restart
+```bash
+service xroad-proxy restart
+```
 
 In addition, the operational monitoring daemon should be stopped:
 
-    service xroad-opmonitor stop
+```bash
+service xroad-opmonitor stop
+```
 
 For the service to stay stopped after reboot the following command should be run:
 
-    echo manual > /etc/init/xroad-opmonitor.override
+```bash
+echo manual > /etc/init/xroad-opmonitor.override
+```
 
 
 ### 15.2 Operational Monitoring Daemon
@@ -2702,8 +2864,10 @@ For configuring the endpoint of the operational monitoring daemon, the following
 
 If any of these values are changed, both the proxy and the operational monitoring daemon services must be restarted:
 
-    service xroad-proxy restart
-    service xroad-opmonitor restart
+```bash
+service xroad-proxy restart
+service xroad-opmonitor restart
+```
 
 
 #### 15.2.4 Installing an External Operational Monitoring Daemon
@@ -2718,10 +2882,11 @@ For running a separate operational monitoring daemon, the xroad-opmonitor packag
 
 As a result of installation, the following services will be running:
 
-    xroad-confclient
-    xroad-signer
-    xroad-opmonitor
-
+```bash
+xroad-confclient
+xroad-signer
+xroad-opmonitor
+```
 
 #### 15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server
 
@@ -2737,19 +2902,25 @@ The internal TLS certificate of the Security Server is used for authenticating t
 
 In the configuration of the external daemon, the corresponding path must be set in `/etc/xroad/conf.d/local.ini`:
 
-    [op-monitor]
-    client-tls-certificate = <path/to/security/server/internal/cert>
+```ini
+[op-monitor]
+client-tls-certificate = <path/to/security/server/internal/cert>
+```
 
 Next, a TLS key and the corresponding certificate must be generated on the host of the external monitoring daemon as well, using the command
 
-    generate-opmonitor-certificate
+```bash
+generate-opmonitor-certificate
+```
 
 The script will prompt you for standard fields for input to TLS certificates and its output (key files and the certificate) will be generated to the directory `/etc/xroad/ssl`.
 
 The generated certificate, in the file `opmonitor.crt`, must be copied to the corresponding Security Server. The system user `xroad` must have permissions to read this file. Its path at the Security Server must be written to the configuration (note the name of the section, although it is the proxy service that will read the configuration):
 
-    [op-monitor]
-    tls-certificate = <path/to/external/daemon/tls/cert>
+```ini
+[op-monitor]
+tls-certificate = <path/to/external/daemon/tls/cert>
+```
 
 For the request traffic visualization on the Security Server UI Diagnostics page, gRPC keystore and truststore also need to be configured on both ends. Certificate that corresponds to the key in external Operational Monitoring gRPC keystore needs to be added to the gRPC truststore on the Security Server side and vice versa - Security Server's gRPC certificate needs to be added to the external monitoring daemon's truststore. The gRPC keystore and truststore system parameters are described in \[[UGSYSPAR](#31-common-parameters--common)\].
 
@@ -2786,15 +2957,21 @@ You can use java `keytool` and `openssl` when working with gRPC keystores and tr
 
 For the external operational daemon to be used, the proxy service at the Security Server must be restarted:
 
-    service xroad-proxy restart
+```bash
+service xroad-proxy restart
+```
 
 In addition, on the host running the corresponding Security Server, the operational monitoring daemon must be stopped:
 
-    service xroad-opmonitor stop
+```bash
+service xroad-opmonitor stop
+```
 
 For the service to stay stopped after reboot the following command should be run:
 
-    echo manual > /etc/init/xroad-opmonitor.override
+```bash
+echo manual > /etc/init/xroad-opmonitor.override
+```
 
 The configuration anchor (renamed as `configuration-anchor.xml`) file must be manually copied into the directory `/etc/xroad` of the external monitoring daemon in order for configuration client to be able to download the global configuration (by default configuration download interval is 60 seconds). The system user xroad must have permissions to read this file.
 
@@ -2859,11 +3036,15 @@ System services are managed through the *systemd* facility.
 
 **To start a service**, issue the following command as a `root` user:
 
-    service <service> start
+```bash
+service <service> start
+```
 
 **To stop a service**, enter:
 
-    service <service> stop
+```bash
+service <service> stop
+```
 
 Services use the [default unit start rate limits](https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#DefaultStartLimitIntervalSec=).
 An exception to this is `xroad-proxy-ui-api`, which uses a longer start rate limit ([5 starts / 40 seconds](https://github.com/nordic-institute/X-Road/blob/master/src/packages/src/xroad/ubuntu/generic/xroad-proxy-ui-api.service#L5-6))
@@ -3057,7 +3238,6 @@ revocation was successful and `HTTP 404` if key did not exist.
 
 ```bash
 curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -k
-
 ```
 
 #### 19.1.5 API key caching
@@ -3106,6 +3286,7 @@ can be used to find the log messages related to a specific API call.
 The correlation ID header is returned for all requests, both successful and failed ones.
 
 For example, these log messages are related to an API call with correlation ID `3d5f193102435242`:
+
 ```
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.c.HttpSessionSecurityContextRepository - The HttpSession is currently null, and the HttpSessionSecurityContextRepository is prohibited from creating an HttpSession (because the allowSessionCreation property is false) - SecurityContext thus not stored for next request
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.niis.xroad.restapi.exceptions.ConflictException: local group with code koodi6 already added]
@@ -3434,7 +3615,7 @@ First step to pass additional configurations is to create `db_libpq.env` file in
 
 Example of file contents:
 
-```bash
+```
 export PGSSLMODE="verify-full"
 export PGSSLCERT="/etc/xroad/ssl/internal.crt"
 export PGSSLKEY="/etc/xroad/ssl/internal.key"
@@ -3525,7 +3706,7 @@ This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_
 Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
-2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is defined and populated manually by the Security Server Administrator.
+2. `account-keystore-password` -  the password for the ACME Server account PKCS #12 keystore. The password is populated automatically by the Security Server when communicating with the ACME Server. When ACME is used for the first time, the keystore is generated automatically using this password. If the value of this property is left empty, the Security Server generates a random password and stores it in the acme.yml file. If the value of this property is not empty, the provided value is used as the password for the generated keystore file.
 
 **Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
 
@@ -3563,9 +3744,9 @@ eab-credentials:
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
 
-# This is the password for the PKCS #12 keystore of the ACME Server account. The password is defined by the Security Server Administrator. The "<PASSWORD_PLACEHOLDER>" value is a placeholder and must be changed.
+# This is the password for the PKCS #12 keystore of the ACME Server account. The password is populated automatically by the Security Server.
 # Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password: <PASSWORD_PLACEHOLDER>
+account-keystore-password:
 
 ```
 

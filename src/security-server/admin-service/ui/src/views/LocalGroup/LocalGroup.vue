@@ -196,7 +196,7 @@ export default defineComponent({
   setup() {
     const { meta, setValue, value, errors } = useField<string>(
       'description',
-      'required|max:255',
+      'required|max:255|validDescription',
     );
     return { meta, setValue, value, errors };
   },
@@ -408,6 +408,12 @@ export default defineComponent({
 
 .group-members-table {
   margin-top: 10px;
+}
+
+.group-members-table td {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 250px;
 }
 
 .add-members-button {

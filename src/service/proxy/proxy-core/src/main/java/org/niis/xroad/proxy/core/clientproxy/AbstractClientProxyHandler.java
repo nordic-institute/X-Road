@@ -40,6 +40,8 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -63,6 +65,7 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
 @RequiredArgsConstructor
 abstract class AbstractClientProxyHandler extends HandlerBase {
 
+    private static final String DEFAULT_ERROR_MESSAGE = "Request processing error";
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
 
     protected final CommonBeanProxy commonBeanProxy;
@@ -73,11 +76,12 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
                                                          ResponseWrapper response,
-                                                         OpMonitoringData opMonitoringData) throws Exception;
+                                                         OpMonitoringData opMonitoringData) throws IOException;
 
     @Override
     @WithSpan
-    public boolean handle(Request request, Response response, Callback callback) throws Exception {
+    @SuppressWarnings({"java:S3776"}) //TODO XRDDEV-2962 cognitive complexity should drop after refactoring
+    public boolean handle(Request request, Response response, Callback callback) throws IOException {
         boolean handled = false;
 
         long start = logPerformanceBegin(request);
@@ -101,11 +105,31 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                     log.info("Request successfully handled");
                 }
             }
+        } catch (XrdRuntimeException e) {
+            handled = true;
+
+            String errorMessage;
+            CodedException cex = e;
+            if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
+                errorMessage = "Request processing error (" + e.getFaultDetail() + ")";
+                cex = translateWithPrefix(SERVER_CLIENTPROXY_X, e);
+            } else {
+                errorMessage = DEFAULT_ERROR_MESSAGE;
+            }
+
+            log.error(errorMessage, cex);
+
+            updateOpMonitoringSoapFault(opMonitoringData, cex);
+
+            // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
+            // contain full error code. Thus, we must not attach additional error code prefixes to them.
+
+            failure(processor, request, response, callback, cex, opMonitoringData);
         } catch (CodedException.Fault | ClientException e) {
             handled = true;
 
             String errorMessage = e instanceof ClientException
-                    ? "Request processing error (" + e.getFaultDetail() + ")" : "Request processing error";
+                    ? "Request processing error (" + e.getFaultDetail() + ")" : DEFAULT_ERROR_MESSAGE;
 
             log.error(errorMessage, e);
 
@@ -119,7 +143,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             handled = true;
 
             // No need to log faultDetail hence not sent to client.
-            log.error("Request processing error", e);
+            log.error(DEFAULT_ERROR_MESSAGE, e);
 
             // Respond with HTTP status code and plain text error message instead of SOAP fault message.
             // No need to update operational monitoring fields here either.

@@ -27,7 +27,7 @@ import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { Colors, i18n } from '@niis/shared-ui';
+import { Colors, getNonce, i18n } from '@niis/shared-ui';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
 
@@ -63,6 +63,7 @@ export default createVuetify({
     adapter: createVueI18nAdapter({ i18n, useI18n }),
   },
   theme: {
+    cspNonce: getNonce(),
     themes: {
       light: {
         dark: false,

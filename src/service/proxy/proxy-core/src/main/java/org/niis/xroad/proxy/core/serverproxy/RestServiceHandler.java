@@ -36,6 +36,9 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 /**
  * Rest service handler interface
  */
@@ -54,11 +57,12 @@ public interface RestServiceHandler {
                        ProxyMessageEncoder messageEncoder,
                        HttpClient restClient,
                        HttpClient opMonitorClient,
-                       OpMonitoringData opMonitoringData) throws Exception;
+                       OpMonitoringData opMonitoringData)
+            throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException;
 
     RestResponse getRestResponse();
 
     CachingStream getRestResponseBody();
 
-    void finishHandling() throws Exception;
+    void finishHandling();
 }

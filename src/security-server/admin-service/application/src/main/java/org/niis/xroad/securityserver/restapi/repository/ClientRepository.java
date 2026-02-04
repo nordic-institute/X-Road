@@ -47,6 +47,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * client repository
@@ -77,9 +78,9 @@ public class ClientRepository extends AbstractRepository<ClientEntity> {
     public List<ClientEntity> getAllLocalClients() {
         ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
         ServerConfEntity serverConfEntity = serverConfDao.getConf(persistenceUtils.getCurrentSession());
-        List<ClientEntity> clientEntities = serverConfEntity.getClients();
+        Set<ClientEntity> clientEntities = serverConfEntity.getClients();
         Hibernate.initialize(clientEntities);
-        return clientEntities;
+        return List.copyOf(clientEntities);
     }
 
     /**
@@ -136,5 +137,9 @@ public class ClientRepository extends AbstractRepository<ClientEntity> {
             throw new ClientNotFoundException("Client not found for localGroup with id: " + localGroupEntity.getId());
         }
         return clientEntity;
+    }
+
+    public void remove(ClientEntity client) {
+        persistenceUtils.getCurrentSession().remove(client);
     }
 }

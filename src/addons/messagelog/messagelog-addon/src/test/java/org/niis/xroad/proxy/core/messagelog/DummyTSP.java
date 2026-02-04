@@ -31,12 +31,13 @@ import java.io.FileInputStream;
 
 final class DummyTSP {
 
+    public static final String URL = "src/test/resources/tsp.response";
+
     private DummyTSP() {
     }
 
     static AbstractTimestampRequest.TsRequest makeRequest(TimeStampRequest req) throws Exception {
-        return new AbstractTimestampRequest.TsRequest(new FileInputStream("src/test/resources/tsp.response"),
-                "src/test/resources/tsp.response");
+        return new AbstractTimestampRequest.TsRequest(new FileInputStream(URL), URL);
     }
 
 }

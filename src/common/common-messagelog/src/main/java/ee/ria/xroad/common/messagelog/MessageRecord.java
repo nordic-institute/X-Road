@@ -38,8 +38,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
@@ -154,7 +157,7 @@ public class MessageRecord extends AbstractLogRecord {
                 memberClass, memberCode, subsystemCode};
     }
 
-    public AsicContainer toAsicContainer() throws Exception {
+    public AsicContainer toAsicContainer() throws IOException, IllegalBlockSizeException, BadPaddingException {
         final boolean encrypted = keyId != null;
         final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);
 

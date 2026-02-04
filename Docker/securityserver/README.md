@@ -21,11 +21,19 @@ Alternatively, it's possible to use the image (`niis/xroad-security-server`) ava
 ## Running
 
 Publish the container ports (`8080` and/or `8443`, `4000`, and optionally `5500` and `5577`) to localhost (loopback address).
-Also, it's possible to pass the token pin code for autologin using the `XROAD_TOKEN_PIN` environment variable.
+Also, it's possible to pass the token pin code for autologin using environment variables. Use `XROAD_TOKEN_PIN` for token 0, or `XROAD_TOKEN_<id>_PIN` for specific token IDs.
 
 Running a locally built image:
 ```shell
 docker run -p 127.0.0.1:4000:4000 -p 127.0.0.1:8080:8080 --name my-ss -e XROAD_TOKEN_PIN=1234 xroad-security-server
+```
+
+For multiple tokens:
+```shell
+docker run -p 127.0.0.1:4000:4000 -p 127.0.0.1:8080:8080 --name my-ss \
+  -e XROAD_TOKEN_0_PIN=1234 \
+  -e XROAD_TOKEN_1_PIN=5678 \
+  xroad-security-server
 ```
 
 Running an image available on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server):
@@ -95,5 +103,12 @@ One can create the autologin file by hand after initializing the Security Server
 
 ```shell
 docker exec my-ss su -c 'echo 1234 >/etc/xroad/autologin' xroad
+docker exec my-ss supervisorctl start xroad-autologin
+```
+
+For multiple tokens, use one line per token in the format `token-id:token-pin`:
+
+```shell
+docker exec my-ss su -c 'echo -e "0:1234\n1:5678" >/etc/xroad/autologin' xroad
 docker exec my-ss supervisorctl start xroad-autologin
 ```

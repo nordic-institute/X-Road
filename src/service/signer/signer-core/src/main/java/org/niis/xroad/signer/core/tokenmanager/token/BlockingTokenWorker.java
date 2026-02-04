@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.tokenmanager.token;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
@@ -104,16 +105,18 @@ public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
     }
 
     @Override
-    public void refresh() throws Exception {
+    public void refresh() {
         synchronizedAction(tokenWorker::refresh);
     }
 
     @FunctionalInterface
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public interface ThrowingSupplier<T, E extends Exception> {
         T get() throws E;
     }
 
     @FunctionalInterface
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public interface ThrowingRunnable<E extends Exception> {
         void run() throws E;
     }

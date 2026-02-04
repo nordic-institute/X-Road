@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CaOcspDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -37,7 +37,7 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Order(DiagnosticCollector.ORDER_GROUP3)
-public class OscpReponderCollector implements DiagnosticCollector<Set<OcspResponderDiagnosticsDto>> {
+public class OscpReponderCollector implements DiagnosticCollector<Set<CaOcspDiagnosticsDto>> {
     private final DiagnosticService diagnosticService;
     private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
 
@@ -47,7 +47,7 @@ public class OscpReponderCollector implements DiagnosticCollector<Set<OcspRespon
     }
 
     @Override
-    public Set<OcspResponderDiagnosticsDto> collect() {
+    public Set<CaOcspDiagnosticsDto> collect() {
         return ocspResponderDiagnosticConverter.convert(diagnosticService.queryOcspResponderStatus());
     }
 }

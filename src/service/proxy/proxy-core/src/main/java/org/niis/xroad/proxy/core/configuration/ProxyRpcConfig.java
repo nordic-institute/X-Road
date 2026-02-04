@@ -34,12 +34,17 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+
 @Slf4j
 @Configuration
 public class ProxyRpcConfig {
 
     @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry) throws Exception {
+    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getProxyGrpcPort(),

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.module;
 
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -94,11 +95,11 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         tokenWorkers = Collections.emptyMap();
     }
 
-    protected abstract List<TokenType> listTokens() throws Exception;
+    protected abstract List<TokenType> listTokens() throws TokenException;
 
     protected abstract AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType);
 
-    private void loadTokens(boolean reload) throws Exception {
+    private void loadTokens(boolean reload) throws TokenException {
         final Map<String, BlockingTokenWorker> newTokens = new HashMap<>();
 
         final List<TokenType> tokens = listTokens();

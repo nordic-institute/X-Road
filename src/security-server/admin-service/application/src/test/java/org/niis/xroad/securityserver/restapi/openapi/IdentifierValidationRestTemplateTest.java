@@ -116,6 +116,8 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String FIELD_LOCALGROUPADD_DESCRIPTION = "localGroupAddDto.description";
     public static final String FIELD_LOCALGROUPDESCRIPTION = "localGroupDescriptionDto.description";
 
+    private static final String PATTERN_ERROR_CODE = "Pattern";
+
     private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
             TestUtils.MEMBER_CLASS_PRO);
 
@@ -413,7 +415,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         // LocalGroupAdd desc with control char
         expectedFieldValidationErrors.remove(FIELD_LOCALGROUPADD_CODE);
         expectedFieldValidationErrors.put(FIELD_LOCALGROUPADD_DESCRIPTION,
-                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+                List.of(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), PATTERN_ERROR_CODE));
         assertAddLocalGroupValidationError("aa", HAS_CONTROL_CHAR, expectedFieldValidationErrors);
 
         // LocalGroupAdd code and desc with control char
@@ -428,7 +430,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         // Update LocalGroupDescription with control char
         expectedFieldValidationErrors.put(FIELD_LOCALGROUPDESCRIPTION,
-                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+                List.of(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), PATTERN_ERROR_CODE));
         assertUpdateLocalGroupDescValidationError(HAS_CONTROL_CHAR, expectedFieldValidationErrors);
     }
 

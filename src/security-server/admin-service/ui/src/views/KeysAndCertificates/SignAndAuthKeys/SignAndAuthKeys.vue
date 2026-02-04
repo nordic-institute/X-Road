@@ -25,7 +25,7 @@
  -->
 <template>
   <XrdTitledView title-key="tab.keys.signAndAuthKeys">
-    <template #appendTitle>
+    <template #append-title>
       <help-button
         :help-image="helpImage"
         help-title="keys.helpTitleKeys"

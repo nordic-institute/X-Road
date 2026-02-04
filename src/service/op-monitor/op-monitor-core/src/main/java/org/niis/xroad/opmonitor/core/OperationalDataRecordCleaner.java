@@ -49,6 +49,7 @@ import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTrans
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+
 public final class OperationalDataRecordCleaner {
 
     /**
@@ -71,12 +72,12 @@ public final class OperationalDataRecordCleaner {
         }
     }
 
-    private static void handleCleanup() throws Exception {
+    private static void handleCleanup() {
         cleanRecords(
                 TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
     }
 
-    static int cleanRecords(Instant before) throws Exception {
+    static int cleanRecords(Instant before) {
         log.trace("cleanRecords({})", before);
 
         return doInTransaction(session -> {

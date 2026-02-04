@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
@@ -41,7 +42,10 @@ import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceListItemDto;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
+import org.niis.xroad.cs.openapi.model.CsrFormatDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -83,6 +87,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE)
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
+                                                                                   CsrFormatDto defaultCsrFormat,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth,
                                                                                    String acmeServerDirectoryUrl,
@@ -96,6 +101,7 @@ public class CertificationServicesController implements CertificationServicesApi
                 fileBytes,
                 certificateProfileInfo,
                 isForTlsAuth,
+                CsrFormat.valueOf(defaultCsrFormat.name()),
                 acmeServerDirectoryUrl,
                 acmeServerIpAddress,
                 authenticationCertificateProfileId,
@@ -119,11 +125,15 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
-    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
+    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId,
+                                                                                 String url,
+                                                                                 CostTypeDto costType,
+                                                                                 MultipartFile certificate) {
         final var addRequest = new OcspResponderAddRequest();
         addRequest
                 .setCaId(caId)
-                .setUrl(url);
+                .setUrl(url)
+                .setCostType(CostType.valueOf(costType.name()));
 
         if (certificate != null && !certificate.isEmpty()) {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
@@ -189,6 +199,9 @@ public class CertificationServicesController implements CertificationServicesApi
                 .setAcmeServerIpAddress(settings.getAcmeServerIpAddress())
                 .setAuthenticationCertificateProfileId(settings.getAuthenticationCertificateProfileId())
                 .setSigningCertificateProfileId(settings.getSigningCertificateProfileId());
+        if (settings.getDefaultCsrFormat() != null) {
+            approvedCa.setDefaultCsrFormat(CsrFormat.valueOf(settings.getDefaultCsrFormat().name()));
+        }
 
         return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.update(approvedCa)));
     }

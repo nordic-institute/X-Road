@@ -59,7 +59,7 @@ public class LogCleaner implements Job {
         }
     }
 
-    protected long handleClean() throws Exception {
+    protected long handleClean() {
 
         final Long time =
                 TimeUtils.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();

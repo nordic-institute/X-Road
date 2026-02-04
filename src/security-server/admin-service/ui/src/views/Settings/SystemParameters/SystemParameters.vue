@@ -191,6 +191,22 @@
 
         <v-row v-if="hasPermission(permissions.VIEW_TSPS)" no-gutters>
           <v-col>
+            <span class="pl-4">
+              {{
+                $t(
+                  'systemParameters.servicePrioritizationStrategy.timestamping.label',
+                )
+              }}
+              <strong data-test="timestamping-prioritization-strategy">{{
+                timestampingPrioritizationStrategy
+              }}</strong>
+              {{ ' - ' }}
+              {{
+                $t(
+                  `systemParameters.servicePrioritizationStrategy.timestamping.${timestampingPrioritizationStrategy}`,
+                )
+              }}
+            </span>
             <table class="xrd-table">
               <thead>
                 <tr>
@@ -205,6 +221,13 @@
                     {{
                       $t(
                         'systemParameters.timestampingServices.table.header.serviceURL',
+                      )
+                    }}
+                  </th>
+                  <th>
+                    {{
+                      $t(
+                        'systemParameters.timestampingServices.table.header.costType',
                       )
                     }}
                   </th>
@@ -241,7 +264,7 @@
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
           no-gutters
-          class="px-4"
+          class="px-4 pb-4"
         >
           <v-col>
             <h3>
@@ -256,6 +279,18 @@
           no-gutters
         >
           <v-col>
+            <span class="pl-4">
+              {{
+                $t('systemParameters.servicePrioritizationStrategy.ocsp.label')
+              }}
+              <strong data-test="ocsp-prioritization-strategy">{{ ocspPrioritizationStrategy }}</strong>
+              {{ ' - ' }}
+              {{
+                $t(
+                  `systemParameters.servicePrioritizationStrategy.ocsp.${ocspPrioritizationStrategy}`,
+                )
+              }}
+            </span>
             <table class="xrd-table">
               <thead>
                 <tr>
@@ -276,6 +311,20 @@
                   <th>
                     {{
                       $t(
+                        'systemParameters.approvedCertificateAuthorities.table.header.ocspUrl',
+                      )
+                    }}
+                  </th>
+                  <th>
+                    {{
+                      $t(
+                        'systemParameters.approvedCertificateAuthorities.table.header.ocspCostType',
+                      )
+                    }}
+                  </th>
+                  <th>
+                    {{
+                      $t(
                         'systemParameters.approvedCertificateAuthorities.table.header.ocspResponse',
                       )
                     }}
@@ -290,63 +339,99 @@
                 </tr>
               </thead>
               <tbody data-test="system-parameters-approved-ca-table-body">
-                <tr
+                <template
                   v-for="approvedCA in orderedCertificateAuthorities"
                   :key="approvedCA.path"
                 >
-                  <td
-                    :class="{
-                      'interm-ca': !approvedCA.top_ca,
-                      'root-ca': approvedCA.top_ca,
-                    }"
-                  >
-                    {{ approvedCA.subject_distinguished_name }}
-                  </td>
-                  <td
-                    v-if="
-                      approvedCA.acme_server_ip_addresses &&
-                      approvedCA.acme_server_ip_addresses.length > 0
-                    "
-                  >
-                    <p
-                      v-for="ipAddress in approvedCA.acme_server_ip_addresses"
-                      :key="ipAddress"
+                  <tr data-test="system-parameters-approved-ca-row">
+                    <td
+                      class="vertical-align-top pt-4"
+                      :class="{
+                        'interm-ca': !approvedCA.top_ca,
+                        'root-ca': approvedCA.top_ca,
+                      }"
                     >
-                      {{ ipAddress }}
-                    </p>
-                  </td>
-                  <td v-else>
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.notAvailable',
-                      )
-                    }}
-                  </td>
-                  <td v-if="approvedCA.top_ca">
-                    {{
-                      $t(
-                        'systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE',
-                      )
-                    }}
-                  </td>
-                  <td v-if="!approvedCA.top_ca">
-                    {{
-                      $t(
-                        `systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`,
-                      )
-                    }}
-                  </td>
-                  <td class="pr-4">
-                    {{ $filters.formatDate(approvedCA.not_after) }}
-                  </td>
-                </tr>
-
-                <XrdEmptyPlaceholderRow
-                  :colspan="4"
-                  :loading="loadingCAs"
-                  :data="orderedCertificateAuthorities"
-                  :no-items-text="$t('noData.noCertificateAuthorities')"
-                />
+                      {{ approvedCA.subject_distinguished_name }}
+                    </td>
+                    <td
+                      class="vertical-align-top pt-4"
+                      v-if="
+                        approvedCA.acme_server_ip_addresses &&
+                        approvedCA.acme_server_ip_addresses.length > 0
+                      "
+                    >
+                      <p
+                        v-for="ipAddress in approvedCA.acme_server_ip_addresses"
+                        :key="ipAddress"
+                      >
+                        {{ ipAddress }}
+                      </p>
+                    </td>
+                    <td class="vertical-align-top pt-4" v-else>
+                      {{
+                        $t(
+                          'systemParameters.approvedCertificateAuthorities.table.notAvailable',
+                        )
+                      }}
+                    </td>
+                    <td class="vertical-align-top pt-2">
+                      <div
+                        class="py-2"
+                        v-for="ocspResponder in approvedCA.ocsp_responders"
+                        :key="ocspResponder.url"
+                      >
+                        <p>
+                          {{ ocspResponder.url }}
+                        </p>
+                      </div>
+                    </td>
+                    <td class="vertical-align-top pt-2">
+                      <div
+                        class="py-2"
+                        v-for="ocspResponder in approvedCA.ocsp_responders"
+                        :key="ocspResponder.url"
+                      >
+                        <p>
+                          {{
+                            $t(
+                              'systemParameters.costType.' +
+                                ocspResponder.cost_type,
+                            )
+                          }}
+                        </p>
+                      </div>
+                    </td>
+                    <td
+                      class="vertical-align-top pt-4"
+                      v-if="approvedCA.top_ca"
+                    >
+                      {{
+                        $t(
+                          'systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE',
+                        )
+                      }}
+                    </td>
+                    <td
+                      class="vertical-align-top pt-4"
+                      v-if="!approvedCA.top_ca"
+                    >
+                      {{
+                        $t(
+                          `systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`,
+                        )
+                      }}
+                    </td>
+                    <td class="pr-4 vertical-align-top pt-4">
+                      {{ $filters.formatDate(approvedCA.not_after) }}
+                    </td>
+                  </tr>
+                  <XrdEmptyPlaceholderRow
+                    :colspan="4"
+                    :loading="loadingCAs"
+                    :data="orderedCertificateAuthorities"
+                    :no-items-text="$t('noData.noCertificateAuthorities')"
+                  />
+                </template>
               </tbody>
             </table>
           </v-col>
@@ -401,7 +486,13 @@ export default defineComponent({
       configurationAnchor: undefined as Anchor | undefined,
       downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
+      timestampingPrioritizationStrategy: undefined as
+        | ServicePrioritizationStrategy
+        | undefined,
       certificateAuthorities: [] as CertificateAuthority[],
+      ocspPrioritizationStrategy: undefined as
+        | ServicePrioritizationStrategy
+        | undefined,
       permissions: Permissions,
       loadingTimestampingservices: false,
       loadingAnchor: false,
@@ -431,10 +522,12 @@ export default defineComponent({
     if (this.hasPermission(Permissions.VIEW_TSPS)) {
       this.fetchMessageLogEnabled();
       this.fetchConfiguredTimestampingServiced();
+      this.fetchTimestampingPrioritizationStrategy();
     }
 
     if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
       this.fetchApprovedCertificateAuthorities();
+      this.fetchOcspPrioritizationStrategy();
     }
     if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
       this.fetchServerAddress();
@@ -472,6 +565,14 @@ export default defineComponent({
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },
+    async fetchTimestampingPrioritizationStrategy() {
+      return api
+        .get<ServicePrioritizationStrategy>(
+          '/system/timestamping-services/prioritization-strategy',
+        )
+        .then((resp) => (this.timestampingPrioritizationStrategy = resp.data))
+        .catch((error) => this.showError(error));
+    },
     async fetchApprovedCertificateAuthorities() {
       this.loadingCAs = true;
       return api
@@ -481,6 +582,14 @@ export default defineComponent({
         .then((resp) => (this.certificateAuthorities = resp.data))
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingCAs = false));
+    },
+    async fetchOcspPrioritizationStrategy() {
+      return api
+        .get<ServicePrioritizationStrategy>(
+          '/certificate-authorities/ocsp-prioritization-strategy',
+        )
+        .then((resp) => (this.ocspPrioritizationStrategy = resp.data))
+        .catch((error) => this.showError(error));
     },
     downloadAnchor(): void {
       this.downloadingAnchor = true;
@@ -577,5 +686,9 @@ tr td:last-child {
   line-height: 16px;
   color: colors.$WarmGrey100;
   margin-left: 2px;
+}
+
+.vertical-align-top {
+  vertical-align: top;
 }
 </style>

@@ -46,6 +46,7 @@
           <tr>
             <th class="status-column">{{ $t('diagnostics.status') }}</th>
             <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
+            <th class="cost-type-column">{{ $t('diagnostics.costType') }}</th>
             <th>{{ $t('diagnostics.message') }}</th>
             <th class="time-column">
               {{ $t('diagnostics.previousUpdate') }}
@@ -71,14 +72,17 @@
               {{ timestampingService.url }}
             </td>
             <td
+              class="cost-type-column"
+              :class="{ disabled: !messageLogEnabled }"
+              data-test="service-cost-type"
+            >
+              {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+            </td>
+            <td
               :class="{ disabled: !messageLogEnabled }"
               data-test="timestamping-message"
             >
-              {{
-                $t(
-                  `diagnostics.timestamping.timestampingStatus.${timestampingService.status_code}`,
-                )
-              }}
+              {{ getStatusMessage(timestampingService) }}
             </td>
             <td class="time-column" :class="{ disabled: !messageLogEnabled }">
               {{ $filters.formatHoursMins(timestampingService.prev_update_at) }}
@@ -101,6 +105,11 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
+import {
+  DiagnosticStatusClass,
+  TimestampingServiceDiagnostics,
+} from '@/openapi-types';
+import { i18n } from '@niis/shared-ui';
 
 export default defineComponent({
   props: {
@@ -152,6 +161,20 @@ export default defineComponent({
           return 'error';
       }
     },
+    getStatusMessage(
+      timestampingService: TimestampingServiceDiagnostics,
+    ): string {
+      if (timestampingService.status_class === DiagnosticStatusClass.FAIL) {
+        return i18n.global.t(
+          `error_code.${timestampingService.error?.code}`,
+          timestampingService.error?.metadata,
+        );
+      } else {
+        return i18n.global.t(
+          `diagnostics.timestamping.timestampingStatus.${timestampingService.status_class}`,
+        );
+      }
+    },
   },
 });
 </script>
@@ -193,6 +216,10 @@ h3 {
 
 .url-column {
   width: 240px;
+}
+
+.cost-type-column {
+  width: 200px;
 }
 
 .time-column {

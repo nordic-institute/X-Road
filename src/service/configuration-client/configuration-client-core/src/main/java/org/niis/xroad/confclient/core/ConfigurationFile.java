@@ -25,12 +25,13 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpField;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.AbstractConfigurationPart;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
@@ -39,7 +40,6 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_FILE_NAME;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
@@ -146,9 +146,10 @@ public final class ConfigurationFile extends AbstractConfigurationPart {
         if ((ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS.equals(id)
                 || ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS.equals(id))
                 && StringUtils.isBlank(instance)) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Field " + HEADER_CONTENT_IDENTIFIER
-                            + " is missing parameter " + PARAM_INSTANCE);
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING_PARAMETER)
+                    .details("Field %s is missing parameter %s".formatted(HEADER_CONTENT_IDENTIFIER, PARAM_INSTANCE))
+                    .metadataItems(HEADER_CONTENT_IDENTIFIER, PARAM_INSTANCE)
+                    .build();
         }
 
         return new ContentIdentifier(id, instance);

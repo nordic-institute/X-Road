@@ -26,20 +26,22 @@
 package org.niis.xroad.signer.core.util;
 
 import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.Key;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import jakarta.xml.bind.DatatypeConverter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -95,8 +97,7 @@ public final class SignerUtil {
      * @return the certificate
      * @throws Exception if an error occurs
      */
-    public static X509Certificate createCertificate(String commonName, KeyPair keyPair, ContentSigner signer)
-            throws Exception {
+    public static X509Certificate createCertificate(String commonName, KeyPair keyPair, ContentSigner signer) throws CertificateException {
         Calendar cal = GregorianCalendar.getInstance();
 
         cal.add(Calendar.YEAR, -1);
@@ -151,16 +152,19 @@ public final class SignerUtil {
      * @param token         pkcs11 token
      * @return formatted token ID
      */
-    @SneakyThrows
     public static String getFormattedTokenId(String tokenIdFormat, String moduleType,
                                              Token token) {
-        iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
-        String slotIndex = Long.toString(token.getSlot().getSlotID());
+        try {
+            iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
+            String slotIndex = Long.toString(token.getSlot().getSlotID());
 
-        return tokenIdFormat.replace("{moduleType}", moduleType)
-                .replace("{slotIndex}", slotIndex)
-                .replace("{serialNumber}", tokenInfo.getSerialNumber().trim())
-                .replace("{label}", tokenInfo.getLabel().trim());
+            return tokenIdFormat.replace("{moduleType}", moduleType)
+                    .replace("{slotIndex}", slotIndex)
+                    .replace("{serialNumber}", tokenInfo.getSerialNumber().trim())
+                    .replace("{label}", tokenInfo.getLabel().trim());
+        } catch (TokenException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
 }

@@ -28,17 +28,22 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.GroupMember;
 import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -46,6 +51,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.CLIENT_ID_SS1;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.DB_LOCAL_GROUP_ID_1;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.getClientId;
 
 /**
  * test LocalGroupService
@@ -76,6 +85,61 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
         assertEquals(TestUtils.GROUP_DESC, localGroupFromDb.getDescription());
         assertEquals(0, localGroupFromDb.getGroupMembers().size());
         assertNotNull(localGroupFromDb.getId());
+    }
+
+    @Test
+    public void addLocalClientToLocalGroup() {
+        Long groupId = Long.valueOf(DB_LOCAL_GROUP_ID_1);
+
+        localGroupService.addLocalGroupMembers(
+                groupId, List.of(getClientId(CLIENT_ID_SS1)));
+
+        LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
+        Assertions.assertThat(localGroup.getGroupMembers())
+                .singleElement()
+                .extracting(GroupMember::getGroupMemberId)
+                .isEqualTo(getClientId(CLIENT_ID_SS1));
+    }
+
+    @Test
+    public void addDuplicateClientToLocalGroup() {
+        Long groupId = Long.valueOf(DB_LOCAL_GROUP_ID_1);
+        localGroupService.addLocalGroupMembers(
+                groupId, List.of(getClientId(CLIENT_ID_SS1)));
+
+        Assertions.assertThatThrownBy(() ->
+            localGroupService.addLocalGroupMembers(groupId, List.of(getClientId(CLIENT_ID_SS1))))
+                .isInstanceOf(LocalGroupService.MemberAlreadyExistsException.class);
+
+    }
+
+    @Test
+    public void addGlobalClientToLocalGroup() {
+        Long groupId = Long.valueOf(DB_LOCAL_GROUP_ID_1);
+        List<MemberInfo> members = List.of(
+                // member that's not present in local identifiers table
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1));
+        when(globalConfProvider.getMembers()).thenReturn(new ArrayList<>(members));
+
+        String globalClientId = "FI:PRO:M1:SS1";
+        localGroupService.addLocalGroupMembers(
+                groupId, List.of(getClientId(globalClientId)));
+
+        LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
+        Assertions.assertThat(localGroup.getGroupMembers())
+                .singleElement()
+                .extracting(GroupMember::getGroupMemberId)
+                .isEqualTo(getClientId(globalClientId));
+    }
+
+    @Test
+    public void addNonExistentClientToLocalGroup() {
+        Long groupId = Long.valueOf(DB_LOCAL_GROUP_ID_1);
+
+        String nonExistentClientId = "FI:PRO:DOES-NOT-EXIST:SS1";
+        Assertions.assertThatThrownBy(() -> localGroupService.addLocalGroupMembers(
+                groupId, List.of(getClientId(nonExistentClientId))))
+                .isInstanceOf(LocalGroupService.LocalGroupMemberNotFoundException.class);
     }
 
     @Test
@@ -116,7 +180,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
     @Test
     public void deleteLocalGroup() throws Exception {
         ClientEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
-        Long groupId = Long.valueOf(TestUtils.DB_LOCAL_GROUP_ID_1);
+        Long groupId = Long.valueOf(DB_LOCAL_GROUP_ID_1);
         XRoadIdEntity localGroupXroadId = XRoadIdMapper.get().toEntity(
                 localGroupService.getLocalGroupIdAsXroadId(groupId)
         );

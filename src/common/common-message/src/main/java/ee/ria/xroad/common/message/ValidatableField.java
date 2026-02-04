@@ -33,8 +33,8 @@ public interface ValidatableField {
 
     /**
      * Subclasses must implement the validation logic.
-     * @throws Exception if the validation does not pass
+     * @throws ee.ria.xroad.common.CodedException if the validation does not pass
      */
-    void validate() throws Exception;
+    void validate();
 
 }

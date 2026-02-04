@@ -34,6 +34,9 @@
           <tr>
             <th class="status-column">{{ $t('diagnostics.status') }}</th>
             <th>{{ $t('diagnostics.message') }}</th>
+            <th>
+              {{ $t('diagnostics.globalConfiguration.last_successful_url') }}
+            </th>
             <th class="time-column">
               {{ $t('diagnostics.previousUpdate') }}
             </th>
@@ -51,11 +54,10 @@
             </td>
 
             <td data-test="global-configuration-message">
-              {{
-                $t(
-                  `diagnostics.globalConfiguration.configurationStatus.${globalConf.status_code}`,
-                )
-              }}
+              {{ getStatusMessage }}
+            </td>
+            <td>
+              {{ globalConf.last_successful_url }}
             </td>
             <td class="time-column">
               {{ $filters.formatHoursMins(globalConf.prev_update_at) }}
@@ -80,6 +82,8 @@ import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
+import { DiagnosticStatusClass } from '@/openapi-types';
+import { i18n } from '@niis/shared-ui';
 
 export default defineComponent({
   data: () => ({
@@ -87,6 +91,18 @@ export default defineComponent({
   }),
   computed: {
     ...mapState(useDiagnostics, ['globalConf']),
+    getStatusMessage(): string {
+      if (this.globalConf.status_class === DiagnosticStatusClass.FAIL) {
+        return i18n.global.t(
+          `error_code.${this.globalConf.error?.code}`,
+          this.globalConf.error?.metadata,
+        );
+      } else {
+        return i18n.global.t(
+          `diagnostics.globalConfiguration.configurationStatus.${this.globalConf.status_class}`,
+        );
+      }
+    },
   },
   created() {
     this.globalConfLoading = true;

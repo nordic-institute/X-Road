@@ -37,7 +37,7 @@ import java.util.Map;
  * directory that was successfully downloaded.
  */
 @Getter
-class DownloadResult {
+public class DownloadResult {
 
     private final Map<ConfigurationLocation, Exception> exceptions = new HashMap<>();
 
@@ -45,18 +45,22 @@ class DownloadResult {
 
     private boolean success = false;
 
+    private String lastSuccessfulLocationUrl;
+
     void addFailure(ConfigurationLocation location, Exception e) {
         exceptions.put(location, e);
     }
 
-    DownloadResult success(Configuration conf) {
+    DownloadResult success(Configuration conf, String lastSuccessfulUrl) {
         this.success = true;
         this.configuration = conf;
+        this.lastSuccessfulLocationUrl = lastSuccessfulUrl;
         return this;
     }
 
-    DownloadResult failure() {
+    DownloadResult failure(String lastSuccessfulUrl) {
         this.success = false;
+        this.lastSuccessfulLocationUrl = lastSuccessfulUrl;
         return this;
     }
 }

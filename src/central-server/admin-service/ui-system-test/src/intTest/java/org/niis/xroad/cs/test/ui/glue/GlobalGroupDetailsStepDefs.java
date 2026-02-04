@@ -31,6 +31,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.GlobalGroupDetailsPageObj;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -138,6 +139,23 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
     public void clearCandidatesFilter() {
         vTextField(globalGroupDetailsPage.getAddMembersDialogObj().inputFilter())
                 .clear();
+    }
+
+    @Step("user presses edit description button and invalid description is entered")
+    public void editDescriptionWithInvalidDescription() {
+        globalGroupDetailsPage.btnEditDescription()
+                .shouldBe(visible)
+                .click();
+
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+        vTextField(globalGroupDetailsPage.getEditDescriptionDialogObj().inputDescription()).setValue("invalid description$€");
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+    }
+
+    @Step("Error message for global group description is displayed")
+    public void globalGroupDescriptionShowsError() {
+        globalGroupDetailsPage.getEditDescriptionDialogObj().inputDescriptionValidation()
+                .shouldBe(visible).shouldHave(text("Use valid description characters only"));
     }
 
     @Step("user opens delete member dialog for {string}")

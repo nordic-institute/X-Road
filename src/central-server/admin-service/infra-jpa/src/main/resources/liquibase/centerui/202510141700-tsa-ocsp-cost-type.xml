@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202510141700-tsa-ocsp-cost-type.xml">
+
+    <changeSet author="niis" id="202510141700-tsa-ocsp-cost-type">
+        <comment>Add cost type columns.
+        </comment>
+        <addColumn tableName="approved_tsas">
+            <column name="cost_type" type="VARCHAR(255)" defaultValue="UNDEFINED">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="ocsp_infos">
+            <column name="cost_type" type="VARCHAR(255)" defaultValue="UNDEFINED">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

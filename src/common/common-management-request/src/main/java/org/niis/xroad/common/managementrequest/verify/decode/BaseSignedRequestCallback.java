@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
@@ -45,6 +46,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
@@ -112,7 +114,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
         }
     }
 
-    private void verifySignature() throws Exception {
+    private void verifySignature() throws CertificateEncodingException, IOException, OCSPException {
         final SoapMessageImpl soap = rootCallback.getSoapMessage();
         byte[] dataToVerify = soap.getBytes();
 
@@ -131,7 +133,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
         managementRequestCertVerifier.verifyCertificate(x509ClientCert, clientCertOcsp);
     }
 
-    protected abstract void verifyMessage() throws Exception;
+    protected abstract void verifyMessage();
 
     @Override
     public T getRequest() {

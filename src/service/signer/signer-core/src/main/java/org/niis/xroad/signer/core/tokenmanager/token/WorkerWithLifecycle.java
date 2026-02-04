@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+
 public interface WorkerWithLifecycle {
 
     /**
@@ -51,7 +53,7 @@ public interface WorkerWithLifecycle {
     /**
      * Refreshes underlying worker.
      */
-    default void refresh() throws Exception {
+    default void refresh() throws PKCS11Exception {
         //NO-OP
     }
 }

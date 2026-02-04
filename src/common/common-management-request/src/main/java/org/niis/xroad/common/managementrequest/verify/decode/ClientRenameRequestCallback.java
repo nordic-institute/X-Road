@@ -57,7 +57,7 @@ public class ClientRenameRequestCallback extends BaseClientRequestCallback<Clien
     }
 
     @Override
-    protected void verifyMessage() throws Exception {
+    protected void verifyMessage() {
         super.verifyMessage();
 
         if (!getRequest().getClient().isSubsystem()) {

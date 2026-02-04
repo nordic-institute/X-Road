@@ -359,15 +359,19 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-        sudo apt install xroad-addon-hwtokens
-
+    ```bash
+    sudo apt install xroad-addon-hwtokens
+    ```
+    
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
 3.  Add the path to the PKCS\#11 driver to the file `/etc/xroad/devices.ini` (as described in the example given in the file).
 
 4.  After installing and configuring the driver, the xroad-signer service must be restarted:
 
-        sudo service xroad-signer restart
+    ```bash
+    sudo service xroad-signer restart
+    ```
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
@@ -420,7 +424,8 @@ Configuration parameters for management web service are specified in the [UG-SYS
 
 The installation is successful if the system services are started and the user interface is responding.
 
--   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the Central Server since it operates in one-shot mode.    
+-   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the Central Server since it operates in one-shot mode.
+    
     ```bash
     sudo systemctl list-units "xroad*"
 
@@ -485,7 +490,7 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 It is possible to automatically encrypt Central Server configuration backups. Central Server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[center]` section (add or edit this section).
-```bash
+```ini
 [center]
 
 backup-encryption-enabled = true

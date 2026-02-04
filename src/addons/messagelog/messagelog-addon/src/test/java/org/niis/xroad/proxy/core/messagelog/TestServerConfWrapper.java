@@ -34,10 +34,16 @@ import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import lombok.Setter;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -111,7 +117,7 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getIsCerts(ClientId clientId) throws Exception {
+    public List<X509Certificate> getIsCerts(ClientId clientId) {
         return serverConfProvider.getIsCerts(clientId);
     }
 
@@ -121,7 +127,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public InternalSSLKey getSSLKey() throws Exception {
+    public InternalSSLKey getSSLKey() throws UnrecoverableKeyException, CertificateException, KeyStoreException,
+            IOException, NoSuchAlgorithmException {
         return serverConfProvider.getSSLKey();
     }
 
@@ -131,7 +138,7 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<ClientId.Conf> getMembers() throws Exception {
+    public List<ClientId.Conf> getMembers() {
         return serverConfProvider.getMembers();
     }
 
@@ -151,8 +158,18 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getTspUrl() {
-        return serverConfProvider.getTspUrl();
+    public List<String> getTspUrls() {
+        return serverConfProvider.getTspUrls();
+    }
+
+    @Override
+    public List<String> getOrderedTspUrls() {
+        return serverConfProvider.getOrderedTspUrls();
+    }
+
+    @Override
+    public CostType getTspCostType(String tspUrl) {
+        return serverConfProvider.getTspCostType(tspUrl);
     }
 
     @Override

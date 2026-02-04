@@ -25,7 +25,11 @@
  */
 package org.niis.xroad.globalconf.model;
 
+import org.bouncycastle.operator.OperatorCreationException;
+
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateEncodingException;
 
 /**
  * Interface of the function that can be applied to files belonging to
@@ -39,8 +43,8 @@ public interface FileConsumer {
      *
      * @param metadata the metadata of the file
      * @param contents the contents of the file
-     * @throws Exception if an error occurs
+     * @throws IOException if an error occurs
      */
     void consume(ConfigurationPartMetadata metadata, InputStream contents)
-            throws Exception;
+            throws IOException, CertificateEncodingException, OperatorCreationException;
 }

@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
@@ -40,7 +41,6 @@ import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -53,7 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -62,6 +61,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 
 /**
  * test key service.
@@ -147,7 +147,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
             Object[] arguments = invocation.getArguments();
             String newKeyName = (String) arguments[1];
             if ("new-friendly-name-update-fails".equals(newKeyName)) {
-                throw new SignerException(X_KEY_NOT_FOUND);
+                throw XrdRuntimeException.systemException(KEY_NOT_FOUND).build();
             }
             if (arguments[0].equals(AUTH_KEY_ID)) {
                 tokenInfo = createTokenInfo(newKeyName);

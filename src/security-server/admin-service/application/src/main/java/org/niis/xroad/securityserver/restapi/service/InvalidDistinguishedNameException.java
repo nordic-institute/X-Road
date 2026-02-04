@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.niis.xroad.common.exception.BadRequestException;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DISTINGUISHED_NAME;
 
 /**
  * Thrown when given DistinguishedName is invalid

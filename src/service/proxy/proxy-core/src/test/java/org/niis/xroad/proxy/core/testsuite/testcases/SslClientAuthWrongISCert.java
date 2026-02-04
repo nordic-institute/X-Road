@@ -64,7 +64,7 @@ public class SslClientAuthWrongISCert extends SslMessageTestCase {
             }
 
             @Override
-            public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
+            public List<X509Certificate> getIsCerts(ClientId client) {
                 return List.of(TestCertUtil.getProducer().certChain[0]);
             }
         });

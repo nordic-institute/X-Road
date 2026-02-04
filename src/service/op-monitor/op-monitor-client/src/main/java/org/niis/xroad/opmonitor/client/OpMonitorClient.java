@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import io.grpc.Channel;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
@@ -39,13 +40,16 @@ import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.time.Instant;
 import java.util.List;
 
 public class OpMonitorClient {
     private final RpcClient<OpMonitorRpcExecutionContext> opMonitorRpcClient;
 
-    public OpMonitorClient() throws Exception {
+    public OpMonitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         this.opMonitorRpcClient = RpcClient.newClient(OpMonitoringSystemProperties.getOpMonitorHost(),
                 OpMonitoringSystemProperties.getOpMonitorGrpcPort(),
                 OpMonitoringSystemProperties.getOpMonitorGrpcClientTimeout(),
@@ -84,7 +88,8 @@ public class OpMonitorClient {
 
             return response.getOperationalDataIntervalList().stream().map(OperationalDataInterval::new).toList();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
+            throw XrdRuntimeException.systemInternalError(
+                    "Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
                     Instant.ofEpochMilli(recordsTo)), e);
         }
     }

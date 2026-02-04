@@ -33,6 +33,7 @@ import org.niis.xroad.ss.test.ui.page.SystemParametersPageObj;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
@@ -72,16 +73,34 @@ public class SystemParametersStepDefs extends BaseUiStepDefs {
         systemParametersPageObj.tableTimestampingServicesRows().shouldBe(CollectionCondition.size(size));
     }
 
-    @Step("Timestamping services table row {} has service {string} and url {string}")
-    public void validateTimestampingRow(int row, String service, String url) {
+    @Step("Timestamping services table row {} has service {string} and url {string} and cost type {string}")
+    public void validateTimestampingRow(int row, String service, String url, String costType) {
         systemParametersPageObj.tableTimestampingServiceNameByRow(row, service).shouldBe(visible);
         systemParametersPageObj.tableTimestampingServiceUrlByRow(row, url).shouldBe(visible);
+        systemParametersPageObj.tableTimestampingServiceCostTypeByRow(row, costType).shouldBe(visible);
+    }
+
+    @Step("Timestamping prioritization strategy is {string}")
+    public void timestampingPrioritizationStrategy(String strategy) {
+        systemParametersPageObj.timestampingPrioritizationStrategy().should(text(strategy));
     }
 
     @Step("Timestamping service on row {} is deleted")
     public void deleteTimestampingRow(int index) {
         systemParametersPageObj.btnDeleteTimestampingServicesByRow(index).click();
         commonPageObj.dialog.btnSave().click();
+    }
+
+    @Step("Approved CAs table row {} has distinguished name {string} and ocsp url {string} and ocsp cost type {string}")
+    public void validateApprovedCaRow(int row, String distinguishedName, String ocspUrl, String ocspCostType) {
+        systemParametersPageObj.tableApprovedCasNameByRow(row, distinguishedName).shouldBe(visible);
+        systemParametersPageObj.tableApprovedCasOcspUrlByRow(row, ocspUrl).shouldBe(visible);
+        systemParametersPageObj.tableApprovedCasOcspCostTypeByRow(row, ocspCostType).shouldBe(visible);
+    }
+
+    @Step("Ocsp prioritization strategy is {string}")
+    public void ocspPrioritizationStrategy(String strategy) {
+        systemParametersPageObj.ocspPrioritizationStrategy().should(text(strategy));
     }
 
     @Step("Security Server address is displayed")

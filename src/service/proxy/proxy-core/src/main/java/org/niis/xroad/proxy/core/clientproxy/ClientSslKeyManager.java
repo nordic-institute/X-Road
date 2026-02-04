@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import javax.net.ssl.SSLEngine;
@@ -103,7 +104,7 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
             return serverConfProvider.getSSLKey();
         } catch (Exception e) {
             log.error("Failed to load TLS key", e);
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 }

@@ -36,6 +36,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.eclipse.jetty.util.MultiPartWriter;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
@@ -55,6 +56,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -125,10 +127,8 @@ public class OutputBuilder implements AutoCloseable {
     /**
      * Generates a signed directory MIME for the global configuration and
      * writes the directory contents to a temporary location.
-     *
-     * @throws Exception if errors occur when reading global configuration files
      */
-    public final void buildSignedDirectory() throws Exception {
+    public final void buildSignedDirectory() throws CertificateEncodingException, IOException, OperatorCreationException {
         try (ByteArrayOutputStream mimeContent = new ByteArrayOutputStream()) {
             build(mimeContent);
 
@@ -207,9 +207,8 @@ public class OutputBuilder implements AutoCloseable {
      * Generates global configuration directory content MIME.
      *
      * @param mimeContent output stream to write to
-     * @throws Exception if reading global configuration files fails
      */
-    private void build(final ByteArrayOutputStream mimeContent) throws Exception {
+    private void build(final ByteArrayOutputStream mimeContent) throws IOException {
         try (MultipartEncoder encoder = new MultipartEncoder(mimeContent, dataBoundary)) {
             OffsetDateTime expireDate = TimeUtils.offsetDateTimeNow().plusSeconds(conf.getValidityIntervalSeconds());
             encoder.startPart(null, new String[]{
@@ -240,7 +239,7 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream, String configurationVersion)
-            throws Exception {
+            throws IOException, CertificateEncodingException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try (sharedParamsInputStream) {
             var sharedParametersProvider = ParametersProviderFactory.forGlobalConfVersion(configurationVersion)
@@ -274,7 +273,8 @@ public class OutputBuilder implements AutoCloseable {
      * @throws Exception if errors are encountered while writing
      *                   the signed directory content to a temporary location
      */
-    private void sign(final byte[] contentBytes, final ByteArrayOutputStream mimeContent) throws Exception {
+    private void sign(final byte[] contentBytes, final ByteArrayOutputStream mimeContent)
+            throws IOException, CertificateEncodingException, OperatorCreationException {
         String keyId = conf.getActiveSigningKey();
         DigestAlgorithm digestAlgorithmId = conf.getSignatureDigestAlgorithmId();
         SignAlgorithm signAlgoId = getSignatureAlgorithmId(keyId, digestAlgorithmId);
@@ -312,9 +312,9 @@ public class OutputBuilder implements AutoCloseable {
      *
      * @param certPath path to the certificate file
      * @return verification hash for the certificate
-     * @throws Exception if failed to open the certificate file
      */
-    private String getVerificationCertHash(final Path certPath) throws Exception {
+    private String getVerificationCertHash(final Path certPath)
+            throws IOException, OperatorCreationException, CertificateEncodingException {
         try (InputStream is = new FileInputStream(certPath.toFile())) {
             byte[] certBytes = CryptoUtils.readCertificate(is).getEncoded();
 
@@ -348,10 +348,10 @@ public class OutputBuilder implements AutoCloseable {
      * @param instance    configuration proxy instance name
      * @param metadata    describes the configuration file
      * @param inputStream contents of the configuration file to compute the hash
-     * @throws Exception if the configuration file content could not be appended
      */
     private void appendFileContent(final MultipartEncoder encoder, final String instance,
-                                   final ConfigurationPartMetadata metadata, final InputStream inputStream) throws Exception {
+                                   final ConfigurationPartMetadata metadata, final InputStream inputStream)
+            throws IOException, OperatorCreationException {
         try {
             Path contentLocation = Paths.get(instance, timestamp, metadata.getInstanceIdentifier(),
                     metadata.getContentLocation());
@@ -375,7 +375,7 @@ public class OutputBuilder implements AutoCloseable {
         }
     }
 
-    private SignAlgorithm getSignatureAlgorithmId(String keyId, DigestAlgorithm digestAlgoId) throws Exception {
+    private SignAlgorithm getSignatureAlgorithmId(String keyId, DigestAlgorithm digestAlgoId) {
         var signMechanismName = signerRpcClient.getSignMechanism(keyId);
 
         return SignAlgorithm.ofDigestAndMechanism(digestAlgoId, signMechanismName);
@@ -388,7 +388,6 @@ public class OutputBuilder implements AutoCloseable {
      * @param signatureAlgorithmId if of the algorithm used for signing
      * @param digest               digest bytes of the directory content
      * @return the configuration directory signature string (base64)
-     * @throws Exception if cryptographic operations fail
      */
     private String getSignature(final String keyId, final SignAlgorithm signatureAlgorithmId, final byte[] digest) {
         byte[] signature = signerRpcClient.sign(keyId, signatureAlgorithmId, digest);

@@ -29,17 +29,15 @@ package org.niis.xroad.cs.admin.core.converter;
 import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 @Component
 @RequiredArgsConstructor
@@ -47,7 +45,6 @@ public class ApprovedCaConverter {
     private final OcspResponderConverter ocspResponderConverter;
     private final CaInfoConverter caInfoConverter;
 
-    @SneakyThrows
     public CertificationService convert(ApprovedCaEntity entity) {
         final X509Certificate[] certificates = CertUtils.readCertificateChain(entity.getCaInfo().getCert());
         final X509Certificate certificate = certificates[0];
@@ -64,12 +61,13 @@ public class ApprovedCaConverter {
                 .setCertificate(entity.getCaInfo().getCert())
                 .setOcspResponders(entity.getCaInfo().getOcspInfos().stream()
                         .map(ocspResponderConverter::toModel)
-                        .collect(toList()))
+                        .toList())
                 .setIntermediateCas(entity.getIntermediateCaInfos().stream()
                         .map(caInfoConverter::toCertificateAuthority)
-                        .collect(toList()))
+                        .toList())
                 .setCreatedAt(entity.getCreatedAt())
                 .setUpdatedAt(entity.getUpdatedAt())
+                .setDefaultCsrFormat(entity.getDefaultCsrFormat() != null ? CsrFormat.valueOf(entity.getDefaultCsrFormat()) : null)
                 .setAcmeServerDirectoryUrl(entity.getAcmeServerDirectoryUrl())
                 .setAcmeServerIpAddress(entity.getAcmeServerIpAddress())
                 .setAuthenticationCertificateProfileId(entity.getAuthCertProfileId())
@@ -79,7 +77,7 @@ public class ApprovedCaConverter {
     public List<CertificationServiceListItem> toListItems(Collection<ApprovedCaEntity> entities) {
         return entities.stream()
                 .map(this::toListItem)
-                .collect(toList());
+                .toList();
     }
 
     private CertificationServiceListItem toListItem(final ApprovedCaEntity approvedCa) {

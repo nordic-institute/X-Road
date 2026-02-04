@@ -45,6 +45,12 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -79,7 +85,9 @@ class OpMonitoringBufferTest {
         }
 
         @Override
-        OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+        OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider)
+                throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+                NoSuchAlgorithmException, KeyManagementException {
             return new OpMonitoringDaemonSender(serverConfProvider, this) {
                 @Override
                 CloseableHttpClient createHttpClient() {
@@ -163,7 +171,7 @@ class OpMonitoringBufferTest {
 
         final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer() {
             @Override
-            OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+            OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
                 return mockedSender;

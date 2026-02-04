@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
@@ -60,6 +61,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_URL;
@@ -101,14 +103,14 @@ class TimestampingServicesServiceImplTest {
 
     @Test
     void add() throws Exception {
-        when(approvedTsaMapper.toEntity(URL, CERTIFICATE.getEncoded())).thenReturn(approvedTsaEntity);
+        when(approvedTsaMapper.toEntity(URL, CERTIFICATE.getEncoded(), CostType.UNDEFINED)).thenReturn(approvedTsaEntity);
         when(approvedTsaRepository.save(approvedTsaEntity)).thenReturn(approvedTsaEntity);
         when(approvedTsaEntity.getId()).thenReturn(ID);
         when(approvedTsaEntity.getName()).thenReturn(NAME);
         when(approvedTsaEntity.getUrl()).thenReturn(URL);
         when(approvedTsaEntity.getCert()).thenReturn(CERTIFICATE.getEncoded());
 
-        timestampingServicesService.add(URL, CERTIFICATE.getEncoded());
+        timestampingServicesService.add(URL, CERTIFICATE.getEncoded(), CostType.UNDEFINED);
 
         verify(urlValidator).validateUrl(URL);
 
@@ -125,12 +127,14 @@ class TimestampingServicesServiceImplTest {
         var request = new TimestampServiceRequest();
         request.setId(ID);
         request.setUrl(URL + "2");
+        request.setCostType(CostType.UNDEFINED);
         request.setCertificate(CERTIFICATE.getEncoded());
         when(approvedTsaRepository.findById(ID)).thenReturn(Optional.of(approvedTsaEntity));
         when(approvedTsaRepository.save(approvedTsaEntity)).thenReturn(approvedTsaEntity);
         when(approvedTsaEntity.getId()).thenReturn(ID);
         when(approvedTsaEntity.getName()).thenReturn(NAME);
         when(approvedTsaEntity.getUrl()).thenReturn(request.getUrl());
+        when(approvedTsaEntity.getCostType()).thenReturn(request.getCostType().name());
         when(approvedTsaEntity.getCert()).thenReturn(CERTIFICATE.getEncoded());
 
         timestampingServicesService.update(request);
@@ -140,6 +144,7 @@ class TimestampingServicesServiceImplTest {
         verify(auditDataHelper).put(TSA_ID, ID);
         verify(auditDataHelper).put(TSA_NAME, NAME);
         verify(auditDataHelper).put(TSA_URL, request.getUrl());
+        verify(auditDataHelper).put(TSA_COST_TYPE, request.getCostType().name());
         verify(auditDataHelper).put(TSA_CERT_HASH,
                 "09:4D:62:D7:5E:CC:25:D6:BD:9E:A8:3C:7B:34:67:80:16:BB:72:BB:80:11:8F:F6:EC:7E:4D:38:3A:67:8C:D1");
         verify(auditDataHelper).put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);

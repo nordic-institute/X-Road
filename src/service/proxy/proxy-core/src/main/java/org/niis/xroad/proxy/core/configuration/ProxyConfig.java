@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -62,6 +63,7 @@ import org.springframework.context.annotation.Import;
         ServerConfBeanConfig.class,
 })
 @Configuration
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ProxyConfig {
 
     @Bean

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
@@ -85,7 +84,6 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
 
-    @SneakyThrows
     @Override
     @Transactional
     @Scheduled(fixedRateString = "${xroad.admin-service.global-configuration-generation-rate-in-seconds}", timeUnit = SECONDS)
@@ -208,12 +206,10 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 .build();
     }
 
-    @SneakyThrows
     private DigestAlgorithm getConfSignCertHashAlgoId() {
         return systemParameterService.getConfSignCertHashAlgoUri();
     }
 
-    @SneakyThrows
     private DigestAlgorithm getConfHashAlgoId() {
         return systemParameterService.getConfHashAlgoUri();
     }

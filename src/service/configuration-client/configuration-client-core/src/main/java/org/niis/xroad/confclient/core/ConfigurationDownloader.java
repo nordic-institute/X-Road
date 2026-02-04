@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
@@ -33,6 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
@@ -42,7 +45,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -51,13 +56,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.SystemProperties.MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
@@ -76,13 +82,14 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
  * the configuration is downloaded.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfigurationDownloader {
 
-    public static final int READ_TIMEOUT = 30000;
     protected final FileNameProvider fileNameProvider;
     private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
     private final SharedParametersConfigurationLocations sharedParametersConfigurationLocations;
+    private String lastSuccessfulLocationUrl = null;
 
     @Getter
     private final Integer configurationVersion;
@@ -122,7 +129,7 @@ public class ConfigurationDownloader {
 
         List<ConfigurationLocation> sharedParameterLocations = sharedParametersConfigurationLocations.get(source);
 
-        List<ConfigurationLocation> locations = new ArrayList<>();
+        SequencedSet<ConfigurationLocation> locations = new LinkedHashSet<>();
         if (!sharedParameterLocations.isEmpty()) {
             locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
             log.debug("sharedParameterLocations.size = {}", sharedParameterLocations.size());
@@ -140,7 +147,7 @@ public class ConfigurationDownloader {
         return downloadResult(prevCachedKey.orElse(null), locations, contentIdentifiers);
     }
 
-    private DownloadResult downloadResult(String prevCachedKey, List<ConfigurationLocation> locations, String... contentIdentifiers) {
+    private DownloadResult downloadResult(String prevCachedKey, Set<ConfigurationLocation> locations, String... contentIdentifiers) {
         DownloadResult result = new DownloadResult();
         for (ConfigurationLocation location : locations) {
             String cacheKey = prevCachedKey != null ? prevCachedKey : location.getDownloadURL();
@@ -149,17 +156,17 @@ public class ConfigurationDownloader {
                 location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
                 rememberLastSuccessfulLocation(cacheKey, location);
-                return result.success(config);
+                return result.success(config, lastSuccessfulLocationUrl);
             } catch (Exception e) {
                 log.warn("Unable to download Global Configuration. Because {}", e.toString());
                 successfulLocations.remove(cacheKey);
                 result.addFailure(location, e);
             }
         }
-        return result.failure();
+        return result.failure(lastSuccessfulLocationUrl);
     }
 
-    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(List<ConfigurationLocation> locations) {
+    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(Set<ConfigurationLocation> locations) {
         for (ConfigurationLocation location : locations) {
             ConfigurationLocation successfulLocation = successfulLocations.get(location.getDownloadURL());
             if (successfulLocation != null) {
@@ -173,17 +180,16 @@ public class ConfigurationDownloader {
     private void rememberLastSuccessfulLocation(String cacheKey, ConfigurationLocation location) {
         log.trace("rememberLastSuccessfulLocation cache key = {} location = {}", cacheKey, location);
         successfulLocations.put(cacheKey, location);
+        lastSuccessfulLocationUrl = location.getDownloadURL();
     }
 
-    Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
+    Configuration download(ConfigurationLocation location, String[] contentIdentifiers) {
         log.info("Downloading configuration from {}", location.getDownloadURL());
 
         Configuration configuration = getParser().parse(location, contentIdentifiers);
 
-        // first download all parts into memory and verify then
         List<DownloadedContent> downloadedContents = downloadAllContent(configuration);
 
-        // when everything is ok save contents and/or update expiry dates
         Set<Path> neededFiles = persistAllContent(downloadedContents);
 
         deleteExtraFiles(configuration.getInstanceIdentifier(), neededFiles);
@@ -196,9 +202,8 @@ public class ConfigurationDownloader {
      *
      * @param configuration configuration object with details about the configuration download location
      * @return list of downloaded content
-     * @throws Exception in case downloading or handling a file fails
      */
-    List<DownloadedContent> downloadAllContent(Configuration configuration) throws Exception {
+    List<DownloadedContent> downloadAllContent(Configuration configuration) {
         log.trace("downloadAllContent");
 
         List<DownloadedContent> result = new ArrayList<>();
@@ -226,7 +231,7 @@ public class ConfigurationDownloader {
         return result;
     }
 
-    Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
+    Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) {
         Set<Path> result = new HashSet<>();
         for (DownloadedContent downloadedContent : downloadedContents) {
             Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
@@ -271,32 +276,40 @@ public class ConfigurationDownloader {
     }
 
     /**
-     * Checks if the configuration file should be downloaded. The rules to download:
-     * i) Configuration file does not exist in the system
-     * ii) Configuration file hash is different from the one that system has
+     * Checks if the configuration currentConfigurationFile should be downloaded. The rules to download:
+     * i) Configuration currentConfigurationFile does not exist in the system
+     * ii) Configuration currentConfigurationFile hash is different from the one that system has
      *
-     * @param configurationFile new configuration file
-     * @param file              current configuration file
+     * @param newConfigurationFile new configuration file
+     * @param currentConfigurationFile current configuration file
      * @return boolean value of whether the files should be downloaded or not
-     * @throws Exception in case of unexpected exception happens
      */
-    boolean shouldDownload(ConfigurationFile configurationFile, Path file) throws Exception {
-        log.trace("shouldDownload({}, {})", configurationFile.getContentLocation(), configurationFile.getHash());
+    boolean shouldDownload(ConfigurationFile newConfigurationFile, Path currentConfigurationFile) {
+        log.trace("shouldDownload({}, {})", newConfigurationFile.getContentLocation(), newConfigurationFile.getHash());
 
-        if (Files.exists(file)) {
-            String contentHash = configurationFile.getHash();
-            String existingHash = encodeBase64(hash(file, configurationFile.getHashAlgorithmId()));
+        if (Files.exists(currentConfigurationFile)) {
+            String contentHash = newConfigurationFile.getHash();
+            byte[] fileHash;
+            try {
+                fileHash = getFileHash(currentConfigurationFile, newConfigurationFile.getHashAlgorithmId());
+            } catch (IOException e) {
+                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_FILE_HASH_FAILURE)
+                        .details("Failed to get hash for existing global configuration file")
+                        .cause(e)
+                        .build();
+            }
+            String existingHash = encodeBase64(fileHash);
             if (StringUtils.equals(existingHash, contentHash)) {
                 return false;
             } else {
-                log.trace("Downloading {} because file has changed ({} != {})",
-                        configurationFile.getContentLocation(), existingHash, contentHash);
+                log.trace("Downloading {} because currentConfigurationFile has changed ({} != {})",
+                        newConfigurationFile.getContentLocation(), existingHash, contentHash);
                 return true;
             }
         }
 
-        log.trace("Downloading {} because file {} does not exist locally",
-                configurationFile.getContentLocation(), file);
+        log.trace("Downloading {} because currentConfigurationFile {} does not exist locally",
+                newConfigurationFile.getContentLocation(), currentConfigurationFile);
         return true;
     }
 
@@ -310,28 +323,57 @@ public class ConfigurationDownloader {
         }
     }
 
-    private ConfigurationLocation toVersionedLocation(ConfigurationLocation location) throws Exception {
-        return this.locationVersionResolver(location).toVersionedLocation();
-    }
-
-    byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
-        URLConnection connection = getDownloadURLConnection(getDownloadURL(location, file));
-        log.info("Downloading content from {}", connection.getURL());
-        try (InputStream in = connection.getInputStream()) {
-            return IOUtils.toByteArray(in);
+    private ConfigurationLocation toVersionedLocation(ConfigurationLocation location) {
+        try {
+            return this.locationVersionResolver(location).toVersionedLocation();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_GET_VERSION_FAILED)
+                    .details("Failed to determine configuration version from %s: %s".formatted(location.getDownloadURL(), e.getMessage()))
+                    .build();
         }
     }
 
-    void verifyContent(byte[] content, ConfigurationFile file) throws Exception {
-        log.trace("verifyContent({}, {})", file.getHash(), file.getHashAlgorithmId());
+    byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
+        URLConnection connection;
+        try {
+            connection = getDownloadURLConnection(getDownloadURL(location, file));
+        } catch (IOException | URISyntaxException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE)
+                    .details("Failed to get connection to the download url for location %s".formatted(location))
+                    .cause(e)
+                    .build();
+        }
+        log.info("Downloading content from {}", connection.getURL());
+        try (InputStream in = connection.getInputStream()) {
+            return IOUtils.toByteArray(in);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_DOWNLOAD_FAILURE)
+                    .details("Failed to download global configuration part %s from %s"
+                            .formatted(file.getContentLocation(), connection.getURL()))
+                    .cause(e)
+                    .build();
+        }
+    }
 
-        DigestCalculator dc = createDigestCalculator(file.getHashAlgorithmId());
-        dc.getOutputStream().write(content);
+    void verifyContent(byte[] content, ConfigurationFile file) {
+        DigestAlgorithm hashAlgorithmId = file.getHashAlgorithmId();
+        log.trace("verifyContent({}, {})", file.getHash(), hashAlgorithmId);
 
-        byte[] hash = dc.getDigest();
-        if (!Arrays.equals(hash, decodeBase64(file.getHash()))) {
-            log.trace("Content {} hash {} does not match expected hash {}", file, encodeBase64(hash), file.getHash());
-            throw new CodedException(X_IO_ERROR, "Failed to verify content integrity (%s)", file);
+        byte[] contentHash;
+        try {
+            contentHash = getContentHash(content, hashAlgorithmId);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_DOWNLOADED_HASH_FAILURE)
+                    .details("Failed to get hash for downloaded global configuration part")
+                    .cause(e)
+                    .build();
+        }
+        if (!Arrays.equals(contentHash, decodeBase64(file.getHash()))) {
+            log.trace("Content {} hash {} does not match expected hash {}", file, encodeBase64(contentHash), file.getHash());
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_DOWNLOADED_FILE_INTEGRITY_FAILURE)
+                    .details("Failed to verify content integrity (%s)".formatted(file))
+                    .metadataItems(file.getContentLocation())
+                    .build();
         }
     }
 
@@ -339,37 +381,53 @@ public class ConfigurationDownloader {
         //make possible with current structure to be overridden and validations called
     }
 
-    void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
+    void persistContent(byte[] content, Path destination, ConfigurationFile file) {
         log.info("Saving {} to {}", file, destination);
 
-        ConfigurationDirectory.save(destination, content, file.getMetadata());
+        try {
+            ConfigurationDirectory.save(destination, content, file.getMetadata());
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_FILE_SAVE_FAILURE)
+                    .details("Failed to save global configuration part to %s".formatted(destination))
+                    .metadataItems(destination.toString())
+                    .cause(e)
+                    .build();
+        }
     }
 
-    void updateExpirationDate(Path destination, ConfigurationFile file) throws Exception {
+    void updateExpirationDate(Path destination, ConfigurationFile file) {
         log.trace("{} expires {}", file, file.getExpirationDate());
 
-        ConfigurationDirectory.saveMetadata(destination, file.getMetadata());
+        try {
+            ConfigurationDirectory.saveMetadata(destination, file.getMetadata());
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_FILE_EXPIRATION_DATE_UPDATE_FAILURE)
+                    .details("Failed to update global configuration part expiration date on %s".formatted(destination))
+                    .cause(e)
+                    .build();
+        }
     }
 
-    public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file) throws Exception {
+    public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file)
+            throws URISyntaxException, MalformedURLException {
         return new URI(location.getDownloadURL()).resolve(file.getContentLocation()).toURL();
     }
 
     public URLConnection getDownloadURLConnection(URL url) throws IOException {
         URLConnection connection = url.openConnection();
         connectionConfigurer.apply((HttpURLConnection) connection);
-        connection.setReadTimeout(READ_TIMEOUT);
         return connection;
     }
 
     // ------------------------------------------------------------------------
 
-    static byte[] hash(Path file, DigestAlgorithm algoUri) throws Exception {
-        DigestCalculator dc = createDigestCalculator(algoUri);
+    private static byte[] getFileHash(Path file, DigestAlgorithm algoUri) throws IOException {
+        return getContentHash(Files.readAllBytes(file), algoUri);
+    }
 
-        try (InputStream in = Files.newInputStream(file)) {
-            IOUtils.copy(in, dc.getOutputStream());
-            return dc.getDigest();
-        }
+    private static byte[] getContentHash(byte[] content, DigestAlgorithm hashAlgorithmId) throws IOException {
+        DigestCalculator dc = createDigestCalculator(hashAlgorithmId);
+        dc.getOutputStream().write(content);
+        return dc.getDigest();
     }
 }

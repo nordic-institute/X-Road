@@ -50,8 +50,13 @@ import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.Client;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -107,8 +112,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         return DUMMY_SERVICE_ADDRESS;
     }
 
-    URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId, SecurityServerId securityServerId)
-            throws Exception {
+    URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId, SecurityServerId securityServerId) {
         // If we're using SSL, we need to include the provider name in
         // the HTTP request so that server proxy could verify the SSL
         // certificate properly.
@@ -284,7 +288,8 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected void verifyClientAuthentication(ClientId sender) throws Exception {
+    protected void verifyClientAuthentication(ClientId sender)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         if (!SystemProperties.shouldVerifyClientCert()) {
             return;
         }

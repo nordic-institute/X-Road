@@ -36,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -67,34 +68,31 @@ public final class PasswordStore {
 
     /**
      * Returns stored password with identifier id.
+     *
      * @param id identifier of the password
      * @return password value or null, if password with this ID was not found.
-     * @throws Exception in case of any errors
      */
-    public static char[] getPassword(String id) throws Exception {
+    public static Optional<char[]> getPassword(String id) {
         byte[] raw = PASSWORD_STORE_PROVIDER.read(getPathnameForFtok(), id);
-        return raw == null ? null : byteToChar(raw);
+        try {
+            return Optional.ofNullable(byteToChar(raw));
+        } catch (IOException e) {
+            log.error("Failed to decode password for id {}", id, e);
+            return Optional.empty();
+        }
     }
 
     /**
      * Stores the password in shared memory.
      * Use null as password parameter to remove password from memory.
+     *
      * @param id       identifier of the password
      * @param password password to be stored
-     * @throws Exception in case of any errors
      */
     public static void storePassword(String id, char[] password)
-            throws Exception {
+            throws IOException {
         byte[] raw = charToByte(password);
         PASSWORD_STORE_PROVIDER.write(getPathnameForFtok(), id, raw, PERMISSIONS);
-    }
-
-    /**
-     * Clears the password store. Useful for testing purposes.
-     * @throws Exception in case of any errors
-     */
-    public static void clearStore() throws Exception {
-        PASSWORD_STORE_PROVIDER.clear(getPathnameForFtok(), PERMISSIONS);
     }
 
     private static byte[] charToByte(char[] buffer) throws IOException {
@@ -130,10 +128,10 @@ public final class PasswordStore {
     }
 
     public interface PasswordStoreProvider {
-        byte[] read(String pathnameForFtok, String id) throws Exception;
+        byte[] read(String pathnameForFtok, String id);
 
-        void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
+        void write(String pathnameForFtok, String id, byte[] password, int permissions);
 
-        void clear(String pathnameForFtok, int permissions) throws Exception;
+        void clear(String pathnameForFtok, int permissions);
     }
 }

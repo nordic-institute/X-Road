@@ -34,12 +34,12 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.springframework.stereotype.Component;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_OTHER;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_OUTDATED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_SIGNATURE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_UNREACHABLE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.common.core.exception.ErrorCode.ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.common.core.exception.ErrorCode.CONF_VERIFICATION_OTHER;
+import static org.niis.xroad.common.core.exception.ErrorCode.CONF_VERIFICATION_OUTDATED;
+import static org.niis.xroad.common.core.exception.ErrorCode.CONF_VERIFICATION_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.CONF_VERIFICATION_UNREACHABLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_PRIVATE_PARAMS;
 
 /**
  * Verify internal and external configurations

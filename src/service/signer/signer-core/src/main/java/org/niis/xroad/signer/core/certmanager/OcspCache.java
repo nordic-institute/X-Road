@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.certmanager;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
@@ -109,8 +110,7 @@ public class OcspCache {
         return cachedResponse;
     }
 
-    protected boolean isExpired(OCSPResp response, Date atDate)
-            throws Exception {
+    protected boolean isExpired(OCSPResp response, Date atDate) throws OCSPException {
         OcspVerifier verifier = new OcspVerifier(globalConfProvider,
                 new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
         return verifier.isExpired(response, atDate);

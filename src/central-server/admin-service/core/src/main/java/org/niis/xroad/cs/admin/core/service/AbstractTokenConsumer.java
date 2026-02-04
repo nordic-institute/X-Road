@@ -27,13 +27,13 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.SignerProxyException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNER_PROXY_ERROR;
 
 
@@ -44,11 +44,11 @@ public abstract class AbstractTokenConsumer {
     protected TokenInfo getToken(String tokenId) {
         try {
             return getSignerProxyFacade().getToken(tokenId);
-        } catch (SignerException signerException) {
-            if (signerException.isCausedByTokenNotFound()) {
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(TOKEN_NOT_FOUND)) {
                 throw new NotFoundException(TOKEN_NOT_FOUND.build());
             }
-            throw new SignerProxyException(signerException, SIGNER_PROXY_ERROR.build(signerException.getFaultCode()));
+            throw new SignerProxyException(e, SIGNER_PROXY_ERROR.build(e.getCode()));
         } catch (Exception exception) {
             throw new SignerProxyException(exception, SIGNER_PROXY_ERROR.build());
         }

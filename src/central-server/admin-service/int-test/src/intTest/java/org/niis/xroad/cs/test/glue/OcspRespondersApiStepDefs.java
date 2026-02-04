@@ -31,6 +31,7 @@ import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.AssertionOperation;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignOcspRespondersApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final String newUrl = "https://updated-ocsp-responder-url-" + UUID.randomUUID();
 
         final ResponseEntity<OcspResponderDto> response = ocspRespondersApi
-                .updateOcspResponder(ocspResponderId, newUrl, null);
+                .updateOcspResponder(ocspResponderId, newUrl, CostTypeDto.UNDEFINED, null);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -87,7 +88,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
                 generateAuthCert("CN=DifferentSubject"));
 
         final ResponseEntity<OcspResponderDto> response = ocspRespondersApi
-                .updateOcspResponder(ocspResponderId, newUrl, newCertificate);
+                .updateOcspResponder(ocspResponderId, newUrl, CostTypeDto.UNDEFINED, newCertificate);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))

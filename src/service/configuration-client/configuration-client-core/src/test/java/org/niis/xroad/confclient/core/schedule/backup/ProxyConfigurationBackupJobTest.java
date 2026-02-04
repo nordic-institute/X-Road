@@ -41,12 +41,14 @@ import org.quartz.JobKey;
 
 import java.util.ArrayList;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob.CONFIGURATION_CLIENT_JOB;
 
 @ExtendWith(MockitoExtension.class)
 class ProxyConfigurationBackupJobTest {
@@ -76,16 +78,20 @@ class ProxyConfigurationBackupJobTest {
 
     @Test
     void shouldRetryIfConditionMet() throws Exception {
-        when(jobExecutionContext.getJobDetail().getKey())
-                .thenReturn(new JobKey(ProxyConfigurationBackupJob.class.getSimpleName()));
-
         JobExecutionContext runningContext = mock(JobExecutionContext.class, Answers.RETURNS_DEEP_STUBS);
-        when(runningContext.getJobDetail().getJobClass()).thenAnswer(invocation -> ConfigurationClientJob.class);
+        when(runningContext.getJobDetail().getKey())
+                .thenReturn(new JobKey(ConfigurationClientJob.class.getSimpleName()));
 
         when(jobExecutionContext.getScheduler().getCurrentlyExecutingJobs()).thenReturn(Lists.newArrayList(runningContext));
+        when(jobExecutionContext.getJobDetail().getKey().getName()).thenReturn(ProxyConfigurationBackupJob.class.getSimpleName());
 
         configurationBackupJob.execute(jobExecutionContext);
 
         verify(externalProcessRunner, never()).executeAndThrowOnFailure(anyString());
+    }
+
+    @Test
+    void jobNameShouldMatchActualClassName() {
+        assertEquals(CONFIGURATION_CLIENT_JOB, ConfigurationClientJob.class.getSimpleName());
     }
 }

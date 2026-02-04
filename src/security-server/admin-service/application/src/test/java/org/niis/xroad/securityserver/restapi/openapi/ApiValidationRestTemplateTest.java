@@ -98,4 +98,45 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
         assertEquals(1, errorResponse.getError().getValidationErrors().get(localGroupAddCodeError).size());
         assertEquals("Size", errorResponse.getError().getValidationErrors().get("localGroupAddDto.code").get(0));
     }
+
+    /**
+     * Simple test for checking that API validation is functional, by sending a LocalGroupAdd object
+     * with too long property value
+     * @throws Exception
+     */
+    @Test
+    @WithMockUser(authorities = {"ADD_LOCAL_GROUP"})
+    public void validationWorksForAddLocalGroupWithInvalidDescription() throws Exception {
+        LocalGroupAddDto groupWithInvalidDescription = new LocalGroupAddDto()
+                .code(RandomStringUtils.secure().nextAlphabetic(10))
+                .description("foo£$");
+        ResponseEntity<Object> response = restTemplate.postForEntity(
+                "/api/v1/clients/FOO:BAR:BAZ:NONEXISTENT-CLIENT/local-groups",
+                groupWithInvalidDescription, Object.class);
+
+        /**
+         * Expecting this response
+         * {
+         *   "status": 400,
+         *   "error": {
+         *     "code": "validation_failure",
+         *     "validation_errors": {
+         *       "localGroupAdd.code": [
+         *         "Size"
+         *       ]
+         *     }
+         *   }
+         * }
+         */
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        ErrorInfo errorResponse = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
+        assertNotNull(errorResponse);
+        assertEquals("validation_failure", errorResponse.getError().getCode());
+        assertEquals(1, errorResponse.getError().getValidationErrors().size());
+        String localGroupAddDescriptionError = "localGroupAddDto.description";
+        assertTrue(errorResponse.getError().getValidationErrors().containsKey(localGroupAddDescriptionError));
+        assertEquals(1, errorResponse.getError().getValidationErrors().get(localGroupAddDescriptionError).size());
+        assertEquals("Pattern", errorResponse.getError().getValidationErrors().get("localGroupAddDto.description").get(0));
+    }
 }

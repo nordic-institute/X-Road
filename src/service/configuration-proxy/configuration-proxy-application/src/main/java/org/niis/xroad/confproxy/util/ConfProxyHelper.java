@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit;
  * Provides configuration proxy utility functions.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 public final class ConfProxyHelper {
     private static final int SUCCESS = 0;
     private static final int ERROR_CODE_INTERNAL = 125;

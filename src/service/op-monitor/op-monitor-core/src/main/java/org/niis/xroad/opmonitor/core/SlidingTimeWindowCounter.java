@@ -28,6 +28,7 @@ package org.niis.xroad.opmonitor.core;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -76,12 +77,12 @@ class SlidingTimeWindowCounter extends Counter {
 
     @Override
     public void dec() {
-        throw new RuntimeException("This counter can be incremented only");
+        throw XrdRuntimeException.systemInternalError("This counter can be incremented only");
     }
 
     @Override
     public void dec(long n) {
-        throw new RuntimeException("This counter can be incremented only");
+        throw XrdRuntimeException.systemInternalError("This counter can be incremented only");
     }
 
 }

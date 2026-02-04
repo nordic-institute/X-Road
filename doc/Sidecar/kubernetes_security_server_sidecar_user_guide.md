@@ -1,27 +1,29 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.14  
+Version: 1.16  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                           | Author                    |
-|------------|---------|-------------------------------------------------------|---------------------------|
-| 05.01.2021 | 1.0     | Initial version                                       | Alberto Fernandez Lorenzo |
-| 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                         | Alberto Fernandez Lorenzo |
-| 11.03.2021 | 1.2     | Add setup examples                                    | Alberto Fernandez Lorenzo |
-| 15.03.2021 | 1.3     | Add IP address options                                | Alberto Fernandez Lorenzo |
-| 22.03.2021 | 1.4     | Add Load Balancer setup example                       | Alberto Fernandez Lorenzo |
-| 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                  | Jarkko Hyöty              |
-| 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute           |
-| 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets             |
-| 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets             |
-| 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references         | Madis Loitmaa             |
-| 13.05.2024 | 1.10    | Add additional upgrade details for Sidecar 7.5        | Ovidijus Narkevicius      |
-| 10.07.2024 | 1.11    | Fix incorrect section numbering                       | Petteri Kivimäki          |
-| 02.10.2024 | 1.12    | Add example of set up the volume for backups          | Eneli Reimets             |
-| 23.12.2024 | 1.13    | Minor documentation updates                           | Eneli Reimets             |
-| 21.03.2025 | 1.14    | Syntax and styling                                    | Pauline Dimmek            |
+| Date       | Version | Description                                                   | Author                    |
+|------------|---------|---------------------------------------------------------------|---------------------------|
+| 05.01.2021 | 1.0     | Initial version                                               | Alberto Fernandez Lorenzo |
+| 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                                 | Alberto Fernandez Lorenzo |
+| 11.03.2021 | 1.2     | Add setup examples                                            | Alberto Fernandez Lorenzo |
+| 15.03.2021 | 1.3     | Add IP address options                                        | Alberto Fernandez Lorenzo |
+| 22.03.2021 | 1.4     | Add Load Balancer setup example                               | Alberto Fernandez Lorenzo |
+| 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                          | Jarkko Hyöty              |
+| 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process         | Monika Liutkute           |
+| 06.07.2023 | 1.7     | Sidecar repo migration                                        | Eneli Reimets             |
+| 10.08.2023 | 1.8     | Typo error fixes in yml scripts                               | Eneli Reimets             |
+| 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references                 | Madis Loitmaa             |
+| 13.05.2024 | 1.10    | Add additional upgrade details for Sidecar 7.5                | Ovidijus Narkevicius      |
+| 10.07.2024 | 1.11    | Fix incorrect section numbering                               | Petteri Kivimäki          |
+| 02.10.2024 | 1.12    | Add example of set up the volume for backups                  | Eneli Reimets             |
+| 23.12.2024 | 1.13    | Minor documentation updates                                   | Eneli Reimets             |
+| 21.03.2025 | 1.14    | Syntax and styling                                            | Pauline Dimmek            |
+| 01.09.2025 | 1.15    | Added link to "Enabling ACME Support" from Sidecar user guide | Mikk-Erik Bachmann        |
+| 14.10.2025 | 1.16    | Documented multiple token support for autologin               | Raido Kaju                |
 
 ## License
 
@@ -139,20 +141,20 @@ In this guide, the `kubectl` command line utility is used. It is expected, that 
 
 The table below lists the required connections between different components.
 
-| Connection | Source                      | Target                      | Target Ports     | Protocol | Note                          |
-|------------|-----------------------------|-----------------------------|------------------|----------|-------------------------------|
-| Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                               |
-| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network       |
-| Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network       |
-| Inbound    | ACME Server                 | Sidecar                     | 80               | http     | From "internal" network       |
-| Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                               |
-| Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                               |
-| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*            |
-| Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                               |
-| Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network         |
-| Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                               |
-| Outbound   | Sidecar                     | Mail server                 | 587              | tcp      |                               |
-| Inbound    | Sidecar (secondary)         | Sidecar (primary)           | 22               | ssh      | Configuration synchronization |
+| Connection | Source                      | Target                      | Target Ports     | Protocol | Note                                                                                                                                              |
+|------------|-----------------------------|-----------------------------|------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                                                                                                                                                   |
+| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network                                                                                                                           |
+| Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network                                                                                                                           |
+| Inbound    | ACME Server                 | Sidecar                     | 80 / other       | http     | For more info see "Enabling ACME Support" in [Security Server Sidecar User Guide](security_server_sidecar_user_guide.md#32-enabling-acme-support) |
+| Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                                                                                                                                                   |
+| Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                                                                                                                                                   |
+| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*                                                                                                                                |
+| Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                                                                                                                                                   |
+| Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network                                                                                                                             |
+| Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                                                                                                                                                   |
+| Outbound   | Sidecar                     | Mail server                 | 587              | tcp      |                                                                                                                                                   |
+| Inbound    | Sidecar (secondary)         | Sidecar (primary)           | 22               | ssh      | Configuration synchronization                                                                                                                     |
 
 ### 4.4 Reference Data
 
@@ -288,6 +290,7 @@ For example the following configuration could be stored as a Kubernetes secret:
 * Sensitive Sidecar environment variables:
   * Software token PIN code:
     * `XROAD_TOKEN_PIN`
+    * `XROAD_TOKEN_X_PIN` (in case of multiple tokens)
   * Security server GUI admin user:
     * `XROAD_ADMIN_USER`
     * `XROAD_ADMIN_PASSWORD`

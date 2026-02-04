@@ -32,7 +32,6 @@ import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.niis.xroad.confclient.core.schedule.RetryingQuartzJob;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -44,18 +43,21 @@ import org.quartz.SchedulerException;
 @Slf4j
 @DisallowConcurrentExecution
 public class ProxyConfigurationBackupJob extends RetryingQuartzJob {
+
+    public static final String CONFIGURATION_CLIENT_JOB = "ConfigurationClientJob";
     private static final String AUTOBACKUP_SCRIPT_PATH = "/usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh";
     private static final int RETRY_DELAY_SEC = 5;
+    private static final int MAX_RETRY_DELAY_SEC = 14400; // 4 hours
 
     private final ExternalProcessRunner externalProcessRunner;
 
     public ProxyConfigurationBackupJob() {
-        super(RETRY_DELAY_SEC);
+        super(RETRY_DELAY_SEC, MAX_RETRY_DELAY_SEC);
         this.externalProcessRunner = new ExternalProcessRunner();
     }
 
     ProxyConfigurationBackupJob(ExternalProcessRunner externalProcessRunner) {
-        super(RETRY_DELAY_SEC);
+        super(RETRY_DELAY_SEC, MAX_RETRY_DELAY_SEC);
         this.externalProcessRunner = externalProcessRunner;
     }
 
@@ -69,7 +71,6 @@ public class ProxyConfigurationBackupJob extends RetryingQuartzJob {
 
     @Override
     protected boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException {
-        return JobManager.isJobRunning(context, ConfigurationClientJob.class);
+        return JobManager.isJobRunning(context, CONFIGURATION_CLIENT_JOB);
     }
-
 }

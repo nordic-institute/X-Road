@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.28
+Version: 1.29
 Doc. ID: IG-XLB
 
 
@@ -35,6 +35,7 @@ Doc. ID: IG-XLB
 | 17.03.2025 | 1.26    | Syntax and styling                                                                                                       | Pauline Dimmek              |
 | 02.04.2025 | 1.27    | Added Proxy memory health check paragraph                                                                                | Mikk-Erik Bachmann          |
 | 06.05.2025 | 1.28    | Added more details about the soft token status check result caching                                                      | Petteri Kivimäki            |
+| 01.08.2025 | 1.29    | Fix a broken link                                                                                                        | Petteri Kivimäki            |
 
 ## Table of Contents
 
@@ -463,7 +464,7 @@ Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
 #### 3.4.3 Proxy memory health check
 
-Besides the health checks mentioned above, Proxy can also be configured to check its own memory usage. To turn this memory check on `memory-usage-threshold` System Property needs to be set to a numerical value which represents a percentage of the maximum memory being used over which the health check starts failing. For example if this is set to 80, then the health check will fail if more than 80% of the maximum is being used by the Proxy. The maximum memory is configured by the java `-Xmx` flag. For more info about configuring the Security Server Proxy's memory allocation see [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
+Besides the health checks mentioned above, Proxy can also be configured to check its own memory usage. To turn this memory check on `memory-usage-threshold` System Property needs to be set to a numerical value which represents a percentage of the maximum memory being used over which the health check starts failing. For example if this is set to 80, then the health check will fail if more than 80% of the maximum is being used by the Proxy. The maximum memory is configured by the java `-Xmx` flag. For more info about configuring the Security Server Proxy's memory allocation see [Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
 ## 4. Database replication setup
 

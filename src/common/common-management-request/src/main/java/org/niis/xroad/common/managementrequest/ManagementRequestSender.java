@@ -39,8 +39,10 @@ import ee.ria.xroad.common.util.HttpSender;
 
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.model.AddressChangeRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
+import org.niis.xroad.common.managementrequest.model.AuthCertRegWithoutCertRequest;
 import org.niis.xroad.common.managementrequest.model.ClientDisableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
@@ -57,6 +59,7 @@ import org.w3c.dom.NodeList;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -71,6 +74,7 @@ import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
  * as normal X-Road messages.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 public final class ManagementRequestSender {
     private final GlobalConfProvider globalConfProvider;
     private final ManagementRequestClient managementRequestClient;
@@ -81,6 +85,7 @@ public final class ManagementRequestSender {
     /**
      * Creates the sender for the user ID, client and receiver used in
      * constructing the X-Road message.
+     *
      * @param sender   the sender
      * @param receiver the receiver
      */
@@ -93,11 +98,11 @@ public final class ManagementRequestSender {
         this.managementRequestClient = new ManagementRequestClient(globalConfProvider);
     }
 
-    private URI getCentralServiceURI() throws Exception {
+    private URI getCentralServiceURI() throws URISyntaxException {
         return new URI(globalConfProvider.getManagementRequestServiceAddress());
     }
 
-    private URI getSecurityServerURI() throws Exception {
+    private URI getSecurityServerURI() throws URISyntaxException {
         return new URI(securityServerUrl);
     }
 
@@ -107,24 +112,33 @@ public final class ManagementRequestSender {
      * Sends the authentication certificate registration request directly
      * to the central server. The request is sent as a signed mime multipart
      * message.
+     *
      * @param securityServer the security server id whose certificate is to be
      *                       registered
      * @param address        the IP address of the security server
      * @param authCert       the authentication certificate bytes
+     * @param dryRun         if true, the request is not actually processed
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
+    public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert, boolean dryRun)
             throws Exception {
+        if (dryRun && authCert.length == 0) {
+            try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
+                return send(sender, getCentralServiceURI(), new AuthCertRegWithoutCertRequest(signerRpcClient, authCert,
+                        securityServer.getOwner(), builder.buildAuthCertRegRequest(securityServer, address, authCert, true)));
+            }
+        }
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
             return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, authCert, securityServer.getOwner(),
-                    builder.buildAuthCertRegRequest(securityServer, address, authCert)));
+                    builder.buildAuthCertRegRequest(securityServer, address, authCert, dryRun)));
         }
     }
 
     /**
      * Sends the authentication certificate deletion request as a normal
      * X-Road message.
+     *
      * @param securityServer the security server id whose certificate is to be
      *                       deleted
      * @param authCert       the authentication certificate bytes
@@ -139,6 +153,7 @@ public final class ManagementRequestSender {
 
     /**
      * Sends the SecurityServer address change request as a normal X-Road message.
+     *
      * @param securityServer the security server id
      * @param address        the new address
      * @return request ID in the central server database
@@ -154,6 +169,7 @@ public final class ManagementRequestSender {
 
     /**
      * Sends enable maintenance mode request as a normal X-Road message.
+     *
      * @param securityServer the security server id
      * @param message        the optional message
      * @return request ID in the central server database
@@ -169,6 +185,7 @@ public final class ManagementRequestSender {
 
     /**
      * Sends disable maintenance mode request as a normal X-Road message.
+     *
      * @param securityServer the security server id
      * @return request ID in the central server database
      * @throws Exception if an error occurs
@@ -183,6 +200,7 @@ public final class ManagementRequestSender {
 
     /**
      * Sends a client registration request as a normal X-Road message.
+     *
      * @param securityServer the security server id
      * @param clientId       the client id that will be registered
      * @return request ID in the central server database
@@ -197,6 +215,7 @@ public final class ManagementRequestSender {
 
     /**
      * Sends a client deletion request as a normal X-Road message.
+     *
      * @param securityServer the security server id
      * @param clientId       the client id that will be registered
      * @return request ID in the central server database
@@ -210,6 +229,7 @@ public final class ManagementRequestSender {
 
     /**
      * Sends an owner change request as a normal X-Road message.
+     *
      * @param securityServer the security server id
      * @param clientId       the client id of the new security server owner
      * @return request ID in the central server database
@@ -258,7 +278,8 @@ public final class ManagementRequestSender {
         }
     }
 
-    private static Integer send(HttpSender sender, URI address, ManagementRequest req) throws Exception {
+    private static Integer send(HttpSender sender, URI address, ManagementRequest req)
+            throws Exception {
         sender.doPost(address, req.getRequestContent(), CHUNKED_LENGTH, req.getRequestContentType());
 
         SoapMessageImpl requestMessage = req.getRequestMessage();
@@ -303,7 +324,7 @@ public final class ManagementRequestSender {
     }
 
     private static SoapMessageImpl getResponse(HttpSender sender,
-                                               String expectedContentType) throws Exception {
+                                               String expectedContentType) {
         String baseContentType =
                 getBaseContentType(sender.getResponseContentType());
         if (baseContentType == null
@@ -315,17 +336,16 @@ public final class ManagementRequestSender {
 
         Soap response = new SoapParserImpl().parse(baseContentType,
                 sender.getResponseContent());
-        if (response instanceof SoapFault) {
+        if (response instanceof SoapFault soapFault) {
             // Server responded with fault
-            throw ((SoapFault) response).toCodedException();
+            throw soapFault.toCodedException();
         }
 
-        if (!(response instanceof SoapMessageImpl)) {
+        if (!(response instanceof SoapMessageImpl responseMessage)) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Got unexpected response message " + response);
         }
 
-        SoapMessageImpl responseMessage = (SoapMessageImpl) response;
         if (!responseMessage.isResponse()) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Expected response message");
@@ -348,7 +368,7 @@ public final class ManagementRequestSender {
         }
 
         @Override
-        public InputStream getRequestContent() throws Exception {
+        public InputStream getRequestContent() {
             return new ByteArrayInputStream(getRequestMessage().getBytes());
         }
 

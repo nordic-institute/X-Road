@@ -27,6 +27,8 @@ package org.niis.xroad.globalconf.extension;
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.IOException;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -38,7 +40,7 @@ public final class StdinValidator {
     /**
      * Program entry point
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         String string = IOUtils.toString(System.in, UTF_8);
         System.out.println(string);
         OcspNextUpdateSchemaValidator.validate(string);

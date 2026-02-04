@@ -28,10 +28,12 @@ package org.niis.xroad.confclient.core;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
@@ -46,7 +48,6 @@ import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -127,7 +128,7 @@ class ConfigurationClientTest {
 
             fail("Should fail to download");
         } catch (CodedException expected) {
-            assertEquals(X_MALFORMED_GLOBALCONF, expected.getFaultCode());
+            assertEquals(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE.code(), expected.getFaultCode());
         }
     }
 
@@ -172,7 +173,8 @@ class ConfigurationClientTest {
             ConfigurationParser getParser() {
                 return new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                     @Override
-                    protected InputStream getInputStream() throws Exception {
+                    @SneakyThrows
+                    protected InputStream getInputStream() {
                         String downloadURL = configuration.getLocation().getDownloadURL();
                         // Because the test case cannot handle query parameters
                         // we need to strip them from download URL.
@@ -188,22 +190,23 @@ class ConfigurationClientTest {
             }
 
             @Override
-            boolean shouldDownload(ConfigurationFile file, Path p) throws Exception {
+            boolean shouldDownload(ConfigurationFile newConfigurationFile, Path oldConfigurationFile) {
                 return true;
             }
 
             @Override
-            void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
+            void persistContent(byte[] content, Path destination, ConfigurationFile file) {
                 receivedParts.add(file.getContentIdentifier());
                 super.persistContent(content, destination, file);
             }
 
             @Override
-            void updateExpirationDate(Path destination, ConfigurationFile file) throws Exception {
+            void updateExpirationDate(Path destination, ConfigurationFile file) {
             }
 
             @Override
-            byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
+            @SneakyThrows
+            byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
                 try (InputStream in = Files.newInputStream(
                         Paths.get(confPath, file.getInstanceIdentifier(), file.getContentLocation()))) {
                     return IOUtils.toByteArray(in);

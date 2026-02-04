@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.ProxyMemory;
@@ -39,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
 import org.niis.xroad.globalconf.status.CertificationServiceStatus;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.globalconf.status.OcspResponderStatus;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
@@ -250,8 +250,8 @@ public class DiagnosticService {
         Map<String, OcspResponderStatus> ocspResponderStatusMap = ca.getOcspResponderStatusMap();
         List<DiagnosticsStatus> statuses = ocspResponderStatusMap.values().stream()
                 .map(ocspResponderStatus -> {
-                    DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(ocspResponderStatus.getStatus(),
-                            ocspResponderStatus.getPrevUpdate(), ocspResponderStatus.getNextUpdate());
+                    DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(ocspResponderStatus.getDiagnosticStatus(),
+                            ocspResponderStatus.getPrevUpdate(), ocspResponderStatus.getNextUpdate(), ocspResponderStatus.getErrorCode());
                     diagnosticsStatus.setDescription(ocspResponderStatus.getUrl());
                     return diagnosticsStatus;
                 })

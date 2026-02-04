@@ -32,26 +32,21 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.apache.xml.security.signature.Manifest;
+import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.utils.Constants;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.parsers.ParserConfigurationException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
-import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
-import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Local helper class for constructing Xades signatures.
@@ -150,7 +145,7 @@ public final class Helper {
         return SIGNATURE_REFERENCE_ID + "1";
     }
 
-    public static Document createDocument() throws Exception {
+    public static Document createDocument() throws ParserConfigurationException {
         Document document = XmlUtils.newDocumentBuilder(true).newDocument();
 
         // create the root element for XAdES signatures.
@@ -163,12 +158,7 @@ public final class Helper {
         return document;
     }
 
-    static Document parseDocument(String documentXml, boolean namespaceAware) throws Exception {
-        return XmlUtils.parseDocument(new ByteArrayInputStream(documentXml.getBytes(StandardCharsets.UTF_8)),
-                namespaceAware);
-    }
-
-    public static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithmUri) throws Exception {
+    public static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithmUri) throws XMLSecurityException {
         XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithmUri.uri());
         signature.setId(ID_SIGNATURE);
         document.getDocumentElement().appendChild(signature.getElement());
@@ -177,33 +167,14 @@ public final class Helper {
     }
 
     /**
-     * Creates and returns a ds:DigestMethod element.
-     */
-    static Element createDigestMethodElement(Document doc, DigestAlgorithm hashMethod) throws Exception {
-        Element digestMethodElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
-        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM, hashMethod.uri());
-
-        return digestMethodElement;
-    }
-
-    /**
-     * Creates and returns a ds:DigestValue element.
-     */
-    static Element createDigestValueElement(Document doc, byte[] hashValue) {
-        Element digestValueElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTVALUE);
-        digestValueElement.setTextContent(encodeBase64(hashValue));
-
-        return digestValueElement;
-    }
-
-    /**
      * Verifies the digest contained in the digest algorithm and value element against the provided data.
+     *
      * @param digAlgAndValueElement the element that contains the digest method
      *                              as the first child and digest value as the second child
      * @param data                  the data
      */
     static boolean verifyDigest(Element digAlgAndValueElement, byte[] data)
-            throws NoSuchAlgorithmException, IOException, OperatorCreationException {
+            throws IOException {
         DigestAlgorithm digestMethod = DigestAlgorithm
                 .ofUri(((Element) digAlgAndValueElement.getFirstChild()).getAttribute(ALGORITHM_ATTRIBUTE));
         String digestValue = digAlgAndValueElement.getLastChild().getTextContent();
@@ -211,44 +182,6 @@ public final class Helper {
         byte[] digest = calculateDigest(digestMethod, data);
 
         return MessageDigestAlgorithm.isEqual(decodeBase64(digestValue), digest);
-    }
-
-    /**
-     * Shortcut for adding a reference to a manifest.
-     */
-    static void addManifestReference(Manifest manifest, String uri) throws Exception {
-        manifest.addDocument(null, "#" + uri, null, DEFAULT_DIGEST_ALGORITHM.uri(), null, null);
-    }
-
-    /**
-     * Returns the nodelist of OCSPRef elements using XPath evaluation.
-     */
-    static NodeList getOcspRefElements(Element objectContainer) {
-        // the OCSP refs are located in the XML:
-        // asic:XAdESSignatures
-        // - ds:Signature
-        // -- ds:Object
-        // --- xades:QualifiyingProperties
-        // ---- xades:UnsignedProperties
-        // ----- xades:UnsignedSignatureProperties
-        // ------ xades:CompleteRevocationRefs
-        // ------- xades:OCSPRefs
-        // -------- xades:OCSPRef
-
-        String xpath = PREFIX_XADES
-                + QUALIFYING_PROPS_TAG + "/"
-                + PREFIX_XADES
-                + UNSIGNED_PROPS_TAG + "/"
-                + PREFIX_XADES
-                + UNSIGNED_SIGNATURE_PROPS_TAG + "/"
-                + PREFIX_XADES
-                + COMPLETE_REVOCATION_REFS_TAG + "/"
-                + PREFIX_XADES
-                + OCSP_REFS_TAG + "/"
-                + PREFIX_XADES
-                + OCSP_REF_TAG;
-
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath, getNamespaceCtx());
     }
 
     /**
@@ -329,11 +262,11 @@ public final class Helper {
 
     /**
      * Returns the first element by tag name.
+     *
      * @param document the document
      * @param tagName  the tag name
-     * @throws Exception throws CodedException with code MALFORMED_SIGNATURE if the element cannot be found.
      */
-    static Element getFirstElementByTagName(Document document, String tagName) throws Exception {
+    static Element getFirstElementByTagName(Document document, String tagName) {
         return XmlUtils.getFirstElementByTagName(document, tagName)
                 .orElseThrow(() -> elementNotFound(tagName));
     }

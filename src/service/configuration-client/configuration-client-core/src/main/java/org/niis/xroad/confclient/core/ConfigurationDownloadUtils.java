@@ -26,6 +26,7 @@
 package org.niis.xroad.confclient.core;
 
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.util.GlobalConfUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +44,7 @@ public final class ConfigurationDownloadUtils {
     public static List<ConfigurationLocation> shuffleLocationsPreferHttps(List<ConfigurationLocation> locations) {
         List<ConfigurationLocation> urls = new ArrayList<>(getLocationUrls(locations));
         List<ConfigurationLocation> httpsUrls = urls.stream()
-                .filter(location -> startWithHttpAndNotWithHttps(location.getDownloadURL()))
+                .filter(location -> GlobalConfUtils.startWithHttpAndNotWithHttps(location.getDownloadURL()))
                 .map(location -> new ConfigurationLocation(
                         location.getInstanceIdentifier(),
                         location.getDownloadURL().replaceFirst(HTTP, HTTPS),
@@ -65,9 +66,5 @@ public final class ConfigurationDownloadUtils {
 
     public static boolean notStartWithHttps(String url) {
         return !url.startsWith(HTTPS);
-    }
-
-    public static boolean startWithHttpAndNotWithHttps(String url) {
-        return url.startsWith(HTTP) && !url.startsWith(HTTPS);
     }
 }

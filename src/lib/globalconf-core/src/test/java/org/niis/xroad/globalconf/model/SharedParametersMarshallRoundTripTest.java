@@ -39,6 +39,7 @@ class SharedParametersMarshallRoundTripTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+            "src/test/resources/globalconf_good_v6/EE/shared-params.xml",
             "src/test/resources/globalconf_good_v5/EE/shared-params.xml",
             "src/test/resources/globalconf_good_v4/EE/shared-params.xml",
             "src/test/resources/globalconf_good_v3/EE/shared-params.xml",

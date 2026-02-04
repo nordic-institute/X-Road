@@ -74,4 +74,9 @@ public class NavigationStepDefs extends BaseUiStepDefs {
     public void trafficSubTabIsSelected() {
         commonPageObj.subMenu.trafficTab().click();
     }
+
+    @Step("Connection Testing sub-tab is selected")
+    public void connectionTestingSubTabIsSelected() {
+        commonPageObj.subMenu.connectionTestingTab().click();
+    }
 }

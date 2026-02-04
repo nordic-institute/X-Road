@@ -37,8 +37,10 @@ import org.apache.http.message.BasicHeader;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +75,7 @@ public class RestRequest extends RestMessage {
     /**
      * Create RestRequest from a byte array
      */
-    public RestRequest(byte[] messageBytes) throws Exception {
+    public RestRequest(byte[] messageBytes) throws IOException, URISyntaxException {
         final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new ByteArrayInputStream(messageBytes), StandardCharsets.UTF_8));
 

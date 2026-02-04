@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
@@ -41,12 +42,14 @@ import java.nio.file.Paths;
  * Defines a configuration proxy instance and carries out it's main operations.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxy {
     private final SignerRpcClient signerRpcClient;
     protected ConfProxyProperties conf;
 
     /**
      * Initializes a new configuration proxy instance.
+     *
      * @param instance name of this proxy instance
      * @throws Exception if loading instance configuration fails
      */
@@ -59,6 +62,7 @@ public class ConfProxy {
     /**
      * Launch the configuration proxy instance. Downloads signed directory,
      * signs its content and moves it to the public distribution directory.
+     *
      * @throws Exception in case of any errors
      */
     public final void execute() throws Exception {
@@ -97,6 +101,7 @@ public class ConfProxy {
     /**
      * Downloads the global configuration to configuration download path e.g. /etc/xroad/globalconf,
      * according to the instance configuration.
+     *
      * @return downloaded configuration directory
      * @throws Exception if configuration client script encounters errors
      */

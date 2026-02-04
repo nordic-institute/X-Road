@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 public class SetTokenFriendlyNameReqHandler extends AbstractRpcHandler<SetTokenFriendlyNameReq, Empty> {
 
     @Override
-    protected Empty handle(SetTokenFriendlyNameReq request) throws Exception {
+    protected Empty handle(SetTokenFriendlyNameReq request) {
         TokenManager.setTokenFriendlyName(
                 request.getTokenId(),
                 request.getFriendlyName());

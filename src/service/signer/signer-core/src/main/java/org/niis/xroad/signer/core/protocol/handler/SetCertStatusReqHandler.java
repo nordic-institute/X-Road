@@ -39,7 +39,7 @@ public class SetCertStatusReqHandler
         extends AbstractRpcHandler<SetCertStatusReq, Empty> {
 
     @Override
-    protected Empty handle(SetCertStatusReq request) throws Exception {
+    protected Empty handle(SetCertStatusReq request) {
         TokenManager.setCertStatus(request.getCertId(), request.getStatus());
 
         return Empty.getDefaultInstance();

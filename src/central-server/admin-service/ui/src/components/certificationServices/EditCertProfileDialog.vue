@@ -96,6 +96,7 @@ const updateCertificationServiceSettings = handleSubmit((values) => {
   loading.value = true;
   updateCertificationService(props.certificationService.id, {
     certificate_profile_info: values.certProfile,
+    default_csr_format: props.certificationService.default_csr_format,
     tls_auth: `${props.certificationService.tls_auth}`,
   })
     .then(() => {

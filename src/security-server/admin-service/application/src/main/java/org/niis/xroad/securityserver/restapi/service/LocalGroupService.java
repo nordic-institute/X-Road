@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -81,6 +82,7 @@ public class LocalGroupService {
     private final ClientRepository clientRepository;
     private final ClientService clientService;
     private final AuditDataHelper auditDataHelper;
+    private final IdentifierService identifierService;
 
     /**
      * Return local group.
@@ -137,7 +139,7 @@ public class LocalGroupService {
             auditDataHelper.put(clientRepository.getClientByLocalGroup(localGroupEntity).getIdentifier());
         } catch (ClientNotFoundException e) {
             // unexpected
-            throw new RuntimeException("local group was not attached to client", e);
+            throw XrdRuntimeException.systemInternalError("local group was not attached to client", e);
         }
     }
 
@@ -187,14 +189,13 @@ public class LocalGroupService {
 
         auditLog(memberIds, localGroupEntity);
 
+        Set<ClientId> allClientIds = clientService.getAllClientIds();
         List<GroupMemberEntity> membersToBeAdded = new ArrayList<>(memberIds.size());
-        for (ClientId memberId : memberIds) {
-            Optional<ClientEntity> foundMember = clientService.findEntityByClientId(memberId);
-            if (!foundMember.isPresent()) {
+        for (ClientId clientIdToBeAdded : memberIds) {
+            if (!allClientIds.contains(clientIdToBeAdded)) {
                 throw new LocalGroupMemberNotFoundException(CLIENT_WITH_ID
-                        + memberId.toShortString() + NOT_FOUND);
+                        + clientIdToBeAdded.toShortString() + NOT_FOUND);
             }
-            ClientId clientIdToBeAdded = foundMember.get().getIdentifier();
             boolean isAdded = localGroupEntity.getGroupMembers().stream()
                     .anyMatch(groupMemberEntity -> groupMemberEntity.getGroupMemberId().toShortString().trim()
                             .equals(clientIdToBeAdded.toShortString().trim()));
@@ -203,7 +204,8 @@ public class LocalGroupService {
             }
             GroupMemberEntity groupMemberEntity = new GroupMemberEntity();
             groupMemberEntity.setAdded(new Date());
-            groupMemberEntity.setGroupMemberId(XRoadIdMapper.get().toEntity(clientIdToBeAdded));
+            groupMemberEntity.setGroupMemberId(
+                    identifierService.getOrPersistXroadIdEntity(XRoadIdMapper.get().toEntity(clientIdToBeAdded)));
             membersToBeAdded.add(groupMemberEntity);
         }
         // do not remove this saveOrUpdateAll - contrary to expectations hibernate does not cascade such
@@ -266,7 +268,7 @@ public class LocalGroupService {
                 .filter(member -> items.stream()
                         .anyMatch(item -> item.toShortString().trim()
                                 .equals(member.getGroupMemberId().toShortString().trim())))
-                .collect(Collectors.toList());
+                .toList();
 
         // do not remove members at all if even one of them was not found
         if (membersToBeRemoved.isEmpty() || items.size() != membersToBeRemoved.size()) {

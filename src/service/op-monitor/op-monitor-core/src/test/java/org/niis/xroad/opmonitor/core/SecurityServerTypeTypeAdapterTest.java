@@ -42,6 +42,7 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests serialization and deserialization of the type adapter for the
@@ -74,10 +75,10 @@ public class SecurityServerTypeTypeAdapterTest {
     }
 
     @Test
-    public void nokType() throws IOException {
+    public void nokType() {
         String nokJson = "{\"securityServerType\":\"UNKNOWN\"}";
         var err = assertThrows(JsonProcessingException.class, () -> OBJECT_READER.readValue(nokJson, Type.class));
-        assertEquals("Invalid value of securityServerType", err.getOriginalMessage());
+        assertTrue(err.getOriginalMessage().contains("Invalid value of securityServerType"));
     }
 
     @Test

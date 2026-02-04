@@ -28,6 +28,7 @@ package org.niis.xroad.opmonitor.core;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ class SecurityServerTypeTypeAdapter extends StdDeserializer<String> {
                               DeserializationContext ctxt) throws IOException {
         String value = p.getValueAsString();
         if (OpMonitoringData.SecurityServerType.fromString(value) == null) {
-            throw new RuntimeException("Invalid value of securityServerType");
+            throw XrdRuntimeException.systemInternalError("Invalid value of securityServerType");
         }
         return value;
     }

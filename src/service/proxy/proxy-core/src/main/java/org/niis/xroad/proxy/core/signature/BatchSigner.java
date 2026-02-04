@@ -36,8 +36,12 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+import javax.xml.transform.TransformerException;
+
+import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -46,6 +50,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -85,11 +90,10 @@ public class BatchSigner implements MessageSigner {
      * @param signatureAlgorithmId ID of the signature algorithm to use
      * @param request              the signing request
      * @return the signature data
-     * @throws Exception in case of any errors
      */
+    @Override
     public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithmId, SigningRequest request)
-            throws Exception {
-
+            throws ExecutionException, InterruptedException {
 
         CompletableFuture<SignatureData> completableFuture = new CompletableFuture<>();
         final SigningRequestWrapper signRequestWrapper = new SigningRequestWrapper(
@@ -120,7 +124,7 @@ public class BatchSigner implements MessageSigner {
                 return new WorkerImpl(signerRpcClient, signRequest.getKeyId());
             });
         } catch (Exception e) {
-            throw new RuntimeException("Unable to get worker", e);
+            throw XrdRuntimeException.systemInternalError("Unable to get worker", e);
         }
     }
 
@@ -140,7 +144,7 @@ public class BatchSigner implements MessageSigner {
                 batchSigningEnabled = signerRpcClient.isTokenBatchSigningEnabled(keyId);
             } catch (Exception e) {
                 log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
-                throw new RuntimeException(e);
+                throw XrdRuntimeException.systemException(e);
             }
             workerThread = new Thread(this::process);
             workerThread.setDaemon(true);
@@ -152,7 +156,7 @@ public class BatchSigner implements MessageSigner {
             requestsQueue.add(signRequest);
         }
 
-        private void sendSignatureResponse(BatchSignatureCtx ctx, byte[] signatureValue) throws Exception {
+        private void sendSignatureResponse(BatchSignatureCtx ctx, byte[] signatureValue) throws IOException, TransformerException {
             String signature = ctx.createSignatureXml(signatureValue);
 
             // Each client gets corresponding hash chain -- client index in the

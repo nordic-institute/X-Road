@@ -35,6 +35,7 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.DigestCalculatorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,29 +48,40 @@ import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class Digests {
-    /** Hash algorithm digest lengths. */
+    /**
+     * Hash algorithm digest lengths.
+     */
     public static final int SHA1_DIGEST_LENGTH = 20;
     public static final int SHA224_DIGEST_LENGTH = 28;
     public static final int SHA256_DIGEST_LENGTH = 32;
     public static final int SHA384_DIGEST_LENGTH = 48;
     public static final int SHA512_DIGEST_LENGTH = 64;
 
-    /** Digest provider instance. */
+    /**
+     * Digest provider instance.
+     */
     public static final DigestCalculatorProvider DIGEST_PROVIDER = new BcDigestCalculatorProvider();
 
-    /** Default digest algorithm id used for calculating configuration anchor hashes. */
+    /**
+     * Default digest algorithm id used for calculating configuration anchor hashes.
+     */
     public static final DigestAlgorithm DEFAULT_ANCHOR_HASH_ALGORITHM_ID = DigestAlgorithm.SHA224;
     public static final DigestAlgorithm DEFAULT_UPLOAD_FILE_HASH_ALGORITHM = DigestAlgorithm.SHA224;
 
-    /** Global default digest method identifier and URL. */
+    /**
+     * Global default digest method identifier and URL.
+     */
     public static final DigestAlgorithm DEFAULT_DIGEST_ALGORITHM = DigestAlgorithm.SHA512;
 
-    /** A cache of BouncyCastle algorithm identifiers */
+    /**
+     * A cache of BouncyCastle algorithm identifiers
+     */
     private static final Map<DigestAlgorithm, AlgorithmIdentifier> ALGORITHM_IDENTIFIER_CACHE = new HashMap<>();
 
     /**
      * Calculates message digest using the provided digest calculator.
-     * @param dc the digest calculator
+     *
+     * @param dc   the digest calculator
      * @param data the data
      * @return message digest
      * @throws IOException if the digest cannot be calculated
@@ -82,7 +94,8 @@ public final class Digests {
 
     /**
      * Calculates message digest using the provided digest calculator.
-     * @param dc the digest calculator
+     *
+     * @param dc   the digest calculator
      * @param data the data
      * @return message digest
      * @throws IOException if the digest cannot be calculated
@@ -96,87 +109,85 @@ public final class Digests {
 
     /**
      * Calculates message digest using the provided algorithm.
+     *
      * @param algorithm the algorithm
-     * @param data the data
+     * @param data      the data
      * @return message digest
-     * @throws OperatorCreationException if digest calculator cannot be created
      * @throws IOException if an I/O error occurred
      */
-    public static byte[] calculateDigest(AlgorithmIdentifier algorithm,
-                                         byte[] data) throws OperatorCreationException, IOException {
+    public static byte[] calculateDigest(AlgorithmIdentifier algorithm, byte[] data) throws IOException {
         DigestCalculator dc = createDigestCalculator(algorithm);
         return calculateDigest(dc, data);
     }
 
     /**
      * Calculates message digest using the provided algorithm id.
+     *
      * @param algorithm the algorithm
-     * @param data the data
+     * @param data      the data
      * @return message digest
-     * @throws OperatorCreationException if digest calculator cannot be created
      * @throws IOException if an I/O error occurred
      */
-    public static byte[] calculateDigest(DigestAlgorithm algorithm, byte[] data)
-            throws OperatorCreationException, IOException {
+    public static byte[] calculateDigest(DigestAlgorithm algorithm, byte[] data) throws IOException {
         DigestCalculator dc = createDigestCalculator(algorithm);
         return calculateDigest(dc, data);
     }
 
     /**
      * Calculates message digest using the provided algorithm id.
+     *
      * @param algorithm the algorithm
-     * @param data the data
+     * @param data      the data
      * @return message digest
-     * @throws OperatorCreationException if digest calculator cannot be created
      * @throws IOException if an I/O error occurred
      */
     public static byte[] calculateDigest(DigestAlgorithm algorithm, InputStream data)
-            throws OperatorCreationException, IOException {
+            throws IOException {
         DigestCalculator dc = createDigestCalculator(algorithm);
         return calculateDigest(dc, data);
     }
 
     /**
      * Creates a new digest calculator with the specified algorithm identifier.
+     *
      * @param algorithm the algorithm identifier
      * @return a new digest calculator instance
-     * @throws OperatorCreationException if the calculator cannot be created
+     * @throws XrdRuntimeException if the calculator cannot be created
      */
-    public static DigestCalculator createDigestCalculator(AlgorithmIdentifier algorithm) throws OperatorCreationException {
-        return DIGEST_PROVIDER.get(algorithm);
+    public static DigestCalculator createDigestCalculator(AlgorithmIdentifier algorithm) {
+        try {
+            return DIGEST_PROVIDER.get(algorithm);
+        } catch (OperatorCreationException e) {
+            throw XrdRuntimeException.systemInternalError("Failed to create digest calculator for algorithm: " + algorithm, e);
+        }
     }
 
     /**
      * Creates a new digest calculator with the specified algorithm name.
+     *
      * @param algorithm the algorithm name
      * @return a new digest calculator instance
-     * @throws OperatorCreationException if the calculator cannot be created
      */
-    public static DigestCalculator createDigestCalculator(DigestAlgorithm algorithm)
-            throws OperatorCreationException {
+    public static DigestCalculator createDigestCalculator(DigestAlgorithm algorithm) {
         return createDigestCalculator(getAlgorithmIdentifier(algorithm));
     }
 
     /**
+     * @param alg the algorithm identifier
      * @return the cached AlgorithmIdentifier object for the given digest
      * algorithm identifier.
-     *
-     * @param alg the algorithm identifier
      */
     public static AlgorithmIdentifier getAlgorithmIdentifier(DigestAlgorithm alg) {
-        if (!ALGORITHM_IDENTIFIER_CACHE.containsKey(alg)) {
-            ALGORITHM_IDENTIFIER_CACHE.put(alg,
-                    new DefaultDigestAlgorithmIdentifierFinder().find(alg.name()));
-        }
-
-        return ALGORITHM_IDENTIFIER_CACHE.get(alg);
+        return ALGORITHM_IDENTIFIER_CACHE.computeIfAbsent(alg, key ->
+                new DefaultDigestAlgorithmIdentifierFinder().find(key.name()));
     }
 
     /**
      * Calculates a SHA-224 digest of the given bytes and encodes it in
      * format 92:62:34:C5:39:1B:95:1F:BF:AF:8D:D6:23:24:AE:56:83:DC...
-     * @return calculated hex hash uppercase and separated by semicolons String
+     *
      * @param bytes the bytes
+     * @return calculated hex hash uppercase and separated by semicolons String
      * @throws HexCalculationException if any errors occur
      */
     public static String calculateAnchorHashDelimited(byte[] bytes) {
@@ -191,25 +202,25 @@ public final class Digests {
 
     /**
      * Digests the input data and hex-encodes the result.
+     *
      * @param hashAlg Name of the hash algorithm
-     * @param data Data to be hashed
+     * @param data    Data to be hashed
      * @return hex encoded String of the input data digest
-     * @throws OperatorCreationException if digest calculator cannot be created
      * @throws IOException if an I/O error occurred
      */
-    public static String hexDigest(DigestAlgorithm hashAlg, byte[] data) throws IOException, OperatorCreationException {
+    public static String hexDigest(DigestAlgorithm hashAlg, byte[] data) throws IOException {
         return encodeHex(calculateDigest(hashAlg, data));
     }
 
     /**
      * Digests the input data and hex-encodes the result.
+     *
      * @param hashAlg Name of the hash algorithm
-     * @param data Data to be hashed
+     * @param data    Data to be hashed
      * @return hex encoded String of the input data digest
-     * @throws OperatorCreationException if digest calculator cannot be created
      * @throws IOException if an I/O error occurred
      */
-    public static String hexDigest(DigestAlgorithm hashAlg, String data) throws IOException, OperatorCreationException {
+    public static String hexDigest(DigestAlgorithm hashAlg, String data) throws IOException {
         return hexDigest(hashAlg, data.getBytes(StandardCharsets.UTF_8));
     }
 }

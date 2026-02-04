@@ -58,7 +58,7 @@ public final class ManagementRequestParser {
      *
      * @param message the request SOAP message
      * @return the authentication certificate registration request
-     * @throws Exception in case of any errors
+     * @throws SOAPException in case of any errors
      */
     public static AuthCertRegRequestType parseAuthCertRegRequest(SoapMessageImpl message) throws SOAPException {
         var serviceCode = ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST.getServiceCode();
@@ -67,7 +67,8 @@ public final class ManagementRequestParser {
 
     /**
      * Parses management request into requested type
-     * @param message the request SOAP message
+     *
+     * @param message     the request SOAP message
      * @param serviceCode management request type
      * @return parsed request
      * @throws SOAPException
@@ -110,10 +111,10 @@ public final class ManagementRequestParser {
      *
      * @param message the request SOAP message
      * @return the authentication certificate deletion request
-     * @throws Exception in case of any errors
+     * @throws SOAPException in case of any errors
      */
     public static AuthCertDeletionRequestType parseAuthCertDeletionRequest(
-            SoapMessageImpl message) throws Exception {
+            SoapMessageImpl message) throws SOAPException {
         return parse(message, ManagementRequestType.AUTH_CERT_DELETION_REQUEST.getServiceCode());
     }
 
@@ -123,10 +124,10 @@ public final class ManagementRequestParser {
      * @param message               the request SOAP message
      * @param managementRequestName name of the management request
      * @return the management request
-     * @throws Exception in case of any errors
+     * @throws SOAPException in case of any errors
      */
     public static ClientRequestType parseRequest(SoapMessageImpl message, String managementRequestName)
-            throws Exception {
+            throws SOAPException {
         return parse(message, managementRequestName);
     }
 

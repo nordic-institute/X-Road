@@ -30,6 +30,7 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,7 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Optional;
 
+@ArchUnitSuppressed("NoVanillaExceptions")
 public interface RequestWrapper {
     InputStream getInputStream();
 
@@ -67,6 +69,7 @@ public interface RequestWrapper {
         };
 
         return new RequestWrapper() {
+
             @Override
             public InputStream getInputStream() {
                 return in;
@@ -98,11 +101,13 @@ public interface RequestWrapper {
             }
 
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions")
             public String getParameter(String name) throws Exception {
                 return Request.getParameters(request).getValue(name);
             }
 
             @Override
+            @ArchUnitSuppressed("NoVanillaExceptions")
             public Map<String, String[]> getParametersMap() throws Exception {
                 return Request.getParameters(request).toStringArrayMap();
             }

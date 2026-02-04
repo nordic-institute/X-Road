@@ -78,6 +78,7 @@ import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
 import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
 import DiagnosticsOverview from '@/views/Diagnostics/Overview/DiagnosticsOverview.vue';
 import TrafficContainer from '@/views/Diagnostics/Traffic/TrafficContainer.vue';
+import ConnectionContainer from "@/views/Diagnostics/Connection/ConnectionContainer.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -179,6 +180,13 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.DiagnosticsTraffic,
             path: 'traffic',
             component: TrafficContainer,
+            props: true,
+            meta: { permissions: [Permissions.DIAGNOSTICS] },
+          },
+          {
+            name: RouteName.DiagnosticsConnection,
+            path: 'connection',
+            component: ConnectionContainer,
             props: true,
             meta: { permissions: [Permissions.DIAGNOSTICS] },
           },

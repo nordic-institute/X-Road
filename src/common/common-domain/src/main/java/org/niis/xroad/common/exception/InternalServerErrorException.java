@@ -29,11 +29,13 @@ package org.niis.xroad.common.exception;
 import ee.ria.xroad.common.HttpStatus;
 
 import lombok.NonNull;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.HttpStatusAware;
+import org.niis.xroad.common.core.exception.DeviationAware;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.core.exception.HttpStatusAware;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
+import java.util.Optional;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Base exception for any manually thrown exception. It has an error message which optionally can be thrown to api layer.
@@ -74,8 +76,8 @@ public class InternalServerErrorException extends ServerErrorException implement
     }
 
     @Override
-    public int getHttpStatus() {
-        return HttpStatus.SC_INTERNAL_SERVER_ERROR;
+    public Optional<HttpStatus> getHttpStatus() {
+        return Optional.of(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

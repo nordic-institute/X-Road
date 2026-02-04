@@ -58,7 +58,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 5;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 6;
 
     /** Minimum supported version number of the global configuration **/
     public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
@@ -125,11 +125,16 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS =
             PREFIX + "proxy-ui-api.acme-certificate-account-key-pair-expiration";
 
-    /** property name of whether the service should listen on port 80 for incoming acme challenge requests */
+    /** property name of whether the service should listen on acme challenge port (default 80) for incoming requests */
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV =
             propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED);
+
+    /** property name of the acme challenge port, default 80.
+     * When changing this, it still needs to me mapped to port 80 externally (e.g. when running in docker container) */
+    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT = PREFIX + "proxy-ui-api.acme-challenge-port";
+    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENV = propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT);
 
     public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
             PREFIX + "proxy-ui-api.acme-renewal-active";
@@ -369,6 +374,12 @@ public final class SystemProperties {
     private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
     public static final String PROXY_MEMORY_USAGE_THRESHOLD = PROXY_PREFIX + "memory-usage-threshold";
 
+    public static final String MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY =
+            PREFIX + "message-log.timestamping-prioritization-strategy";
+    public static final String SIGNER_OCSP_PRIORITIZATION_STRATEGY = SIGNER_PREFIX + "ocsp-prioritization-strategy";
+
+    public enum ServicePrioritizationStrategy { ONLY_FREE, ONLY_PAID, FREE_FIRST, PAID_FIRST, NONE }
+
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
     private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
@@ -487,6 +498,9 @@ public final class SystemProperties {
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
     public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
+    public static final String DEFAULT_DOWNLOADER_READ_TIMEOUT = "30000";
+    public static final String DEFAULT_DOWNLOADER_CONNECT_TIMEOUT = "10000";
+
     // AntiDos ----------------------------------------------------------------
 
     /** Property name of the AntiDos on/off switch */
@@ -529,6 +543,12 @@ public final class SystemProperties {
     public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
             PREFIX + "configuration-client.global-conf-hostname-verification";
 
+    public static final String CONFIGURATION_CLIENT_DOWNLOADER_READ_TIMEOUT =
+            PREFIX + "configuration-client.downloader-read-timeout";
+
+    public static final String CONFIGURATION_CLIENT_DOWNLOADER_CONNECT_TIMEOUT =
+            PREFIX + "configuration-client.downloader-connect-timeout";
+
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
 
@@ -563,6 +583,20 @@ public final class SystemProperties {
 
     /** Property name of enabling automatic approval of owner change requests. */
     public static final String CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = CENTER_PREFIX + "auto-approve-owner-change-requests";
+
+    // Admin-Service ----------------------------------------------------------
+
+    /*
+        Note that most of the [admin-service] properties are handled by the AdminServiceProperties class inside that
+        module. These properties are special because they are used to configure a common module using the centralised
+        getters in this file.
+     */
+
+    /** Property name of the whitelist for Center admin service API's key management API */
+    public static final String ADMIN_SERVICE_KEY_MANAGEMENT_API_WHITELIST = PREFIX + "admin-service.key-management-api-whitelist";
+
+    /** Property name of the whitelist for Center admin service API's regular APIs */
+    public static final String ADMIN_SERVICE_REGULAR_API_WHITELIST = PREFIX + "admin-service.regular-api-whitelist";
 
     // Misc -------------------------------------------------------------------
 
@@ -853,21 +887,21 @@ public final class SystemProperties {
     }
 
     /**
-     * TO DO: not correct, fix
-     *
-     * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
+     * @return whitelist for Proxy or Center UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
      */
     public static String getKeyManagementApiWhitelist() {
         return System.getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
-                DEFAULT_KEY_MANAGEMENT_API_WHITELIST);
+                System.getProperty(ADMIN_SERVICE_KEY_MANAGEMENT_API_WHITELIST,
+                        DEFAULT_KEY_MANAGEMENT_API_WHITELIST));
     }
 
     /**
-     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
+     * @return whitelist for Proxy or Center UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
      */
     public static String getRegularApiWhitelist() {
         return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
-                DEFAULT_REGULAR_API_WHITELIST);
+                System.getProperty(ADMIN_SERVICE_REGULAR_API_WHITELIST,
+                        DEFAULT_REGULAR_API_WHITELIST));
     }
 
     /**
@@ -910,6 +944,12 @@ public final class SystemProperties {
         String isAcmeChallengePortEnabled = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV))
                 .orElse(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, FALSE));
         return TRUE.equalsIgnoreCase(isAcmeChallengePortEnabled);
+    }
+
+    public static int getAcmeChallengePort() {
+        String acmeChallengePort = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENV))
+                .orElse(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT, "80"));
+        return Integer.parseInt(acmeChallengePort);
     }
 
     /**
@@ -1343,6 +1383,14 @@ public final class SystemProperties {
 
     public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
         return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, TRUE));
+    }
+
+    public static int getConfigurationClientDownloaderReadTimeout() {
+        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_DOWNLOADER_READ_TIMEOUT, DEFAULT_DOWNLOADER_READ_TIMEOUT));
+    }
+
+    public static int getConfigurationClientDownloaderConnectTimeout() {
+        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_DOWNLOADER_CONNECT_TIMEOUT, DEFAULT_DOWNLOADER_CONNECT_TIMEOUT));
     }
 
     public static String getConfigurationClientAllowedFederations() {
@@ -1978,6 +2026,22 @@ public final class SystemProperties {
         return Optional.ofNullable(System.getProperty(PROXY_MEMORY_USAGE_THRESHOLD))
                 .map(Long::parseLong)
                 .orElse(null);
+    }
+
+    public static ServicePrioritizationStrategy getTimestampingPrioritizationStrategy() {
+        return getServicePrioritizationStrategy(MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY);
+    }
+
+    public static ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        return getServicePrioritizationStrategy(SIGNER_OCSP_PRIORITIZATION_STRATEGY);
+    }
+
+
+    private static ServicePrioritizationStrategy getServicePrioritizationStrategy(String systemPropertyName) {
+        return Arrays.stream(ServicePrioritizationStrategy.values())
+                .filter(e -> e.name().equalsIgnoreCase(System.getProperty(systemPropertyName)))
+                .findAny()
+                .orElse(ServicePrioritizationStrategy.NONE);
     }
 
     /**

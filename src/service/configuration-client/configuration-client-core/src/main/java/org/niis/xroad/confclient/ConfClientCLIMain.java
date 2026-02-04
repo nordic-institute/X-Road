@@ -34,6 +34,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.niis.xroad.confclient.core.ConfigurationClientCLI;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
@@ -61,9 +62,8 @@ public class ConfClientCLIMain {
      * 3) <anchor file> -- in validate mode.
      *
      * @param args the arguments
-     * @throws Exception if an error occurs
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws ParseException {
         Version.outputVersionInfo(APP_NAME);
         CommandLine cmd = getCommandLine(args);
         String[] actualArgs = cmd.getArgs();
@@ -83,7 +83,7 @@ public class ConfClientCLIMain {
         System.exit(result);
     }
 
-    private static CommandLine getCommandLine(String[] args) throws Exception {
+    private static CommandLine getCommandLine(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
 

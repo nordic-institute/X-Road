@@ -48,7 +48,9 @@ import org.niis.xroad.proxy.core.signedmessage.Signer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -152,7 +154,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     @Override
-    public void signature(SignatureData signature) throws Exception {
+    public void signature(SignatureData signature) throws IOException {
         log.trace("signature()");
 
         endAttachments();
@@ -187,20 +189,19 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      * Encode rest message body
      *
      * @param content
-     * @throws Exception
      */
     @Override
-    public void restBody(InputStream content) throws Exception {
+    public void restBody(InputStream content) throws IOException {
         restBody(new byte[0], 0, content);
     }
 
     /**
      * Encode rest message body
+     *
      * @param head first byte(s)
      * @param rest rest of the body
-     * @throws Exception
      */
-    public void restBody(byte[] head, int count, InputStream rest) throws Exception {
+    public void restBody(byte[] head, int count, InputStream rest) throws IOException {
         final DigestCalculator calc = createDigestCalculator(hashAlgoId);
         final CountingOutputStream cos = new CountingOutputStream(calc.getOutputStream());
 
@@ -237,7 +238,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     @Override
     public void soap(SoapMessageImpl message,
-                     Map<String, String> additionalHeaders) throws Exception {
+                     Map<String, String> additionalHeaders) throws UnsupportedEncodingException {
         if (log.isTraceEnabled()) {
             log.trace("writeSoapMessage({})", message.getXml());
         }
@@ -256,7 +257,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     @Override
     public void attachment(String contentType, InputStream content,
-                           Map<String, String> additionalHeaders) throws Exception {
+                           Map<String, String> additionalHeaders) throws IOException {
         log.trace("writeAttachment({})", contentType);
 
         if (!inAttachmentPart) {
@@ -279,7 +280,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     @Override
-    public void fault(SoapFault fault) throws Exception {
+    public void fault(SoapFault fault) throws IOException {
         fault(fault.getXml());
     }
 
@@ -287,9 +288,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      * Write the SOAP fault XML string to the output stream.
      *
      * @param faultXml SOAP fault XML string
-     * @throws Exception in case of any errors
      */
-    public void fault(String faultXml) throws Exception {
+    public void fault(String faultXml) throws IOException {
         log.trace("writeFault({})", faultXml);
 
         // We assume that the SOAP message is already sent.
@@ -312,9 +312,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      * Signs all the parts. Call after adding SOAP message and attachments.
      *
      * @param securityCtx signing context to use when signing the parts
-     * @throws Exception in case of any errors
      */
-    public void sign(SigningCtx securityCtx) throws Exception {
+    public void sign(SigningCtx securityCtx) throws CertificateEncodingException, IOException {
         log.trace("sign()");
 
         signer.sign(securityCtx);

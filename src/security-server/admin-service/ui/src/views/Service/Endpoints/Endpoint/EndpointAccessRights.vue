@@ -55,7 +55,7 @@
     <table class="xrd-table mb-4">
       <thead>
         <tr>
-          <th>{{ $t('accessRights.memberName') }}</th>
+          <th>{{ $t('accessRights.subsystemName') }}</th>
           <th>{{ $t('accessRights.id') }}</th>
           <th>{{ $t('accessRights.rightsGiven') }}</th>
           <th></th>

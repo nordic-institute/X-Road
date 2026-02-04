@@ -38,6 +38,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.List;
 
 @Slf4j
@@ -49,12 +53,13 @@ import java.util.List;
 public class OpMonitorDaemonRootConfig {
 
     @Bean
-    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws NoSuchAlgorithmException, KeyManagementException {
         return new OpMonitorDaemon(globalConfProvider);
     }
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         return RpcServer.newServer(
                 OpMonitoringSystemProperties.getOpMonitorHost(),
                 OpMonitoringSystemProperties.getOpMonitorGrpcPort(),

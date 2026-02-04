@@ -106,7 +106,7 @@ public class LogArchiver implements Job {
                 .executeUpdate();
     }
 
-    private boolean handleArchive(long maxRecordId) throws Exception {
+    private boolean handleArchive(long maxRecordId) {
         return doInTransaction(session -> {
             final int limit = getArchiveTransactionBatchSize();
             final String archiveTransferCommand = getArchiveTransferCommand();

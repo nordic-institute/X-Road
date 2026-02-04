@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +66,7 @@ public class ConfigurationOverridesCollector implements DiagnosticCollector<List
             }
             return keys;
         } catch (IOException | ConfigurationException e) {
-            throw new RuntimeException("Failed to read local.ini file", e);
+            throw XrdRuntimeException.systemInternalError("Failed to read local.ini file", e);
         }
     }
 }

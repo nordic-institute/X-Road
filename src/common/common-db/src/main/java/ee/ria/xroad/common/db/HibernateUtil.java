@@ -141,7 +141,7 @@ public final class HibernateUtil {
 
     }
 
-    private static SessionFactoryCtx createSessionFactoryCtx(String name, Interceptor interceptor) throws Exception {
+    private static SessionFactoryCtx createSessionFactoryCtx(String name, Interceptor interceptor) throws IOException {
         log.trace("Creating session factory for '{}'...", name);
 
         Configuration configuration = createEmptyConfiguration();

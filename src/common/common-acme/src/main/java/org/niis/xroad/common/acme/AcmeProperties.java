@@ -25,18 +25,31 @@
  */
 package org.niis.xroad.common.acme;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.exception.NotFoundException;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACME_YAML_MISSING;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
 
 @Getter
 @Setter
 public class AcmeProperties {
+
+    public static final int ACCOUNT_KEYSTORE_PASSWORD_LENGTH = 24;
 
     private EabCredentials eabCredentials;
     private Map<String, String> contacts;
@@ -100,4 +113,44 @@ public class AcmeProperties {
                 .orElse(null);
     }
 
+    public char[] createNewAccountKeystorePassword() {
+        String newAccountKeystorePassword = CryptoUtils.generateRandomPassword(ACCOUNT_KEYSTORE_PASSWORD_LENGTH);
+
+        Path acmeYaml = Paths.get(SystemProperties.getConfPath(), "conf.d/acme.yml");
+
+        if (!Files.exists(acmeYaml)) {
+            throw new AcmeServiceException(ACME_YAML_MISSING.build());
+
+        }
+
+        try {
+            updateAccountKeystorePasswordInAcmeYaml(acmeYaml, newAccountKeystorePassword);
+        } catch (IOException e) {
+            throw new AcmeServiceException(e, ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR.build());
+        }
+
+        setAccountKeystorePassword(newAccountKeystorePassword);
+
+        return accountKeystorePassword.toCharArray();
+    }
+
+    private void updateAccountKeystorePasswordInAcmeYaml(Path acmeYaml, String newAccountKeystorePassword) throws IOException {
+        List<String> lines = Files.readAllLines(acmeYaml, StandardCharsets.UTF_8);
+        boolean updated = false;
+
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line.startsWith("account-keystore-password:")) {
+                lines.set(i, "account-keystore-password: " + newAccountKeystorePassword);
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            lines.add("account-keystore-password: " + newAccountKeystorePassword);
+        }
+
+        Files.write(acmeYaml, lines, StandardCharsets.UTF_8);
+    }
 }

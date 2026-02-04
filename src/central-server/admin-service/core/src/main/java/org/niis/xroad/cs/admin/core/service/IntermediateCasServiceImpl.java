@@ -53,6 +53,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OCSP_RESPONDER_
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
@@ -100,6 +101,7 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
         final OcspInfoEntity ocspInfoEntity = new OcspInfoEntity(intermediateCa, ocspResponderRequest.getUrl(),
                 ocspResponderRequest.getCertificate());
 
+        ocspInfoEntity.setCostType(ocspResponderRequest.getCostType().name());
         ocspInfoEntity.setCaInfo(intermediateCa);
 
         final OcspInfoEntity savedOcspInfo = ocspInfoRepository.save(ocspInfoEntity);
@@ -125,6 +127,7 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
         auditDataHelper.put(INTERMEDIATE_CA_ID, intermediateCaId);
         auditDataHelper.put(OCSP_ID, savedOcspInfo.getId());
         auditDataHelper.put(OCSP_URL, savedOcspInfo.getUrl());
+        auditDataHelper.put(OCSP_COST_TYPE, savedOcspInfo.getCostType());
         if (savedOcspInfo.getCert() != null) {
             auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(savedOcspInfo.getCert()));
             auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);

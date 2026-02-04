@@ -39,7 +39,7 @@ public class GetTokenBatchSigningEnabledReqHandler
         extends AbstractRpcHandler<GetTokenBatchSigningEnabledReq, GetTokenBatchSigningEnabledResp> {
 
     @Override
-    protected GetTokenBatchSigningEnabledResp handle(GetTokenBatchSigningEnabledReq request) throws Exception {
+    protected GetTokenBatchSigningEnabledResp handle(GetTokenBatchSigningEnabledReq request) {
         String tokenId = TokenManager.findTokenIdForKeyId(request.getKeyId());
 
         return GetTokenBatchSigningEnabledResp.newBuilder()

@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
@@ -45,7 +46,6 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 
@@ -57,6 +57,7 @@ import java.util.Set;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.FAILURE;
 import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.SUCCESS;
 import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.UNKNOWN;
@@ -81,8 +82,8 @@ class NotificationServiceImplTest {
     private NotificationServiceImpl notificationService;
 
     @Test
-    void getAlertsSignerException() throws Exception {
-        when(signerProxyFacade.getTokens()).thenThrow(new SignerException("Error"));
+    void getAlertsSignerException() {
+        when(signerProxyFacade.getTokens()).thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -91,7 +92,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsAllOk() throws Exception {
+    void getAlertsAllOk() {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
@@ -111,7 +112,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsAllFail() throws Exception {
+    void getAlertsAllFail() {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id-other");
         mockInitialized(true, true);
@@ -136,7 +137,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsTokenNotActive() throws Exception {
+    void getAlertsTokenNotActive() {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(false, true);
@@ -159,7 +160,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsKeyNotActiveConfStatusUnknown() throws Exception {
+    void getAlertsKeyNotActiveConfStatusUnknown() {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, false);
@@ -183,7 +184,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsGlobalConfExpired() throws Exception {
+    void getAlertsGlobalConfExpired() {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
@@ -204,7 +205,7 @@ class NotificationServiceImplTest {
         }
     }
 
-    private void mockInitialized(boolean tokenActive, boolean keyAvailable) throws Exception {
+    private void mockInitialized(boolean tokenActive, boolean keyAvailable) {
         KeyInfoProto keyinfo = KeyInfoProto.newBuilder()
                 .setAvailable(keyAvailable)
                 .setUsage(SIGNING)

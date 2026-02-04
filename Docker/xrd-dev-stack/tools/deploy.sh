@@ -34,7 +34,7 @@ deploy_module() {
     service_name="xroad-proxy-ui-api"
     ;;
   "signer")
-    jar_path="$XROAD_HOME/src/service/signer/service-application/build/libs/signer-1.0.jar"
+    jar_path="$XROAD_HOME/src/service/signer/signer-application/build/libs/signer-1.0.jar"
     service_name="xroad-signer"
     ;;
   "configuration-client")

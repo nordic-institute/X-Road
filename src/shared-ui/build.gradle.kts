@@ -11,7 +11,7 @@ frontend {
   nodeDistributionUrlRoot.set("https://artifactory.niis.org/artifactory/nodejs-dist-remote/")
   maxDownloadAttempts.set(3)
 
-  corepackVersion.set("0.31.0")
+  corepackVersion.set("0.34.0")
   packageJsonDirectory.set(file("${rootDir}/"))
   if (System.getenv().containsKey("CI")) {
     installScript.set("install --frozen-lockfile")

@@ -29,6 +29,13 @@
         <property name="message" value="Line has trailing spaces."/>
     </module>
 
+    <!-- Custom rule to detect @SneakyThrows usage -->
+    <module name="RegexpSingleline">
+        <property name="id" value="SneakyThrowsCheck"/>
+        <property name="format" value="@SneakyThrows"/>
+        <property name="message" value="Use of @SneakyThrows is not allowed."/>
+    </module>
+
     <module name="SuppressWarningsFilter" />
 
     <module name="LineLength">
@@ -120,6 +127,7 @@
         <module name="HiddenField">
             <property name="ignoreConstructorParameter" value="true"/>
             <property name="ignoreSetter" value="true"/>
+            <property name="setterCanReturnItsClass" value="true"/>
         </module>
         <module name="InnerAssignment"/>
         <module name="MagicNumber">

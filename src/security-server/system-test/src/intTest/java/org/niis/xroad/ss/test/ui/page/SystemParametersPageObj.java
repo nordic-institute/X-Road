@@ -66,13 +66,41 @@ public class SystemParametersPageObj {
         return tableTimestampingServicesRows().get(index).$x(format("./td[2][text() = '%s']", url));
     }
 
+    public SelenideElement tableTimestampingServiceCostTypeByRow(int index, String costType) {
+        return tableTimestampingServicesRows().get(index).$x(format("./td[3][text() = '%s']", costType));
+    }
+
     public SelenideElement btnDeleteTimestampingServicesByRow(int index) {
         return $$x("//tr[@data-test='system-parameters-timestamping-service-row']")
                 .get(index).$x(".//button[@data-test='system-parameters-timestamping-service-delete-button']");
     }
 
+    public SelenideElement timestampingPrioritizationStrategy() {
+        return $x("//strong[@data-test='timestamping-prioritization-strategy']");
+    }
+
     public SelenideElement toggleMaintenanceMode() {
         return $x("//div[@data-test='maintenance-mode-switch']");
+    }
+
+    public ElementsCollection tableApprovedCasRows() {
+        return $$x("//tr[@data-test='system-parameters-approved-ca-row']");
+    }
+
+    public SelenideElement tableApprovedCasNameByRow(int index, String name) {
+        return tableApprovedCasRows().get(index).$x(format("./td[1][text() = '%s']", name));
+    }
+
+    public SelenideElement tableApprovedCasOcspUrlByRow(int index, String url) {
+        return tableApprovedCasRows().get(index).$x(format("./td[3]//*[text() = '%s']", url));
+    }
+
+    public SelenideElement tableApprovedCasOcspCostTypeByRow(int index, String costType) {
+        return tableApprovedCasRows().get(index).$x(format("./td[4]//*[text() = '%s']", costType));
+    }
+
+    public SelenideElement ocspPrioritizationStrategy() {
+        return $x("//strong[@data-test='ocsp-prioritization-strategy']");
     }
 
     public static class DialogEditServerAddress {

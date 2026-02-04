@@ -44,6 +44,7 @@ import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -67,6 +68,7 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class CertHashBasedOcspResponder implements InitializingBean, DisposableBean {
 
     private static final String METHOD_HEAD = "HEAD";
@@ -164,6 +166,7 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         }
     }
 
+    @ArchUnitSuppressed("NoVanillaExceptions")
     private final class RequestHandler extends Handler.Abstract {
         @Override
         public boolean handle(Request request, Response response, Callback callback) {

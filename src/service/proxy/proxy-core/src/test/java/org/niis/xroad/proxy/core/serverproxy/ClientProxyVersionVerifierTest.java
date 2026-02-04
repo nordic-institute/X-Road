@@ -75,7 +75,7 @@ public class ClientProxyVersionVerifierTest {
         when(headers.get(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_6_26_3);
 
         CodedException exception = assertThrows(CodedException.class, () -> new ClientProxyVersionVerifier(VERSION_7_1_3).check(request));
-        assertEquals("ClientProxyVersionNotSupported: The minimum supported version for client security server is: 7.1.3 ",
-                exception.getMessage());
+        assertEquals("client_proxy_version_not_supported", exception.getFaultCode());
+        assertEquals("The minimum supported version for client security server is: 7.1.3 ", exception.getFaultString());
     }
 }

@@ -96,10 +96,9 @@ public class OcspVerifierTest {
     /**
      * Test that verifying OCSP response against an invalid response signature
      * fails.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void errorInvalidResponseSignature() throws Exception {
+    public void errorInvalidResponseSignature() {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD);
 
@@ -111,10 +110,9 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying fails if signer info mismatches.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void errorSignerIdentityMismatch() throws Exception {
+    public void errorSignerIdentityMismatch() {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 issuer, signerKey, CertificateStatus.GOOD);
 
@@ -126,10 +124,9 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying fails if signer is unauthorized.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void errorSignerUnauthorized() throws Exception {
+    public void errorSignerUnauthorized() {
         // we now sign the response with a cert that has been
         // issued by another CA
         X509Certificate anotherSignerCert = TestCertUtil.getCa2TestOrg().certChain[0];

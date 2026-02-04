@@ -52,6 +52,9 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
         'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
       },
     },
+    html: {
+      cspNonce: '__CSP_NONCE__',
+    },
     css: {
       preprocessorOptions: {
         scss: {
@@ -61,6 +64,7 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
     },
     build: {
       cssCodeSplit: false,
+      sourcemap: true,
       rollupOptions: {
         output: {
           manualChunks: function manualChunks(id) {

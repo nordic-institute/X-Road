@@ -31,7 +31,7 @@ import { createVuetify } from 'vuetify';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { i18n, Colors } from '@niis/shared-ui';
+import { i18n, Colors, getNonce } from '@niis/shared-ui';
 
 export default createVuetify({
   defaults: {
@@ -59,6 +59,7 @@ export default createVuetify({
     adapter: createVueI18nAdapter({ i18n, useI18n }),
   },
   theme: {
+    cspNonce: getNonce(),
     themes: {
       light: {
         dark: false,

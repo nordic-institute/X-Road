@@ -45,7 +45,7 @@ public class DeleteCertRequestReqHandler
         extends AbstractRpcHandler<DeleteCertRequestReq, Empty> {
 
     @Override
-    protected Empty handle(DeleteCertRequestReq request) throws Exception {
+    protected Empty handle(DeleteCertRequestReq request) {
         deleteCertRequest(request.getCertRequestId());
 
         return Empty.getDefaultInstance();

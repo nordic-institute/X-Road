@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.confclient.core;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
@@ -112,7 +114,7 @@ class ConfigurationDownloaderTest {
     void downloaderConnectionsTimeout() throws IOException {
         URLConnection connection = getDownloader().getDownloadURLConnection(
                 createURL("http://test.download.com"));
-        assertEquals(ConfigurationDownloader.READ_TIMEOUT, connection.getReadTimeout());
+        assertEquals(SystemProperties.getConfigurationClientDownloaderReadTimeout(), connection.getReadTimeout());
         assertTrue(connection.getReadTimeout() > 0);
     }
 
@@ -149,15 +151,15 @@ class ConfigurationDownloaderTest {
     private void verifyOnlyOneSuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedLocationVersion));
     }
 
-    private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
+    private Matcher<List<String>> hasOnlyOneSuccessfulUrl(int version) {
         return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
                 return parsedUrls.size() == 1
-                        && parsedUrls.contains(url + "?version=" + version);
+                        && parsedUrls.contains(ConfigurationDownloaderTest.LOCATION_HTTPS_URL_SUCCESS + "?version=" + version);
             }
 
             @Override

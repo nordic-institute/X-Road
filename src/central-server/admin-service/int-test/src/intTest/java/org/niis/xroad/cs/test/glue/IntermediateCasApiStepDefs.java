@@ -32,6 +32,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
 import org.niis.xroad.cs.test.api.FeignIntermediateCasApi;
@@ -154,7 +155,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final String url = "https://" + UUID.randomUUID();
 
         final ResponseEntity<OcspResponderDto> response = intermediateCasApi
-                .addIntermediateCaOcspResponder(intermediateCaId, url, certificate);
+                .addIntermediateCaOcspResponder(intermediateCaId, url, CostTypeDto.UNDEFINED, certificate);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))

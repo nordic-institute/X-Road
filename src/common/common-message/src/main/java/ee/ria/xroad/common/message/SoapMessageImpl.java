@@ -30,7 +30,9 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.xml.soap.SOAPMessage;
-import lombok.SneakyThrows;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
@@ -52,12 +54,16 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
     /**
      * Lazy method to retrieve the hash of the message, will calculate it
      * on the first invocation of the method.
+     *
      * @return hash of the message
      */
-    @SneakyThrows
     public byte[] getHash() {
         if (hash == null) {
-            hash = calculateDigest(SoapUtils.getHashAlgoId(), getBytes());
+            try {
+                hash = calculateDigest(SoapUtils.getHashAlgoId(), getBytes());
+            } catch (IOException e) {
+                throw XrdRuntimeException.systemException(e);
+            }
         }
         return hash;
     }
@@ -82,6 +88,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     /**
      * Gets the security server ID in the SOAP message header.
+     *
      * @return SecurityServerId
      */
     public SecurityServerId.Conf getSecurityServer() {
@@ -108,6 +115,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     /**
      * Gets the represented party from the SOAP message header.
+     *
      * @return RepresentedParty
      */
     public RepresentedParty getRepresentedParty() {
@@ -116,6 +124,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     /**
      * Gets the issue from the SOAP message header.
+     *
      * @return String
      */
     public String getIssue() {
@@ -124,6 +133,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     /**
      * Gets the protocol version from the SOAP message header.
+     *
      * @return String
      */
     public String getProtocolVersion() {

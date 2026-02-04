@@ -39,6 +39,7 @@ import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,7 +66,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     /**
      * Constructs a confproxy-generate-anchor utility program instance.
      */
-    ConfProxyUtilViewConf(SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilViewConf(SignerRpcClient signerRpcClient) {
         super("confproxy-view-conf", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
@@ -74,7 +75,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     }
 
     @Override
-    final void execute(final CommandLine commandLine) throws Exception {
+    final void execute(final CommandLine commandLine) throws IOException, URISyntaxException {
         if (commandLine.hasOption(PROXY_INSTANCE.getOpt())) {
             ensureProxyExists(commandLine);
             ConfProxyProperties conf = loadConf(commandLine);
@@ -99,12 +100,13 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
 
     /**
      * Print the configuration proxy instance properties to the commandline.
+     *
      * @param instance configuration proxy instance name
-     * @param conf configuration proxy properties instance
+     * @param conf     configuration proxy properties instance
      * @throws Exception if errors occur when reading properties
      */
     private void displayInfo(final String instance,
-                             final ConfProxyProperties conf) throws Exception {
+                             final ConfProxyProperties conf) throws IOException, URISyntaxException {
         ConfigurationAnchor anchor = null;
         String anchorError = null;
         try {
@@ -168,8 +170,9 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     /**
      * Generates a string that describes the certificate information for the
      * provided key id.
+     *
      * @param keyId the key id
-     * @param conf configuration proxy properties instance
+     * @param conf  configuration proxy properties instance
      * @return string describing certificate information
      */
     private String certInfo(final String keyId,
@@ -197,11 +200,12 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     /**
      * Generates a colon delimited hex string describing the anchor file for
      * the given proxy instance.
+     *
      * @param conf configuration proxy properties instance
      * @return colon delimited hex string describing the anchor file
      * @throws Exception if the hash could not be computed
      */
-    private String anchorHash(final ConfProxyProperties conf) throws Exception {
+    private String anchorHash(final ConfProxyProperties conf) throws IOException {
         byte[] anchorBytes = null;
         try {
             Path anchorPath = Paths.get(conf.getProxyAnchorPath());

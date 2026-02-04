@@ -41,7 +41,7 @@ import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
-import validation from '@/plugins/vee-validate';
+import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
 import {
   i18n,
@@ -80,7 +80,7 @@ const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.use(vuetify);
-app.use(validation);
+app.use(createValidators());
 app.use(createFilters());
 app.use(provider);
 //icons

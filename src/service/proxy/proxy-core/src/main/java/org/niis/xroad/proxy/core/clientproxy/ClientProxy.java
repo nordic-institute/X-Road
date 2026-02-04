@@ -54,6 +54,8 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
@@ -80,6 +82,7 @@ import java.util.Optional;
  * Client proxy that handles requests of service clients.
  */
 @Slf4j
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class ClientProxy implements InitializingBean, DisposableBean {
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -295,7 +298,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
 
                     handlers.add(handlerLoader.loadHandler(handlerClassName, client));
                 } catch (Exception e) {
-                    throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
+                    throw XrdRuntimeException.systemInternalError("Failed to load client handler: " + handlerClassName, e);
                 }
             }
         }

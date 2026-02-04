@@ -108,8 +108,7 @@ public class QueryRequestHandlerTest {
             }
 
             @Override
-            protected ClientId getClientForFilter(ClientId clientId,
-                                                  SecurityServerId serverId) throws Exception {
+            protected ClientId getClientForFilter(ClientId clientId, SecurityServerId serverId) {
                 return null;
             }
         };
@@ -133,7 +132,7 @@ public class QueryRequestHandlerTest {
 
                     @Override
                     public void attachment(String contentType, InputStream content,
-                                           Map<String, String> additionalHeaders) throws Exception {
+                                           Map<String, String> additionalHeaders) {
                         String expectedCid = "<" + OperationalDataRequestHandler.CID
                                 + ">";
                         assertEquals(expectedCid, additionalHeaders.get("content-id"));

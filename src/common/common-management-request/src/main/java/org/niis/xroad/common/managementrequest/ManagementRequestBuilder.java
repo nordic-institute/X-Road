@@ -45,12 +45,16 @@ import ee.ria.xroad.common.request.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 import javax.xml.namespace.QName;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.ADDRESS_CHANGE_REQUEST;
@@ -80,20 +84,22 @@ final class ManagementRequestBuilder {
 
     // -- Public API methods --------------------------------------------------
 
-    SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
-            throws Exception {
+    SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert, boolean dryRun)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
         var request = FACTORY.createAuthCertRegRequestType();
         request.setServer(securityServer);
         request.setAddress(address);
         request.setAuthCert(authCert);
+        request.setDryRun(dryRun);
 
         return buildMessage(element(AUTH_CERT_REGISTRATION_REQUEST, AuthCertRegRequestType.class, request));
     }
 
     SoapMessageImpl buildAuthCertDeletionRequest(SecurityServerId.Conf securityServer,
-                                                 byte[] authCert) throws Exception {
+                                                 byte[] authCert)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildAuthCertDeletionRequest(server: {})", securityServer);
 
         var request = FACTORY.createAuthCertDeletionRequestType();
@@ -103,7 +109,8 @@ final class ManagementRequestBuilder {
         return buildMessage(element(AUTH_CERT_DELETION_REQUEST, AuthCertDeletionRequestType.class, request));
     }
 
-    SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf client, String clientName) throws Exception {
+    SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf client, String clientName)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildClientRegRequest(server: {}, client: {})", securityServer, client);
 
         var request = FACTORY.createClientRegRequestType();
@@ -115,7 +122,8 @@ final class ManagementRequestBuilder {
     }
 
     SoapMessageImpl buildClientDeletionRequest(SecurityServerId.Conf securityServer,
-                                               ClientId.Conf client) throws Exception {
+                                               ClientId.Conf client)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildClientDeletionRequest(server: {}, client: {})", securityServer, client);
 
         var request = FACTORY.createClientRequestType();
@@ -126,7 +134,8 @@ final class ManagementRequestBuilder {
     }
 
     SoapMessageImpl buildOwnerChangeRequest(SecurityServerId.Conf securityServer,
-                                            ClientId.Conf client) throws Exception {
+                                            ClientId.Conf client)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildOwnerChangeRequest(server: {}, client: {})", securityServer, client);
 
         var request = FACTORY.createClientRequestType();
@@ -137,7 +146,8 @@ final class ManagementRequestBuilder {
     }
 
     SoapMessageImpl buildClientDisableRequest(SecurityServerId.Conf securityServer,
-                                              ClientId.Conf client) throws Exception {
+                                              ClientId.Conf client)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildClientDisableRequest(server: {}, client: {})", securityServer, client);
 
         var request = FACTORY.createClientRequestType();
@@ -148,7 +158,8 @@ final class ManagementRequestBuilder {
     }
 
     SoapMessageImpl buildClientEnableRequest(SecurityServerId.Conf securityServer,
-                                             ClientId.Conf client) throws Exception {
+                                             ClientId.Conf client)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildClientEnableRequest(server: {}, client: {})", securityServer, client);
 
         var request = FACTORY.createClientRequestType();
@@ -159,7 +170,8 @@ final class ManagementRequestBuilder {
     }
 
     SoapMessageImpl buildClientRenameRequest(SecurityServerId.Conf securityServer,
-                                             ClientId.Conf client, String subsystemName) throws Exception {
+                                             ClientId.Conf client, String subsystemName)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildClientRenameRequest(server: {}, client: {}, clientName: {})", securityServer, client, subsystemName);
 
         var request = FACTORY.createClientRenameRequestType();
@@ -171,7 +183,8 @@ final class ManagementRequestBuilder {
     }
 
 
-    SoapMessageImpl buildAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {
+    SoapMessageImpl buildAddressChangeRequest(SecurityServerId.Conf securityServer, String address)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildAddressChangeRequest(server: {}, address: {})", securityServer, address);
 
         var request = FACTORY.createAddressChangeRequestType();
@@ -180,7 +193,8 @@ final class ManagementRequestBuilder {
         return buildMessage(element(ADDRESS_CHANGE_REQUEST, AddressChangeRequestType.class, request));
     }
 
-    SoapMessageImpl buildMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
+    SoapMessageImpl buildMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildMaintenanceModeEnableRequest(server: {}, message: {})", securityServer, message);
 
         var request = FACTORY.createMaintenanceModeEnableRequestType();
@@ -189,7 +203,8 @@ final class ManagementRequestBuilder {
         return buildMessage(element(MAINTENANCE_MODE_ENABLE_REQUEST, MaintenanceModeEnableRequestType.class, request));
     }
 
-    SoapMessageImpl buildMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
+    SoapMessageImpl buildMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         log.debug("buildMaintenanceModeDisableRequest(server: {})", securityServer);
 
         var request = FACTORY.createMaintenanceModeDisableRequestType();
@@ -198,8 +213,8 @@ final class ManagementRequestBuilder {
     }
 
     // -- Private helper methods ----------------------------------------------
-
-    SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) throws Exception {
+    SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement)
+            throws SOAPException, JAXBException, IOException, IllegalAccessException {
         String serviceCode = bodyJaxbElement.getName().getLocalPart();
         ServiceId.Conf service = ServiceId.Conf.create(receiver, serviceCode);
 
@@ -224,7 +239,7 @@ final class ManagementRequestBuilder {
         return UUID.randomUUID().toString();
     }
 
-    private static Marshaller getMarshaller() throws Exception {
+    private static Marshaller getMarshaller() throws JAXBException {
         return JAXB_CTX.createMarshaller();
     }
 
@@ -236,7 +251,7 @@ final class ManagementRequestBuilder {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 }

@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.49  
+Version: 2.52  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -75,6 +75,9 @@ Doc. ID: UG-CS
 | 15.01.2025 | 2.47    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
 | 09.03.2025 | 2.48    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius |
 | 21.03.2025 | 2.49    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                                                      | Pauline Dimmek       |
+| 09.09.2025 | 2.50    | Add information about trust services                                                                                                                                                                                                                                                                                                                                                                                                    | Petteri Kivimäki     |
+| 20.10.2025 | 2.51    | Add information about paid and free tsp and ocsp responders                                                                                                                                                                                                                                                                                                                                                                             | Mikk-Erik Bachmann   |
+| 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1027,6 +1030,38 @@ To delete a global group, follow these steps.
 
 ## 10. Managing the Approved Certification Services
 
+A Certification Authority (CA) issues certificates to Security Servers (authentication certificates) and to X-Road member organizations (signing certificates). Authentication certificates secure the TLS connection between two Security Servers, while signing certificates are used to digitally sign messages sent by X-Road members. Only certificates issued by an approved CA, as defined on the Central Server by the X-Road operator, may be used. Information about approved CAs is distributed to the Security Servers via the global configuration. All approved CAs must comply with the [technical requirements](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/16252930/What+Are+the+Technical+Requirements+for+Trust+Service+Providers#Certification-Authority) defined by X-Road.
+
+**Certificate Chains**
+
+In X-Road, the certificate chain may consist of either two or three levels. The chain has two levels when authentication (3) and signing certificates (3) are issued directly by a root CA (1), and three levels when they are issued by an intermediate CA (2).
+
+> Root CA (1) → Intermediate CA (2) → End certificate (3)
+
+If both the root CA (1) and the intermediate CA (2) are configured separately as top-level approved CAs, the system still treats the intermediate (2) as an intermediate certificate, even though it is configured as a top-level CA. In other words, the outcome is the same as if (2) had been configured as an intermediate of (1). Conversely, if (2) is configured as a top-level approved CA but (1) is not included in the configuration, then (2) is treated as a root CA.
+
+**OCSP Checks**
+
+The Security Server verifies the validity of signing and authentication certificates using the Online Certificate Status Protocol (OCSP). The OCSP responder service that provides certificate status information is maintained by the issuing CA. The details of the OCSP checks depend on the [configuration](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/858226698/How+Is+the+OCSP+Responder+Service+Used+in+X-Road) of the Central Server.
+
+Understanding how the certificate chain works and how certificates are treated is important, because it affects how OCSP checks are performed. In X-Road, both end certificates (3) and intermediate certificates (2) require OCSP responses. When a Security Server checks an end certificate (3), it first uses the OCSP responder configured for its issuer (2). If none is configured, it falls back to the Authority Information Access (AIA) data in the certificate, if available. Intermediate certificates (2) also require OCSP responses: their status is retrieved from the root CA’s (1) responder, or from the certificate’s AIA data if no responder is configured. However, if an intermediate is configured alone as a trusted CA (without the root), no OCSP response is required for it.
+
+**Certificate Profile**
+
+Every CA uses a [certificate profile](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/16449539/What+Is+a+Certificate+Profile) that defines how information is stored in the certificate — including which fields are required, which are optional, and what values are allowed. The information required by X-Road must be present in the certificates, although the specific fields used to store it may vary between CAs. The following information is mandatory in X-Road certificates:
+
+* Instance identifier
+* Member class
+* Member code
+
+X-Road supports multiple certificate profiles, but adding a new profile requires coding and the release of a new software version. Typically, profiles are country-specific and include a hard-coded country code.
+
+X-Road includes a basic certificate profile implementation that does not contain a hard-coded country code and is therefore not tied to any specific country. The basic profile can be used to get started with X-Road. It can be enabled by setting the following `CertificateProfileInfo` value on the Central Server:
+
+```java
+ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider
+```
+
 ### 10.1 Adding an Approved Certification Service
 
 Access rights: System Administrator
@@ -1037,13 +1072,14 @@ To add a certification service, follow these steps.
 3. Set the certification service settings as follows.
   - If the certification service issues only authentication certificates, check the "This CA can only be used for TLS authentication" checkbox. However, if the certification service issues additionally or only signing certificates, leave the checkbox empty.
   - Enter the fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfo interface to the field Certificate profile info (for example: ee.ria.xroad.common.certificateprofile.impl.SkKlass3CertificateProfileInfoProvider).
+  - Choose whether the default CSR format will be PEM or DER. When a Security Server user creates a new authentication or signing key and chooses this CA, then the chosen format will automatically be selected for the new CSR. The user can still manually change the format.
   - If the certification service supports ACME, then check the "This CA can be used for ACME" checkbox. This will reveal additional ACME specific fields:
     - ACME server directory URL (required): used by the Security Servers to do certificate related operations via the ACME Server API.
     - ACME server IP address(es): a list of ACME Server source IPs that are used to complete the ACME HTTP challenge with the Security Server. Multiple addresses are separated by a comma. This information is shown in the Security Server UI.
     - Authentication certificate profile ID: profile ID used for some ACME servers to let them know the certificate usage type when ordering an authentication certificate.
     - Signing certificate profile ID: profile ID used for some ACME servers to let them know the certificate usage type when ordering a signing certificate.
   - If the CA certificate contains the certification service CA’s OCSP service information, and the PKI does not have intermediate CAs, the procedure is complete.
-4. If necessary, enter the certification service CA’s OCSP service URL and certificate in the OCSP Responders tab by clicking Add.
+4. If necessary, enter the certification service CA’s OCSP service URL, its cost type (free or paid) and certificate in the OCSP Responders tab by clicking Add.
 5. Information about intermediate CAs can be added in the Intermediate CAs tab.
 To add a new intermediate CA
   - click Add;
@@ -1074,13 +1110,15 @@ To delete a certification service from the list of approved services, follow the
 
 ## 11. Managing the Approved Timestamping Services
 
+All messages sent via X-Road are timestamped and logged by the Security Server. The purpose of timestamping is to certify the existence of data at a specific point in time. A Timestamping Authority (TSA) provides the timestamping service used by the Security Server for all incoming and outgoing requests and responses. Only approved TSAs, as defined on the Central Server by the X-Road operator, may be used. Information about approved TSAs is distributed to the Security Servers through the global configuration. All approved TSAs must comply with the [technical requirements](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/16252930/What+Are+the+Technical+Requirements+for+Trust+Service+Providers#Time-Stamping-Authority) defined by X-Road.
+
 ### 11.1 Adding an Approved Timestamping Service
 
 Access rights: System Administrator
 
 To add an approved timestamping service, follow these steps.
 1. In the Trust Services tab, click Add timestamping service.
-2. In the window that opens, enter the timestamping service URL and locate the certificate file of the timestamping service and click Add.
+2. In the window that opens, enter the timestamping service URL, choose whether the service is paid or free, and locate the certificate file of the timestamping service and click Add.
 3. Information about the new timestamping service appears in the list.
 
 ### 11.2 Changing an Approved Timestamping Service
@@ -1089,7 +1127,7 @@ Access rights: System Administrator
 
 To change the timestamping service, follow these steps.
 1. In the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Edit.
-2. In the window that opens, edit the URL and/or upload new certificate. Click Save.
+2. In the window that opens, edit the URL, change the cost type (paid or free), and/or upload new certificate. Click Save.
 
 ### 11.3 Deleting an Approved Timestamping Service
 
@@ -1217,7 +1255,9 @@ Additional keys for backup encryption should be generated and stored outside Cen
 After gpg keypair has been generated, public key can be exported to a file (backupadmin@example.org is the name of the
 key being exported) using this command:
 
-    gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```bash
+gpg --output backupadmin.publickey --armor --export backupadmin@example.org
+```
 
 Resulting file `backupadmin.publickey` should be moved to Central Server and imported to back up gpg keyring. Administrator should make sure that the key has not been changed during transfer, for example by validating the key fingerprint.
 
@@ -1245,7 +1285,8 @@ gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
 Add the key id to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
-```bash
+
+```ini
 [center]
 backup-encryption-enabled = true
 backup-encryption-keyids = 87268CC66939CFF3
@@ -1272,7 +1313,9 @@ decrypted and verified in these separate environments.
 
 To export Central Servers backup encryption public key use the following command:
 
-    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceId>
+```bash
+gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceId>
+```
 
 where `<instanceId>` is the Central Server instance id,
 for example, `EE`.
@@ -1680,29 +1723,29 @@ Prerequisites
 
 1. Shutdown X-Road processes.
 
-```bash
-systemctl stop "xroad*"
-```
+    ```bash
+    systemctl stop "xroad*"
+    ```
 
 2. Dump the local database centerui_production to be migrated. The credentials of the database admin user can be found in `/etc/xroad.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
-```bash
-pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui_admin -f centerui_production.dat centerui_production
-```
+    ```bash
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui_admin -f centerui_production.dat centerui_production
+    ```
 
 3. Shut down and mask local postgresql so it won't start when xroad-proxy starts.
 
-```bash
-systemctl stop postgresql
-```
+    ```bash
+    systemctl stop postgresql
+    ```
 
-```bash
-systemctl mask postgresql
-```
+    ```bash
+    systemctl mask postgresql
+    ```
 
 4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows.
 
-```bash
+    ```bash
     psql -h <remote-db-url> -p <remote-db-port> -U postgres
     CREATE DATABASE centerui_production ENCODING 'UTF8';
     REVOKE ALL ON DATABASE centerui_production FROM PUBLIC;
@@ -1722,43 +1765,43 @@ systemctl mask postgresql
     GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA centerui TO centerui;
     GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA centerui TO centerui;
     GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA centerui to centerui;
-```
+    ```
 
 5. Restore the database dumps on the remote database host.
 
-```bash
-pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n centerui -1 -d centerui_production centerui_production.dat
-```
+    ```bash
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n centerui -1 -d centerui_production centerui_production.dat
+    ```
 
 6. Create properties file `/etc/xroad.properties` if it does not exist.
 
-```bash
+    ```bash
     sudo touch /etc/xroad.properties
     sudo chown root:root /etc/xroad.properties
     sudo chmod 600 /etc/xroad.properties
-```
+    ```
 
 7. Make sure `/etc/xroad.properties` is containing the admin user & its password.
 
-```properties
+    ```properties
     centerui.database.admin_user = centerui_admin
     centerui.database.admin_password = <centerui_admin password>
-```
+    ```
 
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
-```properties
+    ```properties
     spring.datasource.username=<database_username>
     spring.datasource.password=<database_password>
     spring.datasource.hikari.data-source-properties.currentSchema=<database_schema>
     spring.datasource.url=jdbc:postgresql://<database_host>:<database_port>/<database>
-```
+    ```
 
 9. Start again the X-Road services.
 
-```bash
-systemctl start "xroad*"
-```
+    ```bash
+    systemctl start "xroad*"
+    ```
 
 ## 19. Additional Security Hardening
 
@@ -1772,7 +1815,7 @@ First step to pass additional configurations is to create `db_libpq.env` file in
 
 Example of file contents:
 
-```bash
+```
 export PGSSLMODE="verify-full"
 export PGSSLCERT="/etc/xroad/ssl/internal.crt"
 export PGSSLKEY="/etc/xroad/ssl/internal.key"

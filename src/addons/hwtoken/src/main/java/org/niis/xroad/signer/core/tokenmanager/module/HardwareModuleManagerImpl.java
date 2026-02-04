@@ -36,7 +36,7 @@ import java.util.Optional;
 public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
     @Override
-    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
+    protected AbstractModuleWorker createModuleWorker(ModuleType module) {
         if (module instanceof HardwareModuleType hmt) {
             return createWorker(hmt);
         }

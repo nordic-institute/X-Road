@@ -33,6 +33,12 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
@@ -65,7 +71,9 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      *
      * @throws Exception if an error occurs
      */
-    public OpMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+    public OpMonitoringBuffer(ServerConfProvider serverConfProvider)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException {
         super(serverConfProvider);
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
@@ -88,7 +96,9 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider)
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, KeyManagementException {
         return new OpMonitoringDaemonSender(serverConfProvider, this);
     }
 

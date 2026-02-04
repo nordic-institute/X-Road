@@ -48,7 +48,7 @@ public class GetMemberCertsReqHandler
         extends AbstractRpcHandler<GetMemberCertsReq, GetMemberCertsResp> {
 
     @Override
-    protected GetMemberCertsResp handle(GetMemberCertsReq request) throws Exception {
+    protected GetMemberCertsResp handle(GetMemberCertsReq request) {
         final var memberId = ClientIdMapper.fromDto(request.getMemberId());
         List<CertificateInfoProto> memberCerts = TokenManager.listTokens().stream()
                 .flatMap(t -> t.getKeyInfo().stream())

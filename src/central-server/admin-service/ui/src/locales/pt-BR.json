@@ -14,7 +14,8 @@
   },
   "customValidation":{
      "invalidIpAddress":"O campo deve conter um endereço IP ou vários endereços separados por vírgula",
-     "invalidUrl":"URL inválida. Exemplos de formatos válidos: 'http://www.exemplo.com', 'https://www.exemplo.com'"
+     "invalidUrl":"URL inválida. Exemplos de formatos válidos: 'http://www.exemplo.com', 'https://www.exemplo.com'",
+     "description": "Use apenas caracteres válidos na descrição"
   },
   "error_code":{
      "backup_deletion_failed":"Falha ao excluir o backup",
@@ -643,7 +644,8 @@
      "certProfileInput":"Informações do perfil do certificado",
      "certProfileInputExplanation":"Nome completo da classe que implementa a interface ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider",
      "certificationServices":"Serviços de Certificação",
-     "timestampingService":{
+    "defaultCsrFormat": "Formato CSR padrão",
+    "timestampingService":{
         "addedSuccessfully":"Serviço de carimbo do tempo adicionado com sucesso",
         "dialog":{
            "add":{
@@ -660,6 +662,12 @@
      },
      "timestampingServices":"Serviços de Carimbo do Tempo",
      "trustService":{
+       "cost":"Custo",
+       "costType":{
+         "FREE":"Gratuito",
+         "PAID":"Pago",
+         "UNDEFINED":"Indefinido"
+       },
         "delete":{
            "action":"Excluir serviço de confiança",
            "confirmationDialog":{
@@ -721,16 +729,11 @@
            "acmeCapable":"Esta AC pode ser usada com ACME",
            "acmeNotCapable":"Esta AC não pode ser usada com ACME",
            "certProfile":"Informações do perfil do certificado (nome completo da classe que implementa a interface ee.ria.xroad.common.CertificateProfileInfoProvider)",
+           "defaultCsrFormat": "Formato CSR padrão (selecionado automaticamente ao criar novas chaves de autenticação e assinatura com esta AC; pode ser alterado manualmente)",
            "saveSuccess":"Configurações da AC salvas com sucesso",
            "tlsAuth":"Esta AC pode ser usada apenas para autenticação TLS"
         },
         "timestampingService":{
-           "cost":"Custo",
-           "costValues":{
-              "FREE":"Gratuito",
-              "PAID":"Pago",
-              "UNDEFINED":"Indefinido"
-           },
            "delete":{
               "dialog":{
                  "message":"Tem certeza de que deseja excluir o serviço de carimbo do tempo com a URL {url}?",

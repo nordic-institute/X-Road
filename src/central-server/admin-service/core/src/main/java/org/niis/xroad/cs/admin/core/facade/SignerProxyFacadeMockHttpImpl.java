@@ -42,10 +42,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -60,7 +60,6 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Profile("int-test")
@@ -105,28 +104,28 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public List<TokenInfo> getTokens() throws SignerException {
+    public List<TokenInfo> getTokens() {
         try {
             final String response = restTemplate.getForObject("/getTokens", String.class);
             return parseTokenInfoList(response);
         } catch (Exception e) {
-            throw new SignerException(e.getMessage(), e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
     @Override
-    public TokenInfo getToken(String tokenId) throws SignerException {
+    public TokenInfo getToken(String tokenId) {
         try {
             final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
             return parseTokenInfo(response);
         } catch (Exception e) {
-            throw new SignerException(e.getMessage(), e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
     private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JsonProcessingException {
         final JsonNode json = objectMapper.readTree(tokenListString);
-        return StreamSupport.stream(json.spliterator(), true).map(this::parseTokenInfo).collect(Collectors.toList());
+        return StreamSupport.stream(json.spliterator(), true).map(this::parseTokenInfo).toList();
     }
 
     private TokenInfo parseTokenInfo(String tokenString) throws JsonProcessingException {

@@ -1,6 +1,6 @@
 # X-Road: Autologin User Guide
 
-Version: 1.4
+Version: 1.6
 Doc. ID: UG-AUTOLOGIN
 
 
@@ -11,6 +11,8 @@ Doc. ID: UG-AUTOLOGIN
 | 15.11.2018 | 1.2     | Ubuntu 18.04 updates                                                                              |
 | 11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                                                       |
 | 26.09.2022 | 1.4     | Remove Ubuntu 18.04 support                                                                       |
+| 14.10.2025 | 1.5     | Add multiple token support documentation                                                          |
+| 29.12.2025 | 1.6     | Updated implementation details to reflect changes to autologin service and script.                |
 
 ## Table of Contents
 
@@ -44,21 +46,40 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
   * Ubuntu: apt install xroad-autologin
   * RedHat: yum install xroad-autologin
 
-2. If storing the PIN code on the server in plaintext is acceptable, create file `/etc/xroad/autologin` that contains the PIN code. 
+2. If storing the PIN code on the server in plaintext is acceptable, create file `/etc/xroad/autologin` that contains the PIN code(s).
   * File should be readable by user `xroad`
   * If `/etc/xroad/autologin` does not exists, and you have not implemented `custom-fetch-pin.sh`, the service will not start
-3. If you do not want to store PIN code in plaintext, implement bash script 
+  * For a single token (token ID 0), the file should contain just the PIN code:
+    ```
+    1234
+    ```
+  * For multiple tokens, each line should be in the format `token-id:token-pin`:
+    ```
+    0:1234
+    1:5678
+    ```
+3. If you do not want to store PIN code in plaintext, implement bash script
 `/usr/share/xroad/autologin/custom-fetch-pin.sh`
-  * The script needs to output the PIN code to stdout
+  * The script needs to output the PIN code(s) to stdout
   * Script should be readable and executable by user `xroad`
   * Script should exit with exit code
     * 0 if it was able to fetch PIN code successfully
     * 127 if it was not able to fetch PIN code, but this is not an actual error that should cause the service to fail (default implementation uses this if `/etc/xroad/autologin` does not exist)
     * other exit codes in error situations that should cause the service to fail
+  * Single token example:
   ```bash
   #!/bin/bash
-  PIN_CODE=$(curl https://some-address)
+  PIN_CODE=$(curl https://some-address/token-pin)
   echo "${PIN_CODE}"
+  exit 0
+  ```
+  * Multiple tokens example (output one `token-id:token-pin` per line):
+  ```bash
+  #!/bin/bash
+  TOKEN_0_PIN=$(curl https://some-address/token-0-pin)
+  TOKEN_1_PIN=$(curl https://some-address/token-1-pin)
+  echo "0:${TOKEN_0_PIN}"
+  echo "1:${TOKEN_1_PIN}"
   exit 0
   ```
 
@@ -67,7 +88,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 * Creates a new service `xroad-autologin`
 * Service is started after `xroad-signer` has started
 * On RHEL/Ubuntu 20.04, service calls wrapper script `/usr/share/xroad/autologin/xroad-autologin-retry.sh` which in turn calls `autologin.expect`
-  * Wrapper script handles retries in error situations.
+  * Service handles retries in error situations.
 * Service tries to enter the PIN code using script `signer-console`
   * If the PIN was correct or incorrect, it exits
-  * If an error occurred (for example because `xroad-signer` has not yet fully started), it keeps retrying indefinitely
+  * If an error occurred (for example because `xroad-signer` has not yet fully started or been initialised), it keeps retrying indefinitely

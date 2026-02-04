@@ -28,10 +28,12 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.cs.admin.rest.api.mapper.TimestampingServiceMapper;
 import org.niis.xroad.cs.openapi.TimestampingServicesApi;
+import org.niis.xroad.cs.openapi.model.CostTypeDto;
 import org.niis.xroad.cs.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -68,11 +70,11 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     @Override
     @AuditEventMethod(event = ADD_TSP)
     @PreAuthorize("hasAuthority('ADD_APPROVED_TSA')")
-    public ResponseEntity<TimestampingServiceDto> addTimestampingService(String url, MultipartFile certificate) {
+    public ResponseEntity<TimestampingServiceDto> addTimestampingService(String url, CostTypeDto costType, MultipartFile certificate) {
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
         fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
         return status(HttpStatus.CREATED).body(timestampingServiceMapper.toTarget(
-                timestampingServicesService.add(url, fileBytes)));
+                timestampingServicesService.add(url, fileBytes, CostType.valueOf(costType.name()))));
     }
 
     @Override
@@ -100,10 +102,14 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     @Override
     @AuditEventMethod(event = EDIT_TIMESTAMP_SERVICE)
     @PreAuthorize("hasAuthority('EDIT_APPROVED_TSA')")
-    public ResponseEntity<TimestampingServiceDto> updateTimestampingService(Integer id, String url, MultipartFile certificate) {
+    public ResponseEntity<TimestampingServiceDto> updateTimestampingService(Integer id,
+                                                                            String url,
+                                                                            CostTypeDto costType,
+                                                                            MultipartFile certificate) {
         final TimestampServiceRequest updateRequest = new TimestampServiceRequest()
                 .setId(id)
-                .setUrl(url);
+                .setUrl(url)
+                .setCostType(CostType.valueOf(costType.name()));
         if (certificate != null) {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
             fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);

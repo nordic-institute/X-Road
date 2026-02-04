@@ -34,7 +34,9 @@ import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
 
@@ -42,8 +44,8 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
     private final TimestampingServicesPageObj timestampingServicesPageObj = new TimestampingServicesPageObj();
 
-    @Step("Timestamping service with URL {} is added")
-    public void newTimestampingServiceIsAdded(String url) throws Exception {
+    @Step("Timestamping service with URL {} and cost type {} is added")
+    public void newTimestampingServiceIsAdded(String url, String costType) throws Exception {
         timestampingServicesPageObj.btnAddTimestampingService().click();
 
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
@@ -54,6 +56,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
         vTextField(timestampingServicesPageObj.addEditDialog.inputUrl())
                 .setValue(url);
+        vRadio(timestampingServicesPageObj.addEditDialog.inputRadioCostType(costType)).click();
 
         commonPageObj.dialog.btnSave().click();
         timestampingServicesPageObj.buttonLoading().should(appear);
@@ -62,9 +65,9 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Timestamping service with URL {} is visible in the Timestamping Services list")
-    public void newTimestampingServiceIsVisibleInTheList(String url) {
-        timestampingServicesPageObj.tableServicesRowOf(url).should(appear);
+    @Step("Timestamping service with URL {} and cost type {} is visible in the Timestamping Services list")
+    public void newTimestampingServiceIsVisibleInTheList(String url, String costType) {
+        timestampingServicesPageObj.tableServicesRowOf(url).should(appear).shouldHave(text(costType));
     }
 
     @Step("user is able to sort the table by column {int}")
@@ -100,12 +103,12 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
     }
 
-    @Step("User is able click Edit button in Timestamping service with URL {}")
+    @Step("User is able to click Edit button in Timestamping service with URL {}")
     public void userIsAbleToEditTimestampingService(String url) {
         timestampingServicesPageObj.btnEditTimestampingService(url).click();
     }
 
-    @Step("User is able view the certificate of Timestamping service")
+    @Step("User is able to view the certificate of Timestamping service")
     public void userIsAbleViewTheCertificate() {
         timestampingServicesPageObj.addEditDialog.btnViewCertificate().click();
         timestampingServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
@@ -114,7 +117,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.tableLoading().should(appear);
     }
 
-    @Step("User is able change the certificate of Timestamping service with URL {}")
+    @Step("User is able to change the certificate of Timestamping service with URL {}")
     public void userIsAbleChangeTheCertificate(String url) throws Exception {
         timestampingServicesPageObj.addEditDialog.btnUploadCertificate().click();
 
@@ -128,8 +131,8 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("User is able change the URL of Timestamping service to new URL {}")
-    public void userIsAbleEditTheUrl(String newUrl) {
+    @Step("User is able to change the URL of Timestamping service to new URL {} and cost type to {}")
+    public void userIsAbleEditTheUrlAndCostType(String newUrl, String costType) {
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().should(Condition.disabled);
 
@@ -140,6 +143,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
         vTextField(timestampingServicesPageObj.addEditDialog.inputUrl())
                 .setValue(newUrl);
+        vRadio(timestampingServicesPageObj.addEditDialog.inputRadioCostType(costType)).click();
         commonPageObj.dialog.btnSave().click();
         timestampingServicesPageObj.buttonLoading().should(appear);
 

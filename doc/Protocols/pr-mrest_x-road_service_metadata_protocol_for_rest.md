@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 0.7  
+Version: 0.8  
 Doc. ID: PR-MREST
 
 ---
@@ -17,7 +17,8 @@ Doc. ID: PR-MREST
 | 07.11.2019 | 0.4     | Clarify getOpenAPI description                | Ilkka Seppälä    |
 | 05.10.2021 | 0.5     | Update listMethods and allowedMethods         | Ilkka Seppälä    |
 | 17.04.2023 | 0.6     | Remove central services support               | Justas Samuolis  |
-| 10.05.2023 | 0.7     | Security Categories removed.                  | Justas Samuolis  |
+| 10.05.2023 | 0.7     | Security Categories removed                   | Justas Samuolis  |
+| 22.08.2025 | 0.8     | Update Security Server default HTTPS port     | Petteri Kivimäki |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -332,7 +333,7 @@ components:
 
 ### B.1 listMethods Response
 
-`curl -H "accept: application/json" -H "X-Road-Client:INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1" "https://SECURITYSERVER:443/r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/listMethods"`
+`curl -H "accept: application/json" -H "X-Road-Client:INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1" "https://SECURITYSERVER:8443/r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/listMethods"`
 
 ```json
 {
@@ -453,7 +454,7 @@ components:
 
 ### B.2 allowedMethods Response
 
-`curl -H "accept: application/json" -H "X-Road-Client:INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1" "https://SECURITYSERVER:443/r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/allowedMethods"`
+`curl -H "accept: application/json" -H "X-Road-Client:INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1" "https://SECURITYSERVER:8443/r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/allowedMethods"`
 
 ```json
 {
@@ -487,7 +488,7 @@ components:
 
 ### B.3 getOpenAPI Response
 
-`curl -H "accept: application/json" -H "X-Road-Client:INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1" "https://SECURITYSERVER:443/r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/getOpenAPI?serviceCode=listFirms"`
+`curl -H "accept: application/json" -H "X-Road-Client:INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1" "https://SECURITYSERVER:8443/r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/getOpenAPI?serviceCode=listFirms"`
 
 ```yaml
 openapi: "3.0.0"

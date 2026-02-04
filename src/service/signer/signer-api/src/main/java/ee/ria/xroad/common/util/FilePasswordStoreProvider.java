@@ -47,7 +47,7 @@ public class FilePasswordStoreProvider implements PasswordStore.PasswordStorePro
     private static final String PATTERN_FILE_PASSWORDSTORE = "%s/.pswd-%s";
 
     @Override
-    public synchronized byte[] read(String pathnameForFtok, String id) throws Exception {
+    public synchronized byte[] read(String pathnameForFtok, String id) {
         var file = getFileById(id);
 
         log.warn("Reading password from {}. File exists? {}", file, file.exists());
@@ -63,7 +63,7 @@ public class FilePasswordStoreProvider implements PasswordStore.PasswordStorePro
     }
 
     @Override
-    public synchronized void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception {
+    public synchronized void write(String pathnameForFtok, String id, byte[] password, int permissions) {
         var file = getFileById(id);
 
         log.warn("Writing password to {}", file);
@@ -79,7 +79,7 @@ public class FilePasswordStoreProvider implements PasswordStore.PasswordStorePro
     }
 
     @Override
-    public synchronized void clear(String pathnameForFtok, int permissions) throws Exception {
+    public synchronized void clear(String pathnameForFtok, int permissions) {
         //NO-OP
     }
 

@@ -80,13 +80,13 @@ public abstract class AbstractKeyManager implements KeyManager {
         return x509EncodedPublicKey.getEncoded();
     }
 
-    public PublicKey readX509PublicKey(byte[] encoded) throws Exception {
+    public PublicKey readX509PublicKey(byte[] encoded) throws InvalidKeySpecException {
         var x509EncodedPublicKey = new X509EncodedKeySpec(encoded);
         return getKeyFactory().generatePublic(x509EncodedPublicKey);
     }
 
     @Override
-    public PublicKey readX509PublicKey(String encodedBase64) throws Exception {
+    public PublicKey readX509PublicKey(String encodedBase64) throws InvalidKeySpecException {
         return readX509PublicKey(decodeBase64(encodedBase64));
     }
 

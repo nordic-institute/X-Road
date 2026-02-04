@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +38,8 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationUtils;
 
@@ -54,12 +55,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
@@ -102,10 +97,8 @@ public class ConfigurationParser {
      * @param contentIdentifiersToBeHandled array of content identifiers that are handled.
      *                                      If null, all content is handled.
      * @return list of downloaded files
-     * @throws Exception if an error occurs
      */
-    public synchronized Configuration parse(ConfigurationLocation location, String... contentIdentifiersToBeHandled)
-            throws Exception {
+    public synchronized Configuration parse(ConfigurationLocation location, String... contentIdentifiersToBeHandled) {
         log.trace("parse");
 
         configuration = new Configuration(location);
@@ -117,6 +110,12 @@ public class ConfigurationParser {
 
         try (InputStream in = getInputStream()) {
             parser.parse(in);
+        } catch (MimeException | IOException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PARSING_DOWNLOADED_CONF_DIRECTORY_FAILURE)
+                    .details("Failed to parse configuration from %s: %s".formatted(location.getDownloadURL(), e.getMessage()))
+                    .metadataItems(location.getDownloadURL())
+                    .cause(e)
+                    .build();
         }
 
         verifyIntegrity();
@@ -124,19 +123,21 @@ public class ConfigurationParser {
         return configuration;
     }
 
-    protected InputStream getInputStream() throws Exception {
+    protected InputStream getInputStream() {
         return getConfigurationInputStream(configuration.getLocation());
     }
 
     private void verifyIntegrity() {
         if (signedData == null) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF, "Configuration instance %s is missing signed data",
-                    getInstanceIdentifier());
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA)
+                    .details("Configuration instance %s is missing signed data".formatted(getInstanceIdentifier()))
+                    .build();
         }
 
         if (configuration.getExpirationDate() == null) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF,
-                    "Configuration instance %s is missing signed data expiration date", getInstanceIdentifier());
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE)
+                    .details("Configuration instance %s is missing signed data expiration date".formatted(getInstanceIdentifier()))
+                    .build();
         }
     }
 
@@ -162,12 +163,12 @@ public class ConfigurationParser {
         }
 
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             headers = new HashMap<>();
         }
 
         @Override
-        public void field(Field field) throws MimeException {
+        public void field(Field field) {
             headers.put(field.getName().toLowerCase(), field.getBody());
         }
 
@@ -209,18 +210,23 @@ public class ConfigurationParser {
                 X509Certificate verificationCert = getVerificationCert(configuration.getLocation(), parameters);
 
                 if (verificationCert == null) {
-                    throw new CodedException(X_CERT_NOT_FOUND,
-                            "Cannot verify signature of configuration instance %s: could not find verification "
-                                    + "certificate for certificate hash %s",
-                            getInstanceIdentifier(), parameters.getVerificationCertHash());
+                    throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT)
+                            .details(
+                                    ("Cannot verify signature of configuration instance %s: could not find verification certificate for "
+                                          + "certificate hash %s").formatted(
+                                            getInstanceIdentifier(),
+                                            parameters.getVerificationCertHash()))
+                            .metadataItems(parameters.getVerificationCertHash())
+                            .build();
                 }
 
                 if (!verifySignature(verifier, verificationCert, signature, signedData)) {
-                    throw new CodedException(X_INVALID_SIGNATURE_VALUE,
-                            "Failed to verify signature of configuration instance %s", getInstanceIdentifier());
+                    throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE)
+                            .details("Failed to verify signature of configuration instance %s".formatted(getInstanceIdentifier()))
+                            .build();
                 }
             } catch (Exception e) {
-                throw translateException(e);
+                throw XrdRuntimeException.systemException(e);
             }
         }
 
@@ -228,8 +234,10 @@ public class ConfigurationParser {
             try {
                 return decodeBase64(IOUtils.toString(signatureIs, Charset.defaultCharset()));
             } catch (Exception e) {
-                throw new CodedException(X_INVALID_SIGNATURE_VALUE, e,
-                        "Failed to decode signature of configuration instance %s", getInstanceIdentifier());
+                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE)
+                        .details("Failed to decode signature of configuration instance %s".formatted(getInstanceIdentifier()))
+                        .cause(e)
+                        .build();
             }
         }
 
@@ -333,8 +341,10 @@ public class ConfigurationParser {
 
         private void verifyConfUpToDate() {
             if (configuration.isExpired()) {
-                throw new CodedException(X_OUTDATED_GLOBALCONF, "Configuration instance %s expired on %s",
-                        getInstanceIdentifier(), configuration.getExpirationDate());
+                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OUTDATED)
+                        .details("Configuration instance %s expired on %s"
+                                .formatted(getInstanceIdentifier(), configuration.getExpirationDate()))
+                        .build();
             }
         }
 
@@ -351,7 +361,7 @@ public class ConfigurationParser {
                     log.trace("Ignoring content {}", headers);
                 }
             } catch (Exception e) {
-                throw translateException(e);
+                throw XrdRuntimeException.systemException(e);
             }
         }
 
@@ -367,7 +377,10 @@ public class ConfigurationParser {
 
     private static OffsetDateTime parseExpireDate(String expireDateStr) {
         if (StringUtils.isBlank(expireDateStr)) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF, "Missing header " + HEADER_EXPIRE_DATE);
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING)
+                    .details("Missing header %s".formatted(HEADER_EXPIRE_DATE))
+                    .metadataItems(HEADER_EXPIRE_DATE)
+                    .build();
         }
 
         return ConfigurationUtils.parseISODateTime(expireDateStr);
@@ -381,7 +394,9 @@ public class ConfigurationParser {
             var connection = downloader.getDownloadURLConnection(URI.create(configurationLocation.getDownloadURL()).toURL());
             return connection.getInputStream();
         } catch (IOException e) {
-            throw new CodedException(X_HTTP_ERROR, e);
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE)
+                    .details("Failed to connect to the download url for configuration instance %s".formatted(getInstanceIdentifier()))
+                    .build();
         }
     }
 

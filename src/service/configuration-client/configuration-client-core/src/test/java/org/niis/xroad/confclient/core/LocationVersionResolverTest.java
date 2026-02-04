@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.util.HttpUrlConnectionConfigurer;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
 import java.util.List;

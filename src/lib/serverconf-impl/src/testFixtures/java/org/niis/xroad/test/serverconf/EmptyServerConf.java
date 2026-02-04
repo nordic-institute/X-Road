@@ -36,6 +36,7 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
@@ -124,7 +125,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getIsCerts(ClientId clientId) throws Exception {
+    public List<X509Certificate> getIsCerts(ClientId clientId) {
         return emptyList();
     }
 
@@ -134,13 +135,23 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public InternalSSLKey getSSLKey() throws Exception {
+    public InternalSSLKey getSSLKey() {
         return null;
     }
 
     @Override
-    public List<String> getTspUrl() {
+    public List<String> getTspUrls() {
         return emptyList();
+    }
+
+    @Override
+    public List<String> getOrderedTspUrls() {
+        return emptyList();
+    }
+
+    @Override
+    public CostType getTspCostType(String tspUrl) {
+        return null;
     }
 
     @Override
@@ -174,7 +185,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ClientId.Conf> getMembers() throws Exception {
+    public List<ClientId.Conf> getMembers() {
         return emptyList();
     }
 

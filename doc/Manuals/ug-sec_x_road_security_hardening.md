@@ -139,29 +139,42 @@ To harden the user account security, make sure that users are not allowed to acc
 1. Create a user group in which users are allowed to connect to the server via SSH while all other users are denied.
 2. Add users which should have SSH access to newly created group.
 3. Add the following line to `/etc/ssh/sshd_config`:
-     
-        AllowGroups <group_to_allow>
+
+    ```bash
+    AllowGroups <group_to_allow>
+    ```
 
 4. Restart the SSH service:
 
-        sudo systemctl restart sshd
+    ```bash
+    sudo systemctl restart sshd
+    ```
 
 It is also recommended to disable SSH password login and allow key-based authentication only. Before this modification, add users' public keys to the server. Edit `/etc/ssh/sshd_config` and add the following lines:
 
-    ChallengeResponseAuthentication no
-    PasswordAuthentication no
+```
+ChallengeResponseAuthentication no
+PasswordAuthentication no
+```
+
 
 Restart the SSH service once again:
 
-    sudo systemctl restart sshd
+```bash
+sudo systemctl restart sshd
+```
 
 In addition, the users should be prevented from logging in to the system. This can be achieved by issuing the following command on Ubuntu:
 
-    usermod -s /bin/false user
+```bash
+usermod -s /bin/false user
+```
 
 On RHEL, the corresponding command is:
 
-    usermod -s /sbin/nologin user
+```bash
+usermod -s /sbin/nologin user
+```
 
 The system administrator should also implement a monitoring and alerting system regarding anomalous logins.
 
@@ -184,8 +197,10 @@ On the service provider side, the Security Server administrator can limit the mi
 
 For example, setting the value `server-min-supported-client-version = 7.3.1` means that client Security Server version should be at least `7.3.1`:
 
-	[proxy]
-	server-min-supported-client-version = 7.3.1
+```ini
+[proxy]
+server-min-supported-client-version = 7.3.1
+```
 
 ## 5. Publish global configuration over HTTPS
 

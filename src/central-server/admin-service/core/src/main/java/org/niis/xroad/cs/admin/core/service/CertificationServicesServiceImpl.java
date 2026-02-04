@@ -64,7 +64,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_I
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CERTIFICATE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_DIRECTORY_URL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_IP_ADDRESSES;
@@ -72,11 +72,13 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTIC
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTH_CERT_PROFILE_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATE_PROFILE_INFO;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DEFAULT_CSR_FORMAT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_COST_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SIGN_CERT_PROFILE_ID;
@@ -109,6 +111,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         final var approvedCaEntity = new ApprovedCaEntity();
         approvedCaEntity.setCertProfileInfo(certificationService.getCertificateProfileInfo());
         approvedCaEntity.setAuthenticationOnly(certificationService.getTlsAuth());
+        approvedCaEntity.setDefaultCsrFormat(certificationService.getDefaultCsrFormat().name());
         X509Certificate certificate = handledCertificationChainRead(certificationService.getCertificate());
         approvedCaEntity.setName(CertUtils.getSubjectCommonName(certificate));
         approvedCaEntity.setAcmeServerDirectoryUrl(certificationService.getAcmeServerDirectoryUrl());
@@ -176,6 +179,9 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
                 .ifPresent(persistedApprovedCa::setAuthCertProfileId);
         Optional.ofNullable(approvedCa.getSigningCertificateProfileId())
                 .ifPresent(persistedApprovedCa::setSignCertProfileId);
+        Optional.ofNullable(approvedCa.getDefaultCsrFormat())
+                .map(Enum::name)
+                .ifPresent(persistedApprovedCa::setDefaultCsrFormat);
         final ApprovedCaEntity updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
         addAuditData(updatedApprovedCa);
 
@@ -251,6 +257,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         auditDataHelper.putCertificationServiceData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
         auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
         auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
+        auditDataHelper.put(DEFAULT_CSR_FORMAT, approvedCa.getDefaultCsrFormat());
         if (approvedCa.getAcmeServerDirectoryUrl() != null) {
             auditDataHelper.put(ACME_DIRECTORY_URL, approvedCa.getAcmeServerDirectoryUrl());
         }
@@ -269,6 +276,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
         auditDataHelper.put(OCSP_ID, ocspInfo.getId());
         auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());
+        auditDataHelper.put(OCSP_COST_TYPE, ocspInfo.getCostType());
 
         if (ocspInfo.getCert() != null) {
             auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(ocspInfo.getCert()));

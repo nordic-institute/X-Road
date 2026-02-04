@@ -36,7 +36,8 @@ services:
   ss1:
     container_name: ss1
     environment:
-      - XROAD_TOKEN_PIN=Secret1234
+      - XROAD_TOKEN_0_PIN=Secret1234
+      - XROAD_TOKEN_31_PIN=Secret1234
     ports:
       - "4300:4000" # Frontend
       - "4310:8080" # Proxy
@@ -49,6 +50,9 @@ services:
       - "4398:4398" # Signer JMX port
     networks:
       - xroad-network
+    entrypoint: [ "/usr/local/bin/init-token-and-run-entrypoint.sh" ]
+    volumes:
+      - ./ss1/init-token-and-run-entrypoint.sh:/usr/local/bin/init-token-and-run-entrypoint.sh:ro
   testca:
     container_name: testca
     ports:

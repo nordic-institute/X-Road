@@ -49,6 +49,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyNameDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
@@ -85,6 +86,7 @@ public class KeysApiController implements KeysApi {
     private final ServerConfService serverConfService;
     private final CsrFilenameCreator csrFilenameCreator;
     private final PossibleActionConverter possibleActionConverter;
+    private final CertificateAuthorityService certificateAuthorityService;
 
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
@@ -130,6 +132,8 @@ public class KeysApiController implements KeysApi {
 
         // since csr format is mandatory parameter
         CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerateDto.getCsrFormat()).orElseThrow();
+
+        certificateAuthorityService.validateCsrFormat(csrGenerateDto.getCaName(), csrFormat);
 
         byte[] csr;
         try {
@@ -196,6 +200,7 @@ public class KeysApiController implements KeysApi {
     @Override
     @PreAuthorize("hasAnyAuthority('GENERATE_AUTH_CERT_REQ', 'GENERATE_SIGN_CERT_REQ')")
     public ResponseEntity<Resource> downloadCsr(String keyId, String csrId, CsrFormatDto csrFormatDto) {
+        // CSR format not validate here, because saved csr info in keyconf does not include CA info
 
         // since csr format is mandatory parameter
         var certificateRequestFormat = CsrFormatMapping.map(csrFormatDto).orElseThrow();

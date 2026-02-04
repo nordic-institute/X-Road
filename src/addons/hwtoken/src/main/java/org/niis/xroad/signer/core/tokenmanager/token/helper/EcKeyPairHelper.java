@@ -41,6 +41,9 @@ import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
 import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
+import java.io.IOException;
+import java.security.spec.InvalidKeySpecException;
+
 public final class EcKeyPairHelper extends AbstractKeyPairBuilder<ECDSAPublicKey, ECDSAPrivateKey> implements KeyPairHelper {
 
     private static final Mechanism KEY_PAIR_GEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
@@ -63,7 +66,7 @@ public final class EcKeyPairHelper extends AbstractKeyPairBuilder<ECDSAPublicKey
     }
 
     @Override
-    public byte[] generateX509PublicKey(PublicKey publicKey) throws Exception {
+    public byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException, IOException {
         if (!(publicKey instanceof ECDSAPublicKey ecPublicKey)) {
             throw new CryptoException("Invalid type of public key: " + publicKey.getClass());
         }

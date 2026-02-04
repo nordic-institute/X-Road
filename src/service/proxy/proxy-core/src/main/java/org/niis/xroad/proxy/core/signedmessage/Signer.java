@@ -34,6 +34,9 @@ import ee.ria.xroad.common.util.MessageFileNames;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+
 /**
  * Encapsulates message signing functionality. This class does not
  * deal with the signed data itself, it is only interested in hashes
@@ -45,21 +48,25 @@ public class Signer {
 
     private SignatureData signature;
 
-    /** Adds new part to be signed.
-     * @param name name of the file in the BDOC container.
+    /**
+     * Adds new part to be signed.
+     *
+     * @param name       name of the file in the BDOC container.
      * @param hashMethod identifier of the algorithm used to calculate the hash
-     * @param data the data.
+     * @param data       the data.
      */
     public void addPart(String name, DigestAlgorithm hashMethod, byte[] data) {
         builder.addPart(new MessagePart(name, hashMethod, data, null));
 
     }
 
-    /** Adds new part to be signed.
-     * @param name name of the file in the BDOC container.
+    /**
+     * Adds new part to be signed.
+     *
+     * @param name       name of the file in the BDOC container.
      * @param hashMethod identifier of the algorithm used to calculate the hash
-     * @param data the data.
-     * @param message the message
+     * @param data       the data.
+     * @param message    the message
      */
     public void addPart(String name, DigestAlgorithm hashMethod, byte[] data, byte[] message) {
         builder.addPart(new MessagePart(name, hashMethod, data, message));
@@ -68,20 +75,20 @@ public class Signer {
 
     /**
      * Adds the message part to be signed.
+     *
      * @param hashMethod identifier of the algorithm used to calculate the hash
-     * @param soap the message to be signed
+     * @param soap       the message to be signed
      */
     public void addMessagePart(DigestAlgorithm hashMethod, SoapMessageImpl soap) {
-        builder.addPart(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
-                soap.getHash(), soap.getBytes()));
+        builder.addPart(new MessagePart(MessageFileNames.MESSAGE, hashMethod, soap.getHash(), soap.getBytes()));
     }
 
     /**
      * Signs the hashes and creates the signature.
+     *
      * @param ctx signing context used for signing
-     * @throws Exception in case of any errors
      */
-    public void sign(SigningCtx ctx) throws Exception {
+    public void sign(SigningCtx ctx) throws CertificateEncodingException, IOException {
         signature = ctx.buildSignature(builder);
     }
 

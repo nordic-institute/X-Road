@@ -45,17 +45,23 @@ import ee.ria.xroad.common.util.MimeTypes;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.XMLSignatureDigestInput;
+import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
-import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
@@ -66,6 +72,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,10 +128,9 @@ public class AsicContainerVerifier {
      *
      * @param globalConfProvider global conf provider
      * @param filename           name of the ASiC container ZIP file
-     * @throws Exception if the file could not be read
      */
     public AsicContainerVerifier(GlobalConfProvider globalConfProvider,
-                                 String filename) throws Exception {
+                                 String filename) throws IOException {
         this.globalConfProvider = globalConfProvider;
         this.ocspVerifier = new OcspVerifier(globalConfProvider);
 
@@ -136,9 +142,9 @@ public class AsicContainerVerifier {
     /**
      * Attempts to verify the ASiC container's signature and timestamp.
      *
-     * @throws Exception if verification was unsuccessful
      */
-    public void verify() throws Exception {
+    public void verify() throws XMLSecurityException, CertificateEncodingException, IOException,
+            TSPException, OperatorCreationException, CMSException, OCSPException {
         String message = asic.getMessage();
         SignatureData signatureData = asic.getSignature();
         signature = new Signature(signatureData.getSignatureXml());
@@ -172,7 +178,7 @@ public class AsicContainerVerifier {
                 (BasicOCSPResp) ocsp.getResponseObject());
     }
 
-    private void verifyRequiredReferencesExist() throws Exception {
+    private void verifyRequiredReferencesExist() throws XMLSecurityException {
         if (!signature.references(MESSAGE)
                 && !signature.references(SIG_HASH_CHAIN_RESULT)) {
             throw new CodedException(X_MALFORMED_SIGNATURE,
@@ -195,7 +201,7 @@ public class AsicContainerVerifier {
             }
 
             @Override
-            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
                 if (isAttachment(context.attr.getValue())) {
                     return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
                 }
@@ -212,7 +218,8 @@ public class AsicContainerVerifier {
                 encodeHex(digestValue)) + (verified ? " (verified)" : " (unverified)"));
     }
 
-    private Date verifyTimestamp() throws Exception {
+    private Date verifyTimestamp() throws IOException, TSPException, XMLSignatureException,
+            CertificateEncodingException, OperatorCreationException, CMSException {
         TimeStampToken tsToken = getTimeStampToken();
 
         TimestampVerifier.verify(tsToken, getTimestampedData(), globalConfProvider.getTspCertificates());
@@ -237,7 +244,7 @@ public class AsicContainerVerifier {
         }
     }
 
-    private byte[] getTimestampedData() throws Exception {
+    private byte[] getTimestampedData() throws XMLSignatureException {
         String tsHashChainResult =
                 asic.getEntryAsString(ENTRY_TS_HASH_CHAIN_RESULT);
         if (tsHashChainResult != null) { // batch time-stamp
@@ -249,7 +256,7 @@ public class AsicContainerVerifier {
         }
     }
 
-    private TimeStampToken getTimeStampToken() throws Exception {
+    private TimeStampToken getTimeStampToken() throws IOException, TSPException {
         String timestampDerBase64 = asic.getEntryAsString(ENTRY_TIMESTAMP);
         byte[] tsDerDecoded = decodeBase64(timestampDerBase64);
         return new TimeStampToken(ContentInfo.getInstance(ASN1Primitive.fromByteArray(tsDerDecoded)));
@@ -263,7 +270,7 @@ public class AsicContainerVerifier {
                     MimeTypes.TEXT_XML_UTF8,
                     new ByteArrayInputStream(messageBytes));
             if (!(soap instanceof SoapMessageImpl msg)) {
-                throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
+                throw XrdRuntimeException.systemInternalError("Unexpected SOAP: " + soap.getClass());
             }
             return msg.isRequest()
                     ? msg.getClient() : msg.getService().getClientId();
@@ -273,7 +280,7 @@ public class AsicContainerVerifier {
                     final RestMessage restMessage = RestMessage.of(messageBytes);
                     return restMessage.getSender();
                 } catch (Exception e) {
-                    throw new RuntimeException("Invalid message", e);
+                    throw XrdRuntimeException.systemInternalError("Invalid message", e);
                 }
             }
         }
@@ -295,7 +302,7 @@ public class AsicContainerVerifier {
         }
 
         @Override
-        public InputStream resolve(String uri) throws IOException {
+        public InputStream resolve(String uri) {
             return asic.getEntry(uri);
         }
     }

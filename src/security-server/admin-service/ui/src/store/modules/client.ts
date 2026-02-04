@@ -27,13 +27,14 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
+import { CertificateDetails, Client, SecurityServer, TokenCertificate } from '@/openapi-types';
 
 export interface ClientState {
   client: Client | null;
   signCertificates: TokenCertificate[];
   connection_type: string | null;
   tlsCertificates: CertificateDetails[];
+  securityServers: SecurityServer[];
   ssCertificate: CertificateDetails | null;
   clientLoading: boolean;
 }
@@ -45,6 +46,7 @@ export const useClient = defineStore('client', {
       signCertificates: [],
       connection_type: null,
       tlsCertificates: [],
+      securityServers: [],
       ssCertificate: null,
       clientLoading: false,
     };
@@ -119,6 +121,23 @@ export const useClient = defineStore('client', {
         )
         .then((res) => {
           this.tlsCertificates = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    async fetchSecurityServers(id: string) {
+      if (!id) {
+        throw new Error('Missing id');
+      }
+
+      return api
+        .get<SecurityServer[]>(
+          `/clients/${encodePathParameter(id)}/security-servers`,
+        )
+        .then((res) => {
+          this.securityServers = res.data;
         })
         .catch((error) => {
           throw error;

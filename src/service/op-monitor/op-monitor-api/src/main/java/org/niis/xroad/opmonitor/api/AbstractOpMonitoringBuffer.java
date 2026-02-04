@@ -38,6 +38,6 @@ public abstract class AbstractOpMonitoringBuffer {
         //No-OP
     }
 
-    public abstract void store(OpMonitoringData data) throws Exception;
+    public abstract void store(OpMonitoringData data);
 
 }

@@ -94,6 +94,7 @@ public enum RestApiAuditProperty {
     OCSP_URL,
     OCSP_CERT_HASH,
     OCSP_CERT_HASH_ALGORITHM,
+    OCSP_COST_TYPE,
     INTERMEDIATE_CA_ID,
     INTERMEDIATE_CA_CERT_HASH,
     INTERMEDIATE_CA_CERT_HASH_ALGORITHM,
@@ -109,6 +110,7 @@ public enum RestApiAuditProperty {
     GENERATED_AT,
     TSP_NAME,
     TSP_URL,
+    TSP_COST_TYPE,
 
     OWNER_IDENTIFIER,
     OWNER_CLASS,
@@ -134,6 +136,7 @@ public enum RestApiAuditProperty {
 
     AUTHENTICATION_ONLY,
     CERTIFICATE_PROFILE_INFO,
+    DEFAULT_CSR_FORMAT,
     ACME_DIRECTORY_URL,
     ACME_IP_ADDRESSES,
     AUTH_CERT_PROFILE_ID,
@@ -142,6 +145,7 @@ public enum RestApiAuditProperty {
     TSA_ID,
     TSA_NAME,
     TSA_URL,
+    TSA_COST_TYPE,
     TSA_CERT_HASH,
     TSA_CERT_HASH_ALGORITHM,
     SOURCE_TYPE,

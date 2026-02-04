@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collection;
 import java.util.List;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.API_KEY_INVALID_ROLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.API_KEY_INVALID_ROLE;
 
 /**
  * Controller for rest apis for api key operations

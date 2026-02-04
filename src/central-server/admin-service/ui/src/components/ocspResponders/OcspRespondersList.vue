@@ -58,6 +58,14 @@
         </div>
       </template>
 
+      <template #[`item.cost_type`]="{ item }">
+        {{
+          $t(
+            'trustServices.trustService.costType.' + item.cost_type,
+          )
+        }}
+      </template>
+
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button
@@ -182,6 +190,13 @@ export default defineComponent({
           ) as string,
           align: 'start',
           key: 'url',
+        },
+        {
+          title: this.$t(
+            'trustServices.trustService.cost',
+          ) as string,
+          align: 'center',
+          key: 'cost_type',
         },
         {
           title: '',

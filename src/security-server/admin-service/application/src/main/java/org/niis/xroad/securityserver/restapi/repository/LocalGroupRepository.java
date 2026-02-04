@@ -58,6 +58,10 @@ public class LocalGroupRepository {
         groupMemberDAO.deleteByGroupMemberId(persistenceUtils.getCurrentSession(), memberId);
     }
 
+    public long countGroupMembersByMemberId(ClientIdEntity memberId) {
+        return groupMemberDAO.countByGroupMemberId(persistenceUtils.getCurrentSession(), memberId);
+    }
+
     /**
      * Executes a Hibernate persist(localGroupEntity)
      * @param localGroupEntity localGroupEntity

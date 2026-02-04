@@ -40,7 +40,7 @@ import static org.niis.xroad.signer.core.tokenmanager.TokenManager.findTokenIdFo
 public class SignReqHandler extends AbstractRpcHandler<SignReq, SignResp> {
 
     @Override
-    protected SignResp handle(SignReq request) throws Exception {
+    protected SignResp handle(SignReq request) {
         final byte[] signature = signData(request);
 
         return SignResp.newBuilder()

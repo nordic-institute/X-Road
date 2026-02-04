@@ -42,7 +42,7 @@ class OpMonitorSslTrustManager implements X509TrustManager {
 
     private X509Certificate expectedClientCert = null;
 
-    OpMonitorSslTrustManager() throws Exception {
+    OpMonitorSslTrustManager() {
         String location = OpMonitoringSystemProperties
                 .getOpMonitorClientCertificatePath();
 

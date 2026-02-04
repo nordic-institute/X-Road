@@ -25,10 +25,14 @@
  */
 package org.niis.xroad.confclient.core.schedule;
 
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DateBuilder;
 import org.quartz.Job;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -38,7 +42,7 @@ import org.quartz.Trigger;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
- * Base class for Quartz jobs which should reschedule their execution and retry later if specified conditions are met.
+ * Base class for Quartz jobs which should reschedule their execution and retry exponentially later if specified conditions are met.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -46,15 +50,28 @@ public abstract class RetryingQuartzJob implements Job {
     private static final String RETRY_COUNT = "retryCount";
     private static final String RETRY_GROUP = "retryGroup";
 
-    private final int retryDelay;
+    private final int initialRetryDelay;
+    private final int maxRetryDelay;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             if (shouldRescheduleRetry(context)) {
-                log.warn("Job {} is already running. Will retry in {} seconds", context.getJobDetail().getKey().getName(),
-                        retryDelay);
-                scheduleRetry(context);
+                int retryCount = getRetryCount(context.getTrigger().getJobDataMap());
+                int nextDelay = initialRetryDelay * (int) Math.pow(2, retryCount);
+
+                if (nextDelay > maxRetryDelay) {
+                    log.error("Next retry delay {} exceeds maximum of {} seconds. Will not retry further.", nextDelay, maxRetryDelay);
+                    return; // stop retrying
+                }
+
+                log.warn("Should reschedule job {} running. Will retry in {} seconds (retry count={})",
+                        context.getJobDetail().getKey().getName(),
+                        nextDelay,
+                        retryCount + 1
+                );
+
+                scheduleRetry(context, nextDelay, retryCount + 1);
             } else {
                 executeWithRetry(context);
             }
@@ -73,7 +90,8 @@ public abstract class RetryingQuartzJob implements Job {
      *
      * @param context quartz job context
      */
-    protected abstract void executeWithRetry(JobExecutionContext context) throws Exception;
+    protected abstract void executeWithRetry(JobExecutionContext context)
+            throws ProcessFailedException, InterruptedException, ProcessNotExecutableException;
 
     /**
      * A condition which defined whether job should be rescheduled.
@@ -83,14 +101,17 @@ public abstract class RetryingQuartzJob implements Job {
      */
     protected abstract boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException;
 
+    private int getRetryCount(JobDataMap jobDataMap) {
+        return jobDataMap.containsKey(RETRY_COUNT) ? jobDataMap.getIntValue(RETRY_COUNT) : 0;
+    }
+
     /**
      * Add retry trigger to current scheduler.
      *
      * @param context quartz job context
      */
-    private void scheduleRetry(JobExecutionContext context) throws SchedulerException {
-        Trigger trigger = createRetryTrigger(context.getJobDetail(), context.getTrigger(), retryDelay);
-
+    private void scheduleRetry(JobExecutionContext context, int delay, int newRetryCount) throws SchedulerException {
+        Trigger trigger = createRetryTrigger(context.getJobDetail(), delay, newRetryCount);
         context.getScheduler().scheduleJob(trigger);
     }
 
@@ -100,15 +121,12 @@ public abstract class RetryingQuartzJob implements Job {
      * @param jobDetail job detail to use
      * @param delay     delay in seconds
      */
-    private Trigger createRetryTrigger(JobDetail jobDetail, Trigger lastTrigger, int delay) {
+    private Trigger createRetryTrigger(JobDetail jobDetail, int delay, int retryCount) {
         final String jobName = jobDetail.getKey().getName();
-        final int retryCount = lastTrigger.getJobDataMap().containsKey(RETRY_COUNT)
-                ? lastTrigger.getJobDataMap().getIntValue(RETRY_COUNT) : 0;
-        final int newRetryCount = retryCount + 1;
         return newTrigger()
                 .forJob(jobName, jobDetail.getKey().getGroup())
-                .withIdentity(jobName + "-" + newRetryCount, RETRY_GROUP)
-                .usingJobData(RETRY_COUNT, newRetryCount)
+                .withIdentity(jobName + "-" + retryCount, RETRY_GROUP)
+                .usingJobData(RETRY_COUNT, retryCount)
                 .startAt(DateBuilder.futureDate(delay, DateBuilder.IntervalUnit.SECOND))
                 .build();
     }

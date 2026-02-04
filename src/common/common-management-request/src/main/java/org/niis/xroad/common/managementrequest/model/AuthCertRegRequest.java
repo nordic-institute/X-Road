@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.common.managementrequest.model;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
@@ -37,6 +36,9 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerRpcClient.KeyIdInfo;
@@ -48,7 +50,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
@@ -67,11 +68,11 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private CertificateInfo ownerCert;
 
-    private byte[] dataToSign;
+    private final byte[] dataToSign;
 
-    private MultipartOutputStream multipart;
+    protected MultipartOutputStream multipart;
 
-    public AuthCertRegRequest(SignerRpcClient signerRpcClient, byte[] authCert, ClientId owner, SoapMessageImpl request) throws Exception {
+    public AuthCertRegRequest(SignerRpcClient signerRpcClient, byte[] authCert, ClientId owner, SoapMessageImpl request) {
         this.signerRpcClient = signerRpcClient;
         this.authCert = authCert;
         this.owner = owner;
@@ -96,7 +97,7 @@ public class AuthCertRegRequest implements ManagementRequest {
     }
 
     @Override
-    public InputStream getRequestContent() throws Exception {
+    public InputStream getRequestContent() throws IOException, OperatorCreationException {
         verifyAuthCert();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -114,11 +115,13 @@ public class AuthCertRegRequest implements ManagementRequest {
         try {
             CryptoUtils.readCertificate(authCert).checkValidity();
         } catch (Exception e) {
-            throw new CodedException(X_CERT_VALIDATION, "Authentication certificate is invalid: %s", e.getMessage());
+            throw XrdRuntimeException.systemException(ErrorCode.CERT_VALIDATION)
+                    .details("Authentication certificate is invalid: %s".formatted(e.getMessage()))
+                    .build();
         }
     }
 
-    private void writeCerts() throws Exception {
+    private void writeCerts() throws IOException {
         // Write authentication certificate
         multipart.startPart(MimeTypes.BINARY);
         multipart.write(authCert);
@@ -130,7 +133,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         multipart.write(ownerCert.getOcspBytes());
     }
 
-    private void writeSignatures() throws Exception {
+    private void writeSignatures() throws IOException, OperatorCreationException {
         KeyIdInfo authKeyId = getAuthKeyId();
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
@@ -151,7 +154,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         multipart.write(createSignature(memberSigningInfo.keyId(), ownerSignAlgoId, digest));
     }
 
-    private void writeSoap() throws IOException {
+    protected void writeSoap() throws IOException {
         multipart.startPart(MimeTypes.TEXT_XML_UTF8);
         multipart.write(dataToSign);
     }

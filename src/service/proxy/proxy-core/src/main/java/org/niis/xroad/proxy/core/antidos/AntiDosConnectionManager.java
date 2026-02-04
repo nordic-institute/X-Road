@@ -82,7 +82,7 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
         this.database.put(UNKNOWN_ORG_IP, new HostData());
     }
 
-    void init() throws Exception {
+    void init() {
         // Populate the database based on registered members' IPs.
         syncDatabase();
     }

@@ -31,6 +31,9 @@
     <td :class="{ disabled: !messageLogEnabled }">
       {{ timestampingService.url }}
     </td>
+    <td :class="{ disabled: !messageLogEnabled }">
+      {{ $t('systemParameters.costType.' + timestampingService.cost_type) }}
+    </td>
     <td class="pr-4">
       <xrd-button
         v-if="showDeleteTsp"

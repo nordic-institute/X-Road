@@ -30,7 +30,6 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -85,7 +84,6 @@ public class OptionalPartsConf {
 
     private final Set<String> existingPartFileNames = new HashSet<>();
 
-    @SneakyThrows
     public static OptionalPartsConf getOptionalPartsConf() {
         return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
     }
@@ -94,9 +92,8 @@ public class OptionalPartsConf {
      * Creates optional parts configuration.
      *
      * @param confDir - directory, where optional part files are in.
-     * @throws IOException - when optional parts directory cannot be read.
      */
-    public OptionalPartsConf(String confDir) throws IOException {
+    public OptionalPartsConf(String confDir) {
         File optionalPartsDir = new File(confDir);
 
         final String optionalPartsPath = optionalPartsDir.getAbsolutePath();
@@ -162,7 +159,6 @@ public class OptionalPartsConf {
         return partFileName;
     }
 
-    @SneakyThrows
     private void processFile(File confFile) {
         try (InputStream is = new FileInputStream(confFile)) {
             Properties props = new Properties();
@@ -186,10 +182,7 @@ public class OptionalPartsConf {
 
             allParts.add(new OptionalConfPart(partFileName, contentId));
         } catch (IOException e) {
-            log.error("Loading optional parts from file '"
-                            + confFile.getAbsolutePath() + "' failed: {}",
-                    e.getMessage(), e); // throwable as last object param should work as of SLF4J 1.6.0
-
+            log.error("Loading optional parts from file '{}' failed: {}", confFile.getAbsolutePath(), e.getMessage(), e);
             errors.add(e.getMessage());
         }
     }

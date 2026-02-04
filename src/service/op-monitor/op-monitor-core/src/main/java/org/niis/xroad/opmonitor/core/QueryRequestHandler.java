@@ -45,11 +45,14 @@ import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.ValidationEvent;
 import jakarta.xml.bind.attachment.AttachmentMarshaller;
+import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jaxb.runtime.api.AccessorException;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -86,11 +89,13 @@ abstract class QueryRequestHandler {
     /**
      * Handle the given request and write the response in the provided output
      * stream.
-     * @param requestSoap the request SOAP message
-     * @param out the output stream for writing the response
+     *
+     * @param requestSoap         the request SOAP message
+     * @param out                 the output stream for writing the response
      * @param contentTypeCallback function to call when response content type
-     * is available (before writing to output stream)
+     *                            is available (before writing to output stream)
      */
+    @ArchUnitSuppressed("NoVanillaExceptions")
     abstract void handle(SoapMessageImpl requestSoap, OutputStream out,
                          Consumer<String> contentTypeCallback) throws Exception;
 
@@ -98,7 +103,7 @@ abstract class QueryRequestHandler {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -114,8 +119,7 @@ abstract class QueryRequestHandler {
         }
     }
 
-    private static Unmarshaller createUnmarshaller(Class<?> clazz)
-            throws Exception {
+    private static Unmarshaller createUnmarshaller(Class<?> clazz) throws JAXBException {
         Unmarshaller unmarshaller = JaxbUtils.createUnmarshaller(clazz);
         unmarshaller.setEventHandler(QueryRequestHandler::validationFailed);
         unmarshaller.setSchema(OP_MONITORING_SCHEMA);
@@ -136,7 +140,7 @@ abstract class QueryRequestHandler {
 
     @SuppressWarnings("unchecked")
     static <T> T getRequestData(SoapMessageImpl requestSoap,
-                                Class<?> clazz) throws Exception {
+                                Class<?> clazz) throws JAXBException, SOAPException {
         Unmarshaller unmarshaller = createUnmarshaller(clazz);
 
         try {
@@ -150,13 +154,13 @@ abstract class QueryRequestHandler {
 
     static SoapMessageImpl createResponse(
             SoapMessageImpl requestMessage, JAXBElement<?> jaxbElement)
-            throws Exception {
+            throws JAXBException, SOAPException, IOException {
         return createResponse(requestMessage, createMarshaller(), jaxbElement);
     }
 
     static SoapMessageImpl createResponse(
             SoapMessageImpl requestMessage, Marshaller marshaller,
-            JAXBElement<?> jaxbElement) throws Exception {
+            JAXBElement<?> jaxbElement) throws SOAPException, JAXBException, IOException {
         return SoapUtils.toResponse(requestMessage,
                 soap -> {
                     soap.getSOAPBody().removeContents();
@@ -164,12 +168,12 @@ abstract class QueryRequestHandler {
                 });
     }
 
-    private static Marshaller createMarshaller() throws Exception {
+    private static Marshaller createMarshaller() throws JAXBException {
         return createMarshaller(null);
     }
 
     static Marshaller createMarshaller(
-            AttachmentMarshaller attachmentMarshaller) throws Exception {
+            AttachmentMarshaller attachmentMarshaller) throws JAXBException {
         Marshaller marshaller = JAXB_CTX.createMarshaller();
 
         marshaller.setAttachmentMarshaller(attachmentMarshaller);
@@ -221,7 +225,7 @@ abstract class QueryRequestHandler {
 
         private final Map<String, DataHandler> attachments = new HashMap<>();
 
-        void encodeAttachments() throws Exception {
+        void encodeAttachments() throws IOException {
             for (Map.Entry<String, DataHandler> attach : attachments.entrySet()) {
                 responseEncoder.attachment(attach.getValue().getContentType(),
                         attach.getValue().getInputStream(),

@@ -49,9 +49,8 @@ public class ProxyMain {
      * Main program entry point.
      *
      * @param args command-line arguments
-     * @throws Exception in case of any errors
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         try {
             new ProxyMain().createApplicationContext();
         } catch (Exception ex) {

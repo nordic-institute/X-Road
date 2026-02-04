@@ -53,22 +53,21 @@ public class EmptyKeyConf implements KeyConfProvider {
 
     @Override
     public void setOcspResponses(List<X509Certificate> certs,
-                                 List<OCSPResp> response) throws Exception {
+                                 List<OCSPResp> response) {
     }
 
     @Override
-    public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
+    public OCSPResp getOcspResponse(X509Certificate cert) {
         return null;
     }
 
     @Override
-    public OCSPResp getOcspResponse(String certHash) throws Exception {
+    public OCSPResp getOcspResponse(String certHash) {
         return null;
     }
 
     @Override
-    public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
-            throws Exception {
+    public List<OCSPResp> getOcspResponses(List<X509Certificate> certs) {
         List<OCSPResp> ocspResponses = new ArrayList<>();
         for (X509Certificate cert : certs) {
             ocspResponses.add(getOcspResponse(cert));

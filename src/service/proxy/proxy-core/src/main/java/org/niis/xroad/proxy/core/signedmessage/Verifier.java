@@ -88,8 +88,7 @@ public class Verifier {
      * @param soap       the signed message
      */
     public void addMessagePart(DigestAlgorithm hashMethod, SoapMessageImpl soap) {
-        parts.add(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
-                soap.getHash(), soap.getBytes()));
+        parts.add(new MessagePart(MessageFileNames.MESSAGE, hashMethod, soap.getHash(), soap.getBytes()));
     }
 
     /**
@@ -99,8 +98,7 @@ public class Verifier {
      * @param signature signature data
      * @throws Exception in case of any errors
      */
-    public void verify(ClientId sender, SignatureData signature)
-            throws Exception {
+    public void verify(ClientId sender, SignatureData signature) {
         log.trace("Verify, {} parts. Signature: {}", parts.size(), signature);
 
         if (SystemProperties.IGNORE_SIGNATURE_VERIFICATION) {

@@ -104,9 +104,8 @@ public final class TokenManager {
     /**
      * Saves the current tokens to the configuration.
      *
-     * @throws Exception if an error occurs
      */
-    public static synchronized void saveToConf() throws Exception {
+    public static synchronized void saveToConf() {
         log.trace("persist()");
 
         if (initialized) {

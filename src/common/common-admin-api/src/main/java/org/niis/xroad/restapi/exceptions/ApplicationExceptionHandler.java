@@ -28,10 +28,10 @@ package org.niis.xroad.restapi.exceptions;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.signer.api.exception.SignerException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -128,9 +128,9 @@ public class ApplicationExceptionHandler {
         log.error(EXCEPTION_CAUGHT, beanCreationException);
         Exception exception = beanCreationException;
         int indexOfSignerException = ExceptionUtils
-                .indexOfThrowable(beanCreationException, SignerException.class);
+                .indexOfThrowable(beanCreationException, XrdRuntimeException.class);
         if (indexOfSignerException != -1) {
-            exception = (SignerException) ExceptionUtils
+            exception = (XrdRuntimeException) ExceptionUtils
                     .getThrowables(beanCreationException)[indexOfSignerException];
         }
         return exceptionTranslator.toResponseEntity(exception, HttpStatus.INTERNAL_SERVER_ERROR);

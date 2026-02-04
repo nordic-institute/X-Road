@@ -57,4 +57,7 @@ public class TimestampingServiceEntity {
 
     @Column(name = "url", nullable = false)
     private String url;
+
+    @Column(name = "cost_type")
+    private String costType;
 }

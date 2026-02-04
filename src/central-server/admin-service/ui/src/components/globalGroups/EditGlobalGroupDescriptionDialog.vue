@@ -42,6 +42,7 @@
         variant="outlined"
         autofocus
         persistent-hint
+        data-test="global-group-description-edit"
         :label="$t('globalGroup.description')"
       />
     </template>
@@ -67,7 +68,7 @@ const props = defineProps({
 const emit = defineEmits(['save', 'cancel']);
 
 const { meta, defineField, handleSubmit } = useForm({
-  validationSchema: { description: 'required' },
+  validationSchema: { description: 'required|validDescription' },
   initialValues: { description: props.groupDescription },
 });
 const [description, descriptionAttrs] = defineField('description', {

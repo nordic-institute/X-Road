@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.springframework.stereotype.Repository;
 
 import java.io.FileInputStream;
@@ -53,7 +54,7 @@ public class InternalTlsCertificateRepository {
             return CryptoUtils.readCertificate(fileInputStream);
         } catch (IOException ioe) {
             log.error("can't read internal tls cert");
-            throw new RuntimeException(ioe);
+            throw XrdRuntimeException.systemException(ioe);
         }
     }
 
@@ -65,7 +66,7 @@ public class InternalTlsCertificateRepository {
             return CryptoUtils.readCertificates(fileInputStream);
         } catch (IOException ioe) {
             log.error("can't read internal tls cert");
-            throw new RuntimeException(ioe);
+            throw XrdRuntimeException.systemException(ioe);
         }
     }
 }

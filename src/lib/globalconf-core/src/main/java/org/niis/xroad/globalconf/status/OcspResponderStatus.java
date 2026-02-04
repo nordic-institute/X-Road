@@ -25,10 +25,13 @@
  */
 package org.niis.xroad.globalconf.status;
 
+import ee.ria.xroad.common.DiagnosticStatus;
+
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import org.niis.xroad.common.core.exception.ErrorCode;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -36,12 +39,13 @@ import java.time.OffsetDateTime;
 /**
  * Diagnostics status for single OCSP responder
  */
-@Value
+@Data
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class OcspResponderStatus implements Serializable {
-    int status;
-    String url;
-    OffsetDateTime prevUpdate;
-    OffsetDateTime nextUpdate;
+    private final DiagnosticStatus diagnosticStatus;
+    private final String url;
+    private final OffsetDateTime prevUpdate;
+    private final OffsetDateTime nextUpdate;
+    private ErrorCode errorCode;
 }

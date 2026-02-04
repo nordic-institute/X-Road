@@ -42,13 +42,14 @@ public class FileContentChangeCheckerTest {
 
     /**
      * Tests whether the file content changes are detected
+     *
      * @throws Exception if error occurs
      */
     @Test
     public void checkChanges() throws Exception {
         FileContentChangeChecker checker = new FileContentChangeChecker("mock") {
             @Override
-            protected String calculateConfFileChecksum(File file) throws Exception {
+            protected String calculateConfFileChecksum(File file) {
                 return "foo";
             }
         };

@@ -25,13 +25,16 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
+import lombok.SneakyThrows;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.niis.xroad.proxy.core.messagelog.TimestamperUtil.getTimestampResponse;
 
@@ -58,8 +61,9 @@ class TestTimestamperWorker extends TimestamperWorker {
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
         return new SingleTimestampRequest(globalConfProvider, logRecord) {
             @Override
-            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
-                    throws Exception {
+            @SneakyThrows
+            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
+                Map<String, Exception> errorsByUrl = new HashMap<>();
                 synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
@@ -72,11 +76,13 @@ class TestTimestamperWorker extends TimestamperWorker {
                 TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
                 verify(tsRequest, tsResponse);
 
-                return result(tsResponse, req.getUrl());
+                Timestamper.TimestampResult result = result(tsResponse, req.getUrl());
+                result.setErrorsByUrl(errorsByUrl);
+                return result;
             }
 
             @Override
-            protected void verify(TimeStampRequest request, TimeStampResponse response) throws Exception {
+            protected void verify(TimeStampRequest request, TimeStampResponse response) {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();
@@ -89,8 +95,9 @@ class TestTimestamperWorker extends TimestamperWorker {
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
         return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes) {
             @Override
-            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
-                    throws Exception {
+            @SneakyThrows
+            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls) {
+                Map<String, Exception> errorsByUrl = new HashMap<>();
                 synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
@@ -103,11 +110,13 @@ class TestTimestamperWorker extends TimestamperWorker {
                 TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
                 verify(tsRequest, tsResponse);
 
-                return result(tsResponse, req.getUrl());
+                Timestamper.TimestampResult result = result(tsResponse, req.getUrl());
+                result.setErrorsByUrl(errorsByUrl);
+                return result;
             }
 
             @Override
-            protected void verify(TimeStampRequest request, TimeStampResponse response) throws Exception {
+            protected void verify(TimeStampRequest request, TimeStampResponse response) {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();

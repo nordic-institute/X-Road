@@ -39,7 +39,7 @@ public class GetTokenInfoReqHandler
         extends AbstractRpcHandler<GetTokenByIdReq, TokenInfoProto> {
 
     @Override
-    protected TokenInfoProto handle(GetTokenByIdReq request) throws Exception {
+    protected TokenInfoProto handle(GetTokenByIdReq request) {
         var token = TokenManager.findTokenInfo(request.getTokenId());
         return token.asMessage();
     }

@@ -39,6 +39,7 @@ import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.fillMinimalOperationalData;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatInvalidOperationalDataAsJson;
@@ -104,7 +105,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
         String jsonRec = formatInvalidOperationalDataAsJson();
 
         var exc = assertThrows(JsonMappingException.class, () -> OBJECT_READER.readValue(jsonRec, OperationalDataRecord.class));
-        assertEquals("Invalid value of securityServerType", exc.getOriginalMessage());
+        assertTrue(exc.getOriginalMessage().contains("Invalid value of securityServerType"));
     }
 
     @Test

@@ -31,7 +31,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@FeignClient(name = "healthcheckApi", path = "/", url = "http://localhost:5558")
+@FeignClient(name = "healthcheckApi", path = "/", url = "http://localhost:5588")
 public interface FeignHealthcheckApi {
 
     @GetMapping

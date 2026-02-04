@@ -25,13 +25,23 @@
  */
 package org.niis.xroad.proxy.core.messagelog;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.signature.XMLSignatureException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.messagelog.Timestamper.TimestampTask;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.NO_LOG_RECORDS_SPECIFIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.NO_SIGNATURE_HASHES_SPECIFIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
 
 /**
  * Timestamper worker is responsible for creating timestamps.
@@ -42,12 +52,12 @@ public class TimestamperWorker {
     private final GlobalConfProvider globalConfProvider;
     private final List<String> tspUrls;
 
-    public Timestamper.TimestampResult timestamp(TimestampTask message) {
-        log.trace("timestamp({})", message.getClass());
+    public Timestamper.TimestampResult timestamp(TimestampTask timestampTask) {
+        log.trace("timestamp({})", timestampTask.getClass());
         try {
-            return handleTimestampTask(message);
+            return handleTimestampTask(timestampTask);
         } catch (Exception e) {
-            return handleFailure(message, e);
+            return handleFailure(timestampTask, e);
         }
     }
 
@@ -55,34 +65,46 @@ public class TimestamperWorker {
         log.error("Timestamper failed for message records {}: {}",
                 Arrays.toString(message.getMessageRecords()), e.getMessage());
 
-        return new Timestamper.TimestampFailed(message.getMessageRecords(), e);
+        Timestamper.TimestampFailed timestampFailed = new Timestamper.TimestampFailed(message.getMessageRecords(), e);
+        Map<String, Exception> errorsByUrl = new HashMap<>();
+        for (String tspUrl : tspUrls) {
+            errorsByUrl.put(tspUrl, e);
+        }
+        timestampFailed.setErrorsByUrl(errorsByUrl);
+        return timestampFailed;
     }
 
-    private Timestamper.TimestampResult handleTimestampTask(TimestampTask message) throws Exception {
+    private Timestamper.TimestampResult handleTimestampTask(TimestampTask timestampTask)
+            throws JAXBException, IOException, XMLSignatureException {
         if (tspUrls.isEmpty()) {
-            throw new RuntimeException("Cannot time-stamp, no TSP URLs configured");
+            throw XrdRuntimeException.systemException(NO_TIMESTAMPING_PROVIDER_FOUND)
+                    .details("Cannot time-stamp, no TSP URLs configured")
+                    .build();
         }
 
-        Long[] logRecords = message.getMessageRecords();
+        Long[] logRecords = timestampTask.getMessageRecords();
         if (logRecords == null || logRecords.length == 0) {
-            throw new RuntimeException("Cannot time-stamp, no log records specified");
+            throw XrdRuntimeException.systemException(NO_LOG_RECORDS_SPECIFIED)
+                    .details("Cannot time-stamp, no log records specified")
+                    .build();
         }
 
-        String[] signatureHashes = message.getSignatureHashes();
+        String[] signatureHashes = timestampTask.getSignatureHashes();
         if (signatureHashes == null
                 || logRecords.length != signatureHashes.length) {
-            throw new RuntimeException("Cannot time-stamp, no signature hashes specified");
+            throw XrdRuntimeException.systemException(NO_SIGNATURE_HASHES_SPECIFIED)
+                    .details("Cannot time-stamp, no signature hashes specified")
+                    .build();
         }
 
         long start = System.currentTimeMillis();
 
-        AbstractTimestampRequest tsRequest =
-                createTimestampRequest(logRecords, signatureHashes);
+        AbstractTimestampRequest tsRequest = createTimestampRequest(logRecords, signatureHashes);
 
         Timestamper.TimestampResult result = tsRequest.execute(tspUrls);
 
-        log.info("Timestamped {} message records in {} ms",
-                message.getMessageRecords().length,
+        log.info("Timestamped {} timestampTask records in {} ms",
+                timestampTask.getMessageRecords().length,
                 (System.currentTimeMillis() - start));
 
         return result;

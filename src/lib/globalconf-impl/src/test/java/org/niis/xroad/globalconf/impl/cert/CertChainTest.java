@@ -84,10 +84,9 @@ public class CertChainTest {
     /**
      * Tests verifying a certificate chain with 3 intermediate certificates.
      *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void chainWith3Intermediates() throws Exception {
+    public void chainWith3Intermediates() {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate interCa1 = TestCertUtil.getCertChainCert("ca_1.p12");
         X509Certificate interCa2 = TestCertUtil.getCertChainCert("ca_2.p12");
@@ -105,10 +104,9 @@ public class CertChainTest {
     /**
      * Test that verifying a chain with missing intermediate certificate fails.
      *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void chainWithMissingIntermediate() throws Exception {
+    public void chainWithMissingIntermediate() {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate interCa1 = TestCertUtil.getCertChainCert("ca_1.p12");
         X509Certificate interCa3 = TestCertUtil.getCertChainCert("ca_3.p12");
@@ -128,10 +126,9 @@ public class CertChainTest {
     /**
      * Tests that verifying the chain with invalid user certificate fails.
      *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void invalidUserCertSignature() throws Exception {
+    public void invalidUserCertSignature() {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate interCa1 = TestCertUtil.getCertChainCert("ca_1.p12");
         X509Certificate interCa2 = TestCertUtil.getCertChainCert("ca_2.p12");
@@ -154,10 +151,9 @@ public class CertChainTest {
     /**
      * Tests that verifying a chain with invalid CA certificate fails.
      *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void invalidCaCertNoExtensions() throws Exception {
+    public void invalidCaCertNoExtensions() {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate interCa1 = TestCertUtil.getCertChainCert("ca_1.p12");
         X509Certificate interCa2 = TestCertUtil.getCertChainCert("ca_2.p12");
@@ -186,10 +182,9 @@ public class CertChainTest {
     /**
      * Tests that verifying a chain with missing OCSP responses fails.
      *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void missingOcspResponse() throws Exception {
+    public void missingOcspResponse() {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate interCa1 = TestCertUtil.getCertChainCert("ca_1.p12");
         X509Certificate interCa2 = TestCertUtil.getCertChainCert("ca_2.p12");
@@ -216,10 +211,9 @@ public class CertChainTest {
     /**
      * Tests that verifying a chain with invalid OCSP responses fails.
      *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void invalidOcspResponse() throws Exception {
+    public void invalidOcspResponse() {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate interCa1 = TestCertUtil.getCertChainCert("ca_1.p12");
         X509Certificate interCa2 = TestCertUtil.getCertChainCert("ca_2.p12");
@@ -259,7 +253,7 @@ public class CertChainTest {
                 + (1000L * 60 * 60 * 24 * plusDays));
     }
 
-    private static List<OCSPResp> getAllOcspResponses() throws Exception {
+    private static List<OCSPResp> getAllOcspResponses() {
         List<X509Certificate> certs = new ArrayList<>();
         certs.add(TestCertUtil.getCertChainCert("user_0.p12"));
         certs.add(TestCertUtil.getCertChainCert("user_1.p12"));
@@ -274,8 +268,7 @@ public class CertChainTest {
     }
 
     private static List<OCSPResp> generateOcspResponses(
-            List<X509Certificate> certs, CertificateStatus status)
-            throws Exception {
+            List<X509Certificate> certs, CertificateStatus status) {
         List<OCSPResp> responses = new ArrayList<>();
         for (X509Certificate cert : certs) {
             responses.add(OcspTestUtils.createOCSPResponse(cert,
@@ -288,7 +281,7 @@ public class CertChainTest {
     }
 
     private static X509Certificate getIssuerCert(X509Certificate subject,
-                                                 List<X509Certificate> certs) throws Exception {
+                                                 List<X509Certificate> certs) {
         for (X509Certificate cert : certs) {
             if (cert.getSubjectX500Principal().equals(
                     subject.getIssuerX500Principal())) {
@@ -311,7 +304,7 @@ public class CertChainTest {
 
         @Override
         public X509Certificate getCaCert(String instanceIdentifier,
-                                         X509Certificate orgCert) throws Exception {
+                                         X509Certificate orgCert) {
             List<X509Certificate> certs = new ArrayList<>();
             certs.add(TestCertUtil.getCertChainCert("ca_1.p12"));
             certs.add(TestCertUtil.getCertChainCert("ca_2.p12"));

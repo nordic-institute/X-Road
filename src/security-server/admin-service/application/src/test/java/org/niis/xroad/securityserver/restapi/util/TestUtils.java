@@ -31,11 +31,15 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.collect.Ordering;
+import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.WarningDeviation;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
@@ -119,6 +123,7 @@ public final class TestUtils {
     public static final String DB_LOCAL_GROUP_ID_2 = "2";
     public static final String DB_LOCAL_GROUP_CODE = "group1";
     public static final int GROUP1_ACCESS_RIGHTS_COUNT = 1;
+    public static final long DB_ENDPOINT_ID_GET_RANDOM = 1L;
     // services from initial test data: src/test/resources/data.sql
     public static final String FULL_SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
     public static final String SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld";
@@ -294,17 +299,19 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static TimestampingService createTspType(String url, String name) {
+    public static TimestampingService createTspType(String url, String name, CostType costType) {
         TimestampingService tsp = new TimestampingService();
         tsp.setUrl(url);
         tsp.setName(name);
+        tsp.setCostType(costType);
         return tsp;
     }
 
-    public static TimestampingServiceEntity createTspTypeEntity(String url, String name) {
+    public static TimestampingServiceEntity createTspTypeEntity(String url, String name, String costType) {
         TimestampingServiceEntity tsp = new TimestampingServiceEntity();
         tsp.setUrl(url);
         tsp.setName(name);
+        tsp.setCostType(costType);
         return tsp;
     }
 
@@ -314,10 +321,11 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static SharedParameters.ApprovedTSA createApprovedTsaType(String url, String name) {
+    public static SharedParameters.ApprovedTSA createApprovedTsaType(String url, String name, CostType costType) {
         SharedParameters.ApprovedTSA approvedTSA = new SharedParameters.ApprovedTSA();
         approvedTSA.setUrl(url);
         approvedTSA.setName(name);
+        approvedTSA.setCostType(costType);
         return approvedTSA;
     }
 
@@ -327,10 +335,11 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static TimestampingServiceDto createTimestampingService(String url, String name) {
+    public static TimestampingServiceDto createTimestampingService(String url, String name, CostTypeDto costType) {
         TimestampingServiceDto timestampingService = new TimestampingServiceDto();
         timestampingService.setUrl(url);
         timestampingService.setName(name);
+        timestampingService.costType(costType);
         return timestampingService;
     }
 
@@ -377,5 +386,24 @@ public final class TestUtils {
      */
     public static <T> boolean isSortOrderCorrect(Set<T> set, Comparator<? super T> comparator) {
         return Ordering.from(comparator).isOrdered(set);
+    }
+
+    public static ApprovedCAInfo approvedCa(String name, boolean authenticationOnly, String certificateProfileInfo) {
+        return approvedCa(name, authenticationOnly, certificateProfileInfo, CsrFormat.PEM, null, null, null, null);
+    }
+
+    public static ApprovedCAInfo approvedCaWithAcme(String name, boolean authenticationOnly, String certificateProfileInfo) {
+        return approvedCa(name, authenticationOnly, certificateProfileInfo, CsrFormat.PEM, "http://test-ca/acme", "123.4.5.6", "5", "6");
+    }
+
+    public static ApprovedCAInfo approvedCaWithoutDefaultCsrFormat(String name, boolean authenticationOnly, String certificateProfileInfo) {
+        return approvedCa(name, authenticationOnly, certificateProfileInfo, null, null, null, null, null);
+    }
+
+    private static ApprovedCAInfo approvedCa(String name, boolean authenticationOnly, String certificateProfileInfo,
+                                             CsrFormat csrFormat, String acmeServerDirectoryUrl, String acmeServerIpAddress,
+                                             String retryDelay, String renewalInterval) {
+        return new ApprovedCAInfo(name, authenticationOnly, certificateProfileInfo, csrFormat,
+                acmeServerDirectoryUrl, acmeServerIpAddress, retryDelay, renewalInterval);
     }
 }

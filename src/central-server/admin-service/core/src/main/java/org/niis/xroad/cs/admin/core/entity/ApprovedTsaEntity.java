@@ -76,6 +76,11 @@ public class ApprovedTsaEntity extends AuditableEntity {
     @Setter
     private Instant validTo;
 
+    @Column(name = "cost_type")
+    @Getter
+    @Setter
+    private String costType;
+
 }
 
 

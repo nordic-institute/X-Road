@@ -35,13 +35,13 @@ public class MemoryPasswordStoreProvider implements PasswordStore.PasswordStoreP
     }
 
     @Override
-    public native byte[] read(String pathnameForFtok, String id) throws Exception;
+    public native byte[] read(String pathnameForFtok, String id);
 
     @Override
-    public native void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
+    public native void write(String pathnameForFtok, String id, byte[] password, int permissions);
 
     @Override
-    public native void clear(String pathnameForFtok, int permissions) throws Exception;
+    public native void clear(String pathnameForFtok, int permissions);
 
 
 }

@@ -37,6 +37,7 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -56,7 +57,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Base class for XML-based configurations, where underlying classes are
  * generated from the XSD that describes the XML.
- *
+ * <p>
  * This class also contains a file content change checker that check if a
  * file contents has been changed since the last time it was accessed. The
  * check is based on the checksum of the file's contents.
@@ -104,6 +105,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * A method for subclasses to return (preferably static) JAXBContext
+     *
      * @return class specific JAXBContext
      */
     protected abstract JAXBContext getJAXBContext();
@@ -111,6 +113,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     /**
      * A special constructor for creating an AbstractXmlConf from bytes instead of a file on the filesystem.
      * <b>Does not set <code>confFileChecker</code>.</b>
+     *
      * @param fileBytes
      * @param schemaValidator
      */
@@ -145,26 +148,31 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     @Override
-    public void load(String fileName) throws Exception {
+    public void load(String fileName) {
         if (fileName == null) {
             return;
         }
 
-        confFileName = fileName;
-        confFileChecker = new FileContentChangeChecker(confFileName);
+        try {
+            confFileName = fileName;
+            confFileChecker = new FileContentChangeChecker(confFileName);
 
-        doValidateConfFile();
+            doValidateConfFile();
 
-        LoadResult<T> result = doLoadConfFile();
-        root = result.getRoot();
-        confType = result.getConfType();
+            LoadResult<T> result = doLoadConfFile();
+            root = result.getRoot();
+            confType = result.getConfType();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     /**
      * Load the xml configuration to a {@link LoadResult} that can be manipulated further.
+     *
      * @return
-     * @throws IOException if opening {@link #confFileName} fails.
-     * @throws JAXBException if an unmarshalling error occurs
+     * @throws IOException          if opening {@link #confFileName} fails.
+     * @throws JAXBException        if an unmarshalling error occurs
      * @throws NullPointerException if {@link #confFileName} or {@link #getJAXBContext()} is null
      */
     @SuppressWarnings("unchecked")
@@ -212,26 +220,35 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     @Override
-    public void save() throws Exception {
-        AtomicSave.execute(confFileName, "tmpconf", AbstractXmlConf.this::save,
-                StandardCopyOption.ATOMIC_MOVE);
+    public void save() {
+        try {
+            AtomicSave.execute(confFileName, "tmpconf", AbstractXmlConf.this::save,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Override
-    public void save(OutputStream out) throws Exception {
-        Marshaller marshaller = getJAXBContext().createMarshaller();
+    public void save(OutputStream out) {
+        try {
+            Marshaller marshaller = getJAXBContext().createMarshaller();
 
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.marshal(root, out);
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            marshaller.marshal(root, out);
+        } catch (JAXBException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     /**
      * Loads the configuration from a byte array.
+     *
      * @param data the data
-     * @throws Exception if an error occurs
+     *
      */
     @SuppressWarnings("unchecked")
-    public void load(byte[] data) throws Exception {
+    public void load(byte[] data) throws IOException, JAXBException, IllegalAccessException {
         if (data == null) {
             return;
         }
@@ -251,9 +268,9 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * Reloads the configuration from the file.
-     * @throws Exception the file cannot be loaded
+     *
      */
-    public void reload() throws Exception {
+    public void reload() {
         load(confFileName);
     }
 
@@ -271,8 +288,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
                 throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("SchemaValidator '" + schemaValidator.getName() + "' must implement static "
-                    + "method 'void validate(Source)'");
+            throw XrdRuntimeException.systemInternalError(
+                    "SchemaValidator '" + schemaValidator.getName() + "' must implement static " + "method 'void validate(Source)'");
         }
     }
 }

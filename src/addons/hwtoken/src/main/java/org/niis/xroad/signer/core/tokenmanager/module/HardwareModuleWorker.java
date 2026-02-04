@@ -36,6 +36,7 @@ import iaik.pkcs.pkcs11.wrapper.Functions;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenType;
@@ -78,9 +79,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
             pkcs11Module.initialize(getInitializeArgs(module.getLibraryCantCreateOsThreads(), module.getOsLockingOk()));
         } catch (Throwable t) {
-            // Note that we catch all serious errors here since we do not want Signer to crash if the module could
-            // not be loaded for some reason.
-            throw new RuntimeException(t);
+            throw XrdRuntimeException.systemException(t);
         }
     }
 
@@ -126,7 +125,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
-    protected List<TokenType> listTokens() throws Exception {
+    protected List<TokenType> listTokens() throws TokenException {
         log.trace("Listing tokens on module '{}'", module.getType());
 
         if (pkcs11Module == null) {
@@ -170,7 +169,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         return new ArrayList<>(tokens.values());
     }
 
-    private TokenType createToken(Slot[] slots, int slotIndex) throws Exception {
+    private TokenType createToken(Slot[] slots, int slotIndex) throws TokenException {
         Slot slot = slots[slotIndex];
 
         iaik.pkcs.pkcs11.Token pkcs11Token = slot.getToken();

@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
@@ -44,6 +43,7 @@ import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +55,7 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -75,7 +76,7 @@ public final class OcspClient {
     private static final DigestAlgorithm DIGEST_ALGORITHM_ID = DigestAlgorithm.SHA512;
     private static final SignMechanism SIGN_MECHANISM = SignMechanism.CKM_RSA_PKCS;
 
-    OCSPResp queryCertStatus(X509Certificate subject) throws Exception {
+    OCSPResp queryCertStatus(X509Certificate subject) throws OCSPException, CertificateEncodingException, IOException {
         X509Certificate issuer = globalConfProvider.getCaCert(globalConfProvider.getInstanceIdentifier(), subject);
 
         PrivateKey signerKey = getOcspRequestKey(subject);
@@ -85,7 +86,6 @@ public final class OcspClient {
         return fetchResponse(subject, issuer, signerKey, signer, signAlgoId);
     }
 
-    @SneakyThrows
     SignAlgorithm getSignAlgorithmId() {
         return SignAlgorithm.ofDigestAndMechanism(DIGEST_ALGORITHM_ID, SIGN_MECHANISM);
     }
@@ -100,8 +100,9 @@ public final class OcspClient {
     }
 
     OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
-                           X509Certificate signer, SignAlgorithm signAlgoId) throws Exception {
-        List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
+                           X509Certificate signer, SignAlgorithm signAlgoId)
+            throws CertificateEncodingException, IOException, OCSPException {
+        List<String> responderURIs = globalConfProvider.getOrderedOcspResponderAddresses(subject);
 
         log.trace("responder URIs: {}", responderURIs);
 
@@ -123,7 +124,8 @@ public final class OcspClient {
     }
 
     OCSPResp fetchResponse(String responderURI, X509Certificate subject, X509Certificate issuer,
-                           PrivateKey signerKey, X509Certificate signer, SignAlgorithm signAlgoId) throws Exception {
+                           PrivateKey signerKey, X509Certificate signer, SignAlgorithm signAlgoId)
+            throws IOException, OCSPException, CertificateEncodingException, OperatorCreationException {
         HttpURLConnection connection = createConnection(responderURI);
 
         OCSPReq ocspRequest = createRequest(subject, issuer, signerKey, signer, signAlgoId);
@@ -165,7 +167,7 @@ public final class OcspClient {
         }
     }
 
-    private static void verifyResponse(OCSPResp response) throws Exception {
+    private static void verifyResponse(OCSPResp response) throws OCSPException {
         int responseStatus = response.getStatus();
 
         switch (responseStatus) {
@@ -203,7 +205,8 @@ public final class OcspClient {
     }
 
     private static OCSPReq createRequest(X509Certificate subjectCert, X509Certificate issuerCert, PrivateKey signerKey,
-                                         X509Certificate signerCert, SignAlgorithm signAlgoId) throws Exception {
+                                         X509Certificate signerCert, SignAlgorithm signAlgoId)
+            throws OCSPException, CertificateEncodingException, IOException, OperatorCreationException {
         OCSPReqBuilder requestBuilder = new OCSPReqBuilder();
 
         CertificateID id = CryptoUtils.createCertId(subjectCert, issuerCert);

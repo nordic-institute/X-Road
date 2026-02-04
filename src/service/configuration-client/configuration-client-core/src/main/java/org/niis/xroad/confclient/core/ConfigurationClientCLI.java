@@ -33,6 +33,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
+import org.niis.xroad.globalconf.util.FederationConfigurationSourceFilter;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -40,9 +41,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
+import static ee.ria.xroad.common.ReturnCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
+import static ee.ria.xroad.common.ReturnCodes.RETURN_SUCCESS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 

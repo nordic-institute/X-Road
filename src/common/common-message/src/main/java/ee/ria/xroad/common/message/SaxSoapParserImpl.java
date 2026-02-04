@@ -39,12 +39,12 @@ import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -52,6 +52,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 
 import javax.xml.namespace.QName;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -192,7 +193,8 @@ public class SaxSoapParserImpl implements SoapParser {
         }
     }
 
-    private Soap parseMessage(InputStream is, String mimeType, String contentType, String charset) throws Exception {
+    private Soap parseMessage(InputStream is, String mimeType, String contentType, String charset)
+            throws IOException, SOAPException, ParserConfigurationException {
         log.trace("parseMessage({}, {})", mimeType, charset);
 
         ByteArrayOutputStream rawXml = new ByteArrayOutputStream();
@@ -213,7 +215,7 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private XRoadSoapHandler handleSoap(Writer writer, InputStream inputStream)
-            throws Exception {
+            throws SOAPException, IOException, ParserConfigurationException {
         try (BufferedWriter out = new BufferedWriter(writer)) {
             XRoadSoapHandler handler = new XRoadSoapHandler(out);
             SAXParser saxParser = PARSER_FACTORY.newSAXParser();
@@ -231,7 +233,7 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private static Soap createSoapMessage(String contentType, String charset,
-                                          XRoadSoapHandler handler, byte[] xmlBytes) throws Exception {
+                                          XRoadSoapHandler handler, byte[] xmlBytes) {
         return new SoapMessageImpl(xmlBytes, charset, handler.getHeader(),
                 null, handler.getServiceName(), handler.isRpc(), contentType);
     }
@@ -243,17 +245,20 @@ public class SaxSoapParserImpl implements SoapParser {
                 rawXml.toByteArray(), charset);
     }
 
-    @SneakyThrows
     private static SAXParserFactory createSaxParserFactory() {
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        factory.setNamespaceAware(true);
-        factory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-        // disable external entity parsing to avoid DOS attacks
-        factory.setValidating(false);
-        factory.setFeature(XmlUtils.FEATURE_DISALLOW_DOCTYPE, true);
-        factory.setFeature(XmlUtils.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
-        factory.setFeature(XmlUtils.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
-        return factory;
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            factory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+            // disable external entity parsing to avoid DOS attacks
+            factory.setValidating(false);
+            factory.setFeature(XmlUtils.FEATURE_DISALLOW_DOCTYPE, true);
+            factory.setFeature(XmlUtils.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            factory.setFeature(XmlUtils.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+            return factory;
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     /**
@@ -270,8 +275,7 @@ public class SaxSoapParserImpl implements SoapParser {
         return hasUtf8Charset(contentType) ? BOMInputStream.builder().setInputStream(soapStream).get() : soapStream;
     }
 
-    @SneakyThrows
-    protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
+    protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) throws IOException {
         writer.append('<');
         String localName = element.getLocalPart();
         String tag = StringUtils.isEmpty(prefix) ? localName : prefix + ":" + localName;
@@ -283,8 +287,7 @@ public class SaxSoapParserImpl implements SoapParser {
         writer.append('>');
     }
 
-    @SneakyThrows
-    protected void writeEndElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
+    protected void writeEndElementXml(String prefix, QName element, Attributes attributes, Writer writer) throws IOException {
         writer.append("</");
         String localName = element.getLocalPart();
         String tag = StringUtils.isEmpty(prefix) ? localName : prefix + ":" + localName;
@@ -292,8 +295,7 @@ public class SaxSoapParserImpl implements SoapParser {
         writer.append('>');
     }
 
-    @SneakyThrows
-    protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) {
+    protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) throws IOException {
         writer.write(characters, start, length);
     }
 
@@ -344,7 +346,11 @@ public class SaxSoapParserImpl implements SoapParser {
             reset();
 
             if (isProcessedXmlRequired()) {
-                writeXmlDeclaration();
+                try {
+                    writeXmlDeclaration();
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
+                }
             }
         }
 
@@ -360,7 +366,11 @@ public class SaxSoapParserImpl implements SoapParser {
 
             if (isProcessedXmlRequired()) {
                 String prefix = findNamespacePrefix(qName);
-                writeStartElementXml(prefix, element, attributes, out);
+                try {
+                    writeStartElementXml(prefix, element, attributes, out);
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
+                }
             }
         }
 
@@ -389,14 +399,18 @@ public class SaxSoapParserImpl implements SoapParser {
             elementParser.characters(ch, start, length);
 
             if (isProcessedXmlRequired()) {
-                // Make sure XML entities are not resolved in processed XML
-                if (xmlEntity != null) {
-                    writeCharactersXml(ENTITY_START, 0, 1, out);
-                    writeCharactersXml(xmlEntity, 0, xmlEntity.length, out);
-                    writeCharactersXml(ENTITY_END, 0, 1, out);
-                    xmlEntity = null;
-                } else {
-                    writeCharactersXml(ch, start, length, out);
+                try {
+                    // Make sure XML entities are not resolved in processed XML
+                    if (xmlEntity != null) {
+                        writeCharactersXml(ENTITY_START, 0, 1, out);
+                        writeCharactersXml(xmlEntity, 0, xmlEntity.length, out);
+                        writeCharactersXml(ENTITY_END, 0, 1, out);
+                        xmlEntity = null;
+                    } else {
+                        writeCharactersXml(ch, start, length, out);
+                    }
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
                 }
             }
         }
@@ -404,9 +418,13 @@ public class SaxSoapParserImpl implements SoapParser {
         @Override
         public void comment(char[] ch, int start, int length) {
             if (isProcessedXmlRequired()) {
-                writeCharactersXml(COMMENT_START, 0, COMMENT_START.length, out);
-                writeCharactersXml(ch, start, length, out);
-                writeCharactersXml(COMMENT_END, 0, COMMENT_END.length, out);
+                try {
+                    writeCharactersXml(COMMENT_START, 0, COMMENT_START.length, out);
+                    writeCharactersXml(ch, start, length, out);
+                    writeCharactersXml(COMMENT_END, 0, COMMENT_END.length, out);
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
+                }
             }
         }
 
@@ -420,14 +438,22 @@ public class SaxSoapParserImpl implements SoapParser {
         @Override
         public void startCDATA() {
             if (isProcessedXmlRequired()) {
-                writeCharactersXml(CDATA_START, 0, CDATA_START.length, out);
+                try {
+                    writeCharactersXml(CDATA_START, 0, CDATA_START.length, out);
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
+                }
             }
         }
 
         @Override
         public void endCDATA() {
             if (isProcessedXmlRequired()) {
-                writeCharactersXml(CDATA_END, 0, CDATA_END.length, out);
+                try {
+                    writeCharactersXml(CDATA_END, 0, CDATA_END.length, out);
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
+                }
             }
         }
 
@@ -441,7 +467,11 @@ public class SaxSoapParserImpl implements SoapParser {
             if (isProcessedXmlRequired()) {
                 QName element = new QName(uri, localName);
                 String prefix = findNamespacePrefix(qName);
-                writeEndElementXml(prefix, element, attributes, out);
+                try {
+                    writeEndElementXml(prefix, element, attributes, out);
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
+                }
             }
         }
 
@@ -449,7 +479,11 @@ public class SaxSoapParserImpl implements SoapParser {
         public void endDocument() {
             log.trace("endDocument()");
             if (isProcessedXmlRequired()) {
-                writeNewLine();
+                try {
+                    writeNewLine();
+                } catch (IOException e) {
+                    throw XrdRuntimeException.systemException(e);
+                }
             }
         }
 
@@ -463,13 +497,11 @@ public class SaxSoapParserImpl implements SoapParser {
             throw translateException(e);
         }
 
-        @SneakyThrows
-        private void writeNewLine() {
+        private void writeNewLine() throws IOException {
             out.newLine();
         }
 
-        @SneakyThrows
-        private void writeXmlDeclaration() {
+        private void writeXmlDeclaration() throws IOException {
             out.append(XML_VERSION_ENCODING);
             out.newLine();
         }
@@ -753,13 +785,11 @@ public class SaxSoapParserImpl implements SoapParser {
             return super.getChildElementHandler(element);
         }
 
-        @SneakyThrows
         private void setProtocolVersion(String val) {
             header.setProtocolVersion(new ProtocolVersion(val));
         }
 
         @Override
-        @SneakyThrows
         protected void closeTag() {
             finished = true;
         }

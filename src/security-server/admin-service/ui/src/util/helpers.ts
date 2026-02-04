@@ -57,17 +57,6 @@ export function selectedFilter<T extends object, K extends keyof T>(
   return filtered;
 }
 
-// Checks if the given WSDL URL valid
-export function isValidWsdlURL(str: string): boolean {
-  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
-  return !!pattern.test(str);
-}
-
-// Checks if the given REST URL is valid
-export function isValidRestURL(str: string): boolean {
-  return isValidWsdlURL(str);
-}
-
 // Save response data as a file
 export function saveResponseAsFile(
   response: AxiosResponse,

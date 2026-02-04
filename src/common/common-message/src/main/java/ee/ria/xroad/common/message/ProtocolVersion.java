@@ -59,23 +59,23 @@ public class ProtocolVersion implements ValidatableField {
      * @param v the version.
      * @throws Exception if the version is invalid
      */
-    public ProtocolVersion(String v) throws Exception {
+    public ProtocolVersion(String v) {
         setVersion(v);
     }
 
     /**
      * Sets the protocol version.
      * @param v the version
-     * @throws Exception (CodedException) with error code
+     * @throws CodedException with error code
      * 'InvalidProtocolVersion' if the protocol version is not supported.
      */
-    public void setVersion(@NonNull String v) throws Exception {
+    private void setVersion(@NonNull String v) {
         this.version = v;
         validate();
     }
 
     @Override
-    public void validate() throws Exception {
+    public void validate() {
         // Since the current requirements do not specify semantics for the
         // protocol version, we simply check if the version starts with
         // a predefined string.

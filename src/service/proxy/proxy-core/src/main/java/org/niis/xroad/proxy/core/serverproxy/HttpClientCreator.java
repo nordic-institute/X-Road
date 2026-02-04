@@ -49,7 +49,13 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 /**
  * This class creates Apache {@link CloseableHttpClient}s with common security settings for use by both
@@ -151,7 +157,9 @@ public class HttpClientCreator {
         httpClient = cb.build();
     }
 
-    private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
+    private SSLConnectionSocketFactory createSSLSocketFactory()
+            throws NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, KeyStoreException,
+            IOException, KeyManagementException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(createServiceKeyManager(), new TrustManager[]{new ServiceTrustManager()}, new SecureRandom());
 
@@ -161,7 +169,8 @@ public class HttpClientCreator {
                 SystemProperties.getProxyClientTLSCipherSuites(), NoopHostnameVerifier.INSTANCE, serverConfProvider);
     }
 
-    private KeyManager[] createServiceKeyManager() throws Exception {
+    private KeyManager[] createServiceKeyManager()
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
 import org.niis.xroad.cs.registrationservice.service.AdminApiService;
 import org.springframework.http.HttpHeaders;
@@ -68,6 +69,11 @@ public class RegistrationRequestController {
                             .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertRegRequest is missing"));
 
                     log.debug("Making a registration request for {}", authRequest.getServer());
+
+                    if (BooleanUtils.isTrue(authRequest.isDryRun())) {
+                        log.info("Processed dry-run registration request for {}", authRequest.getServer());
+                        return 0;
+                    }
 
                     var requestId = adminApiService.addRegistrationRequest(
                             authRequest.getServer(),

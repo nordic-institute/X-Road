@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 public class GetSignMechanismReqHandler extends AbstractRpcHandler<GetSignMechanismReq, GetSignMechanismResp> {
 
     @Override
-    protected GetSignMechanismResp handle(GetSignMechanismReq request) throws Exception {
+    protected GetSignMechanismResp handle(GetSignMechanismReq request) {
         KeyInfo keyInfo = TokenManager.getKeyInfo(request.getKeyId());
 
         if (keyInfo == null) {

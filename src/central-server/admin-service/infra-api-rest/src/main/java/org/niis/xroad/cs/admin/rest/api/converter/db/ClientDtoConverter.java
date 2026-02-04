@@ -47,9 +47,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static org.niis.xroad.common.core.exception.DeviationBuilder.trMetadata;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
-import static org.niis.xroad.restapi.exceptions.DeviationBuilder.trMetadata;
 
 @Slf4j
 @Service

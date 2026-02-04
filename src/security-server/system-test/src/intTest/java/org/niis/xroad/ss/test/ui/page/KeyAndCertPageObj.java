@@ -29,10 +29,12 @@ package org.niis.xroad.ss.test.ui.page;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
 
 public class KeyAndCertPageObj {
     private static final String X_FOLLOWING = "//following::";
@@ -253,8 +255,8 @@ public class KeyAndCertPageObj {
         }
 
 
-        public SelenideElement csrFormat() {
-            return $x("//div[@data-test='csr-format-select']");
+        public Select csrFormat() {
+            return vSelect($x("//div[@data-test='csr-format-select']"));
         }
 
         public SelenideElement csrClient() {

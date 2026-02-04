@@ -9,4 +9,4 @@ eab-credentials:
           sign-kid: keyid_3
           sign-mac-key: 96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde
 
-account-keystore-password: testPassword1234
+account-keystore-password:

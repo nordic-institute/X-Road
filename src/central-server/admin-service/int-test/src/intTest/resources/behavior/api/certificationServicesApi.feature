@@ -52,6 +52,11 @@ Feature: Certification services API
     When Certification service with id 1 is updated with tlsAuth true and certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"
     Then Returned certification service has id 1, tlsAuth true and certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"
 
+  Scenario: Certification Service is created and fails due to missing default_csr_format field
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Certification service with certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider" and no default csr format is created
+    Then Response is of status code 400
+
   @Modifying
   Scenario Outline: Certification Service update failed
     Given Authentication header is set to SYSTEM_ADMINISTRATOR

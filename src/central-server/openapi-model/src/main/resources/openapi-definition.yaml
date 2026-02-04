@@ -529,9 +529,11 @@ paths:
             schema:
               allOf:
                 - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CostTypeProperty'
                 - $ref: '#/components/schemas/CertificateFile'
               required:
                 - url
+                - cost_type
         description: ocsp responder to add
       responses:
         '201':
@@ -1487,9 +1489,11 @@ paths:
             schema:
               allOf:
                 - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CostTypeProperty'
                 - $ref: '#/components/schemas/CertificateFile'
               required:
                 - url
+                - cost_type
         description: ocsp responder to add
       responses:
         '201':
@@ -2229,6 +2233,7 @@ paths:
             schema:
               anyOf:
                 - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CostTypeProperty'
                 - $ref: '#/components/schemas/CertificateFile'
         description: update ocsp responder url, upload a new certificate file, or do both
       responses:
@@ -2834,10 +2839,12 @@ paths:
             schema:
               allOf:
                 - $ref: '#/components/schemas/TimestampingServiceUrl'
+                - $ref: '#/components/schemas/CostTypeProperty'
                 - $ref: '#/components/schemas/CertificateFile'
               required:
                 - url
                 - certificate
+                - cost_type
         description: timestamping service to add
         required: true
       responses:
@@ -2912,9 +2919,11 @@ paths:
             schema:
               allOf:
                 - $ref: '#/components/schemas/TimestampingServiceUrl'
+                - $ref: '#/components/schemas/CostTypeProperty'
                 - $ref: '#/components/schemas/CertificateFile'
               required:
                 - url
+                - cost_type
         description: updated URL or certificate of the timestamping service
         required: true
       responses:
@@ -3293,6 +3302,8 @@ components:
         tls_auth:
           description: can the CA be used for TLS authentication
           type: boolean
+        default_csr_format:
+          $ref: '#/components/schemas/CsrFormat'
         acme_server_directory_url:
           type: string
           format: url
@@ -3536,6 +3547,9 @@ components:
         - $ref: '#/components/schemas/CertificationServiceSettings'
       description: certification service file and settings
       type: object
+      required:
+        - certificate
+        - default_csr_format
     CertificationServiceSettings:
       description: certification service settings
       properties:
@@ -3547,6 +3561,8 @@ components:
         tls_auth:
           description: can the CA be used for TLS authentication
           type: string
+        default_csr_format:
+          $ref: '#/components/schemas/CsrFormat'
         acme_server_directory_url:
           format: url
           type: string
@@ -3707,6 +3723,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
           type: string
       required:
         - code
@@ -3721,6 +3738,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
           type: string
       required:
         - description
@@ -4091,6 +4109,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: '^[a-zA-Z0-9-_,.;:!? ]*$'
           type: string
       required:
         - description
@@ -4192,6 +4211,7 @@ components:
     OcspResponder:
       allOf:
         - $ref: '#/components/schemas/OcspResponderUrl'
+        - $ref: '#/components/schemas/CostTypeProperty'
       description: OCSP responder
       properties:
         id:
@@ -4227,6 +4247,31 @@ components:
       required:
         - url
       type: object
+    CostTypeProperty:
+      type: object
+      description: Object containing cost_type field of CostType enum
+      properties:
+        cost_type:
+          $ref: '#/components/schemas/CostType'
+      required:
+        - cost_type
+    CostType:
+      description: cost type for services like TSP-s and OCSP responders
+      enum:
+        - FREE
+        - PAID
+        - UNDEFINED
+      example: FREE
+      format: enum
+      type: string
+    CsrFormat:
+      description: CSR format
+      enum:
+        - PEM
+        - DER
+      example: PEM
+      format: enum
+      type: string
     PossibleTokenAction:
       description: an action to change state or edit tokens # set of values not final or complete
       enum:
@@ -4441,6 +4486,7 @@ components:
     TimestampingService:
       allOf:
         - $ref: '#/components/schemas/TimestampingServiceUrl'
+        - $ref: '#/components/schemas/CostTypeProperty'
         - $ref: '#/components/schemas/TimestampingServiceCertificate'
       description: timestamping service
       properties:
@@ -4455,21 +4501,10 @@ components:
           example: 60
           format: int32
           type: integer
-        cost:
-          $ref: '#/components/schemas/TimestampingServiceCost'
       required:
         - id
         - timestamping_interval
-        - cost
       type: object
-    TimestampingServiceCost:
-      description: timestamping service cost (free, paid, undefined)
-      enum:
-        - FREE
-        - PAID
-        - UNDEFINED
-      example: FREE
-      format: enum
     TimestampingServiceCertificate:
       description: timestamping service certificate
       properties:

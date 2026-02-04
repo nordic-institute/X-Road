@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.messagelog;
 
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
@@ -34,30 +35,40 @@ import org.bouncycastle.asn1.cmp.PKIStatus;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
+import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.READING_TIMESTAMP_RESPONSE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_NON_GRANTED_RESPONSE;
+import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_RESPONSE_OBJECT_CREATION_FAILED;
+
 @Slf4j
+@UtilityClass
 final class TimestamperUtil {
 
-    private TimestamperUtil() {
-    }
 
     @SuppressWarnings("unchecked")
     static TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
-                                               X509Certificate signerCertificate) throws Exception {
+                                               X509Certificate signerCertificate)
+            throws CertificateEncodingException, IOException, CMSException, TSPException {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
         List<X509CertificateHolder> collection = new ArrayList<>();
@@ -68,19 +79,11 @@ final class TimestamperUtil {
                 new JcaCertStore(collection), cms.getAttributeCertificates(), cms.getCRLs()));
     }
 
-    static InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws Exception {
+    static InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws IOException {
         byte[] request = req.getEncoded();
 
-        URL url = new URL(tspUrl);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-
-        con.setDoOutput(true);
-        con.setDoInput(true);
-        con.setConnectTimeout(MessageLogProperties.getTimestamperClientConnectTimeout());
-        con.setReadTimeout(MessageLogProperties.getTimestamperClientReadTimeout());
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-type", "application/timestamp-query");
-        con.setRequestProperty("Content-length", String.valueOf(request.length));
+        URL url =  URI.create(tspUrl).toURL();
+        HttpURLConnection con = getHttpURLConnectionToTimestampingProvider(url, request);
 
         OutputStream out = con.getOutputStream();
         out.write(request);
@@ -88,22 +91,35 @@ final class TimestamperUtil {
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
             con.disconnect();
-            throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
-                    + con.getResponseMessage());
+            throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMPING_NON_OK_RESPONSE)
+                    .details("Received HTTP error: %d - %s".formatted(con.getResponseCode(), con.getResponseMessage()))
+                    .metadataItems(con.getResponseCode(), con.getResponseMessage())
+                    .build();
         } else if (con.getInputStream() == null) {
             con.disconnect();
-            throw new IOException("Could not get response from TSP");
+
+            throw XrdRuntimeException.systemException(ErrorCode.TIMESTAMP_PROVIDER_CONNECTION_FAILED)
+                    .details("Could not get response from TSP")
+                    .build();
         }
 
         return con.getInputStream();
     }
 
-    static TimeStampResponse getTimestampResponse(InputStream in) throws Exception {
-        TimeStampResp response = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
+    private static HttpURLConnection getHttpURLConnectionToTimestampingProvider(URL url, byte[] request) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setDoOutput(true);
+        con.setDoInput(true);
+        con.setConnectTimeout(MessageLogProperties.getTimestamperClientConnectTimeout());
+        con.setReadTimeout(MessageLogProperties.getTimestamperClientReadTimeout());
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-type", "application/timestamp-query");
+        con.setRequestProperty("Content-length", String.valueOf(request.length));
+        return con;
+    }
 
-        if (response == null) {
-            throw new RuntimeException("Could not read time-stamp response");
-        }
+    static TimeStampResponse getTimestampResponse(InputStream in) throws TSPException, IOException {
+        TimeStampResp response = readTimestampResponse(in);
 
         BigInteger status = response.getStatus().getStatus();
 
@@ -120,15 +136,43 @@ final class TimestamperUtil {
                     sb.append(", ");
                 }
 
-                sb.append("\"" + statusString.getStringAt(i) + "\"");
+                sb.append("\"").append(statusString.getStringAtUTF8(i)).append("\"");
             }
 
             log.error("getTimestampDer() - TimeStampResp.status is not "
-                    + "\"granted\" neither \"grantedWithMods\": {}, {}", status, sb);
+                    + "\"granted\" nor \"grantedWithMods\": {}, {}", status, sb);
 
-            throw new RuntimeException("TimeStampResp.status: " + status + ", .statusString: " + sb);
+            throw XrdRuntimeException.systemException(TIMESTAMP_NON_GRANTED_RESPONSE)
+                    .details("TimeStampResp.status: " + status + ", .statusString: " + sb)
+                    .metadataItems(status, sb.toString(), response.getStatus().getFailInfo())
+                    .build();
         }
 
-        return new TimeStampResponse(response);
+        try {
+            return new TimeStampResponse(response);
+        } catch (TSPException | IOException e) {
+            throw XrdRuntimeException.systemException(TIMESTAMP_RESPONSE_OBJECT_CREATION_FAILED)
+                    .details("Could not create RFC 3161 TimeStampResponse object")
+                    .cause(e)
+                    .build();
+        }
+    }
+
+    private static TimeStampResp readTimestampResponse(InputStream in) {
+        TimeStampResp response;
+        try {
+            response = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(READING_TIMESTAMP_RESPONSE_FAILED)
+                    .details("Could not read time-stamp response")
+                    .cause(e)
+                    .build();
+        }
+        if (response == null) {
+            throw XrdRuntimeException.systemException(READING_TIMESTAMP_RESPONSE_FAILED)
+                    .details("Could not read time-stamp response")
+                    .build();
+        }
+        return response;
     }
 }

@@ -28,10 +28,10 @@ package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -39,6 +39,7 @@ import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
@@ -152,12 +153,9 @@ public final class TestUtil {
         for (int i = 0; i < NUM_CLIENTS; i++) {
             ClientEntity client = new ClientEntity();
             client.setConf(conf);
-            conf.getClients().add(client);
-
             if (i == 0) {
                 client.setIdentifier(createClientIdConfEntity());
                 conf.setOwner(client);
-                continue;
             } else {
                 ClientIdEntity id;
                 if (i == NUM_CLIENTS - 1) {
@@ -169,7 +167,11 @@ public final class TestUtil {
                 client.setIdentifier(id);
                 client.setClientStatus(CLIENT_STATUS + i);
             }
-
+            session.persist(client.getIdentifier());
+            session.persist(client);
+            if (i == 0) {
+                continue;
+            }
             switch (i) {
                 case 1:
                     client.setIsAuthentication("SSLAUTH");
@@ -230,15 +232,18 @@ public final class TestUtil {
             client.getAccessRights().add(
                     createAccessRight(endpoint, client.getIdentifier()));
 
-            ClientIdEntity cl = XRoadIdMapper.get().toEntity(ClientId.Conf.create("XX", "memberClass", "memberCode" + i));
+            ClientIdEntity cl = ClientIdEntity.createMember("XX", "memberClass", "memberCode" + i);
+            session.persist(cl);
             client.getAccessRights().add(createAccessRight(endpoint, cl));
 
-            ServiceIdEntity se = XRoadIdMapper.get().toEntity(ServiceId.Conf.create("XX", "memberClass",
-                    "memberCode" + i, "subsystemCode", "serviceCode" + i));
+            ServiceIdEntity se = ServiceIdEntity.create("XX", "memberClass",
+                    "memberCode" + i, "subsystemCode", "serviceCode" + i);
+            session.persist(se);
             client.getAccessRights().add(createAccessRight(endpoint, se));
 
-            LocalGroupId.Conf lg = LocalGroupId.Conf.create("testGroup" + i);
-            client.getAccessRights().add(createAccessRight(endpoint, XRoadIdMapper.get().toEntity(lg)));
+            LocalGroupIdEntity lg = LocalGroupIdEntity.create("testGroup" + i);
+            session.persist(lg);
+            client.getAccessRights().add(createAccessRight(endpoint, lg));
 
             //rest service
             ServiceDescriptionEntity serviceDescription = new ServiceDescriptionEntity();
@@ -281,14 +286,24 @@ public final class TestUtil {
             client.getLocalGroups().add(localGroup);
         }
 
+        addTimestampingServices(conf);
+
+        return conf;
+    }
+
+    private static void addTimestampingServices(ServerConfEntity conf) {
         for (int j = 0; j < NUM_TSPS; j++) {
             TimestampingServiceEntity tsp = new TimestampingServiceEntity();
             tsp.setName("tspName" + j);
             tsp.setUrl("tspUrl" + j);
+            tsp.setCostType(CostType.UNDEFINED.name());
             conf.getTimestampingServices().add(tsp);
         }
-
-        return conf;
+        conf.getTimestampingServices().get(0).setCostType(CostType.PAID.name());
+        conf.getTimestampingServices().get(1).setCostType(CostType.FREE.name());
+        conf.getTimestampingServices().get(2).setCostType(CostType.UNDEFINED.name());
+        conf.getTimestampingServices().get(3).setCostType(CostType.PAID.name());
+        conf.getTimestampingServices().get(4).setCostType(CostType.FREE.name());
     }
 
     static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode) {

@@ -344,7 +344,7 @@ public class ProxyMessageDecoderTest {
 
         @Override
         public void soap(SoapMessageImpl soap,
-                         Map<String, String> additionalHeaders) throws Exception {
+                         Map<String, String> additionalHeaders) {
             this.soapMessage = soap;
         }
 
@@ -360,7 +360,7 @@ public class ProxyMessageDecoderTest {
 
         @Override
         public void attachment(String contentType, InputStream content,
-                               Map<String, String> additionalHeaders) throws Exception {
+                               Map<String, String> additionalHeaders) {
             this.hasAttachments = true;
         }
 
@@ -370,12 +370,12 @@ public class ProxyMessageDecoderTest {
         }
 
         @Override
-        public void signature(SignatureData sig) throws Exception {
+        public void signature(SignatureData sig) {
             this.signature = sig;
         }
 
         @Override
-        public void fault(SoapFault fault) throws Exception {
+        public void fault(SoapFault fault) {
             this.soapFault = fault;
         }
     }

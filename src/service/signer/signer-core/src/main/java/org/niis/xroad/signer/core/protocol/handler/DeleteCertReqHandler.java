@@ -49,7 +49,7 @@ public class DeleteCertReqHandler
         extends AbstractRpcHandler<DeleteCertReq, Empty> {
 
     @Override
-    protected Empty handle(DeleteCertReq request) throws Exception {
+    protected Empty handle(DeleteCertReq request) {
         CertificateInfo certInfo = TokenManager.getCertificateInfo(request.getCertId());
         if (certInfo == null) {
             throw certWithIdNotFound(request.getCertId());
