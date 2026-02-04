@@ -87,10 +87,17 @@ configure_remote_db() {
 
     local db_host=${XROAD_DB_CONNECTION_HOST_PORT%%:*}
     local db_port=${XROAD_DB_CONNECTION_HOST_PORT##*:}
-    if PGPASSWORD="$XROAD_DB_PASSWORD" psql -h "$db_host" -p "$db_port" -U "$XROAD_DB_USER" -c "SELECT 1" >/dev/null 2>&1; then
+    local psql_error
+    if psql_error=$(PGPASSWORD="$XROAD_DB_PASSWORD" psql -h "$db_host" -p "$db_port" -U "$XROAD_DB_USER" -d postgres -c "SELECT 1" 2>&1); then
       log_info "Database connectivity verified successfully"
+      whiptail --msgbox "Database connectivity verified successfully." 8 78 --title "Database Connection"
     else
-      log_die "Could not connect to the remote database. Please check host and credentials."
+      log_error "Database connection failed: $psql_error"
+      if whiptail --title "Database Connection Failed" --yesno "Could not connect to the remote database.\n\nError: $psql_error\n\nDo you want to continue with the installation anyway?" 14 78; then
+        log_warn "User chose to continue despite database connection failure"
+      else
+        log_die "Installation cancelled due to database connection failure."
+      fi
     fi
   else
     log_warn "psql client not found, database connection can not be verified..."
