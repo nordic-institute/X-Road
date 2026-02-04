@@ -63,18 +63,6 @@ configure_remote_db() {
   set_prop "/etc/xroad.properties" "postgres.connection.password" "$XROAD_DB_PASSWORD" "true"
   chmod 600 /etc/xroad.properties
 
-  # Update /etc/xroad/db.properties
-  log_message "Updating /etc/xroad/db.properties..."
-  local db_file="/etc/xroad/db.properties"
-  if [[ ! -f "$db_file" ]]; then
-    touch "$db_file"
-    chmod 0640 "$db_file"
-    chown xroad:xroad "$db_file"
-  fi
-# todo: handle messagelog db (and opmon?)
-  set_prop "$db_file" "xroad.db.serverconf.hibernate.connection.url" "jdbc:postgresql://$XROAD_DB_CONNECTION_HOST_PORT/serverconf"
-  set_prop "$db_file" "xroad.db.messagelog.hibernate.connection.url" "jdbc:postgresql://$XROAD_DB_CONNECTION_HOST_PORT/messagelog"
-
   # Verify connectivity
   log_message "Verifying connectivity to remote database at $XROAD_DB_CONNECTION_HOST_PORT..."
 
