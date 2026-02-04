@@ -1,0 +1,12 @@
+---
+common_modules:
+  signer:
+    dir: service/signer/signer-application
+    build: build
+    target: /usr/share/xroad/jlib/signer
+    service: xroad-signer
+  signer-console:
+    dir: service/signer/signer-cli
+    build: build
+    target: /usr/share/xroad/jlib/signer-console
+    service: xroad-signer

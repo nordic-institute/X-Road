@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.mail.MailNotificationType;
+import org.niis.xroad.securityserver.restapi.mail.MailNotificationType;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationTypeDto;
 
 import java.util.Arrays;

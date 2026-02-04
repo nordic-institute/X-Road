@@ -28,15 +28,18 @@ package org.niis.xroad.confclient.core;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
+import org.niis.xroad.confclient.core.globalconf.GlobalConfRpcCache;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
+import java.io.FileNotFoundException;
 
 /**
  * Quartz job implementation for the configuration client.
@@ -45,40 +48,41 @@ import org.quartz.JobExecutionException;
 @DisallowConcurrentExecution
 public class ConfigurationClientJob implements Job {
 
-    public static final String PROXY_CONFIGURATION_BACKUP_JOB = "ProxyConfigurationBackupJob";
     private final ConfigurationClient configClient;
+    private final GlobalConfRpcCache globalConfRpcCache;
+    private final ConfigurationClientProperties configurationClientProperties;
 
-    public ConfigurationClientJob(ConfigurationClient configClient) {
+    @Inject
+    public ConfigurationClientJob(ConfigurationClient configClient, GlobalConfRpcCache globalConfRpcCache,
+                                  ConfigurationClientProperties configurationClientProperties) {
         this.configClient = configClient;
+        this.globalConfRpcCache = globalConfRpcCache;
+        this.configurationClientProperties = configurationClientProperties;
     }
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-            if (JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)) {
-                log.warn("Proxy configuration backup job is running, skipping configuration client execution.");
-                return;
-            }
-            DownloadResult downloadResult = configClient.execute();
-
-            DiagnosticsStatus status =
-                    new DiagnosticsStatus(DiagnosticStatus.OK, TimeUtils.offsetDateTimeNow(),
-                            TimeUtils.offsetDateTimeNow()
-                                    .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-            status.setDescription(downloadResult.getLastSuccessfulLocationUrl());
-            jobExecutionContext.setResult(status);
+            configClient.execute();
+            context.setResult(createDiagnosticsStatus(DiagnosticStatus.OK));
+            globalConfRpcCache.refreshCache();
+        } catch (FileNotFoundException e) {
+            context.setResult(createDiagnosticsStatus(DiagnosticStatus.UNINITIALIZED));
         } catch (Exception e) {
-            DiagnosticsStatus status = new DiagnosticsStatus(DiagnosticStatus.ERROR,
-                    TimeUtils.offsetDateTimeNow(),
-                    TimeUtils.offsetDateTimeNow()
-                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()),
-                    DiagnosticsUtils.getErrorCode(e));
+            DiagnosticsStatus status = createDiagnosticsStatus(DiagnosticStatus.ERROR);
+            status.setErrorCode(DiagnosticsUtils.getErrorCode(e));
             status.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(e));
-            status.setDescription(configClient.getLastSuccessfulLocationUrl());
-            jobExecutionContext.setResult(status);
-
-            log.error("Error executing job.", e);
+            context.setResult(status);
             throw new JobExecutionException(e);
         }
+    }
+
+    private DiagnosticsStatus createDiagnosticsStatus(DiagnosticStatus status) {
+        DiagnosticsStatus diagnosticsStatus =
+                new DiagnosticsStatus(status,
+                        TimeUtils.offsetDateTimeNow(),
+                        TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
+        diagnosticsStatus.setDescription(configClient.getLastSuccessfulLocationUrl());
+        return diagnosticsStatus;
     }
 }

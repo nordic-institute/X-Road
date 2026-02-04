@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.cs.test.hook;
 
-import com.nortal.test.core.services.ScenarioExecutionContext;
-import com.nortal.test.core.services.hooks.BeforeScenarioHook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
+import org.niis.xroad.cs.test.service.LiquibaseExecutor;
+import org.niis.xroad.test.framework.core.context.ScenarioExecutionContext;
+import org.niis.xroad.test.framework.core.hooks.BeforeScenarioHook;
 import org.springframework.stereotype.Component;
 
 /**

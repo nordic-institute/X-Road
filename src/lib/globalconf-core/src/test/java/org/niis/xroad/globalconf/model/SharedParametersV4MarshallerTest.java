@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.globalconf.model;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -36,6 +37,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@Slf4j
 class SharedParametersV4MarshallerTest {
 
     private final SharedParametersV4Marshaller marshaller = new SharedParametersV4Marshaller();
@@ -62,7 +64,7 @@ class SharedParametersV4MarshallerTest {
         final String result = marshaller.marshall(sharedParamsBuilder.build());
 
         assertThat(result).isNotBlank();
-        System.out.println(result);
+        log.info(result);
     }
 
     @Test

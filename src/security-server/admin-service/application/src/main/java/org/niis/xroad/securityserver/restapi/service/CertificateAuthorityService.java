@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -37,13 +37,14 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeProperties;
-import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.securityserver.restapi.acme.AcmeProperties;
+import org.niis.xroad.securityserver.restapi.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
@@ -88,6 +89,7 @@ public class CertificateAuthorityService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final AcmeService acmeService;
     private final AcmeProperties acmeProperties;
+    private final ProxyRpcClient proxyRpcClient;
 
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
@@ -131,7 +133,7 @@ public class CertificateAuthorityService {
 
         String[] base64EncodedOcspResponses;
         try {
-            String[] certHashes = CertUtils.getSha1Hashes(new ArrayList<>(filteredCerts));
+            String[] certHashes = CertUtils.getHashes(new ArrayList<>(filteredCerts));
             base64EncodedOcspResponses = signerRpcClient.getOcspResponses(certHashes);
         } catch (Exception e) {
             throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
@@ -236,8 +238,8 @@ public class CertificateAuthorityService {
         return pathElements;
     }
 
-    public SystemProperties.ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
-        return SystemProperties.getOcspPrioritizationStrategy();
+    public ServicePrioritizationStrategy getOcspPrioritizationStrategy() {
+        return signerRpcClient.getOcspPrioritizationStrategy();
     }
 
     public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {

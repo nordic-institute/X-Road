@@ -27,45 +27,52 @@
 
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
+import com.codeborne.selenide.Selenide;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.core.ThrowingRunnable;
-import org.niis.xroad.common.test.glue.BaseStepDefs;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
+import org.niis.xroad.ss.test.ui.glue.BaseUiStepDefs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.testcontainers.shaded.org.awaitility.core.ThrowingRunnable;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.given;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @Slf4j
-@SuppressWarnings("checkstyle:MagicNumber")
-public class ProxyHealthcheckStepDefs extends BaseStepDefs {
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:SneakyThrowsCheck"})
+public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
+
     @Autowired
-    private TestableApplicationContainerProvider containerProvider;
+    private SsSystemTestContainerSetup systemTestContainerSetup;
+
     @Autowired
     private FeignHealthcheckApi healthcheckApi;
 
+    @SneakyThrows
     @Step("^service \"(.*)\" is \"(stopped|started|restarted)\"$")
-    public void stopDatabase(String service, String state) throws Exception {
-
-        var action = "stopped".equals(state) ? "stop" : state.substring(0, state.length() - 2);
-        var result = containerProvider.getContainer().execInContainer("supervisorctl", action, service);
-        testReportService.attachText("supervisorctl output", result.toString());
-    }
-
-    @Step("^property \"(.*)\" is set to \"(.*)\"$")
-    public void setProperty(String property, String value) throws IOException, InterruptedException {
-        var group = "proxy";
-        var result = containerProvider.getContainer().execInContainer("crudini", "--set", "/etc/xroad/conf.d/local.ini",
-                group, property, value);
-        testReportService.attachText("crudini output", result.toString());
+    public void stopService(String service, String state) {
+        switch (state) {
+            case "restarted":
+                systemTestContainerSetup.restartContainer(service);
+                break;
+            case "stopped":
+                systemTestContainerSetup.stop(service);
+                break;
+            case "started":
+                systemTestContainerSetup.start(service, true);
+                break;
+            default:
+                throw new IllegalStateException("unexpected state: " + state);
+        }
+        log.info("Grace period after service {} {}", service, state);
+        Selenide.sleep(5000);
     }
 
     @Step("healthcheck has no errors")
@@ -73,9 +80,10 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
         assertWithWait(() -> {
             log.info("Polling for HealthCheck update..");
             try {
-                ResponseEntity<String> result = healthcheckApi.getHealthcheck();
+                var result = healthcheckApi.getHealthcheck();
                 assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-                log.info("HS had no error. {}. Body {}", result.getStatusCode(), result.getBody());
+                log.info("HS had no error. {}. Body {}", result.getStatusCode(),
+                        result.getBody().getContentAsString(UTF_8));
             } catch (FeignException e) {
                 throw new AssertionError("Healthcheck is in error state: " + e.contentUTF8());
             }
@@ -108,4 +116,15 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
                 .atMost(maxWaitTime, TimeUnit.SECONDS)
                 .await().untilAsserted(assertion);
     }
+
+    @Step("HSM health check is enabled on proxy")
+    public void hsmHealthCheckIsEnabled() {
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "true", "proxy");
+    }
+
+    @Step("HSM health check is disabled on proxy")
+    public void hsmHealthCheckIsDisabled() {
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "false", "proxy");
+    }
+
 }

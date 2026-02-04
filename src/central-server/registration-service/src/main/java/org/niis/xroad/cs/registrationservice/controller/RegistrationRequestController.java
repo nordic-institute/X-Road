@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.cs.registrationservice.controller;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
 import org.niis.xroad.cs.registrationservice.service.AdminApiService;
 import org.springframework.http.HttpHeaders;
@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 /**
  * Handles security server authentication certificate registration requests from
@@ -59,14 +59,14 @@ public class RegistrationRequestController {
     private final ManagementRequestSoapExecutor managementRequestSoapExecutor;
     private final AdminApiService adminApiService;
 
-    @PostMapping(path = "/managementservice",
+    @PostMapping(path = {"/managementservice", "/managementservice/"},
             produces = {MediaType.TEXT_XML_VALUE},
             consumes = {MediaType.MULTIPART_RELATED_VALUE})
     public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
         return managementRequestSoapExecutor.process(contentType, body,
                 result -> {
                     var authRequest = result.getRequest(AuthCertRegRequestType.class)
-                            .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertRegRequest is missing"));
+                            .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST, "AuthCertRegRequest is missing"));
 
                     log.debug("Making a registration request for {}", authRequest.getServer());
 

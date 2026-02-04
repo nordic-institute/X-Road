@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.CentralServerAddressDto;
@@ -34,16 +33,17 @@ import org.niis.xroad.cs.openapi.model.HighAvailabilityClusterStatusDto;
 import org.niis.xroad.cs.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.OffsetDateTime;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
-import static org.junit.Assert.fail;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.notNullAssertion;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.test.util.AssertionErrors.fail;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SystemApiStepDefs extends BaseStepDefs {
@@ -78,7 +78,8 @@ public class SystemApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(1, "body.nodes.size()"))
                 .assertion(equalsAssertion("test_node", "body.nodes[0].nodeName"))
                 .assertion(equalsAssertion("cs", "body.nodes[0].nodeAddress"))
-                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body.nodes[0].configurationGenerated"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.nodes[0].configurationGenerated"))
                 .assertion(equalsAssertion(HighAvailabilityClusterNodeDto.StatusEnum.ERROR, "body.nodes[0].status"))
                 .assertion(isFalse("body.allNodesOk"))
                 .execute();

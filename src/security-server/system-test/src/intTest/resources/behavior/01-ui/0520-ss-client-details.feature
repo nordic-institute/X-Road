@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0520 - SS: Client Details
 

@@ -30,8 +30,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 
 /**
  * Client makes normal request, service responds with multipart that contains
@@ -53,7 +53,7 @@ public class AttachmentNoSoapResponse extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_SERVICE_FAILED_X,
-                X_INVALID_CONTENT_TYPE);
+        assertErrorCode(SERVER_SERVERPROXY_X, SERVICE_FAILED.code(),
+                INVALID_CONTENT_TYPE.code());
     }
 }

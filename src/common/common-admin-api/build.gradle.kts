@@ -41,7 +41,7 @@ dependencies {
     api("com.github.ben-manes.caffeine:caffeine")
 
     testImplementation(project(":common:common-test"))
-    testImplementation(project(":common:common-scheduler")) //TODO this is somehow required for data.sql to be populated
+    testImplementation(libs.quartz) //TODO this is somehow required for data.sql to be populated
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation(libs.hsqldb)

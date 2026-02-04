@@ -26,13 +26,11 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
 
 /**
  * We connect directly to SP and send message with multipart/mixed
@@ -49,11 +47,11 @@ public class ServerProxyProcessingError extends MessageTestCase {
         requestFileName = "getstate.query";
         requestContentType = "multipart/mixed; boundary=foobar";
 
-        url = "http://127.0.0.1:" + SystemProperties.getServerProxyPort();
+        url = () -> "http://127.0.0.1:" + proxyTestSuiteHelper.proxyProperties.serverProxyPort();
     }
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_MISSING_SOAP);
+        assertErrorCode(SERVER_SERVERPROXY_X, MISSING_SOAP.code());
     }
 }

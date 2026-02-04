@@ -25,9 +25,7 @@
  */
 package org.niis.xroad.globalconf.impl.signature;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.TestSecurityUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -39,7 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,7 +52,7 @@ import static org.junit.Assert.assertNotNull;
 public class TimestampVerifierTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     private static GlobalConfProvider globalConfProvider;
 
@@ -64,12 +62,7 @@ public class TimestampVerifierTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         TestSecurityUtil.initSecurity();
-
-        System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../globalconf-core/src/test/resources/globalconf_good_v2");
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../globalconf-core/src/test/resources/configuration-anchor1.xml");
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create("../globalconf-core/src/test/resources/globalconf_good_v2");
     }
 
     /**
@@ -92,7 +85,7 @@ public class TimestampVerifierTest {
      */
     @Test
     public void hashMismatch() throws Exception {
-        thrown.expectError(ErrorCodes.X_MALFORMED_SIGNATURE);
+        thrown.expectError(ErrorCode.MALFORMED_SIGNATURE.code());
         TimeStampToken token = getTimestampFromFile("valid");
         byte[] stampedData = getBytesFromFile("stamped-data");
         stampedData[42] = 0x01; // change a byte

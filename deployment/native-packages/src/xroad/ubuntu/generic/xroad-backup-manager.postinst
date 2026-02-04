@@ -1,0 +1,35 @@
+#!/bin/bash
+
+log () { echo >&2 "$@"; }
+
+case "$1" in
+ configure|reconfigure)
+
+   mkdir -p /var/lib/xroad/backup
+   chown xroad:xroad /var/lib/xroad/backup
+
+   # generate gpg keypair when needed - directory does not exist and server is initialised
+   if [[ -n "$2" ]]; then
+     if [ ! -d /etc/xroad/gpghome ] ; then
+       ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
+       if [[ -n "${ID}" ]] ; then
+         /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
+       fi
+     fi
+     # always fix gpghome ownership
+     [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
+   fi
+ ;;
+
+ abort-upgrade|abort-remove|abort-deconfigure)
+ ;;
+
+ *)
+    log "postinst called with unknown argument \`$1'" >&2
+    exit 1
+ ;;
+esac
+
+#DEBHELPER#
+
+exit 0

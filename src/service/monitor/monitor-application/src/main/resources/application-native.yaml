@@ -1,0 +1,7 @@
+quarkus:
+  log:
+    console:
+      enabled: false
+    file:
+      enabled: true
+      path: /var/log/xroad/monitor.log

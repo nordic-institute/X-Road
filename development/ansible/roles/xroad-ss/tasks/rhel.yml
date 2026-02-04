@@ -1,0 +1,116 @@
+---
+- name: configure remote database
+  # can not be used to reconfigure a database
+  block:
+    - name: install remote database package
+      yum:
+        name: "xroad-database-remote"
+        state: latest
+
+    - name: xroad.properties template
+      template:
+        src: "xroad.properties"
+        dest: "/etc/xroad.properties"
+        owner: "root"
+        group: "root"
+        mode: 0600
+        force: no
+
+    - name: db.properties template
+      template:
+        src: "db.properties"
+        dest: "/etc/xroad/db.properties"
+        owner: "xroad"
+        group: "xroad"
+        mode: 0751
+        force: no
+
+    - name: openbao.env environment file
+      template:
+        src: "openbao.env.j2"
+        dest: "/etc/openbao/openbao.env"
+        owner: "openbao"
+        group: "openbao"
+        mode: 0600
+        force: no
+  when: (database_admin_password is defined) and (database_admin_password != "")
+  tags:
+    - install-xroad-ss-packages
+
+- name: Install PostgreSQL packages (RHEL8)
+  become: yes
+  shell: |
+    set -euo pipefail
+    dnf -y install postgresql-server postgresql-contrib
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+    - not ((database_admin_password is defined) and (database_admin_password != ""))
+
+- name: Install PostgreSQL packages (RHEL9+)
+  become: yes
+  yum:
+    name:
+      - postgresql-server
+      - postgresql-contrib
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
+    - not ((database_admin_password is defined) and (database_admin_password != ""))
+
+- name: install xroad packages and dependencies from set up repository (RHEL8)
+  shell: |
+    set -euo pipefail
+    pkgs="{{ vars['xroad_varpkg_' + variant] if (vars['xroad_varpkg_' + variant] is string)
+            else (vars['xroad_varpkg_' + variant] | join(' ')) }}"
+    dnf -y install $pkgs
+  tags:
+    - install-xroad-ss-packages
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+
+- name: install xroad packages and dependencies from set up repository (RHEL9+)
+  yum:
+    name: "{{ vars['xroad_varpkg_' + variant] }}"
+    state: latest
+  tags:
+    - install-xroad-ss-packages
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
+
+- name: install opmonitoring (RHEL8)
+  shell: |
+    set -euo pipefail
+    dnf -y install xroad-addon-opmonitoring
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+    - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
+  tags:
+    - install-xroad-ss-packages
+
+- name: install opmonitoring (RHEL9+)
+  yum:
+    name: xroad-opmonitor
+    state: latest
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
+    - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
+  tags:
+    - install-xroad-ss-packages
+
+- name: add xroad admin user
+  command: "xroad-add-admin-user {{ xroad_ui_user }}"
+  tags:
+    - install-xroad-ss-packages
+
+- name: start xroad-proxy (RHEL)
+  service:
+    name: xroad-proxy
+    state: started
+  tags:
+    - install-xroad-ss-packages

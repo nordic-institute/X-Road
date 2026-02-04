@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.serverconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -42,6 +43,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
 /**
@@ -147,7 +149,8 @@ public interface ServerConfProvider {
      * @throws Exception if an error occurs
      */
     InternalSSLKey getSSLKey()
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, InvalidKeySpecException;
 
     /**
      * @param serviceId the service identifier
@@ -190,7 +193,7 @@ public interface ServerConfProvider {
      */
     List<String> getTspUrls();
 
-    List<String> getOrderedTspUrls();
+    List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy);
 
     CostType getTspCostType(String tspUrl);
 

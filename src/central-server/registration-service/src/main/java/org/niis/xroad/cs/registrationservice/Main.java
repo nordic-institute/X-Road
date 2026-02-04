@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.registrationservice;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,6 @@ public class Main {
         Version.outputVersionInfo(APP_NAME);
 
         var app = new SpringApplication(Main.class);
-        app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
         app.run(args);
     }
 }

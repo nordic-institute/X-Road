@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -70,17 +69,17 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.function.Consumer;
 
-import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.message.SoapUtils.validateMimeType;
 import static ee.ria.xroad.common.util.HeaderValueUtils.hasUtf8Charset;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
+import static org.niis.xroad.common.core.exception.ErrorCode.DUPLICATE_HEADER_FIELD;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SOAP;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_XML;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER_FIELD;
 
 /**
  * SOAP message parser that does not construct a DOM tree of the message.
@@ -204,7 +203,7 @@ public class SaxSoapParserImpl implements SoapParser {
         Writer outputWriter = new OutputStreamWriter(processedXml, charset);
         XRoadSoapHandler handler = handleSoap(outputWriter, proxyStream);
 
-        CodedException fault = handler.getFault();
+        SoapFaultDto fault = handler.getFault();
         if (fault != null) {
             return createSoapFault(charset, rawXml, fault);
         }
@@ -239,9 +238,9 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private static Soap createSoapFault(String charset,
-                                        ByteArrayOutputStream rawXml, CodedException fault) {
-        return new SoapFault(fault.getFaultCode(), fault.getFaultString(),
-                fault.getFaultActor(), fault.getFaultDetail(),
+                                        ByteArrayOutputStream rawXml, SoapFaultDto fault) {
+        return new SoapFault(fault.faultCode(), fault.faultString(),
+                fault.faultActor(), fault.faultDetail(),
                 rawXml.toByteArray(), charset);
     }
 
@@ -328,7 +327,7 @@ public class SaxSoapParserImpl implements SoapParser {
             return envelopeHandler != null && envelopeHandler.isRpc();
         }
 
-        public CodedException getFault() {
+        public SoapFaultDto getFault() {
             return envelopeHandler != null ? envelopeHandler.getFault() : null;
         }
 
@@ -388,7 +387,7 @@ public class SaxSoapParserImpl implements SoapParser {
                 envelopeHandler.openTag();
                 elementHandlers.push(envelopeHandler);
             } else {
-                throw new CodedException(X_INVALID_SOAP, MISSING_ENVELOPE_MESSAGE);
+                throw XrdRuntimeException.systemException(INVALID_SOAP, MISSING_ENVELOPE_MESSAGE);
             }
         }
 
@@ -518,7 +517,7 @@ public class SaxSoapParserImpl implements SoapParser {
     private static void validateDuplicateHeader(QName qName,
                                                 Object existing) {
         if (existing != null) {
-            throw new CodedException(X_DUPLICATE_HEADER_FIELD, DUPLICATE_HEADER_MESSAGE, qName);
+            throw XrdRuntimeException.systemException(DUPLICATE_HEADER_FIELD, DUPLICATE_HEADER_MESSAGE.formatted(qName));
         }
     }
 
@@ -630,7 +629,7 @@ public class SaxSoapParserImpl implements SoapParser {
         @Getter
         private boolean rpc;
 
-        public CodedException getFault() {
+        public SoapFaultDto getFault() {
             return bodyHandler != null ? bodyHandler.getFault() : null;
         }
 
@@ -664,7 +663,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         private void validateHeader() {
             if (!headerHandler.isFinished()) {
-                throw new CodedException(X_MISSING_HEADER, MISSING_HEADER_MESSAGE);
+                throw XrdRuntimeException.systemException(MISSING_HEADER, MISSING_HEADER_MESSAGE);
             }
             SoapHeader header = headerHandler.getHeader();
             if (header.getProtocolVersion() == null) {
@@ -677,20 +676,20 @@ public class SaxSoapParserImpl implements SoapParser {
                 onMissingRequiredField(QUERY_ID);
             }
             if (getService() == null) {
-                throw new CodedException(X_MISSING_HEADER_FIELD, MISSING_SERVICE_MESSAGE);
+                throw XrdRuntimeException.systemException(MISSING_HEADER_FIELD, MISSING_SERVICE_MESSAGE);
             }
         }
 
         private void onMissingRequiredField(String fieldName) {
-            throw new CodedException(X_MISSING_HEADER_FIELD, MISSING_HEADER_FIELD_MESSAGE, fieldName);
+            throw XrdRuntimeException.systemException(MISSING_HEADER_FIELD, MISSING_HEADER_FIELD_MESSAGE.formatted(fieldName));
         }
 
         private void validateBody() {
             if (bodyHandler == null) {
-                throw new CodedException(X_MISSING_BODY, MISSING_BODY_MESSAGE);
+                throw XrdRuntimeException.systemException(MISSING_BODY, MISSING_BODY_MESSAGE);
             }
             if (getServiceName() == null) {
-                throw new CodedException(X_INVALID_BODY, INVALID_BODY_MESSAGE);
+                throw XrdRuntimeException.systemException(INVALID_BODY, INVALID_BODY_MESSAGE);
             }
             ServiceId service = getService();
             SoapUtils.validateServiceName(service.getServiceCode(), getServiceName());
@@ -832,7 +831,7 @@ public class SaxSoapParserImpl implements SoapParser {
         public void openTag() {
             XRoadObjectType objectType = getObjectType();
             if (!expected.contains(objectType)) {
-                throw new CodedException(X_INVALID_XML, "Unexpected objectType: %s", objectType);
+                throw XrdRuntimeException.systemException(INVALID_XML, "Unexpected objectType: %s".formatted(objectType));
             }
         }
 
@@ -865,13 +864,13 @@ public class SaxSoapParserImpl implements SoapParser {
         private XRoadObjectType getObjectType() {
             String objectType = getAttributes().getValue(URI_IDENTIFIERS, ATTR_OBJECT_TYPE);
             if (objectType == null) {
-                throw new CodedException(X_INVALID_XML, "Missing objectType attribute");
+                throw XrdRuntimeException.systemException(INVALID_XML, "Missing objectType attribute");
             }
 
             try {
                 return XRoadObjectType.valueOf(objectType);
             } catch (IllegalArgumentException e) {
-                throw new CodedException(X_INVALID_XML, "Unknown objectType: %s", objectType);
+                throw XrdRuntimeException.systemException(INVALID_XML, "Unknown objectType: %s".formatted(objectType));
             }
         }
     }
@@ -1036,7 +1035,7 @@ public class SaxSoapParserImpl implements SoapParser {
         private SoapFaultHandler soapFaultHandler;
 
         @Getter
-        private CodedException fault;
+        private SoapFaultDto fault;
 
         @Getter
         private String serviceName;
@@ -1054,7 +1053,7 @@ public class SaxSoapParserImpl implements SoapParser {
                 // If one body element has already been closed then we know
                 // it's name to be the service name and expect no more top
                 // level elements in the body
-                throw new CodedException(X_INVALID_BODY, INVALID_BODY_MESSAGE);
+                throw XrdRuntimeException.systemException(INVALID_BODY, INVALID_BODY_MESSAGE);
             }
             return super.getChildElementHandler(element);
         }
@@ -1062,7 +1061,7 @@ public class SaxSoapParserImpl implements SoapParser {
         @Override
         protected void closeTag() {
             if (soapFaultHandler != null) {
-                fault = CodedException.fromFault(
+                fault = new SoapFaultDto(
                         soapFaultHandler.getFaultCode(),
                         soapFaultHandler.getFaultString(),
                         soapFaultHandler.getFaultActor(),
@@ -1116,5 +1115,13 @@ public class SaxSoapParserImpl implements SoapParser {
             };
         }
 
+    }
+
+    private record SoapFaultDto(
+            String faultCode,
+            String faultString,
+            String faultActor,
+            String faultDetail,
+            String rawXml) {
     }
 }

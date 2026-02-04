@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.registrationservice.controller;
 
 import ee.ria.xroad.common.OcspTestUtils;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -98,8 +97,6 @@ class RegistrationRequestControllerTest {
         authKeyPair = keyPairGenerator.generateKeyPair();
         ownerKeyPair = keyPairGenerator.generateKeyPair();
         factory = MessageFactory.newInstance();
-
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "build/resources/test/testconf");
     }
 
     @BeforeEach

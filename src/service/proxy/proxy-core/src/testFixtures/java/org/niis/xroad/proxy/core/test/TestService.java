@@ -76,13 +76,13 @@ public class TestService {
             handler = ECHO;
             exception = null;
             server.setHandler(new ServiceHandler());
-            server.setStopTimeout(1000);
+            server.setStopTimeout(2000);
         } catch (Exception e) {
             throw translateException(e);
         }
     }
 
-    private void setupConnectors(int port) throws Exception {
+    private void setupConnectors(int port) {
         ServerConnector connector = new ServerConnector(server);
         connector.setName("dummy-rest-service");
         connector.setHost("127.0.0.1");
@@ -90,12 +90,9 @@ public class TestService {
         connector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
                 .map(HttpConnectionFactory.class::cast)
-                .forEach(httpCf -> {
-                    Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
-                            .ifPresent(customizer -> {
-                                customizer.setSniHostCheck(false);
-                            });
-                });
+                .forEach(httpCf ->
+                        Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
+                                .ifPresent(customizer -> customizer.setSniHostCheck(false)));
         server.addConnector(connector);
     }
 

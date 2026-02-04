@@ -1,0 +1,168 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.common.identifiers.jpa.dao.impl;
+
+import ee.ria.xroad.common.db.DatabaseCtx;
+import ee.ria.xroad.common.identifier.XRoadId;
+
+import org.hibernate.Session;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
+
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Tests identifier DAO implementation -- creating and reading the identifiers.
+ */
+public class IdentifierDAOImplTest {
+
+    private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
+    private Session session;
+    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("testdb", DatabaseTestUtil.hibernateProperties);
+
+    /**
+     * Prepares test database.
+     *
+     * @throws Exception if an error occurs
+     */
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        DatabaseTestUtil.prepareDB(DATABASE_CTX);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        DATABASE_CTX.destroy();
+    }
+
+    /**
+     * Begins transaction
+     */
+    @Before
+    public void beginTransaction() {
+        session = DATABASE_CTX.beginTransaction();
+    }
+
+    /**
+     * Commits transaction.
+     */
+    @After
+    public void commitTransaction() {
+        DATABASE_CTX.commitTransaction();
+    }
+
+    /**
+     * ClientId.
+     */
+    @Test
+    public void clientId() {
+        assertCreateRead(() -> MemberIdEntity.create("EE", "class", "code1"),
+                id -> (MemberIdEntity) identifierDAO.findClientId(session, id));
+        assertCreateRead(() -> SubsystemIdEntity.create("EE", "class", "code2", "subsystem1"),
+                id -> (SubsystemIdEntity) identifierDAO.findClientId(session, id));
+    }
+
+    /**
+     * ServiceId.
+     */
+    @Test
+    public void serviceId() {
+        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service1"),
+                id -> identifierDAO.findServiceId(session, id));
+
+        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service2"),
+                id -> identifierDAO.findServiceId(session, id));
+
+        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service3", "1.0"),
+                id -> identifierDAO.findServiceId(session, id));
+
+        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service3", "2.0"),
+                id -> identifierDAO.findServiceId(session, id));
+    }
+
+    /**
+     * GlobalGroupId.
+     */
+    @Test
+    public void globalGroupId() {
+        assertCreateRead(() -> GlobalGroupIdEntity.create("XX", "globalGroup1"),
+                id -> identifierDAO.findGlobalGroupId(session, id));
+        assertCreateRead(() -> GlobalGroupIdEntity.create("XX", "globalGroup2"),
+                id -> identifierDAO.findGlobalGroupId(session, id));
+    }
+
+    /**
+     * LocalGroupId.
+     */
+    @Test
+    public void localGroupId() {
+        assertCreateRead(() -> LocalGroupIdEntity.create("localGroup1"),
+                id -> identifierDAO.findLocalGroupId(session, id));
+        assertCreateRead(() -> LocalGroupIdEntity.create("localGroup2"),
+                id -> identifierDAO.findLocalGroupId(session, id));
+    }
+
+    /**
+     * SecurityServerId.
+     */
+    @Test
+    public void securityServerId() {
+        assertCreateRead(() -> SecurityServerIdEntity.create("XX", "class", "code", "srv1"),
+                id -> identifierDAO.findSecurityServerId(session, id));
+
+        assertCreateRead(() -> SecurityServerIdEntity.create("XX", "class", "code", "srv2"),
+                id -> new IdentifierDAOImpl().findSecurityServerId(session, id));
+    }
+
+    private <T extends XRoadId> void assertCreateRead(IdentifierCreator<T> creator,
+                                                      IdentifierFetcher<T> fetcher) {
+        XRoadId in = creator.create();
+        session.persist(in);
+
+        XRoadId out = fetcher.get(creator.create());
+        assertEquals(in, out);
+    }
+
+    @FunctionalInterface
+    private interface IdentifierCreator<T extends XRoadId> {
+        T create();
+    }
+
+    @FunctionalInterface
+    private interface IdentifierFetcher<T extends XRoadId> {
+        T get(T example);
+    }
+}

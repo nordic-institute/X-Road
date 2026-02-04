@@ -28,29 +28,31 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.common.vault.VaultClient;
 
 import javax.net.ssl.X509TrustManager;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
 class OpMonitorSslTrustManager implements X509TrustManager {
 
-    private X509Certificate expectedClientCert = null;
+    private final VaultClient vaultClient;
+    private X509Certificate expectedClientCert;
 
-    OpMonitorSslTrustManager() {
-        String location = OpMonitoringSystemProperties
-                .getOpMonitorClientCertificatePath();
+    OpMonitorSslTrustManager(VaultClient vaultClient, ScheduledExecutorService trustRefreshScheduler, long refreshIntervalSeconds) {
+        this(vaultClient);
 
-        try (InputStream fis = new FileInputStream(location)) {
-            expectedClientCert = CryptoUtils.readCertificate(fis);
-        } catch (Exception e) {
-            log.error("Could not load client certificate '{}'", location, e);
-        }
+        log.info("Client TLS certificate refresh interval set to {} seconds", refreshIntervalSeconds);
+        trustRefreshScheduler.scheduleAtFixedRate(this::loadClientCertificate, refreshIntervalSeconds, refreshIntervalSeconds, SECONDS);
+    }
+
+    OpMonitorSslTrustManager(VaultClient vaultClient) {
+        this.vaultClient = vaultClient;
     }
 
     @Override
@@ -64,8 +66,7 @@ class OpMonitorSslTrustManager implements X509TrustManager {
         log.trace("Received peer certificate {}", chain[0]);
 
         if (expectedClientCert == null) {
-            throw new CertificateException("Expected client certificate not"
-                    + " loaded, cannot verify client");
+            loadClientCertificate();
         }
 
         if (!expectedClientCert.equals(chain[0])) {
@@ -74,9 +75,25 @@ class OpMonitorSslTrustManager implements X509TrustManager {
         }
     }
 
+    private void loadClientCertificate() {
+        try {
+            var certChain = vaultClient.getInternalTlsCredentials().getCertChain();
+            var cert = CryptoUtils.readCertificate(certChain[0].getEncoded());
+            if (!cert.equals(this.expectedClientCert)) {
+                if (expectedClientCert != null) {
+                    log.info("Reloaded client TLS certificate from Vault");
+                }
+                this.expectedClientCert = cert;
+            }
+        } catch (Exception e) {
+            log.error("Could not read client TLS certificate from Vault", e);
+        }
+
+    }
+
+
     @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType)
-            throws CertificateException {
+    public void checkServerTrusted(X509Certificate[] chain, String authType) {
         // Never called cause used as server side trust manager only
     }
 

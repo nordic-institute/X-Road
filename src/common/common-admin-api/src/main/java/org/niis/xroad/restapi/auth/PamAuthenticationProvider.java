@@ -67,9 +67,6 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
 
-    public static final String KEY_MANAGEMENT_PAM_AUTHENTICATION = "keyManagementPam";
-    public static final String FORM_LOGIN_PAM_AUTHENTICATION = "formLoginPam";
-
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final EnumMap<Role, List<String>> userRoleMappings;
@@ -90,10 +87,10 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     }
 
     private Authentication doAuthenticateInternal(Authentication authentication, String username) {
+        authenticationIpWhitelist.validateIpAddress(authentication);
         String password = String.valueOf(authentication.getCredentials());
         validateCredentialsLength(username, password);
 
-        authenticationIpWhitelist.validateIpAddress(authentication);
         PAM pam;
         try {
             pam = new PAM(PAM_SERVICE_NAME);

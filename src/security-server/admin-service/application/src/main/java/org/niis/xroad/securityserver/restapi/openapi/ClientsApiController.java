@@ -90,12 +90,12 @@ import org.niis.xroad.serverconf.model.Certificate;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.LocalGroup;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.cert.CertificateException;
 import java.util.HashSet;
@@ -257,13 +257,13 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     @AuditEventMethod(event = ADD_CLIENT_INTERNAL_CERT)
     public ResponseEntity<CertificateDetailsDto> addClientTlsCertificate(String encodedId,
-                                                                         Resource body) {
+                                                                         MultipartFile file) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
-        String filename = body.getFilename();
+        String filename = file.getOriginalFilename();
         auditDataHelper.put(UPLOAD_FILE_NAME, filename);
 
-        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(body);
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
         ClientId clientId = clientIdConverter.convertId(encodedId);
         Certificate certificate = null;
         try {

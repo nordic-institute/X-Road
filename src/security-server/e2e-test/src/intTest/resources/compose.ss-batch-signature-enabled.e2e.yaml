@@ -1,0 +1,4 @@
+services:
+  proxy:
+    environment:
+      - XROAD_PROXY_BATCH_SIGNING_ENABLED=true

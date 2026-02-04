@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.monitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
@@ -36,6 +34,8 @@ import com.codahale.metrics.Snapshot;
 import com.google.common.collect.Lists;
 import com.google.protobuf.util.Timestamps;
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.common.HistogramMetrics;
 import org.niis.xroad.monitor.common.Metrics;
@@ -55,6 +55,8 @@ import java.util.Map;
  * Actor for providing system metrics data
  */
 @Slf4j
+@RequiredArgsConstructor
+@ApplicationScoped
 public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase {
     private static final List<String> PACKAGE_OR_CERTIFICATE_METRIC_NAMES = Lists.newArrayList(
             SystemMetricNames.PROCESSES,
@@ -66,6 +68,8 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
             SystemMetricNames.CERTIFICATES,
             SystemMetricNames.CERTIFICATES_STRINGS
     );
+
+    private final EnvMonitorProperties envMonitorProperties;
 
     /**
      * Two phase filter for checking user requested metric names and additional chained filter for
@@ -110,10 +114,10 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
 
     @Override
     public void getMetrics(SystemMetricsReq req, StreamObserver<SystemMetricsResp> responseObserver) {
-        log.info("Received SystemMetricsRequest: " + req);
+        log.info("Received SystemMetricsRequest: {}", req);
         if (!req.getMetricNamesList().isEmpty()) {
-            log.info("Specified metrics requested: " + req.getMetricNamesList());
-            log.info("Is owner of security server: " + req.getIsClientOwner());
+            log.info("Specified metrics requested: {}", req.getMetricNamesList());
+            log.info("Is owner of security server: {}", req.getIsClientOwner());
         }
 
         MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
@@ -122,7 +126,7 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
 
         collectMetrics(responseBuilder, metrics, req.getMetricNamesList(), req.getIsClientOwner());
 
-        if (req.getIsClientOwner() || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
+        if (req.getIsClientOwner() || !envMonitorProperties.limitRemoteDataSet()) {
             collectOwnerMetrics(responseBuilder, metrics, req.getMetricNamesList());
         }
 
@@ -136,7 +140,7 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
                 (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name));
 
         SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(metricNames,
-                (name, metric) -> filterPackageOrCertifates(clientOwner, name));
+                (name, metric) -> filterPackageOrCertificates(clientOwner, name));
 
         for (Map.Entry<String, Gauge> e : metrics.getGauges(certificateMetricFilter).entrySet()) {
             builder.getMetricsBuilder().addMetrics(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
@@ -164,7 +168,7 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
 
         // dont handle processes, packages and certificates gauges normally,
         // they have have special conversions to dto
-        // *_STRINGS gauges are only for JMX reporting
+        // *_STRINGS gauges are only for string representation
         for (Map.Entry<String, Gauge> e : metrics.getGauges(processMetricFilter).entrySet()) {
             builder.getMetricsBuilder().addMetrics(toProcessMetricSetDto(e.getKey(), e.getValue()));
         }
@@ -175,8 +179,8 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
         }
     }
 
-    private boolean filterPackageOrCertifates(boolean isOwner, String name) {
-        if (isOwner || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
+    private boolean filterPackageOrCertificates(boolean isOwner, String name) {
+        if (isOwner || !envMonitorProperties.limitRemoteDataSet()) {
             return !PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
         } else {
             return name.equals("OperatingSystem");
@@ -184,8 +188,8 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
     }
 
     private Metrics toProcessMetricSetDto(String name,
-                                          Gauge<JmxStringifiedData<ProcessInfo>> processSensor) {
-        JmxStringifiedData<ProcessInfo> p = processSensor.getValue();
+                                          Gauge<StringifiedData<ProcessInfo>> processSensor) {
+        StringifiedData<ProcessInfo> p = processSensor.getValue();
 
         var metricsGroup = MetricsGroup.newBuilder()
                 .setName(name);
@@ -211,8 +215,8 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
 
     private Metrics toCertificateMetricSetDTO(
             String name,
-            Gauge<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor) {
-        JmxStringifiedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
+            Gauge<StringifiedData<CertificateMonitoringInfo>> certificateSensor) {
+        StringifiedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
 
         var metricsGroup = MetricsGroup.newBuilder()
                 .setName(name);
@@ -236,8 +240,8 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
     }
 
     private Metrics.Builder toPackageMetricSetDto(String name,
-                                                  Gauge<JmxStringifiedData<PackageInfo>> packageSensor) {
-        JmxStringifiedData<PackageInfo> p = packageSensor.getValue();
+                                                  Gauge<StringifiedData<PackageInfo>> packageSensor) {
+        StringifiedData<PackageInfo> p = packageSensor.getValue();
 
         var packageMetrics = MetricsGroup.newBuilder()
                 .setName(name);

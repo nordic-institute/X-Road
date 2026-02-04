@@ -25,31 +25,30 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="exp-wrapper">
-    <div class="exp-header">
+  <v-sheet color="surface-container" class="xrd-expansion-panel xrd-rounded-12 border" :class="{ 'pb-4': opened, 'pb-0': !opened }">
+    <div data-test="header" class="xrd-expansion-panel-header d-flex flex-row align-center pt-2 pr-2 pb-2 pl-4" :class="headerClasses">
       <div>
-        <v-btn variant="flat" icon size="small" class="no-hover rounded-circle" :disabled="disabled" :style="style" @click="toggle">
-          <v-icon v-if="opened" color="primary" icon="mdi-chevron-down" />
-          <v-icon v-else color="primary" icon="mdi-chevron-right" />
-        </v-btn>
+        <v-btn class="xrd opacity-100" variant="plain" :icon="icon" :disabled="disabled" :ripple="false" color="primary" @click="toggle" />
       </div>
-      <div :class="{ 'text--disabled': disabled }">
-        <slot name="link" :toggle="toggle" />
+      <div class="align-content-center" :class="{ 'text--disabled': disabled }">
+        <slot name="link" :toggle="toggle" :opened="opened" />
       </div>
 
       <v-spacer />
-      <div class="exp-action-wrap">
-        <slot name="action" />
+      <div class="xrd-expansion-panel-header-actions">
+        <slot name="action" :opened="opened" />
       </div>
     </div>
-    <div v-if="opened" :class="['exp-content-wrap', { 'v-input--disabled': disabled }]">
-      <slot name="content" />
-    </div>
-  </div>
+    <v-expand-transition>
+      <div v-if="opened" data-test="content" class="xrd-expansion-panel-content" :class="{ 'v-input--disabled': disabled }">
+        <slot name="content" />
+      </div>
+    </v-expand-transition>
+  </v-sheet>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 /**
  * Expandable can be clicked open and has slots for a link and ans action
@@ -61,13 +60,13 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    color: {
-      type: String,
-      default: '',
-    },
     disabled: {
       type: Boolean,
       default: false,
+    },
+    headerClasses: {
+      type: Array as PropType<string[]>,
+      default: () => [],
     },
   },
   emits: ['open'],
@@ -77,8 +76,8 @@ export default defineComponent({
     };
   },
   computed: {
-    style() {
-      return this.color ? { color: this.color } : {};
+    icon() {
+      return this.opened ? 'keyboard_arrow_down' : 'chevron_right';
     },
   },
   watch: {
@@ -97,34 +96,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '../assets/colors';
-
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
-}
-
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
-}
-
-.exp-wrapper {
-  border-radius: 4px;
-  background-color: colors.$White100;
-}
-
-.exp-header {
-  display: flex;
-  align-items: center;
-  height: 56px;
-  padding: 10px;
-}
-
-.exp-content-wrap {
-  padding-top: 16px;
-  padding-bottom: 16px;
-}
-</style>

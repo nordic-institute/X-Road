@@ -26,11 +26,12 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.backupmanager.proto.BackupInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,15 +41,12 @@ import java.util.stream.Collectors;
 @Component
 public class BackupConverter {
 
-    public BackupDto convert(BackupFile backupFile) {
-        BackupDto backupDto = new BackupDto();
-        backupDto.setFilename(backupFile.getFilename());
-        backupDto.setCreatedAt(backupFile.getCreatedAt());
-        return backupDto;
+    public BackupDto convert(BackupInfo backupInfo) {
+        return new BackupDto(backupInfo.name(), backupInfo.createdAt().atOffset(ZoneOffset.UTC));
     }
 
-    public Set<BackupDto> convert(Iterable<BackupFile> files) {
-        return Streams.stream(files)
+    public Set<BackupDto> convert(Collection<BackupInfo> backupDto) {
+        return backupDto.stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.signedmessage;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -37,6 +36,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 
 import java.util.ArrayList;
@@ -55,6 +55,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 @RequiredArgsConstructor
 public class Verifier {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final List<MessagePart> parts = new ArrayList<>();
 
     /**
@@ -96,17 +97,12 @@ public class Verifier {
      *
      * @param sender    client ID of the sender
      * @param signature signature data
-     * @throws Exception in case of any errors
      */
     public void verify(ClientId sender, SignatureData signature) {
         log.trace("Verify, {} parts. Signature: {}", parts.size(), signature);
 
-        if (SystemProperties.IGNORE_SIGNATURE_VERIFICATION) {
-            return;
-        }
-
         try {
-            SignatureVerifier signatureVerifier = new SignatureVerifier(globalConfProvider, signature);
+            SignatureVerifier signatureVerifier = new SignatureVerifier(globalConfProvider, ocspVerifierFactory, signature);
 
             signatureVerifier.addParts(parts);
 

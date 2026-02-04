@@ -26,23 +26,27 @@
  */
 package org.niis.xroad.cs.test.hook;
 
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.hooks.AfterScenarioHook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mockserver.client.MockServerClient;
-import org.springframework.beans.factory.ObjectFactory;
+import org.niis.xroad.cs.test.api.service.MockServerService;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.hooks.AfterScenarioHook;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MockServerResetHook implements AfterScenarioHook {
-    private final ObjectFactory<MockServerClient> mockServerClient;
+    private final MockServerService mockServerService;
 
     @Override
     public void after(CucumberScenarioProvider cucumberScenarioProvider) {
         // if needed we can clear per scenario.
-        mockServerClient.getObject().reset();
+        mockServerService.client().reset();
+    }
+
+    @Override
+    public int afterScenarioOrder() {
+        return 100; //Remove mocks before doing anything else
     }
 }

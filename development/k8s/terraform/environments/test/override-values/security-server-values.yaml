@@ -1,0 +1,115 @@
+init:
+  serverconf:
+    dbUsername: serverconf
+    proxyUiSuperuser: xrd
+    proxyUiSuperuserPassword: "$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0"
+  messagelog:
+    dbUsername: messagelog
+  opmonitor:
+    dbUsername: opmonitor
+
+services:
+  configuration-client:
+    env:
+      XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "10"
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: configuration-client-openbao-tls-certificate
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
+        subPath: openbao.crt
+        name: configuration-client-openbao-tls-certificate
+  signer:
+    env:
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: signer-openbao-tls-certificate
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
+        subPath: openbao.crt
+        name: signer-openbao-tls-certificate
+  proxy:
+    env:
+      XROAD_PROXY_ADDON_OP_MONITOR_ENABLED: "true"
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: proxy-openbao-tls-certificate
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
+        subPath: openbao.crt
+        name: proxy-openbao-tls-certificate
+  proxy-ui-api:
+    env:
+      SPRING_CLOUD_VAULT_SSL_TRUST_STORE: "file:/etc/xroad/ssl/openbao.crt"
+      SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE: "PEM"
+    extraVolumes:
+      - name: proxy-ui-openbao-tls-certificate
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
+        subPath: openbao.crt
+        name: proxy-ui-openbao-tls-certificate
+  monitor:
+    env:
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: monitor-openbao-tls-certificate
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
+        subPath: openbao.crt
+        name: monitor-openbao-tls-certificate
+  op-monitor:
+    enabled: true
+    env:
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: op-monitor-openbao-tls-certificate
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
+        subPath: openbao.crt
+        name: op-monitor-openbao-tls-certificate
+  backup-manager:
+    env:
+      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
+      PROXY_UI_SUPERUSER: xrd
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: backup-manager-openbao-tls-certificate
+        secret:
+          secretName: openbao-server-tls
+          items:
+            - key: tls.crt  # just the TLS certificate of OpenBao is needed in order to trust it
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
+        subPath: openbao.crt
+        name: backup-manager-openbao-tls-certificate

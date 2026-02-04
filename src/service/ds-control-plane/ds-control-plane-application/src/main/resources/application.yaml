@@ -1,0 +1,47 @@
+quarkus:
+  application:
+    name: ds-control-plane
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  log:
+    level: DEBUG
+
+web:
+  http:
+    protocol:
+      port: 8282
+      path: /api/dsp
+
+edc:
+  participant:
+    id: participantContextId
+  dsp:
+    callback:
+      address: http://host.docker.internal:8282/api/dsp
+  hostname: host.docker.internal
+  component:
+    id: DSP-compatibility-test
+  transfer:
+    proxy:
+      token:
+        signer:
+          privatekey:
+            alias: private-key
+        verifier:
+          publickey:
+            alias: public-key
+  datasource:
+    default:
+      url: jdbc:postgresql://localhost:5432/edc
+      user: edc
+      password: password
+  sql:
+    schema:
+      autocreate: true
+  iam:
+    oauth2:
+      jwks:
+        url: https://example.com/jwks
+      issuer: test-issuer

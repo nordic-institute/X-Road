@@ -27,8 +27,6 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.ValidationHelper;
 import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
@@ -55,6 +53,8 @@ import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.ValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
@@ -66,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static java.lang.Boolean.TRUE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -87,6 +86,7 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENAN
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_ENABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.OK;
 

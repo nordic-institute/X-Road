@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
@@ -102,12 +100,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.CERT_FACTORY;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.toDERObject;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
 
 /**
  * Contains utility methods for working with certificates.
@@ -175,7 +172,7 @@ public final class CertUtils {
         String cn = getRDNValue(x500name, BCStyle.CN);
 
         if (cn == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain common name");
         }
 
@@ -194,7 +191,7 @@ public final class CertUtils {
         try {
             subjectAlternativeNames = cert.getSubjectAlternativeNames();
         } catch (CertificateParsingException e) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Failed parsing the certificate information");
         }
         if (subjectAlternativeNames != null) {
@@ -364,30 +361,8 @@ public final class CertUtils {
 
     /**
      * @param certs list of certificates
-     * @return array of certificate SHA-1 hashes for given list of certificates.
-     * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException    if digest calculator cannot be created
-     * @throws IOException                  if an I/O error occurred
-     * @deprecated This method should be applicable until 7.3.x is no longer supported
-     * <p> From that point onward its usages should be replaced with {@link #getHashes(List)} instead.
-     */
-    @Deprecated
-    public static String[] getSha1Hashes(List<X509Certificate> certs)
-            throws CertificateEncodingException, IOException {
-        String[] certHashes = new String[certs.size()];
-
-        for (int i = 0; i < certs.size(); i++) {
-            certHashes[i] = calculateCertSha1HexHash(certs.get(i));
-        }
-
-        return certHashes;
-    }
-
-    /**
-     * @param certs list of certificates
      * @return array of certificate SHA-256 hashes for given list of certificates.
      * @throws CertificateEncodingException if a certificate encoding error occurs
-     * @throws OperatorCreationException    if digest calculator cannot be created
      * @throws IOException                  if an I/O error occurred
      */
     public static String[] getHashes(List<X509Certificate> certs)
@@ -455,8 +430,7 @@ public final class CertUtils {
         try (PEMParser pemParser = new PEMParser(new FileReader(pkFile))) {
             Object o = pemParser.readObject();
             if (!(o instanceof PrivateKeyInfo pki)) {
-                throw new CodedException(X_INTERNAL_ERROR,
-                        "Could not read key from '%s'", filename);
+                throw XrdRuntimeException.systemInternalError("Could not read key from '%s'".formatted(filename));
             }
             KeyFactory kf = KeyFactory.getInstance("RSA");
             final PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(pki.getEncoded());

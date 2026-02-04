@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -34,6 +35,7 @@ import {
   OcspResponderDiagnostics,
   ProxyMemoryUsageStatus,
   TimestampingServiceDiagnostics,
+  CaOcspDiagnostics,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
@@ -42,7 +44,7 @@ export interface DiagnosticsState {
   addOnStatus?: AddOnStatus;
   timestampingServices: TimestampingServiceDiagnostics[];
   globalConf?: GlobalConfDiagnostics;
-  ocspResponderDiagnostics: OcspResponderDiagnostics[];
+  ocspResponderDiagnostics: CaOcspDiagnostics[];
   backupEncryptionDiagnostics?: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
   proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
@@ -79,84 +81,64 @@ export const useDiagnostics = defineStore('diagnostics', {
   },
   actions: {
     async fetchAddonStatus() {
-      return api.get<AddOnStatus>('/diagnostics/addon-status').then((res) => {
-        this.addOnStatus = res.data;
-      });
+      return api.get<AddOnStatus>('/diagnostics/addon-status').then((res) => (this.addOnStatus = res.data));
     },
     async fetchTimestampingServiceDiagnostics() {
-      return api
-        .get<
-          TimestampingServiceDiagnostics[]
-        >(`/diagnostics/timestamping-services`)
-        .then((res) => {
-          this.timestampingServices = res.data;
-        });
+      return api.get<TimestampingServiceDiagnostics[]>(`/diagnostics/timestamping-services`).then((res) => {
+        this.timestampingServices = res.data;
+      });
     },
     async fetchGlobalConfDiagnostics() {
-      return api
-        .get<GlobalConfDiagnostics>('/diagnostics/globalconf')
-        .then((res) => {
-          this.globalConf = res.data;
-        });
+      return api.get<GlobalConfDiagnostics>('/diagnostics/globalconf').then((res) => {
+        this.globalConf = res.data;
+      });
     },
     async fetchOcspResponderDiagnostics() {
-      return api
-        .get<OcspResponderDiagnostics[]>('/diagnostics/ocsp-responders')
-        .then((res) => {
-          this.ocspResponderDiagnostics = res.data;
-        });
+      return api.get<CaOcspDiagnostics[]>('/diagnostics/ocsp-responders').then((res) => {
+        this.ocspResponderDiagnostics = res.data;
+      });
     },
     async fetchBackupEncryptionDiagnostics() {
-      return api
-        .get<BackupEncryptionStatus>('/diagnostics/backup-encryption-status')
-        .then((res) => {
-          this.backupEncryptionDiagnostics = res.data;
-        });
+      return api.get<BackupEncryptionStatus>('/diagnostics/backup-encryption-status').then((res) => {
+        this.backupEncryptionDiagnostics = res.data;
+      });
     },
     async fetchMessageLogEncryptionDiagnostics() {
-      return api
-        .get<MessageLogEncryptionStatus>(
-          '/diagnostics/message-log-encryption-status',
-        )
-        .then((res) => {
-          this.messageLogEncryptionDiagnostics = res.data;
-        });
+      return api.get<MessageLogEncryptionStatus>('/diagnostics/message-log-encryption-status').then((res) => {
+        this.messageLogEncryptionDiagnostics = res.data;
+      });
     },
     async fetchProxyMemoryDiagnostics() {
-      return api
-        .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
-        .then((res) => {
-          this.proxyMemoryUsageStatus = res.data;
-        });
+      return api.get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status').then((res) => {
+        this.proxyMemoryUsageStatus = res.data;
+      });
     },
     async fetchAuthCertReqStatus() {
-      return api
-        .get<ConnectionStatus>('/diagnostics/auth-cert-req-status')
-        .then((res) => {
-          this.authCertReqStatus = res.data;
-        });
+      return api.get<ConnectionStatus>('/diagnostics/auth-cert-req-status').then((res) => {
+        this.authCertReqStatus = res.data;
+      });
     },
-    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string,
-      securityServerId: string) {
+    async fetchOtherSecurityServerStatus(protocolType: string, clientId: string, targetClientId: string, securityServerId: string) {
       return api
         .get<ConnectionStatus>('/diagnostics/other-security-server-status', {
           params: {
             protocol_type: protocolType,
             client_id: clientId,
             target_client_id: targetClientId,
-            security_server_id: securityServerId
-          }
+            security_server_id: securityServerId,
+          },
         })
         .then((res) => {
           this.otherSecurityServerStatus = res.data;
         });
     },
     async fetchGlobalConfStatuses() {
-      return api
-        .get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status')
-        .then((res) => {
-          this.globalConfStatuses = res.data;
-        });
+      return api.get<GlobalConfConnectionStatus[]>('/diagnostics/global-conf-status').then((res) => {
+        this.globalConfStatuses = res.data;
+      });
+    },
+    async downloadReport() {
+      return api.get('/diagnostics/info/download', { responseType: 'blob' });
     },
   },
 });

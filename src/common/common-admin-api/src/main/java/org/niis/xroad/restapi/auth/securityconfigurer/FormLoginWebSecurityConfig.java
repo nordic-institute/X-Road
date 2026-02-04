@@ -57,7 +57,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.csrfTokenRequestAttributeHandler;
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
@@ -73,6 +72,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
 public class FormLoginWebSecurityConfig {
     public static final String LOGIN_URL = "/login";
 
+    public static final String FORM_LOGIN_AUTHENTICATION = "formLoginAuthentication";
+
     @Autowired
     private AuditEventLoggingFacade auditEventLoggingFacade;
 
@@ -80,7 +81,7 @@ public class FormLoginWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
     @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
-                                                            @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
+                                                            @Qualifier(FORM_LOGIN_AUTHENTICATION)
                                                             AuthenticationProvider authenticationProvider,
                                                             @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {

@@ -48,13 +48,14 @@ export enum RouteName {
   IntermediateCaDetails = 'intermediate-ca-details',
   IntermediateCaOcspResponders = 'intermediate-ca-ocsp-responders',
   Settings = 'settings',
-  GlobalResources = 'global-resources',
+  GlobalGroups = 'global-resources',
   GlobalGroup = 'global-group',
   SystemSettings = 'system-settings',
   BackupAndRestore = 'backup-and-restore',
   ApiKeys = 'api-keys',
   TlsCertificates = 'tls-certificates',
   CreateApiKey = 'create-api-key',
+  GlobalConfiguration = 'global-configuration',
   InternalConfiguration = 'internal-configuration',
   ExternalConfiguration = 'external-configuration',
   TrustedAnchors = 'trusted-anchors',
@@ -64,7 +65,10 @@ export enum RouteName {
   SecurityServerAuthenticationCertificates = 'security-server-authentication-certificates',
   SecurityServerAuthenticationCertificate = 'security-server-authentication-certificate',
   SecurityServerClients = 'security-server-clients',
+  AdminUsers = 'admin-users',
+  AddAdminUser = 'add-admin-user',
   Forbidden = 'forbidden',
+  NotFound = 'not-found',
 }
 
 // A "single source of truth" for permission strings
@@ -140,79 +144,17 @@ export enum Permissions {
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
   REVOKE_API_KEY = 'REVOKE_API_KEY', // api key
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
+  ADD_ADMIN_USER = 'ADD_ADMIN_USER',
+  DELETE_ADMIN_USER = 'DELETE_ADMIN_USER',
+  UPDATE_ADMIN_USER = 'UPDATE_ADMIN_USER',
+  VIEW_ADMIN_USERS = 'VIEW_ADMIN_USERS',
 }
 
 // A single source of truth for roles
-export const Roles = [
-  'XROAD_REGISTRATION_OFFICER',
-  'XROAD_SECURITY_OFFICER',
-  'XROAD_SYSTEM_ADMINISTRATOR',
-  'XROAD_MANAGEMENT_SERVICE',
-];
-
-export const mainTabs: Tab[] = [
-  {
-    to: { name: RouteName.Members },
-    key: 'members',
-    name: 'tab.main.members',
-    permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_MEMBER_DETAILS],
-  },
-  {
-    to: { name: RouteName.SecurityServers },
-    key: 'keys',
-    name: 'tab.main.securityServers',
-    permissions: [
-      Permissions.VIEW_SECURITY_SERVERS,
-      Permissions.VIEW_SECURITY_SERVER_DETAILS,
-    ],
-  },
-  {
-    to: { name: RouteName.ManagementRequests },
-    key: 'managementRequests',
-    name: 'tab.main.managementRequests',
-    permissions: [
-      Permissions.VIEW_MANAGEMENT_REQUESTS,
-      Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS,
-    ],
-  },
-  {
-    to: { name: RouteName.TrustServices },
-    key: 'trustServices',
-    name: 'tab.main.trustServices',
-    permissions: [
-      Permissions.VIEW_APPROVED_CAS,
-      Permissions.VIEW_APPROVED_TSAS,
-      Permissions.VIEW_APPROVED_CA_DETAILS,
-      Permissions.VIEW_APPROVED_TSA_DETAILS,
-    ],
-  },
-  {
-    // Global configuration tab
-    to: { name: RouteName.InternalConfiguration }, // name of the first child tab
-    key: 'globalConfiguration',
-    name: 'tab.main.globalConfiguration',
-    permissions: [
-      Permissions.VIEW_CONFIGURATION_MANAGEMENT,
-      Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE,
-      Permissions.VIEW_INTERNAL_CONFIGURATION_SOURCE,
-      Permissions.VIEW_TRUSTED_ANCHORS,
-    ],
-  },
-  {
-    // Settings tab
-    to: { name: RouteName.Settings },
-    key: 'settings',
-    name: 'tab.main.settings',
-    permissions: [
-      Permissions.VIEW_SYSTEM_SETTINGS,
-      Permissions.VIEW_GLOBAL_GROUPS,
-      Permissions.VIEW_SECURITY_SERVERS,
-      Permissions.BACKUP_CONFIGURATION,
-      Permissions.VIEW_API_KEYS,
-    ],
-  },
-];
+export const Roles = ['XROAD_REGISTRATION_OFFICER', 'XROAD_SECURITY_OFFICER', 'XROAD_SYSTEM_ADMINISTRATOR', 'XROAD_MANAGEMENT_SERVICE'];
 
 export const Timeouts = {
   POLL_SESSION_TIMEOUT: 30000,
 } as const;
+
+export const KEY_CONTINUE_INIT = 'KEY_CONTINUE_INIT';

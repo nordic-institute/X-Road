@@ -26,110 +26,44 @@
 
 package org.niis.xroad.signer.core.job;
 
-import ee.ria.xroad.common.SystemProperties;
+public interface OcspClientExecuteScheduler {
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.extension.OcspFetchInterval;
-import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
-import org.springframework.scheduling.TaskScheduler;
+    void success();
 
-import java.time.Duration;
-import java.util.concurrent.ScheduledFuture;
+    void failure();
 
-import static java.time.temporal.ChronoUnit.SECONDS;
+    void globalConfInvalidated();
 
-@Slf4j
-@RequiredArgsConstructor
-public class OcspClientExecuteScheduler {
-    private static final Duration RECOVER_FROM_INVALID_GLOBALCONF_DELAY = Duration.of(60, SECONDS);
-    private static final Duration INITIAL_DELAY = Duration.of(5, SECONDS);
+    void execute();
 
-    private final OcspClientWorker ocspClientWorker;
-    private final TaskScheduler taskScheduler;
-    private final GlobalConfProvider globalConfProvider;
+    void reschedule();
 
-    private ScheduledFuture<?> scheduledFuture;
-    private boolean retryMode;
+    class NoopScheduler implements OcspClientExecuteScheduler {
 
-    public void init() {
-        reschedule(INITIAL_DELAY);
-    }
-
-    private Duration getNextDelay() {
-        final int retryDelay = SystemProperties.getOcspResponseRetryDelay();
-        int nextOcspFetchIntervalSeconds = getNextOcspFetchIntervalSeconds();
-        if (retryMode && retryDelay < nextOcspFetchIntervalSeconds) {
-            return Duration.of(retryDelay, SECONDS);
-        }
-        return Duration.of(nextOcspFetchIntervalSeconds, SECONDS);
-    }
-
-    public void success() {
-        log.info("OCSP-response refresh cycle successfully completed, continuing with normal scheduling");
-        retryMode = false;
-    }
-
-    public void failure() {
-        if (!retryMode) {
-            log.info("OCSP-response refresh cycle failed, switching to retry backoff schedule");
-            retryMode = true;
-            reschedule(getNextDelay());
-        } else {
-            log.info("OCSP-response refresh retry failed, continuing along backoff schedule");
-        }
-    }
-
-    public void globalConfInvalidated() {
-        log.info("OCSP-response refresh cycle failed due to invalid global configuration, "
-                + "switching to global configuration recovery schedule");
-        // attempted to execute OCSP refresh, but global conf was
-        // invalid at that time -> reschedule
-        reschedule(RECOVER_FROM_INVALID_GLOBALCONF_DELAY);
-        retryMode = false;
-    }
-
-    public void execute() {
-        reschedule(Duration.ZERO);
-    }
-
-    private void runJob() {
-        try {
-            ocspClientWorker.execute(this);
-        } finally {
-            reschedule(getNextDelay());
-        }
-    }
-
-    public void reschedule() {
-        log.info("OCSP-response refresh cycle rescheduling");
-        this.reschedule(getNextDelay());
-    }
-
-    private void cancelNext() {
-        if (this.scheduledFuture != null) {
-            this.scheduledFuture.cancel(false);
-        }
-    }
-
-    private void reschedule(Duration delay) {
-        cancelNext();
-        log.trace("Rescheduling job after {}", delay);
-        this.scheduledFuture = taskScheduler.schedule(this::runJob, taskScheduler.getClock().instant().plus(delay));
-    }
-
-    /**
-     * @return the next ocsp freshness time in seconds
-     */
-    private int getNextOcspFetchIntervalSeconds() {
-        int interval = globalConfProvider.getGlobalConfExtensions().getOcspFetchInterval();
-
-        if (interval < OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN) {
-            interval = OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN;
+        @Override
+        public void success() {
+            // noop
         }
 
-        return interval;
+        @Override
+        public void failure() {
+            // noop
+        }
+
+        @Override
+        public void globalConfInvalidated() {
+            // noop
+        }
+
+        @Override
+        public void execute() {
+            // noop
+        }
+
+        @Override
+        public void reschedule() {
+            // noop
+        }
     }
 
 }

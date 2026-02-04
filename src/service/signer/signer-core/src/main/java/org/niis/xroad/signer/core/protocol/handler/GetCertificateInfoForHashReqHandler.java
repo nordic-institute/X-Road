@@ -25,30 +25,30 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetCertificateInfoForHashReq;
 import org.niis.xroad.signer.proto.GetCertificateInfoResp;
-import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithHashNotFound;
 
 /**
  * Handles requests for certificates based on certificate hashes.
  */
-@Component
+@ApplicationScoped
+@RequiredArgsConstructor
 public class GetCertificateInfoForHashReqHandler extends AbstractRpcHandler<GetCertificateInfoForHashReq, GetCertificateInfoResp> {
+    private final TokenLookup tokenLookup;
 
     @Override
     protected GetCertificateInfoResp handle(GetCertificateInfoForHashReq request) {
-        CertificateInfo certificateInfo = TokenManager.getCertificateInfoForCertHash(request.getCertHash());
+        CertificateInfo certificateInfo = tokenLookup.getCertificateInfoForCertHash(request.getCertHash());
 
         if (certificateInfo == null) {
-            throw CodedException.tr(X_CERT_NOT_FOUND, "certificate_with_hash_not_found",
-                    "Certificate with hash '%s' not found", request.getCertHash());
+            throw certWithHashNotFound(request.getCertHash());
         }
 
         return GetCertificateInfoResp.newBuilder()

@@ -31,6 +31,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +49,7 @@ public final class ResourceUtils {
      * Read bytes from {@link Resource}. Also handles closing the stream.
      * @param resource resource
      * @return byte array
-     * @throws BadRequestException
+     * @throws BadRequestException in case bytes cannot be read
      */
     public static byte[] springResourceToBytesOrThrowBadRequest(Resource resource) {
         byte[] resourceBytes;
@@ -58,5 +59,19 @@ public final class ResourceUtils {
             throw new BadRequestException(ex, ERROR_RESOURCE_READ.build());
         }
         return resourceBytes;
+    }
+
+    /**
+     * Read bytes from {@link MultipartFile}.
+     * @param file file
+     * @return byte array
+     * @throws BadRequestException in case bytes cannot be read
+     */
+    public static byte[] springResourceToBytesOrThrowBadRequest(MultipartFile file) {
+        try {
+            return file.getBytes();
+        } catch (IOException ex) {
+            throw new BadRequestException(ex, ERROR_RESOURCE_READ.build());
+        }
     }
 }

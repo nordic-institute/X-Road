@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="set-timestamps-function">
+        <sql splitStatements="false"><![CDATA[
+            CREATE OR REPLACE FUNCTION set_timestamps()
+            RETURNS TRIGGER
+            LANGUAGE plpgsql
+            AS $$
+            DECLARE
+            now_ts TIMESTAMP := CURRENT_TIMESTAMP;
+            BEGIN
+                IF TG_OP = 'INSERT' THEN
+                    NEW.created_at := now_ts;
+            END IF;
+                NEW.updated_at := now_ts;
+            RETURN NEW;
+            END;
+            $$;
+            ]]></sql>
+    </changeSet>
+
+    <changeSet author="niis" id="202507091531-identifiers-consolidation-001">
+        <addColumn tableName="identifiers">
+            <column name="group_code" type="VARCHAR(255)"/>
+        </addColumn>
+
+        <renameTable oldTableName="identifiers" newTableName="identifier"/>
+        <renameSequence oldSequenceName="identifiers_id_seq" newSequenceName="identifier_id_seq"/>
+    </changeSet>
+
+    <changeSet author="niis" id="202507091531-identifiers-consolidation-002">
+        <dropView viewName="global_group_members_view"/>
+        <dropView viewName="flattened_security_server_client"/>
+        <dropView viewName="management_request_view"/>
+
+        <modifyDataType tableName="global_group_members" columnName="group_member_id" newDataType="bigint"/>
+        <modifyDataType tableName="requests" columnName="sec_serv_user_id" newDataType="bigint"/>
+        <modifyDataType tableName="requests" columnName="security_server_id" newDataType="bigint"/>
+        <modifyDataType tableName="security_server_clients" columnName="server_client_id" newDataType="bigint"/>
+        <modifyDataType tableName="security_server_clients" columnName="xroad_member_id" newDataType="bigint"/>
+        <modifyDataType tableName="server_clients" columnName="security_server_id" newDataType="bigint"/>
+        <modifyDataType tableName="server_clients" columnName="security_server_client_id" newDataType="bigint"/>
+        <modifyDataType tableName="security_servers" columnName="owner_id" newDataType="bigint"/>
+
+        <sql>ALTER SEQUENCE identifier_id_seq AS BIGINT</sql>
+        <modifyDataType tableName="identifier" columnName="id" newDataType="BIGSERIAL"/>
+        <sql>ALTER SEQUENCE security_server_clients_id_seq AS BIGINT</sql>
+        <modifyDataType tableName="security_server_clients" columnName="id" newDataType="BIGSERIAL"/>
+
+        <createView fullDefinition="false" viewName="global_group_members_view">
+            SELECT gm.id,
+                   gm.global_group_id,
+                   gm.group_member_id,
+                   ssc.name AS member_name,
+                   gm.created_at,
+                   gm.updated_at
+            FROM global_group_members gm
+                     JOIN identifier i ON i.id = gm.group_member_id
+                     JOIN security_server_clients ssc ON ssc.member_code = i.member_code AND ssc.type = 'XRoadMember'
+                     JOIN identifier ci
+                          ON ssc.server_client_id = ci.id AND ci.xroad_instance = i.xroad_instance AND ci.member_class = i.member_class
+            GROUP BY gm.id, gm.global_group_id, ssc.name, gm.created_at, gm.updated_at
+        </createView>
+        <createView fullDefinition="false" viewName="flattened_security_server_client">
+            (SELECT c.id,
+                    c.server_client_id,
+                    c.member_code,
+                    c.name AS member_name,
+                    c.type,
+                    c.member_class_id,
+                    c.subsystem_code,
+                    NULL AS subsystem_name,
+                    c.created_at,
+                    c.updated_at,
+                    i.xroad_instance
+             FROM security_server_clients c
+                      LEFT JOIN identifier i
+                                ON c.server_client_id = i.id
+             WHERE c.type = 'XRoadMember')
+            UNION
+            (SELECT c.id,
+                    c.server_client_id,
+                    m.member_code,
+                    m.name AS member_name,
+                    c.type,
+                    m.member_class_id,
+                    c.subsystem_code,
+                    c.name AS subsystem_name,
+                    c.created_at,
+                    c.updated_at,
+                    i.xroad_instance
+             FROM security_server_clients c
+                      LEFT JOIN security_server_clients m
+                                ON c.xroad_member_id = m.id
+                      LEFT JOIN identifier i
+                                ON c.server_client_id = i.id
+             WHERE c.type = 'Subsystem');
+        </createView>
+        <createView fullDefinition="false" viewName="management_request_view">
+            SELECT r.id,
+                   r.origin,
+                   r.comments,
+                   r.type,
+                   r.security_server_id,
+
+                   r.request_processing_id,
+                   rp.status             AS request_processing_status,
+
+                   ss_owner.name         AS security_server_owner_name,
+                   ss.xroad_instance,
+                   ss.member_code,
+                   ss.member_class,
+                   ss.server_code,
+
+                   client_owner.name     AS client_owner_name,
+                   client.object_type    AS client_type,
+                   client.xroad_instance AS client_xroad_instance,
+                   client.member_code    AS client_member_code,
+                   client.member_class   AS client_member_class,
+                   client.subsystem_code AS client_subsystem_code,
+                   r.subsystem_name AS client_subsystem_name,
+                   r.auth_cert,
+                   r.address,
+                   r.created_at
+            FROM requests r
+                     LEFT JOIN request_processings rp ON (rp.id = r.request_processing_id)
+                     LEFT JOIN identifier ss ON (ss.id = r.security_server_id)
+                     LEFT JOIN identifier client ON (client.id = r.sec_serv_user_id)
+                     LEFT JOIN member_classes mc ON (mc.code = ss.member_class)
+                     LEFT JOIN security_server_clients ss_owner
+                               ON (ss_owner.member_code = ss.member_code
+                                   AND ss_owner.member_class_id = mc.id
+                                   AND ss_owner.type = 'XRoadMember')
+                     LEFT JOIN member_classes client_mc ON (client_mc.code = client.member_class)
+                     LEFT JOIN security_server_clients client_owner
+                               ON (client_owner.member_code = client.member_code
+                                   AND client_owner.member_class_id = client_mc.id
+                                   AND client_owner.type = 'XRoadMember')
+        </createView>
+    </changeSet>
+
+    <changeSet author="niis" id="202507091531-identifiers-consolidation-003">
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS set_timestamps ON identifier;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON identifier
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+            ]]></sql>
+        <dropDefaultValue tableName="identifier" columnName="created_at"/>
+        <dropDefaultValue tableName="identifier" columnName="updated_at"/>
+    </changeSet>
+
+    <changeSet author="niis" id="202507091531-identifiers-consolidation-004" >
+        <sql>ALTER TABLE identifier RENAME CONSTRAINT identifiers_pkey TO identifier_pkey</sql>
+    </changeSet>
+
+</databaseChangeLog>

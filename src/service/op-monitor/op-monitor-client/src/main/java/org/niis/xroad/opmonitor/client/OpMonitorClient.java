@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,39 +27,56 @@ package org.niis.xroad.opmonitor.client;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import io.grpc.Channel;
+import io.grpc.ManagedChannel;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import lombok.Getter;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
 
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.time.Instant;
 import java.util.List;
 
-public class OpMonitorClient {
-    private final RpcClient<OpMonitorRpcExecutionContext> opMonitorRpcClient;
+@Slf4j
+@RequiredArgsConstructor
+@ApplicationScoped
+public class OpMonitorClient extends AbstractRpcClient {
+    private final RpcChannelFactory rpcChannelFactory;
+    private final OpMonitorRpcChannelProperties rpcChannelProperties;
 
-    public OpMonitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        this.opMonitorRpcClient = RpcClient.newClient(OpMonitoringSystemProperties.getOpMonitorHost(),
-                OpMonitoringSystemProperties.getOpMonitorGrpcPort(),
-                OpMonitoringSystemProperties.getOpMonitorGrpcClientTimeout(),
-                OpMonitorRpcExecutionContext::new);
+    private ManagedChannel channel;
+    private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
+
+
+    @Override
+    public ErrorOrigin getRpcOrigin() {
+        return ErrorOrigin.OP_MONITOR;
     }
 
+    @PostConstruct
+    public void init() {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
+                rpcChannelProperties.port());
+        channel = rpcChannelFactory.createChannel(rpcChannelProperties);
+
+        opMonitoringServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(channel).withWaitForReady();
+    }
+
+    @Override
     @PreDestroy
-    public void destroy() {
-        if (opMonitorRpcClient != null) {
-            opMonitorRpcClient.shutdown();
+    public void close() {
+        if (channel != null) {
+            channel.shutdown();
         }
     }
 
@@ -83,24 +100,14 @@ public class OpMonitorClient {
             if (serviceId != null) {
                 reqBuilder.setServiceId(ServiceIdMapper.toDto(serviceId));
             }
-            var response = opMonitorRpcClient.execute(ctx ->
-                    ctx.getOpMonitorServiceBlockingStub().getOperationalDataIntervals(reqBuilder.build()));
+            var response = exec(() ->
+                    opMonitoringServiceBlockingStub.getOperationalDataIntervals(reqBuilder.build()));
 
             return response.getOperationalDataIntervalList().stream().map(OperationalDataInterval::new).toList();
         } catch (Exception e) {
             throw XrdRuntimeException.systemInternalError(
                     "Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
-                    Instant.ofEpochMilli(recordsTo)), e);
-        }
-    }
-
-
-    @Getter
-    private static class OpMonitorRpcExecutionContext implements RpcClient.ExecutionContext {
-        private final OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitorServiceBlockingStub;
-
-        OpMonitorRpcExecutionContext(Channel channel) {
-            opMonitorServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(channel).withWaitForReady();
+                            Instant.ofEpochMilli(recordsTo)), e);
         }
     }
 }

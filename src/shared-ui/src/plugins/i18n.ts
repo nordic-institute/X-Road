@@ -39,6 +39,7 @@ const supportedLanguages = [] as string[];
 const currentLanguage = ref(defaultLanguage);
 const messageLoaders = [] as MessageLoader[];
 const loadedLanguages = new Set();
+const displayNames = ref(createDisplayNames(currentLanguage.value));
 
 export const i18n = createI18n({
   legacy: false,
@@ -66,12 +67,19 @@ async function selectLanguage(language: string) {
   document.querySelector('html')?.setAttribute('lang', languageToLoad);
 
   currentLanguage.value = languageToLoad;
+  displayNames.value = createDisplayNames(languageToLoad);
 
   return nextTick();
 }
 
+function createDisplayNames(lang: string) {
+  return new Intl.DisplayNames([lang], {
+    type: 'language',
+  });
+}
+
 export function useLanguageHelper(): LanguageHelper {
-  return { selectLanguage, currentLanguage, supportedLanguages };
+  return { selectLanguage, currentLanguage, supportedLanguages, displayNames };
 }
 
 export async function createLanguageHelper(languages: string[], messageLoader: MessageLoader): Promise<Plugin> {
@@ -194,4 +202,5 @@ interface LanguageHelper {
 
   currentLanguage: Ref<string>;
   supportedLanguages: ReadonlyArray<string>;
+  displayNames: Ref<Intl.DisplayNames>;
 }

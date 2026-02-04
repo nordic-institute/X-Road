@@ -25,10 +25,10 @@
  * THE SOFTWARE.
  */
 
-import { mainTabs } from '@/global';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useUser } from '@/store/modules/user';
+import { useMainTabs } from '@/store/modules/main-tabs';
 
 const testPermissions: string[] = [
   'EDIT_APPROVED_TSA',
@@ -92,20 +92,22 @@ describe('user store user.ts  -- setters & getters', () => {
 
   it('GET_ALLOWED_TABS filters correctly', () => {
     const store = useUser();
+    const mainTabs = useMainTabs();
     store.setPermissions(memberPermissions);
     expect(mainTabs).not.toBeUndefined();
 
-    const allowedTabs = store.getAllowedTabs(mainTabs);
+    const allowedTabs = mainTabs.availableTabs;
     expect(allowedTabs).not.toBeUndefined();
-    expect(allowedTabs.length).toBeLessThan(mainTabs.length);
+    expect(allowedTabs.length).toBeLessThan(mainTabs.allTabs.length);
     expect(allowedTabs.length).toEqual(1);
     expect(allowedTabs[0].name).toEqual('tab.main.members');
   });
 
   it('FIRST_ALLOWED_TAB returns right tab', () => {
     const store = useUser();
+    const mainTabs = useMainTabs();
     store.setPermissions(memberPermissions);
-    const firstTab = store.getFirstAllowedTab;
+    const firstTab = mainTabs.firstAllowedTab;
     expect(firstTab).not.toBeNull();
     expect(firstTab.name).toEqual('tab.main.members');
   });

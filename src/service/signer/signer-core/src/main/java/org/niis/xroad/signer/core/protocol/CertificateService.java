@@ -26,8 +26,10 @@
 package org.niis.xroad.signer.core.protocol;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.handler.ActivateCertReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.DeleteCertReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.DeleteCertRequestReqHandler;
@@ -61,14 +63,12 @@ import org.niis.xroad.signer.proto.SetCertStatusReq;
 import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
 import org.niis.xroad.signer.proto.SetRenewalErrorReq;
 import org.niis.xroad.signer.proto.SetRenewedCertHashReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Service;
 
 /**
  * Certificate gRPC service.
  */
 @Slf4j
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class CertificateService extends CertificateServiceGrpc.CertificateServiceImplBase {
     private final ActivateCertReqHandler activateCertReqHandler;

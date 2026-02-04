@@ -34,7 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
 
 /**
  * Client sends empty multipart request. CP responds with error.
@@ -53,13 +53,13 @@ public class EmptyMultipartRequest extends MessageTestCase {
 
     @Override
     protected InputStream getQueryInputStream(String fileName,
-                                              boolean addUtf8Bom) throws Exception {
+                                              boolean addUtf8Bom) {
         return new ByteArrayInputStream(addUtf8Bom
                 ? ByteOrderMark.UTF_8.getBytes() : new byte[]{});
     }
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_MISSING_SOAP);
+        assertErrorCode(CLIENT_X, MISSING_SOAP.code());
     }
 }

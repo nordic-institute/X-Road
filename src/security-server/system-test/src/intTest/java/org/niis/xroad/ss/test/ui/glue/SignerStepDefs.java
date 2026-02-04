@@ -25,52 +25,94 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
+import org.niis.xroad.ss.test.ui.container.service.TestTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.InputStream;
+import java.security.Security;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
+@Slf4j
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SignerStepDefs extends BaseUiStepDefs {
+
+    private static final String KEYSTORE_BASE_PATH = "files/keystores/";
+    private static final String CERTS_PATH = KEYSTORE_BASE_PATH + "certs/";
+
     @Autowired
-    private TestableApplicationContainerProvider containerProvider;
+    private TestTokenService testTokenService;
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("signer service is restarted")
     public void signerServiceIsRestarted() {
-        var execResult = containerProvider.getContainer()
-                .execInContainer("supervisorctl", "restart", "xroad-signer");
+        systemTestContainerSetup.restartContainer(SsSystemTestContainerSetup.SIGNER);
+    }
 
-        testReportService.attachJson("supervisorctl restart xroad-signer", execResult);
+    @Step("HSM tokens are deleted")
+    public void deleteHsmTokens() {
+        var count = testTokenService.deleteHsmTokens();
+
+        testReportService.attachText("Deleted HSM tokens count", String.valueOf(count));
+    }
+
+    @Step("All Signer keys are deleted")
+    public void deleteAllSignerKeys() {
+        var count = testTokenService.deleteAllKeys();
+
+        testReportService.attachText("Deleted keys count", String.valueOf(count));
+    }
+
+    @Step("softtoken device is created with id {string} and friendly name {string}")
+    public void createSoftTokenDevice(String id, String friendlyName) {
+        testTokenService.createSoftTokenDevice(id, friendlyName);
     }
 
     @SneakyThrows
-    @Step("predefined signer softtoken is uploaded")
-    public void updateSignerSoftToken() {
-        execInContainer("supervisorctl", "stop", "xroad-signer");
-        execInContainer("rm", "-rf", "/etc/xroad/signer/");
-        execInContainer("cp", "-r", "/etc/xroad/signer-predefined/", "/etc/xroad/signer/");
-        execInContainer("chown", "-R", "xroad:xroad", "/etc/xroad/signer/");
-        execInContainer("supervisorctl", "start", "xroad-signer");
+    @Step("authentication key {string} named {string} is added to softtoken")
+    public void addAuthKey(String externalId, String friendlyName) {
+        byte[] keystore = classpathFileResolver.getFileAsBytes(KEYSTORE_BASE_PATH + externalId + ".p12");
+        testTokenService.addSoftwareKey(externalId, friendlyName, "AUTHENTICATION", keystore);
     }
 
     @SneakyThrows
-    @Step("Predefined inactive signer token is uploaded")
+    @Step("signing key {string} named {string} is added to softtoken")
+    public void addSigningKey(String externalId, String friendlyName) {
+        byte[] keystore = classpathFileResolver.getFileAsBytes(KEYSTORE_BASE_PATH + externalId + ".p12");
+        testTokenService.addSoftwareKey(externalId, externalId, "SIGNING", keystore);
+    }
+
+    @SneakyThrows
+    @Step("authentication certificate {string} is added for key {string}")
+    public void addAuthCertificate(String certExternalId, String keyExternalId) {
+        addCertificate(certExternalId, null, keyExternalId);
+    }
+
+    @SneakyThrows
+    @Step("signing certificate {string} is added for member {string} under key {string}")
+    public void addCertificate(String certExternalId, String memberId, String keyExternalId) {
+        var cert = readCertificate(classpathFileResolver.getFileAsStream(CERTS_PATH + certExternalId + ".pem"));
+        testTokenService.addCertificate(certExternalId, keyExternalId, cert.getEncoded(), memberId);
+    }
+
+    @Step("Predefined inactive signer token is inserted")
     public void addInactiveSignerToken() {
-        execInContainer("supervisorctl", "stop", "xroad-signer");
-        execInContainer("sed", "-i", "/<\\/device>/a\\\n"
-                + "<device>\\\n"
-                + "        <deviceType>softToken</deviceType>\\\n"
-                + "        <friendlyName>softToken-for-deletion</friendlyName>\\\n"
-                + "        <id>1</id>\\\n"
-                + "        <pinIndex>1</pinIndex>\\\n"
-                + "    </device>", "/etc/xroad/signer/keyconf.xml");
-        execInContainer("supervisorctl", "start", "xroad-signer");
+        testTokenService.addInactiveSignerToken();
+        systemTestContainerSetup.restartContainer(SsSystemTestContainerSetup.SIGNER);
     }
 
     @SneakyThrows
-    private void execInContainer(String... args) {
-        var execResult = containerProvider.getContainer().execInContainer(args);
-        testReportService.attachJson(StringUtils.join(args, " "), execResult);
+    private static X509Certificate readCertificate(InputStream is) {
+        return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(is);
     }
 }

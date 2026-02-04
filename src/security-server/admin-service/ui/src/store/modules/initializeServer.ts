@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,6 +26,8 @@
  */
 
 import { defineStore } from 'pinia';
+import { InitialServerConf } from '@/openapi-types';
+import * as api from '@/util/api';
 
 export const useInitializeServer = defineStore('initializeServer', {
   state: () => {
@@ -59,6 +62,9 @@ export const useInitializeServer = defineStore('initializeServer', {
     },
     storeInitServerSSCode(code: string | undefined) {
       this.securityServerCode = code;
+    },
+    async initializeServer(payload: InitialServerConf) {
+      return api.post('/initialization', payload);
     },
   },
 });

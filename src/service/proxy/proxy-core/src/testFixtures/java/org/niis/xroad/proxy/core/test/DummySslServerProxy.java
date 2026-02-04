@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -54,6 +53,8 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES;
+
 /**
  * This server proxy dummy is currently only used by one SSL test case.
  * Currently it does not provide a very meaningful test case,
@@ -66,7 +67,7 @@ public class DummySslServerProxy extends Server {
     public DummySslServerProxy(String host, int port, KeyManager keyManager) throws Exception {
         SslContextFactory.Server cf = new SslContextFactory.Server();
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        cf.setIncludeCipherSuites(DEFAULT_XROAD_SSL_CIPHER_SUITES);
         cf.setSessionCachingEnabled(true);
         cf.setNeedClientAuth(true);
         cf.setSslSessionTimeout(5000);

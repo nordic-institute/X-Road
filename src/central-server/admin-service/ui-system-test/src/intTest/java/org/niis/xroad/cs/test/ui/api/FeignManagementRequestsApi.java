@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.Map;
 
-@FeignClient(name = "managementRequestsApi", path = "/api/v1", url = "https://localhost:4000")
+@FeignClient
 public interface FeignManagementRequestsApi extends ManagementRequestsApi {
 
     /**

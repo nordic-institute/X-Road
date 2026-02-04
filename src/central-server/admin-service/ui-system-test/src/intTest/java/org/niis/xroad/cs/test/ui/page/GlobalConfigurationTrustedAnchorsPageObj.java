@@ -39,28 +39,28 @@ public class GlobalConfigurationTrustedAnchorsPageObj {
     }
 
     public SelenideElement downloadAnchorButton(String instance) {
-        var xpath = "../../div/button[@data-test='download-anchor-button']";
+        var xpath = "..//button[@data-test='download-anchor-button']";
         return instanceWithName(instance).find(xpath(xpath));
     }
 
     public SelenideElement deleteAnchorButton(String instance) {
-        var xpath = "../../div/button[@data-test='delete-anchor-button']";
+        var xpath = "..//button[@data-test='delete-anchor-button']";
         return instanceWithName(instance).find(xpath(xpath));
     }
 
     public SelenideElement instanceWithName(String title) {
-        var xpath = "//div[@class='xdr-table-title' and contains(text(), '%s')]";
+        var xpath = "//div[@data-test='view-title-text' and contains(text(), '%s')]";
         return $x(String.format(xpath, title));
     }
 
     public SelenideElement instanceWithNameAndHash(String title, String hash) {
-        var hashXpath = "../../..//span[@data-test='anchor-hash' and contains(text(), '%s')]";
+        var hashXpath = "../..//div[@data-test='anchor-hash']/span[contains(., '%s')]";
         return instanceWithName(title)
                 .find(xpath(String.format(hashXpath, hash)));
     }
 
     public SelenideElement createdAtForInstanceWithName(String title) {
-        var createdXpath = "../../..//span[@data-test='anchor-created-at']";
+        var createdXpath = "../..//span[@data-test='anchor-created-at']";
         return instanceWithName(title)
                 .find(xpath(createdXpath));
     }

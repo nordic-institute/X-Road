@@ -1,8 +1,0 @@
----
-cs_modules:
-  cs-admin-service:
-    dir: central-server/admin-service/application
-    build: build
-    lib: centralserver-admin-service-1.0.jar
-    target: /usr/share/xroad/jlib
-    service: xroad-center

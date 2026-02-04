@@ -26,16 +26,18 @@
 package org.niis.xroad.signer.core.protocol;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.handler.DeleteKeyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GenerateKeyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetAuthKeyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetKeyIdForCertHashReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetSignMechanismReqHandler;
+import org.niis.xroad.signer.core.protocol.handler.IsSoftwareTokenBasedKeyReqHandler;
+import org.niis.xroad.signer.core.protocol.handler.ListSoftwareTokenKeysReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.SetKeyFriendlyNameReqHandler;
-import org.niis.xroad.signer.core.protocol.handler.SignCertificateReqHandler;
-import org.niis.xroad.signer.core.protocol.handler.SignReqHandler;
-import org.niis.xroad.signer.proto.AuthKeyInfoProto;
+import org.niis.xroad.signer.proto.AuthKeyProto;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
@@ -43,30 +45,28 @@ import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
+import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyReq;
+import org.niis.xroad.signer.proto.IsSoftTokenBasedKeyResp;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
+import org.niis.xroad.signer.proto.ListSoftwareTokenKeysResp;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
-import org.niis.xroad.signer.proto.SignCertificateReq;
-import org.niis.xroad.signer.proto.SignCertificateResp;
-import org.niis.xroad.signer.proto.SignReq;
-import org.niis.xroad.signer.proto.SignResp;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
-import org.springframework.stereotype.Service;
 
 /**
  * Token Key gRPC service.
  */
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
-    private final SignReqHandler signReqHandler;
-    private final SignCertificateReqHandler signCertificateReqHandler;
+
     private final GetSignMechanismReqHandler getSignMechanismReqHandler;
     private final GetKeyIdForCertHashReqHandler getKeyIdForCertHashReqHandler;
     private final GenerateKeyReqHandler generateKeyReqHandler;
     private final SetKeyFriendlyNameReqHandler setKeyFriendlyNameReqHandler;
     private final DeleteKeyReqHandler deleteKeyReqHandler;
     private final GetAuthKeyReqHandler getAuthKeyReqHandler;
+    private final ListSoftwareTokenKeysReqHandler listSoftwareTokenKeysReqHandler;
+    private final IsSoftwareTokenBasedKeyReqHandler isSoftwareTokenBasedKeyReqHandler;
 
     @Override
     public void getKeyIdForCertHash(GetKeyIdForCertHashReq request, StreamObserver<GetKeyIdForCertHashResp> responseObserver) {
@@ -84,16 +84,6 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     }
 
     @Override
-    public void sign(SignReq request, StreamObserver<SignResp> responseObserver) {
-        signReqHandler.processSingle(request, responseObserver);
-    }
-
-    @Override
-    public void signCertificate(SignCertificateReq request, StreamObserver<SignCertificateResp> responseObserver) {
-        signCertificateReqHandler.processSingle(request, responseObserver);
-    }
-
-    @Override
     public void deleteKey(DeleteKeyReq request, StreamObserver<Empty> responseObserver) {
         deleteKeyReqHandler.processSingle(request, responseObserver);
     }
@@ -104,7 +94,17 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     }
 
     @Override
-    public void getAuthKey(GetAuthKeyReq request, StreamObserver<AuthKeyInfoProto> responseObserver) {
+    public void getAuthKey(GetAuthKeyReq request, StreamObserver<AuthKeyProto> responseObserver) {
         getAuthKeyReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void listSoftwareTokenKeys(Empty request, StreamObserver<ListSoftwareTokenKeysResp> responseObserver) {
+        listSoftwareTokenKeysReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void isSoftwareBasedKey(IsSoftTokenBasedKeyReq request, StreamObserver<IsSoftTokenBasedKeyResp> responseObserver) {
+        isSoftwareTokenBasedKeyReqHandler.processSingle(request, responseObserver);
     }
 }

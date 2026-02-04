@@ -197,7 +197,6 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS"})
     public void updateServiceHttpVerifySslAuth() {
-        when(backupService.getBackupFiles()).thenThrow(new RuntimeException());
         ServiceDto service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
@@ -566,7 +565,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = {"VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL"})
-    public void addDuplicateAccessRight() throws Exception {
+    public void addDuplicateAccessRight() {
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
         Set<ServiceClientDto> serviceClients = servicesApiController.getServiceServiceClients(

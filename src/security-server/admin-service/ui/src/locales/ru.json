@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Добавить объекты",
     "addSubjectsSuccess": "Права доступа успешно добавлены",
     "id": "ID",
-    "subsystemName": "Название подсистемы / Описание группы",
     "removeAllText": "Вы уверены, что хотите удалить права доступа у всех клиентов?",
     "removeAllTitle": "Удалить все права доступа?",
     "removeSuccess": "Права доступа успешно удалены",
     "removeText": "Вы уверены, что хотите удалить права доступа у этого клиента?",
     "removeTitle": "Удалить права доступа?",
     "rightsGiven": "Предоставлены права доступа",
+    "subsystemName": "Название подсистемы / Описание группы",
     "title": "Права доступа"
   },
   "action": {
@@ -106,19 +106,21 @@
     "member": "Участник",
     "memberClass": "Класс участника",
     "memberCode": "Код участника",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Имя участника",
     "name": "Имя",
     "owner": "Владелец",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Статус",
     "statusText": {
-      "deletionInProgress": "УДАЛЕНИЕ В ПРОЦЕССЕ",
-      "disabled": "ОТКЛЮЧЕНО",
-      "disablingInProgress": "ОТКЛЮЧЕНИЕ В ПРОЦЕССЕ",
-      "enablingInProgress": "ВКЛЮЧЕНИЕ В ПРОЦЕССЕ",
-      "globalError": "ГЛОБАЛЬНАЯ ОШИБКА",
-      "registered": "ЗАРЕГИСТРИРОВАН",
-      "registrationInProgress": "РЕГИСТРАЦИЯ В ПРОЦЕССЕ",
-      "saved": "СОХРАНЕНО"
+      "deletionInProgress": "Удаление в процессе",
+      "disabled": "Отключено",
+      "disablingInProgress": "Отключение в процессе",
+      "enablingInProgress": "Включение в процессе",
+      "globalError": "Глобальная ошибка",
+      "registered": "Зарегистрирован",
+      "registrationInProgress": "Регистрация в процессе",
+      "saved": "Сохранено"
     },
     "subsystemCode": "Код подсистемы",
     "unknownMember": "неизвестный участник"
@@ -161,6 +163,17 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Отключено конфигурацией"
+    },
+    "connection": {
+      "centralServer": {
+        "authCertRequest": "Сервис регистрации сертификатов аутентификации",
+        "globalConf": "Загрузка глобальной конфигурации",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Центральный сервер"
+      },
+      "ok": "Все в порядке",
+      "test": "Тест"
     },
     "costType": "Тип стоимости",
     "encryption": {
@@ -237,22 +250,25 @@
       "title": "Метки времени"
     },
     "traffic": {
-      "period": "Период",
-      "periodInfo": "Выберите начало и конец",
-      "date": "Дата",
-      "time": "Время",
-      "party": "Сторона",
-      "partyInfo": "Служба, подсистема, участник",
       "client": "Клиент",
-      "service": "Служба",
+      "date": "Дата",
+      "disabledMessage": "Мониторинг операционных данных отключен для данного Сервера Безопасности. Чтобы включить его, установите дополнение для мониторинга операционных данных (xroad-addon-opmonitoring).",
+      "disabledTitle": "Мониторинг операционных данных отключен",
       "exchangeRole": "Роль обмена",
       "exchangeRoleInfo": "Поставщик или Потребитель",
+      "failedRequests": "Неудачные запросы",
+      "failure": "Неудача",
+      "party": "Сторона",
+      "partyInfo": "Служба, подсистема, участник",
+      "period": "Период",
+      "periodInfo": "Выберите начало и конец",
       "producer": "Поставщик",
+      "service": "Служба",
       "status": "Статус",
       "statusInfo": "Статус обмена сообщениями",
       "success": "Успех",
-      "failure": "Неудача",
       "successfulRequests": "Успешные запросы",
+      "time": "Время",
       "failedRequests": "Неудачные запросы",
       "disabledTitle": "Мониторинг операционных данных отключен",
       "disabledMessage": "Мониторинг операционных данных отключен для данного Сервера Безопасности. Чтобы включить его, установите дополнение для мониторинга операционных данных (xroad-addon-opmonitoring)."
@@ -382,6 +398,7 @@
     "global_conf_outdated": "Глобальная конфигурация устарела",
     "gpg_key_generation_failed": "Не удалось создать пару ключей GPG",
     "gpg_key_generation_interrupted": "Создание пары ключей GPG прервано",
+    "http_error": "Ошибка HTTP",
     "identifier_not_found": "Идентификатор не найден",
     "illegal_generated_endpoint_remove": "Удаление сгенерированной конечной точки не разрешено",
     "illegal_generated_endpoint_update": "Обновление сгенерированной конечной точки не разрешено",
@@ -416,7 +433,6 @@
     "member_code_not_provided": "Код участника не указан",
     "missing_parameter": "Отсутствует параметр",
     "network_error": "Ошибка сети",
-    "http_error": "Ошибка HTTP",
     "ocsp_connection_error": "Не удалось подключиться к OCSP-ответчику",
     "ocsp_failed": "Не удалось получить ответ от OCSP-ответчика",
     "ocsp_response_parsing_failure": "Не удалось разобрать ответ OCSP",
@@ -452,7 +468,6 @@
     "wrong_servicedescription_type": "Неверный тип описания сервиса",
     "wsdl_download_failed": "Не удалось загрузить WSDL",
     "wsdl_exists": "WSDL существует",
-    "wsdl_validator_interrupted": "Валидатор WSDL был прерван",
     "wsdl_validator_not_executable": "Валидатор WSDL не является исполняемым"
   },
   "fields": {
@@ -610,11 +625,11 @@
     "importCertSuccess": "Загрузка сертификата выполнена успешно",
     "incorrectPin": "Неверный PIN. Попробуйте еще раз.",
     "keyDeleted": "Ключ удален",
-    "keyId": "ID ключа:",
+    "keyId": "ID ключа",
     "keyInfo": "Информация о ключе",
     "keyLabelInput": "Метка ключа",
     "keySaved": "Ключ сохранен",
-    "label": "Метка:",
+    "label": "Метка",
     "logIn": "Войти",
     "logOut": "Выйти",
     "logOutText": "Выйти из токена?",
@@ -632,7 +647,7 @@
       "unknown": "Неизвестно"
     },
     "orderAcmeCertificate": "Заказать сертификат",
-    "readOnly": "Только для чтения:",
+    "readOnly": "Только для чтения",
     "registrationRequest": "Запрос на регистрацию",
     "request": "Запрос",
     "signDetailsTitle": "Детали SIGN ключа",
@@ -741,7 +756,6 @@
     "enableSuccess": "Описание сервиса включено",
     "idGroupCode": "ID / Код группы",
     "lastRefreshed": "Последнее обновление: ",
-    "subsystemNameGroupDesc": "Название подсистемы / Описание группы",
     "noMatches": "Нет совпадающих записей",
     "openApi3Added": "Сервис OpenApi3 добавлен",
     "openapiDetails": "Детали OpenAPI 3",
@@ -759,6 +773,7 @@
       "internal_server_ssl_error": "Проверка сертификатов внутреннего сервера не удалась. Корректен ли URL внешнего сервера и доступен ли он серверу безопасности?",
       "internal_server_ssl_handshake_error": "TLS рукопожатие с внешним сервером не удалось, сертификат сервера отсутствует в конфигурации:"
     },
+    "subsystemNameGroupDesc": "Название подсистемы / Описание группы",
     "timeout": "Тайм-аут",
     "timeoutSec": "Тайм-аут (s)",
     "timeoutTooltip": "Максимальная продолжительность запроса к службе в секундах",
@@ -779,35 +794,6 @@
     "wsdlAdded": "WSDL добавлен",
     "wsdlDescription": "Описание WSDL",
     "wsdlDetails": "Сведения о WSDL"
-  },
-  "ssTlsCertificate": {
-    "certificateImported": "Сертификат импортирован",
-    "exportCertificate": "Экспортировать сертификат",
-    "generateCsr": "Сгенерировать CSR",
-    "generateInternalCsr": {
-      "cancel": "ОТМЕНИТЬ",
-      "done": "ГОТОВО",
-      "step1": {
-        "description": "1) Сначала предоставьте отличительное имя",
-        "label": "Отличительное имя",
-        "placeholder": "Отличительное имя (DN) уникально идентифицирует сущность в сертификате X.509. Следующие атрибуты часто встречаются в DN: CN = Общее имя, O = Название организации, C = Код страны."
-      },
-      "step2": {
-        "description": "2) Создайте новый CSR и сохраните его в безопасном месте",
-        "generateCSR": "Сгенерировать CSR"
-      },
-      "title": "Сгенерировать запрос на подпись сертификата TLS"
-    },
-    "generateKey": "Сгенерировать ключ",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "Сгенерировать новый TLS-ключ и сертификат для сервера безопасности?",
-      "explanation": "Система сгенерирует новый TLS-ключ для сервера безопасности и самоподписанный сертификат, заменив существующий ключ и сертификат.",
-      "success": "Новый TLS-ключ и сертификат для сервера безопасности успешно сгенерированы",
-      "title": "TLS-ключ сервера безопасности"
-    },
-    "importCertificate": "Импортировать сертификат",
-    "keyCertTitle": "TLS-ключ и сертификат",
-    "keyText": "Внутренний TLS-ключ"
   },
   "stores": {
     "user": {
@@ -897,7 +883,7 @@
         "add": {
           "button": "Добавить",
           "dialog": {
-            "info": "Доверенные службы временных меток:",
+            "info": "Доверенные службы временных меток",
             "success": "Служба временных меток добавлена",
             "title": "Добавить службу временных меток"
           }
@@ -915,9 +901,9 @@
           }
         },
         "header": {
+          "costType": "Тип стоимости",
           "serviceURL": "URL службы",
-          "timestampingService": "Служба временных меток",
-          "costType": "Тип стоимости"
+          "timestampingService": "Служба временных меток"
         }
       },
       "title": "Службы временных меток"
@@ -933,9 +919,9 @@
       "services": "Службы"
     },
     "diagnostics": {
+      "connectionTesting": "Проверка соединения",
       "overview": "Обзор",
-      "traffic": "Трафик",
-      "connectionTesting": "Проверка соединения"
+      "traffic": "Трафик"
     },
     "keys": {
       "apiKey": "API-ключи",
@@ -955,6 +941,19 @@
     "settings": {
       "backupAndRestore": "Резервное копирование и восстановление",
       "systemParameters": "Системные параметры"
+    }
+  },
+  "tlsCertificates": {
+    "generateKey": {
+      "confirmation": "Сгенерировать новый TLS-ключ и сертификат для сервера безопасности?",
+      "explanation": "Система сгенерирует новый TLS-ключ для сервера безопасности и самоподписанный сертификат, заменив существующий ключ и сертификат.",
+      "success": "Новый TLS-ключ и сертификат для сервера безопасности успешно сгенерированы",
+      "title": "TLS-ключ сервера безопасности"
+    },
+    "key": "TLS-ключ и сертификат",
+    "title": "TLS-ключ сервера безопасности",
+    "uploadCertificate": {
+      "success": "Сертификат импортирован"
     }
   },
   "token": {

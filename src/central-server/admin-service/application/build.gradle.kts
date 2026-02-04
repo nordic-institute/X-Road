@@ -27,6 +27,7 @@ dependencies {
   implementation(project(":central-server:admin-service:globalconf-generator"))
   implementation(project(":central-server:openapi-model"))
   implementation(project(":common:common-db"))
+  implementation(project(":lib:properties-spring"))
   implementation(libs.logback.classic)
 
   testImplementation(project(":common:common-test"))

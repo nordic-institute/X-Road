@@ -1,4 +1,6 @@
 @CentralServer
+@GlobalConfiguration
+@InternalGlobalConfiguration
 @ConfigurationAnchor
 @LoadingTesting
 Feature: 0700 - CS: Global configuration: Internal configuration: Anchor
@@ -14,12 +16,14 @@ Feature: 0700 - CS: Global configuration: Internal configuration: Anchor
     When Configuration anchor is recreated
     Then Updated anchor information is displayed
 
+  @Download
   Scenario: User can download anchor
     When User clicks configuration anchor download button
     Then Configuration anchor is successfully downloaded
     And Downloaded anchor has 1 certificates for http source
     And Downloaded anchor has 1 certificates for https source
 
+  @Download
   Scenario: Anchor is updated if new signing key is added
     Given Details for Token: softToken-0 is expanded
     And Current configuration anchor information is marked
@@ -30,6 +34,7 @@ Feature: 0700 - CS: Global configuration: Internal configuration: Anchor
     And Downloaded anchor has 2 certificates for http source
     And Downloaded anchor has 2 certificates for https source
 
+  @Download
   Scenario: Anchor is updated if signing key is deleted
     Given Details for Token: softToken-0 is expanded
     And Current configuration anchor information is marked

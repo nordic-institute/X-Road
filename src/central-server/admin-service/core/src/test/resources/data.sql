@@ -30,7 +30,7 @@ VALUES (1000001, 'GOV',            'Government',                         now(), 
        (1000701, 'ORG',            'Organizations',                      '2022-03-07 07:33:22.654029', '2022-03-07 07:33:22.654029');
 ALTER SEQUENCE member_classes_id_seq RESTART WITH 1001000;
 
-INSERT INTO identifiers
+INSERT INTO identifier
        (id,      object_type, xroad_instance, member_class,     member_code, subsystem_code, created_at, updated_at)
 VALUES (1000001, 'MEMBER',    'TEST',         'GOV',            'M1',        null,           now(),      now()),
        (1000002, 'MEMBER',    'TEST',         'GOV',            'M2',        null,           now(),      now()),
@@ -44,7 +44,7 @@ VALUES (1000001, 'MEMBER',    'TEST',         'GOV',            'M1',        nul
        (1000010, 'SUBSYSTEM', 'TEST',         'GOV',            'M1',        'SS1',          now(),      now()),
        (1000011, 'SUBSYSTEM', 'TEST',         'MemberclassFoo', 'M10',       null,           now(),      now()),
        (1000012, 'MEMBER',    'Instance2',    'GOV',            'M11',       null,           now(),      now());
-INSERT INTO identifiers
+INSERT INTO identifier
        (id,      object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, service_version, created_at, updated_at)
 VALUES (1000701, 'MEMBER',    'TEST',         'ORG',        '111',       null,           null,         null,        null,              now(),        now()),
        (1000702, 'SUBSYSTEM', 'TEST',         'ORG',        '111',       'MANAGEMENT',   null,         null,        null,              now(),        now()),
@@ -53,7 +53,7 @@ VALUES (1000701, 'MEMBER',    'TEST',         'ORG',        '111',       null,  
        (1000705, 'MEMBER',    'TEST',         'GOV',        '333',       null,           null,         null,        null,              now(),        now()),
        (1000706, 'MEMBER',    'TEST',         'ORG',        '000',       null,           null,         null,        null,              now(),        now()),
        (1000707, 'MEMBER',    'TEST',         'GOV',        '321',       null,           null,         null,        null,              now(),        now());
-ALTER SEQUENCE identifiers_id_seq RESTART WITH 1001000;
+ALTER SEQUENCE identifier_id_seq RESTART WITH 1001000;
 
 INSERT INTO security_server_clients
        (id,      member_code, subsystem_code, name,             xroad_member_id, member_class_id,   server_client_id, type,            created_at, updated_at)

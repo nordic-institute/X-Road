@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.conf.AbstractXmlConf;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.AccessLevel;

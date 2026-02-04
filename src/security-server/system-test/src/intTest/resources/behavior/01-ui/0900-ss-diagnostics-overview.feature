@@ -1,5 +1,7 @@
 @SecurityServer
+@UI
 @Diagnostics
+@DiagnosticsOverview
 Feature: 0900 - SS:Diagnostics - Overview
 
   Background:
@@ -25,6 +27,7 @@ Feature: 0900 - SS:Diagnostics - Overview
     And Message log database encryption is enabled
     And Message log grouping is set to NONE
 
+  @Download
   Scenario: Administrator can download diagnostics report
     Given Diagnostics tab is selected
     When download diagnostic report button is clicked

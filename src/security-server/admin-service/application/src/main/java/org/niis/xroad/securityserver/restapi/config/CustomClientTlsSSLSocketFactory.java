@@ -27,7 +27,7 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
+import lombok.RequiredArgsConstructor;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -36,16 +36,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
+@RequiredArgsConstructor
 public class CustomClientTlsSSLSocketFactory extends SSLSocketFactory {
     private final SSLSocketFactory internalFactory;
     private final String[] enabledProtocols;
     private final String[] supportedCipherSuites;
-
-    public CustomClientTlsSSLSocketFactory(SSLSocketFactory internalFactory) {
-        this.internalFactory = internalFactory;
-        this.enabledProtocols = SystemProperties.getProxyClientTLSProtocols();
-        this.supportedCipherSuites = SystemProperties.getProxyClientTLSCipherSuites();
-    }
 
     private Socket restrict(Socket socket) {
         if (socket instanceof SSLSocket sslSocket) {

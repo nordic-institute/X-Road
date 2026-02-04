@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import org.eclipse.jetty.http.HttpFields;
@@ -33,6 +32,7 @@ import org.eclipse.jetty.server.ConnectionMetaData;
 import org.eclipse.jetty.server.Request;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -74,8 +74,9 @@ public class ClientProxyVersionVerifierTest {
     public void shouldRaiseError() {
         when(headers.get(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_6_26_3);
 
-        CodedException exception = assertThrows(CodedException.class, () -> new ClientProxyVersionVerifier(VERSION_7_1_3).check(request));
-        assertEquals("client_proxy_version_not_supported", exception.getFaultCode());
-        assertEquals("The minimum supported version for client security server is: 7.1.3 ", exception.getFaultString());
+        XrdRuntimeException exception = assertThrows(XrdRuntimeException.class,
+                () -> new ClientProxyVersionVerifier(VERSION_7_1_3).check(request));
+        assertEquals("client_proxy_version_not_supported", exception.getErrorCode());
+        assertEquals("The minimum supported version for client security server is: 7.1.3 ", exception.getDetails());
     }
 }

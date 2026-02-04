@@ -1,0 +1,31 @@
+services:
+  cs-admin-service:
+    build:
+      context: ./container-files/
+      args:
+        - CS_IMG=${CS_IMG}
+      dockerfile: Dockerfile
+    pull_policy: always
+    ports:
+      - "0:4000" # Frontend
+      - "0:5432" # DB
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4000" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 768M
+        limits:
+          memory: 2048M
+  mock-server:
+    image: mockserver/mockserver:mockserver-5.15.0
+    ports:
+      - "0:1080"
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 512M

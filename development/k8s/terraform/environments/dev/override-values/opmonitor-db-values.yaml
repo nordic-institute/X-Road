@@ -1,0 +1,16 @@
+fullnameOverride: db-opmonitor
+image:
+  repository: bitnamilegacy/postgresql
+  tag: "16.6.0"
+auth:
+  database: op-monitor
+  username: opmonitor
+  password: secret
+  enablePostgresUser: true
+  postgresPassword: admin_secret
+primary:
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 256Mi

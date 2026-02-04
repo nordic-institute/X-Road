@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 
 import java.util.Arrays;
@@ -40,11 +39,11 @@ import java.util.Optional;
 @Getter
 @RequiredArgsConstructor
 public enum NodeTypeMapping {
-    PRIMARY(SystemProperties.NodeType.MASTER, NodeTypeDto.PRIMARY),
-    SECONDARY(SystemProperties.NodeType.SLAVE, NodeTypeDto.SECONDARY),
-    STANDALONE(SystemProperties.NodeType.STANDALONE, NodeTypeDto.STANDALONE);
+    PRIMARY(NodeProperties.NodeType.PRIMARY, NodeTypeDto.PRIMARY),
+    SECONDARY(NodeProperties.NodeType.SECONDARY, NodeTypeDto.SECONDARY),
+    STANDALONE(NodeProperties.NodeType.STANDALONE, NodeTypeDto.STANDALONE);
 
-    private final SystemProperties.NodeType nodeTypeCore;
+    private final NodeProperties.NodeType nodeTypeCore;
     private final NodeTypeDto nodeTypeDto;
 
     /**
@@ -52,7 +51,7 @@ public enum NodeTypeMapping {
      * @param nodeTypeCore
      * @return
      */
-    public static Optional<NodeTypeDto> map(SystemProperties.NodeType nodeTypeCore) {
+    public static Optional<NodeTypeDto> map(NodeProperties.NodeType nodeTypeCore) {
         return getFor(nodeTypeCore).map(NodeTypeMapping::getNodeTypeDto);
     }
 
@@ -61,7 +60,7 @@ public enum NodeTypeMapping {
      * @param nodeTypeDto
      * @return
      */
-    public static Optional<SystemProperties.NodeType> map(NodeTypeDto nodeTypeDto) {
+    public static Optional<NodeProperties.NodeType> map(NodeTypeDto nodeTypeDto) {
         return getFor(nodeTypeDto).map(NodeTypeMapping::getNodeTypeCore);
     }
 
@@ -70,7 +69,7 @@ public enum NodeTypeMapping {
      * @param nodeTypeCore
      * @return
      */
-    public static Optional<NodeTypeMapping> getFor(SystemProperties.NodeType nodeTypeCore) {
+    public static Optional<NodeTypeMapping> getFor(NodeProperties.NodeType nodeTypeCore) {
         return Arrays.stream(values())
                 .filter(mapping -> mapping.nodeTypeCore.equals(nodeTypeCore))
                 .findFirst();

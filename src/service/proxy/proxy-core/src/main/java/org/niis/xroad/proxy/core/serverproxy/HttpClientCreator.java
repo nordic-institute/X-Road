@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -56,6 +55,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 
 /**
  * This class creates Apache {@link CloseableHttpClient}s with common security settings for use by both
@@ -71,29 +71,16 @@ public class HttpClientCreator {
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
 
     private final ServerConfProvider serverConfProvider;
+    private final String[] tlsProtocols;
+    private final String[] tlsCipherSuites;
 
     /**
      * A custom exception to use with the {@link HttpClientCreator} class, replacing throwing pure {@link Exception}s.
      */
     public static class HttpClientCreatorException extends Exception {
-        public HttpClientCreatorException() {
-        }
-
-        public HttpClientCreatorException(String message) {
-            super(message);
-        }
 
         public HttpClientCreatorException(String message, Throwable cause) {
             super(message, cause);
-        }
-
-        public HttpClientCreatorException(Throwable cause) {
-            super(cause);
-        }
-
-        public HttpClientCreatorException(String message, Throwable cause,
-                                          boolean enableSuppression, boolean writableStackTrace) {
-            super(message, cause, enableSuppression, writableStackTrace);
         }
     }
 
@@ -159,18 +146,19 @@ public class HttpClientCreator {
 
     private SSLConnectionSocketFactory createSSLSocketFactory()
             throws NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, KeyStoreException,
-            IOException, KeyManagementException {
+            IOException, KeyManagementException, InvalidKeySpecException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(createServiceKeyManager(), new TrustManager[]{new ServiceTrustManager()}, new SecureRandom());
 
         log.info("SSL context successfully created");
 
-        return new CustomSSLSocketFactory(ctx, SystemProperties.getProxyClientTLSProtocols(),
-                SystemProperties.getProxyClientTLSCipherSuites(), NoopHostnameVerifier.INSTANCE, serverConfProvider);
+        return new CustomSSLSocketFactory(ctx, tlsProtocols,
+                tlsCipherSuites, NoopHostnameVerifier.INSTANCE, serverConfProvider);
     }
 
     private KeyManager[] createServiceKeyManager()
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException, InvalidKeySpecException {
         InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -119,7 +118,7 @@ public class NotificationService {
         try {
             globalConfProvider.verifyValidity();
             return true;
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             return false;
         }
     }

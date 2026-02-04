@@ -1,0 +1,4 @@
+../../../../src/xroad/common/confclient/etc/* etc/
+../../../../src/xroad/common/confclient/usr/* usr/
+../../../../../../src/service/configuration-client/configuration-client-application/build/quarkus-app/* usr/share/xroad/jlib/configuration-client/
+

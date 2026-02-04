@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Login
 Feature: 0800 - SS: Authentication
 

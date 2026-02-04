@@ -2,6 +2,14 @@ plugins {
   id("xroad.java-conventions")
 }
 
+sourceSets {
+  named("main") {
+    resources {
+      srcDir("../../../service/signer/signer-jpa/src/main/resources/")
+    }
+  }
+}
+
 dependencies {
   implementation(project(":central-server:admin-service:core"))
   implementation(project(":common:common-domain"))

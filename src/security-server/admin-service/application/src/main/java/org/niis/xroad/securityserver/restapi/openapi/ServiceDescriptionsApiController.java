@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -62,7 +61,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REFRESH_SERVICE_DESCRIPTION;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.UNKNOWN_SERVICE_DESCRIPTION_TYPE;
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * service descriptions api
@@ -150,8 +148,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, WSDL_VALIDATOR_INTERRUPTED.build());
         }
 
         ServiceDescriptionDto serviceDescriptionDto = serviceDescriptionConverter.convert(updatedServiceDescription);
@@ -170,8 +166,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, WSDL_VALIDATOR_INTERRUPTED.build());
         }
         return new ResponseEntity<>(serviceDescriptionDto, HttpStatus.OK);
     }

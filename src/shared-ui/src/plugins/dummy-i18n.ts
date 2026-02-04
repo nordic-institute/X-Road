@@ -35,6 +35,5 @@ export default createI18n<[MessageSchema], 'en'>({
   locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
   fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
   silentFallbackWarn: true,
-  allowComposition: true,
   messages: { en },
 });

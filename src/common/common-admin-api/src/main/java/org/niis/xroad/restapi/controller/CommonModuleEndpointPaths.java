@@ -25,23 +25,25 @@
  */
 package org.niis.xroad.restapi.controller;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
  * Base path and paths for controllers that come from common-admin-api
  */
+@Getter
 @Component
 public class CommonModuleEndpointPaths {
 
     @Value("${common-module-endpoints.base-path}")
     private String basePath;
 
-    public String getBasePath() {
-        return basePath;
-    }
-
     public String getApiKeysPath() {
         return getBasePath() + "/api-keys";
+    }
+
+    public String getAdminUsersPath() {
+        return getBasePath() + "/users";
     }
 }

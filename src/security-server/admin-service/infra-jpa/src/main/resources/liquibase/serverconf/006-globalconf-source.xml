@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="006-globalconf-source">
+        <createTable tableName="globalconf_source">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="globalconf_source_pkey"/>
+            </column>
+            <column name="instance_identifier" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="internal_verification_certs" type="VARCHAR[]">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_verification_certs" type="VARCHAR[]">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS update_history ON globalconf_source;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON globalconf_source
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0560 - SS: Client SOAP (through WSDL) services
 

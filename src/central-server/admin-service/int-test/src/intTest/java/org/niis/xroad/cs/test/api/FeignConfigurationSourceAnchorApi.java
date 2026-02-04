@@ -29,6 +29,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.ConfigurationSourceAnchorsApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "configurationSourceAnchorApi", path = "/api/v1")
+@FeignClient
 public interface FeignConfigurationSourceAnchorApi extends ConfigurationSourceAnchorsApi {
 }

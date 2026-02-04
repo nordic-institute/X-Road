@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.message;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 /**
  * Fields that can be validated during unmarshalling of the SOAP header must
  * implement this interface.
@@ -33,7 +35,7 @@ public interface ValidatableField {
 
     /**
      * Subclasses must implement the validation logic.
-     * @throws ee.ria.xroad.common.CodedException if the validation does not pass
+     * @throws XrdRuntimeException if the validation does not pass
      */
     void validate();
 

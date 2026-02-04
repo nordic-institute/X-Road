@@ -44,6 +44,8 @@ import java.util.List;
  */
 public interface SignerProxyFacade {
 
+    boolean isEnforcedTokenPinPolicy();
+
     void initSoftwareToken(char[] password);
 
     List<TokenInfo> getTokens();

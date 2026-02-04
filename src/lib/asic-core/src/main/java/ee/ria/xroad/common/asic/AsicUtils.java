@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.asic;
 
-import ee.ria.xroad.common.CodedException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -99,8 +99,8 @@ public final class AsicUtils {
     }
 
     private static String getMessageFromCause(Throwable cause) {
-        if (cause instanceof CodedException ce) {
-            return ce.getFaultString();
+        if (cause instanceof XrdRuntimeException ce) {
+            return ce.getDetails();
         }
 
         return cause.getMessage();

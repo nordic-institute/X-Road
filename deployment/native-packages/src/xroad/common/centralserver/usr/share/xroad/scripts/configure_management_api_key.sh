@@ -1,0 +1,66 @@
+#!/bin/bash
+
+source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+
+encode_token() {
+  echo -n "$1" | sha256sum -b | cut -d' ' -f1
+}
+
+api_token_configured() {
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
+  local token= $(/usr/share/xroad/scripts/yaml_helper.sh get "$CONFIG_FILE" "xroad.${1}.api-token")
+  if [[ -z "$token" ]]; then
+    echo "api-token property not configured for $1"
+    return 1
+  else
+    prepare_db_props
+
+    # Reading custom libpq ENV variables
+    if [ -f /etc/xroad/db_libpq.env ]; then
+      source /etc/xroad/db_libpq.env
+    fi
+
+    local apikeys=$(
+      PGOPTIONS="${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -qtA -c \
+      "SELECT encodedkey FROM apikey a INNER JOIN apikey_roles r ON a.id = r.apikey_id WHERE r.role = 'XROAD_MANAGEMENT_SERVICE';"
+    )
+    local encoded_token=$(encode_token $token)
+    while read line ; do
+      if [[ "$encoded_token" == "$line" ]]; then
+        return 0
+      fi
+    done <<< $apikeys
+    echo "Configured api-token for $1 not found in database"
+    return 1
+  fi
+}
+
+if [[ "$1" != "management-service" && "$1" != "registration-service" ]]; then
+    echo "Must supply either \"management-service\" or \"registration-service\" as input argument"
+    exit 1
+fi
+
+echo "Checking whether a valid API KEY with Management Service role is configured for $1..."
+if api_token_configured $1; then
+  echo "A valid API KEY with Management Service role already configured"
+else
+  echo "Generating & configuring a new API KEY with Management Service role for $1..."
+  token=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
+  encoded_token=$(encode_token $token)
+  prepare_db_props
+
+  # Reading custom libpq ENV variables
+  if [ -f /etc/xroad/db_libpq.env ]; then
+    source /etc/xroad/db_libpq.env
+  fi
+
+  PGOPTIONS="${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -qtA -c \
+  "INSERT INTO apikey(id, encodedkey) VALUES ((SELECT NEXTVAL('hibernate_sequence')), '$encoded_token');
+  INSERT INTO apikey_roles(apikey_id,role) VALUES ((SELECT id FROM apikey WHERE encodedkey = '$encoded_token'), 'XROAD_MANAGEMENT_SERVICE');"
+  if [ $? -ne 0 ] ; then
+        echo "Failed to finish configuring new API KEY"
+        exit 1
+  fi
+  /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.${1}.api-token" "$token"
+  echo "New API KEY successfully configured"
+fi

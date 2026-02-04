@@ -27,10 +27,10 @@
 package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.utils.VuetifyHelper;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper;
 
 import static com.codeborne.selenide.Selenide.$x;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
 
 public class ConnectionTestingPageObj {
     public final Filter filter = new Filter();

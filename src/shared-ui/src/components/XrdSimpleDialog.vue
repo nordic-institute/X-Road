@@ -28,47 +28,65 @@
   <v-dialog
     v-model="showDialog"
     :width="width"
+    :height="height"
     :persistent="canEscape"
     :scrollable="scrollable"
-    class="xrd-dialog-simple"
     @update:model-value="modelValueUpdated"
   >
     <v-form @submit.prevent="submit">
-      <v-card class="xrd-card" data-test="dialog-simple">
+      <v-card class="bg-surface-container-lowest xrd-rounded-12" data-test="dialog-simple">
         <template #title>
           <slot name="title">
-            <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
+            <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
           </slot>
         </template>
         <template #append>
-          <v-icon v-if="showClose" icon="mdi-close" data-test="dlg-close-x" color="primary" size="default" @click="cancel" />
+          <v-icon
+            v-if="!hideClose"
+            data-test="dlg-close-x"
+            class="close-x xrd"
+            icon="close"
+            color="primary"
+            size="default"
+            :disabled="cancelDisabled"
+            @click="cancel"
+          />
         </template>
-        <v-progress-linear v-if="showProgressBar" height="10" :indeterminate="true" />
-        <div class="alert-slot">
-          <slot name="alert" />
+        <div class="alert-slot pl-6 pr-6">
+          <XrdErrorNotifications :manager="errorManager" />
         </div>
-        <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{ 'no-content': !hasContent }">
-          <slot name="text" />
+        <v-card-text v-if="$slots.text" class="mt-0 mb-6 pb-0 xrd-dialog-text" :class="{ 'no-content': !$slots.content }">
+          <span class="body-regular">
+            <slot name="text" :dialog-handler="handler" />
+          </span>
         </v-card-text>
-        <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
-          <slot name="content" />
-        </v-card-item>
-        <v-card-actions class="xrd-card-actions">
+        <v-card-text v-if="$slots.content" :style="contentStyle" class="mt-0 mb-6 pb-0 xrd-dialog-content">
+          <slot name="content" :dialog-handler="handler" />
+        </v-card-text>
+        <v-card-actions class="pa-4 bg-surface-container-low border-t">
+          <XrdBtn
+            v-if="!hideCancel"
+            data-test="dialog-cancel-button"
+            class="font-weight-medium"
+            variant="text"
+            :disabled="cancelDisabled"
+            :text="cancelButtonText"
+            @click="cancel"
+          />
           <v-spacer />
-          <xrd-button data-test="dialog-cancel-button" class="mr-3" variant="outlined" :disabled="cancelDisabled" @click="cancel">
-            {{ $t(cancelButtonText) }}
-          </xrd-button>
-          <xrd-button
+          <slot name="prepend-save-button" :dialog-handler="handler" />
+          <XrdBtn
             v-if="!hideSaveButton"
             ref="saveButton"
             data-test="dialog-save-button"
+            class="font-weight-medium"
             :disabled="disableSave"
             :loading="loading"
             :submit="submittable"
+            :prepend-icon="saveButtonIcon"
+            :text="saveButtonText"
             @click="save"
-          >
-            {{ $t(saveButtonText) }}
-          </xrd-button>
+          />
         </v-card-actions>
       </v-card>
     </v-form>
@@ -78,14 +96,23 @@
 <script lang="ts" setup>
 /** Base component for simple dialogs */
 
-import XrdButton from './XrdButton.vue';
-import { computed, onBeforeMount, onMounted, ref, useSlots } from 'vue';
+import { computed, onBeforeMount, onMounted, ref, useTemplateRef } from 'vue';
+
+import { useLocalErrorManager } from '../composables';
+import { DialogSaveHandler } from '../types';
+
+import XrdBtn from './XrdBtn.vue';
+import XrdErrorNotifications from './XrdErrorNotifications.vue';
 
 const props = defineProps({
   // Title of the dialog
   title: {
     type: String,
-    required: true,
+    default: '',
+  },
+  translatedTitle: {
+    type: String,
+    default: '',
   },
   // Is the content scrollable
   scrollable: {
@@ -116,21 +143,28 @@ const props = defineProps({
     type: String,
     default: 'action.add',
   },
+  saveButtonIcon: {
+    type: String,
+    default: 'check_circle',
+  },
   width: {
     type: [Number, String],
-    default: 620,
+    default: 840,
   },
-  showClose: {
-    type: Boolean,
-    default: true,
+  height: {
+    type: [Number, String],
+    default: undefined,
   },
-  // Set save button loading spinner
-  loading: {
+  hideClose: {
     type: Boolean,
     default: false,
   },
-  // Show indeterminate progress bar at the top
-  showProgressBar: {
+  hideCancel: {
+    type: Boolean,
+    default: false,
+  },
+  // Set save button loading spinner
+  loading: {
     type: Boolean,
     default: false,
   },
@@ -150,32 +184,45 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  maxContentHeight: {
+    type: Number,
+    default: -1,
+  },
 });
 
-const emits = defineEmits(['cancel', 'save']);
+const emit = defineEmits<{
+  cancel: [];
+  save: [evt: Event, handler: DialogSaveHandler];
+}>();
 
-const slots = useSlots();
+const errorManager = useLocalErrorManager();
+const handler = ref<DialogSaveHandler>({ addError: errorManager.addError });
 
-const hasText = computed(() => !!slots['text']);
-const hasContent = computed(() => !!slots['content']);
 const cancelDisabled = computed(() => (props.allowLoadingCancellation ? false : props.loading));
 const canEscape = computed(() => (props.escapable ? cancelDisabled.value : false));
+const contentStyle = computed(() => {
+  const style: Record<string, string> = {};
+  if (props.maxContentHeight > 0) {
+    style['max-height'] = `${props.maxContentHeight}px`;
+  }
+  return style;
+});
 
-function submit() {
+function submit(evt: Event) {
   if (props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
-    emits('save');
+    emit('save', evt, handler.value);
   }
 }
 
-function save() {
+function save(evt: Event) {
   if (!props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
-    emits('save');
+    emit('save', evt, handler.value);
   }
 }
 
 function cancel() {
   if (!cancelDisabled.value) {
-    emits('cancel');
+    emit('cancel');
     showDialog.value = true;
   }
 }
@@ -188,7 +235,7 @@ function modelValueUpdated(displayed: boolean) {
   }
 }
 
-const saveButton = ref<{ focus: () => void }>();
+const saveButton = useTemplateRef<{ focus: () => void }>('saveButton');
 
 function blur() {
   const activeElement = document.activeElement as HTMLElement | undefined;
@@ -204,6 +251,7 @@ defineExpose({
       saveButton.value.focus();
     }
   },
+  addError: errorManager.addError,
 });
 
 onMounted(() => {
@@ -215,49 +263,4 @@ onMounted(() => {
 onBeforeMount(() => blur());
 </script>
 
-<style lang="scss" scoped>
-@use '../assets/colors';
-
-.xrd-dialog-simple {
-  .xrd-card {
-    .xrd-card-actions {
-      background-color: colors.$WarmGrey10;
-      height: 72px;
-      padding-right: 24px;
-    }
-
-    .dialog-title {
-      font-size: 20px;
-      font-weight: 500;
-      letter-spacing: normal;
-    }
-
-    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-    .v-card-text.xrd-card-text {
-      font-size: 14px;
-      letter-spacing: normal;
-      color: rgba(0, 0, 0, 0.6);
-      padding: 16px 24px 8px;
-
-      &.no-content {
-        padding-bottom: 16px;
-      }
-    }
-
-    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-    .v-card-item.xrd-card-content {
-      padding: 0 24px 0;
-
-      :deep(.v-card-item__content) {
-        padding-top: 16px;
-        padding-bottom: 16px;
-      }
-    }
-  }
-}
-
-.alert-slot {
-  margin-left: 20px;
-  margin-right: 20px;
-}
-</style>
+<style lang="scss" scoped></style>

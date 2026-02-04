@@ -1,4 +1,5 @@
 @CentralServer
+@Settings
 @ManagementServices
 Feature: 0970 - CS: Settings -> System Settings -> Management Services
 

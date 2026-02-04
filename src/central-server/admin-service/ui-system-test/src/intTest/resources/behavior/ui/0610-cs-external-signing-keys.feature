@@ -1,4 +1,5 @@
 @CentralServer
+@ExternalGlobalConfiguration
 @SigningKeys
 @LoadingTesting
 Feature: 0610 - CS: Global configuration: External configuration: Signing keys

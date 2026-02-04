@@ -27,13 +27,13 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.AssertionOperation;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.CostTypeDto;
+import org.niis.xroad.cs.openapi.model.OcspResponderCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignOcspRespondersApi;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.AssertionOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
@@ -71,12 +71,11 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
     }
 
-
     @Step("OCSP responder url and certificate is updated")
     public void ocspResponderUrlAndCertificateIsUpdated() throws Exception {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
-        final ResponseEntity<CertificateDetailsDto> certificateResponse = ocspRespondersApi
+        final ResponseEntity<OcspResponderCertificateDetailsDto> certificateResponse = ocspRespondersApi
                 .getOcspRespondersCertificate(ocspResponderId);
 
         getKeyOldOcspResponderCertHash = certificateResponse.getBody().getHash();
@@ -101,7 +100,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
     public void theOCSPResponderCertificateWasUpdated() {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
-        final ResponseEntity<CertificateDetailsDto> certificateResponse = ocspRespondersApi
+        final ResponseEntity<OcspResponderCertificateDetailsDto> certificateResponse = ocspRespondersApi
                 .getOcspRespondersCertificate(ocspResponderId);
 
         validate(certificateResponse)

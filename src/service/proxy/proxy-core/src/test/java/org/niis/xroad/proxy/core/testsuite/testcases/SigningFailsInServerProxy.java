@@ -26,16 +26,16 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.signature.SignatureData;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_SIGNATURE;
 
 /**
  * Creating the signature fails in ServerProxy.
@@ -57,7 +57,7 @@ public class SigningFailsInServerProxy extends MessageTestCase {
             return new SigningCtx() {
                 @Override
                 public SignatureData buildSignature(SignatureBuilder builder) {
-                    throw new CodedException(X_CANNOT_CREATE_SIGNATURE);
+                    throw XrdRuntimeException.systemException(CANNOT_CREATE_SIGNATURE).build();
                 }
             };
         } else {
@@ -67,6 +67,6 @@ public class SigningFailsInServerProxy extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_CANNOT_CREATE_SIGNATURE);
+        assertErrorCode(SERVER_SERVERPROXY_X, CANNOT_CREATE_SIGNATURE.code());
     }
 }

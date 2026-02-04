@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,92 +25,92 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="wizard-step-form-content">
-      <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
-        <div class="wizard-label">
-          {{ $t(`certificateProfile.${item.label_key}`) }}
-        </div>
-
-        <div>
-          <v-text-field
-            v-bind="componentRef(item.id)"
-            class="wizard-form-input"
-            :name="item.id"
-            type="text"
-            variant="outlined"
-            :disabled="item.read_only"
-            :data-test="`dynamic-csr-input_${item.id}`"
-            :autofocus="autofocusField === item.id"
-          ></v-text-field>
-        </div>
+  <XrdWizardStep>
+    <XrdFormBlock>
+      <XrdFormBlockRow v-for="item in csrForm" :key="item.id" :description="`certificateProfile.${item.label_key}`" adjust-against-content>
+        <v-text-field
+          v-model="componentModel(item.id).value"
+          v-bind="componentAttr(item.id).value"
+          class="xrd"
+          :name="item.id"
+          type="text"
+          :disabled="item.read_only"
+          :label="$t(`certificateProfile.${item.label_key}`)"
+          :data-test="`dynamic-csr-input_${item.id}`"
+          :autofocus="autofocusField === item.id"
+        />
+      </XrdFormBlockRow>
+    </XrdFormBlock>
+    <div class="generate-row d-flex flex-row align-center justify-space-between mt-6">
+      <div class="body-regular font-weight-medium">
+        {{ $t('csr.saveInfo') }}
       </div>
-      <div class="generate-row">
-        <div>{{ $t('csr.saveInfo') }}</div>
-        <xrd-button
-          :disabled="generateCsrDisabled"
-          data-test="generate-csr-button"
-          :loading="generateCsrLoading"
-          @click="generateCsr(false)"
-          >{{ $t('csr.generateCsr') }}
-        </xrd-button>
-      </div>
-      <div v-if="acmeCapable" class="generate-row">
-        <div>
+      <XrdBtn
+        :disabled="generateCsrDisabled"
+        data-test="generate-csr-button"
+        prepend-icon="question_exchange"
+        :loading="generateCsrLoading"
+        text="csr.generateCsr"
+        @click="generateCsr(false)"
+      />
+    </div>
+    <template v-if="acmeCapable">
+      <div v-if="acmeCapable" class="generate-row d-flex flex-row align-center justify-space-between mt-6">
+        <div class="body-regular font-weight-medium">
           {{ $t('csr.orderAcmeCertificate') }}
-          <v-alert
-            v-if="externalAccountBindingRequiredButMissing"
-            border="start"
-            type="error"
-            variant="outlined"
-            density="compact"
-          >
-            {{ externalAccountBindingRequiredButMissingHint }}
-          </v-alert>
         </div>
-        <xrd-button
+        <XrdBtn
           :disabled="orderCertificateDisabled"
           data-test="acme-order-certificate-button"
           :loading="orderCertificateLoading"
+          text="keys.orderAcmeCertificate"
           @click="generateCsr(true)"
-          >{{ $t('keys.orderAcmeCertificate') }}
-        </xrd-button>
+        />
       </div>
-    </div>
-    <div class="button-footer">
-      <xrd-button
-        outlined
-        :disabled="!disableDone"
-        data-test="cancel-button"
-        @click="cancel"
-        >{{ $t('action.cancel') }}
-      </xrd-button>
-
-      <xrd-button
-        outlined
-        class="previous-button"
+      <v-alert
+        v-if="externalAccountBindingRequiredButMissing"
+        class="mt-4"
+        border="start"
+        type="error"
+        variant="outlined"
+        density="compact"
+      >
+        {{ externalAccountBindingRequiredButMissingHint }}
+      </v-alert>
+    </template>
+    <template #footer>
+      <XrdBtn data-test="cancel-button" variant="text" text="action.cancel" :disabled="!disableDone" @click="cancel" />
+      <v-spacer />
+      <XrdBtn
         data-test="previous-button"
+        variant="outlined"
+        text="action.previous"
+        prepend-icon="arrow_back"
+        class="mr-2"
         :disabled="!disableDone"
         @click="previous"
-        >{{ $t('action.previous') }}
-      </xrd-button>
-      <xrd-button :disabled="disableDone" data-test="save-button" @click="done"
-        >{{ $t(saveButtonText) }}
-      </xrd-button>
-    </div>
-  </div>
+      />
+      <XrdBtn data-test="save-button" :text="saveButtonText" prepend-icon="check" :disabled="disableDone" @click="done" />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent, Ref } from 'vue';
 import { mapActions, mapState, mapWritableState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { AxiosError } from 'axios';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import { CsrSubjectFieldDescription } from '@/openapi-types';
+import { XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, useNotifications, veeDefaultFieldConfig } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: {
+    XrdWizardStep,
+    XrdBtn,
+    XrdFormBlock,
+    XrdFormBlockRow,
+  },
   props: {
     saveButtonText: {
       type: String,
@@ -123,32 +124,33 @@ export default defineComponent({
   },
   emits: ['cancel', 'previous', 'done'],
   setup() {
+    const { addSuccessMessage, addError } = useNotifications();
     const { csrForm }: { csrForm: CsrSubjectFieldDescription[] } = useCsr();
-    const validationSchema: Record<string, string> = csrForm.reduce(
-      (acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }),
-      {},
-    );
-    const initialValues: Record<string, string> = csrForm.reduce(
-      (acc, cur) => ({ ...acc, [cur.id]: cur.default_value }),
-      {},
-    );
-    const { meta, values, defineComponentBinds } = useForm({
+    const validationSchema: Record<string, string> = csrForm.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }), {});
+    const initialValues: Record<string, string> = csrForm.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.default_value }), {});
+    const { meta, values, defineField } = useForm({
       validationSchema,
       initialValues,
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
+
+    const formModels = {} as Record<string, Ref>;
+    const formAttrs = {} as Record<string, Ref>;
+
+    csrForm.forEach((formField) => {
+      const [field, fieldAttr] = defineField(formField.id, veeDefaultFieldConfig());
+      formModels[formField.id] = field;
+      formAttrs[formField.id] = fieldAttr;
     });
-    const componentBinds: Record<string, Ref> = csrForm.reduce(
-      (acc, cur) => ({
-        ...acc,
-        [cur.id]: defineComponentBinds(cur.id, componentConfig),
-      }),
-      {},
-    );
-    return { meta, values, ...componentBinds, csrForm };
+
+    return {
+      meta,
+      values,
+      formModels,
+      formAttrs,
+      csrForm,
+      addSuccessMessage,
+      addError,
+    };
   },
   data() {
     return {
@@ -157,36 +159,19 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useCsr, [
-      'csrTokenId',
-      'acmeCapable',
-      'eabRequired',
-      'acmeEabCredentialsStatus',
-    ]),
+    ...mapState(useCsr, ['csrTokenId', 'acmeCapable', 'eabRequired', 'acmeEabCredentialsStatus']),
     ...mapWritableState(useCsr, ['acmeOrder']),
     externalAccountBindingRequiredButMissing(): boolean {
-      return (
-        !!this.eabRequired &&
-        !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials
-      );
+      return !!this.eabRequired && !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials;
     },
     externalAccountBindingRequiredButMissingHint(): string | undefined {
-      return this.externalAccountBindingRequiredButMissing
-        ? this.$t('csr.eabCredRequired')
-        : undefined;
+      return this.externalAccountBindingRequiredButMissing ? this.$t('csr.eabCredRequired') : undefined;
     },
     orderCertificateDisabled(): boolean {
-      return (
-        !this.meta.valid ||
-        !this.disableDone ||
-        this.externalAccountBindingRequiredButMissing ||
-        this.generateCsrLoading
-      );
+      return !this.meta.valid || !this.disableDone || this.externalAccountBindingRequiredButMissing || this.generateCsrLoading;
     },
     generateCsrDisabled(): boolean {
-      return (
-        !this.meta.valid || !this.disableDone || this.orderCertificateLoading
-      );
+      return !this.meta.valid || !this.disableDone || this.orderCertificateLoading;
     },
     orderCertificateLoading(): boolean {
       return this.genCsrLoading && this.acmeOrder;
@@ -205,14 +190,12 @@ export default defineComponent({
     this.acmeOrder = false;
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsr, [
-      'setCsrForm',
-      'requestGenerateCsr',
-      'generateKeyAndCsr',
-    ]),
-    componentRef(id: string): Ref {
-      return (this as never)[id];
+    ...mapActions(useCsr, ['setCsrForm', 'requestGenerateCsr', 'generateKeyAndCsr']),
+    componentModel(id: string): Ref<string> {
+      return this.formModels[id];
+    },
+    componentAttr(id: string): Ref {
+      return this.formAttrs[id];
     },
     cancel(): void {
       this.$emit('cancel');
@@ -244,14 +227,14 @@ export default defineComponent({
         await this.generateKeyAndCsr(this.csrTokenId)
           .then(() => {
             if (this.acmeOrder) {
-              this.showSuccess(this.$t('keys.acmeCertOrdered'));
+              this.addSuccessMessage('keys.acmeCertOrdered');
             }
             this.disableDone = false;
           })
           .catch((error) => {
             this.disableDone = true;
             // Error comes from axios, so it most probably is AxiosError
-            this.showError(error as AxiosError);
+            this.addError(error as AxiosError);
           })
           .finally(() => {
             this.genCsrLoading = false;
@@ -261,14 +244,14 @@ export default defineComponent({
         await this.requestGenerateCsr()
           .then(() => {
             if (this.acmeOrder) {
-              this.showSuccess(this.$t('keys.acmeCertOrdered'));
+              this.addSuccessMessage(this.$t('keys.acmeCertOrdered'));
             }
             this.disableDone = false;
           })
           .catch((error) => {
             this.disableDone = true;
             // Error comes from axios, so it most probably is AxiosError
-            this.showError(error as AxiosError);
+            this.addError(error as AxiosError);
           })
           .finally(() => {
             this.genCsrLoading = false;
@@ -279,15 +262,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-
-.generate-row {
-  margin-top: 40px;
-  width: 840px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-}
-</style>
+<style lang="scss" scoped></style>

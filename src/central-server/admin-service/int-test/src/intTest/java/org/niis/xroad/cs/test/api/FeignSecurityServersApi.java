@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "securityServerApi", path = "/api/v1")
+@FeignClient
 public interface FeignSecurityServersApi extends SecurityServersApi {
 
     // Overriding to add @SpringQueryMap for GET query params, otherwise Feign tries to put it to body,

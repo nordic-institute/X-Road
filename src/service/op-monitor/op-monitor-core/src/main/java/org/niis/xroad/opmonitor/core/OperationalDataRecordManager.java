@@ -25,18 +25,21 @@
  */
 package org.niis.xroad.opmonitor.core;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
-import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
 import java.util.Collections;
@@ -44,7 +47,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
 import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONITORING_DATA_TS;
 
 /**
@@ -52,38 +54,45 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONI
  * operational_data table, mapped by the OperationalDataRecord class.
  */
 @Slf4j
-final class OperationalDataRecordManager {
+@Singleton
+public final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
-
-    @Setter
-    private static int maxRecordsInPayload = OpMonitoringSystemProperties.getOpMonitorMaxRecordsInPayload();
-
     private static int configuredBatchSize = 0;
 
-    private OperationalDataRecordManager() {
+    private final DatabaseCtx databaseCtx;
+    private final int maxRecordsInPayload;
+
+    @Inject
+    public OperationalDataRecordManager(OpMonitorDatabaseCtx databaseCtx, OpMonitorProperties opMonitorProperties) {
+        this(databaseCtx, opMonitorProperties.getMaxRecordsInPayload());
     }
 
-    static void storeRecords(List<OperationalDataRecord> records, long timestamp) {
-        doInTransaction(session -> storeInTransaction(session, records, timestamp));
+    public OperationalDataRecordManager(DatabaseCtx databaseCtx, int maxRecordsInPayload) {
+        this.databaseCtx = databaseCtx;
+        this.maxRecordsInPayload = maxRecordsInPayload;
     }
 
-    static OperationalDataRecords queryAllRecords() {
-        return doInTransaction(OperationalDataRecordManager::queryAllOperationalDataInTransaction);
+    void storeRecords(List<OperationalDataRecord> records, long timestamp) {
+        databaseCtx.doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) {
+    OperationalDataRecords queryAllRecords() {
+        return databaseCtx.doInTransaction(this::queryAllOperationalDataInTransaction);
+    }
+
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) {
         return queryRecords(recordsFrom, recordsTo, null, null, new HashSet<>());
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter) {
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter) {
         return queryRecords(recordsFrom, recordsTo, clientFilter, null, new HashSet<>());
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
-                                               ClientId serviceProviderFilter,
-                                               Set<String> outputFields) {
-        OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
+                                        ClientId serviceProviderFilter,
+                                        Set<String> outputFields) {
+        OperationalDataRecords records = databaseCtx.doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
         removeMonitoringDataTsIfNotSpecified(records, outputFields);
@@ -91,13 +100,13 @@ final class OperationalDataRecordManager {
         return records;
     }
 
-    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(long startTime,
-                                                                                     long endTime,
-                                                                                     int intervalInMinutes,
+    List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(Long startTime,
+                                                                                     Long endTime,
+                                                                                     Integer intervalInMinutes,
                                                                                      OpMonitoringData.SecurityServerType securityServerType,
                                                                                      ClientId memberId,
                                                                                      ServiceId serviceId) {
-        return doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
+        return databaseCtx.doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
                 startTime,
                 endTime,
                 intervalInMinutes,
@@ -106,11 +115,11 @@ final class OperationalDataRecordManager {
                 serviceId));
     }
 
-    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
+    private static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
             Session session,
-            long startTime,
-            long endTime,
-            int intervalInMinutes,
+            Long startTime,
+            Long endTime,
+            Integer intervalInMinutes,
             OpMonitoringData.SecurityServerType securityServerType,
             ClientId memberId,
             ServiceId serviceId) {
@@ -118,14 +127,14 @@ final class OperationalDataRecordManager {
         return query.list(startTime, endTime, intervalInMinutes, securityServerType, memberId, serviceId);
     }
 
-    private static Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {
+    private Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {
         var sessionFlusher = new SessionFlusher(session, getConfiguredBatchSize(session));
 
         records.stream()
                 .map(OperationalDataRecordMapper.get()::toEntity)
-                .forEach(record -> {
-                    record.setMonitoringDataTs(timestamp);
-                    session.persist(record);
+                .forEach(recordEntity -> {
+                    recordEntity.setMonitoringDataTs(timestamp);
+                    session.persist(recordEntity);
 
                     sessionFlusher.flushIfReady();
                 });
@@ -133,7 +142,7 @@ final class OperationalDataRecordManager {
         return null;
     }
 
-    private static int getConfiguredBatchSize(Session session) {
+    private int getConfiguredBatchSize(Session session) {
         if (configuredBatchSize == 0) {
             configuredBatchSize = HibernateUtil.getConfiguredBatchSize(session, DEFAULT_BATCH_SIZE);
         }
@@ -141,7 +150,7 @@ final class OperationalDataRecordManager {
         return configuredBatchSize;
     }
 
-    private static OperationalDataRecords queryAllOperationalDataInTransaction(Session session) {
+    private OperationalDataRecords queryAllOperationalDataInTransaction(Session session) {
         final Query<OperationalDataRecordEntity> query =
                 session.createQuery("SELECT r FROM OperationalDataRecordEntity r", OperationalDataRecordEntity.class)
                         .setReadOnly(true);
@@ -152,6 +161,7 @@ final class OperationalDataRecordManager {
      * Queries operational data records from the database using search criteria parameters. The number of returned
      * records is limited by the configured value maxRecordsInPayload plus overflow records with the same
      * monitorindDataTs timestamp as the last included record.
+     *
      * @param session               database session
      * @param recordsFrom           records from timestamp seconds
      * @param recordsTo             records to timestamp seconds
@@ -160,10 +170,10 @@ final class OperationalDataRecordManager {
      * @param outputFields          list of the requested operational data field
      * @return operational data records.
      */
-    private static OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
-                                                                            long recordsTo, ClientId clientFilter,
-                                                                            ClientId serviceProviderFilter,
-                                                                            Set<String> outputFields) {
+    private OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
+                                                                     long recordsTo, ClientId clientFilter,
+                                                                     ClientId serviceProviderFilter,
+                                                                     Set<String> outputFields) {
 
         final OperationalDataRecordQuery
                 query = new OperationalDataRecordQuery(session, clientFilter, serviceProviderFilter, outputFields);
@@ -195,21 +205,21 @@ final class OperationalDataRecordManager {
         return records;
     }
 
-    private static void removeMonitoringDataTsIfNotSpecified(OperationalDataRecords records, Set<String> outputFields) {
+    private void removeMonitoringDataTsIfNotSpecified(OperationalDataRecords records, Set<String> outputFields) {
         if (!outputFields.isEmpty() && !outputFields.contains(MONITORING_DATA_TS)) {
             records.getRecords().forEach(i -> i.setMonitoringDataTs(null));
         }
     }
 
-    private static boolean recordsOverflow(Session session, long lastMonitoringDataTs, long recordsTo,
-                                           ClientId clientFilter, ClientId serviceProviderFilter) {
+    private boolean recordsOverflow(Session session, long lastMonitoringDataTs, long recordsTo,
+                                    ClientId clientFilter, ClientId serviceProviderFilter) {
         // Indicate overflow only if some records are not included.
         return lastMonitoringDataTs < recordsTo && hasRecordsLeft(session, lastMonitoringDataTs, recordsTo,
                 clientFilter, serviceProviderFilter);
     }
 
-    private static boolean hasRecordsLeft(Session session, long lastMonitoringDataTs, long recordsTo,
-                                          ClientId clientFilter, ClientId serviceProviderFilter) {
+    private boolean hasRecordsLeft(Session session, long lastMonitoringDataTs, long recordsTo,
+                                   ClientId clientFilter, ClientId serviceProviderFilter) {
         if (lastMonitoringDataTs == recordsTo) {
             return false;
         }

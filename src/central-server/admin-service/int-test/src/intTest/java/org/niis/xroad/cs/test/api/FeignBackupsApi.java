@@ -30,6 +30,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.BackupsApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "backupsApi", path = "/api/v1")
+@FeignClient
 public interface FeignBackupsApi extends BackupsApi {
 }

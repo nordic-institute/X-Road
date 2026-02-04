@@ -103,7 +103,6 @@ class SigningKeyActionsResolverTest {
                 .setActive(active)
                 .setSerialNumber("TOKEN_SERIAL_NUMBER")
                 .setLabel("label")
-                .setSlotIndex(13)
                 .setStatus(OK)
                 .build());
     }

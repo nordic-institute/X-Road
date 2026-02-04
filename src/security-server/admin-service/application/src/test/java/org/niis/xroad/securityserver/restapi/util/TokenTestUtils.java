@@ -93,7 +93,6 @@ public final class TokenTestUtils {
                     .setActive(active)
                     .setSerialNumber("serial-number")
                     .setLabel("label")
-                    .setSlotIndex(123)
                     .addAllKeyInfo(keyInfos);
             ofNullable(status).ifPresent(builder::setStatus);
             ofNullable(tokenInfos).ifPresent(builder::putAllTokenInfo);

@@ -1,0 +1,185 @@
+name: Build Package Builder Images
+
+on:
+  # Build on changes to package builder Dockerfiles or preparation script
+  push:
+    branches:
+      - develop-8.x
+      - XRDDEV-3003
+    paths:
+      - 'deployment/native-packages/docker/**/Dockerfile'
+      - 'deployment/native-packages/docker/prepare-builder-image.sh'
+      - 'src/gradle.properties'
+      - '.github/workflows/build-package-builder-images.yaml'
+  # Allow manual trigger
+  workflow_dispatch:
+  # Nightly build
+  schedule:
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-amd64:
+    name: Build AMD64 images
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Read version from gradle.properties
+        id: version
+        working-directory: ./src
+        run: |
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          IMAGE_TAG="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Using tag: ${IMAGE_TAG}"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push AMD64 builder images
+        working-directory: ./deployment/native-packages/docker
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
+          IMAGE_TAG: ${{ steps.version.outputs.tag }}-amd64
+          BUILD_PLATFORMS: linux/amd64
+        run: |
+          export IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
+          ./prepare-builder-image.sh all
+
+  build-arm64:
+    name: Build ARM64 images
+    runs-on: ubuntu-24.04-arm
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Read version from gradle.properties
+        id: version
+        working-directory: ./src
+        run: |
+          XROAD_VERSION=$(grep "^xroadVersion=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          XROAD_BUILD_TYPE=$(grep "^xroadBuildType=" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          IMAGE_TAG="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Using tag: ${IMAGE_TAG}"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ARM64 builder images
+        working-directory: ./deployment/native-packages/docker
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
+          IMAGE_TAG: ${{ steps.version.outputs.tag }}-arm64
+          BUILD_PLATFORMS: linux/arm64
+        run: |
+          export IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
+          ./prepare-builder-image.sh all
+
+  create-manifests:
+    name: Create multi-arch manifests
+    runs-on: ubuntu-24.04
+    needs: [build-amd64, build-arm64]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifests
+        env:
+          TAG: ${{ needs.build-amd64.outputs.tag }}
+        run: |
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          REGISTRY="${{ env.REGISTRY }}/${REPO_LOWERCASE}"
+          
+          IMAGES=(deb-jammy deb-noble rpm-el8 rpm-el9)
+          
+          for image in "${IMAGES[@]}"; do
+            echo "Creating manifest for package-builder-${image}:${TAG}"
+            
+            docker buildx imagetools create \
+              --tag "${REGISTRY}/package-builder-${image}:${TAG}" \
+              --tag "${REGISTRY}/package-builder-${image}:latest" \
+              "${REGISTRY}/package-builder-${image}:${TAG}-amd64" \
+              "${REGISTRY}/package-builder-${image}:${TAG}-arm64"
+            
+            echo "✅ Created manifest for ${image}"
+          done
+
+  summary:
+    name: Build summary
+    runs-on: ubuntu-24.04
+    needs: [build-amd64, build-arm64, create-manifests]
+    if: always()
+    
+    steps:
+      - name: Add build summary
+        env:
+          TAG: ${{ needs.build-amd64.outputs.tag }}
+        run: |
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          
+          AMD64_STATUS="${{ needs.build-amd64.result }}"
+          ARM64_STATUS="${{ needs.build-arm64.result }}"
+          MANIFEST_STATUS="${{ needs.create-manifests.result }}"
+          
+          if [[ "$AMD64_STATUS" == "success" ]]; then AMD64_ICON="✅"; else AMD64_ICON="❌"; fi
+          if [[ "$ARM64_STATUS" == "success" ]]; then ARM64_ICON="✅"; else ARM64_ICON="❌"; fi
+          if [[ "$MANIFEST_STATUS" == "success" ]]; then MANIFEST_ICON="✅"; else MANIFEST_ICON="❌"; fi
+          
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Package Builder Images Build
+          
+          **Trigger:** ${{ github.event_name }}
+          **Branch/Tag:** ${{ github.ref_name }}
+          **Version Tag:** \`${TAG}\`
+          **Registry:** \`${{ env.REGISTRY }}/${REPO_LOWERCASE}\`
+          
+          ## Build Status
+          - ${AMD64_ICON} **AMD64** (ubuntu-24.04): $AMD64_STATUS
+          - ${ARM64_ICON} **ARM64** (ubuntu-24.04-arm): $ARM64_STATUS
+          - ${MANIFEST_ICON} **Multi-arch manifests**: $MANIFEST_STATUS
+          
+          ## Built Images
+          Each image is available for both amd64 and arm64:
+          - \`package-builder-deb-jammy:${TAG}\`
+          - \`package-builder-deb-noble:${TAG}\`
+          - \`package-builder-rpm-el8:${TAG}\`
+          - \`package-builder-rpm-el9:${TAG}\`
+          
+          ### Architecture-Specific Tags (for debugging)
+          - \`package-builder-deb-jammy:${TAG}-amd64\`
+          - \`package-builder-deb-jammy:${TAG}-arm64\`
+          - (same pattern for all images)
+          EOF

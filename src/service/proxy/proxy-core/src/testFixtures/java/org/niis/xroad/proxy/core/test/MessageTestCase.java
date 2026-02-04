@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -70,6 +69,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
@@ -105,8 +105,8 @@ public class MessageTestCase {
 
     protected String responseServiceContentType;
 
-    protected String url = "http://localhost:"
-            + SystemProperties.getClientProxyHttpPort();
+    protected ProxyTestSuiteHelper proxyTestSuiteHelper;
+    protected Supplier<String> url = () -> "http://localhost:" + proxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpPort();
     protected final Map<String, String> requestHeaders = new HashMap<>();
 
     protected TestGlobalConfWrapper globalConfProvider;
@@ -147,7 +147,7 @@ public class MessageTestCase {
      * @return the service address of the address with the given ID
      */
     public String getServiceAddress(ServiceId service) {
-        return "http://127.0.0.1:" + ProxyTestSuiteHelper.SERVICE_PORT
+        return "http://127.0.0.1:" + proxyTestSuiteHelper.servicePort
                 + ((service != null) ? "/" + service.getServiceCode() : "");
     }
 
@@ -207,7 +207,7 @@ public class MessageTestCase {
     }
 
     protected URI getClientUri() throws URISyntaxException {
-        return new URI(url);
+        return new URI(url.get());
     }
 
     /**
@@ -216,8 +216,10 @@ public class MessageTestCase {
      * @throws Exception in case of any unexpected errors
      */
     public boolean execute(TestContext testContext) throws Exception {
-        ProxyTestSuiteHelper.currentTestCase = this;
         init(testContext);
+        proxyTestSuiteHelper.currentTestCase = this;
+
+        postInitExecHook();
         startUp();
         generateQueryId();
 
@@ -300,15 +302,20 @@ public class MessageTestCase {
         return true;
     }
 
-    protected void init(TestContext testContext) throws Exception {
+    protected void postInitExecHook() {
+        // NOP
+    }
+
+    protected void init(TestContext testContext) {
         globalConfProvider = testContext.globalConfProvider;
         serverConfProvider = testContext.serverConfProvider;
+        proxyTestSuiteHelper = testContext.proxyTestSuiteHelper;
     }
 
     protected void startUp() throws Exception {
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf());
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper));
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf());
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper));
     }
 
     protected void closeDown() throws Exception {

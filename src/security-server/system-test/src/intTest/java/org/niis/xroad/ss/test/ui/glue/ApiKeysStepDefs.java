@@ -36,7 +36,7 @@ import org.niis.xroad.ss.test.ui.page.ApiKeysPageObj;
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vCheckbox;
 
 public class ApiKeysStepDefs extends BaseUiStepDefs {
 
@@ -69,22 +69,12 @@ public class ApiKeysStepDefs extends BaseUiStepDefs {
         apiKeysPage.wizard.btnNext().click();
     }
 
-    @Step("Create API key wizard Previous button is clicked")
-    public void clickWizardBack() {
-        apiKeysPage.wizard.btnPrevious().click();
-    }
-
-    @Step("Create API key wizard Create Key button is clicked")
-    public void clickWizardCreateKey() {
-        apiKeysPage.wizard.btnCreateKey().click();
-    }
-
     @Step("API key is created and visible")
     public void apiKeyIsPresent() {
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         createdApiKeyId = apiKeysPage.wizard.createdApiKeyId()
                 .shouldBe(Condition.visible)
-                .text();
+                .val();
     }
 
     @Step("Create API key wizard Finish button is clicked")

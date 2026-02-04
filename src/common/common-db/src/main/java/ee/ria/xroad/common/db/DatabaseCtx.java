@@ -25,34 +25,36 @@
  */
 package ee.ria.xroad.common.db;
 
-import ee.ria.xroad.common.CodedException;
-
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
 import org.hibernate.JDBCException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import static ee.ria.xroad.common.db.HibernateUtil.getSessionFactory;
+import java.util.Map;
 
 /**
  * Database context manages database connections for a specific session
  * factory.
  */
 @Slf4j
-@RequiredArgsConstructor
-@AllArgsConstructor
 public class DatabaseCtx {
+    private final String name;
+    private final SessionFactory sessionFactory;
 
-    private final String sessionFactoryName;
+    public DatabaseCtx(String name, Map<String, String> hibernateProperties) {
+        this(name, hibernateProperties, null);
+    }
 
-    private Interceptor interceptor = null;
+    public DatabaseCtx(String name, Map<String, String> hibernateProperties, Interceptor interceptor) {
+        this.name = name;
+        this.sessionFactory = HibernateUtil.createSessionFactory(name, hibernateProperties, interceptor);
+    }
 
     /**
      * Gets called within a transactional context. Begins a transaction,
@@ -109,8 +111,7 @@ public class DatabaseCtx {
      * @return the current session
      */
     public Session getSession() {
-        return getSessionFactory(sessionFactoryName, interceptor)
-                .getCurrentSession();
+        return sessionFactory.getCurrentSession();
     }
 
     /**
@@ -119,7 +120,7 @@ public class DatabaseCtx {
      * @return the current session
      */
     public Session beginTransaction() {
-        log.trace("beginTransaction({})", sessionFactoryName);
+        log.trace("beginTransaction({})", name);
 
         Session session = getSession();
         if (session.getTransaction().getStatus() == TransactionStatus.NOT_ACTIVE) {
@@ -133,7 +134,7 @@ public class DatabaseCtx {
      * Commits the transaction.
      */
     public void commitTransaction() {
-        log.trace("commitTransaction({})", sessionFactoryName);
+        log.trace("commitTransaction({})", name);
 
         Transaction tx = getSession().getTransaction();
         if (tx.getStatus() == TransactionStatus.ACTIVE) {
@@ -145,7 +146,7 @@ public class DatabaseCtx {
      * Rollbacks the transaction.
      */
     public void rollbackTransaction() {
-        log.trace("rollbackTransaction({})", sessionFactoryName);
+        log.trace("rollbackTransaction({})", name);
 
         Transaction tx = getSession().getTransaction();
         if (tx.getStatus().canRollback()) {
@@ -153,18 +154,32 @@ public class DatabaseCtx {
         }
     }
 
-    private CodedException customizeException(Exception e) {
+    private XrdRuntimeException customizeException(Exception e) {
         if (e instanceof JDBCException) {
             return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
                     .details("Error accessing database")
-                    .metadataItems(sessionFactoryName)
+                    .metadataItems(name)
                     .build();
-        } else if (e instanceof CodedException codedException) {
-            return codedException;
+        } else if (e instanceof XrdRuntimeException xrdRuntimeException) {
+            return xrdRuntimeException;
         }
 
         return XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR)
                 .cause(e)
                 .build();
+    }
+
+    public void destroy() {
+        try {
+            sessionFactory.getCurrentSession().close();
+        } catch (HibernateException e) {
+            log.error("Error closing session", e);
+        }
+
+        try {
+            sessionFactory.close();
+        } catch (HibernateException e) {
+            log.error("Error closing session factory", e);
+        }
     }
 }

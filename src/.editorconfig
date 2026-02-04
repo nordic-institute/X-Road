@@ -19,3 +19,6 @@ ij_java_blank_lines_before_imports = 1
 
 [*.{xml,xsd,gradle}]
 indent_size = 4
+
+[*.{js,jsx,ts,tsx,vue}]
+max_line_length = 140

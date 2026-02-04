@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.management.application;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 
 import org.springframework.boot.SpringApplication;
@@ -42,7 +41,6 @@ public class ManagementServiceMain {
         Version.outputVersionInfo(APP_NAME);
 
         var app = new SpringApplication(ManagementServiceMain.class);
-        app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
         app.run(args);
     }
 }

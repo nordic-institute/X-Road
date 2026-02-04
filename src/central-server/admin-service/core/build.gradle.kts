@@ -13,6 +13,7 @@ dependencies {
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 
+  api(project(":common:common-db-identifiers"))
   api(project(":central-server:admin-service:core-api"))
   api(project(":common:common-api-throttling"))
 
@@ -26,6 +27,7 @@ dependencies {
 
   implementation(libs.apache.commonsCompress)
   implementation(libs.mapstruct)
+  implementation(project(":lib:rpc-spring"))
 
   testImplementation(project(":common:common-test"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")

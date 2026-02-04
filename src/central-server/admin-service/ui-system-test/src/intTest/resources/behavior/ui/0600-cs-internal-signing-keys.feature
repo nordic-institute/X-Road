@@ -1,4 +1,5 @@
 @CentralServer
+@InternalGlobalConfiguration
 @SigningKeys
 @LoadingTesting
 Feature: 0600 - CS: Global configuration: Internal configuration: Signing keys

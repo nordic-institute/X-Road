@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.healthcheck;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -51,12 +49,14 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
     private final HealthChecks healthChecks;
     private final ExecutorService executorService;
     private final List<HealthCheckProvider> healthCheckProviders;
+    private final boolean isHsmHealthCheckEnabled;
 
     /**
      * Create a new provider.
      */
-    public StoppableCombinationHealthCheckProvider(HealthChecks healthChecks) {
+    public StoppableCombinationHealthCheckProvider(HealthChecks healthChecks, boolean isHsmHealthCheckEnabled) {
         this.healthChecks = healthChecks;
+        this.isHsmHealthCheckEnabled = isHsmHealthCheckEnabled;
         this.executorService = Executors.newSingleThreadExecutor();
         this.healthCheckProviders = createProviderList();
 
@@ -80,7 +80,7 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
 
         List<HealthCheckProvider> providers = new ArrayList<>();
 
-        if (SystemProperties.isHSMHealthCheckEnabled()) {
+        if (isHsmHealthCheckEnabled) {
             providers.add(healthChecks.checkHSMOperationStatus()
                     .map(withTimeout(timeout, TimeUnit.SECONDS, "Hardware Security Modules status"))
                     .map(healthChecks.cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));

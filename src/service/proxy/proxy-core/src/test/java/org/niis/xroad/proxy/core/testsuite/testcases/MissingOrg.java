@@ -26,14 +26,13 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.CodedException;
-
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 /**
  * A query with an organization that does not exist.
@@ -51,11 +50,11 @@ public class MissingOrg extends MessageTestCase {
 
     @Override
     public SigningCtx getSigningCtx(String sender) {
-        throw new CodedException(X_UNKNOWN_MEMBER);
+        throw XrdRuntimeException.systemException(UNKNOWN_MEMBER).build();
     }
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_UNKNOWN_MEMBER);
+        assertErrorCode(SERVER_CLIENTPROXY_X, UNKNOWN_MEMBER.code());
     }
 }

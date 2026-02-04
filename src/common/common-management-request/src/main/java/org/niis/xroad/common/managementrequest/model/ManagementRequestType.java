@@ -26,11 +26,10 @@
  */
 package org.niis.xroad.common.managementrequest.model;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.Getter;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 public enum ManagementRequestType {
     AUTH_CERT_REGISTRATION_REQUEST("authCertReg"),
@@ -58,6 +57,6 @@ public enum ManagementRequestType {
                 return requestType;
             }
         }
-        throw new CodedException(X_INVALID_REQUEST, "Unknown service code '%.20s'", serviceCode);
+        throw XrdRuntimeException.systemException(INVALID_REQUEST, "Unknown service code '%.20s'", serviceCode);
     }
 }

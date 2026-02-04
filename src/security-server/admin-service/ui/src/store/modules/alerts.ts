@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,8 +26,8 @@
  */
 
 import { defineStore } from 'pinia';
-import { useNotifications } from './notifications';
 import * as api from '@/util/api';
+import { useNotifications } from '@niis/shared-ui';
 
 export interface AlertStatus {
   currentTime?: string;
@@ -83,8 +84,8 @@ export const useAlerts = defineStore('alerts', {
   },
 
   actions: {
-    checkAlertStatus(): void {
-      api
+    async checkAlertStatus() {
+      return api
         .get<AlertsResponse>('/notifications/alerts')
         .then((resp) => {
           this.alertStatus = {
@@ -92,19 +93,16 @@ export const useAlerts = defineStore('alerts', {
             softTokenPinEntered: resp.data.soft_token_pin_entered,
             backupRestoreRunningSince: resp.data.backup_restore_running_since,
             currentTime: resp.data.current_time,
-            certificateRenewalJobSuccess:
-              resp.data.certificate_renewal_job_success,
-            authCertificateIdsWithErrors:
-              resp.data.auth_certificate_ids_with_errors,
-            signCertificateIdsWithErrors:
-              resp.data.sign_certificate_ids_with_errors,
+            certificateRenewalJobSuccess: resp.data.certificate_renewal_job_success,
+            authCertificateIdsWithErrors: resp.data.auth_certificate_ids_with_errors,
+            signCertificateIdsWithErrors: resp.data.sign_certificate_ids_with_errors,
           };
 
           this.queried = true;
         })
         .catch((error) => {
-          const notifications = useNotifications();
-          notifications.showError(error);
+          const { addError } = useNotifications();
+          addError(error);
         });
     },
     clearAlerts(): void {

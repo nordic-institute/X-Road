@@ -47,7 +47,7 @@ public class IntermediateCasPageObj {
     }
 
     public SelenideElement tableRowOf(String name) {
-        var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
+        var xpath = "./tbody/tr/td/div/span[contains(., '%s')]";
         return table().find(xpath(String.format(xpath, name)));
     }
 
@@ -57,12 +57,12 @@ public class IntermediateCasPageObj {
     }
 
     public SelenideElement btnViewIntermediateCa(String url) {
-        var xpath = "./../..//td/div/button[@data-test='view-intermediate-ca-certificate']";
+        var xpath = "../../..//td//button[@data-test='view-intermediate-ca-certificate']";
         return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeleteIntermediateCa(String url) {
-        var xpath = "./../..//td/div/button[@data-test='delete-intermediate-ca']";
+        var xpath = "../../..//td//button[@data-test='delete-intermediate-ca']";
         return tableRowOf(url).find(xpath(xpath));
     }
 

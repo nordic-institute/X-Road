@@ -25,45 +25,33 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <!-- Success -->
-    <v-snackbar
-      v-for="notification in successNotifications"
-      :key="notification.timeAdded"
-      v-model="notification.show"
-      :transition="transitionName"
-      :timeout="snackbarTimeout(notification.timeout)"
-      :color="Colors.Success10"
-      :min-width="760"
-      :close-on-back="false"
-      data-test="success-snackbar"
-      class="success-snackbar"
-      multi-line
-      @update:model-value="emit('close', notification)"
-    >
-      <div class="row-wrapper-top scrollable identifier-wrap">
-        <xrd-icon-base :color="Colors.Success100">
-          <xrd-icon-checker />
-        </xrd-icon-base>
-
-        <div v-if="notification.successMessage" class="row-wrapper">
-          {{ notification.successMessage }}
-        </div>
-      </div>
-      <template #actions>
-        <v-btn icon variant="text" rounded :color="Colors.Black100" data-test="close-snackbar" @click="emit('close', notification)">
-          <xrd-icon-base>
-            <xrd-icon-close />
-          </xrd-icon-base>
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </div>
+  <!-- Success -->
+  <v-snackbar
+    v-for="notification in successes"
+    :key="notification.id"
+    :model-value="true"
+    data-test="success-snackbar"
+    class="xrd-snackbar success-snackbar"
+    variant="flat"
+    color="inverse-surface"
+    multi-line
+    :transition="transitionName"
+    :timeout="snackbarTimeout(notification.timeout)"
+    :close-on-back="false"
+    @update:model-value="remove(notification.id)"
+  >
+    {{ notification.message }}
+    <template #actions>
+      <XrdBtn data-test="close-snackbar" variant="text" text="action.close" color="inverse-primary" @click="remove(notification.id)" />
+    </template>
+  </v-snackbar>
 </template>
 
 <script lang="ts" setup>
-import { computed, PropType } from 'vue';
-import { Colors } from '../utils';
+import { computed } from 'vue';
+
+import { useNotifications } from '../composables';
+import XrdBtn from './XrdBtn.vue';
 
 declare global {
   interface Window {
@@ -71,56 +59,12 @@ declare global {
   }
 }
 
-type Notification = {
-  timeAdded: number;
-  show: boolean;
-  timeout: number;
-  successMessage?: string;
-};
+const { successes, remove } = useNotifications();
 
-defineProps({
-  successNotifications: {
-    type: Array as PropType<Notification[]>,
-    required: true,
-  },
-});
-
-const emit = defineEmits<{ (e: 'close', value: Notification): void }>();
-
-const transitionName = computed(() => (window.e2eTestingMode === true ? 'no-transition' : 'fade-transition'));
+const transitionName = computed(() => (window.e2eTestingMode === true ? 'no-transition' : 'v-fade-transition'));
 
 // Check global window value to see if e2e testing mode should be enabled
 function snackbarTimeout(timeout: number) {
   return window.e2eTestingMode === true ? -1 : timeout;
 }
 </script>
-
-<style lang="scss" scoped>
-.row-wrapper-top {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding-left: 14px;
-
-  .row-wrapper {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    overflow-wrap: break-word;
-    justify-content: flex-start;
-    margin-right: 30px;
-    margin-left: 26px;
-    color: #211e1e;
-    font-style: normal;
-    font-weight: bold;
-    font-size: 18px;
-    line-height: 24px;
-  }
-}
-
-.scrollable {
-  overflow-y: auto;
-  max-height: 300px;
-}
-</style>

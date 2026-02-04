@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.cs.admin.api.globalconf;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.FilePaths;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 
@@ -41,6 +40,8 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF;
 
 /**
  * Encapsulates optional parts configuration of central server.
@@ -85,20 +88,17 @@ public class OptionalPartsConf {
     private final Set<String> existingPartFileNames = new HashSet<>();
 
     public static OptionalPartsConf getOptionalPartsConf() {
-        return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
+        return new OptionalPartsConf(FilePaths.CONFIGURATION_PARTS_PATH);
     }
 
     /**
      * Creates optional parts configuration.
-     *
      * @param confDir - directory, where optional part files are in.
      */
-    public OptionalPartsConf(String confDir) {
-        File optionalPartsDir = new File(confDir);
+    public OptionalPartsConf(Path confDir) {
+        final String optionalPartsPath = confDir.toAbsolutePath().toString();
 
-        final String optionalPartsPath = optionalPartsDir.getAbsolutePath();
-
-        if (!optionalPartsDir.isDirectory()) {
+        if (!Files.isDirectory(confDir)) {
             log.warn("Optional configuration parts directory '{}' "
                             + "either does not exist or is regular file",
                     optionalPartsPath);
@@ -108,7 +108,7 @@ public class OptionalPartsConf {
         log.debug("Getting optional conf parts from directory '{}'", confDir);
 
         File[] optionalPartFiles =
-                optionalPartsDir.listFiles(getIniFileFilter());
+                confDir.toFile().listFiles(getIniFileFilter());
 
         if (optionalPartFiles == null) {
             log.warn("Optional part files list in directory '{}' "
@@ -152,7 +152,7 @@ public class OptionalPartsConf {
                 .filter(part -> part.contentIdentifier().equals(contentIdentifier))
                 .findFirst()
                 .map(OptionalConfPart::fileName)
-                .orElseThrow(() -> new CodedException(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+                .orElseThrow(() -> XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                         "Part file name not found for content identifier " + contentIdentifier));
 
         log.debug("Part filename for content identifier '{}': '{}'", contentIdentifier, partFileName);
@@ -196,15 +196,13 @@ public class OptionalPartsConf {
 
     private void validatePartFileName(String partFileName) {
         if (RESERVED_FILE_NAMES.contains(partFileName)) {
-            throw new CodedException(
-                    ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+            throw XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                     "Optional parts configuration contains reserved filename'"
                             + partFileName + "'.");
         }
 
         if (!existingPartFileNames.add(partFileName)) {
-            throw new CodedException(
-                    ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+            throw XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                     "Part file name'" + partFileName + "' occurs more than "
                             + "once in optional parts configuration. "
                             + "Part file names must be unique.");
@@ -213,8 +211,7 @@ public class OptionalPartsConf {
 
     private void validateContentIdentifier(String contentId) {
         if (RESERVED_CONTENT_IDENTIFIERS.contains(contentId)) {
-            throw new CodedException(
-                    ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+            throw XrdRuntimeException.systemException(MALFORMED_OPTIONAL_PARTS_CONF,
                     "Optional parts configuration contains reserved content "
                             + "identifier'" + contentId + "'.");
         }

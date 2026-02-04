@@ -38,9 +38,9 @@ import {
   PagingSortingParameters,
 } from '@/openapi-types';
 import { DataQuery } from '@/ui-types';
+import { WithCurrentItem } from '@niis/shared-ui';
 
-export interface State {
-  currentManagementRequest: ManagementRequestDetailedView | null;
+export interface State extends WithCurrentItem<ManagementRequestDetailedView> {
   items: ManagementRequestListView[];
   pagingOptions: PagingMetadata;
   currentFilter: ManagementRequestsFilter;
@@ -48,7 +48,7 @@ export interface State {
 
 export const useManagementRequests = defineStore('managementRequests', {
   state: (): State => ({
-    currentManagementRequest: null,
+    current: undefined,
     items: [],
     pagingOptions: {
       total_items: 0,
@@ -74,27 +74,26 @@ export const useManagementRequests = defineStore('managementRequests', {
 
       const axiosParams: AxiosRequestConfig = { params };
 
-      return axios
-        .get<PagedManagementRequests>('/management-requests/', axiosParams)
-        .then((resp) => {
-          this.items = resp.data.items || [];
-          this.pagingOptions = resp.data.paging_metadata;
-        });
+      return axios.get<PagedManagementRequests>('/management-requests/', axiosParams).then((resp) => {
+        this.items = resp.data.items || [];
+        this.pagingOptions = resp.data.paging_metadata;
+      });
     },
     async loadById(requestId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
       return axios
         .get<ManagementRequestDetailedView>(`/management-requests/${requestId}`)
         .then((resp) => {
-          this.currentManagementRequest = resp.data;
+          this.current = resp.data;
         })
         .catch((error) => {
           throw error;
-        });
+        })
+        .finally(() => (this.loadingCurrent = false));
     },
     approve(id: number) {
-      return axios.post<ManagementRequest>(
-        `/management-requests/${id}/approval`,
-      );
+      return axios.post<ManagementRequest>(`/management-requests/${id}/approval`);
     },
     decline(id: number) {
       return axios.delete(`/management-requests/${id}`);

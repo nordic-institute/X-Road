@@ -25,20 +25,23 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -52,10 +55,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * This class is responsible for verifying the server proxy SSL certificate.
@@ -72,13 +75,15 @@ import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.ge
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";
 
+    private final CertHashBasedOcspResponderClient certHashBasedOcspResponderClient;
+    private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final CertHelper certHelper;
-    private final CertChainFactory certChainFactory;
 
     protected void verify(HttpContext context, SSLSession sslSession,
                           URI selectedAddress) {
@@ -86,13 +91,13 @@ public class AuthTrustVerifier {
 
         ServiceId service = (ServiceId) context.getAttribute(ID_PROVIDERNAME);
         if (service == null) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                     "Could not get provider name from context");
         }
 
         X509Certificate[] certs = getPeerCertificates(sslSession);
         if (certs.length == 0) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                     "Could not get peer certificates from context");
         }
 
@@ -109,10 +114,12 @@ public class AuthTrustVerifier {
         List<OCSPResp> ocspResponses;
         try {
             List<X509Certificate> additionalCerts = Arrays.asList(ArrayUtils.subarray(certs, 1, certs.length));
-            chain = certChainFactory.create(serviceProvider.getXRoadInstance(), certs[0], additionalCerts);
+            chain = CertChainFactory.create(serviceProvider.getXRoadInstance(),
+                    globalConfProvider.getCaCert(serviceProvider.getXRoadInstance(), certs[0]),
+                    certs[0], additionalCerts);
             ocspResponses = getOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot(), address.getHost());
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }
 
@@ -137,7 +144,7 @@ public class AuthTrustVerifier {
                 log.trace("get ocsp response from key conf");
                 response = keyConfProvider.getOcspResponse(cert);
                 log.trace("ocsp response from key conf: {}", response);
-            } catch (CodedException e) {
+            } catch (XrdRuntimeException e) {
                 // Log it and continue; only thrown if the response could
                 // not be loaded from a file -- not important to us here.
                 log.warn("Cached OCSP response could not be found", e);
@@ -172,17 +179,16 @@ public class AuthTrustVerifier {
         List<OCSPResp> receivedResponses;
         try {
             log.trace("get ocsp responses from server {}", address);
-            receivedResponses = getOcspResponsesFromServer(address, certs);
+            receivedResponses = certHashBasedOcspResponderClient.getOcspResponsesFromServer(address, certs);
         } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
 
         // Did we get OCSP response for each cert?
         if (receivedResponses.size() != certs.size()) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not get all OCSP responses from server "
-                            + "(expected %s, but got %s)",
-                    certs.size(), receivedResponses.size());
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR,
+                    "Could not get all OCSP responses from server (expected %s, but got %s)".formatted(
+                            certs.size(), receivedResponses.size()));
         }
 
         // Cache the responses locally
@@ -194,14 +200,14 @@ public class AuthTrustVerifier {
 
     private static X509Certificate[] getPeerCertificates(SSLSession session) {
         if (session == null) {
-            throw new CodedException(X_SSL_AUTH_FAILED, "No TLS session");
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, "No TLS session");
         }
 
         try {
             // Note: assuming X509-based auth
             return (X509Certificate[]) session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
-            throw new CodedException(X_SSL_AUTH_FAILED, e, "Service provider did not provide TLS certificate");
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED, e, "Service provider did not provide TLS certificate");
         }
     }
 

@@ -30,9 +30,6 @@ package org.niis.xroad.monitor.core.executablelister;
  */
 
 public class ExecListingFailedException extends RuntimeException {
-    ExecListingFailedException() {
-        super();
-    }
 
     ExecListingFailedException(String msg) {
         super(msg);
@@ -42,8 +39,5 @@ public class ExecListingFailedException extends RuntimeException {
         super(cause);
     }
 
-    ExecListingFailedException(String msg, Throwable cause) {
-        super(msg, cause);
-    }
 }
 

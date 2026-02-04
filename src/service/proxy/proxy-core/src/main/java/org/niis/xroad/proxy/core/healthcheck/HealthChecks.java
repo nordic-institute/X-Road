@@ -25,18 +25,20 @@
  */
 package org.niis.xroad.proxy.core.healthcheck;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ProxyMemory;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.proxy.core.admin.ProxyMemoryStatusService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -44,7 +46,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
+import static org.niis.xroad.common.core.exception.ErrorCode.HW_MODULE_NON_OPERATIONAL;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.OK;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.failure;
 
@@ -54,11 +56,13 @@ import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.failure;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class HealthChecks {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final SignerRpcClient signerRpcClient;
+    private final ProxyMemoryStatusService proxyMemoryStatusService;
 
     /**
      * A {@link HealthCheckProvider} that checks the authentication key and its OCSP response status
@@ -159,7 +163,7 @@ public class HealthChecks {
 
     public HealthCheckProvider checkProxyMemoryUsage() {
         return () -> {
-            ProxyMemory proxyMemory = ProxyMemory.get();
+            ProxyMemory proxyMemory = proxyMemoryStatusService.getMemoryStatus();
             log.debug("Max memory: {}", proxyMemory.maxMemory());
             log.debug("Total allocated memory: {}", proxyMemory.totalMemory());
             log.debug("Free memory: {}", proxyMemory.freeMemory());
@@ -246,7 +250,7 @@ public class HealthChecks {
 
     private void verifyAllHSMOperational() {
         if (!signerRpcClient.isHSMOperational()) {
-            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
+            throw XrdRuntimeException.systemException(HW_MODULE_NON_OPERATIONAL,
                     "At least one HSM are non operational");
         }
     }

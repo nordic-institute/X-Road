@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,66 +25,56 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="wizard-step-form-content pt-6">
-      <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
-        <div class="wizard-label">
-          {{ $t(`certificateProfile.${item.label_key}`) }}
-        </div>
-        <div>
-          <v-text-field
-            v-bind="componentRef(item.id)"
-            class="wizard-form-input"
-            :name="item.id"
-            type="text"
-            :disabled="item.read_only"
-            variant="outlined"
-            :autofocus="autofocusField === item.id"
-            :data-test="`dynamic-csr-input_${item.id}`"
-          ></v-text-field>
-        </div>
-      </div>
-      <div v-if="acmeCapable" class="wizard-row-wrap">
-        <div class="wizard-label pt-4">
-          {{ $t(`csr.orderAcmeCertificate`) }}
-        </div>
+  <XrdWizardStep>
+    <XrdFormBlock>
+      <XrdFormBlockRow v-for="item in csrForm" :key="item.id">
+        <v-text-field
+          v-model="componentModel(item.id).value"
+          v-bind="componentAttr(item.id).value"
+          class="xrd"
+          :data-test="`dynamic-csr-input_${item.id}`"
+          :name="item.id"
+          :disabled="item.read_only"
+          :autofocus="autofocusField === item.id"
+          :label="$t(`certificateProfile.${item.label_key}`)"
+        />
+      </XrdFormBlockRow>
+      <XrdFormBlockRow v-if="acmeCapable" description="csr.orderAcmeCertificate">
         <v-checkbox
-          v-model="acmeOrder"
-          class="wizard-form-input"
+          v-model="acmeOrders"
+          class="xrd"
+          data-test="order-acme-certificate-checkbox"
+          persistent-hint
           :disabled="externalAccountBindingRequiredButMissing"
           :hint="externalAccountBindingRequiredButMissingHint"
-          persistent-hint
-          data-test="order-acme-certificate-checkbox"
-        ></v-checkbox>
-      </div>
-    </div>
-    <div class="button-footer">
-      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
-        $t('action.cancel')
-      }}</xrd-button>
+        />
+      </XrdFormBlockRow>
+    </XrdFormBlock>
+    <template #footer>
+      <XrdBtn data-test="cancel-button" variant="outlined" text="action.cancel" @click="cancel" />
+      <v-spacer />
 
-      <xrd-button
-        outlined
-        class="previous-button"
-        data-test="previous-button"
-        @click="previous"
-        >{{ $t('action.previous') }}</xrd-button
-      >
-      <xrd-button :disabled="!meta.valid" data-test="save-button" @click="done">
-        {{ $t(saveButtonText) }}
-      </xrd-button>
-    </div>
-  </div>
+      <XrdBtn data-test="previous-button" variant="outlined" class="mr-2" text="action.previous" @click="previous" />
+      <XrdBtn data-test="save-button" :disabled="!meta.valid" :text="saveButtonText" @click="done" />
+    </template>
+  </XrdWizardStep>
 </template>
 
 <script lang="ts">
 import { defineComponent, Ref } from 'vue';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import { PublicPathState, useForm } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import { CsrSubjectFieldDescription } from '@/openapi-types';
 import { mapState, mapWritableState } from 'pinia';
+import { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn, veeDefaultFieldConfig } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: {
+    XrdWizardStep,
+    XrdFormBlock,
+    XrdFormBlockRow,
+    XrdBtn,
+  },
   props: {
     saveButtonText: {
       type: String,
@@ -103,49 +94,34 @@ export default defineComponent({
       csrForm: CsrSubjectFieldDescription[];
       setCsrForm: (form: CsrSubjectFieldDescription[]) => void;
     } = useCsr();
-    const validationSchema: Record<string, string> = csrForm.reduce(
-      (acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }),
-      {},
-    );
-    const initialValues: Record<string, string> = csrForm.reduce(
-      (acc, cur) => ({ ...acc, [cur.id]: cur.default_value }),
-      {},
-    );
-    const { meta, values, defineComponentBinds } = useForm({
+    const validationSchema: Record<string, string> = csrForm.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }), {});
+    const initialValues: Record<string, string> = csrForm.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.default_value }), {});
+    const { meta, values, defineField } = useForm({
       validationSchema,
       initialValues,
     });
-    const componentConfig = (state: PublicPathState) => ({
-      props: {
-        'error-messages': state.errors,
-      },
+    const formModels = {} as Record<string, Ref>;
+    const formAttrs = {} as Record<string, Ref>;
+
+    csrForm.forEach((formField) => {
+      const [field, fieldAttr] = defineField(formField.id, veeDefaultFieldConfig());
+      formModels[formField.id] = field;
+      formAttrs[formField.id] = fieldAttr;
     });
-    const componentBinds: Record<string, Ref> = csrForm.reduce(
-      (acc, cur) => ({
-        ...acc,
-        [cur.id]: defineComponentBinds(cur.id, componentConfig),
-      }),
-      {},
-    );
-    return { meta, values, ...componentBinds, csrForm, setCsrForm };
+
+    return { meta, values, formModels, formAttrs, csrForm, setCsrForm };
+  },
+  data() {
+    return { acmeOrders: false };
   },
   computed: {
-    ...mapState(useCsr, [
-      'acmeCapable',
-      'eabRequired',
-      'acmeEabCredentialsStatus',
-    ]),
+    ...mapState(useCsr, ['acmeCapable', 'eabRequired', 'acmeEabCredentialsStatus']),
     ...mapWritableState(useCsr, ['acmeOrder']),
     externalAccountBindingRequiredButMissing(): boolean {
-      return (
-        !!this.eabRequired &&
-        !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials
-      );
+      return !!this.eabRequired && !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials;
     },
     externalAccountBindingRequiredButMissingHint(): string | undefined {
-      return this.externalAccountBindingRequiredButMissing
-        ? this.$t('csr.eabCredRequired')
-        : undefined;
+      return this.externalAccountBindingRequiredButMissing ? this.$t('csr.eabCredRequired') : undefined;
     },
     autofocusField(): string | undefined {
       return this.csrForm
@@ -158,8 +134,11 @@ export default defineComponent({
     this.acmeOrder = false;
   },
   methods: {
-    componentRef(id: string): Ref {
-      return (this as never)[id];
+    componentModel(id: string): Ref<string> {
+      return this.formModels[id];
+    },
+    componentAttr(id: string): Ref {
+      return this.formAttrs[id];
     },
     cancel(): void {
       this.$emit('cancel');
@@ -180,6 +159,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-</style>
+<style lang="scss" scoped></style>

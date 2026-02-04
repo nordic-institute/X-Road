@@ -25,38 +25,45 @@
  */
 package org.niis.xroad.proxy.core.antidos;
 
-import ee.ria.xroad.common.SystemProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-class AntiDosConfiguration {
+@ConfigMapping(prefix = "xroad.anti-dos")
+public interface AntiDosConfiguration {
 
     /**
      * @return the number of allowed parallel connections
      */
-    int getMaxParallelConnections() {
-        return SystemProperties.getAntiDosMaxParallelConnections();
-    }
+    @WithName("max-parallel-connections")
+    @WithDefault("5000")
+    int getMaxParallelConnections();
 
     /**
      * @return the minimum number of free file handles required to process
      * an incoming connection after it has been accepted
      */
-    int getMinFreeFileHandles() {
-        return SystemProperties.getAntiDosMinFreeFileHandles();
-    }
+    @WithName("min-free-file-handles")
+    @WithDefault("100")
+    int getMinFreeFileHandles();
 
     /**
      * @return the maximum allowed CPU load. If the CPU load is more than this
      * value, incoming connection is not processed.
      */
-    double getMaxCpuLoad() {
-        return SystemProperties.getAntiDosMaxCpuLoad();
-    }
+    @WithName("max-cpu-load")
+    @WithDefault("1.1")
+    double getMaxCpuLoad();
 
     /**
      * @return the maximum allowed heap usage. If the heap usage is more than
      * this value, incoming connection is not processed.
      */
-    double getMaxHeapUsage() {
-        return SystemProperties.getAntiDosMaxHeapUsage();
-    }
+    @WithName("max-heap-usage")
+    @WithDefault("1.1")
+    double getMaxHeapUsage();
+
+    @WithName("enabled")
+    @WithDefault("true")
+    boolean enabled();
 }

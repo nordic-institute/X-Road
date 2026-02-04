@@ -1,0 +1,25 @@
+# deployment/charts/.gitignore (Helm - Dev)
+# Chart dependencies can be included for dev
+# **/charts/*.tgz
+
+# Local packages
+*.tgz
+
+# Keep Chart.lock for dev environment
+!Chart.lock
+
+# Local value overrides
+values.local.yaml
+values.private.yaml
+values.secret.yaml
+
+# Debug/temp files
+rendered/
+*.bak
+*.tmp
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+*.swp

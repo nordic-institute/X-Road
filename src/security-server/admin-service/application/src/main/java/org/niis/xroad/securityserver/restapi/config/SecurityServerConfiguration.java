@@ -27,25 +27,27 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
+import io.grpc.BindableService;
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
+import org.niis.xroad.securityserver.restapi.rpc.AdminManagementRpcServer;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.List;
 
 import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
@@ -54,11 +56,20 @@ import static org.niis.xroad.securityserver.restapi.service.CertificateAuthority
  * A generic, configuration class for bean initialization.
  */
 @Configuration
+@EnableConfigurationProperties(AdminRpcServerProperties.class)
 public class SecurityServerConfiguration {
 
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
+    }
+
+    @Bean(initMethod = "init", destroyMethod = "destroy")
+    @ConditionalOnProperty(name = "xroad.proxy-ui-api.rpc.enabled", havingValue = "true", matchIfMissing = true)
+    public AdminManagementRpcServer adminManagementRpcServer(List<BindableService> services,
+                                                             AdminRpcServerProperties rpcServerProperties,
+                                                             RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        return new AdminManagementRpcServer(services, rpcServerProperties, rpcCredentialsConfigurer);
     }
 
     @Bean
@@ -80,28 +91,22 @@ public class SecurityServerConfiguration {
 
     @Bean
     @Profile("nontest")
-    public MonitorClient monitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        return new MonitorClient();
-    }
-
-    @Bean
-    @Profile("nontest")
     @Order(DiagnosticCollector.ORDER_GROUP1)
-    public OsVersionCollector osVersionCollector(MonitorClient monitorClient) {
+    public OsVersionCollector osVersionCollector(MonitorRpcClient monitorClient) {
         return new OsVersionCollector(monitorClient);
     }
 
     @Bean
     @Profile("nontest")
     @Order(DiagnosticCollector.ORDER_GROUP5)
-    public XrdPackagesCollector xrdPackagesCollector(MonitorClient monitorClient) {
+    public XrdPackagesCollector xrdPackagesCollector(MonitorRpcClient monitorClient) {
         return new XrdPackagesCollector(monitorClient);
     }
 
     @Bean
     @Profile("nontest")
     @Order(DiagnosticCollector.ORDER_GROUP5)
-    public XrdProcessesCollector xrdProcessesCollector(MonitorClient monitorClient) {
+    public XrdProcessesCollector xrdProcessesCollector(MonitorRpcClient monitorClient) {
         return new XrdProcessesCollector(monitorClient);
     }
 }

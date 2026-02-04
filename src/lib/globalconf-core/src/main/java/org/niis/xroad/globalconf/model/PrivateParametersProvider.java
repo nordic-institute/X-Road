@@ -27,14 +27,10 @@ package org.niis.xroad.globalconf.model;
 
 import java.time.OffsetDateTime;
 
-public interface PrivateParametersProvider {
+public interface PrivateParametersProvider extends ParameterProvider {
 
     PrivateParametersProvider refresh(OffsetDateTime fileExpiresOn);
 
     PrivateParameters getPrivateParameters();
-
-    OffsetDateTime getExpiresOn();
-
-    boolean hasChanged();
 
 }

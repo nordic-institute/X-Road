@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.confproxy;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.GlobalConfVersion;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +34,7 @@ import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -45,16 +46,17 @@ import java.nio.file.Paths;
 @ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxy {
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     protected ConfProxyProperties conf;
 
     /**
      * Initializes a new configuration proxy instance.
-     *
      * @param instance name of this proxy instance
      * @throws Exception if loading instance configuration fails
      */
-    ConfProxy(final SignerRpcClient signerRpcClient, final String instance) throws Exception {
+    ConfProxy(final SignerRpcClient signerRpcClient, SignerSignClient signerSignClient, final String instance) throws Exception {
         this.signerRpcClient = signerRpcClient;
+        this.signerSignClient = signerSignClient;
         this.conf = new ConfProxyProperties(instance);
         log.debug("Starting configuration-proxy '{}'...", instance);
     }
@@ -62,7 +64,6 @@ public class ConfProxy {
     /**
      * Launch the configuration proxy instance. Downloads signed directory,
      * signs its content and moves it to the public distribution directory.
-     *
      * @throws Exception in case of any errors
      */
     public final void execute() throws Exception {
@@ -70,7 +71,7 @@ public class ConfProxy {
         ConfProxyHelper.purgeOutdatedGenerations(conf);
 
         var result = new ConfProxyExecutionResult();
-        for (int version = SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
+        for (int version = GlobalConfVersion.CURRENT_VERSION;
                 version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
                 version--) {
             log.debug("Download global configuration version {}. Minimum version {}",
@@ -79,7 +80,7 @@ public class ConfProxy {
             try {
                 VersionedConfigurationDirectory confDir = download(version);
                 log.debug("Create output builder");
-                try (OutputBuilder output = new OutputBuilder(signerRpcClient, confDir, conf, version)) {
+                try (OutputBuilder output = new OutputBuilder(signerRpcClient, signerSignClient, confDir, conf, version)) {
                     log.debug("Build signed directory");
                     output.buildSignedDirectory();
                     output.move();
@@ -101,7 +102,6 @@ public class ConfProxy {
     /**
      * Downloads the global configuration to configuration download path e.g. /etc/xroad/globalconf,
      * according to the instance configuration.
-     *
      * @return downloaded configuration directory
      * @throws Exception if configuration client script encounters errors
      */

@@ -30,6 +30,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.OcspRespondersApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "ocspRespondersApi", path = "/api/v1")
+@FeignClient
 public interface FeignOcspRespondersApi extends OcspRespondersApi {
 }

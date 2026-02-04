@@ -1,0 +1,59 @@
+Template: xroad-common/database-host
+Type: string
+Default: 127.0.0.1:5432
+Description: Insert database server connection string
+ This will be used by the Security Server to connect to the database host.
+
+Template: xroad-common/proxy-memory
+Type: string
+Default: d
+Description: Insert proxy server memory config string
+ This will be used to setup initial and maximum heap size for the proxy service.
+ .
+ Allowed values:
+ .
+ d - default config: ${DEFAULT_XM}
+ .
+ r - recommended config: ${RECOMMENDED_XM}
+ .
+ <initialSize> <maxSize> - custom heap size constrains, for example '128m 2g'
+
+Template: xroad-common/service-subject
+Type: string
+Description: Insert TLS certificate subject common name
+ This certificate will be used to secure internal service->secureserver connections.
+ .
+ Include most used hostname or IP address as common name (CN) value.
+ .
+ Server reports full hostname as: ${HOST}
+
+Template: xroad-common/service-altsubject
+Type: string
+Description: Insert TLS certificate subject name alternatives
+ This certificate will be used to secure internal service->secureserver connections.
+ .
+ Include all alternative names and IP addresses which will be used for accessing secure services
+ .
+ Format is IP:<ipaddress>,DNS:<hostname>,...
+ .
+ Server reports following ip addresses and hostnames: ${ALT}
+
+Template: xroad-common/proxy-memory-error
+Type: error
+Description: Error applying selected memory config, please fix issues
+  output was:
+  ${ERR}
+
+Template: xroad-common/username
+Type: string
+Default:
+Description: Enter X-Road Superuser username
+ Username for X-Road admin rights
+ .
+ This user will be promoted to _ALL_ X-Road groups of privileges
+
+Template: xroad-common/non_existing_user
+Type: error
+Description: User does not exist
+  Specified user does not exist
+

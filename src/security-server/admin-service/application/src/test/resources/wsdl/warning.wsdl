@@ -16,7 +16,7 @@
             <xs:import namespace="http://ws-i.org/profiles/basic/1.1/xsd"
                     schemaLocation="http://ws-i.org/profiles/basic/1.1/swaref.xsd" />
             <xs:import namespace="http://www.w3.org/2005/05/xmlmime"
-                    schemaLocation="http://www.w3.org/2005/05/xmlmime" />
+                    schemaLocation="https://www.w3.org/2005/05/xmlmime" />
             <xs:element name="xroadGetRandom">
                 <xs:complexType>
                     <xs:sequence>
@@ -112,10 +112,9 @@
                         This is a simple SOAP service.</xrd:notes>
             </wsdl:documentation>
             <wsdl:input name="xroadGetRandom" message="tns:xroadGetRandom" />
-            <wsdl:output name="xroadGetRandomResponse"
-                    message="tns:xroadGetRandomResponse" />
+            <wsdl:output/>
         </wsdl:operation>
-		
+
         <wsdl:operation name="bodyMassIndex">
             <wsdl:documentation>
                 <xrd:title>bodyMassIndex</xrd:title>
@@ -168,7 +167,7 @@
         </wsdl:operation>
 
 	</wsdl:binding>
-	
+
     <wsdl:binding name="bodyMassIndexPortSoap11"
             type="tns:testServicePort">
         <soap:binding style="document"
@@ -210,14 +209,14 @@
         </wsdl:operation>
 
 	</wsdl:binding>
-	
+
     <wsdl:service name="xroadGetRandom">
         <wsdl:port name="xroadGetRandomPortSoap11"
                 binding="tns:xroadGetRandomPortSoap11">
             <soap:address location="http://xroad-lxd-web.lxd:8088/xroadGetRandom" />
         </wsdl:port>
     </wsdl:service>
-	
+
     <wsdl:service name="bodyMassIndex">
         <wsdl:port name="bodyMassIndexPortSoap11"
                 binding="tns:bodyMassIndexPortSoap11">

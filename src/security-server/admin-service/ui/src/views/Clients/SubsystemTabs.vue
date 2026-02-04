@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,114 +25,78 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <XrdSubTabs :tabs />
-  </div>
+  <XrdViewNavigation :allowed-tabs="tabs" />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
-
-import { mapState } from 'pinia';
+import { Tab, XrdViewNavigation } from '@niis/shared-ui';
 
 import { useUser } from '@/store/modules/user';
-import { useClient } from '@/store/modules/client';
 
-export default defineComponent({
-  components: {
-    XrdSubTabs,
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
   },
-  props: {
-    id: {
-      type: String,
-      required: true,
+});
+
+const { getAllowedTabs } = useUser();
+
+const tabs = computed(() => {
+  const allTabs: Tab[] = [
+    {
+      key: 'details',
+      name: 'tab.client.details',
+      icon: 'list_alt',
+      to: {
+        name: RouteName.SubsystemDetails,
+        params: { id: props.id },
+      },
     },
-  },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-      confirmUnregisterClient: false as boolean,
-      unregisterLoading: false as boolean,
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['hasPermission', 'getAllowedTabs']),
-    ...mapState(useClient, ['client']),
-
-    showUnregister(): boolean {
-      if (!this.client) return false;
-      return (
-        this.client &&
-        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-        (this.client.status === 'REGISTERED' ||
-          this.client.status === 'REGISTRATION_IN_PROGRESS')
-      );
+    {
+      key: 'serviceClients',
+      name: 'tab.client.serviceClients',
+      icon: 'id_card',
+      to: {
+        name: RouteName.SubsystemServiceClients,
+        params: { id: props.id },
+      },
+      permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS],
     },
-
-    showDelete(): boolean {
-      if (
-        !this.client ||
-        this.client.status === 'REGISTERED' ||
-        this.client.status === 'REGISTRATION_IN_PROGRESS'
-      ) {
-        return false;
-      }
-
-      return this.hasPermission(Permissions.DELETE_CLIENT);
+    {
+      key: 'services',
+      name: 'tab.client.services',
+      icon: 'smb_share',
+      to: {
+        name: RouteName.SubsystemServices,
+        params: { id: props.id },
+      },
+      permissions: [Permissions.VIEW_CLIENT_SERVICES],
     },
-
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'details',
-          name: 'tab.client.details',
-          to: {
-            name: RouteName.SubsystemDetails,
-            params: { id: this.id },
-          },
-        },
-        {
-          key: 'serviceClients',
-          name: 'tab.client.serviceClients',
-          to: {
-            name: RouteName.SubsystemServiceClients,
-            params: { id: this.id },
-          },
-          permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS],
-        },
-        {
-          key: 'services',
-          name: 'tab.client.services',
-          to: {
-            name: RouteName.SubsystemServices,
-            params: { id: this.id },
-          },
-          permissions: [Permissions.VIEW_CLIENT_SERVICES],
-        },
-        {
-          key: 'internalServers',
-          name: 'tab.client.internalServers',
-          to: {
-            name: RouteName.SubsystemServers,
-            params: { id: this.id },
-          },
-          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
-        },
-        {
-          key: 'localGroups',
-          name: 'tab.client.localGroups',
-          to: {
-            name: RouteName.SubsystemLocalGroups,
-            params: { id: this.id },
-          },
-          permissions: [Permissions.VIEW_CLIENT_LOCAL_GROUPS],
-        },
-      ];
-
-      return this.getAllowedTabs(allTabs);
+    {
+      key: 'internalServers',
+      name: 'tab.client.internalServers',
+      icon: 'host',
+      to: {
+        name: RouteName.SubsystemServers,
+        params: { id: props.id },
+      },
+      permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
     },
-  },
+    {
+      key: 'localGroups',
+      name: 'tab.client.localGroups',
+      icon: 'group',
+      to: {
+        name: RouteName.SubsystemLocalGroups,
+        params: { id: props.id },
+      },
+      permissions: [Permissions.VIEW_CLIENT_LOCAL_GROUPS],
+    },
+  ];
+
+  return getAllowedTabs(allTabs);
 });
 </script>

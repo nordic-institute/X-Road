@@ -26,23 +26,26 @@
 package org.niis.xroad.signer.core.protocol;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.core.protocol.handler.GetOcspPrioritizationStrategyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetOcspResponsesReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.SetOcspResponsesReqHandler;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
+import org.niis.xroad.signer.proto.OcspPrioritizationStrategyResp;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class OcspService extends OcspServiceGrpc.OcspServiceImplBase {
     private final SetOcspResponsesReqHandler setOcspResponsesReqHandler;
     private final GetOcspResponsesReqHandler getOcspResponsesReqHandler;
+    private final GetOcspPrioritizationStrategyReqHandler getOcspPrioritizationStrategyReqHandler;
 
     @Override
     public void setOcspResponses(SetOcspResponsesReq request, StreamObserver<Empty> responseObserver) {
@@ -52,6 +55,12 @@ public class OcspService extends OcspServiceGrpc.OcspServiceImplBase {
     @Override
     public void getOcspResponses(GetOcspResponsesReq request, StreamObserver<GetOcspResponsesResp> responseObserver) {
         getOcspResponsesReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void getOcspPrioritizationStrategy(Empty request,
+            StreamObserver<OcspPrioritizationStrategyResp> responseObserver) {
+        getOcspPrioritizationStrategyReqHandler.processSingle(request, responseObserver);
     }
 
 }

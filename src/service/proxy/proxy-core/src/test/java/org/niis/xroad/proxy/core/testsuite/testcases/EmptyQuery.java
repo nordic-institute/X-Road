@@ -34,7 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SOAP;
 
 /**
  * Client sends query with empty body.
@@ -51,13 +51,13 @@ public class EmptyQuery extends MessageTestCase {
 
     @Override
     protected InputStream getQueryInputStream(String fileName,
-                                              boolean addUtf8Bom) throws Exception {
+                                              boolean addUtf8Bom) {
         return new ByteArrayInputStream(addUtf8Bom
                 ? ByteOrderMark.UTF_8.getBytes() : new byte[]{});
     }
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_INVALID_SOAP);
+        assertErrorCode(CLIENT_X, INVALID_SOAP.code());
     }
 }

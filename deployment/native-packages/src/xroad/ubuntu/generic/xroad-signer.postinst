@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+
+umask 027
+
+if [ "$1" = configure ]; then
+    chown xroad:xroad /etc/xroad/backup.d/??_xroad-signer
+    chmod 0440 /etc/xroad/backup.d/??_xroad-signer
+
+    test -d /etc/xroad/signer || mkdir -p -m 0750 /etc/xroad/signer && chown xroad:xroad /etc/xroad/signer
+
+    # if xroad-proxy is not installed then this directory should be created for signer
+    test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
+
+    # if xroad-proxy is not installed then this directory should be created for signer
+    test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad /etc/xroad/globalconf
+
+    # if xroad-proxy is not installed then this directory should be created for signer
+    test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
+
+fi
+
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
+#DEBHELPER#
+
+exit 0

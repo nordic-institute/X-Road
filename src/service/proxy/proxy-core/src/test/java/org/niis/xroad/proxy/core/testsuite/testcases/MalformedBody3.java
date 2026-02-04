@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_HEADERS;
 
 /**
  * Client sends message with invalid SOAP body (service name is
@@ -48,6 +48,6 @@ public class MalformedBody3 extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_INCONSISTENT_HEADERS);
+        assertErrorCode(CLIENT_X, INCONSISTENT_HEADERS.code());
     }
 }

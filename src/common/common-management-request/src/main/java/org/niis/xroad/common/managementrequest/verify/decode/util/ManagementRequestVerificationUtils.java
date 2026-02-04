@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -35,15 +34,16 @@ import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.net.IDN;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_IDENTIFIER;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ManagementRequestVerificationUtils {
@@ -71,9 +71,8 @@ public final class ManagementRequestVerificationUtils {
         } catch (IllegalArgumentException e) {
             valid = false;
         }
-        if (!valid) throw new CodedException(X_INVALID_REQUEST, "Invalid server address");
+        if (!valid) throw XrdRuntimeException.systemException(INVALID_REQUEST, "Invalid server address");
     }
-
 
     public static void validateServerId(SecurityServerId serverId) {
         if (isValidPart(serverId.getXRoadInstance())
@@ -82,7 +81,7 @@ public final class ManagementRequestVerificationUtils {
                 && isValidPart(serverId.getServerCode())) {
             return;
         }
-        throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The management request contains an invalid identifier.");
+        throw XrdRuntimeException.systemException(INVALID_CLIENT_IDENTIFIER, "The management request contains an invalid identifier.");
     }
 
 

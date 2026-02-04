@@ -25,36 +25,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <article id="download-url" class="mt-5">
+  <XrdCard id="download-url" title="globalConf.downloadUrl.title">
     <v-data-table
       v-if="urls"
+      item-key="url"
+      class="xrd"
+      hide-default-footer
       :headers="headers"
       :items="urls"
       :items-per-page="-1"
       :loading="loading"
-      item-key="url"
-      hide-default-footer
-      class="elevation-0 data-table"
     >
-      <template #top>
-        <data-table-toolbar title-key="globalConf.downloadUrl.title" />
-      </template>
       <template #[`item.url`]="{ item }">
-        <a
-          class="xrd-clickable"
-          target="_blank"
-          rel="noreferrer"
-          :href="item.url"
-        >
-          <v-icon class="internal-conf-icon" icon="mdi-link" />
-          {{ item.url }}
-        </a>
-      </template>
-      <template #bottom>
-        <XrdDataTableFooter />
+        <XrdLabelWithIcon icon="link" :label="item.url" clickable @navigate="openInNewTab(item.url)" />
       </template>
     </v-data-table>
-  </article>
+  </XrdCard>
 </template>
 
 <script lang="ts">
@@ -65,12 +51,11 @@ import { defineComponent, PropType } from 'vue';
 import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { DataTableHeader } from '@/ui-types';
-import { XrdDataTableFooter } from '@niis/shared-ui';
-import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import { XrdCard, XrdLabelWithIcon } from '@niis/shared-ui';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 
 export default defineComponent({
-  components: { XrdDataTableFooter, DataTableToolbar },
+  components: { XrdCard, XrdLabelWithIcon },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -85,9 +70,7 @@ export default defineComponent({
   computed: {
     ...mapStores(useConfigurationSource),
     urls(): GlobalConfDownloadUrl[] {
-      return [
-        this.configurationSourceStore.getDownloadUrl(this.configurationType),
-      ];
+      return [this.configurationSourceStore.getDownloadUrl(this.configurationType)];
     },
     headers(): DataTableHeader[] {
       return [
@@ -105,9 +88,7 @@ export default defineComponent({
   methods: {
     fetchDownloadUrl() {
       this.loading = true;
-      this.configurationSourceStore
-        .fetchDownloadUrl(this.configurationType)
-        .finally(() => (this.loading = false));
+      this.configurationSourceStore.fetchDownloadUrl(this.configurationType).finally(() => (this.loading = false));
     },
     openInNewTab(url: string) {
       window.open(url, '_blank', 'noreferrer');
@@ -115,17 +96,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables' as *;
-
-.internal-conf-icon {
-  margin-right: 15px;
-  color: colors.$Purple100;
-}
-
-.xrd-clickable {
-  text-decoration-line: none;
-}
-</style>

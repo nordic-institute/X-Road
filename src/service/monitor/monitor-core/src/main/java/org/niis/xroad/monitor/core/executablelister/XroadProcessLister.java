@@ -25,10 +25,6 @@
  */
 package org.niis.xroad.monitor.core.executablelister;
 
-import org.niis.xroad.monitor.core.JmxStringifiedData;
-
-import java.io.IOException;
-
 /**
  * Created by sjk on 11/12/15.
  */
@@ -36,15 +32,6 @@ public class XroadProcessLister extends ProcessLister {
 
     protected static final String PS_FORMAT = "--format user,pcpu,start_time,pmem,pid,command";
     private static final String LIST_XROAD_PIDS_COMMAND = "pgrep -u xroad java";
-
-    /**
-     * Program entry point
-     */
-    public static void main(String[] args) throws IOException {
-        JmxStringifiedData<ProcessInfo> p = new XroadProcessLister().list();
-        System.out.println("raw: " + p.getJmxStringData());
-        System.out.println("parsed: " + p.getDtoData());
-    }
 
     @Override
     protected String getCommand() {

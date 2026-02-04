@@ -3,7 +3,6 @@
 # Configuration
 VM_NAME="xroad-lxd"
 LXD_PORT=28443
-TRUST_PASSWORD="secret"
 
 function verify_lxd_version() {
   echo "Checking LXD version in VM..."
@@ -23,10 +22,14 @@ function configure_lxc_client() {
     lxc remote remove xroad-lxd
   fi
 
-  # Add remote with certificate acceptance
+  # Generate trust token
+  echo "Generating trust token..."
+  TOKEN=$(limactl shell ${VM_NAME} sudo lxc config trust add --name xroad-host --quiet)
+
+  # Add remote with token
+  echo "Adding remote with token..."
   lxc remote add xroad-lxd https://127.0.0.1:${LXD_PORT} \
-    --password=${TRUST_PASSWORD} \
-    --accept-certificate
+    --token=${TOKEN}
 
   echo "Switching to remote..."
   lxc remote switch xroad-lxd

@@ -1,0 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  org.niis.xroad.common.properties.dbsource.spring.DbPropertySourceEnvironmentPostProcessor

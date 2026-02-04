@@ -31,12 +31,11 @@ import org.niis.xroad.ss.test.ui.page.CertificatePageObj;
 import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorOptionOf;
 
 public class ClientInternalServersStepDefs extends BaseUiStepDefs {
     private final CertificatePageObj certificatePageObj = new CertificatePageObj();
@@ -86,7 +85,7 @@ public class ClientInternalServersStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Internal server certificate is exported")
-    public void exportCert() throws FileNotFoundException {
+    public void exportCert() {
         File file = clientInfoPageObj.internalServers.btnExport().download();
         assertTrue(file.exists());
     }

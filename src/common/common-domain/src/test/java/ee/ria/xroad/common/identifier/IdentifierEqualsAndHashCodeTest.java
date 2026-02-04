@@ -25,27 +25,23 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Tests to verify X-Road identifier hashCode and equals methods behavior.
  */
-@RunWith(value = Parameterized.class)
-public class IdentifierEqualsAndHashCodeTest {
+class IdentifierEqualsAndHashCodeTest {
 
     private abstract static class DataProvider {
         abstract XRoadId provideVariant1();
@@ -57,135 +53,120 @@ public class IdentifierEqualsAndHashCodeTest {
         abstract XRoadId provideVariant4();
     }
 
-    private final DataProvider provider;
-
-    /**
-     * Constructs tests with given parameter data provider.
-     * @param provider the data provider
-     */
-    public IdentifierEqualsAndHashCodeTest(DataProvider provider) {
-        this.provider = provider;
-    }
-
     /**
      * @return test parameters
      */
-    @Parameters
-    public static Collection<DataProvider[]> data() {
-        DataProvider[][] data = new DataProvider[][]{
-                {// Set #1 -- ClientId
-                        new DataProvider() {
-                            @Override
-                            XRoadId provideVariant1() {
-                                return ClientId.Conf.create(
-                                        "EE", "BUSINESS", "member");
-                            }
+    static Stream<DataProvider> data() {
+        return Stream.of(
+                // Set #1 -- ClientId
+                new DataProvider() {
+                    @Override
+                    XRoadId provideVariant1() {
+                        return ClientId.Conf.create(
+                                "EE", "BUSINESS", "member");
+                    }
 
-                            @Override
-                            XRoadId provideVariant2() {
-                                return ClientId.Conf.create(
-                                        "EE", "BUSINESS", "foobar");
-                            }
+                    @Override
+                    XRoadId provideVariant2() {
+                        return ClientId.Conf.create(
+                                "EE", "BUSINESS", "foobar");
+                    }
 
-                            @Override
-                            XRoadId provideVariant3() {
-                                return ClientId.Conf.create(
-                                        "EE", "BUSINESS", "member", "foo");
-                            }
+                    @Override
+                    XRoadId provideVariant3() {
+                        return ClientId.Conf.create(
+                                "EE", "BUSINESS", "member", "foo");
+                    }
 
-                            @Override
-                            XRoadId provideVariant4() {
-                                return ClientId.Conf.create(
-                                        "EE", "COMPANY", "member");
-                            }
-                        },
+                    @Override
+                    XRoadId provideVariant4() {
+                        return ClientId.Conf.create(
+                                "EE", "COMPANY", "member");
+                    }
                 },
-                {// Set #2 -- ServiceId
-                        new DataProvider() {
-                            @Override
-                            XRoadId provideVariant1() {
-                                return ServiceId.Conf.create(
-                                        "EE", "BUSINESS", "member", null, "getState");
-                            }
+                // Set #2 -- ServiceId
+                new DataProvider() {
+                    @Override
+                    XRoadId provideVariant1() {
+                        return ServiceId.Conf.create(
+                                "EE", "BUSINESS", "member", null, "getState");
+                    }
 
-                            @Override
-                            XRoadId provideVariant2() {
-                                return ServiceId.Conf.create(
-                                        "EE", "BUSINESS", "member", null, "putState");
-                            }
+                    @Override
+                    XRoadId provideVariant2() {
+                        return ServiceId.Conf.create(
+                                "EE", "BUSINESS", "member", null, "putState");
+                    }
 
-                            @Override
-                            XRoadId provideVariant3() {
-                                return ServiceId.Conf.create(
-                                        "EE", "BUSINESS", "member", "foo", "getState");
-                            }
+                    @Override
+                    XRoadId provideVariant3() {
+                        return ServiceId.Conf.create(
+                                "EE", "BUSINESS", "member", "foo", "getState");
+                    }
 
-                            @Override
-                            XRoadId provideVariant4() {
-                                return ServiceId.Conf.create(
-                                        "EE", "COMPANY", "member", null, "getState");
-                            }
-                        },
+                    @Override
+                    XRoadId provideVariant4() {
+                        return ServiceId.Conf.create(
+                                "EE", "COMPANY", "member", null, "getState");
+                    }
                 },
-                {// Set #5 -- SecurityServerId
-                        new DataProvider() {
-                            @Override
-                            XRoadId provideVariant1() {
-                                return SecurityServerId.Conf.create(
-                                        "EE", "COMPANY", "producer", "server1");
-                            }
+                // Set #5 -- SecurityServerId
+                new DataProvider() {
+                    @Override
+                    XRoadId provideVariant1() {
+                        return SecurityServerId.Conf.create(
+                                "EE", "COMPANY", "producer", "server1");
+                    }
 
-                            @Override
-                            XRoadId provideVariant2() {
-                                return SecurityServerId.Conf.create(
-                                        "EE", "COMPANY", "consumer", "server1");
-                            }
+                    @Override
+                    XRoadId provideVariant2() {
+                        return SecurityServerId.Conf.create(
+                                "EE", "COMPANY", "consumer", "server1");
+                    }
 
-                            @Override
-                            XRoadId provideVariant3() {
-                                return SecurityServerId.Conf.create(
-                                        "EE", "BUSINESS", "producer", "server1");
-                            }
+                    @Override
+                    XRoadId provideVariant3() {
+                        return SecurityServerId.Conf.create(
+                                "EE", "BUSINESS", "producer", "server1");
+                    }
 
-                            @Override
-                            XRoadId provideVariant4() {
-                                return SecurityServerId.Conf.create(
-                                        "EE", "COMPANY", "producer", "server3");
-                            }
-                        },
+                    @Override
+                    XRoadId provideVariant4() {
+                        return SecurityServerId.Conf.create(
+                                "EE", "COMPANY", "producer", "server3");
+                    }
                 },
-                {// Set #6 -- GlobalGroupId
-                        new DataProvider() {
-                            @Override
-                            XRoadId provideVariant1() {
-                                return GlobalGroupId.Conf.create("EE", "G1");
-                            }
+                // Set #6 -- GlobalGroupId
+                new DataProvider() {
+                    @Override
+                    XRoadId provideVariant1() {
+                        return GlobalGroupId.Conf.create("EE", "G1");
+                    }
 
-                            @Override
-                            XRoadId provideVariant2() {
-                                return GlobalGroupId.Conf.create("EE", "G2");
-                            }
+                    @Override
+                    XRoadId provideVariant2() {
+                        return GlobalGroupId.Conf.create("EE", "G2");
+                    }
 
-                            @Override
-                            XRoadId provideVariant3() {
-                                return GlobalGroupId.Conf.create("UE", "G1");
-                            }
+                    @Override
+                    XRoadId provideVariant3() {
+                        return GlobalGroupId.Conf.create("UE", "G1");
+                    }
 
-                            @Override
-                            XRoadId provideVariant4() {
-                                return GlobalGroupId.Conf.create("EE", "G5");
-                            }
-                        },
+                    @Override
+                    XRoadId provideVariant4() {
+                        return GlobalGroupId.Conf.create("EE", "G5");
+                    }
                 }
-        };
-        return Arrays.asList(data);
+        );
     }
 
     /**
      * Test case with equal identifiers.
      */
-    @Test
-    public void shouldBeEqual() {
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldBeEqual(DataProvider provider) {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant1();
         assertEquals(first, second);
@@ -194,8 +175,9 @@ public class IdentifierEqualsAndHashCodeTest {
     /**
      * Test case with unequal identifiers.
      */
-    @Test
-    public void shouldNotBeEqual() {
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldNotBeEqual(DataProvider provider) {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant2();
         assertNotEquals(first, second);
@@ -204,8 +186,9 @@ public class IdentifierEqualsAndHashCodeTest {
     /**
      * Test case with unequal identifiers.
      */
-    @Test
-    public void shouldNotBeEqual2() {
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldNotBeEqual2(DataProvider provider) {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant3();
         assertNotEquals(first, second);
@@ -214,8 +197,9 @@ public class IdentifierEqualsAndHashCodeTest {
     /**
      * Test case with matching hash codes.
      */
-    @Test
-    public void hashCodeShouldMatch() {
+    @ParameterizedTest
+    @MethodSource("data")
+    void hashCodeShouldMatch(DataProvider provider) {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant1();
         assertEquals(first.hashCode(), second.hashCode());
@@ -224,8 +208,9 @@ public class IdentifierEqualsAndHashCodeTest {
     /**
      * Test case with non-matching hash codes.
      */
-    @Test
-    public void hashCodeShouldNotMatch() {
+    @ParameterizedTest
+    @MethodSource("data")
+    void hashCodeShouldNotMatch(DataProvider provider) {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant4();
         assertNotEquals(first.hashCode(), second.hashCode());
@@ -233,10 +218,13 @@ public class IdentifierEqualsAndHashCodeTest {
 
     /**
      * Test case to ensure equality after serialization.
+     *
+     * @param provider the data provider
      * @throws Exception in case of any unexpected errors
      */
-    @Test
-    public void shouldSerializeAndDeserialize() throws Exception {
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldSerializeAndDeserialize(DataProvider provider) throws Exception {
         XRoadId inputId = provider.provideVariant1();
 
         PipedInputStream pin = new PipedInputStream();

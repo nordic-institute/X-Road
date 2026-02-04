@@ -26,12 +26,11 @@
  */
 package org.niis.xroad.cs.registrationservice.service;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
@@ -57,7 +56,7 @@ class AdminApiServiceImpl implements AdminApiService {
         var result = managementRequestsApi.addManagementRequest(request);
 
         if (!result.hasBody()) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
+            throw XrdRuntimeException.systemInternalError("Empty response");
         } else {
             return result.getBody().getId();
         }

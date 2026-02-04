@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.entity.ApiKeyEntity;
 import org.niis.xroad.restapi.mapper.ApiKeyMapper;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.util.SecurityHelper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,6 +52,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.API_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.API_KEY_ENCODER;
 import static org.niis.xroad.restapi.config.ApiCachingConfiguration.LIST_ALL_KEYS_CACHE;
 
 /**
@@ -63,6 +65,7 @@ import static org.niis.xroad.restapi.config.ApiCachingConfiguration.LIST_ALL_KEY
 @RequiredArgsConstructor
 public class ApiKeyService {
 
+    @Qualifier(API_KEY_ENCODER)
     private final PasswordEncoder passwordEncoder;
     private final ApiKeyRepository apiKeyRepository;
     private final CacheManager cacheManager;

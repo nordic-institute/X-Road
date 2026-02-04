@@ -31,7 +31,7 @@ import org.niis.xroad.cs.test.ui.page.SystemSettingsParametersPageObj;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemSettingsParametersStepDefsObj extends BaseUiStepDefs {
     private final SystemSettingsParametersPageObj systemSettingsParametersPageObj = new SystemSettingsParametersPageObj();

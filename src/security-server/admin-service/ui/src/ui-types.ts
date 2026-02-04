@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,7 +29,6 @@
  These are not in openapi definitions.
 */
 import { Client } from '@/openapi-types';
-import { RouteLocationNamedRaw } from 'vue-router';
 
 // Extension for Client
 export type ExtendedClient = Client & {
@@ -45,45 +45,6 @@ export interface ServiceCandidate {
   id: string;
 }
 
-// The result of the FileUpload components fileChanged event
-export type FileUploadResult = {
-  buffer: ArrayBuffer;
-  file: File;
-};
-
-// Data for snackbar notification
-export interface Notification {
-  timeAdded: number;
-  timeout: number;
-  errorMessage?: string; // Localised error message
-  successMessage?: string; // Localised success message
-  show: boolean;
-  count: number;
-  isWarning: boolean;
-  validationErrors?: ValidationError[];
-  errorCode?: string; // x-road error code
-  metaData?: string[];
-  errorId?: string;
-  errorObjectAsString?: string;
-  responseData?: string;
-  url?: string;
-  status?: string;
-  delayed?: boolean;
-}
-
 export type SessionStatus = {
   valid: boolean;
-};
-
-export type ValidationError = {
-  field: string;
-  errorCodes: string[];
-};
-
-export type DataTableHeader = {
-  key: string;
-  title: string;
-  align?: 'start' | 'end';
-  sortable?: boolean;
-  cellProps?: { 'data-test'?: string };
 };

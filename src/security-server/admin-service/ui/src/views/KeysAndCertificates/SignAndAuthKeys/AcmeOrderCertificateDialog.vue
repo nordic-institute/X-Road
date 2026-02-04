@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     title="keys.orderAcmeCertificate"
     save-button-text="action.order"
     :disable-save="!meta.valid || hasAcmeEabRequiredButNoCredentials"
@@ -32,25 +33,21 @@
     @cancel="cancel"
   >
     <template #content>
-      <div class="dlg-edit-row">
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('csr.certificationService')"
-            :help-text="$t('csr.helpCertificationService')"
-          />
+      <XrdFormBlock>
+        <XrdFormBlockRow description="csr.helpCertificationService" adjust-against-content>
           <v-select
             v-model="certificateService"
             :items="acmeCertificateServices"
             item-title="name"
-            class="wizard-form-input"
+            class="xrd"
             data-test="csr-certification-service-select"
-            variant="outlined"
+            :label="$t('csr.certificationService')"
             :error-messages="errors"
-          ></v-select>
-        </div>
-      </div>
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
@@ -59,9 +56,14 @@ import { useField } from 'vee-validate';
 import { mapActions, mapState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { KeyUsageType, TokenCertificateSigningRequest } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: {
+    XrdSimpleDialog,
+    XrdFormBlock,
+    XrdFormBlockRow,
+  },
   props: {
     csr: {
       type: Object as PropType<TokenCertificateSigningRequest>,
@@ -74,12 +76,16 @@ export default defineComponent({
   },
   emits: ['cancel', 'save'],
   setup() {
-    const { meta, errors, setErrors, value, resetField } = useField(
-      'certificationService',
-      'required',
-      { initialValue: '' },
-    );
-    return { meta, errors, setErrors, certificateService: value, resetField };
+    const { addError } = useNotifications();
+    const { meta, errors, setErrors, value, resetField } = useField('certificationService', 'required', { initialValue: '' });
+    return {
+      meta,
+      errors,
+      setErrors,
+      certificateService: value,
+      resetField,
+      addError,
+    };
   },
   data() {
     return {
@@ -91,30 +97,24 @@ export default defineComponent({
     acmeCertificateServices() {
       return this.certificationServiceList.filter(
         (certificationService) =>
-          certificationService.certificate_profile_info ==
-            this.csr.certificate_profile &&
+          certificationService.certificate_profile_info == this.csr.certificate_profile &&
           certificationService.acme_capable &&
-          (this.keyUsage == KeyUsageType.AUTHENTICATION ||
-            !certificationService.authentication_only),
+          (this.keyUsage == KeyUsageType.AUTHENTICATION || !certificationService.authentication_only),
       );
     },
   },
   watch: {
     certificateService(newValue: string) {
-      const newCA = this.acmeCertificateServices.find(
-        (ca) => ca.name == newValue,
-      );
+      const newCA = this.acmeCertificateServices.find((ca) => ca.name == newValue);
       if (newCA?.acme_capable) {
         this.hasAcmeEabCredentials(newCA.name, this.csr.owner_id, this.keyUsage)
           .then((res) => {
-            this.hasAcmeEabRequiredButNoCredentials =
-              res.acme_eab_required &&
-              !res.has_acme_external_account_credentials;
+            this.hasAcmeEabRequiredButNoCredentials = res.acme_eab_required && !res.has_acme_external_account_credentials;
             if (this.hasAcmeEabRequiredButNoCredentials) {
               this.setErrors(this.$t('csr.eabCredRequired'));
             }
           })
-          .catch((error) => this.showError(error, true));
+          .catch((error) => this.addError(error, { navigate: true }));
       } else {
         this.hasAcmeEabRequiredButNoCredentials = false;
       }
@@ -122,7 +122,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useCsr, ['hasAcmeEabCredentials']),
-    ...mapActions(useNotifications, ['showError']),
     cancel(): void {
       this.$emit('cancel');
       this.clear();
@@ -138,6 +137,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>
+<style lang="scss" scoped></style>

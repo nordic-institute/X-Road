@@ -29,7 +29,7 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.MemberSubsystemsPageObj;
 
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
     private final MemberSubsystemsPageObj memberSubsystemsPageObj = new MemberSubsystemsPageObj();
@@ -67,7 +67,7 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
 
     @Step("Subsystem with code: {string} and status: {string} is listed")
     public void subsystemIsShown(String subsystemCode, String subsystemStatus) {
-        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, subsystemStatus).shouldBe(Condition.visible);
+        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, null, subsystemStatus).shouldBe(Condition.visible);
     }
 
     @Step("Subsystem with code: {string}, name: {string} and status: {string} is listed")
@@ -104,6 +104,6 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
 
     @Step("Subsystem with code: {string} not listed any more")
     public void subsystemIsNotShown(String subsystemCode) {
-        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode).shouldNotBe(Condition.visible);
+        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, null, null).shouldNotBe(Condition.visible);
     }
 }

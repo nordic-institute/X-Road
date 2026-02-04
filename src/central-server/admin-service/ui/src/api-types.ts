@@ -24,12 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-// Used in api-keys endpoints, but not defined in OpenAPI definitions
-export interface ApiKey {
-  id: number;
-  roles: string[];
-  key?: string;
-}
 
 // return value of notifications/session-status
 export type SessionStatus = {

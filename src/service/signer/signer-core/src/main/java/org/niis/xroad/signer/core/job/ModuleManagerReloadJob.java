@@ -27,20 +27,40 @@
 package org.niis.xroad.signer.core.job;
 
 
+import io.quarkus.runtime.Startup;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.ScheduledExecution;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.core.tokenmanager.module.AbstractModuleManager;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.tokenmanager.module.ModuleManager;
 
 @Slf4j
-@Component
+@Startup
+@ApplicationScoped
 @RequiredArgsConstructor
 public class ModuleManagerReloadJob {
-    private final AbstractModuleManager moduleManager;
+    private final ModuleManager moduleManager;
+    private final Scheduler scheduler;
+    private final SignerProperties signerProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    @Scheduled(fixedDelayString = "#{T(ee.ria.xroad.common.SystemProperties).getModuleManagerUpdateInterval() * 1000}")
-    public void update() {
+    @PostConstruct
+    public void init() {
+        log.info("Scheduling ModuleManagerReloadJob every {}s", signerProperties.moduleManagerUpdateInterval());
+        scheduler.newJob(getClass().getSimpleName())
+                .setDelayed("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
+                .setInterval("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
+                .setTask(this::update)
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
+    }
+
+    public void update(ScheduledExecution execution) {
         log.trace("Triggering ModuleManager update");
         moduleManager.refresh();
     }

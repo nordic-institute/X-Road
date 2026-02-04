@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.globalconf.impl.extension;
 
-import ee.ria.xroad.common.conf.AbstractXmlConf;
-
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensionFactory;
+import org.niis.xroad.globalconf.model.AbstractXmlConf;
 
 public class GlobalConfExtensionFactoryImpl implements GlobalConfExtensionFactory {
 

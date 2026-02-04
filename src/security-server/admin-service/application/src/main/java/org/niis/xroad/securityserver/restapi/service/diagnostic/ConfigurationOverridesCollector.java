@@ -24,49 +24,31 @@
  */
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.configuration2.INIConfiguration;
-import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.springframework.beans.factory.config.YamlMapFactoryBean;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 @Order(DiagnosticCollector.ORDER_GROUP2)
-public class ConfigurationOverridesCollector implements DiagnosticCollector<List<String>> {
+public class ConfigurationOverridesCollector implements DiagnosticCollector<Map<String, Object>> {
+
+    private static final String LOCAL_CONF_FILE = "/etc/xroad/conf.d/local.yaml";
 
     @Override
     public String name() {
-        return "Configuration overrides from local.ini";
+        return "Configuration overrides from local.yaml";
     }
 
     @Override
-    public List<String> collect() {
-        INIConfiguration ini = new INIConfiguration();
-        // turn off list delimiting (before parsing),
-        // otherwise we lose everything after first ","
-        // in loadSection/sec.getString(key)
-        ini.setListDelimiterHandler(DisabledListDelimiterHandler.INSTANCE);
-        try (var r = Files.newBufferedReader(Paths.get(SystemProperties.CONF_FILE_USER_LOCAL))) {
-            var keys = new LinkedList<String>();
-            ini.read(r);
-
-            for (String sectionName : ini.getSections()) {
-                ini.getSection(sectionName).getKeys().forEachRemaining(key -> keys.add(sectionName + "." + key));
-            }
-            return keys;
-        } catch (IOException | ConfigurationException e) {
-            throw XrdRuntimeException.systemInternalError("Failed to read local.ini file", e);
-        }
+    public Map<String, Object> collect() {
+        var yamlMapFactoryBean = new YamlMapFactoryBean();
+        yamlMapFactoryBean.setResources(new FileSystemResource(LOCAL_CONF_FILE));
+        return yamlMapFactoryBean.getObject();
     }
+
 }

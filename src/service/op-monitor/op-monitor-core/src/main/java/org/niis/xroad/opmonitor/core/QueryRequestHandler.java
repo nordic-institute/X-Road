@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -69,10 +68,10 @@ import java.util.function.Consumer;
 import java.util.zip.GZIPOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 /**
  * Base class for operational daemon query request handlers.
@@ -115,7 +114,7 @@ abstract class QueryRequestHandler {
             factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file,jar:file");
             return factory.newSchema(ResourceUtils.getClasspathResource("op-monitoring.xsd"));
         } catch (SAXException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -135,7 +134,7 @@ abstract class QueryRequestHandler {
         return event.getSeverity() != ValidationEvent.ERROR
                 || !(event.getLinkedException() instanceof AccessorException)
                 || !(event.getLinkedException().getCause()
-                instanceof CodedException);
+                instanceof XrdRuntimeException);
     }
 
     @SuppressWarnings("unchecked")
@@ -147,7 +146,7 @@ abstract class QueryRequestHandler {
             return (T) unmarshaller.unmarshal(SoapUtils.getFirstChild(
                     requestSoap.getSoap().getSOAPBody()), clazz).getValue();
         } catch (UnmarshalException e) {
-            throw new CodedException(X_INVALID_REQUEST, e.getLinkedException())
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, e.getLinkedException())
                     .withPrefix(CLIENT_X);
         }
     }

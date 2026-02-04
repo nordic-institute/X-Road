@@ -34,7 +34,7 @@ import org.niis.xroad.cs.test.ui.page.SecurityServerDetailsPageObj;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
 
@@ -92,7 +92,7 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
         securityServerDetailsPageObj.editAddressDialog().btnSave().shouldBe(visible)
                 .shouldBe(Condition.enabled)
                 .click();
-        securityServerDetailsPageObj.editAddressDialog().dialog().shouldNotBe(visible);
+        securityServerDetailsPageObj.editAddressDialog().self().shouldNotBe(visible);
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
@@ -103,7 +103,7 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
         securityServerDetailsPageObj.editAddressDialog().btnCancel().shouldBe(visible)
                 .shouldBe(Condition.enabled)
                 .click();
-        securityServerDetailsPageObj.editAddressDialog().dialog().shouldNotBe(visible);
+        securityServerDetailsPageObj.editAddressDialog().self().shouldNotBe(visible);
     }
 
     @Step("user opens delete security server dialog")
@@ -144,7 +144,7 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
         securityServerDetailsPageObj.deleteSecurityServerDialog().btnCancel().shouldBe(visible)
                 .shouldBe(Condition.enabled)
                 .click();
-        securityServerDetailsPageObj.deleteSecurityServerDialog().dialog().shouldNotBe(visible);
+        securityServerDetailsPageObj.deleteSecurityServerDialog().self().shouldNotBe(visible);
     }
 }
 

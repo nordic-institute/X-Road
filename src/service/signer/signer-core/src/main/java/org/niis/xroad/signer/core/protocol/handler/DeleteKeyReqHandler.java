@@ -25,33 +25,39 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles key deletions.
  */
 @Slf4j
-@Component
+@ApplicationScoped
+@RequiredArgsConstructor
 public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty> {
+    private final TokenLookup tokenLookup;
+    private final CertManager certManager;
+    private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
     protected Empty handle(DeleteKeyReq request) {
-        TokenAndKey tokenAndKey =
-                TokenManager.findTokenAndKey(request.getKeyId());
+        TokenAndKey tokenAndKey = tokenLookup.findTokenAndKey(request.getKeyId());
 
         if (request.getDeleteFromDevice()) {
             log.trace("Deleting key '{}' from device", request.getKeyId());
 
-            deleteKeyFile(tokenAndKey.tokenId(), request);
+            deleteKey(tokenAndKey.tokenId(), request);
         } else {
             log.trace("Deleting key '{}' from configuration", request.getKeyId());
 
@@ -61,16 +67,16 @@ public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty>
     }
 
 
-    private void deleteKeyFile(String tokenId, DeleteKeyReq request) {
-        getTokenWorker(tokenId)
+    private void deleteKey(String tokenId, DeleteKeyReq request) {
+        tokenWorkerProvider.getTokenWorker(tokenId)
                 .handleDeleteKey(request.getKeyId());
     }
 
-    private static void removeCertsFromKey(KeyInfo keyInfo) {
+    private void removeCertsFromKey(KeyInfo keyInfo) {
         keyInfo.getCerts().stream().filter(CertificateInfo::isSavedToConfiguration)
-                .map(CertificateInfo::getId).forEach(TokenManager::removeCert);
+                .map(CertificateInfo::getId).forEach(certManager::removeCert);
 
         keyInfo.getCertRequests().stream()
-                .map(CertRequestInfo::getId).forEach(TokenManager::removeCertRequest);
+                .map(CertRequestInfo::getId).forEach(certManager::removeCertRequest);
     }
 }

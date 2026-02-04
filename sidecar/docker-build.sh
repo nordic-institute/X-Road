@@ -12,7 +12,7 @@ for i in "$@" ; do
 done
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
-version="${1:-7.8.0}"
+version="${1:-8.0.0}"
 tag="${2:-xroad-security-server-sidecar}"
 repo="${3-}"
 dist="${4-}"
@@ -33,7 +33,7 @@ copy_variant_conf() {
   local build_conf_dir="$dir/build/etc/xroad/conf.d"
   rm -rf build
   mkdir -p "$build_conf_dir"
-  cp "$dir/../src/packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
+  cp "$dir/../deployment/native-packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
 }
 
 

@@ -27,7 +27,6 @@
 
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -37,12 +36,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,9 +51,8 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
 
 @Slf4j
 public abstract class BaseSignedRequestCallback<T> implements ManagementRequestDecoderCallback {
@@ -70,12 +70,14 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
 
     private T request;
 
-    protected BaseSignedRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback,
+    protected BaseSignedRequestCallback(GlobalConfProvider globalConfProvider,
+                                        OcspVerifierFactory ocspVerifierFactory,
+                                        ManagementRequestVerifier.DecoderCallback rootCallback,
                                         ManagementRequestType requestType) {
         this.globalConfProvider = globalConfProvider;
         this.rootCallback = rootCallback;
         this.requestType = requestType;
-        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider);
+        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider, ocspVerifierFactory);
     }
 
     @Override
@@ -94,7 +96,8 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
 
             clientCertOcspBytes = IOUtils.toByteArray(content);
         } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart while reading request of type %s", requestType);
+            throw XrdRuntimeException.systemInternalError("Unexpected content in multipart while reading request of type %s"
+                    .formatted(requestType));
         }
     }
 
@@ -124,7 +127,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
 
         if (!ManagementRequestVerificationUtils.verifySignature(x509ClientCert, clientSignatureBytes,
                 clientSignatureAlgoId, dataToVerify)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Client signature verification failed");
+            throw XrdRuntimeException.systemException(INVALID_SIGNATURE_VALUE, "Client signature verification failed");
         }
 
         log.info("Verifying client certificate");

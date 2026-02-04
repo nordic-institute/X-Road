@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Initialization
 Feature: 0300 - SS: Keys and certificates
 
@@ -8,6 +9,7 @@ Feature: 0300 - SS: Keys and certificates
     And User xrd logs in to SecurityServer with password secret
     And signer service is restarted
 
+  @Download
   Scenario Outline: <$label> key is added and imported
     Given healthcheck has errors and error message is "No certificate chain available in authentication key."
     And Keys and certificates tab is selected
@@ -25,14 +27,15 @@ Feature: 0300 - SS: Keys and certificates
     And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
       | $token      | $usage         | $label             | $client      | $dns  | $certService | $certStatus | $ocspStatus |
-      | softToken-0 | SIGNING        | test signing key   | DEV:COM:1234 | ss0   | Test CA      | Registered  | Good        |
-      | softToken-0 | AUTHENTICATION | test auth key      |              | ss0   | Test CA      | Saved       | Disabled    |
+      | softToken-0 | SIGNING        | test signing key   | DEV:COM:1234 | ui   | Test CA      | Registered  | Good        |
+      | softToken-0 | AUTHENTICATION | test auth key      |              | ui   | Test CA      | Saved       | Disabled    |
 
   Scenario: Token edit page is navigable
     Given Keys and certificates tab is selected
     When Token: softToken-0 edit page is opened
     Then Token Alert about token policy being enforced is present
 
+  @Download
   Scenario Outline: New key with with empty label is created
     Given Keys and certificates tab is selected
     And Token: <$token> is present and expanded
@@ -44,8 +47,8 @@ Feature: 0300 - SS: Keys and certificates
     And Token: <$token> - has <$authKeyAmount> auth keys, <$signKeyAmount> sign keys
     Examples:
       | $token      | $usage         | $label | $client      | $dns | $certService | $authKeyAmount | $signKeyAmount |
-      | softToken-0 | SIGNING        |        | DEV:COM:1234 | ss0  | Test CA      | 1              | 2              |
-      | softToken-0 | AUTHENTICATION |        |              | ss0  | Test CA      | 2              | 2              |
+      | softToken-0 | SIGNING        |        | DEV:COM:1234 | ui  | Test CA      | 1              | 2              |
+      | softToken-0 | AUTHENTICATION |        |              | ui  | Test CA      | 2              | 2              |
 
   Scenario: Add key wizard is navigable
     Given Keys and certificates tab is selected
@@ -66,17 +69,18 @@ Feature: 0300 - SS: Keys and certificates
     When Token: softToken-0 - "SIGNING" CSR in position 1 is deleted
     Then Token: softToken-0 - has 1 auth keys, 1 sign keys
 
+  @Download
   Scenario: Generating multiple CSR for key
     Given Keys and certificates tab is selected
     And Token: softToken-0 is present and expanded
     When Token: softToken-0 - Add key wizard is opened
     And Key Label is set to "key for multiple csr"
     And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "Test CA" and CSR format "PEM"
-    And Generate "AUTHENTICATION" CSR is set to DNS "ss0" and Organization "ui-test"
+    And Generate "AUTHENTICATION" CSR is set to DNS "ui" and Organization "ui-test"
     And CSR with extension "pem" successfully generated
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
     Then Token "softToken-0", key "key for multiple csr" has 4 certificate signing requests
 
   Scenario: Certificate format is preselected
@@ -104,7 +108,7 @@ Feature: 0300 - SS: Keys and certificates
     And Token: softToken-0 is logged-in
 
   Scenario: Inactive token can be deleted
-    Given Predefined inactive signer token is uploaded
+    Given Predefined inactive signer token is inserted
     And Keys and certificates tab is selected
-    When Token: softToken-for-deletion edit page is opened
-    Then Inactive token softToken-for-deletion is successfully deleted
+    When Token: hsmToken-for-deletion edit page is opened
+    Then Inactive token hsmToken-for-deletion is successfully deleted

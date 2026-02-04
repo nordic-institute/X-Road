@@ -54,7 +54,7 @@ public class CertificateStepDefs extends BaseUiStepDefs {
 
     @Step("Certificate is closed")
     public void certIsClosed() {
-        certificatePageObj.btnClose().shouldBe(visible).click();
-        certificatePageObj.btnClose().shouldNotBe(visible);
+        commonPageObj.elevatedView.btnClose().shouldBe(visible).click();
+        commonPageObj.elevatedView.btnClose().shouldNotBe(visible);
     }
 }

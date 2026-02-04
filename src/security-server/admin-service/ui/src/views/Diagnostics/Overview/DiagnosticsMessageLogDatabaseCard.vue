@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,80 +25,67 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card
-    variant="flat"
-    class="xrd-card diagnostic-card"
+  <XrdCard
+    data-test="diagnostics-backup-encryption"
+    title="diagnostics.encryption.messageLog.database.title"
+    class="overview-card"
     :class="{ disabled: !messageLogEnabled }"
   >
-    <v-card-text class="xrd-card-text">
-      <v-row no-gutters class="px-4">
-        <v-col>
-          <h3 :class="{ disabled: !messageLogEnabled }">
-            {{ $t('diagnostics.encryption.messageLog.database.title') }}
-          </h3>
-        </v-col>
-        <v-col v-if="!messageLogEnabled" class="text-right disabled">
-          {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
-        </v-col>
-      </v-row>
+    <template v-if="!messageLogEnabled" #append-title>
+      <XrdStatusChip type="inactive" text="diagnostics.addOnStatus.messageLogDisabled" />
+    </template>
 
-      <div
-        v-if="messageLogEncryptionDiagnostics"
-        class="sub-title status-wrapper"
-        data-test="message-log-database-encryption-status"
-      >
-        <span>
-          {{ $t('diagnostics.encryption.statusTitle') }}
-        </span>
-        <xrd-status-icon
-          :status="
-            messageLogEncryptionStatusIconType(
-              messageLogEncryptionDiagnostics.message_log_database_encryption_status,
-            )
-          "
-        />
-        {{
-          $t(
-            `diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_database_encryption_status}`,
-          )
-        }}
-      </div>
-      <XrdEmptyPlaceholder
-        :loading="messageLogEncryptionLoading"
-        :data="messageLogEncryptionDiagnostics"
-        :no-items-text="$t('noData.noData')"
-      />
-    </v-card-text>
-  </v-card>
+    <div v-if="messageLogEncryptionDiagnostics" class="pl-4 pb-4 status" data-test="message-log-database-encryption-status">
+      <span class="mr-2">
+        {{ $t('diagnostics.encryption.statusTitle') }}
+      </span>
+      <XrdStatusChip :type="messageLogEncryptionStatusType" :text="`diagnostics.encryption.status.${messageLogDatabaseEncryptionStatus}`">
+        <template #icon>
+          <XrdStatusIcon class="mr-1 ml-n1" :status="messageLogEncryptionStatusIcon" />
+        </template>
+      </XrdStatusChip>
+    </div>
+    <XrdEmptyPlaceholder
+      :loading="messageLogEncryptionLoading"
+      :data="messageLogEncryptionDiagnostics"
+      :no-items-text="$t('noData.noData')"
+    />
+  </XrdCard>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
+import { XrdCard, XrdStatusChip, statusToType, XrdStatusIcon, XrdEmptyPlaceholder } from '@niis/shared-ui';
+
+type Status = 'ok' | 'pending' | 'error';
+type Disabled = `${Status}-disabled`;
+type StatusAndDisabled = Status | Disabled;
 
 export default defineComponent({
+  components: { XrdStatusChip, XrdCard, XrdStatusIcon, XrdEmptyPlaceholder },
   props: {
     messageLogEncryptionLoading: {
       type: Boolean,
     },
   },
   computed: {
-    ...mapState(useDiagnostics, [
-      'messageLogEnabled',
-      'messageLogEncryptionDiagnostics',
-    ]),
-  },
-  methods: {
-    messageLogEncryptionStatusIconType(enabled: boolean): string {
+    ...mapState(useDiagnostics, ['messageLogEnabled', 'messageLogEncryptionDiagnostics']),
+    messageLogDatabaseEncryptionStatus() {
+      return this.messageLogEncryptionDiagnostics?.message_log_database_encryption_status;
+    },
+    messageLogEncryptionStatusIcon(): StatusAndDisabled {
       if (this.messageLogEnabled) {
-        return this.encryptionStatusIconType(enabled);
+        return this.encryptionStatusIconType;
       } else {
-        return this.encryptionStatusIconType(enabled) + '-disabled';
+        return (this.encryptionStatusIconType + '-disabled') as Disabled;
       }
     },
-
-    encryptionStatusIconType(enabled: boolean): string {
-      switch (enabled) {
+    messageLogEncryptionStatusType() {
+      return statusToType(this.messageLogEncryptionStatusIcon);
+    },
+    encryptionStatusIconType(): Status {
+      switch (this.messageLogDatabaseEncryptionStatus) {
         case true:
           return 'ok';
         case false:
@@ -107,62 +95,19 @@ export default defineComponent({
       }
     },
   },
+  methods: {},
 });
 </script>
 <style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
-
 .disabled {
-  cursor: not-allowed;
-  background: colors.$Black10;
-  color: colors.$WarmGrey100;
-}
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
+  :deep(.v-card-title),
+  :deep(.v-card-text) {
+    background-color: rgba(var(--v-theme-on-surface-variant), 0.08) !important;
   }
-}
 
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.sub-title {
-  margin-top: 30px;
-  margin-left: 16px;
-
-  font-style: normal;
-  font-weight: bold;
-  font-size: colors.$DefaultFontSize;
-  line-height: 20px;
-  color: colors.$Black100;
-
-  span {
-    font-style: normal;
-    font-weight: normal;
-    font-size: colors.$DefaultFontSize;
-    line-height: 20px;
-    padding-right: 16px;
+  :deep(.component-title-text),
+  .status {
+    opacity: 0.6;
   }
 }
 </style>

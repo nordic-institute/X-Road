@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
@@ -44,8 +42,7 @@ import java.util.Properties;
 /**
  * EnvironmentPostProcessor which reads the properties from a file.
  * This customization is needed since we want to read Spring properties
- * from a file (such as db.properties), whose location may be customized
- * in {@link SystemProperties}
+ * from a file (such as db.properties)
  */
 @Profile("nontest")
 public abstract class PropertyFileReadingEnvironmentPostProcessor implements EnvironmentPostProcessor {
@@ -54,7 +51,7 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
 
     protected abstract String getPropertySourceName();
 
-    protected abstract String getPropertyFilePath();
+    protected abstract String getPropertyFilePath(ConfigurableEnvironment environment);
 
     protected abstract boolean isSupported(String propertyName);
 
@@ -62,7 +59,6 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
 
     /**
      * Is property file mandatory - if it is, throws exception if file cannot be read
-     *
      * @return
      */
     protected boolean isPropertyFileMandatory() {
@@ -78,18 +74,20 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
         application.addInitializers(ctx -> log.replayTo(PropertyFileReadingEnvironmentPostProcessor.class));
         // we read properties from file only if not testing
         if (environment.acceptsProfiles(Profiles.of("nontest"))) {
+            final String propertyFilePath = getPropertyFilePath(environment);
+            log.error("Random");
             // called twice since IntelliJ tests load the class twice
             initialize();
             try {
                 Properties originalProperties = new Properties();
 
-                try (FileInputStream originalPropertiesStream = new FileInputStream(getPropertyFilePath())) {
+                try (FileInputStream originalPropertiesStream = new FileInputStream(propertyFilePath)) {
                     originalProperties.load(originalPropertiesStream);
                 } catch (IOException e) {
                     if (isPropertyFileMandatory()) {
                         throw e;
                     } else {
-                        log.info(String.format("Property file %s not found", getPropertyFilePath()));
+                        log.info(String.format("Property file %s not found", propertyFilePath));
                     }
                 }
 
@@ -105,7 +103,7 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
                 environment.getPropertySources().addFirst(new MapPropertySource(
                         getPropertySourceName(), springPropertiesMap));
             } catch (Exception e) {
-                log.error("Failed to process properties file: " + getPropertyFilePath(), e);
+                log.error("Failed to process properties file: " + propertyFilePath, e);
             }
         }
     }

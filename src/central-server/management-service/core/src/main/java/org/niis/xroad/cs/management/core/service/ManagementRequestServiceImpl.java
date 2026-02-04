@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.management.core.service;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.ClientRegRequestType;
@@ -38,6 +36,7 @@ import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
@@ -60,7 +59,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 @Slf4j
 @Service
@@ -104,7 +103,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             case ClientRequestType req when ManagementRequestType.CLIENT_ENABLE_REQUEST == requestType -> new ClientEnableRequestDto()
                     .clientId(clientIdConverter.convertId(req.getClient()))
                     .securityServerId(securityServerIdConverter.convertId(req.getServer()));
-            default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
+            default -> throw XrdRuntimeException.systemException(INVALID_REQUEST, "Unsupported request type %s", requestType);
         };
 
         dto.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
@@ -128,7 +127,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     private Integer addManagementRequestInternal(ManagementRequestDto managementRequest) {
         var result = managementRequestsApi.addManagementRequest(managementRequest);
         if (!result.hasBody()) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
+            throw XrdRuntimeException.systemInternalError("Empty response");
         } else {
             return Optional.ofNullable(result.getBody())
                     .map(ManagementRequestDto::getId)

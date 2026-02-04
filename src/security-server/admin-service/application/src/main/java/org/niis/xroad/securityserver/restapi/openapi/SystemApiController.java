@@ -29,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
+import org.niis.xroad.securityserver.restapi.converter.AuthProviderTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.securityserver.restapi.converter.MaintenanceModeConverter;
 import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
@@ -47,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.AuthProviderTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedNameDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeDto;
@@ -70,12 +72,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
-
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INTERNAL_KEY_CERT_INTERRUPTED;
 
 /**
  * system api controller
@@ -99,6 +100,7 @@ public class SystemApiController implements SystemApi {
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final CsrFilenameCreator csrFilenameCreator;
     private final AuditDataHelper auditDataHelper;
+    private final UserAuthenticationConfig userAuthenticationConfig;
 
     @Override
     @PreAuthorize("hasAuthority('EXPORT_INTERNAL_TLS_CERT')")
@@ -106,6 +108,13 @@ public class SystemApiController implements SystemApi {
         String filename = "certs.tar.gz";
         byte[] certificateTar = internalTlsCertificateService.exportInternalTlsCertificate();
         return ControllerUtil.createAttachmentResourceResponse(certificateTar, filename);
+    }
+
+    @PreAuthorize("hasAuthority('VIEW_AUTHENTICATION_PROVIDER_TYPE')")
+    public ResponseEntity<AuthProviderTypeResponseDto> getAuthProviderType() {
+        var authProviderType = AuthProviderTypeMapping.map(userAuthenticationConfig.getAuthenticationProvider()).orElseThrow();
+        var response = new AuthProviderTypeResponseDto().authProviderType(authProviderType);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @Override
@@ -129,11 +138,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_KEY_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_KEY_CERT)
     public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
-        try {
-            internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, INTERNAL_KEY_CERT_INTERRUPTED.build());
-        }
+        internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         return ControllerUtil.createCreatedResponse("/api/system/certificate", null);
     }
 
@@ -224,7 +229,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_CSR')")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_CSR)
     public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedNameDto distinguishedName) {
-        byte[] csrBytes = systemService.generateInternalCsr(distinguishedName.getName());
+        byte[] csrBytes = internalTlsCertificateService.generateInternalCsr(distinguishedName.getName());
         return ControllerUtil.createAttachmentResourceResponse(
                 csrBytes, csrFilenameCreator.createInternalCsrFilename());
     }
@@ -232,13 +237,13 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('IMPORT_INTERNAL_TLS_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.IMPORT_INTERNAL_TLS_CERT)
-    public ResponseEntity<CertificateDetailsDto> importSystemCertificate(Resource certificateResource) {
+    public ResponseEntity<CertificateDetailsDto> importSystemCertificate(MultipartFile file) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
-        String filename = certificateResource.getFilename();
+        String filename = file.getOriginalFilename();
         auditDataHelper.put(RestApiAuditProperty.CERT_FILE_NAME, filename);
 
-        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = internalTlsCertificateService.importInternalTlsCertificate(certificateBytes);
@@ -267,8 +272,8 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
     @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_ANCHOR)
-    public ResponseEntity<Void> replaceAnchor(Resource anchorResource) {
-        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+    public ResponseEntity<Void> replaceAnchor(MultipartFile file) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
 
         systemService.replaceAnchor(anchorBytes);
 
@@ -277,24 +282,24 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
-    public ResponseEntity<AnchorDto> previewAnchor(Boolean verifyInstance, Resource anchorResource) {
-        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+    public ResponseEntity<AnchorDto> previewAnchor(MultipartFile file, Boolean verifyInstance) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
         AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, verifyInstance);
 
         return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
     }
 
     /**
-     * For uploading an initial configuration anchor. The difference between this and {@link #replaceAnchor(Resource)}}
+     * For uploading an initial configuration anchor. The difference between this and {@link #replaceAnchor(MultipartFile)}}
      * is that the anchor's instance does not get verified
-     * @param anchorResource
+     * @param file
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = RestApiAuditEvent.INIT_ANCHOR)
-    public ResponseEntity<Void> uploadInitialAnchor(Resource anchorResource) {
-        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+    public ResponseEntity<Void> uploadInitialAnchor(MultipartFile file) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
 
         systemService.uploadInitialAnchor(anchorBytes);
 

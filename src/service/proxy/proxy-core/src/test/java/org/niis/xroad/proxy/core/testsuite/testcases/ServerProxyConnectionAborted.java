@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingAbortingServerProxy;
@@ -39,7 +37,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
  * Client sends normal message, SP aborts connection.
@@ -75,15 +73,15 @@ public class ServerProxyConnectionAborted extends MessageTestCase implements Usi
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
+        assertErrorCode(SERVER_CLIENTPROXY_X, NETWORK_ERROR.code());
     }
 
-    private static final class AbortingServer implements Runnable {
+    private final class AbortingServer implements Runnable {
         @Override
         public void run() {
             try {
                 byte[] buffer = new byte[1024];
-                int port = SystemProperties.getServerProxyPort();
+                int port = proxyTestSuiteHelper.proxyProperties.serverProxyPort();
 
                 LOG.debug("Starting to listen at 127.0.0.1:{}", port);
 

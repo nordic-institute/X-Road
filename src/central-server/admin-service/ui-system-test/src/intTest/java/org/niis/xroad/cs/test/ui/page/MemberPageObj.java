@@ -27,10 +27,10 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper;
 
 import static com.codeborne.selenide.Selenide.$x;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSelect;
 
 @SuppressWarnings("InnerClassMayBeStatic")
 public class MemberPageObj {
@@ -49,13 +49,13 @@ public class MemberPageObj {
     }
 
     public SelenideElement listRowOf(String memberName) {
-        var xpath = "//div[@data-test='members-table']//table/tbody/tr/td//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='members-table']//table/tbody/tr/td//div[@data-test='member-name' and .//span[contains(., '%s')]]";
         return $x(String.format(xpath, memberName));
     }
 
     public SelenideElement listRowOf(String memberName, String memberCode, String memberClass) {
-        var xpath = "//div[@data-test='members-view']//table/tbody/tr[(normalize-space(td[1]/div/text()) = '%s') "
-                + " and (td[2] = '%s') and (td[3] = '%s')]";
+        var xpath = "//div[@data-test='members-view']//table/tbody/tr"
+                + "[td[1][.//span[text() = '%s']] and td[2][text() = '%s'] and td[3][text() = '%s']]";
 
         return $x(String.format(xpath, memberName, memberClass, memberCode));
     }
@@ -73,7 +73,7 @@ public class MemberPageObj {
             return $x("//div[@data-test='add-member-code-input']");
         }
 
-        public Select selectMemberClass() {
+        public VuetifyHelper.Select selectMemberClass() {
             return vSelect($x("//div[@data-test='add-member-class-input']"));
         }
     }

@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
+
+import org.niis.xroad.common.core.exception.ErrorCode;
 
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
@@ -52,6 +53,6 @@ public class SignatureSchemaValidator extends SchemaValidator {
      * @throws IOException if validation is unsuccessful
      */
     public static void validate(Source source) throws IOException {
-        validate(schema, source, ErrorCodes.X_MALFORMED_SIGNATURE);
+        validate(schema, source, ErrorCode.MALFORMED_SIGNATURE);
     }
 }

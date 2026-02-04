@@ -27,19 +27,38 @@
 
 package org.niis.xroad.signer.test.glue;
 
-import org.niis.xroad.common.test.glue.BaseStepDefs;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.test.SignerClientHolder;
+import org.niis.xroad.signer.test.SignerIntTestContainerSetup;
+import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
+import org.niis.xroad.test.framework.core.file.ClasspathFileResolver;
+import org.niis.xroad.test.framework.core.report.TestReportService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-public class BaseSignerStepDefs extends BaseStepDefs {
+public class BaseSignerStepDefs {
     private static final String KEY_FRIENDLY_NAME_MAPPING = "tokenFriendlyNameToIdMapping";
-
-    protected SignerRpcClient signerRpcClient = SignerClientHolder.get();
+    @Autowired
+    protected CucumberScenarioProvider scenarioProvider;
+    @Autowired
+    protected ScenarioContext scenarioContext;
+    @Autowired
+    protected TestReportService testReportService;
+    @Autowired
+    protected SignerClientHolder clientHolder;
+    @Autowired
+    protected SignerIntTestContainerSetup signerIntTestSetup;
+    @Autowired
+    protected TestFrameworkCoreProperties coreProperties;
+    @Autowired
+    protected ClasspathFileResolver classpathFileResolver;
 
     protected Map<String, String> getTokenFriendlyNameToIdMapping() {
         Map<String, String> map = scenarioContext.getStepData(KEY_FRIENDLY_NAME_MAPPING);
@@ -50,19 +69,57 @@ public class BaseSignerStepDefs extends BaseStepDefs {
         return map;
     }
 
-    protected TokenInfo getTokenInfoByFriendlyName(String friendlyName) throws Exception {
-        var tokenInfo = signerRpcClient.getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
+    protected TokenInfo getTokenInfoByFriendlyName(String friendlyName) {
+        return getTokenInfoByFriendlyName(friendlyName, NodeProperties.NodeType.PRIMARY);
+    }
+
+    protected TokenInfo getTokenInfoByFriendlyName(String friendlyName, NodeProperties.NodeType nodeType) {
+        var tokenInfo = clientHolder.get(nodeType).getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
         testReportService.attachJson("TokenInfo", tokenInfo);
         return tokenInfo;
     }
 
-    protected KeyInfo findKeyInToken(String friendlyName, String keyName) throws Exception {
-        var foundKeyInfo = getTokenInfoByFriendlyName(friendlyName).getKeyInfo().stream()
-                .filter(keyInfo -> keyInfo.getFriendlyName().equals(keyName))
+    protected KeyInfo findKeyInToken(String friendlyName, String keyName) {
+        return findKeyInToken(friendlyName, keyName, NodeProperties.NodeType.PRIMARY);
+    }
+
+    protected KeyInfo findKeyInToken(String friendlyName, String keyName, NodeProperties.NodeType nodeType) {
+        var foundKeyInfo = getTokenInfoByFriendlyName(friendlyName, nodeType).getKeyInfo().stream()
+                .filter(keyInfo -> keyName.equals(keyInfo.getFriendlyName()))
                 .findFirst()
                 .orElseThrow();
         testReportService.attachJson("Key [" + keyName + "]", foundKeyInfo);
         return foundKeyInfo;
     }
 
+
+    /**
+     * Put a value in scenario context. Value can be accessed through getStepData.
+     *
+     * @param key   value key. Non-null.
+     * @param value value
+     */
+    protected void putStepData(StepDataKey key, Object value) {
+        scenarioContext.putStepData(key.name(), value);
+    }
+
+    /**
+     * Get value from scenario context.
+     *
+     * @param key value key
+     * @return value from the context
+     */
+    protected <T> Optional<T> getStepData(StepDataKey key) {
+        return Optional.ofNullable(scenarioContext.getStepData(key.name()));
+    }
+
+    /**
+     * An enumerated key for data transfer between steps.
+     */
+    public enum StepDataKey {
+        TOKEN_TYPE,
+        MANAGEMENT_REQUEST_ID,
+        DOWNLOADED_FILE,
+        CERT_FILE
+    }
 }

@@ -1,0 +1,10 @@
+services:
+  proxy:
+    volumes:
+        - ./msglog_encryption_config:/opt/app/config
+  openbao:
+    volumes:
+      - ./gpg_keys:/gpg-keys
+  ui:
+    volumes:
+      - ./gpg_keys:/gpg-keys

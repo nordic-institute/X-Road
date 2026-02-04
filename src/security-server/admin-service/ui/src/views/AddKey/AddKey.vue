@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,62 +25,40 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="view-wrap ms-auto">
-    <xrd-sub-view-title
-      class="pa-4"
-      :title="$t('csr.addKey')"
-      :show-close="false"
-    />
-    <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
-    <v-stepper
-      v-model="currentStep"
-      :alt-labels="true"
-      class="wizard-stepper wizard-noshadow"
-    >
-      <v-stepper-header class="wizard-noshadow">
-        <v-stepper-item :complete="currentStep > 1" :value="1">{{
-          $t('keys.detailsTitle')
-        }}</v-stepper-item>
-        <v-divider></v-divider>
-        <v-stepper-item :complete="currentStep > 2" :value="2">{{
-          $t('csr.csrDetails')
-        }}</v-stepper-item>
-        <v-divider></v-divider>
-        <v-stepper-item :complete="currentStep > 3" :value="3">{{
-          $t('csr.generateCsr')
-        }}</v-stepper-item>
-      </v-stepper-header>
+  <XrdElevatedViewSimple title="csr.addKey">
+    <XrdWizard v-model="currentStep">
+      <template #header-items>
+        <v-stepper-item :complete="currentStep > 1" :value="1">
+          {{ $t('keys.detailsTitle') }}
+        </v-stepper-item>
+        <v-divider />
 
-      <v-stepper-window class="wizard-stepper-content">
-        <!-- Step 1 -->
-        <v-stepper-window-item :value="1">
-          <WizardPageKeyLabel
-            :token-type="tokenType"
-            @cancel="cancel"
-            @done="currentStep = 2"
-          />
-        </v-stepper-window-item>
-        <!-- Step 2 -->
-        <v-stepper-window-item :value="2">
-          <WizardPageCsrDetails
-            @cancel="cancel"
-            @previous="currentStep = 1"
-            @done="save"
-          />
-        </v-stepper-window-item>
-        <!-- Step 3 -->
-        <v-stepper-window-item :value="3">
-          <WizardPageGenerateCsr
-            :key="csrGenPageKey"
-            key-and-csr
-            @cancel="cancel"
-            @previous="currentStep = 2"
-            @done="done"
-          />
-        </v-stepper-window-item>
-      </v-stepper-window>
-    </v-stepper>
-  </v-container>
+        <v-stepper-item :complete="currentStep > 2" :value="2">
+          {{ $t('csr.csrDetails') }}
+        </v-stepper-item>
+        <v-divider />
+
+        <v-stepper-item :value="3">
+          {{ $t('csr.generateCsr') }}
+        </v-stepper-item>
+      </template>
+
+      <!-- Step 1 -->
+      <v-stepper-window-item :value="1">
+        <WizardPageKeyLabel :token-type="tokenType" @cancel="cancel" @done="currentStep++" />
+      </v-stepper-window-item>
+
+      <!-- Step 2 -->
+      <v-stepper-window-item :value="2">
+        <WizardPageCsrDetails save-button-text="action.next" @cancel="cancel" @previous="currentStep--" @done="save" />
+      </v-stepper-window-item>
+
+      <!-- Step 3 -->
+      <v-stepper-window-item :value="3">
+        <WizardPageGenerateCsr :key="csrGenPageKey" key-and-csr @cancel="cancel" @previous="currentStep--" @done="done" />
+      </v-stepper-window-item>
+    </XrdWizard>
+  </XrdElevatedViewSimple>
 </template>
 
 <script lang="ts">
@@ -90,13 +69,15 @@ import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import { useNotifications } from '@/store/modules/notifications';
+import { XrdElevatedViewSimple, XrdWizard, useNotifications } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     WizardPageKeyLabel,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
+    XrdElevatedViewSimple,
+    XrdWizard,
   },
   props: {
     tokenId: {
@@ -108,6 +89,10 @@ export default defineComponent({
       required: true,
     },
   },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data() {
     return {
       currentStep: 1,
@@ -118,18 +103,11 @@ export default defineComponent({
     this.setCsrTokenId(this.tokenId);
     this.setCsrTokenType(this.tokenType);
     this.fetchCertificateAuthorities().catch((error) => {
-      this.showError(error);
+      this.addError(error);
     });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
-    ...mapActions(useCsr, [
-      'setCsrTokenId',
-      'setCsrTokenType',
-      'fetchCsrForm',
-      'resetCsrState',
-      'fetchCertificateAuthorities',
-    ]),
+    ...mapActions(useCsr, ['setCsrTokenId', 'setCsrTokenType', 'fetchCsrForm', 'resetCsrState', 'fetchCertificateAuthorities']),
 
     save(): void {
       this.fetchCsrForm().then(
@@ -138,7 +116,7 @@ export default defineComponent({
           this.rerenderCsrGenPage();
         },
         (error) => {
-          this.showError(error);
+          this.addError(error);
         },
       );
     },
@@ -157,6 +135,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/wizards';
-</style>
+<style lang="scss" scoped></style>

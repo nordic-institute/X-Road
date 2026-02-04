@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import java.util.Optional;
-
 public interface TokenWorkerProvider {
-    Optional<TokenWorker> getTokenWorker(String tokenId);
+    TokenWorker getTokenWorker(String tokenId);
 }

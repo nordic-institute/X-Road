@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,8 +27,7 @@
 <template>
   <v-progress-linear v-if="loading" height="2" indeterminate />
   <VChart
-    ref="chartRef"
-    :option="chartOptions"
+    ref="chartRef" :option="chartOptions"
     height="100%"
     width="100%"
   ></VChart>
@@ -64,7 +64,9 @@ use([
   GridComponent,
 ]);
 
-const props = defineProps<{
+type XaType = 'datetime';
+
+defineProps<{
   series: TrafficSeries[];
   loading?: boolean;
 }>();
@@ -95,7 +97,7 @@ const chartOptions = computed(() => ({
     top: '10%',
   },
   xAxis: {
-    type: 'time',
+    type: 'time' as XaType,
     splitNumber: 12,
     axisLabel: {
       formatter: {

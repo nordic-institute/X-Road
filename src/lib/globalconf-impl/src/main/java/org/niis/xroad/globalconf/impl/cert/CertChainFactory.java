@@ -25,10 +25,8 @@
  */
 package org.niis.xroad.globalconf.impl.cert;
 
-import ee.ria.xroad.common.CodedException;
-
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 
 import java.security.cert.X509Certificate;
@@ -38,10 +36,10 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_CERT_PATH;
 
-@RequiredArgsConstructor
+@UtilityClass
 public class CertChainFactory {
-    private final GlobalConfProvider globalConfProvider;
 
     /**
      * Builds certificate chain form the given array of certificates
@@ -52,12 +50,11 @@ public class CertChainFactory {
      * @param chain              the certificate chain
      * @return the certificate chain
      */
-    public CertChain create(String instanceIdentifier,
+    public static CertChain create(String instanceIdentifier,
                             X509Certificate[] chain) {
         if (chain.length < 2) {
-            throw new CodedException(X_CANNOT_CREATE_CERT_PATH,
-                    "Chain must have at least user's certificate "
-                            + "and root certificate authority");
+            throw XrdRuntimeException.systemException(CANNOT_CREATE_CERT_PATH,
+                    "Chain must have at least user's certificate and root certificate authority");
         }
 
         X509Certificate trustAnchor = chain[chain.length - 1];
@@ -84,13 +81,13 @@ public class CertChainFactory {
      *                           construct the cert chain.
      * @return the certificate chain
      */
-    public CertChain create(String instanceIdentifier,
+    public static CertChain create(String instanceIdentifier,
+                            X509Certificate trustAnchor,
                             X509Certificate cert, List<X509Certificate> additionalCerts) {
         try {
-            X509Certificate trustAnchor = globalConfProvider.getCaCert(instanceIdentifier, cert);
             return new CertChain(instanceIdentifier, cert, trustAnchor,
                     additionalCerts != null
-                            ? additionalCerts : new ArrayList<X509Certificate>());
+                            ? additionalCerts : new ArrayList<>());
         } catch (Exception ex) {
             throw translateWithPrefix(X_CANNOT_CREATE_CERT_PATH, ex);
         }

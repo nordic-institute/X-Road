@@ -1,1 +1,0 @@
-org.springframework.boot.env.EnvironmentPostProcessor=org.niis.xroad.securityserver.restapi.config.DatabasePropertiesEnvironmentPostProcessor,org.niis.xroad.securityserver.restapi.config.SslPropertiesEnvironmentPostProcessor,org.niis.xroad.securityserver.restapi.config.CommonPropertyEnvironmentPostProcessor

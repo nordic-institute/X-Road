@@ -1,3 +1,0 @@
-test-automation:
-  custom:
-    grpc-client-host-override:  "host.docker.internal"

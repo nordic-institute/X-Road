@@ -1,3 +1,0 @@
-#!/bin/bash
-. /etc/xroad/services/opmonitor.conf
-exec java ${XROAD_PARAMS} ${XROAD_OPMON_PARAMS} -cp "${CP}${ADDON_CP}" ${XROAD_ADDON_PARAMS} org.niis.xroad.opmonitor.application.OpMonitorDaemonMain

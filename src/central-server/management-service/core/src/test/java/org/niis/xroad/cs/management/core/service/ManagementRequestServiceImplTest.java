@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.management.core.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -87,24 +87,24 @@ class ManagementRequestServiceImplTest {
     }
 
     @Test
-    void shouldAddManagementRequestThrownCodedException() {
+    void shouldAddManagementRequestThrownXrdRuntimeException() {
         when(managementRequestsApi.addManagementRequest(any()))
                 .thenReturn(ResponseEntity.accepted().build());
 
         ClientRequestType request = new ClientRequestType();
 
-        assertThatExceptionOfType(CodedException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> managementRequestService.addManagementRequest(request, CLIENT_ENABLE_REQUEST));
     }
 
     @Test
-    void shouldAddManagementCertDeletionRequestThrownCodedException() {
+    void shouldAddManagementCertDeletionRequestThrownXrdRuntimeException() {
         when(managementRequestsApi.addManagementRequest(any()))
                 .thenReturn(ResponseEntity.accepted().build());
 
         AuthCertDeletionRequestType request = new AuthCertDeletionRequestType();
 
-        assertThatExceptionOfType(CodedException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> managementRequestService.addManagementRequest(request, AUTH_CERT_DELETION_REQUEST));
     }
 }

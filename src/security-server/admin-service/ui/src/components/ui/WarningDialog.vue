@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,12 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    v-if="dialog"
+  <XrdSimpleDialog
     title="warning"
+    hide-close
     :cancel-button-text="cancelButtonText"
     :save-button-text="acceptButtonText"
-    :show-close="false"
     :loading="loading"
     @save="accept"
     @cancel="cancel"
@@ -45,20 +45,18 @@
         </div>
       </div>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
 // A dialog for backend warnings
 import { defineComponent, PropType } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';
+import { XrdSimpleDialog } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog },
   props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
     localizationParent: {
       type: String,
       required: true,
@@ -95,7 +93,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>

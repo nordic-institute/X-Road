@@ -1,11 +1,10 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -27,32 +26,13 @@
 package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.test.framework.core.ui.page.AbstractCommonPageObj;
 
 import static com.codeborne.selenide.Selenide.$x;
-import static java.lang.String.format;
 
-/**
- * Common page objects which can be found in any page.
- */
-@SuppressWarnings("InnerClassMayBeStatic")
-public class CommonPageObj {
-    public final Dialog dialog = new Dialog();
-    public final Menu menu = new Menu();
-    public final SubMenu subMenu = new SubMenu();
-    public final SnackBar snackBar = new SnackBar();
-    public final Alerts alerts = new Alerts();
-    public final Form form = new Form();
+public class CommonPageObj extends AbstractCommonPageObj<CommonPageObj.Menu, CommonPageObj.SubMenu> {
 
-    public class Menu {
-
-        public SelenideElement usernameButton() {
-            return $x("//button[@data-test='username-button']");
-        }
-
-        public SelenideElement logout() {
-            return $x("//div[@data-test='logout-list-tile']");
-        }
-
+    public static class Menu extends org.niis.xroad.test.framework.core.ui.page.component.Menu {
         public SelenideElement clientsTab() {
             return $x(getTabXpath("Clients"));
         }
@@ -68,17 +48,11 @@ public class CommonPageObj {
         public SelenideElement settingsTab() {
             return $x(getTabXpath("Settings"));
         }
-
-        private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
-            return format(xpath, tabName);
-        }
     }
 
-    public class SubMenu {
-
+    public static class SubMenu extends org.niis.xroad.test.framework.core.ui.page.component.SubMenu {
         public SelenideElement backupAndRestoresTab() {
-            return $x("//*[@data-test='backupandrestore-tab-button']");
+            return $x("//*[@data-test='backup-and-restore-tab-button']");
         }
 
         public SelenideElement systemParametersTab() {
@@ -93,6 +67,10 @@ public class CommonPageObj {
             return $x("//*[@data-test='ss-tls-certificate-tab-button']");
         }
 
+        public SelenideElement adminUsersTab() {
+            return $x("//*[@data-test='admin-users-tab-button']");
+        }
+
         public SelenideElement trafficTab() {
             return $x("//*[@data-test='diagnostics-traffic-tab-button']");
         }
@@ -103,58 +81,8 @@ public class CommonPageObj {
 
     }
 
-    public class Form {
-
-        public SelenideElement inputErrorMessage() {
-            return $x("//div[contains(@class, 'v-messages__message')]");
-        }
-
-        public SelenideElement inputErrorMessage(String message) {
-            return $x(format("//div[contains(@class, 'v-messages__message') and text()='%s']", message));
-        }
+    public CommonPageObj() {
+        super(new Menu(), new SubMenu());
     }
 
-    public class Dialog {
-        public SelenideElement title() {
-            return $x("//span[@data-test='dialog-title']");
-        }
-
-        public SelenideElement btnCancel() {
-            return $x("//button[@data-test='dialog-cancel-button']");
-        }
-
-        public SelenideElement btnSave() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
-
-        public SelenideElement btnClose() {
-            return $x("//button[@data-test='close']");
-        }
-    }
-
-    public class SnackBar {
-        public SelenideElement success() {
-            return $x("//div[@data-test='success-snackbar']");
-        }
-
-        public SelenideElement btnClose() {
-            return $x("//button[@data-test='close-snackbar']");
-        }
-    }
-
-    public class Alerts {
-        public SelenideElement alert(final String text) {
-            return $x(format("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]", text));
-        }
-
-        public SelenideElement btnClose() {
-            return $x("//div[@data-test='contextual-alert']//button[@data-test='close-alert']");
-        }
-    }
-
-    public SelenideElement btnSessionExpired() {
-        return $x("//button[@data-test='session-expired-ok-button']");
-    }
 }
-
-

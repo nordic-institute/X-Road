@@ -78,7 +78,7 @@ public class TestSigningKey implements SigningKey {
 
         String signatureXML = ctx.createSignatureXml(signatureValue);
 
-        return ctx.createSignatureData(signatureXML, 0);
+        return new SignatureData(signatureXML);
     }
 
     private byte[] sign(SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {

@@ -34,6 +34,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.GroupMember;
 import org.niis.xroad.serverconf.model.LocalGroup;
 
@@ -54,7 +55,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
 
     @Before
     public void setup() {
-        GlobalConfProvider globalConfFacade = new GlobalConfImpl(null) {
+        GlobalConfProvider globalConfFacade = new GlobalConfImpl(null, null) {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
@@ -73,16 +74,20 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
         ClientId clientId = clientIdConverter.convertId("XRD2:GOV:M4:SS1");
         LocalGroup localGroup = new LocalGroup();
         GroupMember groupMember = new GroupMember();
+        Client client = new Client();
 
         groupMember.setId(1L);
         groupMember.setAdded(new Date());
         groupMember.setGroupMemberId(clientId);
+
+        client.setIdentifier(ClientId.Conf.create("XRD2", "GOV", "M4", "SS1"));
 
         localGroup.setId(1L);
         localGroup.setDescription("Local Group 1");
         localGroup.setGroupCode("Local Group Code 1");
         localGroup.setUpdated(new Date());
         localGroup.getGroupMembers().add(groupMember);
+        localGroup.setClient(client);
 
         LocalGroupDto group = localGroupConverter.convert(localGroup);
 
@@ -91,12 +96,16 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
 
     @Test
     public void convertWithoutMembers() {
+        Client client = new Client();
         LocalGroup localGroup = new LocalGroup();
+
+        client.setIdentifier(ClientId.Conf.create("XRD2", "GOV", "M4", "SS1"));
 
         localGroup.setId(1L);
         localGroup.setDescription("Local Group 1");
         localGroup.setGroupCode("Local Group Code 1");
         localGroup.setUpdated(new Date());
+        localGroup.setClient(client);
 
         localGroupConverter.convert(localGroup);
 

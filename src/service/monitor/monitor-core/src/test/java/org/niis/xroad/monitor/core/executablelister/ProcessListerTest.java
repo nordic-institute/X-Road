@@ -31,7 +31,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.monitor.core.JmxStringifiedData;
+import org.niis.xroad.monitor.core.StringifiedData;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -54,7 +54,6 @@ class ProcessListerTest {
      */
     @BeforeEach
     void setup() throws Exception {
-
         processOutputString = FileUtils.readFileToString(new File(RESOURCE_PATH + "processlist.txt"),
                 StandardCharsets.UTF_8.toString());
 
@@ -74,11 +73,11 @@ class ProcessListerTest {
             }
         };
 
-        JmxStringifiedData<ProcessInfo> data = testProcessLister.list();
+        StringifiedData<ProcessInfo> data = testProcessLister.list();
         assertEquals(11, data.getDtoData().size()); // no header row
-        assertEquals(12, data.getJmxStringData().size()); // header row included
+        assertEquals(12, data.getStringData().size()); // header row included
 
-        ProcessInfo info = data.getDtoData().iterator().next();
+        ProcessInfo info = data.getDtoData().getFirst();
         assertEquals("root", info.getUserId());
         assertEquals("7.0", info.getCpuLoad());
         assertEquals("marras05", info.getStartTime());
@@ -86,7 +85,7 @@ class ProcessListerTest {
         assertEquals("1", info.getProcessId());
         assertEquals("init", info.getCommand());
 
-        String jmxData = data.getJmxStringData().get(1);
-        assertEquals("root      7.0 marras05  0.2  1 init", jmxData);
+        String stringData = data.getStringData().get(1);
+        assertEquals("root      7.0 marras05  0.2  1 init", stringData);
     }
 }

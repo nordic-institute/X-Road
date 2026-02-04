@@ -32,7 +32,7 @@ import org.niis.xroad.ss.test.ui.page.TrafficPageObj;
 
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorOptionOf;
 
 public class TrafficStepDefs extends BaseUiStepDefs {
     private final TrafficPageObj trafficPage = new TrafficPageObj();

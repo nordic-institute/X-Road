@@ -34,7 +34,6 @@ import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
@@ -99,11 +98,6 @@ public class TokenInfo implements Serializable {
     }
 
     @ToString.Include
-    public int getSlotIndex() {
-        return message.getSlotIndex();
-    }
-
-    @ToString.Include
     public TokenStatusInfo getStatus() {
         var status = message.getStatus();
         return status != TokenStatusInfo.TOKEN_STATUS_UNSPECIFIED ? status : null;
@@ -113,7 +107,7 @@ public class TokenInfo implements Serializable {
     public List<KeyInfo> getKeyInfo() {
         return message.getKeyInfoList().stream()
                 .map(KeyInfo::new)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     @ToString.Include

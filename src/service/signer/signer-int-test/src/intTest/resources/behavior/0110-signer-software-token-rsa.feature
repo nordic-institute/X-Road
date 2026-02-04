@@ -14,6 +14,10 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
     And name "Third key" is set for generated key
     Then token "soft-token-000" has exact keys "First key,Second key,Third key"
     And sign mechanism for token "soft-token-000" key "Second key" is not null
+    When secondary node sync is forced
+    Then token "soft-token-000" has exact keys "First key,Second key,Third key" on secondary node
+    And sign mechanism for token "soft-token-000" key "Second key" is not null on secondary node
+    And set name for key not allowed on secondary node
 
   Scenario: Key is deleted
     Given new RSA key "key-X" generated for token "soft-token-000"
@@ -21,6 +25,8 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
     Then token info can be retrieved by key id
     When key "Third key" is deleted from token "soft-token-000"
     Then token "soft-token-000" has exact keys "First key,Second key,KeyX"
+    When secondary node sync is forced
+    Then token "soft-token-000" has exact keys "First key,Second key,KeyX" on secondary node
 
   Scenario: A key with Sign certificate is created
     Given new RSA key "key-10" generated for token "soft-token-000"
@@ -31,6 +37,8 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
     And SIGN CSR is processed by test CA
     And Generated certificate with initial status "registered" is imported for client "DEV:COM:1234:MANAGEMENT"
     Then token info can be retrieved by key id
+    When secondary node sync is forced
+    Then token info can be retrieved by key id on secondary node
 
   Scenario: A key with Auth certificate is created
     Given new RSA key "key-20" generated for token "soft-token-000"
@@ -41,6 +49,8 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
     And CSR is processed by test CA
     And Generated certificate with initial status "registered" is imported for client "DEV:COM:1234:MANAGEMENT"
     Then token info can be retrieved by key id
+    When secondary node sync is forced
+    Then token info can be retrieved by key id on secondary node
 
   Scenario: Sign fails with an unknown algorithm error
     Given digest can be signed using key "KeyX" from token "soft-token-000"
@@ -49,6 +59,8 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
   Scenario: Generate/Regenerate cert request
     When the SIGNING cert request is generated for token "soft-token-000" key "Second key" for client "DEV:test:member-2"
     And token and key can be retrieved by cert request
+    When secondary node sync is forced
+    Then token and key can be retrieved by cert request on secondary node
     Then cert request can be deleted
     When the SIGNING cert request is generated for token "soft-token-000" key "Second key" for client "DEV:test:member-2"
     And cert request is regenerated
@@ -58,10 +70,16 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
     When Wrong Certificate is not imported for client "DEV:test:member-2"
     And self signed cert generated for token "soft-token-000" key "Second key", client "DEV:test:member-2"
     And certificate info can be retrieved by cert hash
+    When secondary node sync is forced
+    Then certificate info can be retrieved by cert hash on secondary node
     When certificate can be deleted
     Then token "soft-token-000" key "Second key" has 0 certificates
+    When secondary node sync is forced
+    Then token "soft-token-000" key "Second key" has 0 certificates on secondary node
     When Certificate is imported for client "DEV:test:member-2"
     Then token "soft-token-000" key "Second key" has 1 certificates
+    When secondary node sync is forced
+    And token "soft-token-000" key "Second key" has 1 certificates on secondary node
 
   Scenario: Self signed certificate
     Given token "soft-token-000" key "First key" has 0 certificates
@@ -70,6 +88,9 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
     And keyId can be retrieved by cert hash
     And token and keyId can be retrieved by cert hash
     And certificate can be signed using key "First key" from token "soft-token-000"
+    When secondary node sync is forced
+    Then keyId can be retrieved by cert hash on secondary node
+    And token and keyId can be retrieved by cert hash on secondary node
 
   Scenario: Member signing info can be retrieved
     Given tokens list contains token "soft-token-000"
@@ -77,6 +98,7 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
 
   Scenario: Member certs are retrieved
     Then member "DEV:test:member-1" has 1 certificate
+    Then member "DEV:test:member-1" has 1 certificate on secondary node
 
   Scenario: Cert status can be updated
     Given self signed cert generated for token "soft-token-000" key "KeyX", client "DEV:test:member-2"
@@ -103,7 +125,8 @@ Feature: 0110 - Signer: SoftToken: Key operations (RSA)
   Scenario: Ocsp responses
     When ocsp responses are set
     Then ocsp responses can be retrieved
-    And null ocsp response is returned for unknown certificate
+    And null ocsp response is returned for unknown certificate on primary node
+    And null ocsp response is returned for unknown certificate on secondary node
 
   Scenario: Ocsp responses verified on certificate activation
     When the SIGNING cert request is generated for token "soft-token-000" key "SignKey from CA" for client "DEV:COM:1234:MANAGEMENT"

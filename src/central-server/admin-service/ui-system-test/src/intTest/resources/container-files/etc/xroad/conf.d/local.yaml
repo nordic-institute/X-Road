@@ -1,0 +1,8 @@
+xroad:
+  admin-service:
+    rate-limit-enabled: false
+    global-configuration-generation-rate-in-seconds: 5
+  configuration-client:
+    update-interval: 10
+  signer:
+    enforce-token-pin-policy: true

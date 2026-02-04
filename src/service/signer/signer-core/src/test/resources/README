@@ -1,0 +1,4 @@
+Testing keystores:
+  - keystore.p12
+      pin: Secret1234
+      keyAlias: 3A480F9A822DB1AF0349A1184AB84B5B74ED23EF

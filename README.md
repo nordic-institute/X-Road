@@ -50,7 +50,7 @@ See instructions in [src/BUILD.md](src/BUILD.md)
 
 **Local installation**
 
-X-Road central servers, configuration proxies and security servers can be automatically installed with the Ansible scripts found in ansible subdirectory. See instructions in [ansible/README.md](ansible/README.md)
+X-Road central servers, configuration proxies and security servers can be automatically installed with the Ansible scripts found in ansible subdirectory. See instructions in [development/ansible/README.md](development/ansible/README.md)
 
 ## X-Road technical documentation
 

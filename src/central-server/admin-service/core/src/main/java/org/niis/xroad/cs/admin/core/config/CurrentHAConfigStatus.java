@@ -26,20 +26,26 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Getter
+@RequiredArgsConstructor
 public class CurrentHAConfigStatus {
 
-    private static final String XROAD_HA_NODE_NAME_PROPERTY = "xroad.center.ha-node-name";
     private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
+
+    @Value("${xroad.admin-service.ha-node-name}")
+    private final String haNodeName;
 
     @Bean
     HAConfigStatus currentHaConfigStatus() {
-        String haNodeName = System.getProperty(XROAD_HA_NODE_NAME_PROPERTY);
         if (StringUtils.isEmpty(haNodeName)) {
             return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
         } else {

@@ -34,6 +34,8 @@ import org.openqa.selenium.devtools.v142.network.model.ConnectionType;
 
 import java.util.Optional;
 
+import static java.util.Optional.empty;
+
 public class CommonUiStepDefs extends BaseUiStepDefs {
 
     @After(value = "@LoadingTesting")
@@ -58,16 +60,16 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
     @Step("Browser is set in {} network speed")
     public void setInBrowserSpeed(String connectionType) {
         DevTools devTools = chromiumDevTools.getDevTools();
-        devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+        devTools.send(Network.enable(empty(), empty(), empty(), empty(), empty()));
         devTools.send(Network.emulateNetworkConditions(
                 false,
                 350,
                 32 * 1024,
                 64 * 1024,
                 Optional.of(ConnectionType.fromString(connectionType)),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
+                empty(),
+                empty(),
+                empty()
         ));
     }
 }

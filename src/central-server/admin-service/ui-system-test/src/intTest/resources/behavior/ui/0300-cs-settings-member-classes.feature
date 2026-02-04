@@ -1,4 +1,5 @@
 @CentralServer
+@Settings
 @MemberClass
 Feature: 0300 - CS: System Settings -> System parameters  -> Member Classes
 
