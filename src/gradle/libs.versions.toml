@@ -20,8 +20,8 @@ bouncyCastle = "1.83"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
 selenide="7.13.0"
-protoc = "4.32.1"
-grpc = "1.76.0"
+protoc = "4.33.5"
+grpc = "1.79.0"
 swaggerParser = "2.1.37"
 logback = "1.5.24"
 logbackAccess = "2.0.7"
@@ -175,7 +175,7 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.18.0" }
 sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
-protobuf = { id = "com.google.protobuf", version = "0.9.5" }
+protobuf = { id = "com.google.protobuf", version = "0.9.6" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.9" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
