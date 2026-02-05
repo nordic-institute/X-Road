@@ -95,7 +95,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_setup_memory.sh
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.py
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
-%attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_directories.sh
 %attr(755,root,root) /usr/share/xroad/scripts/write_tls_config.sh
 %attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_admin_user.sh
 /usr/share/xroad/db/liquibase-core.jar
@@ -157,14 +156,22 @@ fi
 %post
 umask 027
 
-echo "Running X-Road setup directories script..."
-if [ -x /usr/share/xroad/scripts/setup_xroad_directories.sh ]; then
-  /usr/share/xroad/scripts/setup_xroad_directories.sh
-  echo "  X-Road directories setup completed."
-else
-  echo "  Script not found or not executable!"
-  exit 1
-fi
+# ensure home directory ownership
+mkdir -p /var/lib/xroad
+su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
+chmod 0755 /var/lib/xroad
+chmod -R go-w /var/lib/xroad
+
+# nicer log directory permissions
+mkdir -p /var/log/xroad
+chmod -R go-w /var/log/xroad
+chmod 1770 /var/log/xroad
+chown xroad:adm /var/log/xroad
+
+#tmp folder
+mkdir -p /var/tmp/xroad
+chmod 1750 /var/tmp/xroad
+chown xroad:xroad /var/tmp/xroad
 
 #local overrides
 test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties
