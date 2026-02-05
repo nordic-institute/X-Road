@@ -1,14 +1,13 @@
 FROM ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Configure Artifactory for APT
-ARG ARTIFACTORY_URL
-ARG ARTIFACTORY_USER
-ARG ARTIFACTORY_CA_CERT
+# Configure package mirror for APT
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
 
-RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
-    --mount=type=secret,id=artifactory_token \
-    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
@@ -86,9 +85,9 @@ COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
-# Cleanup Artifactory configuration (restore public mirrors for published image)
-RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
-    /bin/bash /tmp/cleanup-artifactory-apt.sh
+# Cleanup mirror configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
 
 CMD ["/root/entrypoint.sh"]
 

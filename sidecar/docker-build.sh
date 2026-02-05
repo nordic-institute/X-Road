@@ -1,14 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 no_cache=""
-no_artifactory=""
+no_mirror=""
 n=1
 args_to_keep=()
 for i in "$@" ; do
     if [[ $i == "--no-cache" ]] ; then
         no_cache="--no-cache"
-    elif [[ $i == "--no-artifactory" ]] ; then
-        no_artifactory="true"
+    elif [[ $i == "--no-mirror" ]] ; then
+        no_mirror="true"
     else
         args_to_keep+=("$i")
     fi
@@ -22,20 +22,14 @@ repo="${3-}"
 dist="${4-}"
 repo_key="${5-}"
 
-# Resolve Artifactory configuration (unless --no-artifactory flag is set)
-ARTIFACTORY_BUILD_ARGS=(--build-context "artifactory-scripts=$dir/../deployment/.scripts")
-if [[ "$no_artifactory" != "true" ]]; then
-  source "$dir/../deployment/.scripts/resolve-artifactory-args.sh"
-  resolve_artifactory_args
-
-  if [[ -n "${ARTIFACTORY_URL-}" ]]; then
-    ARTIFACTORY_BUILD_ARGS+=(
-      --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
-      --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
-      --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
-    )
-    [[ -n "${ARTIFACTORY_CA_CERT-}" ]] && ARTIFACTORY_BUILD_ARGS+=(--build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT")
-  fi
+# Prepare mirror build args (unless --no-mirror flag is set)
+MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
+if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
 fi
 
 build() {
@@ -45,7 +39,7 @@ build() {
   [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
   [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
   [[ -n ${LABEL-} ]] && build_args+=(--label "$LABEL")
-  docker build -f "$1" "${build_args[@]}" "${ARTIFACTORY_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
+  docker build --progress=plain -f "$1" "${build_args[@]}" "${MIRROR_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
 }
 
 copy_variant_conf() {
@@ -60,7 +54,7 @@ copy_variant_conf() {
 build_variant() {
   echo "BUILDING variant $tag:$version$1-$2"
   copy_variant_conf "$2"
-  docker build -f "$dir/Dockerfile-variant" \
+  docker build --progress=plain -f "$dir/Dockerfile-variant" \
     --build-arg "VERSION=$version" \
     --build-arg "FROM=$tag:$version$1" \
     --build-arg "VARIANT=$2" \

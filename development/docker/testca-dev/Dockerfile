@@ -1,12 +1,11 @@
 FROM ubuntu:24.04
 
-ARG ARTIFACTORY_URL
-ARG ARTIFACTORY_USER
-ARG ARTIFACTORY_CA_CERT
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
 
-RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
-    --mount=type=secret,id=artifactory_token \
-    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # ACME
 ARG A2C_VER=0.35

@@ -6,13 +6,12 @@ ARG PACKAGE_SOURCE=internal
 FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG ARTIFACTORY_URL
-ARG ARTIFACTORY_USER
-ARG ARTIFACTORY_CA_CERT
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
 
-RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
-    --mount=type=secret,id=artifactory_token \
-    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
@@ -81,8 +80,8 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
 # Build final image
 FROM centralserver-${PACKAGE_SOURCE} AS final
 
-RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
-    /bin/bash /tmp/cleanup-artifactory-apt.sh
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
 
 RUN { nginx -s stop ||:; } \
   && rm -f /var/run/nginx.pid \

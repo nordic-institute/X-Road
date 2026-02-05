@@ -22,5 +22,5 @@ gradle-cache
 mailpit*
 **/.settings/
 **/.factorypath
-**/gradle-local.properties
+**/.npmrc
 .claude

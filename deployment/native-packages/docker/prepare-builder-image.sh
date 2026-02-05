@@ -10,10 +10,6 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
-# Source Artifactory credential resolver
-source "${ROOT_DIR}/deployment/.scripts/resolve-artifactory-args.sh"
-resolve_artifactory_args
-
 # Configuration from environment variables
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
@@ -48,25 +44,25 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Prepare Artifactory build args
-ARTIFACTORY_BUILD_ARGS=()
-if [[ -n "$ARTIFACTORY_URL" ]] && [[ -n "$ARTIFACTORY_USER" ]] && [[ -n "$ARTIFACTORY_TOKEN" ]]; then
+# Prepare mirror build args (only if mirror configured)
+MIRROR_BUILD_ARGS_APT=()
+MIRROR_BUILD_ARGS_RPM=()
+if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [[ -n "$XROAD_MIRROR_TOKEN" ]]; then
   # For APT-based builds
-  ARTIFACTORY_BUILD_ARGS_APT=(
-    --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
-    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
-    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+  MIRROR_BUILD_ARGS_APT=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+    --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
   )
-  # For YUM/DNF-based builds (uses BASE_URL)
-  ARTIFACTORY_BUILD_ARGS_RPM=(
-    --build-arg ARTIFACTORY_BASE_URL="${ARTIFACTORY_URL%/mirror-*}"
-    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
-    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
+  # For YUM/DNF-based builds (uses BASE_URL - strip the specific mirror path)
+  MIRROR_BASE_URL="${XROAD_MIRROR_UBUNTU_URL%/mirror-*}"
+  MIRROR_BUILD_ARGS_RPM=(
+    --build-arg XROAD_MIRROR_BASE_URL="$MIRROR_BASE_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+    --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
   )
-  if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
-    ARTIFACTORY_BUILD_ARGS_APT+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
-    ARTIFACTORY_BUILD_ARGS_RPM+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
-  fi
 fi
 
 # Color codes
@@ -143,7 +139,7 @@ fi
 FAILED_BUILDS=()
 for release in "${RELEASES_TO_PROCESS[@]}"; do
   IMAGE_NAME="${IMAGE_REGISTRY}/package-builder-${release}:${IMAGE_TAG}"
-  
+
   log_info "Processing ${release}..."
   log_info "  Image: ${IMAGE_NAME}"
 
@@ -158,22 +154,20 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
   else
     log_info "Force build enabled, skipping registry check..."
   fi
-  
+
   if [[ ! -d "$SCRIPT_DIR/$release" ]]; then
     log_error "Dockerfile directory not found: $SCRIPT_DIR/$release"
     FAILED_BUILDS+=("$release")
     continue
   fi
 
-  # Set appropriate Artifactory build args based on release type
+  # Set appropriate mirror build args based on release type
+  MIRROR_BUILD_ARGS=()
   if [[ "$release" == deb-* ]]; then
-    ARTIFACTORY_BUILD_ARGS=("${ARTIFACTORY_BUILD_ARGS_APT[@]}")
+    MIRROR_BUILD_ARGS=("${MIRROR_BUILD_ARGS_APT[@]}")
   else
-    ARTIFACTORY_BUILD_ARGS=("${ARTIFACTORY_BUILD_ARGS_RPM[@]}")
+    MIRROR_BUILD_ARGS=("${MIRROR_BUILD_ARGS_RPM[@]}")
   fi
-
-  # Add artifactory-scripts build context
-  ARTIFACTORY_BUILD_ARGS+=(--build-context "artifactory-scripts=${ROOT_DIR}/deployment/.scripts")
 
   BUILD_START=$(date +%s)
 
@@ -187,12 +181,12 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
   if [[ -n "$BUILD_PLATFORMS" ]] && [[ "$BUILD_PLATFORMS" == *","* ]]; then
     # Multi-platform build with buildx
     log_info "  Platforms: ${BUILD_PLATFORMS}"
-    if docker buildx build \
+    if docker buildx build --progress=plain \
       --platform "$BUILD_PLATFORMS" \
       --file "$SCRIPT_DIR/$release/Dockerfile" \
       --tag "$IMAGE_NAME" \
       "${CACHE_FLAG[@]}" \
-      "${ARTIFACTORY_BUILD_ARGS[@]}" \
+      "${MIRROR_BUILD_ARGS[@]}" \
       --push \
       "$SCRIPT_DIR/$release/" >/dev/null; then
 
@@ -211,7 +205,7 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
       log_info "  Platform: host"
     fi
 
-    if docker build -q -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${ARTIFACTORY_BUILD_ARGS[@]}" "$SCRIPT_DIR/$release/"; then
+    if docker build --progress=plain -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${MIRROR_BUILD_ARGS[@]}" "$SCRIPT_DIR/$release/"; then
       log_info "  Pushing to registry..."
       if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
         BUILD_END=$(date +%s)
@@ -234,7 +228,6 @@ if [[ ${#FAILED_BUILDS[@]} -gt 0 ]]; then
   exit 1
 else
   if [[ ${#RELEASES_TO_PROCESS[@]} -gt 1 ]]; then
-    log_success "✅ All ${#RELEASES_TO_PROCESS[@]} images prepared successfully"
+    log_success "All ${#RELEASES_TO_PROCESS[@]} images prepared successfully"
   fi
 fi
-

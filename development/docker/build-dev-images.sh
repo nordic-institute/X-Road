@@ -25,12 +25,16 @@ USAGE:
 
 OPTIONS:
     --push                  Push images to registry (default: false)
-    --no-artifactory        Skip Artifactory mirror configuration
+    --no-cache              Disable Docker build cache
+    --no-mirror             Skip package mirror configuration
     --help                  Show this help
 
 ENVIRONMENT VARIABLES:
     IMAGE_REGISTRY          Docker registry URL (default: localhost:5555)
     IMAGE_TAG               Image tag to use (default: xroadVersion-xroadBuildType)
+    XROAD_MIRROR_UBUNTU_URL Package mirror URL (optional)
+    XROAD_MIRROR_USERNAME   Mirror username (optional)
+    XROAD_MIRROR_TOKEN      Mirror token (optional)
 
 IMAGES BUILT:
     - openbao-dev:<tag>     OpenBao secret store for development
@@ -53,7 +57,8 @@ EOF
 
 # Parse arguments
 PUSH="true"
-NO_ARTIFACTORY="false"
+NO_CACHE="false"
+NO_MIRROR="false"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -64,8 +69,12 @@ while [[ $# -gt 0 ]]; do
     PUSH="true"
     shift
     ;;
-  --no-artifactory)
-    NO_ARTIFACTORY="true"
+  --no-cache)
+    NO_CACHE="true"
+    shift
+    ;;
+  --no-mirror)
+    NO_MIRROR="true"
     shift
     ;;
   -*)
@@ -79,23 +88,30 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Resolve Artifactory configuration (unless --no-artifactory flag is set)
-ARTIFACTORY_BUILD_ARGS=()
-if [[ "$NO_ARTIFACTORY" != "true" ]]; then
-  source "${ROOT_DIR}/deployment/.scripts/resolve-artifactory-args.sh"
-  resolve_artifactory_args
-
-  if [[ -n "${ARTIFACTORY_URL:-}" ]]; then
-    ARTIFACTORY_BUILD_ARGS+=(
-      --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
-      --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
-      --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
-    )
-    if [[ -n "${ARTIFACTORY_CA_CERT:-}" ]]; then
-      ARTIFACTORY_BUILD_ARGS+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
-    fi
-  fi
+# Prepare mirror build args (unless --no-mirror flag is set)
+# Always include mirror-scripts build context (Dockerfiles require it even if mirror not used)
+MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts")
+log_info "=== Mirror Configuration ==="
+log_info "NO_MIRROR flag: $NO_MIRROR"
+log_info "XROAD_MIRROR_UBUNTU_URL: ${XROAD_MIRROR_UBUNTU_URL:-<not set>}"
+log_info "XROAD_MIRROR_USERNAME: ${XROAD_MIRROR_USERNAME:-<not set>}"
+if [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  log_info "XROAD_MIRROR_TOKEN: <present>"
+else
+  log_info "XROAD_MIRROR_TOKEN: <not set>"
 fi
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
+  log_success "Mirror ENABLED: $XROAD_MIRROR_UBUNTU_URL"
+else
+  log_warn "Mirror DISABLED (using public repos)"
+fi
+log_info "MIRROR_BUILD_ARGS: ${MIRROR_BUILD_ARGS[*]}"
+echo
 
 # Determine registry
 REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
@@ -130,11 +146,18 @@ if [[ -z "$IMAGE_TAG" ]]; then
   fi
 fi
 
+# Prepare cache flag
+CACHE_FLAG=()
+if [[ "$NO_CACHE" == "true" ]]; then
+  CACHE_FLAG=(--no-cache)
+fi
+
 log_info "=== X-Road Development Images Build ==="
 log_info "Registry: $REGISTRY"
 log_info "Image Tag: $IMAGE_TAG"
 log_info "Platform: host platform only"
 log_info "Push: $PUSH"
+log_info "Cache: $(if [[ "$NO_CACHE" == "true" ]]; then echo "disabled"; else echo "enabled"; fi)"
 echo
 
 # Setup Docker Buildx for multi-platform builds
@@ -161,7 +184,10 @@ BUILD_START_TIME=$(date +%s)
 # =============================================================================
 # Build OpenBao Development Image
 # =============================================================================
-log_info "Building openbao-dev..."
+echo
+echo "================================================================================"
+log_info ">>> STARTING BUILD: openbao-dev"
+echo "================================================================================"
 build_start=$(date +%s)
 
 OPENBAO_IMAGE="${REGISTRY}/openbao-dev:${IMAGE_TAG}"
@@ -169,11 +195,12 @@ OPENBAO_DOCKERFILE="${SCRIPT_DIR}/security-server/openbao/Dockerfile"
 OPENBAO_CONTEXT="${SCRIPT_DIR}/security-server/openbao"
 
 build_cmd=(
-  docker buildx build
+  docker buildx build --progress=plain
+  "${CACHE_FLAG[@]}"
   --file "$OPENBAO_DOCKERFILE"
   --build-context "openbao-init-ctx=${SECRET_STORE_LOCAL}"
   --tag "$OPENBAO_IMAGE"
-  "${ARTIFACTORY_BUILD_ARGS[@]}"
+  "${MIRROR_BUILD_ARGS[@]}"
 )
 
 if [[ "$PUSH" == "true" ]]; then
@@ -184,19 +211,28 @@ fi
 
 build_cmd+=("$OPENBAO_CONTEXT")
 
+log_info "Dockerfile: $OPENBAO_DOCKERFILE"
+log_info "Context: $OPENBAO_CONTEXT"
+log_info "Command: ${build_cmd[*]}"
+echo "--------------------------------------------------------------------------------"
+
 if "${build_cmd[@]}"; then
+  echo "--------------------------------------------------------------------------------"
   build_end=$(date +%s)
   build_duration=$((build_end - build_start))
-  log_success "Built openbao-dev in $(format_duration $build_duration)"
+  log_success "<<< FINISHED BUILD: openbao-dev in $(format_duration $build_duration)"
 else
-  log_error "Failed to build openbao-dev"
+  log_error "<<< FAILED BUILD: openbao-dev"
   exit 1
 fi
 
 # =============================================================================
 # Build TestCA Development Image
 # =============================================================================
-log_info "Building testca-dev image..."
+echo
+echo "================================================================================"
+log_info ">>> STARTING BUILD: testca-dev"
+echo "================================================================================"
 build_start=$(date +%s)
 
 TESTCA_IMAGE="${REGISTRY}/testca-dev:${IMAGE_TAG}"
@@ -204,17 +240,12 @@ TESTCA_DOCKERFILE="${CA_CONTAINER}/Dockerfile"
 TESTCA_CONTEXT="$CA_CONTAINER"
 
 build_cmd=(
-  docker buildx build
-  --build-context "artifactory-scripts=${ROOT_DIR}/deployment/.scripts"
-  --push="${PUSH}"
+  docker buildx build --progress=plain
+  "${CACHE_FLAG[@]}"
+  --file "$TESTCA_DOCKERFILE"
   --tag "$TESTCA_IMAGE"
-  "${ARTIFACTORY_BUILD_ARGS[@]}"
+  "${MIRROR_BUILD_ARGS[@]}"
 )
-
-# Add platform flag only if specified
-if [[ -n "$PLATFORMS" ]]; then
-  build_cmd+=(--platform "$PLATFORMS")
-fi
 
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)
@@ -224,19 +255,28 @@ fi
 
 build_cmd+=("$TESTCA_CONTEXT")
 
+log_info "Dockerfile: $TESTCA_DOCKERFILE"
+log_info "Context: $TESTCA_CONTEXT"
+log_info "Command: ${build_cmd[*]}"
+echo "--------------------------------------------------------------------------------"
+
 if "${build_cmd[@]}"; then
+  echo "--------------------------------------------------------------------------------"
   build_end=$(date +%s)
   build_duration=$((build_end - build_start))
-  log_success "Built testca-dev in $(format_duration $build_duration)"
+  log_success "<<< FINISHED BUILD: testca-dev in $(format_duration $build_duration)"
 else
-  log_error "Failed to build testca-dev"
+  log_error "<<< FAILED BUILD: testca-dev"
   exit 1
 fi
 
 # =============================================================================
 # Build PostgreSQL Development Image
 # =============================================================================
-log_info "Building postgres-dev..."
+echo
+echo "================================================================================"
+log_info ">>> STARTING BUILD: postgres-dev"
+echo "================================================================================"
 build_start=$(date +%s)
 
 POSTGRES_DEV_IMAGE="${REGISTRY}/postgres-dev:${IMAGE_TAG}"
@@ -244,10 +284,11 @@ POSTGRES_DEV_DOCKERFILE="${SCRIPT_DIR}/postgres-dev/Dockerfile"
 POSTGRES_DEV_CONTEXT="${SCRIPT_DIR}/postgres-dev"
 
 build_cmd=(
-  docker buildx build
+  docker buildx build --progress=plain
+  "${CACHE_FLAG[@]}"
   --file "$POSTGRES_DEV_DOCKERFILE"
   --tag "$POSTGRES_DEV_IMAGE"
-  "${ARTIFACTORY_BUILD_ARGS[@]}"
+  "${MIRROR_BUILD_ARGS[@]}"
 )
 
 if [[ "$PUSH" == "true" ]]; then
@@ -258,12 +299,18 @@ fi
 
 build_cmd+=("$POSTGRES_DEV_CONTEXT")
 
+log_info "Dockerfile: $POSTGRES_DEV_DOCKERFILE"
+log_info "Context: $POSTGRES_DEV_CONTEXT"
+log_info "Command: ${build_cmd[*]}"
+echo "--------------------------------------------------------------------------------"
+
 if "${build_cmd[@]}"; then
+  echo "--------------------------------------------------------------------------------"
   build_end=$(date +%s)
   build_duration=$((build_end - build_start))
-  log_success "Built postgres-dev in $(format_duration $build_duration)"
+  log_success "<<< FINISHED BUILD: postgres-dev in $(format_duration $build_duration)"
 else
-  log_error "Failed to build postgres-dev"
+  log_error "<<< FAILED BUILD: postgres-dev"
   exit 1
 fi
 
@@ -281,4 +328,3 @@ echo "  - $OPENBAO_IMAGE"
 echo "  - $TESTCA_IMAGE"
 echo "  - $POSTGRES_DEV_IMAGE"
 echo
-

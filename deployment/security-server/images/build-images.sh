@@ -12,22 +12,6 @@ SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
 SERVICE_CONFIG_CSV="${SCRIPT_DIR}/service-config.csv"
 
-# Resolve Artifactory configuration
-source "${ROOT_DIR}/deployment/.scripts/resolve-artifactory-args.sh"
-resolve_artifactory_args
-
-ARTIFACTORY_BUILD_ARGS=()
-if [[ -n "$ARTIFACTORY_URL" ]]; then
-  ARTIFACTORY_BUILD_ARGS+=(
-    --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
-    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
-    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
-  )
-  if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
-    ARTIFACTORY_BUILD_ARGS+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
-  fi
-fi
-
 # Show help
 show_help() {
   cat <<EOF
@@ -45,11 +29,16 @@ OPTIONS:
                             Default: host platform only
     --push                  Push images to registry
                             Default: true in CI, false locally
+    --no-cache              Disable Docker build cache
+    --no-mirror             Skip package mirror configuration
     --help                  Show this help
 
 ENVIRONMENT VARIABLES:
     IMAGE_REGISTRY          Docker registry URL (default: localhost:5555)
     IMAGE_TAG               Image tag to use (default: xroadVersion-xroadBuildType)
+    XROAD_MIRROR_UBUNTU_URL Package mirror URL (optional)
+    XROAD_MIRROR_USERNAME   Mirror username (optional)
+    XROAD_MIRROR_TOKEN      Mirror token (optional)
 
 EXAMPLES:
     # Build all services for host platform (local dev)
@@ -71,6 +60,8 @@ EOF
 SERVICES=()
 PLATFORMS=""
 PUSH=""
+NO_CACHE="false"
+NO_MIRROR="false"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -83,6 +74,14 @@ while [[ $# -gt 0 ]]; do
     ;;
   --push)
     PUSH="true"
+    shift
+    ;;
+  --no-cache)
+    NO_CACHE="true"
+    shift
+    ;;
+  --no-mirror)
+    NO_MIRROR="true"
     shift
     ;;
   -*)
@@ -150,11 +149,43 @@ if [[ -z "$IMAGE_TAG" ]]; then
   fi
 fi
 
+# Prepare cache flag
+CACHE_FLAG=()
+if [[ "$NO_CACHE" == "true" ]]; then
+  CACHE_FLAG=(--no-cache)
+fi
+
+# Prepare mirror build args (unless --no-mirror flag is set)
+# Always include mirror-scripts build context (Dockerfiles require it even if mirror not used)
+MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts")
+log_info "=== Mirror Configuration ==="
+log_info "NO_MIRROR flag: $NO_MIRROR"
+log_info "XROAD_MIRROR_UBUNTU_URL: ${XROAD_MIRROR_UBUNTU_URL:-<not set>}"
+log_info "XROAD_MIRROR_USERNAME: ${XROAD_MIRROR_USERNAME:-<not set>}"
+if [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  log_info "XROAD_MIRROR_TOKEN: <present>"
+else
+  log_info "XROAD_MIRROR_TOKEN: <not set>"
+fi
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
+  log_success "Mirror ENABLED: $XROAD_MIRROR_UBUNTU_URL"
+else
+  log_warn "Mirror DISABLED (using public repos)"
+fi
+log_info "MIRROR_BUILD_ARGS: ${MIRROR_BUILD_ARGS[*]}"
+echo
+
 log_info "=== X-Road Security Server Images Build ==="
 log_info "Registry: $REGISTRY"
 log_info "Image Tag: $IMAGE_TAG"
 log_info "Platforms: ${PLATFORMS:-host platform}"
 log_info "Push: $PUSH"
+log_info "Cache: $(if [[ "$NO_CACHE" == "true" ]]; then echo "disabled"; else echo "enabled"; fi)"
 log_info "Services: ${SERVICES[*]}"
 echo
 
@@ -252,8 +283,8 @@ for service in "${SERVICES[@]}"; do
 
   # Build command with ALL contexts
   build_cmd=(
-    docker buildx build
-    --no-cache
+    docker buildx build --progress=plain
+    "${CACHE_FLAG[@]}"
     --file "${SCRIPT_DIR}/${dockerfile}"
     --build-arg "REGISTRY=${REGISTRY}"
     --build-arg "IMAGE_TAG=${IMAGE_TAG}"
@@ -261,8 +292,8 @@ for service in "${SERVICES[@]}"; do
     --build-context "license=${BUILD_DIR}"
     --build-context "pkcs11driver=${PKCS11_DIR}"
     --build-context "entrypoint=${context_dir}"
-    --build-context "artifactory-scripts=${ROOT_DIR}/deployment/.scripts"
-    "${ARTIFACTORY_BUILD_ARGS[@]}"
+    --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
+    "${MIRROR_BUILD_ARGS[@]}"
   )
 
   # Add BASE_IMAGE build arg if specified in CSV (pass as-is, Dockerfile constructs full path)

@@ -17,7 +17,6 @@ set -e
 # Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../../.scripts/base-script.sh"
-source "${SCRIPT_DIR}/../../../deployment/.scripts/resolve-artifactory-args.sh"
 
 # Default configuration
 GRADLE_PROPERTIES="${XROAD_HOME}/src/gradle.properties"
@@ -48,16 +47,21 @@ OPTIONS:
     --platforms PLATFORMS   Build platforms (default: host platform, e.g. --platforms linux/amd64,linux/arm64)
     --help                  Show this help
 
+ENVIRONMENT VARIABLES:
+    XROAD_MIRROR_UBUNTU_URL Package mirror URL (optional)
+    XROAD_MIRROR_USERNAME   Mirror username (optional)
+    XROAD_MIRROR_TOKEN      Mirror token (optional)
+
 EXAMPLES:
     # Local development build for host platform (after building packages)
     ./build-cs-dev-image.sh
-    
+
     # Multi-platform build
     ./build-cs-dev-image.sh --platforms linux/amd64,linux/arm64
-    
+
     # Local build with custom registry
     ./build-cs-dev-image.sh --registry my-registry.local:5000
-    
+
     # CI build with specific version
     ./build-cs-dev-image.sh --environment ci --registry ghcr.io/org/repo --version 8.0.0-SNAPSHOT --platforms linux/amd64,linux/arm64
 
@@ -138,17 +142,17 @@ if [[ -z "$VERSION" ]]; then
   log_info "Reading version from gradle.properties..."
   XROAD_VERSION=$(read_gradle_property "xroadVersion" "$GRADLE_PROPERTIES")
   XROAD_BUILD_TYPE=$(read_gradle_property "xroadBuildType" "$GRADLE_PROPERTIES")
-  
+
   if [[ -z "$XROAD_VERSION" ]]; then
     log_error "xroadVersion not found in gradle.properties"
     exit 1
   fi
-  
+
   if [[ -z "$XROAD_BUILD_TYPE" ]]; then
     log_error "xroadBuildType not found in gradle.properties"
     exit 1
   fi
-  
+
   VERSION="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
   log_info "Using version from gradle.properties: ${VERSION}"
 fi
@@ -178,30 +182,26 @@ fi
 log_info "Building central-server-dev image..."
 build_start=$(date +%s)
 
-# Resolve Artifactory configuration (includes credentials and CA cert)
-resolve_artifactory_args
+# Prepare mirror build args (only if mirror configured)
+MIRROR_BUILD_ARGS=()
+if [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  MIRROR_BUILD_ARGS=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
+fi
 
 build_cmd=(
-  docker buildx build
+  docker buildx build --progress=plain
   --file "$SCRIPT_DIR/Dockerfile"
   --build-arg PACKAGE_SOURCE=internal
   --build-context "perf=$PERF_PATH"
   --build-context "packages=$PACKAGES_PATH"
-  --build-context "artifactory-scripts=${XROAD_HOME}/deployment/.scripts"
+  --build-context "mirror-scripts=${XROAD_HOME}/deployment/.scripts"
   --secret "id=user_passwd,env=USER_PASSWD"
+  "${MIRROR_BUILD_ARGS[@]}"
 )
-
-# Pass Artifactory args if set
-if [[ -n "$ARTIFACTORY_URL" ]] && [[ -n "$ARTIFACTORY_USER" ]] && [[ -n "$ARTIFACTORY_TOKEN" ]]; then
-  build_cmd+=(
-    --build-arg ARTIFACTORY_URL="$ARTIFACTORY_URL"
-    --build-arg ARTIFACTORY_USER="$ARTIFACTORY_USER"
-    --secret "id=artifactory_token,env=ARTIFACTORY_TOKEN"
-  )
-  if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
-    build_cmd+=( --build-arg ARTIFACTORY_CA_CERT="$ARTIFACTORY_CA_CERT" )
-  fi
-fi
 
 # Add platform flag only if specified
 if [[ -n "$PLATFORMS" ]]; then
@@ -219,7 +219,7 @@ build_cmd+=(
 if "${build_cmd[@]}"; then
   build_end=$(date +%s)
   build_duration=$((build_end - build_start))
-  
+
   log_success "Built central-server-dev in $(format_duration $build_duration)"
 else
   log_error "Failed to build central-server-dev image"
@@ -235,4 +235,4 @@ log_success "=== Build Complete ==="
 log_success "Total time: $(format_duration $TOTAL_BUILD_TIME)"
 log_success "Image: ${IMAGE_NAME}:${VERSION}"
 echo
-log_success "✅ Central Server dev image built successfully!"
+log_success "Central Server dev image built successfully!"

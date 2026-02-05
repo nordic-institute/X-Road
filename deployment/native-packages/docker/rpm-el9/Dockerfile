@@ -1,13 +1,12 @@
 FROM rockylinux:9
 
-# Configure Artifactory for DNF
-ARG ARTIFACTORY_BASE_URL
-ARG ARTIFACTORY_USER
-ARG ARTIFACTORY_CA_CERT
+# Configure package mirror for DNF
+ARG XROAD_MIRROR_BASE_URL
+ARG XROAD_MIRROR_USER
 
-RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-yum.sh,target=/tmp/configure-artifactory-yum.sh \
-    --mount=type=secret,id=artifactory_token \
-    /bin/bash /tmp/configure-artifactory-yum.sh "$ARTIFACTORY_BASE_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-yum.sh,target=/tmp/configure-mirror-yum.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-yum.sh "$XROAD_MIRROR_BASE_URL" "$XROAD_MIRROR_USER"
 
 RUN dnf -y install sudo git rpm-build systemd-rpm-macros systemd \
     && dnf clean all \

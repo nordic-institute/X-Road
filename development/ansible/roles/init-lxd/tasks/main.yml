@@ -37,9 +37,9 @@
   delegate_to: "{{ item }}"
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
-- name: Configure Artifactory mirror (Ubuntu)
-  include_tasks: artifactory.yml
-  when: artifactory_url is defined and artifactory_user is defined and artifactory_token is defined
+- name: Configure package mirror (Ubuntu)
+  include_tasks: package-mirror.yml
+  when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
 - name: Disable unattended-upgrades
@@ -72,7 +72,7 @@
       aarch64: arm64
       x86_64: amd64
 
-- name: Configure Artifactory mirror (Rocky Linux)
-  include_tasks: artifactory.yml
-  when: artifactory_url is defined and artifactory_user is defined and artifactory_token is defined
+- name: Configure package mirror (Rocky Linux)
+  include_tasks: package-mirror.yml
+  when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
   with_inventory_hostnames: rhel_ss

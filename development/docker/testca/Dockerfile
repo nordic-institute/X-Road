@@ -1,13 +1,12 @@
 FROM ubuntu:24.04
 
-# Configure Artifactory for APT
-ARG ARTIFACTORY_URL
-ARG ARTIFACTORY_USER
-ARG ARTIFACTORY_CA_CERT
+# Configure package mirror for APT
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
 
-RUN --mount=type=bind,from=artifactory-scripts,source=configure-artifactory-apt.sh,target=/tmp/configure-artifactory-apt.sh \
-    --mount=type=secret,id=artifactory_token \
-    /bin/bash /tmp/configure-artifactory-apt.sh "$ARTIFACTORY_URL" "$ARTIFACTORY_USER" "$ARTIFACTORY_CA_CERT"
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # ACME
 ARG A2C_VER=0.35
@@ -59,9 +58,9 @@ COPY --chown=www-data:www-data build/acme2certifier/acme_srv.cfg /var/www/acme2c
 COPY --chown=www-data:www-data build/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
 COPY --chown=www-data:www-data build/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
 
-# Cleanup Artifactory configuration (restore public mirrors for published image)
-RUN --mount=type=bind,from=artifactory-scripts,source=cleanup-artifactory-apt.sh,target=/tmp/cleanup-artifactory-apt.sh \
-    /bin/bash /tmp/cleanup-artifactory-apt.sh
+# Cleanup mirror configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
 
 CMD ["/root/entrypoint.sh"]
 

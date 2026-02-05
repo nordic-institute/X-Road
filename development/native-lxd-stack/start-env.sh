@@ -65,25 +65,25 @@ function handlePrepare() {
   if limactl list | grep -q '^xroad-lxd'; then
     # Check current status
     current_status=$(limactl list | grep '^xroad-lxd' | awk '{print $2}')
-    
+
     if [ "$current_status" = "Running" ]; then
-        log_info "Lima instance xroad-lxd is already running"
+      log_info "Lima instance xroad-lxd is already running"
     elif [ "$current_status" = "Stopped" ]; then
-        log_info "Starting lima instance xroad-lxd"
-        limactl start xroad-lxd
-        
-        # Verify that the instance is running
-        if limactl list | grep '^xroad-lxd' | awk '{print $2}' | grep -q 'Running'; then
-            log_info "Lima instance xroad-lxd started successfully"
-        else
-            log_error "Failed to start lima instance xroad-lxd"
-            exit 1
-        fi
+      log_info "Starting lima instance xroad-lxd"
+      limactl start xroad-lxd
+
+      # Verify that the instance is running
+      if limactl list | grep '^xroad-lxd' | awk '{print $2}' | grep -q 'Running'; then
+        log_info "Lima instance xroad-lxd started successfully"
+      else
+        log_error "Failed to start lima instance xroad-lxd"
+        exit 1
+      fi
     else
-        log_info "Lima instance xroad-lxd has status: $current_status - waiting for it to be ready"
-        # Wait for the instance to reach a stable state
-        sleep 5
-        handlePrepare  # Recursive call to check again
+      log_info "Lima instance xroad-lxd has status: $current_status - waiting for it to be ready"
+      # Wait for the instance to reach a stable state
+      sleep 5
+      handlePrepare # Recursive call to check again
     fi
   else
     log_error "Lima instance xroad-lxd not found. Please create it first."
@@ -98,18 +98,12 @@ function handleRecreate() {
 }
 
 function handleAnsible() {
-  # Resolve Artifactory configuration for Ansible
-  source "../../deployment/.scripts/resolve-artifactory-args.sh"
-  resolve_artifactory_args
-
+  # Use XROAD_MIRROR_* env vars directly (no resolve script needed)
   local extra_vars=("-e" "onMacOs=$onMacOs")
-  if [[ -n "$ARTIFACTORY_URL" ]] && [[ -n "$ARTIFACTORY_USER" ]] && [[ -n "$ARTIFACTORY_TOKEN" ]]; then
-    extra_vars+=("-e" "artifactory_url=$ARTIFACTORY_URL")
-    extra_vars+=("-e" "artifactory_user=$ARTIFACTORY_USER")
-    extra_vars+=("-e" "artifactory_token=$ARTIFACTORY_TOKEN")
-    if [[ -n "$ARTIFACTORY_CA_CERT" ]]; then
-      extra_vars+=("-e" "artifactory_ca_cert=$ARTIFACTORY_CA_CERT")
-    fi
+  if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [[ -n "$XROAD_MIRROR_TOKEN" ]]; then
+    extra_vars+=("-e" "package_mirror_url=$XROAD_MIRROR_UBUNTU_URL")
+    extra_vars+=("-e" "package_mirror_user=$XROAD_MIRROR_USERNAME")
+    extra_vars+=("-e" "package_mirror_token=$XROAD_MIRROR_TOKEN")
   fi
 
   ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
