@@ -94,7 +94,7 @@ fi
 
 %post
 # create TLS certificate provisioning properties (if not already created)
-/usr/share/xroad/scripts/write_tls_config.sh setup op-monitor
+/usr/share/xroad/scripts/write_tls_config.sh setup_default op-monitor
 
 %systemd_post xroad-opmonitor.service
 

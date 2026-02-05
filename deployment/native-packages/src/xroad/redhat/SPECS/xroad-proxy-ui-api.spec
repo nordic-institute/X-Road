@@ -88,7 +88,7 @@ if [ $1 -gt 1 ] ; then
 fi
 
 # create TLS certificate provisioning properties (if not already created)
-/usr/share/xroad/scripts/write_tls_config.sh setup proxy-ui-api
+/usr/share/xroad/scripts/write_tls_config.sh setup_default proxy-ui-api
 
 %preun
 %systemd_preun xroad-proxy-ui-api.service

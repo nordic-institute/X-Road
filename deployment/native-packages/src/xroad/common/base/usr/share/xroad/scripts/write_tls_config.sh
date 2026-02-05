@@ -76,7 +76,7 @@ write_tls_settings() {
 # Skips if already configured.
 # Arguments:
 #   $1 - module name (e.g., proxy, op-monitor, proxy-ui-api)
-setup_tls_config() {
+setup_default_tls_config() {
   local module_name="$1"
   local config_file="/etc/xroad/conf.d/local-tls.yaml"
   local yaml_key_prefix="xroad.${module_name}.tls.certificate-provisioning"
@@ -101,12 +101,12 @@ setup_tls_config() {
 
 # Main execution block - only runs when script is executed directly (not sourced)
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  if [[ "$1" == "setup" ]]; then
+  if [[ "$1" == "setup_default" ]]; then
     if [[ -z "$2" ]]; then
       log "Error: module name required"
       usage
     fi
-    setup_tls_config "$2"
+    setup_default_tls_config "$2"
   elif [[ $# -eq 4 ]]; then
     write_tls_settings "$1" "$2" "$3" "$4"
   else

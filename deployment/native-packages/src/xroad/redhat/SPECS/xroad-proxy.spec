@@ -152,7 +152,7 @@ if [ $1 -gt 1 ] ; then
 fi
 
 # create TLS certificate provisioning properties (if not already created)
-/usr/share/xroad/scripts/write_tls_config.sh setup proxy
+/usr/share/xroad/scripts/write_tls_config.sh setup_default proxy
 
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
