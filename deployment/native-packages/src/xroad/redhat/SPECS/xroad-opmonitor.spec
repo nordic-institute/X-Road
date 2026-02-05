@@ -93,23 +93,8 @@ fi
     /usr/share/xroad/scripts/setup_opmonitor_db.sh
 
 %post
-# create TLS certificate provisioning properties
-CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-if ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.common-name' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.alt-names' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names' &>/dev/null; then
-
-  HOST=$(hostname -f)
-  if (( ${#HOST} > 64 )); then
-      HOST="$(hostname -s)"
-  fi
-  ALT_NAMES="$(ip addr | awk '/scope global/ {split($2,a,"/"); printf "IP:%s,", a[1]}')DNS:$(hostname -f),DNS:$(hostname -s)"
-  echo "Setting op-monitor TLS certificate provisioning properties in $CONFIG_FILE"
-  . /usr/share/xroad/scripts/write_tls_config.sh
-  write_tls_settings "$CONFIG_FILE" "op-monitor" "$HOST" "$ALT_NAMES"
-else
-  echo "Skipping setting op-monitor TLS certificate provisioning properties in $CONFIG_FILE, already set"
-fi
+# create TLS certificate provisioning properties (if not already created)
+/usr/share/xroad/scripts/write_tls_config.sh setup op-monitor
 
 %systemd_post xroad-opmonitor.service
 
@@ -120,10 +105,7 @@ fi
 %systemd_postun_with_restart xroad-opmonitor.service
 
 %posttrans
-# RHEL8/9 java-21-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8} || 0%{?el9}
 %init_xroad_opmonitor_db
-%endif
 
 %changelog
 

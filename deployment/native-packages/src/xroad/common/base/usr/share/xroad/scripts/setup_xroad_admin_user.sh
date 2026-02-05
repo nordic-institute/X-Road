@@ -63,8 +63,8 @@ setup_xroad_admin_user() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   if [ $# -lt 1 ]; then
     echo "Usage: $0 <username> [node_type]"
-    echo "  username    - The admin user to configure"
-    echo "  node_type   - Optional: 'standalone' (default) or 'secondary'"
+    echo "  username  - The admin user to configure"
+    echo "  node_type - Optional, will be read from /etc/xroad/conf.d/node.ini if not provided"
     exit 1
   fi
 

@@ -151,23 +151,8 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
-# create TLS certificate provisioning properties
-CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-if ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.common-name' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.alt-names' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names' &>/dev/null; then
-
-  HOST=$(hostname -f)
-  if (( ${#HOST} > 64 )); then
-      HOST="$(hostname -s)"
-  fi
-  ALT_NAMES="$(ip addr | awk '/scope global/ {split($2,a,"/"); printf "IP:%s,", a[1]}')DNS:$(hostname -f),DNS:$(hostname -s)"
-  echo "Setting proxy internal TLS certificate provisioning properties in $CONFIG_FILE"
-  . /usr/share/xroad/scripts/write_tls_config.sh
-  write_tls_settings "$CONFIG_FILE" "proxy" "$HOST" "$ALT_NAMES"
-else
-  echo "Skipping setting proxy internal TLS certificate provisioning properties in $CONFIG_FILE, already set"
-fi
+# create TLS certificate provisioning properties (if not already created)
+/usr/share/xroad/scripts/write_tls_config.sh setup proxy
 
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
@@ -180,9 +165,6 @@ mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
 %systemd_postun_with_restart xroad-proxy.service xroad-confclient.service rsyslog.service
 
 %posttrans -p /bin/bash
-# RHEL8/9 java-21-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8} || 0%{?el9}
 %execute_init_or_update_resources
-%endif
 
 %changelog
