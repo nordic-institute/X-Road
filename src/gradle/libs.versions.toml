@@ -89,6 +89,7 @@ smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-c
 smallrye-config-yaml = { group = "io.smallrye.config", name = "smallrye-config-source-yaml", version.ref = "smallryeConfig" }
 
 resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
+resilience4j-timelimiter = { module = "io.github.resilience4j:resilience4j-timelimiter", version.ref = "resilience4j" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
@@ -321,7 +322,7 @@ quarkus-containerized = [
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.18.0" }
-sonarqube = { id = "org.sonarqube", version = "6.3.1.5724" }
+sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }

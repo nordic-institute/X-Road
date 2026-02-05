@@ -59,6 +59,7 @@ public class SpringRpcProperties implements RpcProperties {
         private Duration retryDelay = DurationConverter.parseDuration(DEFAULT_RETRY_DELAY);
         private Double retryExponentialBackoffMultiplier = Double.parseDouble(DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER);
         private int retryMaxAttempts = Integer.parseInt(DEFAULT_RETRY_MAX_ATTEMPTS);
+        private Duration retryTimeout = DurationConverter.parseDuration(DEFAULT_RETRY_TIMEOUT);
 
         @Override
         public Duration refreshInterval() {
@@ -78,6 +79,11 @@ public class SpringRpcProperties implements RpcProperties {
         @Override
         public int retryMaxAttempts() {
             return retryMaxAttempts;
+        }
+
+        @Override
+        public Duration retryTimeout() {
+            return retryTimeout;
         }
     }
 }

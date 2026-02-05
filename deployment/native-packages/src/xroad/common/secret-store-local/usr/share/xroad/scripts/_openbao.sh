@@ -172,6 +172,9 @@ path "xrd-secret/message-log/archival/pgp/*" {
 path "xrd-secret/message-log/database-encryption/keys/*" {
   capabilities = ["read", "list", "create", "update"]
 }
+path "xrd-secret/signer/token-pins/*" {
+  capabilities = ["read", "list", "create", "update", "delete"]
+}
 
 path "xrd-secret" {
   capabilities = ["list"]
