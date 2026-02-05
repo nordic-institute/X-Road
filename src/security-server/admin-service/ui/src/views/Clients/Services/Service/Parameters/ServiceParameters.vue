@@ -131,6 +131,9 @@
         </template>
       </XrdLabelWithIcon>
     </template>
+    <template #item.id="{ item }">
+      {{ item.service_client_type === ServiceClientType.LOCALGROUP ? item.local_group_code : item.id }}
+    </template>
     <template #item.rights_given_at="{ item }">
       <XrdDateTime :value="item.rights_given_at" />
     </template>
@@ -193,7 +196,7 @@ import { defineComponent } from 'vue';
 import AccessRightsDialog from '../AccessRightsDialog.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { Permissions } from '@/global';
-import { CodeWithDetails, ServiceClient, ServiceUpdate, ServiceType } from '@/openapi-types';
+import {CodeWithDetails, ServiceClient, ServiceUpdate, ServiceType, ServiceClientType} from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useServices } from '@/store/modules/services';
@@ -274,6 +277,9 @@ export default defineComponent({
     };
   },
   computed: {
+    ServiceClientType() {
+      return ServiceClientType
+    },
     ...mapState(useServices, ['service', 'serviceClients']),
     ...mapState(useServiceDescriptions, ['serviceDescription']),
     ...mapState(useUser, ['hasPermission']),
