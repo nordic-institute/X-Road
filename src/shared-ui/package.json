@@ -16,7 +16,7 @@
     "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
-    "axios": "~1.13.3",
+    "axios": "~1.13.4",
     "dayjs": "^1.11.19",
     "deepmerge": "^4.3.1",
     "pinia": "^3.0.4",
@@ -25,7 +25,7 @@
     "vue": "^3.5.27",
     "vue-i18n": "^11.2.8",
     "vue-router": "^4.6.4",
-    "vuetify": "3.11.7"
+    "vuetify": "3.11.8"
   },
   "engines": {
     "npm": "use-pnpm",
