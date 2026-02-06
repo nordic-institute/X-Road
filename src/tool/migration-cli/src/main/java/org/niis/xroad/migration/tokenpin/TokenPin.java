@@ -23,35 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.passwordstore;
+package org.niis.xroad.migration.tokenpin;
 
-import org.junit.jupiter.api.Test;
+/**
+ * Represents a parsed token PIN from script output.
+ *
+ * @param tokenId Unique identifier for token (e.g., "0", "softtoken-1")
+ * @param pin PIN value (plaintext from script)
+ */
+public record TokenPin(String tokenId, String pin) {
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.niis.xroad.signer.core.passwordstore.PasswordStore.getPassword;
-import static org.niis.xroad.signer.core.passwordstore.PasswordStore.storePassword;
-
-public class PasswordStoreTest {
-
-    @Test
-    public void runTest() {
-        getPassword("foo"); // Just check if get on empty DB works.
-
-        storePassword("foo", null);
-        storePassword("bar", null);
-
-        assertNull(getPassword("foo").orElse(null));
-
-        storePassword("foo", "fooPwd".getBytes(UTF_8));
-        storePassword("bar", "barPwd".getBytes(UTF_8));
-
-        assertArrayEquals("fooPwd".toCharArray(), getPassword("foo").orElseThrow());
-        assertArrayEquals("barPwd".toCharArray(), getPassword("bar").orElseThrow());
-
-        storePassword("foo", null);
-        assertNull(getPassword("foo").orElse(null));
-        assertArrayEquals("barPwd".toCharArray(), getPassword("bar").orElseThrow());
+    public TokenPin {
+        if (tokenId == null || tokenId.isBlank()) {
+            throw new IllegalArgumentException("Token ID cannot be blank");
+        }
+        if (pin == null || pin.isBlank()) {
+            throw new IllegalArgumentException("PIN cannot be blank");
+        }
     }
 }

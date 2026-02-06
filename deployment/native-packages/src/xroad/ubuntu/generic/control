@@ -50,6 +50,8 @@ Description: X-Road nginx component
 Package: xroad-signer
 Architecture: amd64 arm64
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
+Replaces: xroad-autologin (<< 8.0.0)
+Breaks: xroad-autologin (<< 8.0.0)
 Description: X-Road signer component
  X-Road signer components and utilities
 
@@ -119,12 +121,6 @@ Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
 
-Package: xroad-autologin
-Architecture: all
-Depends: ${misc:Depends}, expect, xroad-signer (=${binary:Version})
-Description: Automatic token pin code entry
- Optional utility that automatically enters the software token pin code on xroad-signer start
-
 Package: xroad-proxy-ui-api
 Architecture: all
 Pre-Depends: xroad-base (=${binary:Version})
@@ -143,7 +139,7 @@ Description: Meta-package for X-Road local database dependencies
 Package: xroad-database-remote
 Architecture: all
 Conflicts: xroad-database-local
-Depends: xroad-base (=${binary:Version}), postgresql-client, bao (>= 2.0.0) | xroad-secret-store-remote (=${binary:Version})
+Depends: xroad-base (=${binary:Version}), postgresql-client
 Description: Meta-package for X-Road remote database dependencies
 
 Package: xroad-center-registration-service

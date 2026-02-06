@@ -87,25 +87,8 @@ if [ $1 -gt 1 ] ; then
   rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
 fi
 
-# create TLS certificate provisioning properties
-CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-HOST=$(hostname -f)
-if (( ${#HOST} > 64 )); then
-    HOST="$(hostname -s)"
-fi
-IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print a[1]}' | paste -sd "," -)
-DNS_LIST="$(hostname -f),$(hostname -s)"
-if ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.common-name' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.alt-names' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names' &>/dev/null; then
-
-    echo "Setting proxy-ui-api TLS certificate provisioning properties in $CONFIG_FILE"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.common-name" "$HOST"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.alt-names" "$DNS_LIST"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names" "$IP_LIST"
-else
-  echo "Skipping setting proxy-ui-api TLS certificate provisioning properties in $CONFIG_FILE, already set"
-fi
+# create TLS certificate provisioning properties (if not already created)
+/usr/share/xroad/scripts/write_tls_config.sh setup_default proxy-ui-api
 
 %preun
 %systemd_preun xroad-proxy-ui-api.service

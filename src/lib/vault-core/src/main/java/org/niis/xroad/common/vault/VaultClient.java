@@ -48,6 +48,7 @@ public interface VaultClient {
     String PAYLOAD_KEY = "payload";
     String PRIVATEKEY_KEY = "privateKey";
     String CERTIFICATE_KEY = "certificate";
+    String PIN_KEY = "pin";
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
@@ -58,6 +59,8 @@ public interface VaultClient {
     String MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH = "message-log/archival/pgp/public-keys";
 
     String MLOG_DB_ENCRYPTION_SECRET_KEYS_BASE_PATH = "message-log/database-encryption/keys";
+
+    String SIGNER_TOKEN_PINS_BASE_PATH = "signer/token-pins";
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
@@ -99,6 +102,29 @@ public interface VaultClient {
      * @return Map of keyId to base64-encoded secret keys
      */
     Map<String, String> getMLogDBEncryptionSecretKeys();
+
+    /**
+     * Stores a token PIN in OpenBao.
+     *
+     * @param tokenId The token identifier
+     * @param pin Base64-encoded PIN bytes
+     */
+    void setTokenPin(String tokenId, char[] pin);
+
+    /**
+     * Retrieves a token PIN from OpenBao.
+     *
+     * @param tokenId The token identifier
+     * @return Optional containing Base64-encoded PIN bytes, or empty if not found
+     */
+    Optional<char[]> getTokenPin(String tokenId);
+
+    /**
+     * Deletes a token PIN from OpenBao.
+     *
+     * @param tokenId The token identifier
+     */
+    void deleteTokenPin(String tokenId);
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();

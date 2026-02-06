@@ -20,6 +20,7 @@ dependencies {
   api(libs.jakarta.cdiApi)
   api(libs.microprofile.config.api)
   api(libs.resilience4j.retry)
+  api(libs.resilience4j.timelimiter)
 
   testFixturesImplementation(libs.quarkus.junit5)
   testImplementation(testFixtures(project(":lib:properties-core")))
