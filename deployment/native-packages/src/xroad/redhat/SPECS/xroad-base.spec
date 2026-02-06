@@ -16,9 +16,6 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-%if 0%{?el7}
-Requires:  rlwrap
-%endif
 Requires:  jre-21-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl, bc, python3, python3-pyyaml
 
@@ -94,11 +91,12 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/generate_gpg_keypair.sh
 /usr/share/xroad/scripts/_restore_xroad.sh
 /usr/share/xroad/scripts/_backup_restore_common.sh
-/usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
 /usr/share/xroad/scripts/_setup_memory.sh
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.py
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
+%attr(755,root,root) /usr/share/xroad/scripts/write_tls_config.sh
+%attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_admin_user.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
@@ -110,7 +108,7 @@ rm -rf %{buildroot}
 %upgrade_check
 
 if ! getent passwd xroad > /dev/null; then
-useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
+  useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
 fi
 
 
@@ -147,12 +145,12 @@ fi
 %verifyscript
 # check validity of xroad user and group
 if [ "`id -u xroad`" -eq 0 ]; then
-echo "The xroad system user must not have uid 0 (root). Please fix this and reinstall this package." >&2
-exit 1
+  echo "The xroad system user must not have uid 0 (root). Please fix this and reinstall this package." >&2
+  exit 1
 fi
 if [ "`id -g xroad`" -eq 0 ]; then
-echo "The xroad system user must not have root as primary group. Please fix this and reinstall this package." >&2
-exit 1
+  echo "The xroad system user must not have root as primary group. Please fix this and reinstall this package." >&2
+  exit 1
 fi
 
 %post
@@ -184,15 +182,8 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 
-%if 0%{?el7}
-%set_default_java_version
-%restart_xroad_services
-%endif
-
 %posttrans -p /bin/bash
-%if 0%{?el8} || 0%{?el9}
 %set_default_java_version
 %restart_xroad_services
-%endif
 
 %changelog
