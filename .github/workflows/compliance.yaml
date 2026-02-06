@@ -1,0 +1,49 @@
+name: Double Open Compliance Scan
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+  workflow_dispatch:
+jobs:
+  compliance-run:
+    runs-on: ubuntu-latest
+    steps:
+      # 0. Checkout repository (Required to read the config file)
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      # 1. Install the ORT Server Client (OSC) and Authenticate
+      - name: Setup Double Open CLI
+        uses: eclipse-apoapsis/actions/setup-osc@main
+        with:
+          url: https://ort-api.scw.doubleopen.io
+          client-id: ${{ vars.OSC_CLIENT_ID }}
+          username: ${{ vars.OSC_USERNAME }}
+          password: ${{ secrets.OSC_PASSWORD }}
+
+      # 2. Trigger the Scan using the parameters file
+      - name: Start ORT Run
+        run: |
+          osc runs start --parameters-file=./.github/workflows/ort-configuration.json 
+        env:
+          OSC_REPOSITORY_ID: 102
+          OSC_RUNS_START_WAIT: true
+
+      # 3. Download the Reports
+      # Run this step even if the scan "fails" due to policy violations
+      - name: Download Reports
+        if: ${{ always() }}
+        run: osc runs download reports
+        env:
+          OSC_DOWNLOAD_REPORTS_FILE_NAMES: 'scan-report-web-app.html,NOTICE_SUMMARY'
+          OSC_DOWNLOAD_REPORTS_OUTPUT_DIR: './reports'
+      # 4. Upload Reports to GitHub Artifacts
+      # Run this step even if previous steps failed
+      - name: Upload Artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-reports
+          path: reports/
