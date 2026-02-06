@@ -1,4 +1,5 @@
-FROM ubuntu:noble
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Configure package mirror for APT

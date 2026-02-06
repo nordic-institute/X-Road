@@ -1,4 +1,5 @@
-FROM rockylinux:8
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}rockylinux:8
 
 # Configure package mirror for YUM
 ARG XROAD_MIRROR_BASE_URL

@@ -1,5 +1,6 @@
 ARG REGISTRY=localhost:5555
-FROM eclipse-temurin:21-jre
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}eclipse-temurin:21-jre
 
 RUN groupadd --system --gid 999 xroad && \
     useradd --system  \

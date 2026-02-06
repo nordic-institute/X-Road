@@ -24,6 +24,12 @@ repo_key="${5-}"
 
 # Prepare mirror build args (unless --no-mirror flag is set)
 MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
+
+# Add Docker Hub mirror build arg if configured
+if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
+fi
+
 if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN-}" ]]; then
   MIRROR_BUILD_ARGS+=(
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
@@ -61,7 +67,12 @@ build_variant() {
     -t "$tag:$version$1-$2" "$dir"
 }
 
-docker pull ubuntu:24.04 # Ensure latest ubuntu image is used as base
+# Ensure latest ubuntu image is used as base
+if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:24.04"
+else
+  docker pull ubuntu:24.04
+fi
 
 build "$dir/slim/Dockerfile" "-slim"
 build_variant "-slim" "fi"

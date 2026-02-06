@@ -160,6 +160,7 @@ fi
 MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts")
 log_info "=== Mirror Configuration ==="
 log_info "NO_MIRROR flag: $NO_MIRROR"
+log_info "XROAD_MIRROR_DOCKER_URL: ${XROAD_MIRROR_DOCKER_URL:-<not set>}"
 log_info "XROAD_MIRROR_UBUNTU_URL: ${XROAD_MIRROR_UBUNTU_URL:-<not set>}"
 log_info "XROAD_MIRROR_USERNAME: ${XROAD_MIRROR_USERNAME:-<not set>}"
 if [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
@@ -167,15 +168,22 @@ if [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
 else
   log_info "XROAD_MIRROR_TOKEN: <not set>"
 fi
+
+# Add Docker Hub mirror build arg if configured
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
+  log_success "Docker mirror ENABLED: $XROAD_MIRROR_DOCKER_URL"
+fi
+
 if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
   MIRROR_BUILD_ARGS+=(
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
     --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
   )
-  log_success "Mirror ENABLED: $XROAD_MIRROR_UBUNTU_URL"
+  log_success "APT mirror ENABLED: $XROAD_MIRROR_UBUNTU_URL"
 else
-  log_warn "Mirror DISABLED (using public repos)"
+  log_warn "APT mirror DISABLED (using public repos)"
 fi
 log_info "MIRROR_BUILD_ARGS: ${MIRROR_BUILD_ARGS[*]}"
 echo

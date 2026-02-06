@@ -1,4 +1,5 @@
-FROM rockylinux:9
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}rockylinux:9
 
 # Configure package mirror for DNF
 ARG XROAD_MIRROR_BASE_URL

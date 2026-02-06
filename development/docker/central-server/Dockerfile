@@ -3,7 +3,8 @@
 # internal or external
 ARG PACKAGE_SOURCE=internal
 
-FROM ubuntu:24.04 AS base
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG XROAD_MIRROR_URL

@@ -184,8 +184,14 @@ build_start=$(date +%s)
 
 # Prepare mirror build args (only if mirror configured)
 MIRROR_BUILD_ARGS=()
+
+# Add Docker Hub mirror build arg if configured
+if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
+fi
+
 if [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
-  MIRROR_BUILD_ARGS=(
+  MIRROR_BUILD_ARGS+=(
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
     --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
