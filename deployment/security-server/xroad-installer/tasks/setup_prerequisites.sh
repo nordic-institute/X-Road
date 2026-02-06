@@ -109,14 +109,37 @@ setup_prerequisites_rhel() {
     log_info "LC_ALL set to $LOCALE"
   fi
 
+  # Install epel-release first (provides EPEL repository for other packages)
+  if rpm -q epel-release >/dev/null 2>&1; then
+    log_info "epel-release already installed"
+  else
+    log_message "Installing epel-release..."
+    yum install -y epel-release && log_info "epel-release installed successfully" || log_die "Failed to install epel-release"
+  fi
+
+  # Check remaining packages and install if needed
+  log_message "Checking required packages..."
+  local packages_to_install=()
+
   for pkg in yum-utils crudini bc newt python3-pyyaml; do
     if rpm -q "$pkg" >/dev/null 2>&1; then
       log_info "$pkg already installed"
     else
-      log_message "Installing $pkg..."
-      yum install -y "$pkg" && log_info "$pkg installed successfully" || log_die "Failed to install $pkg"
+      log_message "  $pkg package not found, will install"
+      packages_to_install+=("$pkg")
     fi
   done
+
+  if [ ${#packages_to_install[@]} -gt 0 ]; then
+    log_message "Installing: ${packages_to_install[*]}"
+    if yum install -y "${packages_to_install[@]}"; then
+      log_info "Packages installed successfully"
+    else
+      log_die "Failed to install packages"
+    fi
+  else
+    log_info "All required packages already installed"
+  fi
 
   # Create xroad system user if not exists
   log_message "Ensuring X-Road system user 'xroad' exists"

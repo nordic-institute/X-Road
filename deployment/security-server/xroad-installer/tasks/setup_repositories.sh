@@ -62,16 +62,15 @@ setup_repositories_ubuntu() {
   local codename
   codename=$(lsb_release -sc)
 
-  local repo_url="$XROAD_REPO_BASE_URL/$XROAD_REPO_MAIN"
-  local dep_repo_url="$XROAD_REPO_BASE_URL/$XROAD_REPO_DEPENDENCIES"
+  local repo_url="$XROAD_REPO_BASE_URL/$XROAD_REPO_MAIN $codename-current main"
+  local dep_repo_url="$XROAD_REPO_BASE_URL/$XROAD_REPO_DEPENDENCIES xroad external"
 
-  log_message "  Ubuntu codename: $codename"
   log_message "  Main repository: $repo_url"
   log_message "  Dependencies repository: $dep_repo_url"
 
   {
-    echo "deb [signed-by=$XROAD_KEYRING_PATH] $repo_url $codename-current main"
-    echo "deb [signed-by=$XROAD_KEYRING_PATH] $dep_repo_url xroad external"
+    echo "deb [signed-by=$XROAD_KEYRING_PATH] $repo_url"
+    echo "deb [signed-by=$XROAD_KEYRING_PATH] $dep_repo_url"
   } | tee "$sources_file" > /dev/null
 
   log_info "Repository configuration added to $sources_file"
@@ -95,14 +94,7 @@ setup_repositories_rhel() {
   local rhel_major_version
   rhel_major_version=$(source /etc/os-release; echo ${VERSION_ID%.*})
 
-  # Install EPEL
-  log_message "Installing EPEL release for RHEL ${rhel_major_version}..."
-  if yum install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-${rhel_major_version}.noarch.rpm"; then
-    log_info "EPEL repository installed successfully"
-  else
-    log_die "Failed to install EPEL repository"
-  fi
-
+#  local repo_url="${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN}/rhel/${rhel_major_version}/current"
   local repo_url="${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN}"
   log_message "Adding X-Road repository: $repo_url"
 

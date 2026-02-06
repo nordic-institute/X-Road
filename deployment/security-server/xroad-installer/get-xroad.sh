@@ -22,6 +22,15 @@ TMP_DIR=$(mktemp -d -t xroad-installer-XXXXXX)
 echo "----------------------------------------------------------"
 echo " X-Road Security Server Installer Bootstrapper"
 echo "----------------------------------------------------------"
+
+if ! command -v tar >/dev/null; then
+    echo "Error: 'tar' is not installed."
+    echo "Please install it using one of the following commands:"
+    echo "  - RHEL/CentOS/Fedora: sudo dnf install tar"
+    echo "  - Debian/Ubuntu:      sudo apt-get install tar"
+    exit 1
+fi
+
 echo "Downloading full installer package..."
 
 if command -v curl >/dev/null; then
