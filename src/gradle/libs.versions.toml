@@ -5,12 +5,12 @@
 # In some cases referincing library directly like 'libs.protobuf.protoc' may not work, possible workaround could be:
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
-metrics = "4.2.37"
-jetty = "12.0.31"
+metrics = "4.2.38"
+jetty = "12.1.6"
 jaxb = "4.0.5"
 hibernate = "7.1.4.Final"
 mapstruct = "1.6.3"
-jackson = "2.19.4"
+jackson = "2.21.0"
 mockito = "5.21.0"
 springBoot = "3.5.6"
 junitJupiter = "6.0.2"
@@ -19,7 +19,7 @@ xmlUnit = "2.11.0"
 bouncyCastle = "1.83"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
-selenide="7.13.0"
+selenide="7.14.0"
 protoc = "4.33.5"
 grpc = "1.79.0"
 swaggerParser = "2.1.37"
@@ -112,11 +112,11 @@ apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.3" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.4" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.5.1" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.6" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.11.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.20.0" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.21.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
@@ -135,13 +135,13 @@ logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", versi
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.7" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.9" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "5.0.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.6" }
 guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.41" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.42" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -173,7 +173,7 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.18.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.19.0" }
 sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
 protobuf = { id = "com.google.protobuf", version = "0.9.6" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
