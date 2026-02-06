@@ -1,0 +1,13 @@
+<jxb:bindings
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
+    xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+    version="3.0"
+    jxb:extensionBindingPrefixes="xjc">
+
+    <!-- Global bindings to enable extension mode features -->
+    <jxb:globalBindings>
+        <xjc:superInterface name="ee.ria.xroad.common.identifier.v2.XRoadIdentifier"/>
+    </jxb:globalBindings>
+
+</jxb:bindings>

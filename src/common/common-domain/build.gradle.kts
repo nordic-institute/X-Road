@@ -67,6 +67,36 @@ tasks.register("xjc") {
         "schema" to "src/main/resources/service-metainfo.xsd",
         "binding" to "src/main/resources/identifiers-bindings.xml"
       )
+
+      // DEMO: Generate classes for identifiers-v2 with xs:choice (terminology transition demo)
+      // Uses xjc:superInterface to make generated classes implement XRoadIdentifier
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "ee.ria.xroad.common.identifier.v2",
+        "schema" to "src/main/resources/identifiers-v2-demo.xsd",
+        "binding" to "src/main/resources/identifiers-v2-bindings.xml",
+        "extension" to "true"
+      )
+
+      // DEMO: Generate v4 legacy classes (old terminology: memberClass, xRoadInstance)
+      // Uses xjc:superInterface to make generated classes implement IdentifierCommon
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "ee.ria.xroad.common.identifier.v4",
+        "schema" to "src/main/resources/identifiers-v4-legacy.xsd",
+        "binding" to "src/main/resources/identifiers-v4-bindings.xml",
+        "extension" to "true"
+      )
+
+      // DEMO: Generate v5 new classes (new terminology: participantClass, dataspaceInstance)
+      // Uses xjc:superInterface to make generated classes implement IdentifierCommon
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "ee.ria.xroad.common.identifier.v5",
+        "schema" to "src/main/resources/identifiers-v5-new.xsd",
+        "binding" to "src/main/resources/identifiers-v5-bindings.xml",
+        "extension" to "true"
+      )
     }
   }
 }

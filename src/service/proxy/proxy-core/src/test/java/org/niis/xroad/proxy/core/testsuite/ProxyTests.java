@@ -40,9 +40,11 @@ import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
+import org.niis.xroad.proxy.core.test.ProtocolTranslationTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestContext;
 import org.niis.xroad.proxy.core.test.TestcaseLoader;
+import org.niis.xroad.proxy.core.testsuite.testcases.V5RequestToV7SecurityServer;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -99,8 +101,47 @@ class ProxyTests {
                 .filter(testCase -> !(testCase instanceof UsingAbortingServerProxy))
                 .filter(testCase -> !(testCase instanceof SslMessageTestCase))
                 .filter(testCase -> !(testCase instanceof IsolatedSslMessageTestCase))
+                .filter(testCase -> !(testCase instanceof ProtocolTranslationTestCase))
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
+
+        PROPS.put("xroad.proxy.ssl-enabled", "false");
+        PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
+        PROXY_TEST_SUITE_HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
+        ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
+
+        return createDynamicTests(testCasesToRun);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> proxyTestSuiteProtocolTranslationTestCases() {
+        // tests for protocol translation (V4 <-> V5 terminology)
+        List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
+                .filter(testCase -> testCase instanceof ProtocolTranslationTestCase)
+                .toList();
+        // Only run if there are translation test cases available
+        if (testCasesToRun.isEmpty()) {
+            return Stream.empty();
+        }
+
+        PROPS.put("xroad.proxy.ssl-enabled", "false");
+        PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
+        PROXY_TEST_SUITE_HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
+        ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
+
+        return createDynamicTests(testCasesToRun);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> proxyTestSuiteProtocolTranslationTestCasesSc5() {
+        // tests for protocol translation (V4 <-> V5 terminology)
+        List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
+                .filter(testCase -> testCase instanceof V5RequestToV7SecurityServer)
+                .toList();
+        // Only run if there are translation test cases available
+        if (testCasesToRun.isEmpty()) {
+            return Stream.empty();
+        }
 
         PROPS.put("xroad.proxy.ssl-enabled", "false");
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));

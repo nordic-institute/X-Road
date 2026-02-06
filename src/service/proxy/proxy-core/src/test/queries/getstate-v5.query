@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Protocol 5.0 message with new terminology -->
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:dataspaceInstance>EE</id:dataspaceInstance>
+            <id:participantClass>BUSINESS</id:participantClass>
+            <id:participantCode>consumer</id:participantCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:dataspaceInstance>EE</id:dataspaceInstance>
+            <id:participantClass>BUSINESS</id:participantClass>
+            <id:participantCode>producer</id:participantCode>
+            <id:serviceCode>getState</id:serviceCode>
+        </xroad:service>
+        <xroad:userId>EE:PIN:abc4567</xroad:userId>
+        <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
+        <xroad:issue/>
+        <xroad:protocolVersion>5.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:getState>aäõ</xroad:getState>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Demo XSD for X-Road Identifiers - Legacy (Protocol 4.0)
+    Uses OLD terminology: memberClass, memberCode, xRoadInstance, serverCode
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:id="http://x-road.eu/xsd/identifiers-v4"
+           xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
+           targetNamespace="http://x-road.eu/xsd/identifiers-v4"
+           elementFormDefault="qualified"
+           jxb:version="3.0">
+
+    <xs:annotation>
+        <xs:appinfo>
+            <jxb:schemaBindings>
+                <jxb:package name="ee.ria.xroad.common.identifier.v4"/>
+            </jxb:schemaBindings>
+        </xs:appinfo>
+    </xs:annotation>
+
+    <!-- Element definitions with OLD terminology -->
+    <xs:element name="xRoadInstance" type="xs:string"/>
+    <xs:element name="memberClass" type="xs:string"/>
+    <xs:element name="memberCode" type="xs:string"/>
+    <xs:element name="serverCode" type="xs:string"/>
+    <xs:element name="subsystemCode" type="xs:string"/>
+    <xs:element name="groupCode" type="xs:string"/>
+    <xs:element name="serviceCode" type="xs:string"/>
+    <xs:element name="serviceVersion" type="xs:string"/>
+
+    <!-- Object type enumeration -->
+    <xs:simpleType name="XRoadObjectType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MEMBER"/>
+            <xs:enumeration value="SUBSYSTEM"/>
+            <xs:enumeration value="SERVER"/>
+            <xs:enumeration value="GLOBALGROUP"/>
+            <xs:enumeration value="LOCALGROUP"/>
+            <xs:enumeration value="SERVICE"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:attribute name="objectType" type="id:XRoadObjectType"/>
+
+    <!-- Base identifier type with OLD terminology -->
+    <xs:complexType name="XRoadIdentifierType">
+        <xs:sequence>
+            <xs:element ref="id:xRoadInstance" minOccurs="0"/>
+            <xs:element ref="id:memberClass" minOccurs="0"/>
+            <xs:element ref="id:memberCode" minOccurs="0"/>
+            <xs:element ref="id:subsystemCode" minOccurs="0"/>
+            <xs:element ref="id:groupCode" minOccurs="0"/>
+            <xs:element ref="id:serviceCode" minOccurs="0"/>
+            <xs:element ref="id:serviceVersion" minOccurs="0"/>
+            <xs:element ref="id:serverCode" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute ref="id:objectType" use="required"/>
+    </xs:complexType>
+
+    <!-- Client identifier (member/subsystem) -->
+    <xs:complexType name="XRoadClientIdentifierType">
+        <xs:complexContent>
+            <xs:extension base="id:XRoadIdentifierType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Security server identifier -->
+    <xs:complexType name="XRoadSecurityServerIdentifierType">
+        <xs:complexContent>
+            <xs:extension base="id:XRoadIdentifierType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+</xs:schema>
