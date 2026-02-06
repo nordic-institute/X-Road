@@ -1,0 +1,87 @@
+{
+  "revision": "develop",
+  "path": "",
+  "jobConfigs": {
+    "analyzer": {
+      "allowDynamicVersions": true,
+      "skipExcluded": true,
+      "environmentConfig": {
+        "infrastructureServices": []
+      },
+      "enabledPackageManagers": [
+        "Bazel",
+        "Bower",
+        "Bundler",
+        "Cargo",
+        "Carthage",
+        "CocoaPods",
+        "Composer",
+        "Conan",
+        "GoMod",
+        "GradleInspector",
+        "Maven",
+        "NPM",
+        "NuGet",
+        "PIP",
+        "Pipenv",
+        "PNPM",
+        "Poetry",
+        "Pub",
+        "SBT",
+        "SpdxDocumentFile",
+        "Stack",
+        "SwiftPM",
+        "Yarn",
+        "Yarn2",
+        "Unmanaged"
+      ]
+    },
+    "advisor": {
+      "skipExcluded": true,
+      "advisors": [
+        "OSV"
+      ]
+    },
+    "scanner": {
+      "createMissingArchives": true,
+      "skipConcluded": true,
+      "skipExcluded": true
+    },
+    "evaluator": {},
+    "reporter": {
+      "formats": [
+        "CycloneDX",
+        "SpdxDocument",
+        "WebApp",
+        "OrtResult",
+        "PlainTextTemplate",
+        "NoticeTemplate"
+      ],
+      "config": {
+        "SpdxDocument": {
+          "options": {
+            "outputFileFormats": "YAML,JSON"
+          },
+          "secrets": {}
+        },
+        "CycloneDX": {
+          "options": {
+            "outputFileFormats": "XML,JSON"
+          },
+          "secrets": {}
+        },
+        "PlainTextTemplate": {
+          "options": {
+            "templateIds": "NOTICE_DEFAULT,NOTICE_SUMMARY"
+          },
+          "secrets": {}
+        }
+      }
+    },
+    "parameters": {}
+  },
+  "labels": {
+    "distribution-type": "open-source"
+  },
+  "jobConfigContext": ""
+}
