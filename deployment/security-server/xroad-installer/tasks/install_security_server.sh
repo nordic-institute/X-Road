@@ -27,6 +27,28 @@ set_debconf() {
   log_info "$key value set."
 }
 
+# Apply proxy memory settings using the local helper script (before package installation)
+# XROAD_PROXY_MEM_SETTING is expected to contain values like "100m 512m" (min max)
+apply_proxy_memory() {
+  if [[ -z "$XROAD_PROXY_MEM_SETTING" ]]; then
+    return
+  fi
+
+  # Use local helper script from installer package
+  local proxy_helper="$SCRIPT_DIR/../lib/proxy_memory_helper.sh"
+  if [[ -x "$proxy_helper" ]]; then
+    log_message "Applying proxy memory settings: $XROAD_PROXY_MEM_SETTING"
+    mkdir -p /etc/xroad/services/
+    if $proxy_helper apply $XROAD_PROXY_MEM_SETTING; then
+      log_info "Proxy memory settings applied successfully"
+    else
+      log_warn "Failed to apply proxy memory settings. Please verify the settings in /etc/xroad/services/local.properties file."
+    fi
+  else
+    log_warn "Proxy memory helper script not found at $proxy_helper"
+  fi
+}
+
 # Install security server for Ubuntu
 install_security_server_ubuntu() {
   log_message "Installing X-Road Security Server for Ubuntu..."
@@ -108,7 +130,7 @@ main() {
 
   # Check if running as root
   require_root
-
+  apply_proxy_memory
   execute_by_os install_security_server_ubuntu install_security_server_rhel
 
   log_message ""

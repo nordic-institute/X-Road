@@ -325,10 +325,15 @@ select_proxy_memory() {
   local helper="$SCRIPT_DIR/lib/proxy_memory_helper.sh"
   local RECOMMENDED_STR
   local DEFAULT_STR
-  
-  # Get recommended and default strings
+
+  # Get recommended and default strings (format: "-Xms100m -Xmx512m")
   RECOMMENDED_STR=$($helper get-recommended)
   DEFAULT_STR=$($helper get-default)
+
+  # Helper to extract "100m 512m" from "-Xms100m -Xmx512m"
+  extract_mem_values() {
+    echo "${1//-Xm[sx]/}"
+  }
 
   local selection
   selection=$(whiptail --title "Proxy Memory Configuration" \
@@ -339,10 +344,10 @@ select_proxy_memory() {
       3>&1 1>&2 2>&3)
   case "${selection:-d}" in
     r)
-      XROAD_PROXY_MEM_SETTING="${RECOMMENDED_STR}"
+      XROAD_PROXY_MEM_SETTING=$(extract_mem_values "$RECOMMENDED_STR")
       ;;
     d)
-      XROAD_PROXY_MEM_SETTING="${DEFAULT_STR}"
+      XROAD_PROXY_MEM_SETTING=$(extract_mem_values "$DEFAULT_STR")
       ;;
     custom)
       local mem_setting
