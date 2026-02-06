@@ -31,11 +31,9 @@ import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-
 import static com.codeborne.selenide.Condition.text;
 import static java.time.Duration.ofSeconds;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class CommonStepDefs extends BaseUiStepDefs {
@@ -102,8 +100,13 @@ public class CommonStepDefs extends BaseUiStepDefs {
     }
 
     @Step("file {string} exists")
-    public void fileExists(String filePath) throws IOException, InterruptedException {
-        var fileContent = containerProvider.getContainer().execInContainer("cat", filePath).getStdout();
-        assertFalse(fileContent.isEmpty());
+    public void fileExists(String filePath) throws Exception {
+        var res = containerProvider.getContainer().execInContainer("stat", filePath);
+
+        assertEquals(
+                0,
+                res.getExitCode(),
+                "File is missing: " + filePath + "\n" + res.getStderr()
+        );
     }
 }
