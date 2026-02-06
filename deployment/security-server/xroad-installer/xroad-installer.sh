@@ -507,6 +507,18 @@ main() {
   fi
   log_message ""
 
+  # For RHEL: Ask user confirmation before starting the Security Server
+  detect_os
+  if [[ "$OS_FAMILY" == "rhel" ]]; then
+    if whiptail --title "Start Security Server" --yesno "Security Server package has been installed.\n\nDo you want to start the Security Server now?" 10 60; then
+      log_message "Starting X-Road Security Server..."
+      systemctl start xroad-proxy
+      log_info "X-Road Security Server started successfully"
+    else
+      log_warn "Security Server was not started. You can start it manually with: systemctl start xroad-proxy"
+    fi
+  fi
+
   # Installation completed
   log_message "Admin user created: $XROAD_ADMIN_USERNAME"
   log_message "Security Server package installed: $XROAD_SS_PACKAGE"
