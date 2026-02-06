@@ -694,19 +694,6 @@
       "pinMatchError": "PIN confirmation does not match",
       "title": "Token PIN"
     },
-    "success": "Server initialised",
-    "title": "Initial configuration",
-    "warning": {
-      "init_server_id_exists": "Server id exists",
-      "init_server_owner_exists": "Server owner exists",
-      "init_servercode_exists": "Servercode exists",
-      "init_software_token_initialized": "Software token is initialised",
-      "init_unregistered_member": "Member is unregistered"
-    }
-  },
-  "initialConfigurationV2": {
-    "title": "Initial configuration",
-    "success": "Server initialised successfully",
     "serverConf": {
       "title": "Server Configuration",
       "error": "Failed to initialise server configuration"
@@ -722,6 +709,15 @@
       "messageLog": "Initialise message log encryption",
       "gpgKeyError": "Failed to generate GPG key",
       "messageLogError": "Failed to initialise message log encryption"
+    },
+    "success": "Server initialised successfully",
+    "title": "Initial configuration",
+    "warning": {
+      "init_server_id_exists": "Server id exists",
+      "init_server_owner_exists": "Server owner exists",
+      "init_servercode_exists": "Servercode exists",
+      "init_software_token_initialized": "Software token is initialised",
+      "init_unregistered_member": "Member is unregistered"
     }
   },
   "internalServers": {

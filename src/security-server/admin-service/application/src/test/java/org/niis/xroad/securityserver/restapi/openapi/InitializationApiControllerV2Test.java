@@ -50,6 +50,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -117,11 +118,9 @@ class InitializationApiControllerV2Test extends AbstractApiControllerTestContext
         ServerConfInitRequestDto request = new ServerConfInitRequestDto(
                 SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE);
 
-        try {
-            initializationApiControllerV2.initializeServerConf(request);
-        } catch (ConflictException e) {
-            assertEquals("Configuration anchor must be imported first", e.getMessage());
-        }
+        ConflictException e = assertThrows(ConflictException.class,
+                () -> initializationApiControllerV2.initializeServerConf(request));
+        assertEquals("Configuration anchor must be imported first", e.getMessage());
     }
 
     @Test
@@ -151,11 +150,9 @@ class InitializationApiControllerV2Test extends AbstractApiControllerTestContext
 
         SoftTokenInitRequestDto request = new SoftTokenInitRequestDto("weak");
 
-        try {
-            initializationApiControllerV2.initializeSoftToken(request);
-        } catch (ConflictException e) {
-            assertEquals("SERVERCONF step must be completed before SOFTTOKEN", e.getMessage());
-        }
+        ConflictException e = assertThrows(ConflictException.class,
+                () -> initializationApiControllerV2.initializeSoftToken(request));
+        assertEquals("SERVERCONF step must be completed before SOFTTOKEN", e.getMessage());
     }
 
     @Test
@@ -166,11 +163,9 @@ class InitializationApiControllerV2Test extends AbstractApiControllerTestContext
 
         SoftTokenInitRequestDto request = new SoftTokenInitRequestDto("weak");
 
-        try {
-            initializationApiControllerV2.initializeSoftToken(request);
-        } catch (WeakPinException e) {
-            assertEquals("PIN is too weak", e.getMessage());
-        }
+        WeakPinException e = assertThrows(WeakPinException.class,
+                () -> initializationApiControllerV2.initializeSoftToken(request));
+        assertEquals("PIN is too weak", e.getMessage());
     }
 
     @Test

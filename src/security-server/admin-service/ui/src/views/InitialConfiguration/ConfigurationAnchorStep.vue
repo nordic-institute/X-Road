@@ -30,7 +30,7 @@
       <v-row align="center" no-gutters>
         <v-col cols="auto">{{ $t('initialConfiguration.anchor.info') }}</v-col>
         <v-col>
-          <UploadConfigurationAnchorDialog init-mode @uploaded="fetchConfigurationAnchor" />
+          <UploadConfigurationAnchorDialog init-mode @uploaded="onAnchorUploaded" />
         </v-col>
       </v-row>
     </XrdFormBlock>
@@ -67,67 +67,50 @@
   </XrdWizardStep>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-import { mapActions } from 'pinia';
+<script lang="ts" setup>
+import { ref } from 'vue';
 
 import { useNotifications, XrdBtn, XrdDateTime, XrdHashValue, XrdWizardStep, XrdFormBlock } from '@niis/shared-ui';
 
 import { Anchor } from '@/openapi-types';
 import { useGeneral } from '@/store/modules/general';
-
-import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import { useSystem } from '@/store/modules/system';
 import { useInitializationV2 } from '@/store/modules/initializationV2';
 
-export default defineComponent({
-  components: {
-    UploadConfigurationAnchorDialog,
-    XrdDateTime,
-    XrdHashValue,
-    XrdBtn,
-    XrdWizardStep,
-    XrdFormBlock,
-  },
-  props: {
-    saveButtonText: {
-      type: String,
-      default: 'action.continue',
-    },
-  },
-  emits: ['done'],
-  setup() {
-    const { addError } = useNotifications();
-    const { fetchConfigurationAnchor: apiFetchConfigurationAnchor } = useSystem();
-    return { addError, apiFetchConfigurationAnchor };
-  },
-  data() {
-    return {
-      showAnchorDialog: false as boolean,
-      configurationAnchor: undefined as Anchor | undefined,
-    };
-  },
+import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 
-  methods: {
-    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
-    // Fetch anchor data so it can be shown in the UI
-    fetchConfigurationAnchor() {
-      this.apiFetchConfigurationAnchor()
-        .then((data) => (this.configurationAnchor = data))
-        .catch((error) => this.addError(error));
-
-      // Refresh v2 initialization status so anchorImported updates
-      useInitializationV2().fetchStatus();
-
-      // Fetch member classes for owner member step after anchor is ready
-      this.fetchMemberClassesForCurrentInstance();
-    },
-    done(): void {
-      this.$emit('done');
-    },
+withDefaults(
+  defineProps<{
+    saveButtonText?: string;
+  }>(),
+  {
+    saveButtonText: 'action.continue',
   },
-});
+);
+
+const emit = defineEmits<{ done: [] }>();
+
+const { addError } = useNotifications();
+const { fetchConfigurationAnchor: apiFetchConfigurationAnchor } = useSystem();
+const { fetchMemberClassesForCurrentInstance } = useGeneral();
+
+const configurationAnchor = ref<Anchor | undefined>();
+
+function onAnchorUploaded() {
+  apiFetchConfigurationAnchor()
+    .then((data) => (configurationAnchor.value = data))
+    .catch((error) => addError(error));
+
+  // Refresh v2 initialization status so anchorImported updates
+  useInitializationV2().fetchStatus();
+
+  // Fetch member classes for owner member step after anchor is ready
+  fetchMemberClassesForCurrentInstance();
+}
+
+function done(): void {
+  emit('done');
+}
 </script>
 
 <style lang="scss" scoped></style>

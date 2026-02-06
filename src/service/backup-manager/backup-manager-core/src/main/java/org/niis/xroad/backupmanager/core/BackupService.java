@@ -117,7 +117,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
     }
 
     @Override
-    public void hasGpgKey(Empty request, StreamObserver<BackupGpgStatus> responseObserver) {
+    public void getGpgStatus(Empty request, StreamObserver<BackupGpgStatus> responseObserver) {
         rpcResponseHandler.handleRequest(responseObserver, () -> BackupGpgStatus.newBuilder()
                 .setInitialized(backupHandler.hasGpgKey())
                 .build());

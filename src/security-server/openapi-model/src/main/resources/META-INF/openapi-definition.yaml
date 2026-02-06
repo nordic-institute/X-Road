@@ -27,8 +27,6 @@ tags:
     description: services' endpoints related endpoints
   - name: initialization
     description: initialization endpoints
-  - name: initialization-v2
-    description: v2 initialization endpoints with granular step tracking
   - name: keys
     description: keys endpoints
   - name: language

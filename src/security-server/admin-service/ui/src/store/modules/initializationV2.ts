@@ -109,10 +109,6 @@ export const useInitializationV2 = defineStore('initializationV2', {
       return info?.status ?? 'NOT_STARTED';
     },
 
-    getStepInfo(step: InitializationStep): InitializationStepInfo | undefined {
-      return this.status?.steps.find((s) => s.step === step);
-    },
-
     async fetchStatus(): Promise<InitializationStatusV2> {
       const response = await api.get<InitializationStatusV2>(`${V2_BASE}/status`);
       this.status = response.data;

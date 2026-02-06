@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdElevatedViewSimple id="initial-configuration-v2" title="initialConfigurationV2.title" class="overflow-hidden">
+  <XrdElevatedViewSimple id="initial-configuration" title="initialConfiguration.title" class="overflow-hidden">
     <v-progress-linear v-if="loading" indeterminate />
 
     <XrdWizard v-if="!loading" v-model="currentStep">
@@ -38,7 +38,7 @@
           <v-divider />
         </template>
         <v-stepper-item :complete="currentStep > serverConfStepNum" :value="serverConfStepNum">
-          {{ $t('initialConfigurationV2.serverConf.title') }}
+          {{ $t('initialConfiguration.serverConf.title') }}
         </v-stepper-item>
         <v-divider />
         <v-stepper-item :complete="currentStep > softTokenStepNum" :value="softTokenStepNum">
@@ -46,7 +46,7 @@
         </v-stepper-item>
         <v-divider />
         <v-stepper-item :complete="currentStep > autoInitStepNum" :value="autoInitStepNum">
-          {{ $t('initialConfigurationV2.autoInit.title') }}
+          {{ $t('initialConfiguration.autoInit.title') }}
         </v-stepper-item>
       </template>
 
@@ -71,10 +71,10 @@
   </XrdElevatedViewSimple>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-import { mapActions, mapState } from 'pinia';
+<script lang="ts" setup>
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 
 import { useNotifications, XrdElevatedViewSimple, XrdWizard } from '@niis/shared-ui';
 
@@ -88,94 +88,70 @@ import ServerConfStep from './ServerConfStep.vue';
 import SoftTokenStep from './SoftTokenStep.vue';
 import AutoInitStep from './AutoInitStep.vue';
 
-export default defineComponent({
-  components: {
-    ConfigurationAnchorStep,
-    ServerConfStep,
-    SoftTokenStep,
-    AutoInitStep,
-    XrdElevatedViewSimple,
-    XrdWizard,
-  },
-  setup() {
-    const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
-  },
-  data() {
-    return {
-      currentStep: 1,
-      loading: true,
-      // Captured once on load so the stepper layout doesn't shift mid-wizard
-      showAnchorStep: false,
-    };
-  },
-  computed: {
-    ...mapState(useMainTabs, ['firstAllowedTab']),
-    ...mapState(useInitializationV2, ['anchorImported', 'overallStatus', 'isFullyInitialized']),
+const router = useRouter();
+const { addError, addSuccessMessage } = useNotifications();
 
-    anchorStepNum(): number {
-      return this.showAnchorStep ? 1 : 0;
-    },
-    serverConfStepNum(): number {
-      return this.anchorStepNum + 1;
-    },
-    softTokenStepNum(): number {
-      return this.serverConfStepNum + 1;
-    },
-    autoInitStepNum(): number {
-      return this.softTokenStepNum + 1;
-    },
-  },
-  async created() {
-    try {
-      await this.fetchStatus();
-      this.showAnchorStep = !this.anchorImported;
-      this.skipCompletedSteps();
-    } catch (error) {
-      this.addError(error);
-    } finally {
-      this.loading = false;
+const mainTabsStore = useMainTabs();
+const { firstAllowedTab } = storeToRefs(mainTabsStore);
+
+const initV2Store = useInitializationV2();
+const { anchorImported, isFullyInitialized } = storeToRefs(initV2Store);
+const { fetchStatus } = initV2Store;
+
+const { checkAlertStatus } = useAlerts();
+const { setInitializationStatus, fetchCurrentSecurityServer } = useUser();
+
+const currentStep = ref(1);
+const loading = ref(true);
+// Captured once on load so the stepper layout doesn't shift mid-wizard
+const showAnchorStep = ref(false);
+
+const anchorStepNum = computed(() => (showAnchorStep.value ? 1 : 0));
+const serverConfStepNum = computed(() => anchorStepNum.value + 1);
+const softTokenStepNum = computed(() => serverConfStepNum.value + 1);
+const autoInitStepNum = computed(() => softTokenStepNum.value + 1);
+
+function skipCompletedSteps(): void {
+  if (isFullyInitialized.value) {
+    router.replace(firstAllowedTab.value.to);
+    return;
+  }
+
+  // If anchor is not imported, start at anchor step
+  if (showAnchorStep.value) {
+    currentStep.value = anchorStepNum.value;
+    return;
+  }
+
+  if (initV2Store.getStepStatus('SERVERCONF') === 'COMPLETED') {
+    if (initV2Store.getStepStatus('SOFTTOKEN') === 'COMPLETED') {
+      currentStep.value = autoInitStepNum.value;
+    } else {
+      currentStep.value = softTokenStepNum.value;
     }
-  },
-  methods: {
-    ...mapActions(useInitializationV2, ['fetchStatus']),
-    ...mapActions(useAlerts, ['checkAlertStatus']),
-    ...mapActions(useUser, ['setInitializationStatus', 'fetchCurrentSecurityServer']),
+  } else {
+    currentStep.value = serverConfStepNum.value;
+  }
+}
 
-    skipCompletedSteps(): void {
-      if (this.isFullyInitialized) {
-        this.$router.replace(this.firstAllowedTab.to);
-        return;
-      }
+function onAllDone(): void {
+  addSuccessMessage('initialConfiguration.success');
+  setInitializationStatus();
+  fetchCurrentSecurityServer();
+  checkAlertStatus();
+  router.replace(firstAllowedTab.value.to);
+}
 
-      // If anchor is not imported, start at anchor step
-      if (this.showAnchorStep) {
-        this.currentStep = this.anchorStepNum;
-        return;
-      }
-
-      const store = useInitializationV2();
-
-      if (store.getStepStatus('SERVERCONF') === 'COMPLETED') {
-        if (store.getStepStatus('SOFTTOKEN') === 'COMPLETED') {
-          this.currentStep = this.autoInitStepNum;
-        } else {
-          this.currentStep = this.softTokenStepNum;
-        }
-      } else {
-        this.currentStep = this.serverConfStepNum;
-      }
-    },
-
-    onAllDone(): void {
-      this.addSuccessMessage('initialConfigurationV2.success');
-      this.setInitializationStatus();
-      this.fetchCurrentSecurityServer();
-      this.checkAlertStatus();
-      this.$router.replace(this.firstAllowedTab.to);
-    },
-  },
-});
+// Initialize on creation
+try {
+  await fetchStatus();
+  showAnchorStep.value = !anchorImported.value;
+  skipCompletedSteps();
+} catch (error) {
+  addError(error);
+} finally {
+  loading.value = false;
+}
 </script>
 
 <style lang="scss" scoped></style>

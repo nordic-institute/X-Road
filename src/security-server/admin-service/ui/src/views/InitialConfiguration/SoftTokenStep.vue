@@ -26,10 +26,6 @@
  -->
 <template>
   <XrdWizardStep sub-title="initialConfiguration.pin.info1">
-    <v-alert v-if="errorMessage" type="error" variant="outlined" class="mb-4" closable @click:close="errorMessage = ''">
-      {{ errorMessage }}
-    </v-alert>
-
     <v-alert
       data-test="alert-token-policy-enabled"
       class="mt-6 mb-6 body-regular"
@@ -69,61 +65,56 @@
     <template #footer>
       <v-spacer />
 
-      <XrdBtn variant="outlined" data-test="previous-button" class="previous-button mr-4" text="action.previous" @click="$emit('previous')" />
+      <XrdBtn
+        variant="outlined"
+        data-test="previous-button"
+        class="previous-button mr-4"
+        text="action.previous"
+        @click="emit('previous')"
+      />
       <XrdBtn data-test="soft-token-save-button" text="action.continue" :disabled="!meta.valid" :loading="busy" @click="submit" />
     </template>
   </XrdWizardStep>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { mapActions } from 'pinia';
 
 import { useNotifications, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, veeDefaultFieldConfig } from '@niis/shared-ui';
 import { useInitializationV2 } from '@/store/modules/initializationV2';
 
-export default defineComponent({
-  components: { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn },
-  emits: ['done', 'previous'],
-  setup() {
-    const { addError } = useNotifications();
-    const { meta, values, defineField } = useForm({
-      validationSchema: {
-        pin: 'required',
-        confirmPin: 'required|confirmed:@pin',
-      },
-    });
-    const componentConfig = veeDefaultFieldConfig();
-    const [pinMdl, pinRef] = defineField('pin', componentConfig);
-    const [confirmPinMdl, confirmPinRef] = defineField('confirmPin', componentConfig);
-    return { meta, values, pinRef, pinMdl, confirmPinRef, confirmPinMdl, addError };
-  },
-  data() {
-    return {
-      busy: false,
-      errorMessage: '',
-    };
-  },
-  methods: {
-    ...mapActions(useInitializationV2, ['initSoftToken']),
+const emit = defineEmits<{
+  done: [];
+  previous: [];
+}>();
 
-    async submit(): Promise<void> {
-      this.busy = true;
-      this.errorMessage = '';
-      try {
-        await this.initSoftToken(this.values.pin!);
-        this.$emit('done');
-      } catch (error: any) {
-        this.errorMessage =
-          error?.response?.data?.error?.description || error?.response?.data?.message || this.$t('initialConfigurationV2.softToken.error');
-        this.addError(error);
-      } finally {
-        this.busy = false;
-      }
-    },
+const { addError } = useNotifications();
+const { initSoftToken } = useInitializationV2();
+
+const { meta, values, defineField } = useForm({
+  validationSchema: {
+    pin: 'required',
+    confirmPin: 'required|confirmed:@pin',
   },
 });
+const componentConfig = veeDefaultFieldConfig();
+const [pinMdl, pinRef] = defineField('pin', componentConfig);
+const [confirmPinMdl, confirmPinRef] = defineField('confirmPin', componentConfig);
+
+const busy = ref(false);
+
+async function submit(): Promise<void> {
+  busy.value = true;
+  try {
+    await initSoftToken(values.pin!);
+    emit('done');
+  } catch (error) {
+    addError(error);
+  } finally {
+    busy.value = false;
+  }
+}
 </script>
 
 <style lang="scss" scoped></style>

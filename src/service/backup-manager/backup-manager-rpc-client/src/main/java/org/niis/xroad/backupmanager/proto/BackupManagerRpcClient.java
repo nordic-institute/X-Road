@@ -133,7 +133,7 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
     }
 
     public boolean hasGpgKey() {
-        var response = exec(() -> backupServiceBlockingStub.hasGpgKey(Empty.getDefaultInstance()));
+        var response = exec(() -> backupServiceBlockingStub.getGpgStatus(Empty.getDefaultInstance()));
         return response.getInitialized();
     }
 

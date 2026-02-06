@@ -26,10 +26,6 @@
  -->
 <template>
   <XrdWizardStep title="wizard.memberName" sub-title="wizard.client.memberNameTooltip">
-    <v-alert v-if="errorMessage" type="error" variant="outlined" class="mb-4" closable @click:close="errorMessage = ''">
-      {{ errorMessage }}
-    </v-alert>
-
     <v-slide-y-transition>
       <div v-if="memberName" class="readonly-info-field" data-test="selected-member-name">
         {{ memberName }}
@@ -79,7 +75,7 @@
         class="previous-button mr-4"
         text="action.previous"
         variant="outlined"
-        @click="$emit('previous')"
+        @click="emit('previous')"
       />
       <XrdBtn
         data-test="server-conf-save-button"
@@ -93,10 +89,9 @@
   </XrdWizardStep>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-import { mapActions, mapState } from 'pinia';
+<script lang="ts" setup>
+import { computed, onBeforeMount, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useForm } from 'vee-validate';
 
 import { useNotifications, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow, veeDefaultFieldConfig } from '@niis/shared-ui';
@@ -104,117 +99,106 @@ import { useNotifications, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow,
 import { useGeneral } from '@/store/modules/general';
 import { useInitializationV2 } from '@/store/modules/initializationV2';
 
-export default defineComponent({
-  components: { XrdWizardStep, XrdFormBlock, XrdFormBlockRow, XrdBtn },
-  props: {
-    showPreviousButton: {
-      type: Boolean,
-      default: true,
-    },
+const props = withDefaults(
+  defineProps<{
+    showPreviousButton?: boolean;
+  }>(),
+  {
+    showPreviousButton: true,
   },
-  emits: ['done', 'previous'],
-  setup() {
-    const { addError } = useNotifications();
-    const { meta, values, validateField, setFieldValue, defineField } = useForm({
-      validationSchema: {
-        memberClass: 'required',
-        memberCode: 'required|xrdIdentifier',
-        securityServerCode: 'required|xrdIdentifier',
-      },
+);
+
+const emit = defineEmits<{
+  done: [];
+  previous: [];
+}>();
+
+const { addError } = useNotifications();
+const generalStore = useGeneral();
+const { memberClassesCurrentInstance, memberName } = storeToRefs(generalStore);
+const { fetchMemberClassesForCurrentInstance, fetchMemberName } = generalStore;
+const { initServerConf } = useInitializationV2();
+
+const { meta, values, validateField, setFieldValue, defineField } = useForm({
+  validationSchema: {
+    memberClass: 'required',
+    memberCode: 'required|xrdIdentifier',
+    securityServerCode: 'required|xrdIdentifier',
+  },
+});
+const componentConfig = veeDefaultFieldConfig();
+const [memberClassMdl, memberClassRef] = defineField('memberClass', componentConfig);
+const [memberCodeMdl, memberCodeRef] = defineField('memberCode', componentConfig);
+const [securityServerCodeMdl, securityServerCodeRef] = defineField('securityServerCode', componentConfig);
+
+const busy = ref(false);
+
+const memberClassItems = computed(() =>
+  memberClassesCurrentInstance.value.map((memberClass: string) => ({
+    title: memberClass,
+    value: memberClass,
+  })),
+);
+
+watch(memberClassesCurrentInstance, (val: string[]) => {
+  if (val?.length === 1) {
+    setFieldValue('memberClass', val[0]);
+  }
+});
+
+watch(
+  () => values.memberClass,
+  (val) => {
+    if (val) {
+      updateMemberName();
+    }
+  },
+);
+
+watch(
+  () => values.memberCode,
+  (val) => {
+    if (val) {
+      updateMemberName();
+    }
+  },
+);
+
+async function submit(): Promise<void> {
+  busy.value = true;
+  try {
+    await initServerConf({
+      security_server_code: values.securityServerCode!,
+      owner_member_class: values.memberClass!,
+      owner_member_code: values.memberCode!,
     });
-    const componentConfig = veeDefaultFieldConfig();
-    const [memberClassMdl, memberClassRef] = defineField('memberClass', componentConfig);
-    const [memberCodeMdl, memberCodeRef] = defineField('memberCode', componentConfig);
-    const [securityServerCodeMdl, securityServerCodeRef] = defineField('securityServerCode', componentConfig);
-    return {
-      meta,
-      values,
-      validateField,
-      setFieldValue,
-      memberClassRef,
-      memberClassMdl,
-      memberCodeRef,
-      memberCodeMdl,
-      securityServerCodeRef,
-      securityServerCodeMdl,
-      addError,
-    };
-  },
-  data() {
-    return {
-      busy: false,
-      errorMessage: '',
-    };
-  },
-  computed: {
-    ...mapState(useGeneral, ['memberClassesCurrentInstance', 'memberName']),
-    memberClassItems() {
-      return this.memberClassesCurrentInstance.map((memberClass: string) => ({
-        title: memberClass,
-        value: memberClass,
-      }));
-    },
-  },
-  watch: {
-    memberClassesCurrentInstance(val: string[]) {
-      if (val?.length === 1) {
-        this.setFieldValue('memberClass', val[0]);
-      }
-    },
-    'values.memberClass'(val) {
-      if (val) {
-        this.updateMemberName();
-      }
-    },
-    'values.memberCode'(val) {
-      if (val) {
-        this.updateMemberName();
-      }
-    },
-  },
-  beforeMount() {
-    this.fetchMemberClassesForCurrentInstance().catch((error) => {
-      if (error.response?.status === 500) {
+    emit('done');
+  } catch (error) {
+    addError(error);
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function updateMemberName(): Promise<void> {
+  if ((await validateField('memberClass')).valid && (await validateField('memberCode')).valid) {
+    fetchMemberName(values.memberClass!, values.memberCode!).catch((error) => {
+      if (error.response?.status === 404) {
         return;
       }
-      this.addError(error);
+      addError(error);
     });
-    this.updateMemberName();
-  },
-  methods: {
-    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance', 'fetchMemberName']),
-    ...mapActions(useInitializationV2, ['initServerConf']),
+  }
+}
 
-    async submit(): Promise<void> {
-      this.busy = true;
-      this.errorMessage = '';
-      try {
-        await this.initServerConf({
-          security_server_code: this.values.securityServerCode!,
-          owner_member_class: this.values.memberClass!,
-          owner_member_code: this.values.memberCode!,
-        });
-        this.$emit('done');
-      } catch (error: any) {
-        this.errorMessage =
-          error?.response?.data?.error?.description || error?.response?.data?.message || this.$t('initialConfigurationV2.serverConf.error');
-        this.addError(error);
-      } finally {
-        this.busy = false;
-      }
-    },
-
-    async updateMemberName(): Promise<void> {
-      if ((await this.validateField('memberClass')).valid && (await this.validateField('memberCode')).valid) {
-        this.fetchMemberName(this.values.memberClass!, this.values.memberCode!).catch((error) => {
-          if (error.response?.status === 404) {
-            return;
-          }
-          this.addError(error);
-        });
-      }
-    },
-  },
+onBeforeMount(() => {
+  fetchMemberClassesForCurrentInstance().catch((error) => {
+    if (error.response?.status === 500) {
+      return;
+    }
+    addError(error);
+  });
+  updateMemberName();
 });
 </script>
 

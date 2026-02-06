@@ -27,20 +27,16 @@
 <template>
   <XrdWizardStep>
     <div class="auto-init-container">
-      <p class="mb-6 body-regular">{{ $t('initialConfigurationV2.autoInit.info') }}</p>
+      <p class="mb-6 body-regular">{{ $t('initialConfiguration.autoInit.info') }}</p>
 
       <div v-for="sub in subSteps" :key="sub.step" class="sub-step mb-4 d-flex align-center">
-        <v-icon v-if="sub.state === 'completed'" color="success" class="mr-3">mdi-check-circle</v-icon>
+        <v-icon v-if="sub.state === 'completed'" icon="check_circle" color="success" filled class="mr-3" />
         <v-progress-circular v-else-if="sub.state === 'in-progress'" indeterminate size="20" width="2" class="mr-3" />
-        <v-icon v-else-if="sub.state === 'failed'" color="error" class="mr-3">mdi-alert-circle</v-icon>
-        <v-icon v-else color="grey" class="mr-3">mdi-circle-outline</v-icon>
+        <v-icon v-else-if="sub.state === 'failed'" icon="error" color="error" class="mr-3" />
+        <v-icon v-else icon="circle" color="grey" class="mr-3" />
 
         <span class="body-regular">{{ $t(sub.label) }}</span>
       </div>
-
-      <v-alert v-if="errorMessage" type="error" variant="outlined" class="mt-4" closable @click:close="errorMessage = ''">
-        {{ errorMessage }}
-      </v-alert>
     </div>
 
     <template #footer>
@@ -50,9 +46,8 @@
   </XrdWizardStep>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions } from 'pinia';
+<script lang="ts" setup>
+import { onMounted, reactive, ref } from 'vue';
 
 import { useNotifications, XrdWizardStep, XrdBtn } from '@niis/shared-ui';
 import { useInitializationV2 } from '@/store/modules/initializationV2';
@@ -65,79 +60,62 @@ interface SubStep {
   state: SubStepState;
 }
 
-export default defineComponent({
-  components: { XrdWizardStep, XrdBtn },
-  emits: ['done'],
-  setup() {
-    const { addError } = useNotifications();
-    return { addError };
-  },
-  data() {
-    return {
-      subSteps: [
-        { step: 'GPG_KEY', label: 'initialConfigurationV2.autoInit.gpgKey', state: 'pending' },
-        { step: 'MLOG_ENCRYPTION', label: 'initialConfigurationV2.autoInit.messageLog', state: 'pending' },
-      ] as SubStep[],
-      errorMessage: '',
-      hasFailed: false,
-    };
-  },
-  mounted() {
-    this.execute();
-  },
-  methods: {
-    ...mapActions(useInitializationV2, ['initGpgKey', 'initMessageLogEncryption']),
+const emit = defineEmits<{ done: [] }>();
 
-    async execute(): Promise<void> {
-      this.hasFailed = false;
-      this.errorMessage = '';
+const { addError } = useNotifications();
+const { initGpgKey, initMessageLogEncryption } = useInitializationV2();
 
-      // Reset any failed steps to pending
-      for (const sub of this.subSteps) {
-        if (sub.state === 'failed') {
-          sub.state = 'pending';
-        }
-      }
+const subSteps = reactive<SubStep[]>([
+  { step: 'GPG_KEY', label: 'initialConfiguration.autoInit.gpgKey', state: 'pending' },
+  { step: 'MLOG_ENCRYPTION', label: 'initialConfiguration.autoInit.messageLog', state: 'pending' },
+]);
+const hasFailed = ref(false);
 
-      // GPG Key
-      const gpgStep = this.subSteps.find((s) => s.step === 'GPG_KEY')!;
-      if (gpgStep.state !== 'completed') {
-        gpgStep.state = 'in-progress';
-        try {
-          await this.initGpgKey();
-          gpgStep.state = 'completed';
-        } catch (error: any) {
-          gpgStep.state = 'failed';
-          this.hasFailed = true;
-          this.errorMessage =
-            error?.response?.data?.error?.description || error?.response?.data?.message || this.$t('initialConfigurationV2.autoInit.gpgKeyError');
-          this.addError(error);
-          return;
-        }
-      }
+async function execute(): Promise<void> {
+  hasFailed.value = false;
 
-      // Message Log Encryption
-      const mlogStep = this.subSteps.find((s) => s.step === 'MLOG_ENCRYPTION')!;
-      if (mlogStep.state !== 'completed') {
-        mlogStep.state = 'in-progress';
-        try {
-          await this.initMessageLogEncryption();
-          mlogStep.state = 'completed';
-        } catch (error: any) {
-          mlogStep.state = 'failed';
-          this.hasFailed = true;
-          this.errorMessage =
-            error?.response?.data?.error?.description ||
-            error?.response?.data?.message ||
-            this.$t('initialConfigurationV2.autoInit.messageLogError');
-          this.addError(error);
-          return;
-        }
-      }
+  // Reset any failed steps to pending
+  for (const sub of subSteps) {
+    if (sub.state === 'failed') {
+      sub.state = 'pending';
+    }
+  }
 
-      this.$emit('done');
-    },
-  },
+  // GPG Key
+  const gpgStep = subSteps.find((s) => s.step === 'GPG_KEY')!;
+  if (gpgStep.state !== 'completed') {
+    gpgStep.state = 'in-progress';
+    try {
+      await initGpgKey();
+      gpgStep.state = 'completed';
+    } catch (error) {
+      gpgStep.state = 'failed';
+      hasFailed.value = true;
+      addError(error);
+      return;
+    }
+  }
+
+  // Message Log Encryption
+  const mlogStep = subSteps.find((s) => s.step === 'MLOG_ENCRYPTION')!;
+  if (mlogStep.state !== 'completed') {
+    mlogStep.state = 'in-progress';
+    try {
+      await initMessageLogEncryption();
+      mlogStep.state = 'completed';
+    } catch (error) {
+      mlogStep.state = 'failed';
+      hasFailed.value = true;
+      addError(error);
+      return;
+    }
+  }
+
+  emit('done');
+}
+
+onMounted(() => {
+  execute();
 });
 </script>
 

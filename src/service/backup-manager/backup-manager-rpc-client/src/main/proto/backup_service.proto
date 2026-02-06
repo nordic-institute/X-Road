@@ -44,7 +44,7 @@ service BackupService {
 
   rpc GenerateGgpKey(GenerateGpgKeyReq) returns (Empty) {}
   rpc GetBackupEncryptionStatus(Empty) returns (BackupEncryptionStatusResp) {}
-  rpc HasGpgKey(Empty) returns (BackupGpgStatus) {}
+  rpc GetGpgStatus(Empty) returns (BackupGpgStatus) {}
 }
 
 message ListBackupsResp {
