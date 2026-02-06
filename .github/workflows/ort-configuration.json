@@ -54,8 +54,7 @@
         "SpdxDocument",
         "WebApp",
         "OrtResult",
-        "PlainTextTemplate",
-        "NoticeTemplate"
+        "PlainTextTemplate"
       ],
       "config": {
         "SpdxDocument": {

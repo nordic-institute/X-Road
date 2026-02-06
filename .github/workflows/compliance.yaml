@@ -37,7 +37,6 @@ jobs:
         if: ${{ always() }}
         run: osc runs download reports
         env:
-          # Add 'NOTICE_SUMMARY' to the list (comma-separated)
           OSC_DOWNLOAD_REPORTS_FILE_NAMES: 'scan-report-web-app.html,NOTICE_SUMMARY'
           OSC_DOWNLOAD_REPORTS_OUTPUT_DIR: './reports'
       # 4. Upload Reports to GitHub Artifacts
