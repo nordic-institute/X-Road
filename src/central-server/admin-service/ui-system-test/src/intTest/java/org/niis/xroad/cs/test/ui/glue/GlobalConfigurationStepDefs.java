@@ -33,8 +33,8 @@ import com.codeborne.selenide.SelenideElement;
 import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.tuple.Pair;
-import org.awaitility.core.EvaluatedCondition;
 import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
+import org.testcontainers.shaded.org.awaitility.core.EvaluatedCondition;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -46,15 +46,12 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.ClassLoader.getSystemResource;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.given;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     private static final DocumentBuilderFactory DBF = DocumentBuilderFactory.newInstance();
@@ -383,21 +380,21 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     }
 
     @Step("User uploads file {} for it")
-    public void openUploadDialog(String filename) throws URISyntaxException, InterruptedException {
+    public void openUploadDialog(String filename) throws InterruptedException {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
 
         globalConfigurationPageObj.configurationParts.btnUpload(contentIdentifier)
                 .shouldBe(Condition.enabled)
                 .click();
 
-        globalConfigurationPageObj.configurationParts.btnCancelUpload()
+        globalConfigurationPageObj.configurationParts.btnCancel()
                 .shouldBe(Condition.enabled);
-        globalConfigurationPageObj.configurationParts.btnConfirmUpload()
+        globalConfigurationPageObj.configurationParts.btnConfirm()
                 .shouldNotBe(Condition.enabled);
         TimeUnit.SECONDS.sleep(2); //avoid same updated at
-        globalConfigurationPageObj.configurationParts.inputConfigurationFile().uploadFile(getConfigurationFile(filename));
+        globalConfigurationPageObj.configurationParts.inputConfigurationFile().uploadFromClasspath(getConfigurationFile(filename));
 
-        globalConfigurationPageObj.configurationParts.btnConfirmUpload()
+        globalConfigurationPageObj.configurationParts.btnConfirm()
                 .shouldBe(Condition.enabled)
                 .click();
 
@@ -405,10 +402,9 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    private File getConfigurationFile(String filename) throws URISyntaxException {
-        return Paths.get(getSystemResource("files/" + filename).toURI()).toFile();
+    private String getConfigurationFile(String filename) {
+        return "files/" + filename;
     }
-
 
     @Step("Configuration part file is successfully downloaded")
     public void wasConfigurationFileDownloaded() {

@@ -64,7 +64,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
                 "spring.main.banner-mode=off",
                 "logging.level.root=ERROR",
                 "xroad.management-service.rate-limit-requests-per-minute=10",
-                "xroad.management-service.rate-limit-requests-per-second=5"})
+                "xroad.management-service.rate-limit-requests-per-second=5",
+                "server.ssl.enabled=false"
+        })
 @ActiveProfiles({"test"})
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class ApplicationIpRateLimitTest {

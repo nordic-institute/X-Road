@@ -393,7 +393,7 @@ public class ConfigurationParser {
         try {
             var connection = downloader.getDownloadURLConnection(URI.create(configurationLocation.getDownloadURL()).toURL());
             return connection.getInputStream();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_DOWNLOAD_URL_CONNECTION_FAILURE)
                     .details("Failed to connect to the download url for configuration instance %s".formatted(getInstanceIdentifier()))
                     .build();

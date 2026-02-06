@@ -24,95 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {
-  createRouter,
-  createWebHashHistory,
-  NavigationGuardNext,
-  RouteLocationNormalized,
-} from 'vue-router';
-import routes from './routes';
+import { createXrdRouter } from '@niis/shared-ui';
+
 import { RouteName } from '@/global';
-import { useNotifications } from '@/store/modules/notifications';
-import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
-import { XrdLocation } from '@/router/types';
+import { useUser } from '@/store/modules/user';
 
-// Create the router
-const router = createRouter({
-  history: createWebHashHistory(),
-  routes: routes,
-});
+import routes from './routes';
 
-function backOnEscape(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    router.go(-1);
-  }
-}
-
-router.beforeEach(
-  async (
-    to: XrdLocation,
-    from: RouteLocationNormalized,
-    next: NavigationGuardNext,
-  ) => {
-    // Going to login
-    if (to.name === RouteName.Login) {
-      next();
-      return;
-    }
-
-    // Pinia stores
-    const user = useUser();
-    const notifications = useNotifications();
-    const system = useSystem();
-
-    if (to.meta.backOnEscape) {
-      window.addEventListener('keyup', backOnEscape);
-    } else {
-      window.removeEventListener('keyup', backOnEscape);
-    }
-
-    // User is allowed to access any other view than login only after authenticated information has been fetched
-    // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
-    // user to be redirected to a view that contains api calls (s)he is not allowed.
-    if (user.isSessionAlive && user.isAuthenticated) {
-      // Server is not initialized
-      if (
-        !system.isServerInitialized &&
-        to.name != RouteName.Initialisation &&
-        from.name != RouteName.Initialisation
-      ) {
-        next({
-          name: RouteName.Initialisation,
-        });
-      } else {
-        // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
-        if (from.name !== RouteName.Initialisation) {
-          notifications.resetNotifications();
-        }
-        /*
-    Check permissions here
-    */
-        if (!to?.meta?.permissions) {
-          to.meta.backTo = true;
-          next();
-        } else if (user.hasAnyOfPermissions(to.meta.permissions)) {
-          // This route is allowed
-          to.meta.backTo = from.matched.length > 0;
-          next();
-        } else {
-          // This route is not allowed
-          next({
-            name: RouteName.Forbidden,
-          });
-        }
-      }
-    } else {
-      next({
-        name: RouteName.Login,
-      });
-    }
+export default createXrdRouter({
+  forbiddenRouteName: RouteName.Forbidden,
+  initialisationRouteName: RouteName.Initialisation,
+  loginRouteName: RouteName.Login,
+  hasAnyOfPermissions(permissions: string[]): boolean {
+    return useUser().hasAnyOfPermissions(permissions);
   },
-);
-
-export default router;
+  isAuthenticated(): boolean {
+    return useUser().isAuthenticated;
+  },
+  isServerInitialized(): boolean {
+    return useSystem().isServerInitialized;
+  },
+  isSessionAlive(): boolean {
+    return useUser().isSessionAlive;
+  },
+  routes,
+});

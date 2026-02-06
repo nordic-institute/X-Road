@@ -30,6 +30,7 @@
     "emptySearch": "Su búsqueda de {msg} no obtuvo resultados.",
     "export": "Exportar",
     "finish": "Finalizar",
+    "generateCsr": "Generar CSR",
     "goToFront": "Ir al Inicio",
     "next": "Siguiente",
     "no": "No",
@@ -63,7 +64,8 @@
           "assignedRoles": "Roles asignados",
           "createKeyButton": "Crear clave",
           "name": "Detalles clave",
-          "note": "Nota: Guarda la clave API en un lugar seguro. La clave API es visible solo en el momento de la generación de la clave. No se volverá a mostrar y no se puede recuperar más tarde."
+          "note": "Nota: Guarda la clave API en un lugar seguro.",
+          "noteDetail": "La clave API es visible solo en el momento de la generación de la clave. No se volverá a mostrar y no se puede recuperar más tarde."
         },
         "roles": {
           "description": "Selecciona los roles asociados con la clave API. Los roles definen los permisos otorgados a la clave API.",
@@ -195,6 +197,7 @@
   "fields": {
     "code": "Código",
     "description": "Descripción",
+    "distinguishedName": "Nombre distinguido (DN)",
     "memberClass": "Clase del miembro",
     "password": "Contraseña",
     "securityServerCode": "Código de servidor de seguridad",
@@ -204,7 +207,7 @@
   "footer": {
     "copyright": {
       "company": "Instituto Nordico de Soluciones de Introperabilidad (NIIS)",
-      "licenceInfo": "Información de la licencia",
+      "domain": "niis.org",
       "title": "Derechos de autor"
     },
     "software": {
@@ -243,6 +246,25 @@
     "noMatches": "Sin coincidencias con los criterios",
     "noServices": "Sin servicios",
     "noTokens": "Sin Tokens"
+  },
+  "tlsCertificates": {
+    "downloadCertificate": "Descarga de certificado",
+    "downloadSuccess": "Certificado TLS del servicio de administración descargado con éxito",
+    "generateCsr": {
+      "button": "Generar CSR",
+      "content": "Primero, proporcione un nombre distinguido (DN). Luego, genere una nueva CSR y guárdela en un lugar seguro",
+      "distinguishedName": "Ingrese el nombre distinguido (DN)",
+      "title": "Generar solicitud de firma de certificado TLS",
+      "tooltip": "El nombre distinguido (DN) identifica de manera única a una entidad en un certificado X.509. Los siguientes tipos de atributos se encuentran comúnmente en el DN: CN = nombre común, O = nombre de la organización, C = Código de país."
+    },
+    "generateKey": {
+      "button": "Recrear la clave"
+    },
+    "keyText": "Clave TLS interna",
+    "uploadCertificate": {
+      "button": "Carga de certificado",
+      "label": "Cargue el archivo o fichero de certificado desde su computadora"
+    }
   },
   "type": "Tipo",
   "validation": {

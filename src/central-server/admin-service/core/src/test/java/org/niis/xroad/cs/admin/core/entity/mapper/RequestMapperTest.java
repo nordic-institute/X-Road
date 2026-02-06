@@ -27,6 +27,8 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AddressChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
@@ -40,10 +42,8 @@ import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequ
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;

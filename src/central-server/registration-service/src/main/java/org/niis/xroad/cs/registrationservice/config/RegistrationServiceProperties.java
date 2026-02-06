@@ -34,7 +34,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
-import java.nio.file.Path;
 
 /**
  * Registration service configuration properties.
@@ -88,16 +87,6 @@ public class RegistrationServiceProperties implements AdminServiceClientProperty
      * Controls how long the rate-limit cache entries are valid.
      */
     private int rateLimitExpireAfterAccessMinutes;
-
-    /**
-     * Path to a trust store containing certificates for the central server admin API
-     */
-    private Path apiTrustStore;
-
-    /**
-     * Password for the trust store
-     */
-    private String apiTrustStorePassword;
 
     /**
      * Central server admin api base URL

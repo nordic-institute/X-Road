@@ -26,30 +26,25 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-
+import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogArchiveEncryptionMemberDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.springframework.stereotype.Component;
 
-import java.util.stream.Collectors;
-
 @Component
 public class MessageLogEncryptionStatusConverter {
     public MessageLogEncryptionStatusDto convert(
-            MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics) {
+            MessageLogEncryptionStatusDiagnostics diagnostics) {
         return new MessageLogEncryptionStatusDto()
-                .messageLogArchiveEncryptionStatus(messageLogEncryptionStatusDiagnostics
-                        .isMessageLogArchiveEncryptionStatus())
-                .messageLogDatabaseEncryptionStatus(messageLogEncryptionStatusDiagnostics
-                        .isMessageLogDatabaseEncryptionStatus())
-                .messageLogGroupingRule(messageLogEncryptionStatusDiagnostics.getMessageLogGroupingRule())
-                .members(messageLogEncryptionStatusDiagnostics.getMembers().stream()
+                .messageLogArchiveEncryptionStatus(diagnostics.messageLogArchiveEncryptionStatus())
+                .messageLogDatabaseEncryptionStatus(diagnostics.messageLogDatabaseEncryptionStatus())
+                .messageLogGroupingRule(diagnostics.messageLogGroupingRule())
+                .members(diagnostics.members().stream()
                         .map(member -> new MessageLogArchiveEncryptionMemberDto()
-                                .memberId(member.getMemberId())
-                                .keys(member.getKeys())
-                                .defaultKeyUsed(member.isDefaultKeyUsed()))
-                        .collect(Collectors.toList()));
+                                .memberId(member.memberId())
+                                .keys(member.keys())
+                                .defaultKeyUsed(member.defaultKeyUsed()))
+                        .toList());
     }
 
 }

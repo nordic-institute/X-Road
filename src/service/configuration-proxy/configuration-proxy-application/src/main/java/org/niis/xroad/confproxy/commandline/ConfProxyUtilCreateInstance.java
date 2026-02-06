@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.apache.commons.cli.CommandLine;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.SystemProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.nio.file.FileAlreadyExistsException;

@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
@@ -35,6 +33,7 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -42,16 +41,15 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_MIME_PARSING_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.MIME_PARSING_FAILED;
 
 /**
  * Decodes SOAP messages from an input stream.
@@ -133,7 +131,7 @@ public class SoapMessageDecoder {
     @ArchUnitSuppressed("NoVanillaExceptions")
     public void parse(InputStream soapStream) throws Exception {
         if (baseContentType == null) {
-            throw new CodedException(X_INVALID_REQUEST,
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
                     "Could not get content type from request");
         }
 
@@ -147,8 +145,8 @@ public class SoapMessageDecoder {
                     readMultipart(soapStream);
                     break;
                 default:
-                    throw new CodedException(X_INVALID_CONTENT_TYPE,
-                            "Invalid content type: %s", baseContentType);
+                    throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
+                            "Invalid content type: %s".formatted(baseContentType));
             }
         } catch (Exception e) {
             callback.onError(e);
@@ -171,8 +169,7 @@ public class SoapMessageDecoder {
         if (!(soap instanceof SoapMessage)) {
             log.error("Expected SoapMessage, but got: {}", soap.getXml());
 
-            throw new CodedException(
-                    X_INTERNAL_ERROR, "Unexpected SOAP message");
+            throw XrdRuntimeException.systemInternalError("Unexpected SOAP message");
         }
 
         callback.soap((SoapMessage) soap, new HashMap<>());
@@ -191,7 +188,7 @@ public class SoapMessageDecoder {
         } catch (MimeException ex) {
             // We catch the mime parsing separately because this indicates
             // invalid request from client and we want to report it as that.
-            throw new CodedException(X_MIME_PARSING_FAILED, ex);
+            throw XrdRuntimeException.systemException(MIME_PARSING_FAILED, ex);
         }
     }
 
@@ -222,7 +219,7 @@ public class SoapMessageDecoder {
             }
 
             if (partContentType == null) {
-                throw new CodedException(X_INVALID_CONTENT_TYPE,
+                throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
                         "Could not get content type for part");
             }
 
@@ -237,7 +234,7 @@ public class SoapMessageDecoder {
                         } else if (soap instanceof SoapFault) {
                             callback.fault((SoapFault) soap);
                         } else {
-                            throw new CodedException(X_INTERNAL_ERROR, "Unexpected SOAP message");
+                            throw XrdRuntimeException.systemInternalError("Unexpected SOAP message");
                         }
                         soapBody = soap;
                     } catch (Exception e) {

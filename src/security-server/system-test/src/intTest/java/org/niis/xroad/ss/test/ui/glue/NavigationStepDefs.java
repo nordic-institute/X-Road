@@ -55,6 +55,11 @@ public class NavigationStepDefs extends BaseUiStepDefs {
         commonPageObj.subMenu.backupAndRestoresTab().click();
     }
 
+    @Step("Admin Users sub-tab is selected")
+    public void navigateAdminUsersSubTab() {
+        commonPageObj.subMenu.adminUsersTab().click();
+    }
+
     @Step("System Parameters sub-tab is selected")
     public void navigateSystemParametersSubTab() {
         commonPageObj.subMenu.systemParametersTab().click();

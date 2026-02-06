@@ -27,6 +27,6 @@ Feature: 0920 - SS:Diagnostics - Connection Testing
     When Run test for Other Security Server
     Then Other Security Server error message should contain server.clientproxy.io_error
 
-  Scenario: Management Security Server test fails because member is unknown
+  Scenario: Management Security Server test fails
     When Run test for Management Security Server
     Then Management Security Server error message should contain server.serverproxy.service_failed.unknown_member

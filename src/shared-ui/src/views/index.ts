@@ -28,5 +28,6 @@
 import XrdNotFoundError from './XrdNotFoundError.vue';
 import XrdForbiddenError from './XrdForbiddenError.vue';
 import XrdAppLogin from './XrdAppLogin.vue';
+import XrdCertificate from './certificate/XrdCertificate.vue';
 
-export { XrdNotFoundError, XrdForbiddenError, XrdAppLogin };
+export { XrdNotFoundError, XrdForbiddenError, XrdAppLogin, XrdCertificate };

@@ -1,0 +1,3 @@
+logging:
+  config: classpath:logback-native.xml
+  config-access: classpath:logback-access-native.xml

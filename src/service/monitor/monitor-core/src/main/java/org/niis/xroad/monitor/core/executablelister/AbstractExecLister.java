@@ -31,7 +31,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
-import org.niis.xroad.monitor.core.JmxStringifiedData;
+import org.niis.xroad.monitor.core.StringifiedData;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -69,28 +69,26 @@ abstract class AbstractExecLister<T> {
 
     @Getter
     @Setter
-    class ProcessOutputs {
+    static class ProcessOutputs {
         String out;
         String err;
     }
 
-    public JmxStringifiedData<T> list() throws ExecListingFailedException {
+    public StringifiedData<T> list() throws ExecListingFailedException {
         validateSupportedOs();
         try {
             ProcessOutputs outputs = executeProcess();
 
-            ArrayList<String> jmxRepresentation = new ArrayList<>();
+            ArrayList<String> stringRepresentation = new ArrayList<>();
             try (BufferedReader input = new BufferedReader(new StringReader(outputs.getOut()))) {
-                ArrayList<T> parsedData = parseData(input, jmxRepresentation);
-                JmxStringifiedData<T> data = new JmxStringifiedData<T>();
+                ArrayList<T> parsedData = parseData(input, stringRepresentation);
+                StringifiedData<T> data = new StringifiedData<>();
                 data.setDtoData(parsedData);
-                data.setJmxStringData(jmxRepresentation);
+                data.setStringData(stringRepresentation);
                 return data;
             }
-        } catch (IOException ioe) {
+        } catch (IOException | InterruptedException ioe) {
             throw new ExecListingFailedException(ioe);
-        } catch (InterruptedException e) {
-            throw new ExecListingFailedException(e);
         }
     }
 
@@ -113,18 +111,18 @@ abstract class AbstractExecLister<T> {
         return outputs;
     }
 
-    private ArrayList<T> parseData(BufferedReader input, ArrayList<String> jmxRepresentation) throws IOException {
+    private ArrayList<T> parseData(BufferedReader input, ArrayList<String> stringRepresentation) throws IOException {
 
-        ArrayList<T> parsed = new ArrayList<T>();
+        ArrayList<T> parsed = new ArrayList<>();
         Splitter splitter = getParsedDataSplitter();
         if (discardFirstDataLineFromParsed()) {
             String discardedHeaderLine = input.readLine();
-            jmxRepresentation.add(discardedHeaderLine);
+            stringRepresentation.add(discardedHeaderLine);
         }
         String line;
         while ((line = input.readLine()) != null) {
             if (!line.trim().isEmpty()) {
-                jmxRepresentation.add(line);
+                stringRepresentation.add(line);
                 T data = parseLine(line, splitter);
                 parsed.add(data);
             }

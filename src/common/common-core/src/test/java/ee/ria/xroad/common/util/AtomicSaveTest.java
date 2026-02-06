@@ -25,11 +25,9 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-
 import org.junit.Assert;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -52,9 +50,9 @@ public class AtomicSaveTest {
     public void tmpFileRemoved() throws Exception {
         try {
             AtomicSave.execute(DESTINATION_FILE, "AtomicSaveTest", out -> {
-                throw new CodedException(ErrorCodes.X_IO_ERROR);
+                throw XrdRuntimeException.systemInternalError("error");
             });
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             Assert.assertFalse("Temporary file not deleted", tmpFileExists());
 
             return;

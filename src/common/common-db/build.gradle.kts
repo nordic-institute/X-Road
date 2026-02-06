@@ -1,8 +1,11 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jboss-test-logging-conventions")
 }
 
 dependencies {
+  annotationProcessor(libs.hibernate.jpamodelgen)
+
   api(libs.hibernate.core)
 
   implementation(project(":common:common-core"))

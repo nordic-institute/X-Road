@@ -32,7 +32,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 
 /**
  * The client attempts to make query that it is not allowed to perform.
@@ -54,6 +54,6 @@ public class UnknownService extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_UNKNOWN_SERVICE);
+        assertErrorCode(SERVER_SERVERPROXY_X, UNKNOWN_SERVICE.code());
     }
 }

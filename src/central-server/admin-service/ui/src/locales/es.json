@@ -578,31 +578,21 @@
     }
   },
   "tlsCertificates": {
-    "managementService": {
-      "downloadCertificate": "Descarga de certificado",
-      "downloadSuccess": "Certificado TLS del servicio de administración descargado con éxito",
-      "generateCsr": {
-        "button": "Generar CSR",
-        "content": "Primero, proporcione un nombre distinguido (DN). Luego, genere una nueva CSR y guárdela en un lugar seguro",
-        "distinguishedName": "Ingrese el nombre distinguido (DN)",
-        "example": "CN = miservidorcentral.ejemplo.com, O = mi organización, C = ee",
-        "title": "Generar solicitud de firma de certificado TLS"
-      },
-      "generateKey": {
-        "button": "Recrear la clave",
-        "confirmation": "¿Desea generar una nueva clave y certificado para el servicio de administración?",
-        "explanation": "El sistema generará una nueva clave TLS para el servicio de administración y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
-        "success": "NUEVA CLAVE Y CERTIFICADO TLS del SERVICIO DE ADMINISTRACION generados correctamente",
-        "title": "Clave TLS del servicio de administración"
-      },
-      "key": "Clave TLS del Servicio de administración",
-      "title": "Certificado TLS del servicio de administración",
-      "uploadCertificate": {
-        "button": "Carga de certificado",
-        "label": "Cargue el archivo o fichero de certificado desde su computadora",
-        "success": "Certificado TLS del servicio de administración cargado con éxito",
-        "title": "Carga del certificado TLS del servicio de administración"
-      }
+    "downloadSuccess": "Certificado TLS del servicio de administración descargado con éxito",
+    "generateCsr": {
+      "example": "CN = miservidorcentral.ejemplo.com, O = mi organización, C = ee"
+    },
+    "generateKey": {
+      "confirmation": "¿Desea generar una nueva clave y certificado para el servicio de administración?",
+      "explanation": "El sistema generará una nueva clave TLS para el servicio de administración y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
+      "success": "NUEVA CLAVE Y CERTIFICADO TLS del SERVICIO DE ADMINISTRACION generados correctamente",
+      "title": "Clave TLS del servicio de administración"
+    },
+    "key": "Clave TLS del Servicio de administración",
+    "title": "Certificado TLS del servicio de administración",
+    "uploadCertificate": {
+      "success": "Certificado TLS del servicio de administración cargado con éxito",
+      "title": "Carga del certificado TLS del servicio de administración"
     }
   },
   "tokens": {

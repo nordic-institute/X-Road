@@ -25,116 +25,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app-bar
-    absolute
-    :color="isInitialized ? colors.Purple100 : colors.Purple70"
-    flat
-    height="32"
+  <XrdAppToolbar
+    app-title="global.appTitle"
+    :ready="isInitialized"
+    :authenticated="isAuthenticated"
+    :server-name="serverName"
+    :node-name="nodeName"
   >
-    <div v-if="isAuthenticated" class="auth-container">
-      <div class="server-type">
-        {{ $t('global.appTitle').toUpperCase() }}
-      </div>
-      <div
-        v-show="!isInitialized"
-        class="initialization-phase-title"
-        data-test="app-toolbar-server-init-phase-id"
-      >
-        {{ $t('init.initialConfiguration') }}
-      </div>
-      <div
-        v-show="isInitialized"
-        class="server-name"
-        data-test="app-toolbar-server-instance-address"
-      >
-        {{ serverName }}
-      </div>
-      <div
-        v-show="isHighAvailabilityConfigured"
-        class="node-name"
-        data-test="app-toolbar-node-name"
-      >
-        {{ `${systemStatus.high_availability_status?.node_name}` }}
-      </div>
-    </div>
-  </v-app-bar>
+    <template #not-ready>
+      {{ $t('init.initialConfiguration') }}
+    </template>
+  </XrdAppToolbar>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { Colors } from '@niis/shared-ui';
-import { mapState } from 'pinia';
+<script lang="ts" setup>
+import { computed } from 'vue';
+
+import { XrdAppToolbar } from '@niis/shared-ui';
+
 import { useSystem } from '@/store/modules/system';
 
-export default defineComponent({
-  data() {
-    return {
-      colors: Colors,
-    };
-  },
-  computed: {
-    ...mapState(useSystem, ['getSystemStatus']),
-    ...mapState(useSystem, ['getSystemStatus', 'isServerInitialized']),
-    initializationParameters() {
-      return this.getSystemStatus?.initialization_status;
-    },
-    serverName() {
-      return this.initializationParameters
-        ? `${this.initializationParameters.instance_identifier} : ${this.initializationParameters.central_server_address}`
-        : '';
-    },
-    isInitialized(): boolean {
-      return this.isServerInitialized;
-    },
-    isAuthenticated(): boolean {
-      return true;
-    },
-    systemStatus() {
-      return this.getSystemStatus;
-    },
-    isHighAvailabilityConfigured() {
-      return this.getSystemStatus?.high_availability_status?.is_ha_configured;
-    },
-  },
-});
+const systemStore = useSystem();
+
+const initializationParameters = computed(() => systemStore.getSystemStatus?.initialization_status);
+const serverName = computed(() =>
+  initializationParameters.value
+    ? `${initializationParameters.value.instance_identifier} : ${initializationParameters.value.central_server_address}`
+    : '',
+);
+const isInitialized = computed(() => systemStore.isServerInitialized);
+const isAuthenticated = computed(() => true);
+const nodeName = computed(() =>
+  systemStore.getSystemStatus?.high_availability_status?.is_ha_configured
+    ? systemStore.getSystemStatus.high_availability_status?.node_name
+    : '',
+);
 </script>
 
-<style lang="scss" scoped>
-.auth-container {
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-  color: #dedce4;
-  display: flex;
-  height: 100%;
-  align-items: center;
-  width: 100%;
-
-  .initialization-phase-title {
-    margin: 20px;
-  }
-
-  .server-name {
-    margin: 20px;
-    margin-right: 10px;
-  }
-
-  .node-name {
-    margin-left: auto;
-    margin-right: 70px;
-    display: flex;
-    align-items: center;
-  }
-
-  .server-type {
-    font-style: normal;
-    font-weight: bold;
-    margin-left: 64px;
-    user-select: none;
-
-    @media only screen and (max-width: 920px) {
-      display: none;
-    }
-  }
-}
-</style>
+<style lang="scss" scoped></style>

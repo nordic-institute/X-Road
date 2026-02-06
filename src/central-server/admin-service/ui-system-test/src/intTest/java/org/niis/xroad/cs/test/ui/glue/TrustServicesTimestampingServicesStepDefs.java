@@ -36,9 +36,9 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
@@ -82,13 +82,13 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-up"))
+                .shouldHave(cssClass("arrow_upward"))
                 .click();
 
         column
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-down"))
+                .shouldHave(cssClass("arrow_downward"))
                 .click();
     }
 
@@ -113,7 +113,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.addEditDialog.btnViewCertificate().click();
         timestampingServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
 
-        timestampingServicesPageObj.certificateView.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
         timestampingServicesPageObj.tableLoading().should(appear);
     }
 

@@ -263,8 +263,8 @@ public class ServiceService {
                     + "WSDL type of Service Description");
         }
 
-        EndpointEntity endpointEntity = EndpointEntity.create(serviceEntity.getServiceCode(), method, path, false);
         ClientEntity clientEntity = serviceEntity.getServiceDescription().getClient();
+        EndpointEntity endpointEntity = EndpointEntity.create(clientEntity, serviceEntity.getServiceCode(), method, path, false);
         if (clientEntity.getEndpoints().stream()
                 .anyMatch(existingEp -> existingEp.isEquivalent(endpointEntity))) {
             throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
