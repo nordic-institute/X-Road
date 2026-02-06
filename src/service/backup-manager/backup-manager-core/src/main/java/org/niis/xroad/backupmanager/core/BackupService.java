@@ -34,6 +34,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.backupmanager.proto.BackupData;
 import org.niis.xroad.backupmanager.proto.BackupEncryptionStatusResp;
+import org.niis.xroad.backupmanager.proto.BackupGpgStatus;
 import org.niis.xroad.backupmanager.proto.BackupServiceGrpc;
 import org.niis.xroad.backupmanager.proto.CreateBackupReq;
 import org.niis.xroad.backupmanager.proto.DeleteBackupReq;
@@ -113,6 +114,13 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
             backupHandler.generateGpgKey(request.getKeyName());
             return Empty.getDefaultInstance();
         });
+    }
+
+    @Override
+    public void getGpgStatus(Empty request, StreamObserver<BackupGpgStatus> responseObserver) {
+        rpcResponseHandler.handleRequest(responseObserver, () -> BackupGpgStatus.newBuilder()
+                .setInitialized(backupHandler.hasGpgKey())
+                .build());
     }
 
     @Override

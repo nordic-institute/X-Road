@@ -45,7 +45,7 @@ function nextStep() {
 }
 
 function previousStep() {
-  currentStep.value++;
+  currentStep.value--;
 }
 </script>
 

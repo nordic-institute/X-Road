@@ -24,8 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { Tab } from '@niis/shared-ui';
-
 // A "single source of truth" for route names
 export enum RouteName {
   BaseRoute = 'base',

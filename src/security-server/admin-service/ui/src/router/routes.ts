@@ -53,7 +53,7 @@ import SubsystemView from '@/views/Clients/SubsystemView.vue';
 import ClientTlsCertificateView from '@/views/Clients/InternalServers/TlsCertificate/ClientTlsCertificateView.vue';
 import DiagnosticsView from '@/views/Diagnostics/DiagnosticsView.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
-import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationView.vue';
+import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationV2View.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKeysView.vue';
