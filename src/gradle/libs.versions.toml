@@ -157,7 +157,7 @@ systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.1
 semver4j = { module = "org.semver4j:semver4j", version = "6.0.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
-acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
+acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "4.0.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.20.1" }
 
