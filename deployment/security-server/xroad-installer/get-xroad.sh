@@ -54,7 +54,7 @@ CALL_DIR="$(pwd)"
 # Change directory to the extracted files so it can find its local 'tasks/' and 'lib/'
 cd "${TMP_DIR}"
 
-# Execute the main installer. 
+# Execute the main installer.
 # We use sudo here as the installer requires root privileges for setup and repo configuration.
 # Forward all arguments (like --config-file or --skip-requirements-check) to the actual script.
 TIMESTAMP=$(date '+%Y-%m-%d_%H%M%S')
