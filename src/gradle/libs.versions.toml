@@ -322,7 +322,7 @@ quarkus-containerized = [
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.18.0" }
-sonarqube = { id = "org.sonarqube", version = "6.3.1.5724" }
+sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }

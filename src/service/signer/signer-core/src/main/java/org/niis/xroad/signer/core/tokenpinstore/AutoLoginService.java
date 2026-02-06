@@ -39,11 +39,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.config.SignerAutologinProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -62,14 +65,20 @@ public class AutoLoginService {
 
     private final SignerAutologinProperties signerAutologinProperties;
     private final TokenWorkerProvider tokenWorkerProvider;
+    private final TokenPinStoreProvider tokenPinStoreProvider;
+    private final TokenLookup tokenLookup;
     private final Retry retryInstance;
     private final TimeLimiter timeLimiter;
 
     @Inject
     public AutoLoginService(SignerAutologinProperties signerAutologinProperties,
-                            TokenWorkerProvider tokenWorkerProvider) {
+                            TokenWorkerProvider tokenWorkerProvider,
+                            TokenPinStoreProvider tokenPinStoreProvider,
+                            TokenLookup tokenLookup) {
         this.signerAutologinProperties = signerAutologinProperties;
         this.tokenWorkerProvider = tokenWorkerProvider;
+        this.tokenPinStoreProvider = tokenPinStoreProvider;
+        this.tokenLookup = tokenLookup;
 
         this.retryInstance = createRetryInstance(signerAutologinProperties.retry());
         retryInstance.getEventPublisher().onRetry(event -> log.warn("Retrying autologin. Event: {}", event));
@@ -79,24 +88,26 @@ public class AutoLoginService {
     }
 
     public void execute() {
+        storePinsToVault();
+
         if (!signerAutologinProperties.enabled()) {
             log.info("Autologin disabled");
             return;
         }
 
-        Map<String, SignerAutologinProperties.TokenConfig> tokens = signerAutologinProperties.tokens();
-        if (tokens.isEmpty()) {
-            log.warn("Autologin enabled but no tokens configured in xroad.signer.autologin.tokens.*");
+        performAutologin();
+    }
+
+    private void storePinsToVault() {
+        Map<String, SignerAutologinProperties.TokenConfig> configuredTokens = signerAutologinProperties.tokens();
+        if (configuredTokens.isEmpty()) {
+            log.info("No tokens configured for PIN storage");
             return;
         }
 
-        log.info("Starting autologin process for {} tokens", tokens.size());
+        log.info("Storing PINs for {} configured tokens into vault", configuredTokens.size());
 
-        performAutologin(tokens);
-    }
-
-    private void performAutologin(Map<String, SignerAutologinProperties.TokenConfig> tokens) {
-        for (Map.Entry<String, SignerAutologinProperties.TokenConfig> entry : tokens.entrySet()) {
+        for (Map.Entry<String, SignerAutologinProperties.TokenConfig> entry : configuredTokens.entrySet()) {
             String tokenId = entry.getKey();
             String pin = entry.getValue().pin();
 
@@ -105,8 +116,39 @@ public class AutoLoginService {
                 continue;
             }
 
+            // Check if tokenId already exists in OpenBao
+            Optional<char[]> existingPin = tokenPinStoreProvider.getPin(tokenId);
+            if (existingPin.isPresent()) {
+                log.info("Token {} already has PIN stored in vault, skipping", tokenId);
+                continue;
+            }
+
+            tokenPinStoreProvider.setPin(tokenId, pin.toCharArray());
+            log.info("Stored PIN for token {} into vault", tokenId);
+        }
+    }
+
+    private void performAutologin() {
+        var tokens = tokenLookup.listTokens();
+        if (tokens.isEmpty()) {
+            log.warn("No tokens found in signer");
+            return;
+        }
+
+        log.info("Starting autologin process for {} tokens", tokens.size());
+
+        for (TokenInfo token : tokens) {
+            String tokenId = token.getId();
+
+            // Get PIN from OpenBao
+            Optional<char[]> pin = tokenPinStoreProvider.getPin(tokenId);
+            if (pin.isEmpty()) {
+                log.info("Skipping token {} - no PIN found in vault", tokenId);
+                continue;
+            }
+
             try {
-                loginTokenWithRetry(tokenId, pin.toCharArray());
+                loginTokenWithRetry(tokenId, pin.get());
                 log.info("Autologin successful for token {}", tokenId);
             } catch (Exception e) {
                 if (isFatalError(e)) {

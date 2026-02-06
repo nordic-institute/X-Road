@@ -38,17 +38,23 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.config.SignerAutologinProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -75,6 +81,10 @@ class AutoLoginServiceTest {
     @Mock
     private TokenWorkerProvider tokenWorkerProvider;
     @Mock
+    private TokenPinStoreProvider tokenPinStoreProvider;
+    @Mock
+    private TokenLookup tokenLookup;
+    @Mock
     private TokenWorker tokenWorker;
 
     private AutoLoginService autoLoginService;
@@ -91,21 +101,21 @@ class AutoLoginServiceTest {
         retryInstance = createRetryInstance(retryProperties);
         TimeLimiter timeLimiter = createTimeLimiter(retryProperties);
 
-        autoLoginService = new AutoLoginService(signerAutologinProperties, tokenWorkerProvider, retryInstance, timeLimiter);
+        autoLoginService = new AutoLoginService(signerAutologinProperties, tokenWorkerProvider,
+                tokenPinStoreProvider, tokenLookup, retryInstance, timeLimiter);
+    }
+
+    private TokenInfo createTokenInfo(String tokenId) {
+        TokenInfoProto proto = TokenInfoProto.newBuilder()
+                .setId(tokenId)
+                .setType("softToken")
+                .build();
+        return new TokenInfo(proto);
     }
 
     @Test
     void executeShouldSkipWhenDisabled() {
         when(signerAutologinProperties.enabled()).thenReturn(false);
-
-        autoLoginService.execute();
-
-        verify(tokenWorkerProvider, never()).getTokenWorker(any());
-    }
-
-    @Test
-    void executeShouldSkipWhenNoTokensConfigured() {
-        when(signerAutologinProperties.enabled()).thenReturn(true);
         when(signerAutologinProperties.tokens()).thenReturn(Map.of());
 
         autoLoginService.execute();
@@ -114,10 +124,36 @@ class AutoLoginServiceTest {
     }
 
     @Test
-    void executeShouldSkipTokenWithEmptyPin() {
+    void executeShouldSkipWhenNoTokensInRegistry() {
+        when(signerAutologinProperties.enabled()).thenReturn(true);
+        when(signerAutologinProperties.tokens()).thenReturn(Map.of());
+        when(tokenLookup.listTokens()).thenReturn(List.of());
+
+        autoLoginService.execute();
+
+        verify(tokenWorkerProvider, never()).getTokenWorker(any());
+    }
+
+    @Test
+    void executeShouldSkipTokenWithEmptyPinInConfig() {
         when(signerAutologinProperties.enabled()).thenReturn(true);
         when(tokenConfig.pin()).thenReturn("");
         when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenLookup.listTokens()).thenReturn(List.of(createTokenInfo(TOKEN_ID)));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty());
+
+        autoLoginService.execute();
+
+        verify(tokenPinStoreProvider, never()).setPin(any(), any());
+        verify(tokenWorkerProvider, never()).getTokenWorker(any());
+    }
+
+    @Test
+    void executeShouldSkipTokenWithNoPinInVault() {
+        when(signerAutologinProperties.enabled()).thenReturn(true);
+        when(signerAutologinProperties.tokens()).thenReturn(Map.of());
+        when(tokenLookup.listTokens()).thenReturn(List.of(createTokenInfo(TOKEN_ID)));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty());
 
         autoLoginService.execute();
 
@@ -129,11 +165,15 @@ class AutoLoginServiceTest {
         when(signerAutologinProperties.enabled()).thenReturn(true);
         when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
         when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty())
+                .thenReturn(Optional.of(TOKEN_PIN.toCharArray()));
+        when(tokenLookup.listTokens()).thenReturn(List.of(createTokenInfo(TOKEN_ID)));
         when(tokenWorkerProvider.getTokenWorker(TOKEN_ID)).thenReturn(tokenWorker);
         doNothing().when(tokenWorker).handleActivateToken(any(ActivateTokenReq.class));
 
         autoLoginService.execute();
 
+        verify(tokenPinStoreProvider).setPin(eq(TOKEN_ID), any(char[].class));
         verify(tokenWorker, times(1)).handleActivateToken(any(ActivateTokenReq.class));
         assertThat(retryInstance.getMetrics().getNumberOfSuccessfulCallsWithoutRetryAttempt()).isOne();
     }
@@ -143,6 +183,9 @@ class AutoLoginServiceTest {
         when(signerAutologinProperties.enabled()).thenReturn(true);
         when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
         when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty())
+                .thenReturn(Optional.of(TOKEN_PIN.toCharArray()));
+        when(tokenLookup.listTokens()).thenReturn(List.of(createTokenInfo(TOKEN_ID)));
         when(tokenWorkerProvider.getTokenWorker(TOKEN_ID)).thenReturn(tokenWorker);
 
         // Fail first time, succeed second time
@@ -161,6 +204,9 @@ class AutoLoginServiceTest {
         when(signerAutologinProperties.enabled()).thenReturn(true);
         when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
         when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty())
+                .thenReturn(Optional.of(TOKEN_PIN.toCharArray()));
+        when(tokenLookup.listTokens()).thenReturn(List.of(createTokenInfo(TOKEN_ID)));
         when(tokenWorkerProvider.getTokenWorker(TOKEN_ID)).thenReturn(tokenWorker);
 
         // Fail all attempts
@@ -182,6 +228,9 @@ class AutoLoginServiceTest {
         when(signerAutologinProperties.enabled()).thenReturn(true);
         when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
         when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty())
+                .thenReturn(Optional.of(TOKEN_PIN.toCharArray()));
+        when(tokenLookup.listTokens()).thenReturn(List.of(createTokenInfo(TOKEN_ID)));
         when(tokenWorkerProvider.getTokenWorker(TOKEN_ID)).thenReturn(tokenWorker);
 
         // Throw fatal error (TOKEN_PIN_INCORRECT)
@@ -207,11 +256,14 @@ class AutoLoginServiceTest {
 
         // Create a new AutoLoginService with the short timeout
         var serviceWithShortTimeout = new AutoLoginService(signerAutologinProperties, tokenWorkerProvider,
-                retryInstance, shortTimeLimiter);
+                tokenPinStoreProvider, tokenLookup, retryInstance, shortTimeLimiter);
 
         when(signerAutologinProperties.enabled()).thenReturn(true);
         when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
         when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty())
+                .thenReturn(Optional.of(TOKEN_PIN.toCharArray()));
+        when(tokenLookup.listTokens()).thenReturn(List.of(createTokenInfo(TOKEN_ID)));
         when(tokenWorkerProvider.getTokenWorker(TOKEN_ID)).thenReturn(tokenWorker);
 
         // Mock handleActivateToken to take longer than the timeout
@@ -228,20 +280,47 @@ class AutoLoginServiceTest {
 
     @Test
     void executeShouldLoginMultipleTokens() {
-        SignerAutologinProperties.TokenConfig tokenConfig2 = () -> "secret456";
+        String tokenId2 = "softToken-1";
+        String tokenPin2 = "secret456";
 
         when(signerAutologinProperties.enabled()).thenReturn(true);
-        when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
-        when(signerAutologinProperties.tokens()).thenReturn(Map.of(
-                TOKEN_ID, tokenConfig,
-                "softToken-1", tokenConfig2
+        when(signerAutologinProperties.tokens()).thenReturn(Map.of());
+        when(tokenLookup.listTokens()).thenReturn(List.of(
+                createTokenInfo(TOKEN_ID),
+                createTokenInfo(tokenId2)
         ));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(TOKEN_PIN.toCharArray()));
+        when(tokenPinStoreProvider.getPin(tokenId2)).thenReturn(Optional.of(tokenPin2.toCharArray()));
         when(tokenWorkerProvider.getTokenWorker(any())).thenReturn(tokenWorker);
         doNothing().when(tokenWorker).handleActivateToken(any(ActivateTokenReq.class));
 
         autoLoginService.execute();
 
         verify(tokenWorker, times(2)).handleActivateToken(any(ActivateTokenReq.class));
+    }
+
+    @Test
+    void executeShouldStorePinsToVaultOnlyIfNotExists() {
+        when(signerAutologinProperties.enabled()).thenReturn(false);
+        when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
+        when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.empty());
+
+        autoLoginService.execute();
+
+        verify(tokenPinStoreProvider).setPin(eq(TOKEN_ID), any(char[].class));
+    }
+
+    @Test
+    void executeShouldSkipStoringPinIfAlreadyExistsInVault() {
+        when(signerAutologinProperties.enabled()).thenReturn(false);
+        when(tokenConfig.pin()).thenReturn(TOKEN_PIN);
+        when(signerAutologinProperties.tokens()).thenReturn(Map.of(TOKEN_ID, tokenConfig));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(TOKEN_PIN.toCharArray()));
+
+        autoLoginService.execute();
+
+        verify(tokenPinStoreProvider, never()).setPin(any(), any());
     }
 
 }
