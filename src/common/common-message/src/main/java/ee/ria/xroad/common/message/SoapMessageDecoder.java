@@ -118,7 +118,6 @@ public class SoapMessageDecoder {
         this.contentType = contentType;
         this.callback = callback;
         this.parser = parserImpl;
-
         this.baseContentType = getBaseContentType(contentType);
     }
 
