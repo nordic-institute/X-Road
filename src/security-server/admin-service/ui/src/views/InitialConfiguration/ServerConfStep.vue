@@ -99,14 +99,12 @@ import { useNotifications, XrdWizardStep, XrdBtn, XrdFormBlock, XrdFormBlockRow,
 import { useGeneral } from '@/store/modules/general';
 import { useInitializationV2 } from '@/store/modules/initializationV2';
 
-const props = withDefaults(
-  defineProps<{
-    showPreviousButton?: boolean;
-  }>(),
-  {
-    showPreviousButton: true,
+const props = defineProps({
+  showPreviousButton: {
+    type: Boolean,
+    default: true,
   },
-);
+});
 
 const emit = defineEmits<{
   done: [];

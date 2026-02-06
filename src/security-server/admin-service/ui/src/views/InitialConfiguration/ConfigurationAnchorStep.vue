@@ -79,14 +79,12 @@ import { useInitializationV2 } from '@/store/modules/initializationV2';
 
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 
-withDefaults(
-  defineProps<{
-    saveButtonText?: string;
-  }>(),
-  {
-    saveButtonText: 'action.continue',
+defineProps({
+  saveButtonText: {
+    type: String,
+    default: 'action.continue',
   },
-);
+});
 
 const emit = defineEmits<{ done: [] }>();
 
