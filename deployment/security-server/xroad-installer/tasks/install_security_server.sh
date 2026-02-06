@@ -10,7 +10,6 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 # Environment variables with defaults
 XROAD_SS_PACKAGE="${XROAD_SS_PACKAGE:-xroad-securityserver}"
-# XROAD_ADMIN_USERNAME="${XROAD_ADMIN_USERNAME:-}"
 XROAD_DB_CONNECTION_HOST_PORT="${XROAD_DB_CONNECTION_HOST_PORT:-}"
 XROAD_TLS_HOSTNAME="${XROAD_TLS_HOSTNAME:-}"
 XROAD_TLS_ALT_NAMES="${XROAD_TLS_ALT_NAMES:-}"
@@ -39,7 +38,7 @@ apply_proxy_memory() {
   if [[ -x "$proxy_helper" ]]; then
     log_message "Applying proxy memory settings: $XROAD_PROXY_MEM_SETTING"
     mkdir -p /etc/xroad/services/
-    if $proxy_helper apply $XROAD_PROXY_MEM_SETTING; then
+    if $proxy_helper apply "$XROAD_PROXY_MEM_SETTING"; then
       log_info "Proxy memory settings applied successfully"
     else
       log_warn "Failed to apply proxy memory settings. Please verify the settings in /etc/xroad/services/local.properties file."
@@ -108,7 +107,7 @@ install_security_server_rhel() {
   # The username is passed via XROAD_ADMIN_USERNAME
   if [[ -n "$XROAD_ADMIN_USERNAME" ]]; then
     log_message "Configuring admin user: $XROAD_ADMIN_USERNAME"
-    if [ -x /usr/share/xroad/bin/xroad-add-admin-user.sh ]; then
+    if [[ -x /usr/share/xroad/bin/xroad-add-admin-user.sh ]]; then
        if /usr/share/xroad/bin/xroad-add-admin-user.sh "$XROAD_ADMIN_USERNAME"; then
          log_info "Admin user '$XROAD_ADMIN_USERNAME' setup successfully"
        else

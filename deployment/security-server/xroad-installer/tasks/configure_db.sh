@@ -69,7 +69,7 @@ configure_remote_db() {
   # Try to use psql to verify connection
   if command -v psql >/dev/null; then
     # Reading custom libpq ENV variables
-    if [ -f /etc/xroad/db_libpq.env ]; then
+    if [[ -f /etc/xroad/db_libpq.env ]]; then
       source /etc/xroad/db_libpq.env
     fi
 

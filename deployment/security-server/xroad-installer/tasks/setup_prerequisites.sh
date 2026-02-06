@@ -12,6 +12,23 @@ source "$SCRIPT_DIR/../lib/common.sh"
 LOCALE="${LOCALE:-en_US.UTF-8}"
 ENV_FILE="${ENV_FILE:-/etc/environment}"
 
+# Configure LC_ALL in /etc/environment (shared between Ubuntu and RHEL)
+configure_locale_env() {
+  log_message "Configuring LC_ALL in $ENV_FILE"
+
+  if grep -q "^LC_ALL=" "$ENV_FILE" 2>/dev/null; then
+    # Update existing LC_ALL
+    log_message "  Updating existing LC_ALL setting"
+    sed -i "s/^LC_ALL=.*/LC_ALL=$LOCALE/" "$ENV_FILE"
+    log_info "LC_ALL updated to $LOCALE"
+  else
+    # Add new LC_ALL
+    log_message "  Adding LC_ALL setting"
+    echo "LC_ALL=$LOCALE" >> "$ENV_FILE"
+    log_info "LC_ALL set to $LOCALE"
+  fi
+}
+
 # Setup prerequisites for Ubuntu
 setup_prerequisites_ubuntu() {
   log_message "Setting up prerequisites for Ubuntu..."
@@ -31,7 +48,7 @@ setup_prerequisites_ubuntu() {
   done
 
   # Install packages if needed
-  if [ ${#packages_to_install[@]} -gt 0 ]; then
+  if [[ ${#packages_to_install[@]} -gt 0 ]]; then
     log_message "Updating repository metadata"
     log_message "  Running: apt-get update"
     if apt-get update; then
@@ -50,20 +67,7 @@ setup_prerequisites_ubuntu() {
   fi
   log_message ""
 
-  # Set LC_ALL in /etc/environment
-  log_message "Configuring LC_ALL in $ENV_FILE"
-
-  if grep -q "^LC_ALL=" "$ENV_FILE" 2>/dev/null; then
-    # Update existing LC_ALL
-    log_message "  Updating existing LC_ALL setting"
-    sed -i "s/^LC_ALL=.*/LC_ALL=$LOCALE/" "$ENV_FILE"
-    log_info "LC_ALL updated to $LOCALE"
-  else
-    # Add new LC_ALL
-    log_message "  Adding LC_ALL setting"
-    echo "LC_ALL=$LOCALE" >> "$ENV_FILE"
-    log_info "LC_ALL set to $LOCALE"
-  fi
+  configure_locale_env
 
   # Configure locale
   log_message "Configuring locale: $LOCALE"
@@ -94,20 +98,7 @@ setup_prerequisites_rhel() {
   log_message "Setting up prerequisites for RHEL..."
   log_message ""
 
-  # Set LC_ALL in /etc/environment
-  log_message "Configuring LC_ALL in $ENV_FILE"
-
-  if grep -q "^LC_ALL=" "$ENV_FILE" 2>/dev/null; then
-    # Update existing LC_ALL
-    log_message "  Updating existing LC_ALL setting"
-    sed -i "s/^LC_ALL=.*/LC_ALL=$LOCALE/" "$ENV_FILE"
-    log_info "LC_ALL updated to $LOCALE"
-  else
-    # Add new LC_ALL
-    log_message "  Adding LC_ALL setting"
-    echo "LC_ALL=$LOCALE" >> "$ENV_FILE"
-    log_info "LC_ALL set to $LOCALE"
-  fi
+  configure_locale_env
 
   # Install epel-release first (provides EPEL repository for other packages)
   if rpm -q epel-release >/dev/null 2>&1; then
@@ -132,7 +123,7 @@ setup_prerequisites_rhel() {
     fi
   done
 
-  if [ ${#packages_to_install[@]} -gt 0 ]; then
+  if [[ ${#packages_to_install[@]} -gt 0 ]]; then
     log_message "Installing: ${packages_to_install[*]}"
     if yum install -y "${packages_to_install[@]}"; then
       log_info "Packages installed successfully"

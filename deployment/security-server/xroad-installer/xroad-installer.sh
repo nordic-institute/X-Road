@@ -73,7 +73,7 @@ select_admin_user() {
   local default_user="xrd"
 
   # If provided via config/CLI, validate it once
-  if [ -n "$XROAD_ADMIN_USERNAME" ]; then
+  if [[ -n "$XROAD_ADMIN_USERNAME" ]]; then
     if [[ "$XROAD_ADMIN_USERNAME" == "xroad" ]]; then
       log_die "Username 'xroad' is reserved and cannot be used for the admin user."
     fi
@@ -91,7 +91,7 @@ select_admin_user() {
     fi
 
     # Ensure it's not empty
-    if [ -z "$XROAD_ADMIN_USERNAME" ]; then
+    if [[ -z "$XROAD_ADMIN_USERNAME" ]]; then
        XROAD_ADMIN_USERNAME="$default_user"
     fi
 
@@ -109,7 +109,7 @@ select_admin_user() {
 
 # Function to prompt for admin password if not set
 select_admin_password() {
-  if [ -n "$XROAD_ADMIN_PASSWORD" ]; then
+  if [[ -n "$XROAD_ADMIN_PASSWORD" ]]; then
     return
   fi
 
@@ -119,7 +119,7 @@ select_admin_password() {
     
     if pass1=$(whiptail --passwordbox "Enter the password for the admin user ($XROAD_ADMIN_USERNAME):" 8 78 "" --title "Admin Password" 3>&1 1>&2 2>&3); then
       if pass2=$(whiptail --passwordbox "Confirm the password for the admin user:" 8 78 "" --title "Confirm Admin Password" 3>&1 1>&2 2>&3); then
-        if [ "$pass1" == "$pass2" ]; then
+        if [[ "$pass1" == "$pass2" ]]; then
           XROAD_ADMIN_PASSWORD="$pass1"
           break
         else
@@ -137,7 +137,7 @@ select_admin_password() {
 
 # Function to select X-Road database type interactively
 select_db_type() {
-  if [ -n "$XROAD_DB_TYPE" ]; then
+  if [[ -n "$XROAD_DB_TYPE" ]]; then
     return
   fi
 
@@ -148,7 +148,7 @@ select_db_type() {
       "remote" "Remote database" \
       3>&1 1>&2 2>&3)
 
-  if [ $? -eq 0 ]; then
+  if [[ $? -eq 0 ]]; then
     XROAD_DB_TYPE="$selection"
   else
     log_warn "Installation cancelled by user."
@@ -163,7 +163,7 @@ select_db_type() {
 
 # Function to select X-Road secret store type interactively
 select_secret_store_type() {
-  if [ -n "$XROAD_SECRET_STORE_TYPE" ]; then
+  if [[ -n "$XROAD_SECRET_STORE_TYPE" ]]; then
     return
   fi
 
@@ -174,7 +174,7 @@ select_secret_store_type() {
       "remote" "Remote secret store" \
       3>&1 1>&2 2>&3)
 
-  if [ $? -eq 0 ]; then
+  if [[ $? -eq 0 ]]; then
     XROAD_SECRET_STORE_TYPE="$selection"
   else
     log_warn "Installation cancelled by user."
@@ -237,7 +237,7 @@ prompt_db_credentials() {
 
 # Function to collect TLS settings
 select_tls_settings() {
-  if [ -n "$XROAD_TLS_HOSTNAME" ] && [ -n "$XROAD_TLS_ALT_NAMES" ]; then
+  if [[ -n "$XROAD_TLS_HOSTNAME" ]] && [[ -n "$XROAD_TLS_ALT_NAMES" ]]; then
     return
   fi
 
@@ -254,14 +254,14 @@ select_tls_settings() {
   default_alt_names="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
   # Hostname (CN)
-  if [ -z "$XROAD_TLS_HOSTNAME" ]; then
+  if [[ -z "$XROAD_TLS_HOSTNAME" ]]; then
     if ! XROAD_TLS_HOSTNAME=$(whiptail --inputbox "Enter the Common Name (CN) for the TLS certificate (usually the FQDN):" 8 78 "$default_hostname" --title "TLS Hostname Configuration" 3>&1 1>&2 2>&3); then
       log_warn_exit "Installation cancelled by user."
     fi
   fi
 
   # Alt Names (SAN)
-  if [ -z "$XROAD_TLS_ALT_NAMES" ]; then
+  if [[ -z "$XROAD_TLS_ALT_NAMES" ]]; then
     if ! XROAD_TLS_ALT_NAMES=$(whiptail --inputbox "Enter the Subject Alternative Names (SAN) for the TLS certificate (comma-separated IPs or DNS names):" 10 78 "$default_alt_names" --title "TLS Alternative Names Configuration" 3>&1 1>&2 2>&3); then
       log_warn_exit "Installation cancelled by user."
     fi
@@ -273,12 +273,12 @@ select_tls_settings() {
 
 # Function to select X-Road package interactively
 select_ss_package() {
-  if [ -n "$XROAD_SS_PACKAGE" ]; then
+  if [[ -n "$XROAD_SS_PACKAGE" ]]; then
     return
   fi
 
   local os_type
-  if [ -f /etc/os-release ]; then
+  if [[ -f /etc/os-release ]]; then
     . /etc/os-release
     os_type=$ID
   fi
@@ -305,7 +305,7 @@ select_ss_package() {
         3>&1 1>&2 2>&3)
   fi
 
-  if [ $? -eq 0 ]; then
+  if [[ $? -eq 0 ]]; then
     XROAD_SS_PACKAGE="$selection"
   else
     log_warn "Installation cancelled by user."
@@ -316,7 +316,7 @@ select_ss_package() {
 
 # Function to select and configure proxy memory
 select_proxy_memory() {
-  if [ -n "$XROAD_PROXY_MEM_SETTING" ]; then
+  if [[ -n "$XROAD_PROXY_MEM_SETTING" ]]; then
       return
   fi
 
@@ -365,8 +365,8 @@ main() {
   parse_args "$@"
 
   # Load configuration file if provided
-  if [ -n "$XROAD_INSTALLER_CONFIG_FILE" ]; then
-    if [ -f "$XROAD_INSTALLER_CONFIG_FILE" ]; then
+  if [[ -n "$XROAD_INSTALLER_CONFIG_FILE" ]]; then
+    if [[ -f "$XROAD_INSTALLER_CONFIG_FILE" ]]; then
       log_info "Loading configuration from: $XROAD_INSTALLER_CONFIG_FILE"
       # Source the config file. Since we use set -u, we wrap it to ensure it doesn't fail on unset vars in the file if any
       set +u
@@ -388,10 +388,10 @@ main() {
   require_root
 
   # Step: Check system requirements
-  if [ "$XROAD_SKIP_REQUIREMENTS_CHECK" = true ]; then
+  if [[ "$XROAD_SKIP_REQUIREMENTS_CHECK" = true ]]; then
     log_warn "Skipping requirements check (--skip-requirements-check flag used)"
   else
-    if [ -f "$SCRIPT_DIR/tasks/check_requirements.sh" ]; then
+    if [[ -f "$SCRIPT_DIR/tasks/check_requirements.sh" ]]; then
       if bash "$SCRIPT_DIR/tasks/check_requirements.sh"; then
         log_info "Requirements check completed successfully"
       else
@@ -404,7 +404,7 @@ main() {
   fi
 
   # Step: Setup prerequisites
-  if [ -f "$SCRIPT_DIR/tasks/setup_prerequisites.sh" ]; then
+  if [[ -f "$SCRIPT_DIR/tasks/setup_prerequisites.sh" ]]; then
     if ! bash "$SCRIPT_DIR/tasks/setup_prerequisites.sh"; then
       log_die "Prerequisites setup failed"
     fi
@@ -414,7 +414,7 @@ main() {
   log_message ""
 
   # Step: Setup repositories
-  if [ -f "$SCRIPT_DIR/tasks/setup_repositories.sh" ]; then
+  if [[ -f "$SCRIPT_DIR/tasks/setup_repositories.sh" ]]; then
     if ! bash "$SCRIPT_DIR/tasks/setup_repositories.sh"; then
       log_die "Repository setup failed"
     fi
@@ -428,7 +428,7 @@ main() {
   select_admin_user
   select_admin_password
 
-  if [ -f "$SCRIPT_DIR/tasks/create_admin_user.sh" ]; then
+  if [[ -f "$SCRIPT_DIR/tasks/create_admin_user.sh" ]]; then
     if ! XROAD_ADMIN_USERNAME="$XROAD_ADMIN_USERNAME" XROAD_ADMIN_PASSWORD="$XROAD_ADMIN_PASSWORD" bash "$SCRIPT_DIR/tasks/create_admin_user.sh"; then
       log_die "Admin user creation failed"
     fi
@@ -441,7 +441,7 @@ main() {
   # Select DB type if not provided
   select_db_type
 
-  if [ -f "$SCRIPT_DIR/tasks/configure_db.sh" ]; then
+  if [[ -f "$SCRIPT_DIR/tasks/configure_db.sh" ]]; then
     if ! XROAD_DB_TYPE="$XROAD_DB_TYPE" \
        XROAD_DB_CONNECTION_HOST_PORT="${XROAD_DB_CONNECTION_HOST_PORT:-}" \
        XROAD_DB_USER="${XROAD_DB_USER:-}" \
@@ -458,7 +458,7 @@ main() {
   # Step: Configure Secret Store
   select_secret_store_type
 
-  if [ -f "$SCRIPT_DIR/tasks/configure_secret_store.sh" ]; then
+  if [[ -f "$SCRIPT_DIR/tasks/configure_secret_store.sh" ]]; then
     if ! XROAD_SECRET_STORE_TYPE="$XROAD_SECRET_STORE_TYPE" \
        bash "$SCRIPT_DIR/tasks/configure_secret_store.sh"; then
       log_die "Secret Store configuration failed"
@@ -478,7 +478,7 @@ main() {
   log_message ""
 
   # Step: Configure TLS Settings
-  if [ -f "$SCRIPT_DIR/tasks/configure_tls.sh" ]; then
+  if [[ -f "$SCRIPT_DIR/tasks/configure_tls.sh" ]]; then
     if ! XROAD_TLS_HOSTNAME="$XROAD_TLS_HOSTNAME" \
        XROAD_TLS_ALT_NAMES="$XROAD_TLS_ALT_NAMES" \
        bash "$SCRIPT_DIR/tasks/configure_tls.sh"; then
@@ -497,7 +497,7 @@ main() {
   select_proxy_memory
   log_message ""
 
-  if [ -f "$SCRIPT_DIR/tasks/install_security_server.sh" ]; then
+  if [[ -f "$SCRIPT_DIR/tasks/install_security_server.sh" ]]; then
     if ! XROAD_SS_PACKAGE="$XROAD_SS_PACKAGE" \
        XROAD_ADMIN_USERNAME="$XROAD_ADMIN_USERNAME" \
        XROAD_DB_CONNECTION_HOST_PORT="$XROAD_DB_CONNECTION_HOST_PORT" \

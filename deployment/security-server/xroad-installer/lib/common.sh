@@ -116,7 +116,7 @@ handle_os_not_supported() {
 
 # Detect OS type
 detect_os() {
-  if [ -f /etc/os-release ]; then
+  if [[ -f /etc/os-release ]]; then
     . /etc/os-release
     OS_ID="$ID"
     OS_VERSION_ID="$VERSION_ID"

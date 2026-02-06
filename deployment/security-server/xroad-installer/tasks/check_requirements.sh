@@ -16,7 +16,7 @@ validate_os_version() {
   local supported=false
 
   # Detect OS type and version
-  if [ -f /etc/os-release ]; then
+  if [[ -f /etc/os-release ]]; then
     . /etc/os-release
     os_name="$NAME"
     os_version="$VERSION_ID"
@@ -34,7 +34,7 @@ validate_os_version() {
     fi
   fi
 
-  if [ "$supported" = true ]; then
+  if [[ "$supported" = true ]]; then
     log_info "OS version supported: $os_name $os_version"
     return $EXIT_SUCCESS
   else
@@ -75,11 +75,11 @@ validate_minimum_ram() {
   local min_ram_with_opmonitor_kb=$(( 4 * 1024 * 1024 ))
 
   # Check if RAM meets minimum requirement (3GB)
-  if [ "$total_ram_kb" -ge "$min_ram_kb" ]; then
+  if [[ "$total_ram_kb" -ge "$min_ram_kb" ]]; then
     log_info "RAM: ${total_ram_gb}GB (minimum: 3GB)"
 
     # Additional check for opmonitor
-    if [ "$total_ram_kb" -lt "$min_ram_with_opmonitor_kb" ]; then
+    if [[ "$total_ram_kb" -lt "$min_ram_with_opmonitor_kb" ]]; then
         log_warn "For systems with opmonitor, 4GB RAM is recommended"
     fi
     return $EXIT_SUCCESS
@@ -105,7 +105,7 @@ validate_disk_space() {
   local available_space_kb
   available_space_kb=$(df -k "$target_path" | awk 'NR==2 {print $4}')
 
-  if [ "$available_space_kb" -ge "$min_space_kb" ]; then
+  if [[ "$available_space_kb" -ge "$min_space_kb" ]]; then
     local available_space_gb=$(( available_space_kb / 1024 / 1024 ))
     log_info "Disk space: ${available_space_gb}GB available (minimum: 3GB)"
     return $EXIT_SUCCESS

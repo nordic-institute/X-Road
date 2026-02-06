@@ -72,7 +72,7 @@ main() {
   # Ensure the configuration directory exists
   local conf_dir
   conf_dir=$(dirname "$CONFIG_FILE")
-  if [ ! -d "$conf_dir" ]; then
+  if [[ ! -d "$conf_dir" ]]; then
     log_message "Creating configuration directory: $conf_dir"
     mkdir -p "$conf_dir"
   fi
@@ -81,7 +81,7 @@ main() {
   local tls_hostname="${XROAD_TLS_HOSTNAME:-}"
   local tls_alt_names="${XROAD_TLS_ALT_NAMES:-}"
 
-  if [ -z "$tls_hostname" ] || [ -z "$tls_alt_names" ]; then
+  if [[ -z "$tls_hostname" ]] || [[ -z "$tls_alt_names" ]]; then
     log_die "TLS settings not provided. XROAD_TLS_HOSTNAME and XROAD_TLS_ALT_NAMES are required."
   fi
 

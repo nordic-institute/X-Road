@@ -44,7 +44,7 @@ setup_repositories_ubuntu() {
 
   local keyring_dir
   keyring_dir=$(dirname "$xroad_dep_keyring_path")
-  if [ ! -d "$keyring_dir" ]; then
+  if [[ ! -d "$keyring_dir" ]]; then
     log_message "  Creating keyring directory: $keyring_dir"
     mkdir -p "$keyring_dir"
   fi
@@ -60,7 +60,7 @@ setup_repositories_ubuntu() {
 
   # Add dependencies GPG key (may be same or different)
   local dep_keyring_path="$xroad_dep_keyring_path"
-  if [ "$XROAD_DEPENDENCIES_GPG_KEY_URL" != "$XROAD_REPO_GPG_KEY_URL" ]; then
+  if [[ "$XROAD_DEPENDENCIES_GPG_KEY_URL" != "$XROAD_REPO_GPG_KEY_URL" ]]; then
     log_message "Adding X-Road dependencies repository GPG key"
     log_message "  URL: $XROAD_DEPENDENCIES_GPG_KEY_URL"
     if curl -fsSL "$XROAD_DEPENDENCIES_GPG_KEY_URL" -o "$xroad_dependencies_keyring_path"; then
@@ -138,7 +138,7 @@ setup_repositories_rhel() {
   fi
 
   # Import dependencies GPG key if different
-  if [ "$XROAD_DEPENDENCIES_GPG_KEY_URL" != "$XROAD_REPO_GPG_KEY_URL" ]; then
+  if [[ "$XROAD_DEPENDENCIES_GPG_KEY_URL" != "$XROAD_REPO_GPG_KEY_URL" ]]; then
     log_message "Importing X-Road dependencies GPG key from $XROAD_DEPENDENCIES_GPG_KEY_URL"
     if rpm --import "$XROAD_DEPENDENCIES_GPG_KEY_URL"; then
       log_info "Dependencies GPG key imported successfully"

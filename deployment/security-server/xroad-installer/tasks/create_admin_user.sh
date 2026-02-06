@@ -33,7 +33,7 @@ create_admin_user_ubuntu() {
   fi
 
   # Set password if provided
-  if [ -n "$XROAD_ADMIN_PASSWORD" ]; then
+  if [[ -n "$XROAD_ADMIN_PASSWORD" ]]; then
     log_message "  Setting password for user: $XROAD_ADMIN_USERNAME"
     if echo "${XROAD_ADMIN_USERNAME}:${XROAD_ADMIN_PASSWORD}" | chpasswd; then
       log_info "Password for user '$XROAD_ADMIN_USERNAME' set successfully"
@@ -69,7 +69,7 @@ create_admin_user_rhel() {
   fi
 
   # Set password if provided
-  if [ -n "$XROAD_ADMIN_PASSWORD" ]; then
+  if [[ -n "$XROAD_ADMIN_PASSWORD" ]]; then
     log_message "  Setting password for user: $XROAD_ADMIN_USERNAME"
     if echo "${XROAD_ADMIN_USERNAME}:${XROAD_ADMIN_PASSWORD}" | chpasswd; then
       log_info "Password for user '$XROAD_ADMIN_USERNAME' set successfully"
@@ -88,7 +88,7 @@ main() {
   log_message "================================"
   log_message ""
 
-  if [ "$XROAD_ADMIN_USERNAME" = "xroad" ]; then
+  if [[ "$XROAD_ADMIN_USERNAME" = "xroad" ]]; then
     log_die "Username 'xroad' is not allowed. Please choose a different username."
   fi
 
