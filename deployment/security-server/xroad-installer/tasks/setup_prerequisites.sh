@@ -114,7 +114,9 @@ setup_prerequisites_rhel() {
     log_info "epel-release already installed"
   else
     log_message "Installing epel-release..."
-    yum install -y epel-release && log_info "epel-release installed successfully" || log_die "Failed to install epel-release"
+    dnf install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm" \
+      && log_info "epel-release installed successfully" \
+      || log_die "Failed to install epel-release"
   fi
 
   # Check remaining packages and install if needed

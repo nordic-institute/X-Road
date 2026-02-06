@@ -17,7 +17,7 @@ configure_secret_store_ubuntu() {
   log_message "Configuring secret store for Ubuntu (Type: $XROAD_SECRET_STORE_TYPE)..."
 
   if [[ "$XROAD_SECRET_STORE_TYPE" == "local" ]]; then
-    log_info "Using local secret store (software token). No extra configuration needed."
+    log_info "Using local secret store. No extra configuration needed."
     return $EXIT_SUCCESS
   fi
 
@@ -33,7 +33,7 @@ configure_secret_store_rhel() {
   log_message "Configuring secret store for RHEL (Type: $XROAD_SECRET_STORE_TYPE)..."
 
   if [[ "$XROAD_SECRET_STORE_TYPE" == "local" ]]; then
-    log_info "Using local secret store (software token). No extra configuration needed."
+    log_info "Using local secret store. No extra configuration needed."
     return $EXIT_SUCCESS
   fi
 

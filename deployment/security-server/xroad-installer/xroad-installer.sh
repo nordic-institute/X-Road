@@ -170,8 +170,8 @@ select_secret_store_type() {
   local selection
   selection=$(whiptail --title "X-Road Secret Store Type Selection" \
       --menu "Choose the secret store type to use:" 15 60 2 \
-      "local" "Local secret store (Software token)" \
-      "remote" "Remote secret store (AWS KMS, etc.)" \
+      "local" "Local secret store" \
+      "remote" "Remote secret store" \
       3>&1 1>&2 2>&3)
 
   if [ $? -eq 0 ]; then
