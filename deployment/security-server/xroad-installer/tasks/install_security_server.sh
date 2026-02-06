@@ -38,7 +38,7 @@ apply_proxy_memory() {
   if [[ -x "$proxy_helper" ]]; then
     log_message "Applying proxy memory settings: $XROAD_PROXY_MEM_SETTING"
     mkdir -p /etc/xroad/services/
-    if $proxy_helper apply "$XROAD_PROXY_MEM_SETTING"; then
+    if $proxy_helper apply $XROAD_PROXY_MEM_SETTING; then
       log_info "Proxy memory settings applied successfully"
     else
       log_warn "Failed to apply proxy memory settings. Please verify the settings in /etc/xroad/services/local.properties file."
