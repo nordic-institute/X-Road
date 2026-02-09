@@ -175,15 +175,33 @@ if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
   log_success "Docker mirror ENABLED: $XROAD_MIRROR_DOCKER_URL"
 fi
 
+# Add GitHub mirror URL if configured (used for JMX Prometheus JAR download)
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_GITHUB_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "GITHUB_URL=${XROAD_MIRROR_GITHUB_URL}")
+  log_success "GitHub mirror ENABLED: $XROAD_MIRROR_GITHUB_URL"
+fi
+
+# Add kubectl mirror URL if configured
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_K8S_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "KUBECTL_DIST_URL=${XROAD_MIRROR_K8S_URL}")
+  log_success "kubectl mirror ENABLED: $XROAD_MIRROR_K8S_URL"
+fi
+
 if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
   MIRROR_BUILD_ARGS+=(
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
-    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
-    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
   )
   log_success "APT mirror ENABLED: $XROAD_MIRROR_UBUNTU_URL"
 else
   log_warn "APT mirror DISABLED (using public repos)"
+fi
+
+# Pass mirror credentials to all builds (used by APT, curl-based downloads, etc.)
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
 fi
 log_info "MIRROR_BUILD_ARGS: ${MIRROR_BUILD_ARGS[*]}"
 echo

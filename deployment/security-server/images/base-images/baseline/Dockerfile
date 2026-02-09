@@ -21,8 +21,15 @@ RUN mkdir /var/log/xroad && \
     chown -R xroad:xroad /var/cache/xroad && \
     chown -R xroad:xroad /etc/xroad
 
-RUN curl -L -o /opt/jmx_prometheus_javaagent.jar \
-      https://github.com/prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_javaagent-1.5.0.jar
+ARG GITHUB_URL=https://github.com/
+ARG XROAD_MIRROR_USER
+RUN --mount=type=secret,id=mirror_token \
+    CURL_AUTH="" && \
+    if [ -n "$XROAD_MIRROR_USER" ] && [ -f /run/secrets/mirror_token ]; then \
+      CURL_AUTH="-u ${XROAD_MIRROR_USER}:$(cat /run/secrets/mirror_token)"; \
+    fi && \
+    curl -fsSL $CURL_AUTH -o /opt/jmx_prometheus_javaagent.jar \
+      "${GITHUB_URL}prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_javaagent-1.5.0.jar"
 
 # Copy license files from build context
 COPY --from=build /LICENSE.txt /opt/app/LICENSE.txt

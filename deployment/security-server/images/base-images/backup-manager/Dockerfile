@@ -21,10 +21,16 @@ RUN apt-get -qq update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install kubectl for Kubernetes backup operations
-RUN ARCH=$(dpkg --print-architecture) && \
-    KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt) && \
-    curl -sSLo /tmp/kubectl https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl && \
-    curl -sSLo /tmp/kubectl.sha256 https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256 && \
+ARG KUBECTL_DIST_URL=https://dl.k8s.io
+ARG KUBECTL_VERSION=v1.35.0
+RUN --mount=type=secret,id=mirror_token \
+    ARCH=$(dpkg --print-architecture) && \
+    CURL_AUTH="" && \
+    if [ -n "$XROAD_MIRROR_USER" ] && [ -f /run/secrets/mirror_token ]; then \
+      CURL_AUTH="-u ${XROAD_MIRROR_USER}:$(cat /run/secrets/mirror_token)"; \
+    fi && \
+    curl -fsSLo /tmp/kubectl $CURL_AUTH ${KUBECTL_DIST_URL}/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl && \
+    curl -fsSLo /tmp/kubectl.sha256 $CURL_AUTH ${KUBECTL_DIST_URL}/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256 && \
     echo "$(cat /tmp/kubectl.sha256)  /tmp/kubectl" | sha256sum -c - && \
     install -m 0755 /tmp/kubectl /usr/local/bin/kubectl && \
     rm /tmp/kubectl /tmp/kubectl.sha256
