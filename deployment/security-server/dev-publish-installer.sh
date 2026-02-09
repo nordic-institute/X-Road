@@ -3,7 +3,7 @@ set -euo pipefail
 
 # !!! NOT FOR PRODUCTION USE!!!
 
-# Helper script to publish X-Road installer to tmpfile.link for easier testing in dev environments.
+# Helper script to publish X-Road installer to tmpfile.link for easier testing in local dev environments.
 # Requirements: curl, jq (optional, will fallback to sed)
 
 PACKAGE_DIR="xroad-installer"
@@ -41,18 +41,17 @@ fi
 echo "Package uploaded to: $PKG_LINK"
 
 # The current get-xroad.sh logic is:
-# ARTIFACTORY_URL="${ARTIFACTORY_URL:-...}"
+# INSTALLER_URL="${INSTALLER_URL:-...}"
 # PACKAGE_NAME="xroad-installer.tar.gz"
-# DOWNLOAD_URL="${ARTIFACTORY_URL}/${PACKAGE_NAME}"
+# DOWNLOAD_URL="${INSTALLER_URL}/${PACKAGE_NAME}"
 #
 # tmpfile.link gives https://d.tmpfile.link/public/YYYY-MM-DD/UUID/filename
 # So we extract the directory part
 BASE_URL="${PKG_LINK%/*}/"
 
-echo "Step 3: Updating ${GET_XROAD_SCRIPT} with new ARTIFACTORY_URL..."
-# Use sed to update the ARTIFACTORY_URL line
-# We look for the line starting with ARTIFACTORY_URL="${ARTIFACTORY_URL:- and replace it
-sed -i.bak "s|ARTIFACTORY_URL=\"\${ARTIFACTORY_URL:-.*}\"|ARTIFACTORY_URL=\"\${ARTIFACTORY_URL:-${BASE_URL}}\"|" "$GET_XROAD_SCRIPT"
+echo "Step 3: Updating ${GET_XROAD_SCRIPT} with new INSTALLER_URL..."
+# Use sed to update the INSTALLER_URL line
+sed -i.bak "s|INSTALLER_URL=\"\${INSTALLER_URL:-.*}\"|INSTALLER_URL=\"\${INSTALLER_URL:-${BASE_URL}}\"|" "$GET_XROAD_SCRIPT"
 
 echo "Step 4: Uploading updated ${GET_XROAD_SCRIPT} to tmpfile.link..."
 GET_XROAD_RESPONSE=$(curl -s -X POST https://tmpfile.link/api/upload -F "file=@$GET_XROAD_SCRIPT")

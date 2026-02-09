@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # --- Configuration ---
-# Artifactory URL for X-Road generic repository
-# This can be overridden by setting the ARTIFACTORY_URL environment variable
-ARTIFACTORY_URL="${ARTIFACTORY_URL:-https://artifactory.nordic-institute.eu/artifactory/xroad-generic}"
+# URL for X-Road installer package
+# This can be overridden by setting the INSTALLER_URL environment variable
+INSTALLER_URL="${INSTALLER_URL:-https://niis-xroad-development.s3.amazonaws.com/js-test/xroad-installer-20260209-120015/}"
 PACKAGE_NAME="xroad-installer.tar.gz"
-DOWNLOAD_URL="${ARTIFACTORY_URL%/}/${PACKAGE_NAME}"
+DOWNLOAD_URL="${INSTALLER_URL%/}/${PACKAGE_NAME}"
 
 # Create a temporary directory for extraction
 TMP_DIR=$(mktemp -d -t xroad-installer-XXXXXX)
