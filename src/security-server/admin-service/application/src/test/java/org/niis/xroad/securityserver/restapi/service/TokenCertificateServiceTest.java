@@ -42,7 +42,6 @@ import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
@@ -199,9 +198,6 @@ public class TokenCertificateServiceTest {
 
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
-
-    @MockitoBean
-    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);

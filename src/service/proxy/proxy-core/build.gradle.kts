@@ -32,9 +32,7 @@ dependencies {
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(":security-server:admin-service:message-log-archiver")) {
-    exclude(group = "org.springframework.boot")
-  }
+  testImplementation(project(":service:message-log-archiver:message-log-archiver-core"))
 
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
