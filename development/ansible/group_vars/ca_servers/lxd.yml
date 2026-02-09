@@ -1,0 +1,17 @@
+container_ports:
+  port4000:
+    connect: "tcp:127.0.0.1:4000"
+    listen: "tcp:0.0.0.0:4001"
+    type: proxy
+  ocsp:
+    connect: "tcp:127.0.0.1:8888"
+    listen: "tcp:0.0.0.0:4002"
+    type: proxy
+  tsa:
+    connect: "tcp:127.0.0.1:8899"
+    listen: "tcp:0.0.0.0:4004"
+    type: proxy
+  test_ca_web:
+    connect: "tcp:127.0.0.1:9998"
+    listen: "tcp:0.0.0.0:4003"
+    type: proxy

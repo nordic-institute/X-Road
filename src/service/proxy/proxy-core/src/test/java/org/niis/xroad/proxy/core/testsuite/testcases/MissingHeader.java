@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER;
 
 /**
  * Client sends message with missing SOAP header.
@@ -47,6 +47,6 @@ public class MissingHeader extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_MISSING_HEADER);
+        assertErrorCode(CLIENT_X, MISSING_HEADER.code());
     }
 }

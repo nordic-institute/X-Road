@@ -1,0 +1,76 @@
+---
+- name: Ready all Ubuntu {{ubuntu_releasever}} containers
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+  become: "{{ onMacOs | default(true) }}"
+  community.general.lxd_container:
+    name: "{{item}}"
+    url: "{{ lxd_url | default(omit) }}"
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://cloud-images.ubuntu.com/releases
+      protocol: simplestreams
+      alias: "{{ ubuntu_releasever }}"
+    profiles: [ "default" ]
+    wait_for_ipv4_addresses: true
+    devices: "{{ hostvars[item].container_ports | default({}) }}"
+    timeout: 600
+  tags:
+    - ubuntu-container-init
+
+- name: Force IPv4 for APT to prevent IPv6 timeouts
+  raw: echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
+- name: Configure safe APT timeouts
+  raw: |
+    cat <<EOF > /etc/apt/apt.conf.d/99timeouts
+    Acquire::Connect::Timeout "5";
+    Acquire::http::Timeout "10";
+    Acquire::https::Timeout "10";
+    Acquire::Retries "3";
+    Acquire::http::LowSpeedLimit "100000"; 
+    Acquire::http::LowSpeedTime "10";
+    EOF
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
+- name: Switch to fast Estonian mirror (xtom.ee)
+  ansible.builtin.replace:
+    path: /etc/apt/sources.list.d/ubuntu.sources
+    regexp: 'http://ports.ubuntu.com/ubuntu-ports'
+    replace: 'http://mirrors.xtom.ee/ubuntu-ports'
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
+- name: Disable unattended-upgrades
+  raw: systemctl stop unattended-upgrades && systemctl disable unattended-upgrades
+  ignore_errors: yes
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
+
+- name: Ready all Rocky Linux {{rhel_releasever}} containers
+  become: "{{ onMacOs | default(true) }}"
+  with_inventory_hostnames: rhel_ss
+  community.general.lxd_container:
+    name: "{{item}}"
+    url: "{{ lxd_url | default(omit) }}"
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://images.lxd.canonical.com
+      protocol: simplestreams
+      alias: "rockylinux/{{ rhel_releasever }}"
+    profiles: [ "default" ]
+    wait_for_ipv4_addresses: true
+    devices: "{{ hostvars[item].container_ports | default({}) }}"
+    timeout: 600
+  tags:
+    - rhel-container-init
+  vars:
+    arch:
+      aarch64: arm64
+      x86_64: amd64

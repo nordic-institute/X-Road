@@ -25,29 +25,25 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-titled-view title-key="keys.title">
-    <tokens-list
-      :configuration-type="configurationType"
-      @update-keys="refreshAnchor"
-    />
+  <XrdSubView>
+    <template #header>
+      <span class="title-text font-weight-bold on-surface">
+        {{ $t('keys.title') }}
+      </span>
+    </template>
 
-    <!-- Internal configuration -->
-    <div class="header-row mt-6">
+    <TokensList :configuration-type="configurationType" @update-keys="refreshAnchor" />
+
+    <div class="title-text font-weight-bold on-surface mt-12 mb-6">
       <div class="xrd-view-title">{{ title }}</div>
     </div>
 
-    <!-- Anchor -->
-    <configuration-anchor
-      ref="anchor"
-      :configuration-type="configurationType"
-    />
+    <ConfigurationAnchor ref="anchor" class="mb-4" :configuration-type="configurationType" />
 
-    <!-- Download URL -->
-    <configuration-download-url :configuration-type="configurationType" />
+    <ConfigurationDownloadUrl class="mb-4" :configuration-type="configurationType" />
 
-    <!-- Configuration parts -->
-    <configuration-parts-list :configuration-type="configurationType" />
-  </xrd-titled-view>
+    <ConfigurationPartsList :configuration-type="configurationType" />
+  </XrdSubView>
 </template>
 
 <script lang="ts">
@@ -56,15 +52,15 @@
  */
 import { defineComponent, PropType } from 'vue';
 import ConfigurationAnchor from './ConfigurationAnchor.vue';
-import ConfigurationPartsList from '@/components/configurationParts/ConfigurationPartsList.vue';
+import ConfigurationPartsList from './configurationParts/ConfigurationPartsList.vue';
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { ConfigurationType } from '@/openapi-types';
-import TokensList from '@/components/tokens/TokensList.vue';
-import { XrdTitledView } from '@niis/shared-ui';
+import TokensList from './tokens/TokensList.vue';
+import { XrdSubView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    XrdTitledView,
+    XrdSubView,
     TokensList,
     ConfigurationDownloadUrl,
     ConfigurationAnchor,
@@ -83,15 +79,9 @@ export default defineComponent({
   methods: {
     refreshAnchor(action: string) {
       if (action === 'add' || action === 'delete') {
-        (
-          this.$refs.anchor as InstanceType<typeof ConfigurationAnchor>
-        ).fetchConfigurationAnchor();
+        (this.$refs.anchor as InstanceType<typeof ConfigurationAnchor>).fetchConfigurationAnchor();
       }
     },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-</style>

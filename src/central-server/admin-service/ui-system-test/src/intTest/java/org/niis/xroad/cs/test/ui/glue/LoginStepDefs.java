@@ -27,18 +27,17 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.LoginPageObj;
 
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class LoginStepDefs extends BaseUiStepDefs {
     private final LoginPageObj loginPageObj = new LoginPageObj();
 
     @Step("CentralServer login page is open")
     public void openPage() {
-        Selenide.open(targetHostUrlProvider.getUrl());
+        selenideManager.open("https://cs:4000");
     }
 
     @Step("Login form is visible")

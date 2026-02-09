@@ -44,14 +44,17 @@ import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsType;
 import org.niis.xroad.proxymonitor.message.OutputSpecType;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import javax.xml.namespace.QName;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
@@ -67,7 +70,7 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Metrics request was sent with queryId {string}")
     public void executeGetSecurityServerMetricsRequest(String queryId) {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest(queryId, null)
+        ResponseEntity<Resource> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest(queryId, null)
                 .getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
@@ -75,37 +78,36 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Metric: {string} request was sent with queryId {string}")
     public void executeGetSecurityServerMetricsRequest(final String metricName, final String queryId) {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest(queryId, metricName)
+        ResponseEntity<Resource> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest(queryId, metricName)
                 .getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
     @Step("Valid Security Server Metrics response is returned")
-    public void validMetricsResponseIsReturned() {
-        ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+    public void validMetricsResponseIsReturned() throws IOException {
+        ResponseEntity<Resource> response = (ResponseEntity<Resource>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
-                .assertion(xpath(response.getBody(),
+                .assertion(xpath(response.getBody().getContentAsString(UTF_8),
                         "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
                         "SERVER:DEV/COM/1234/SS0"))
                 .execute();
     }
 
     @Step("Valid numeric value returned for metric: {string}")
-    public void validNumericMetricReturned(final String metricName) {
-        ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+    public void validNumericMetricReturned(final String metricName) throws IOException {
+        ResponseEntity<Resource> response = (ResponseEntity<Resource>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
                 .execute();
 
-        assertThat(evalXpath(response.getBody(),
+        assertThat(evalXpath(response.getBody().getContentAsString(UTF_8),
                 "//monitoring:getSecurityServerMetricsResponse//monitoring:numericMetric[./monitoring:name/text()='"
                         + metricName
                         + "']/monitoring:value"))
                 .isNotEmpty()
                 .containsOnlyDigits();
     }
-
 
     @SneakyThrows
     private SoapMessageImpl buildMetricsRequest(final String queryId, final String metricName) {

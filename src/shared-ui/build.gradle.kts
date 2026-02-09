@@ -11,7 +11,7 @@ frontend {
   nodeDistributionUrlRoot.set("https://artifactory.niis.org/artifactory/nodejs-dist-remote/")
   maxDownloadAttempts.set(3)
 
-  corepackVersion.set("0.34.0")
+  corepackVersion.set("0.34.4")
   packageJsonDirectory.set(file("${rootDir}/"))
   if (System.getenv().containsKey("CI")) {
     installScript.set("install --frozen-lockfile")
@@ -19,17 +19,26 @@ frontend {
 }
 
 tasks.register<RunPnpmTaskType>("build-pnpm-workspace") {
+  description = "Builds the pnpm workspace including this project."
+  group = "build"
+
   dependsOn(tasks.named("installFrontend"))
   args.set("run build-workspace")
 }
 
 tasks.register<RunPnpmTaskType>("checkFrontAudit") {
+  description = "Runs npm audit on frontend pnpm workspace."
+  group = "verification"
+
   dependsOn(tasks.named("assembleFrontend"))
   args.set("run npx-check-audit")
 }
 
 tasks.register<RunPnpmTaskType>("test") {
-  dependsOn(tasks.named("installFrontend"))
+  description = "Runs frontend tests."
+  group = "verification"
+
+  dependsOn(tasks.named("assembleFrontend"), tasks.named("build-pnpm-workspace"))
   args.set("run test-ss")
 }
 
@@ -40,7 +49,10 @@ if (project.hasProperty("frontend-npm-audit")) {
 }
 
 tasks.register<RunPnpmTaskType>("checkFrontWorkspaceLicense") {
-  dependsOn(tasks.named("installFrontend"))
+  description = "Checks licenses of frontend pnpm workspace."
+  group = "verification"
+
+  dependsOn(tasks.named("installFrontend"), tasks.named("build-pnpm-workspace"))
   args.set("run -r license-check")
 }
 

@@ -29,25 +29,26 @@ package org.niis.xroad.cs.test.glue;
 
 import ee.ria.xroad.common.util.TimeUtils;
 
-import com.nortal.test.asserts.Assertion;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequestBuilder;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestPayload;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.Objects;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.cs.test.constants.CommonTestData.DEFAULT_RECEIVER;
 import static org.niis.xroad.cs.test.constants.CommonTestData.DEFAULT_SERVER_ID;
 
@@ -55,32 +56,33 @@ import static org.niis.xroad.cs.test.constants.CommonTestData.DEFAULT_SERVER_ID;
 @SuppressWarnings({"SpringJavaAutowiredMembersInspection", "checkstyle:MagicNumber"})
 public class ManagementRequestStepDefs extends BaseStepDefs {
 
+    @SneakyThrows
     @Step("Response of status code {int} and requestId {int} is returned")
     public void responseIsValidated(Integer statusCode, Integer id) {
-        ResponseEntity<String> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
+        ResponseEntity<@NotNull Resource> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
         validate(responseEntity)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.valueOf(statusCode)))
-                .assertion(xpath(responseEntity.getBody(),
+                .assertion(xpath(responseEntity.getBody().getContentAsString(UTF_8),
                         "//xroad:requestId",
                         String.valueOf(id)))
                 .execute();
     }
 
+    @SneakyThrows
     @Step("Response of status code {int} and soap fault is returned")
     public void responseIsValidated(Integer statusCode) {
-        ResponseEntity<String> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
+        ResponseEntity<@NotNull Resource> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
         validate(responseEntity)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.valueOf(statusCode)))
-                .assertion(xpathExists(responseEntity.getBody(), "//soap:Fault"))
+                .assertion(xpathExists(responseEntity.getBody().getContentAsString(UTF_8), "//soap:Fault"))
                 .execute();
     }
 
     @SneakyThrows
     @Step("Response of status code {int} and soap fault {string} is returned")
     public void responseIsValidatedWithFaultCode(Integer statusCode, String code) {
-        ResponseEntity<String> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
-        var msg = messageFactory.createMessage(null,
-                new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody()).getBytes(StandardCharsets.UTF_8)));
+        ResponseEntity<@NotNull Resource> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
+        var msg = messageFactory.createMessage(null, responseEntity.getBody().getInputStream());
         validate(responseEntity)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.valueOf(statusCode)))
                 .assertion(new Assertion.Builder()
@@ -95,9 +97,8 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     @SneakyThrows
     @Step("Response of status code {int} and soap faultCode {string} and soap faultString {string} is returned")
     public void responseIsValidatedWithFaultCodeAndString(Integer statusCode, String faultCode, String faultString) {
-        ResponseEntity<String> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
-        var msg = messageFactory.createMessage(null,
-                new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody()).getBytes(StandardCharsets.UTF_8)));
+        ResponseEntity<@NotNull Resource> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
+        var msg = messageFactory.createMessage(null, responseEntity.getBody().getInputStream());
         validate(responseEntity)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.valueOf(statusCode)))
                 .assertion(new Assertion.Builder()
@@ -128,6 +129,12 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     @Step("Client Registration request with clientId {string} and serverId {string} was sent")
     public void executeRequestWithCustomServerId(String clientIdStr, String serverId) throws Exception {
         executeRequestWithCustomServerId(null, clientIdStr, serverId);
+    }
+
+    @Step("more than {int} bytes request is sent")
+    public void executeBigRequest(int size) throws Exception {
+        String longName = RandomStringUtils.insecure().nextAlphanumeric(size);
+        executeRequestWithCustomServerId(longName, "EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId());
     }
 
     private void executeRequestWithCustomServerId(String subsystemName, String clientIdStr, String serverId) throws Exception {

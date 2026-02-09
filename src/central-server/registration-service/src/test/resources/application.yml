@@ -6,6 +6,9 @@ spring:
   main:
     allow-bean-definition-overriding: true
     banner-mode: off
+  cloud:
+    vault:
+      enabled: false
 xroad:
   registration-service:
     api-token: testtoken
@@ -14,6 +17,4 @@ xroad:
     rate-limit-requests-per-minute: 10
     rate-limit-cache-size: 10_000
     rate-limit-expire-after-access-minutes: 2
-    api-trust-store: ${xroad.conf.path:/etc/xroad}/ssl/center-admin-service.p12
-    api-trust-store-password: center-admin-service
-    api-base-url: https://127.0.0.1:4000/api/v1
+    api-base-url: http://127.0.0.1:4000/api/v1

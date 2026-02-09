@@ -25,13 +25,13 @@
  */
 package org.niis.xroad.globalconf.impl.cert;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
@@ -40,8 +40,10 @@ import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -51,14 +53,17 @@ import java.util.Date;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * Certificate-related helper functions.
  */
 @Slf4j
+@Singleton
 @RequiredArgsConstructor
-public final class CertHelper {
+public class CertHelper {
     private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifierFactory ocspVerifierFactory;
 
     /**
      * Verifies that the certificate <code>cert</code> can be used for
@@ -69,13 +74,12 @@ public final class CertHelper {
      * @param chain         the certificate chain
      * @param ocspResponses OCSP responses used in the cert chain
      * @param member        the member
-     * @throws Exception if verification fails.
      */
     public void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId member)
             throws CertificateEncodingException, IOException, OperatorCreationException, CertificateParsingException {
         X509Certificate cert = chain.getEndEntityCert();
         if (!CertUtils.isAuthCert(cert)) {
-            throw new CodedException(X_SSL_AUTH_FAILED,
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                     "Peer certificate is not an authentication certificate");
         }
 
@@ -85,8 +89,8 @@ public final class CertHelper {
 
         // Verify certificate against CAs.
         try {
-            new CertChainVerifier(globalConfProvider, chain).verify(ocspResponses, Date.from(TimeUtils.now()));
-        } catch (CodedException e) {
+            new CertChainVerifier(globalConfProvider, ocspVerifierFactory, chain).verify(ocspResponses, Date.from(TimeUtils.now()));
+        } catch (XrdRuntimeException e) {
             // meaningful errors get SSL auth verification prefix
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }
@@ -96,13 +100,13 @@ public final class CertHelper {
         if (!globalConfProvider.authCertMatchesMember(cert, member)) {
             SecurityServerId serverId = globalConfProvider.getServerId(cert);
             if (serverId != null) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
+                throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                         "Client '%s' is not registered at security server %s",
                         member, serverId);
 
             }
 
-            throw new CodedException(X_SSL_AUTH_FAILED,
+            throw XrdRuntimeException.systemException(SSL_AUTH_FAILED,
                     "Authentication certificate %s is not associated "
                             + "with any security server",
                     cert.getSubjectX500Principal());
@@ -117,7 +121,6 @@ public final class CertHelper {
      * @param issuer        the issuer of the certificate
      * @param ocspResponses list of OCSP responses
      * @return the OCSP response or null if not found
-     * @throws Exception if an error occurs
      */
     public static OCSPResp getOcspResponseForCert(X509Certificate cert,
                                                   X509Certificate issuer, List<OCSPResp> ocspResponses)

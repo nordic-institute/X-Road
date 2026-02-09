@@ -25,19 +25,19 @@
  */
 package org.niis.xroad.globalconf.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.experimental.UtilityClass;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
 
 @UtilityClass
 public class CertSubjectUtils {
@@ -53,21 +53,21 @@ public class CertSubjectUtils {
         String c = getRDNValue(x500name, BCStyle.C);
 
         if (c == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain country code");
         }
 
         String o = getRDNValue(x500name, BCStyle.O);
 
         if (o == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain organization");
         }
 
         String cn = getRDNValue(x500name, BCStyle.CN);
 
         if (cn == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain common name");
         }
 

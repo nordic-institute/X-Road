@@ -1,6 +1,7 @@
 @CentralServer
 @CertificationService
 @IntermediateCA
+@IntermediateCADetails
 Feature: 0540 - CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA Details
 
   Background:

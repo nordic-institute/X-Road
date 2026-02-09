@@ -33,10 +33,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.RestoreSystemProperties;
 
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_ADDRESS;
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_CONF_PATH;
-import static ee.ria.xroad.common.SystemProperties.DEFAULT_CONNECTOR_HOST;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.confproxy.SystemProperties.CONFIGURATION_PROXY_ADDRESS;
+import static org.niis.xroad.confproxy.SystemProperties.CONFIGURATION_PROXY_CONF_PATH;
+import static org.niis.xroad.confproxy.SystemProperties.DEFAULT_CONNECTOR_HOST;
 
 public class ConfProxyPropertiesTest {
 

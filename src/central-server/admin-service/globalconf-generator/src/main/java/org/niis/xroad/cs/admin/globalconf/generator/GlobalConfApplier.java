@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -38,8 +37,6 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory;
-import static ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory;
 import static org.niis.xroad.cs.admin.globalconf.generator.FileUtils.delete;
 
 @Slf4j
@@ -50,11 +47,13 @@ public class GlobalConfApplier {
     private final int confVersion;
     private final ConfigurationDistributor configurationDistributor;
     private final SystemParameterService systemParameterService;
+    private final GlobalConfGenerationProperties properties;
+    private final Path configurationPath;
     private final Set<ConfigurationPart> configurationParts = new HashSet<>();
 
     public void apply() {
-        configurationDistributor.moveDirectoryContentFile(getTmpInternalDirectory(), getCenterInternalDirectory());
-        configurationDistributor.moveDirectoryContentFile(getTmpExternalDirectory(), getCenterExternalDirectory());
+        configurationDistributor.moveDirectoryContentFile(properties.getTmpInternalDirectory(), properties.getInternalDirectory());
+        configurationDistributor.moveDirectoryContentFile(properties.getTmpExternalDirectory(), properties.getExternalDirectory());
 
         cleanUpOldConfigurations();
 
@@ -62,8 +61,8 @@ public class GlobalConfApplier {
     }
 
     public void rollback() {
-        configurationDistributor.deleteDirectoryContentFile(getTmpInternalDirectory());
-        configurationDistributor.deleteDirectoryContentFile(getTmpExternalDirectory());
+        configurationDistributor.deleteDirectoryContentFile(properties.getTmpInternalDirectory());
+        configurationDistributor.deleteDirectoryContentFile(properties.getTmpExternalDirectory());
 
         try {
             delete(configurationDistributor.getConfigLocationPath());
@@ -109,17 +108,9 @@ public class GlobalConfApplier {
     private void writeLocalCopy(int configurationVersion, Set<ConfigurationPart> allConfigurationParts) {
         new LocalCopyWriter(configurationVersion,
                 systemParameterService.getInstanceIdentifier(),
-                Path.of(SystemProperties.getConfigurationPath()),
+                configurationPath,
                 TimeUtils.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds())
         )
                 .write(allConfigurationParts);
-    }
-
-    public static String getTmpExternalDirectory() {
-        return getCenterExternalDirectory() + ".tmp";
-    }
-
-    public static String getTmpInternalDirectory() {
-        return getCenterInternalDirectory() + ".tmp";
     }
 }

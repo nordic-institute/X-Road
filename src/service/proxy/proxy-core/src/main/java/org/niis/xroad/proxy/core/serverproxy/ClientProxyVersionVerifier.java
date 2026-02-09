@@ -26,19 +26,19 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.semver4j.Semver;
 
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CLIENT_PROXY_VERSION_NOT_SUPPORTED;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.common.core.exception.ErrorCode.CLIENT_PROXY_VERSION_NOT_SUPPORTED;
 
 @Slf4j
 public final class ClientProxyVersionVerifier {
@@ -57,8 +57,8 @@ public final class ClientProxyVersionVerifier {
 
         log.info("Received request from {} (security server version: {})", getRemoteAddr(request), clientVersion);
         if (minSupportedClientVersion != null && minSupportedClientVersion.isGreaterThan(new Semver(clientVersion))) {
-            throw new CodedException(X_CLIENT_PROXY_VERSION_NOT_SUPPORTED,
-                    "The minimum supported version for client security server is: %s ", minSupportedClientVersion.toString());
+            throw XrdRuntimeException.systemException(CLIENT_PROXY_VERSION_NOT_SUPPORTED,
+                    "The minimum supported version for client security server is: %s ".formatted(minSupportedClientVersion.toString()));
         }
 
         String thisVersion = getVersion(Version.XROAD_VERSION);

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -40,13 +41,14 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-class ReloadingSSLSocketFactory extends SSLSocketFactory {
+@ApplicationScoped
+public class ReloadingSSLSocketFactory extends SSLSocketFactory {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private volatile SSLSocketFactory internalFactory;
 
-    ReloadingSSLSocketFactory(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+    public ReloadingSSLSocketFactory(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
         this.globalConfProvider = globalConfProvider;
         this.keyConfProvider = keyConfProvider;
         reload();

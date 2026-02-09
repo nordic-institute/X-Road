@@ -61,7 +61,6 @@ public final class AtomicSave {
     public interface Callback {
         /**
          * Called when data is being atomically saved.
-         *
          * @param out output stream where data is written during the atomic save
          * @throws Exception if any errors occur
          */
@@ -72,7 +71,6 @@ public final class AtomicSave {
     /**
      * Atomically executes the given callback as part of the atomic save to the provided filename.
      * If an error occurs no changes to the file will be made.
-     *
      * @param fileName  filename where data should be atomically saved
      * @param tmpPrefix prefix of the temporary file used in the process
      * @param callback  callback that should be executed when data is atomically saved
@@ -80,9 +78,8 @@ public final class AtomicSave {
      * @throws Exception if any errors occur
      */
     @ArchUnitSuppressed("NoVanillaExceptions")
-    public static void execute(String fileName, String tmpPrefix, Callback callback, CopyOption... options) throws Exception {
-        Path target = Paths.get(fileName);
-        Path parentPath = target.getParent();
+    public static void execute(Path fileName, String tmpPrefix, Callback callback, CopyOption... options) throws Exception {
+        Path parentPath = fileName.getParent();
         Path tempFile = DefaultFilepaths.createTempFile(parentPath, tmpPrefix, null);
 
         try {
@@ -93,9 +90,9 @@ public final class AtomicSave {
             }
 
             if (options.length == 0) {
-                Files.move(tempFile, target, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempFile, fileName, StandardCopyOption.REPLACE_EXISTING);
             } else {
-                Files.move(tempFile, target, options);
+                Files.move(tempFile, fileName, options);
             }
         } finally {
             if (Files.exists(tempFile)) {
@@ -105,9 +102,22 @@ public final class AtomicSave {
     }
 
     /**
+     * Atomically executes the given callback as part of the atomic save to the provided filename.
+     * If an error occurs no changes to the file will be made.
+     * @param fileName  filename where data should be atomically saved
+     * @param tmpPrefix prefix of the temporary file used in the process
+     * @param callback  callback that should be executed when data is atomically saved
+     * @param options   options specifying how the move should be done
+     * @throws Exception if any errors occur
+     */
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public static void execute(String fileName, String tmpPrefix, Callback callback, CopyOption... options) throws Exception {
+        execute(Paths.get(fileName), tmpPrefix, callback, options);
+    }
+
+    /**
      * Atomically writes the given byte array to the file with the provided filename.
      * If an error occurs no changes to the file will be made.
-     *
      * @param fileName  filename where data should be atomically saved
      * @param tmpPrefix prefix of the temporary file used in the process
      * @param data      byte array that should be atomically saved in the file
@@ -127,7 +137,6 @@ public final class AtomicSave {
      * 3. renames file in target directory to target name
      * The last step is the part which is done atomically, it is still possible for example that
      * step 1 succeeds but step 2 fails
-     *
      * @param sourceFileName source
      * @param targetFileName target
      * @throws IOException when file operation fails

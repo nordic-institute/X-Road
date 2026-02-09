@@ -1,0 +1,17 @@
+{
+  "keyid_1": {
+    "hmac": "78a6d08bb1d1b91ab116790e1ab59517352fa5e0c8ac360c3a80255d80de2259"
+  },
+  "keyid_2": {
+    "hmac": "addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625",
+    "cahandler": {
+      "profile_id": "auth"
+    }
+  },
+  "keyid_3": {
+    "hmac": "96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde",
+    "cahandler": {
+      "profile_id": "sign"
+    }
+  }
+}

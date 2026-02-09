@@ -28,17 +28,17 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 
 /**
@@ -121,7 +121,7 @@ public class OperationalDataRecordsTest {
     @Test
     public void deserializeRecords() throws IOException {
         OperationalDataRecords records = OBJECT_READER.readValue(RECORDS_JSON, OperationalDataRecords.class);
-        OperationalDataRecord record = records.getRecords().get(0);
+        OperationalDataRecord record = records.getRecords().getFirst();
 
         assertEquals("CS", record.getServiceXRoadInstance());
         assertEquals("REST", record.getServiceType());

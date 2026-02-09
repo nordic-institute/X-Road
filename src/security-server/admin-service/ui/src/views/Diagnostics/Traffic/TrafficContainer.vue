@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,38 +25,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView
-    title-key="tab.diagnostics.traffic"
-    data-test="diagnostics-view"
-    :loading="opMonitoringStatusLoading"
-  >
-    <template v-if="opMonitoringEnabled">
-      <TrafficView />
+  <XrdView data-test="diagnostics-view" title="tab.main.diagnostics" :loading="opMonitoringStatusLoading">
+    <template #tabs>
+      <DiagnosticsTabs />
     </template>
-    <template v-else>
-      <v-card variant="flat" class="xrd-card diagnostic-card">
-        <v-card-title class="text-h5" data-test="diagnostics-ocsp-responders">
-          {{ $t('diagnostics.traffic.disabledTitle') }}
-        </v-card-title>
-        <v-card-text class="xrd-card-text">
-          <p>{{ $t('diagnostics.traffic.disabledMessage') }}</p>
-        </v-card-text>
-      </v-card>
-    </template>
-  </XrdTitledView>
+    <XrdSubView>
+      <template v-if="opMonitoringEnabled">
+        <TrafficView />
+      </template>
+      <template v-else>
+        <v-card variant="flat" class="xrd diagnostic-card">
+          <v-card-title class="text-h5" data-test="diagnostics-ocsp-responders">
+            {{ $t('diagnostics.traffic.disabledTitle') }}
+          </v-card-title>
+          <v-card-text class="xrd-card-text">
+            <p>{{ $t('diagnostics.traffic.disabledMessage') }}</p>
+          </v-card-text>
+        </v-card>
+      </template>
+    </XrdSubView>
+  </XrdView>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useDiagnostics } from '@/store/modules/diagnostics';
 import TrafficView from '@/views/Diagnostics/Traffic/TrafficView.vue';
-import { XrdTitledView } from '@niis/shared-ui';
+import { XrdSubView, XrdView } from '@niis/shared-ui';
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
 
 const diagnosticsStore = useDiagnostics();
 
-const opMonitoringStatusLoading = ref(
-  diagnosticsStore.addOnStatus === undefined,
-);
+const opMonitoringStatusLoading = ref(diagnosticsStore.addOnStatus === undefined);
 
 const opMonitoringEnabled = ref(false);
 
@@ -67,7 +68,6 @@ async function getOpMonitoringStatus() {
   if (diagnosticsStore.addOnStatus === undefined) {
     await diagnosticsStore.fetchAddonStatus();
   }
-  opMonitoringEnabled.value =
-    diagnosticsStore.addOnStatus?.opmonitoring_enabled ?? false;
+  opMonitoringEnabled.value = diagnosticsStore.addOnStatus?.opmonitoring_enabled ?? false;
 }
 </script>

@@ -25,25 +25,58 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Provider;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.core.ConfigurationClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.niis.xroad.confclient.core.ConfigurationDownloader;
+import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepository;
+import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryImpl;
+import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryNoopImpl;
+import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
+import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
+import org.niis.xroad.confclient.core.globalconf.DBBasedProvider;
+import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
+import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
-@Import({
-        ConfClientAdminPortConfig.class,
-        ConfClientJobConfig.class,
-})
-@ComponentScan("org.niis.xroad.confclient")
-@Configuration
+import javax.sql.DataSource;
+
 public class ConfClientRootConfig {
 
-    @Bean
-    ConfigurationClient configurationClient() {
-        return new ConfigurationClient(SystemProperties.getConfigurationPath());
+    @ApplicationScoped
+    ConfigurationAnchorProvider configurationAnchorProvider(ConfigurationClientProperties configurationClientProperties,
+                                                            CommonProperties commonProperties,
+                                                            Provider<DataSource> dataSource) {
+        return switch (configurationClientProperties.configurationAnchorStorage()) {
+            case FILE -> new FileBasedProvider(configurationClientProperties.configurationAnchorFile(),
+                    commonProperties.tempFilesPath());
+            case DB -> new DBBasedProvider(dataSource.get());
+        };
+    }
+
+    @ApplicationScoped
+    GlobalConfSourceLocationRepository globalConfSourceLocationRepository(Provider<DataSource> dataSource) {
+        if (dataSource.get() != null) {
+            return new GlobalConfSourceLocationRepositoryImpl(dataSource.get());
+        }
+        return new GlobalConfSourceLocationRepositoryNoopImpl();
+    }
+
+    @ApplicationScoped
+    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties,
+                                            ConfigurationAnchorProvider configurationAnchorProvider,
+                                            HttpUrlConnectionConfigurer connectionConfigurer,
+                                            GlobalConfSourceLocationRepository globalConfSourceLocationRepository) {
+        var downloader = new ConfigurationDownloader(connectionConfigurer, globalConfSourceLocationRepository,
+                configurationClientProperties.globalConfDir());
+        return new ConfigurationClient(
+                configurationAnchorProvider,
+                configurationClientProperties.globalConfDir(), downloader, configurationClientProperties.allowedFederations());
+    }
+
+    @ApplicationScoped
+    FSGlobalConfValidator fsGlobalConfValidator() {
+        return new FSGlobalConfValidator();
     }
 
 }

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -36,6 +35,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
@@ -44,20 +44,20 @@ import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.JettyUtils.getContentType;
 import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON_UTF_8;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.QUERY_DATA_PATH;
 import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.STORE_DATA_PATH;
 
@@ -65,19 +65,18 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.STORE_DAT
  * Query handler for operational data and health data requests.
  */
 @Slf4j
+@RequiredArgsConstructor
 class OpMonitorDaemonRequestHandler extends HandlerBase {
 
     private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
     private static final byte[] OK_RESPONSE_BYTES = getOkResponseBytes();
 
+    private final OpMonitorProperties opMonitorProperties;
     private final GlobalConfProvider globalConfProvider;
     private final MetricRegistry healthMetricRegistry;
-
-    OpMonitorDaemonRequestHandler(GlobalConfProvider globalConfProvider, MetricRegistry healthMetricRegistry) {
-        this.globalConfProvider = globalConfProvider;
-        this.healthMetricRegistry = healthMetricRegistry;
-    }
+    private final OperationalDataRecordManager operationalDataRecordManager;
+    private final HealthDataMetrics healthDataMetrics;
 
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws IOException {
@@ -103,15 +102,14 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
                                     Callback callback) throws IOException {
         try {
             if (!isPostRequest(request)) {
-                throw new CodedException(X_INVALID_HTTP_METHOD,
-                        invalidMethodError(request));
+                throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD, invalidMethodError(request));
             }
 
             String contentType = MimeUtils.getBaseContentType(
                     getContentType(request));
 
             if (!MimeTypes.TEXT_XML.equalsIgnoreCase(contentType)) {
-                throw new CodedException(X_INVALID_CONTENT_TYPE,
+                throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
                         invalidContentTypeError(request,
                                 MimeTypes.TEXT_XML));
             }
@@ -119,12 +117,12 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
             log.info("Received query request from {}", getRemoteAddr(request));
 
             new QueryRequestProcessor(globalConfProvider, RequestWrapper.of(request), ResponseWrapper.of(response),
-                    healthMetricRegistry).process();
+                    healthMetricRegistry, operationalDataRecordManager, opMonitorProperties).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
 
-            sendErrorResponse(request, response, callback, translateWithPrefix(
-                    SERVER_SERVER_PROXY_OPMONITOR_X, t));
+            XrdRuntimeException ex = XrdRuntimeException.systemException(t).withPrefix(SERVER_SERVER_PROXY_OPMONITOR_X);
+            sendErrorResponse(request, response, callback, ex);
         }
     }
 
@@ -149,7 +147,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
             log.info("Received store request from {}", getRemoteAddr(request));
 
             new StoreRequestProcessor(
-                    RequestWrapper.of(request), healthMetricRegistry).process();
+                    RequestWrapper.of(request), healthMetricRegistry, healthDataMetrics, operationalDataRecordManager).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling data store request", t);
 

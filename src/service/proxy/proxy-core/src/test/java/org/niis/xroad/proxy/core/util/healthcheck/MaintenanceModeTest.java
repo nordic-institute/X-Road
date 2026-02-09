@@ -39,7 +39,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
+import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckResult;
 import org.niis.xroad.proxy.core.healthcheck.StoppableCombinationHealthCheckProvider;
 import org.niis.xroad.proxy.core.healthcheck.StoppableHealthCheckProvider;
@@ -60,12 +60,12 @@ import static org.mockito.Mockito.when;
 
 
 /**
- * Tests setting {@link HealthCheckPort} on and off maintenance mode
+ * Tests setting {@link HealthCheckPortImpl} on and off maintenance mode
  */
 @Slf4j
 public class MaintenanceModeTest {
 
-    private static HealthCheckPort testPort;
+    private static HealthCheckPortImpl testPort;
     private static StoppableHealthCheckProvider testProvider;
     private static HttpGet healthCheckGet;
     private static CloseableHttpClient testClient;
@@ -88,8 +88,8 @@ public class MaintenanceModeTest {
         testClient = HttpClients.createDefault();
 
         testProvider = mock(StoppableCombinationHealthCheckProvider.class);
-        testPort = new HealthCheckPort(testProvider, TEST_PORT_NUMBER);
-        testPort.afterPropertiesSet();
+        testPort = new HealthCheckPortImpl(testProvider, TEST_PORT_NUMBER, "0.0.0.0");
+        testPort.init();
     }
 
     /**
@@ -125,7 +125,7 @@ public class MaintenanceModeTest {
     }
 
     /**
-     * Tests {@link HealthCheckPort} operation when it's in maintenance mode
+     * Tests {@link HealthCheckPortImpl} operation when it's in maintenance mode
      * - verifies that internal provider does not get called during maintenance mode
      * - verifies that HTTP status code 503 with the maintenance message is returned due to maintenance mode
      * @throws IOException client operation can throw an IOException that should fail the test
@@ -140,12 +140,12 @@ public class MaintenanceModeTest {
             assertNotNull("HealthCheckPorts's response did not contain a message", responseEntity);
             String responseMessage = IOUtils.toString(responseEntity.getContent(), StandardCharsets.UTF_8);
             assertThat("HealthCheckPorts's response did not contain maintenance message",
-                    responseMessage, containsString(HealthCheckPort.MAINTENANCE_MESSAGE));
+                    responseMessage, containsString(HealthCheckPortImpl.MAINTENANCE_MESSAGE));
         }
     }
 
     /**
-     * Tests {@link HealthCheckPort} operation when it's not in maintenance mode
+     * Tests {@link HealthCheckPortImpl} operation when it's not in maintenance mode
      * - verifies that internal provider does get called when not in maintenance mode
      * - verifies that mock provider's OK result gets through HealthCheckPort as HTTP OK when not in maintenance mode
      * @throws IOException client operation can throw an IOException that should fail the test

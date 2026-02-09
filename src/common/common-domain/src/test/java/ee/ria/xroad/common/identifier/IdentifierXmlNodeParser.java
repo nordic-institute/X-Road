@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.JaxbUtils;
 
 import jakarta.xml.bind.JAXBContext;
@@ -34,11 +33,12 @@ import jakarta.xml.bind.Unmarshaller;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 import static ee.ria.xroad.common.message.SoapBuilder.NS_IDENTIFIERS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_XML;
 
 /**
  * XML node parser for X-Road identifiers.
@@ -61,12 +61,12 @@ public final class IdentifierXmlNodeParser {
             throws Exception {
         XRoadObjectType type = getObjectType(node);
         if (!expected.equals(type)) {
-            throw new CodedException(X_INVALID_XML,
+            throw XrdRuntimeException.systemException(INVALID_XML,
                     "Unexpected objectType: %s", type);
         }
     }
 
-    static XRoadObjectType getObjectType(Node node) throws Exception {
+    static XRoadObjectType getObjectType(Node node) {
         Node objectType = null;
 
         NamedNodeMap attr = node.getAttributes();
@@ -75,20 +75,20 @@ public final class IdentifierXmlNodeParser {
         }
 
         if (objectType == null) {
-            throw new CodedException(X_INVALID_XML,
+            throw XrdRuntimeException.systemException(INVALID_XML,
                     "Missing objectType attribute");
         }
 
         String typeName = objectType.getTextContent();
         if (typeName == null) {
-            throw new CodedException(X_INVALID_XML,
+            throw XrdRuntimeException.systemException(INVALID_XML,
                     "ObjectType not specified");
         }
 
         try {
             return XRoadObjectType.valueOf(typeName);
         } catch (IllegalArgumentException e) {
-            throw new CodedException(X_INVALID_XML,
+            throw XrdRuntimeException.systemException(INVALID_XML,
                     "Unknown objectType: %s", typeName);
         }
     }

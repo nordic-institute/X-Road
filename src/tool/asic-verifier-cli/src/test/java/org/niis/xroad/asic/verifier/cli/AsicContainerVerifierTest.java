@@ -25,8 +25,7 @@
  */
 package org.niis.xroad.asic.verifier.cli;
 
-import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 
@@ -39,15 +38,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.HASHCHAIN_UNUSED_INPUTS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HASH_CHAIN_REF;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Tests to verify correct ASiC container verifier behavior.
@@ -58,22 +58,19 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 public class AsicContainerVerifierTest {
 
     private static GlobalConfProvider globalConfProvider;
+    private static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
 
     private final String containerFile;
     private final String errorCode;
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Set up configuration.
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../../lib/globalconf-core/src/test/resources/globalconf_good2_v3");
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../../lib/globalconf-core/src/test/resources/configuration-anchor1.xml");
-
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create("../../lib/globalconf-core/src/test/resources/globalconf_good2_v3");
     }
 
     /**
@@ -87,15 +84,15 @@ public class AsicContainerVerifierTest {
                 {"valid-non-batch-soap-attachments.asice", null},
                 {"valid-signed-hashchain.asice", null},
                 {"valid-batch-ts.asice", null},
-                {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-digest.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-signed-hashchain.asice", X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},
-                {"invalid-hashchain-modified-message.asice", X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},
+                {"wrong-message.asice", INVALID_SIGNATURE_VALUE.code()},
+                {"invalid-digest.asice", INVALID_SIGNATURE_VALUE.code()},
+                {"invalid-signed-hashchain.asice", MALFORMED_SIGNATURE.code() + "." + INVALID_HASH_CHAIN_REF.code()},
+                {"invalid-hashchain-modified-message.asice", MALFORMED_SIGNATURE.code() + "." + HASHCHAIN_UNUSED_INPUTS.code()},
                 // This verification actually passes, since the hash chain
                 // is not verified and the signature is correct otherwise
                 {"invalid-not-signed-hashchain.asice", null},
-                {"invalid-incorrect-references.asice", X_MALFORMED_SIGNATURE},
-                {"invalid-ts-hashchainresult.asice", X_MALFORMED_SIGNATURE}
+                {"invalid-incorrect-references.asice", MALFORMED_SIGNATURE.code()},
+                {"invalid-ts-hashchainresult.asice", MALFORMED_SIGNATURE.code()}
         });
     }
 
@@ -115,7 +112,8 @@ public class AsicContainerVerifierTest {
         log.info("Verifying ASiC container \"" + fileName + "\" ...");
 
         try {
-            AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, "src/test/resources/" + fileName);
+            AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, OCSP_VERIFIER_FACTORY,
+                    "src/test/resources/" + fileName);
             verifier.verify();
 
             log.info(AsicUtils.buildSuccessOutput(verifier));

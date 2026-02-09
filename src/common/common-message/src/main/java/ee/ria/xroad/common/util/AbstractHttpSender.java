@@ -25,10 +25,11 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.HttpStatus;
-import ee.ria.xroad.common.SystemProperties;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -45,6 +46,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -55,9 +57,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 
 /**
  * Base class for a closeable HTTP sender.
@@ -68,17 +70,19 @@ import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
  */
 @Slf4j
 @ArchUnitSuppressed("NoVanillaExceptions")
+@RequiredArgsConstructor
 public abstract class AbstractHttpSender implements Closeable {
     public static final int CHUNKED_LENGTH = -1;
 
     private static final int DEFAULT_CONNECTION_TIMEOUT = 30000; // default 30 sec
-
     private static final int DEFAULT_SOCKET_TIMEOUT = 0; // default infinite
-
     private final Map<String, String> additionalHeaders = new HashMap<>();
 
+    @Getter
     private String responseContentType;
+    @Getter
     private InputStream responseContent;
+    @Getter
     private Map<String, String> responseHeaders;
 
     protected final HttpContext context = new BasicHttpContext();
@@ -86,26 +90,12 @@ public abstract class AbstractHttpSender implements Closeable {
     protected HttpRequestBase request;
     protected HttpEntity responseEntity;
 
+    @Setter
     protected int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
+    @Setter
     protected int socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
-    /**
-     * Sets the connection timeout in milliseconds.
-     *
-     * @param newTimeout the new timeout value
-     */
-    public void setConnectionTimeout(int newTimeout) {
-        this.connectionTimeout = newTimeout;
-    }
-
-    /**
-     * Sets the socket timeout in milliseconds.
-     *
-     * @param newTimeout the new timeout value
-     */
-    public void setSocketTimeout(int newTimeout) {
-        this.socketTimeout = newTimeout;
-    }
+    private final boolean isEnabledPooledConnectionReuse;
 
     /**
      * Sets the value of an attribute.
@@ -125,27 +115,6 @@ public abstract class AbstractHttpSender implements Closeable {
      */
     public void addHeader(String name, String value) {
         additionalHeaders.put(name, value);
-    }
-
-    /**
-     * @return the response content type.
-     */
-    public String getResponseContentType() {
-        return responseContentType;
-    }
-
-    /**
-     * @return the response content input stream.
-     */
-    public InputStream getResponseContent() {
-        return responseContent;
-    }
-
-    /**
-     * @return all response headers returned in the response.
-     */
-    public Map<String, String> getResponseHeaders() {
-        return responseHeaders;
     }
 
     protected void handleResponse(HttpResponse response) throws IOException {
@@ -193,7 +162,7 @@ public abstract class AbstractHttpSender implements Closeable {
 
     @Override
     public void close() {
-        if (!SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
+        if (!isEnabledPooledConnectionReuse) {
             if (request != null) {
                 request.releaseConnection();
             }
@@ -250,7 +219,7 @@ public abstract class AbstractHttpSender implements Closeable {
             // HTTP status code if the response envelope is a Fault.
             return;
         }
-        throw new CodedException(X_HTTP_ERROR, "Server responded with error %s: %s",
+        throw XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s",
                 response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
     }
 
@@ -268,7 +237,7 @@ public abstract class AbstractHttpSender implements Closeable {
         HttpEntity entity = response.getEntity();
 
         if (entity == null) {
-            throw new CodedException(X_HTTP_ERROR, "Could not get content from response");
+            throw XrdRuntimeException.systemException(HTTP_ERROR, "Could not get content from response");
         }
 
         return entity;
@@ -282,7 +251,7 @@ public abstract class AbstractHttpSender implements Closeable {
                 return null;
             }
 
-            throw new CodedException(X_INVALID_CONTENT_TYPE, "Could not get content type from response");
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE, "Could not get content type from response");
         }
 
         return contentType.getValue();
@@ -303,7 +272,7 @@ public abstract class AbstractHttpSender implements Closeable {
 
         @Override
         public boolean streamAbort(InputStream wrapped) {
-            throw new CodedException(X_IO_ERROR, "Stream was aborted");
+            throw XrdRuntimeException.systemException(IO_ERROR, "Stream was aborted");
         }
     }
 }

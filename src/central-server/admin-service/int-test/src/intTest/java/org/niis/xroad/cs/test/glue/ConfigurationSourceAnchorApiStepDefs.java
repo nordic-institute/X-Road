@@ -28,15 +28,15 @@
 package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.openapi.ConfigurationSourceAnchorsApi;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.OffsetDateTime;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.notNullAssertion;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -76,8 +76,8 @@ public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
                 .assertion(notNullAssertion("body.hash"))
                 .execute();
 
-        Assertions.assertThat(response.getBody().getCreatedAt()).isNotEqualTo(createdAt);
-        Assertions.assertThat(response.getBody().getHash()).isNotEqualTo(hash);
+        Assertions.assertNotEquals(createdAt, response.getBody().getCreatedAt(), "createdAt must be different after recreation");
+        Assertions.assertNotEquals(hash, response.getBody().getHash(), "hash must be different after recreation");
 
         createdAt = response.getBody().getCreatedAt();
         hash = response.getBody().getHash();

@@ -43,6 +43,8 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.cs.admin.client.AuthFeignClientInterceptor;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.admin.client.FeignRestErrorDecoder;
@@ -54,15 +56,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
 
 
-@Import(FeignClientsConfiguration.class)
+@Import({FeignClientsConfiguration.class, SpringVaultClientConfig.class})
 @Configuration
 public class AdminServiceClientConfiguration {
 
@@ -94,11 +94,11 @@ public class AdminServiceClientConfiguration {
     }
 
     @Bean("adminServiceHttpClient")
-    public CloseableHttpClient feignClient(final AdminServiceClientPropertyProvider propertyProvider)
-            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, CertificateException, IOException {
+    public CloseableHttpClient feignClient(final AdminServiceClientPropertyProvider propertyProvider, final VaultClient vaultClient)
+            throws GeneralSecurityException, IOException {
         var httpClientProperties = propertyProvider.getHttpClientProperties();
         return HttpClients.custom()
-                .setConnectionManager(buildConnectionManager(propertyProvider))
+                .setConnectionManager(buildConnectionManager(propertyProvider, vaultClient))
                 .setDefaultRequestConfig(RequestConfig.custom()
                         .setResponseTimeout(ofSeconds(httpClientProperties.getResponseTimeoutSeconds()))
                         .setConnectionRequestTimeout(ofSeconds(httpClientProperties.getConnectionRequestTimeoutSeconds()))
@@ -110,15 +110,21 @@ public class AdminServiceClientConfiguration {
                 .build();
     }
 
-    private HttpClientConnectionManager buildConnectionManager(final AdminServiceClientPropertyProvider propertyProvider)
-            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
+    private HttpClientConnectionManager buildConnectionManager(final AdminServiceClientPropertyProvider propertyProvider,
+                                                               final VaultClient vaultClient)
+            throws GeneralSecurityException, IOException {
         var httpClientProperties = propertyProvider.getHttpClientProperties();
+
+        var certChain = vaultClient.getAdminServiceTlsCredentials().getCertChain();
+        KeyStore trustStore = KeyStore.getInstance("PKCS12");
+        trustStore.load(null, null);
+        for (int i = 0; i < certChain.length; i++) {
+            trustStore.setCertificateEntry(String.valueOf(i), certChain[i]);
+        }
 
         final var sslcontext = SSLContexts.custom()
                 .setProtocol("TLSv1.3")
-                .loadTrustMaterial(
-                        propertyProvider.getApiTrustStore().toFile(),
-                        propertyProvider.getApiTrustStorePassword().toCharArray())
+                .loadTrustMaterial(trustStore, null)
                 .build();
 
         final var tlsStrategy = new DefaultClientTlsStrategy(sslcontext, new NoopHostnameVerifier());

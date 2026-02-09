@@ -30,6 +30,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.OpenapiApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "openapiApi", path = "/api/v1")
+@FeignClient
 public interface FeignOpenapiApi extends OpenapiApi {
 }

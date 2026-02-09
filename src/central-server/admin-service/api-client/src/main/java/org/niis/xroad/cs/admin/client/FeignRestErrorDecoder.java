@@ -26,17 +26,17 @@
  */
 package org.niis.xroad.cs.admin.client;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 @Component
 @RequiredArgsConstructor
@@ -50,9 +50,9 @@ public class FeignRestErrorDecoder implements ErrorDecoder {
         try (var inputStream = response.body().asInputStream()) {
             var errorInfo = mapper.readValue(inputStream, ErrorInfoDto.class);
             var detail = errorInfo.getError() != null ? errorInfo.getError().getCode() : REQUEST_FAILED;
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "%s with statusCode %s", detail, errorInfo.getStatus());
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, "%s with statusCode %s", detail, errorInfo.getStatus());
         } catch (IOException ex) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, ex, REQUEST_FAILED);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, ex, REQUEST_FAILED);
         }
 
     }

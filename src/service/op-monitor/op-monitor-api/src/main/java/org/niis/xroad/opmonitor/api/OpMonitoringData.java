@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.api;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RepresentedParty;
@@ -33,6 +32,7 @@ import ee.ria.xroad.common.message.RepresentedParty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +47,8 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.P
  */
 @ToString
 public class OpMonitoringData {
+
+    public static final String ERROR_FAILED_TO_ASSIGN_FIELD = "Failed to assign operational monitoring data field {}";
 
     // The following fields correspond to the schema defined in
     // src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml .
@@ -406,13 +408,13 @@ public class OpMonitoringData {
     }
 
     /**
-     * Sets a fault code and string from given CodedException.
-     * @param e CodedException
+     * Sets a fault code and string from given XrdRuntimeException.
+     * @param e XrdRuntimeException
      */
-    public void setFaultCodeAndString(CodedException e) {
+    public void setFaultCodeAndString(XrdRuntimeException e) {
         if (e != null) {
-            data.put(FAULT_CODE, e.getFaultCode());
-            data.put(FAULT_STRING, e.getFaultString());
+            data.put(FAULT_CODE, e.getErrorCode());
+            data.put(FAULT_STRING, e.getDetails());
         }
     }
 
