@@ -4,7 +4,6 @@ plugins {
   alias(libs.plugins.frontendJDK21)
 }
 
-// Helper: env var with gradle.properties fallback
 fun getConfig(name: String): String? =
     System.getenv(name) ?: project.findProperty(name)?.toString()
 

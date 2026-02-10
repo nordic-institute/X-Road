@@ -1,6 +1,5 @@
 pluginManagement {
   repositories {
-    // Helper: env var with gradle.properties fallback
     fun getConfig(name: String): String? =
         System.getenv(name) ?: providers.gradleProperty(name).orNull
 
@@ -29,7 +28,6 @@ rootProject.name = "x-road-core"
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
-    // Helper: env var with gradle.properties fallback
     fun getConfig(name: String): String? =
         System.getenv(name) ?: providers.gradleProperty(name).orNull
 

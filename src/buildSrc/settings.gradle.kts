@@ -1,6 +1,5 @@
 pluginManagement {
   repositories {
-    // Helper: env var with gradle.properties fallback
     fun getConfig(name: String): String? =
         System.getenv(name) ?: providers.gradleProperty(name).orNull
 
@@ -34,7 +33,6 @@ dependencyResolutionManagement {
     }
   }
   repositories {
-    // Helper: env var with gradle.properties fallback
     fun getConfig(name: String): String? =
         System.getenv(name) ?: providers.gradleProperty(name).orNull
 
