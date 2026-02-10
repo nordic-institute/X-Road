@@ -1,0 +1,5 @@
+xroad:
+  admin-service:
+    global-configuration-generation-rate-in-seconds: 10
+  configuration-client:
+    update-interval: 10 #default 60

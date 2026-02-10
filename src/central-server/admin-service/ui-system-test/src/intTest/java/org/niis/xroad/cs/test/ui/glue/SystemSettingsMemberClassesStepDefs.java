@@ -29,6 +29,7 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.SettingsMemberClassesPageObj;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 /**
  * Settings -> System Settings -> Member classes page steps.
@@ -137,14 +138,9 @@ public class SystemSettingsMemberClassesStepDefs extends BaseUiStepDefs {
 
     @Step("Member class list is set to {} rows per page")
     public void setMemberClassListSize(String value) {
-        settingsMemberClassesPageObj.listSizeSelector().click();
-
-        settingsMemberClassesPageObj.listSizeSelectorOptionOf(value)
-                .shouldBe(Condition.visible)
-                .click();
-
-        settingsMemberClassesPageObj.listSizeSelectorText()
-                .shouldBe(Condition.text(value));
+        VuetifyHelper.vSelect(settingsMemberClassesPageObj.listSizeSelector())
+                .clickAndSelect(value)
+                .hasValueSelected(value);
     }
 
 }

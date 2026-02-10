@@ -44,9 +44,7 @@ public class TokenInfo {
     private boolean active;
     private String serialNumber;
     private String label;
-    private int slotIndex;
     private TokenStatus status;
     private EnumSet<PossibleTokenAction> possibleActions;
     private List<ConfigurationSigningKeyWithDetails> configurationSigningKeys;
-
 }

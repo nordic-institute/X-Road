@@ -1,0 +1,29 @@
+# deployment/.gitignore (OpenTofu - Dev)
+# Local .terraform directories
+**/.terraform/*
+
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Dev-specific tfvars can be included
+# *.tfvars
+# But exclude sensitive ones
+*.secret.tfvars
+*private.tfvars
+
+# Local override files
+*_override.tf
+*_override.tf.json
+
+# Debug logs
+*.log
+terraform.log
+
+.terraform.lock.hcl
+
+xroad-dev-config
+terraform.tfstate

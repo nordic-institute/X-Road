@@ -1,0 +1,141 @@
+name: Cleanup Old Snapshot Images
+
+on:
+  # Run daily at 03:00 UTC (after daily base image builds at 02:00)
+  schedule:
+    - cron: '0 3 * * *'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (only show what would be deleted)'
+        required: false
+        type: boolean
+        default: true
+      cut_off:
+        description: 'Age cutoff (e.g., "7d", "2w")'
+        required: false
+        type: string
+        default: '7d'
+
+permissions:
+  packages: write
+  contents: read
+
+env:
+  # Set to 'true' to enable dry-run for scheduled runs (safe for testing)
+  # Set to 'false' to actually delete images on scheduled runs
+  SCHEDULED_DRY_RUN: 'true'
+
+jobs:
+  cleanup-snapshots:
+    name: Cleanup old snapshot images
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch multi-arch digests to protect
+        id: fetch-digests
+        continue-on-error: true
+        run: |
+          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          
+          echo "🔍 Fetching multi-arch digests from recent SNAPSHOT images..."
+          
+          # Get list of all container packages
+          PACKAGES=$(curl -sL \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/orgs/${{ github.repository_owner }}/packages?package_type=container&per_page=100" \
+            | jq -r '.[].name' || echo "")
+          
+          all_digests=""
+          
+          # For each package, get recent SNAPSHOT versions and extract their digests
+          for package in $PACKAGES; do
+            echo "📦 Checking package: ${package}"
+            
+            # Get package versions from last 14 days (to protect recent multi-arch images)
+            versions=$(curl -sL \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${package}/versions?per_page=50" \
+              | jq -r --arg cutoff "$(date -u -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-14d +%Y-%m-%dT%H:%M:%SZ)" \
+                '.[] | select(.created_at > $cutoff) | select(.metadata.container.tags[] | contains("SNAPSHOT")) | .name' \
+              2>/dev/null || echo "")
+            
+            for version in $versions; do
+              # Try to inspect the manifest to get platform-specific digests
+              digests=$(docker manifest inspect "ghcr.io/${REPO_LOWERCASE}/${package}:${version}" 2>/dev/null \
+                | jq -r '.manifests[]?.digest' 2>/dev/null || echo "")
+              
+              if [[ -n "$digests" ]]; then
+                echo "  ✅ Found digests for ${package}:${version}"
+                all_digests="$all_digests $digests"
+              fi
+            done
+          done
+          
+          # Clean up and format for output
+          clean_digests=$(echo "$all_digests" | tr ' ' ',' | sed 's/,\+/,/g' | sed 's/^,//' | sed 's/,$//')
+          
+          echo "skip-digests=${clean_digests}" >> $GITHUB_OUTPUT
+          echo "✅ Total digests to protect: $(echo "$clean_digests" | tr ',' '\n' | grep -c 'sha256' || echo 0)"
+
+      - name: Cleanup old snapshot images
+        uses: snok/container-retention-policy@v3.0.1
+        with:
+          account: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image-names: "*"
+          image-tags: "*SNAPSHOT*"
+          cut-off: ${{ inputs.cut_off || '7d' }}
+          skip-shas: ${{ steps.fetch-digests.outputs.skip-digests }}
+          # For manual runs: use input (default true)
+          # For scheduled runs: use SCHEDULED_DRY_RUN env var
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || github.event_name == 'schedule' && env.SCHEDULED_DRY_RUN == 'true' }}
+
+      - name: Generate summary
+        if: always()
+        run: |
+          # Determine dry-run status
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            DRY_RUN="${{ inputs.dry_run }}"
+          else
+            DRY_RUN="${{ env.SCHEDULED_DRY_RUN }}"
+          fi
+          
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # 🧹 Container Image Cleanup Summary
+          
+          ## Configuration
+          - **Trigger**: ${{ github.event_name }}
+          - **Cut-off Age**: ${{ inputs.cut_off || '7d' }}
+          - **Dry Run**: ${DRY_RUN}
+          - **Target**: All images with SNAPSHOT tags
+          - **Images Cleaned**: Base images, service images, and all other SNAPSHOT tagged images
+          
+          ## How It Works
+          The workflow:
+          - 🔍 Queries GitHub API for all packages and recent SNAPSHOT versions
+          - 🛡️ Extracts multi-arch digests from last 14 days to prevent partial deletion
+          - 🗑️ Deletes SNAPSHOT images older than the cut-off age
+          - ✅ Keeps all non-SNAPSHOT images (releases)
+          - ✅ Protects images newer than cut-off age (from all branches)
+          
+          ## Next Steps
+          $(if [[ "${DRY_RUN}" == "true" ]]; then echo "💡 **This was a dry run**. No images were deleted."; else echo "✨ Images have been deleted. Check logs for details."; fi)
+          
+          $(if [[ "${{ github.event_name }}" == "schedule" && "${DRY_RUN}" == "true" ]]; then echo "ℹ️ **Scheduled runs are in dry-run mode**. To enable actual deletion, change \`SCHEDULED_DRY_RUN: 'false'\` in the workflow file."; fi)
+          
+          ---
+          
+          📝 **Note**: GitHub has a 30-day grace period before permanently deleting images. 
+          You can [restore accidentally deleted images](https://docs.github.com/en/packages/learn-github-packages/deleting-and-restoring-a-package).
+          EOF

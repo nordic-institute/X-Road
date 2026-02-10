@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView title-key="tab.keys.signAndAuthKeys">
-    <template #append-title>
-      <help-button
-        :help-image="helpImage"
-        help-title="keys.helpTitleKeys"
-        help-text="keys.helpTextKeys"
-      />
-
-      <xrd-search v-model="search" class="ml-5 mb-1" />
+  <XrdView title="tab.keys.signAndAuthKeys">
+    <template #append-header>
+      <HelpButton class="ml-2" :help-image="helpImage" help-title="keys.helpTitleKeys" help-text="keys.helpTextKeys" />
     </template>
-    <template #default>
+    <template #tabs>
+      <KeysAndCertificatesTabs />
+    </template>
+    <XrdSubView>
       <XrdEmptyPlaceholder
         :data="filtered"
         :loading="loading"
@@ -45,10 +43,10 @@
 
       <template v-if="filtered && !loading">
         <TokenExpandable
-          v-for="token in filtered"
+          v-for="(token, idx) in filtered"
           :key="token.id"
           data-test="tokens-table"
-          class="tokens-table"
+          :class="{ 'mb-6': idx + 1 < filtered.length }"
           :token="token"
           @refresh-list="fetchData"
           @token-logout="logoutDialog = true"
@@ -56,22 +54,17 @@
           @add-key="addKey"
         />
       </template>
+    </XrdSubView>
+    <XrdConfirmDialog
+      v-if="logoutDialog"
+      title="keys.logOutTitle"
+      text="keys.logOutText"
+      @cancel="logoutDialog = false"
+      @accept="acceptTokenLogout()"
+    />
 
-      <xrd-confirm-dialog
-        v-if="logoutDialog"
-        title="keys.logOutTitle"
-        text="keys.logOutText"
-        @cancel="logoutDialog = false"
-        @accept="acceptTokenLogout()"
-      />
-
-      <TokenLoginDialog
-        :dialog="loginDialog"
-        @cancel="loginDialog = false"
-        @save="tokenLogin"
-      />
-    </template>
-  </XrdTitledView>
+    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
+  </XrdView>
 </template>
 
 <script lang="ts">
@@ -82,24 +75,29 @@ import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import HelpButton from '@/components/ui/HelpButton.vue';
 import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import helpImage from '@/assets/keys_and_certificates.png';
 
-import {
-  Key,
-  Token,
-  TokenCertificate,
-  TokenCertificateSigningRequest,
-} from '@/openapi-types';
+import { Key, Token, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 import { useCsr } from '@/store/modules/certificateSignRequest';
+import { XrdView, XrdSubView, useNotifications, XrdEmptyPlaceholder, XrdConfirmDialog } from '@niis/shared-ui';
+import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 
 export default defineComponent({
   components: {
+    KeysAndCertificatesTabs,
     HelpButton,
     TokenExpandable,
     TokenLoginDialog,
+    XrdView,
+    XrdSubView,
+    XrdEmptyPlaceholder,
+    XrdConfirmDialog,
+  },
+  setup() {
+    const { addError, addSuccessMessage } = useNotifications();
+    return { addError, addSuccessMessage };
   },
   data() {
     return {
@@ -151,14 +149,12 @@ export default defineComponent({
           key.certificates = certs;
 
           // Filter the CSR:s
-          const csrs = key.certificate_signing_requests.filter(
-            (csr: TokenCertificateSigningRequest) => {
-              if (csr.id) {
-                return csr.id.toLowerCase().includes(mysearch);
-              }
-              return false;
-            },
-          );
+          const csrs = key.certificate_signing_requests.filter((csr: TokenCertificateSigningRequest) => {
+            if (csr.id) {
+              return csr.id.toLowerCase().includes(mysearch);
+            }
+            return false;
+          });
           key.certificate_signing_requests = csrs;
         });
       });
@@ -169,10 +165,7 @@ export default defineComponent({
             return true;
           }
 
-          if (
-            key.certificate_signing_requests &&
-            key.certificate_signing_requests.length > 0
-          ) {
+          if (key.certificate_signing_requests && key.certificate_signing_requests.length > 0) {
             return true;
           }
 
@@ -202,7 +195,6 @@ export default defineComponent({
     this.fetchData();
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useTokens, ['fetchTokens', 'tokenLogout']),
     ...mapActions(useCsr, ['fetchCertificateAuthorities']),
     fetchData(): void {
@@ -210,13 +202,13 @@ export default defineComponent({
       this.loading = true;
       this.fetchTokens()
         .catch((error) => {
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => {
           this.loading = false;
         });
       this.fetchCertificateAuthorities().catch((error) => {
-        this.showError(error);
+        this.addError(error);
       });
     },
     acceptTokenLogout(): void {
@@ -228,10 +220,10 @@ export default defineComponent({
 
       this.tokenLogout(this.selectedToken.id).then(
         () => {
-          this.showSuccess(this.$t('keys.loggedOut'));
+          this.addSuccessMessage('keys.loggedOut');
         },
         (error) => {
-          this.showError(error);
+          this.addError(error);
         },
       );
 
@@ -259,8 +251,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.tokens-table {
-  width: 100%;
-}
-</style>
+<style lang="scss" scoped></style>

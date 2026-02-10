@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,104 +25,81 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="xrd-card diagnostic-card">
-    <v-card-title class="text-h5" data-test="diagnostics-global-configuration">
-      {{ $t('diagnostics.globalConfiguration.title') }}
-    </v-card-title>
-    <v-card-text class="xrd-card-text">
-      <table class="xrd-table">
-        <thead>
-          <tr>
-            <th class="status-column">{{ $t('diagnostics.status') }}</th>
-            <th>{{ $t('diagnostics.message') }}</th>
-            <th>
-              {{ $t('diagnostics.globalConfiguration.last_successful_url') }}
-            </th>
-            <th class="time-column">
-              {{ $t('diagnostics.previousUpdate') }}
-            </th>
-            <th class="time-column">
-              {{ $t('diagnostics.nextUpdate') }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="globalConf">
-            <td>
-              <xrd-status-icon
-                :status="statusIconType(globalConf.status_class)"
-              />
-            </td>
+  <XrdCard data-test="diagnostics-global-configuration" title="diagnostics.globalConfiguration.title" class="overview-card">
+    <v-table class="xrd">
+      <thead>
+        <tr>
+          <th class="status-column">{{ $t('diagnostics.status') }}</th>
+          <th>{{ $t('diagnostics.message') }}</th>
+          <th>
+            {{ $t('diagnostics.globalConfiguration.last_successful_url') }}
+          </th>
+          <th class="time-column">
+            {{ $t('diagnostics.previousUpdate') }}
+          </th>
+          <th class="time-column">
+            {{ $t('diagnostics.nextUpdate') }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="globalConf">
+          <td>
+            <StatusAvatar :status="statusIconType" />
+          </td>
 
-            <td data-test="global-configuration-message">
-              {{ getStatusMessage }}
-            </td>
-            <td>
-              {{ globalConf.last_successful_url }}
-            </td>
-            <td class="time-column">
-              {{ $filters.formatHoursMins(globalConf.prev_update_at) }}
-            </td>
-            <td class="time-column">
-              {{ $filters.formatHoursMins(globalConf.next_update_at) }}
-            </td>
-          </tr>
-          <XrdEmptyPlaceholderRow
-            :colspan="4"
-            :loading="globalConfLoading"
-            :data="globalConf"
-            :no-items-text="$t('noData.noData')"
-          />
-        </tbody>
-      </table>
-    </v-card-text>
-  </v-card>
+          <td data-test="global-configuration-message">
+            {{ getStatusMessage }}
+          </td>
+          <td>
+            {{ globalConf.last_successful_url }}
+          </td>
+          <td class="time-column">
+            {{ $filters.formatHoursMins(globalConf.prev_update_at) }}
+          </td>
+          <td class="time-column">
+            {{ $filters.formatHoursMins(globalConf.next_update_at) }}
+          </td>
+        </tr>
+        <XrdEmptyPlaceholderRow :colspan="4" :loading="globalConfLoading" :data="globalConf" :no-items-text="$t('noData.noData')" />
+      </tbody>
+    </v-table>
+  </XrdCard>
 </template>
 <script lang="ts">
 import { mapActions, mapState } from 'pinia';
 import { useDiagnostics } from '@/store/modules/diagnostics';
-import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
 import { DiagnosticStatusClass } from '@/openapi-types';
-import { i18n } from '@niis/shared-ui';
+import { XrdCard, useNotifications, XrdEmptyPlaceholderRow } from '@niis/shared-ui';
+import StatusAvatar from '@/views/Diagnostics/Overview/StatusAvatar.vue';
 
 export default defineComponent({
+  components: { StatusAvatar, XrdCard, XrdEmptyPlaceholderRow },
+  setup() {
+    const { addError } = useNotifications();
+    return { addError };
+  },
   data: () => ({
     globalConfLoading: false,
   }),
   computed: {
     ...mapState(useDiagnostics, ['globalConf']),
     getStatusMessage(): string {
-      if (this.globalConf.status_class === DiagnosticStatusClass.FAIL) {
-        return i18n.global.t(
-          `error_code.${this.globalConf.error?.code}`,
-          this.globalConf.error?.metadata,
-        );
-      } else {
-        return i18n.global.t(
-          `diagnostics.globalConfiguration.configurationStatus.${this.globalConf.status_class}`,
-        );
-      }
-    },
-  },
-  created() {
-    this.globalConfLoading = true;
-    this.fetchGlobalConfDiagnostics()
-      .catch((error) => {
-        this.showError(error);
-      })
-      .finally(() => {
-        this.globalConfLoading = false;
-      });
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError']),
-    ...mapActions(useDiagnostics, ['fetchGlobalConfDiagnostics']),
-    statusIconType(status: string): string {
-      if (!status) {
+      if (!this.globalConf) {
         return '';
       }
-      switch (status) {
+      if (this.globalConf.status_class === DiagnosticStatusClass.FAIL) {
+        return this.$t(`error_code.${this.globalConf.error?.code}`, this.globalConf.error?.metadata);
+      } else {
+        return this.$t(`diagnostics.globalConfiguration.configurationStatus.${this.globalConf.status_class}`);
+      }
+    },
+    statusIconType() {
+      if (!this.globalConf || !this.globalConf.status_class) {
+        return undefined;
+      }
+      switch (this.globalConf.status_class) {
         case 'OK':
           return 'ok';
         case 'WAITING':
@@ -133,31 +111,19 @@ export default defineComponent({
       }
     },
   },
+  created() {
+    this.globalConfLoading = true;
+    this.fetchGlobalConfDiagnostics()
+      .catch((error) => {
+        this.addError(error);
+      })
+      .finally(() => {
+        this.globalConfLoading = false;
+      });
+  },
+  methods: {
+    ...mapActions(useDiagnostics, ['fetchGlobalConfDiagnostics']),
+  },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables';
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
-}
-
-.status-column {
-  width: 80px;
-}
-
-.time-column {
-  width: 160px;
-}
-</style>
+<style lang="scss" scoped></style>

@@ -1,0 +1,30 @@
+quarkus:
+  application:
+    name: monitor
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+
+xroad:
+  db:
+    serverconf:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${quarkus.application.name}
+        hikari.maximumPoolSize: 5
+        hikari.minimumIdle: 1
+
+"%containerized":
+  xroad:
+    env-monitor:
+      rpc:
+        listen-address: 0.0.0.0
+
+"%native":
+  quarkus:
+    config:
+      locations:
+        - xroad-common.yaml
+        - xroad-logging.yaml
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/db.properties

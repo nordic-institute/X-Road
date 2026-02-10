@@ -38,6 +38,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -167,5 +168,22 @@ public final class SignerUtil {
         }
     }
 
+    public static String getDefaultFriendlyName(TokenDefinition tokenDefinition) {
+        String name = tokenDefinition.moduleType();
+
+        if (tokenDefinition.serialNumber() != null) {
+            name += "-" + tokenDefinition.serialNumber();
+        }
+
+        if (tokenDefinition.label() != null) {
+            name += "-" + tokenDefinition.label();
+        }
+
+        if (tokenDefinition.slotIndex() != null) {
+            name += "-" + tokenDefinition.slotIndex();
+        }
+
+        return name;
+    }
 }
 

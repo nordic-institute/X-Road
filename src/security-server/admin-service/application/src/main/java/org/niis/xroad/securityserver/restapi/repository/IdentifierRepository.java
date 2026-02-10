@@ -30,10 +30,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

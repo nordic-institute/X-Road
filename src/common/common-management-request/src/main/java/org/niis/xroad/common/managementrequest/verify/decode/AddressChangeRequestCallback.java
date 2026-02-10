@@ -33,13 +33,15 @@ import ee.ria.xroad.common.request.AddressChangeRequestType;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.assertAddress;
 
 public class AddressChangeRequestCallback extends BaseServerRequestCallback<AddressChangeRequestType> {
 
-    public AddressChangeRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, rootCallback, ManagementRequestType.ADDRESS_CHANGE_REQUEST);
+    public AddressChangeRequestCallback(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                                        ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.ADDRESS_CHANGE_REQUEST);
     }
 
     @Override

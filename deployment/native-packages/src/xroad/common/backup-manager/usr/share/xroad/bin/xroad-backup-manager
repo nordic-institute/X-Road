@@ -1,0 +1,3 @@
+#!/bin/bash
+. /etc/xroad/services/backup-manager.conf
+exec java ${XROAD_PARAMS} ${XROAD_BACKUP_MANAGER_PARAMS} -jar /usr/share/xroad/jlib/backup-manager.jar

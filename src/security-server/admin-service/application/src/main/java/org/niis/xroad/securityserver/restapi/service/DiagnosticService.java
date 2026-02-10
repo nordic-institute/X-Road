@@ -28,218 +28,174 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.ProxyMemory;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.JsonUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
-import org.niis.xroad.globalconf.status.CertificationServiceStatus;
-import org.niis.xroad.globalconf.status.OcspResponderStatus;
+import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
+import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
+import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
+import org.niis.xroad.signer.api.dto.OcspResponderStatus;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DIAGNOSTIC_REQUEST_FAILED;
+import static java.time.Instant.ofEpochMilli;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
+import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
-/**
- * diagnostic service
- */
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 public class DiagnosticService {
-    private static final int HTTP_CONNECT_TIMEOUT_MS = 1000;
-    private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
-    private final RestTemplate restTemplate;
-    private final String diagnosticsGlobalconfUrl;
-    private final String diagnosticsTimestampingServicesUrl;
-    private final String diagnosticsOcspRespondersUrl;
-    private final String diagnosticsAddOnStatusUrl;
-    private final String backupEncryptionStatusUrl;
-    private final String messageLogEncryptionStatusUrl;
-    private final String proxyMemoryUsageUrl;
+
+    private final ConfClientRpcClient confClientRpcClient;
+    private final SignerRpcClient signerRpcClient;
+    private final ProxyRpcClient proxyRpcClient;
+    private final BackupManagerRpcClient backupManagerRpcClient;
     private final OpMonitorClient opMonitorClient;
 
-    @Autowired
-    public DiagnosticService(
-            @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
-            @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
-            @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
-            @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
-            @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
-            @Value("${url.diagnostics-proxy-memory-usage}") String proxyMemoryUsageUrl,
-            RestTemplateBuilder restTemplateBuilder,
-            OpMonitorClient opMonitorClient) {
-
-        this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
-                SystemProperties.getConfigurationClientAdminPort());
-        this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
-                PortNumbers.ADMIN_PORT);
-        this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
-                SystemProperties.getSignerAdminPort());
-        this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
-        this.backupEncryptionStatusUrl = String.format(backupEncryptionStatusUrl,
-                PortNumbers.ADMIN_PORT);
-        this.messageLogEncryptionStatusUrl = String.format(messageLogEncryptionStatusUrl,
-                PortNumbers.ADMIN_PORT);
-        this.proxyMemoryUsageUrl = String.format(proxyMemoryUsageUrl,
-                PortNumbers.ADMIN_PORT);
-
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
-                JsonUtils.getObjectMapperCopy());
-        List<MediaType> mediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
-        mediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
-        converter.setSupportedMediaTypes(mediaTypes);
-        this.restTemplate = restTemplateBuilder
-                .connectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT_MS))
-                .readTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
-                .messageConverters(converter)
-                .build();
-        this.opMonitorClient = opMonitorClient;
-    }
-
     /**
-     * Query global configuration status from admin port over HTTP.
+     * Query global configuration status.
+     *
      * @return
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
-        ResponseEntity<DiagnosticsStatus> response = sendGetRequest(diagnosticsGlobalconfUrl,
-                DiagnosticsStatus.class);
-
-        return response.getBody();
+        try {
+            var status = confClientRpcClient.getStatus();
+            DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatusMapper.mapStatus(status.getStatus()),
+                    status.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getPrevUpdate())) : null,
+                    status.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getNextUpdate())) : null,
+                    status.getDescription());
+            if (status.hasErrorCode()) {
+                diagnosticsStatus.setErrorCode(ErrorCode.valueOf(status.getErrorCode()));
+            }
+            return diagnosticsStatus;
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
+        }
     }
 
     /**
-     * Query timestamping services status from admin port over HTTP.
+     * Query timestamping services status.
+     *
      * @return
      */
     public Set<DiagnosticsStatus> queryTimestampingStatus() {
         log.info("Query timestamper status");
 
-        ResponseEntity<TimestampingStatusResponse> response = sendGetRequest(diagnosticsTimestampingServicesUrl,
-                TimestampingStatusResponse.class);
-
-        return Objects.requireNonNull(response.getBody())
-                .entrySet().stream()
-                .map(diagnosticsStatusEntry -> {
-                    DiagnosticsStatus diagnosticsStatus = diagnosticsStatusEntry.getValue();
-                    diagnosticsStatus.setDescription(diagnosticsStatusEntry.getKey());
-                    return diagnosticsStatus;
-                }).collect(Collectors.toSet());
-
+        try {
+            Map<String, DiagnosticsStatus> response = proxyRpcClient.getTimestampingStatus();
+            return Objects.requireNonNull(response)
+                    .entrySet().stream()
+                    .map(diagnosticsStatusEntry -> {
+                        DiagnosticsStatus diagnosticsStatus = diagnosticsStatusEntry.getValue();
+                        diagnosticsStatus.setDescription(diagnosticsStatusEntry.getKey());
+                        return diagnosticsStatus;
+                    }).collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
+        }
     }
 
     /**
-     * Query ocsp responders status from admin port over HTTP.
+     * Query ocsp responders status.
+     *
      * @return
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         log.info("Query OCSP status");
+        try {
+            CertificationServiceDiagnostics response = signerRpcClient.getCertificationServiceDiagnostics();
 
-        ResponseEntity<CertificationServiceDiagnostics> response = sendGetRequest(diagnosticsOcspRespondersUrl,
-                CertificationServiceDiagnostics.class);
-
-        return Objects.requireNonNull(response.getBody())
-                .getCertificationServiceStatusMap()
-                .entrySet()
-                .stream()
-                .map(this::parseOcspResponderDiagnosticsStatus)
-                .collect(Collectors.toList());
-
+            return Objects.requireNonNull(response)
+                    .getCertificationServiceStatusMap()
+                    .entrySet()
+                    .stream()
+                    .map(this::parseOcspResponderDiagnosticsStatus)
+                    .toList();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e.getMessage(), e, buildErrorDiagnosticRequestFailed());
+        }
     }
 
     /**
-     * Query proxy addons status from admin port over HTTP.
+     * Query proxy addons status.
+     *
      * @return
      */
     public AddOnStatusDiagnostics queryAddOnStatus() {
-
-        return sendGetRequest(diagnosticsAddOnStatusUrl, AddOnStatusDiagnostics.class).getBody();
-
+        try {
+            return proxyRpcClient.getAddOnStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
+        }
     }
 
     /**
-     * Query proxy backup encryption status from admin port over HTTP.
+     * Query proxy backup encryption status.
+     *
      * @return BackupEncryptionStatusDiagnostics
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
-
-        return sendGetRequest(backupEncryptionStatusUrl, BackupEncryptionStatusDiagnostics.class).getBody();
-
+        try {
+            return backupManagerRpcClient.getEncryptionStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
+        }
     }
 
     /**
-     * Query proxy message log encryption status from admin port over HTTP.
+     * Query proxy message log encryption status.
+     *
      * @return MessageLogEncryptionStatusDiagnostics
      */
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
-        return sendGetRequest(messageLogEncryptionStatusUrl, MessageLogEncryptionStatusDiagnostics.class).getBody();
-
+        try {
+            return proxyRpcClient.getMessageLogEncryptionStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
+        }
     }
 
     /**
      * Query proxy memory usage from admin port over HTTP.
+     *
      * @return ProxyMemory
      */
     public ProxyMemory queryProxyMemoryUsage() {
-        return sendGetRequest(proxyMemoryUsageUrl, ProxyMemory.class).getBody();
-    }
-
-    /**
-     * Send HTTP GET request to the given address (http://localhost:{port}/{path}).
-     * @param address
-     * @return ResponseEntity with the provided type
-     * @throws DiagnosticRequestException if sending a diagnostics requests fails or an error is returned
-     */
-    private <T> ResponseEntity<T> sendGetRequest(String address, Class<T> clazz) throws DiagnosticRequestException {
         try {
-            ResponseEntity<T> response = restTemplate.getForEntity(address, clazz);
-
-            if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR
-                    || response.getBody() == null) {
-                log.error("unable to get a response");
-                throw new DiagnosticRequestException();
-            }
-
-            return response;
-        } catch (RestClientException e) {
-            log.error("unable to connect to admin port (" + address + ")", e);
-            throw new DiagnosticRequestException();
+            return proxyRpcClient.getProxyMemoryStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
     }
 
     /**
      * Parse parse OcspResponderDiagnosticsStatus representing a certificate authority including the ocsp services
      * of the certificate authority
+     *
      * @param entry
      * @return
      */
@@ -275,15 +231,8 @@ public class DiagnosticService {
                 serviceId);
     }
 
-    /**
-     * Thrown when trying to send a diagnostic request
-     */
-    public static final class DiagnosticRequestException extends InternalServerErrorException {
-        public DiagnosticRequestException() {
-            super(DIAGNOSTIC_REQUEST_FAILED.build());
-        }
+    private ErrorDeviation buildErrorDiagnosticRequestFailed() {
+        return new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED);
     }
 
-    private static final class TimestampingStatusResponse extends HashMap<String, DiagnosticsStatus> {
-    }
 }

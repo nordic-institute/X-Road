@@ -40,7 +40,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_REGI
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_UNREGISTER_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_CERT_PROCESSING;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_NOT_FOUND;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
@@ -59,7 +58,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GEN
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INSTANTIATION_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KEY_CERT_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CSR_FORMAT;
@@ -69,7 +67,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INI
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SERVICE_URL;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_NOT_FOUND;
@@ -89,7 +86,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_KEY_U
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_DOWNLOAD_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 
 
 @RequiredArgsConstructor
@@ -100,14 +96,12 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     SIGN_CERT_NOT_SUPPORTED(ERROR_SIGN_CERT_NOT_SUPPORTED),
     CERTIFICATE_NOT_FOUND(ERROR_CERTIFICATE_NOT_FOUND),
     CERTIFICATE_NOT_FOUND_WITH_ID(ERROR_CERTIFICATE_NOT_FOUND_WITH_ID),
-    CERTIFICATE_ALREADY_EXISTS(ERROR_CERTIFICATE_ALREADY_EXISTS),
     CA_NOT_FOUND(ERROR_CA_NOT_FOUND),
     CA_CERT_PROCESSING(ERROR_CA_CERT_PROCESSING),
     CP_INSTANTIATION_FAILED(ERROR_INSTANTIATION_FAILED),
     CSR_NOT_FOUND(ERROR_CSR_NOT_FOUND),
     INVALID_CSR_FORMAT(ERROR_INVALID_CSR_FORMAT),
     INVALID_DN_PARAMETER(ERROR_INVALID_DN_PARAMETER),
-    INTERNAL_KEY_CERT_INTERRUPTED(ERROR_INTERNAL_KEY_CERT_INTERRUPTED),
     MEMBER_ID_REQUIRED_FOR_SIGN_CSR("memberId_required_for_sign_csr"),
     GPG_KEY_GENERATION_INTERRUPTED(ERROR_GPG_KEY_GENERATION_INTERRUPTED),
 
@@ -143,9 +137,6 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
 
     WSDL_DOWNLOAD_FAILED(ERROR_WSDL_DOWNLOAD_FAILED),
     WSDL_EXISTS(ERROR_WSDL_EXISTS),
-    WSDL_VALIDATOR_INTERRUPTED(ERROR_WSDL_VALIDATOR_INTERRUPTED),
-
-    KEY_NOT_FOUND(ERROR_KEY_NOT_FOUND),
     WRONG_KEY_USAGE(ERROR_WRONG_KEY_USAGE),
 
     MEMBER_NAME_NOT_FOUND("member_name_not_found"),

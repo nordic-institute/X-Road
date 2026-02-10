@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0570 - SS: Client Service clients
 

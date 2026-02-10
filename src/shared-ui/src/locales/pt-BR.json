@@ -1,15 +1,15 @@
 {
   "403": {
-  "goBack": "Voltar",
-  "mainTitle": "Permissão negada",
-  "text": "Parece que você não tem permissão para ver esta página. Se acha que é um erro, verifique se está logado na conta correta ou contate o administrador para conferir suas permissões.",
-  "topTitle": "Proibido"
-},
-"404": {
-  "pageNotFound": "404 - página não encontrada",
-  "text": "Ops! Essa página não existe.",
-  "textUnicorn": "Verifique o endereço ou volte a página inicial."
-},
+    "goBack": "Voltar",
+    "mainTitle": "Permissão negada",
+    "text": "Parece que você não tem permissão para ver esta página. Se acha que é um erro, verifique se está logado na conta correta ou contate o administrador para conferir suas permissões.",
+    "topTitle": "Proibido"
+  },
+  "404": {
+    "pageNotFound": "404 - página não encontrada",
+    "text": "Ops! Essa página não existe.",
+    "textUnicorn": "Verifique o endereço ou volte a página inicial."
+  },
   "action": {
     "activate": "Ativar",
     "add": "Adicionar",
@@ -30,6 +30,7 @@
     "emptySearch": "Sua pesquisa por {msg} não encontrou resultados.",
     "export": "Exportar",
     "finish": "Finalizar",
+    "generateCsr": "Gerar CSR",
     "goToFront": "Ir para a página inicial",
     "next": "Próximo",
     "no": "Não",
@@ -63,7 +64,8 @@
           "assignedRoles": "Papéis atribuídos",
           "createKeyButton": "Criar chave",
           "name": "Detalhes da chave",
-          "note": "ATENÇÃO: salve a chave API em um local seguro. A chave será exibida apenas no momento da geração e não poderá ser recuperada posteriormente."
+          "note": "ATENÇÃO: salve a chave API em um local seguro.",
+          "noteDetail": "A chave será exibida apenas no momento da geração e não poderá ser recuperada posteriormente."
         },
         "roles": {
           "description": "Selecione os papéis associados à chave API. Os papéis definem as permissões concedidas.",
@@ -195,6 +197,7 @@
   "fields": {
     "code": "Código",
     "description": "Descrição",
+    "distinguishedName": "Nome distinto (DN)",
     "memberClass": "Classe de Membro",
     "password": "Senha",
     "securityServerCode": "Código do Servidor de Segurança",
@@ -205,7 +208,7 @@
   "footer": {
     "copyright": {
       "company": "Instituto Nórdico de Soluções de Interoperabilidade (NIIS)",
-      "licenceInfo": "Informações de licença",
+      "domain": "niis.org",
       "title": "Direitos autorais"
     },
     "software": {
@@ -244,6 +247,25 @@
     "noMatches": "Nenhum item correspondente",
     "noServices": "Sem serviços",
     "noTokens": "Sem tokens"
+  },
+  "tlsCertificates": {
+    "downloadCertificate": "Baixar certificado",
+    "downloadSuccess": "Certificado TLS dos Serviços de Gerenciamento baixado com sucesso",
+    "generateCsr": {
+      "button": "Gerar CSR",
+      "content": "Primeiro, informe um nome distinto. Em seguida, gere uma nova CSR e salve em local seguro",
+      "distinguishedName": "Insira o Titular do Certificado (DN)",
+      "title": "Gerar Requisição de Assinatura de Certificado TLS",
+      "tooltip": "O Distinguished Name (DN) identifica de forma única uma entidade em um certificado X.509. Os atributos comuns incluem: CN = Nome comum, O = Nome da organização, C = Código do país."
+    },
+    "generateKey": {
+      "button": "Recriar chave"
+    },
+    "keyText": "Chave TLS Interna",
+    "uploadCertificate": {
+      "button": "Enviar certificado",
+      "label": "Envie o arquivo do certificado do seu computador"
+    }
   },
   "type": "Tipo",
   "validation": {

@@ -42,6 +42,8 @@ import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -337,7 +339,6 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2038
-     *
      * @return
      */
     public static byte[] getMockCertificateBytes() {
@@ -346,7 +347,6 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2039
-     *
      * @return
      */
     public static byte[] getMockAuthCertificateBytes() {
@@ -359,7 +359,6 @@ public final class CertificateTestUtils {
 
     /**
      * return given certificate bytes as an X509Certificate
-     *
      * @return
      */
     public static X509Certificate getCertificate(byte[] certificateBytes) {
@@ -368,7 +367,6 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2038
-     *
      * @return
      */
     public static X509Certificate getMockCertificate() {
@@ -377,7 +375,6 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2039
-     *
      * @return
      */
     public static X509Certificate getMockAuthCertificate() {
@@ -392,9 +389,16 @@ public final class CertificateTestUtils {
     }
 
     /**
+     * Return a Resource for reading a byte array
+     */
+    public static MultipartFile getMultipartFile(String fieldName, byte[] bytes, String fileName) {
+        return new MockMultipartFile(fieldName, fileName,
+                "multipart/form-data", bytes);
+    }
+
+    /**
      * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
      * expires = Thu Apr 23 09:59:02 EEST 2020
-     *
      * @return
      */
     public static byte[] getWidgitsCertificateBytes() {
@@ -404,7 +408,6 @@ public final class CertificateTestUtils {
     /**
      * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
      * expires = Thu Apr 23 09:59:02 EEST 2020
-     *
      * @return
      */
     public static X509Certificate getWidgitsCertificate() {
@@ -413,7 +416,6 @@ public final class CertificateTestUtils {
 
     /**
      * Return hash for getWidgitsCertificateBytes
-     *
      * @return
      */
     public static String getWidgitsCertificateHash() {
@@ -422,7 +424,6 @@ public final class CertificateTestUtils {
 
     /**
      * Base64 encoded junk, not a certificate
-     *
      * @return
      */
     public static byte[] getInvalidCertBytes() {

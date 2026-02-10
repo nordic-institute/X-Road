@@ -26,28 +26,34 @@
 package org.niis.xroad.proxy.core.conf;
 
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
 import org.niis.xroad.proxy.core.signedmessage.SignerSigningKey;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class SigningCtxProviderImpl implements SigningCtxProvider {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final MessageSigner messageSigner;
+    private final ProxyProperties proxyProperties;
 
     @Override
     public SigningCtx createSigningCtx(ClientId clientId) {
         var signingInfo = keyConfProvider.getSigningInfo(clientId);
         var signKey = new SignerSigningKey(messageSigner, signingInfo.getKeyId(), signingInfo.getSignMechanismName());
 
-        return new SigningCtxImpl(globalConfProvider, keyConfProvider, signingInfo.getClientId(), signKey, signingInfo.getCert());
+        return new SigningCtxImpl(globalConfProvider, keyConfProvider, DigestAlgorithm.ofName(proxyProperties.messageSignDigestName()),
+                signingInfo.getClientId(), signKey, signingInfo.getCert());
     }
 
 }

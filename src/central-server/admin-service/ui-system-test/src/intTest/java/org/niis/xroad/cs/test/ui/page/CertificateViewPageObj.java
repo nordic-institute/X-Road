@@ -32,10 +32,6 @@ import static com.codeborne.selenide.Selenide.$x;
 
 public class CertificateViewPageObj {
     public SelenideElement certificateDetails() {
-        return $x("//div[contains(@class, 'certificate-details-wrapper')]");
-    }
-
-    public SelenideElement btnClose() {
-        return $x("//button[@data-test='close-x']");
+        return $x("//div[@data-test='xrd-certificate']");
     }
 }

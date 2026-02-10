@@ -1,9 +1,13 @@
 plugins {
-  id("xroad.java-conventions")
-  id("java-library")
+  java
 }
 
-dependencies {
+sourceSets {
+  named("main") {
+    resources {
+      srcDir("../../../service/signer/signer-jpa/src/main/resources/")
+    }
+  }
 }
 
 configurations {
@@ -17,8 +21,4 @@ tasks.register<Jar>("changelogJar") {
 
 artifacts {
   add("changelogJar", tasks.named("changelogJar"))
-}
-
-archUnit {
-  setSkip(true)
 }

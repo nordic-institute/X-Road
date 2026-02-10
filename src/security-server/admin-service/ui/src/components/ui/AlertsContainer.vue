@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,22 +26,12 @@
  -->
 <template>
   <div>
-    <v-container class="pa-0">
+    <v-container fluid class="pa-0">
       <GlobalAlerts />
-      <ContextualAlerts />
     </v-container>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import ContextualAlerts from './ContextualAlerts.vue';
+<script lang="ts" setup>
 import GlobalAlerts from './GlobalAlerts.vue';
-
-export default defineComponent({
-  components: {
-    ContextualAlerts,
-    GlobalAlerts,
-  },
-});
 </script>

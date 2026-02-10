@@ -65,9 +65,10 @@ message ListTokensResp {
   repeated TokenInfoProto tokens = 1;
 }
 
-message ActivateTokenReq{
+message ActivateTokenReq {
   string token_id = 1;
   bool activate = 2;
+  optional bytes pin = 3;
 }
 
 message GetTokenByIdReq {
@@ -100,13 +101,13 @@ message GetTokenBatchSigningEnabledResp {
 }
 
 message InitSoftwareTokenReq {
-  string pin = 1;
+  bytes pin = 1;
 }
 
 message UpdateSoftwareTokenPinReq {
   string token_id = 1;
-  string old_pin = 2;
-  string new_pin = 3;
+  bytes old_pin = 2;
+  bytes new_pin = 3;
 }
 
 message DeleteTokenReq {

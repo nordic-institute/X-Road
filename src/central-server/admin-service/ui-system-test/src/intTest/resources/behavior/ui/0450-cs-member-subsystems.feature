@@ -1,5 +1,6 @@
 @CentralServer
 @Member
+@Subsystem
 Feature: 0450 - CS: Member details view Subsystem tab
 
   Background:

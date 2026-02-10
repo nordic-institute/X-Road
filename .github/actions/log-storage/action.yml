@@ -1,0 +1,63 @@
+name: 'Log Storage Utilization'
+description: 'Log disk space, Docker storage, and optional details'
+inputs:
+  label:
+    description: 'Label for this storage check (e.g., "After Build", "Initial")'
+    required: false
+    default: 'Storage Utilization'
+  show-docker-images:
+    description: 'Whether to show Docker images table'
+    required: false
+    default: 'false'
+  show-build-dirs:
+    description: 'Whether to show build directory sizes'
+    required: false
+    default: 'false'
+  show-packages:
+    description: 'Whether to show package sizes'
+    required: false
+    default: 'false'
+  show-top-dirs:
+    description: 'Whether to show top directories in home'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Log storage utilization
+      shell: bash
+      run: |
+        echo "📊 ${{ inputs.label }}"
+        echo "$(printf '=%.0s' {1..50})"
+        echo ""
+        echo "💾 Disk Space:"
+        df -h
+        echo ""
+        echo "📦 Docker Storage:"
+        docker system df || true
+        
+        if [[ "${{ inputs.show-docker-images }}" == "true" ]]; then
+          echo ""
+          echo "🐳 Docker Images:"
+          docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" || true
+        fi
+        
+        if [[ "${{ inputs.show-build-dirs }}" == "true" ]]; then
+          echo ""
+          echo "🏗️ Build Directory Sizes:"
+          du -sh src/*/build 2>/dev/null | sort -hr | head -20 || true
+        fi
+        
+        if [[ "${{ inputs.show-packages }}" == "true" ]]; then
+          echo ""
+          echo "📦 Package Sizes:"
+          du -sh deployment/native-packages/build/* 2>/dev/null | sort -hr || true
+        fi
+        
+        if [[ "${{ inputs.show-top-dirs }}" == "true" ]]; then
+          echo ""
+          echo "📁 Top Directories:"
+          du -sh /home/runner/* 2>/dev/null | sort -hr | head -10 || true
+        fi
+

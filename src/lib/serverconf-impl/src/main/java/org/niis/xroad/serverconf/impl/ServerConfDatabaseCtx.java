@@ -26,43 +26,29 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
 
-import org.hibernate.Session;
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import org.hibernate.Interceptor;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 
-/**
- * Server conf database context.
- */
-public final class ServerConfDatabaseCtx {
+@Singleton
+public class ServerConfDatabaseCtx extends DatabaseCtx {
+    private static final String SERVER_CONF_DB_NAME = "serverconf";
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("serverconf");
-
-    private ServerConfDatabaseCtx() {
+    @Inject
+    public ServerConfDatabaseCtx(ServerConfDbProperties dbProperties) {
+        super(SERVER_CONF_DB_NAME, dbProperties.hibernate());
     }
 
-    /**
-     * @return the database context instance
-     */
-    public static DatabaseCtx get() {
-        return CTX;
+    public ServerConfDatabaseCtx(ServerConfDbProperties dbProperties, Interceptor interceptor) {
+        super(SERVER_CONF_DB_NAME, dbProperties.hibernate(), interceptor);
     }
 
-    /**
-     * @return shortcut for a session
-     */
-    public static Session getSession() {
-        return get().getSession();
+    @Override
+    @PreDestroy
+    public void destroy() {
+        super.destroy();
     }
-
-    /**
-     * Executes the unit of work transactionally.
-     *
-     * @param callback the unit of work callback
-     * @param <T>      the type of the result
-     * @return the result of the callback
-     */
-    public static <T> T doInTransaction(TransactionCallback<T> callback) {
-        return CTX.doInTransaction(callback);
-    }
-
 }

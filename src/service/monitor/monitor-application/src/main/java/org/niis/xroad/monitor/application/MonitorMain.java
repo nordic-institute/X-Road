@@ -26,75 +26,15 @@
  */
 package org.niis.xroad.monitor.application;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.common.Version;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
 
-import com.codahale.metrics.jmx.JmxReporter;
-import com.google.common.collect.Lists;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.monitor.core.MetricRegistryHolder;
-import org.niis.xroad.monitor.core.common.SystemMetricNames;
-import org.niis.xroad.monitor.core.configuration.MonitorConfig;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
-
-/**
- * Main class for monitor application
- */
-@Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@QuarkusMain
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public final class MonitorMain {
 
-    private static final String APP_NAME = "xroad-monitor";
-
-    static {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .with(CONF_FILE_ENV_MONITOR)
-                .load();
-    }
-
-    private static GenericApplicationContext springCtx;
-    private static JmxReporter jmxReporter;
-
-    /**
-     * Main entry point
-     *
-     * @param args
-     */
     public static void main(String[] args) {
-        log.info("Starting X-Road Environmental Monitoring");
-        Version.outputVersionInfo(APP_NAME);
-
-        springCtx = new AnnotationConfigApplicationContext(MonitorConfig.class);
-        springCtx.registerShutdownHook();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(MonitorMain::stopReporter));
-        startReporters();
+        Quarkus.run(args);
     }
 
-    private static void stopReporter() {
-        log.trace("stopReporter()");
-
-        if (jmxReporter != null) {
-            jmxReporter.stop();
-        }
-    }
-
-    private static void startReporters() {
-        jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
-                        SystemMetricNames.PACKAGES, SystemMetricNames.CERTIFICATES).contains(name))
-                .build();
-
-        jmxReporter.start();
-    }
 }

@@ -36,7 +36,7 @@ class TestSystemMetrics {
     private TestConfiguration current;
 
     void addLoad(int freeDescriptors, double cpuLoad) {
-        load.add(new TestConfiguration(freeDescriptors, cpuLoad));
+        load.add(TestConfiguration.of(freeDescriptors, cpuLoad));
         it = load.iterator();
     }
 

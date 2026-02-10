@@ -1,31 +1,24 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.shadow)
+  id("xroad.quarkus-application-conventions")
 }
 
+
 dependencies {
-  implementation(platform(libs.springBoot.bom))
+  implementation(platform(libs.quarkus.bom))
 
   implementation(project(":common:common-core"))
+  implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:rpc-quarkus"))
+  implementation(project(":service:signer:signer-api"))
   implementation(project(":service:signer:signer-core"))
-  implementation(libs.logback.classic)
+  implementation(project(":service:signer:signer-jpa"))
+
+  implementation(libs.bundles.quarkus.core)
+  implementation(libs.bundles.quarkus.containerized)
+  implementation(libs.quarkus.extension.systemd.notify)
 }
 
 tasks.jar {
   enabled = false
-}
-
-tasks.shadowJar {
-  archiveClassifier.set("")
-  archiveBaseName.set("signer")
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.signer.application.SignerMain")
-  }
-  exclude("**/module-info.class")
-  from(rootProject.file("LICENSE.txt"))
-  mergeServiceFiles()
-}
-
-tasks.build {
-  dependsOn(tasks.shadowJar)
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="009-identifiers-consolidation-001">
+        <renameColumn tableName="identifier" oldColumnName="type" newColumnName="object_type"/>
+        <renameColumn tableName="identifier" oldColumnName="xroadinstance" newColumnName="xroad_instance"/>
+        <renameColumn tableName="identifier" oldColumnName="memberclass" newColumnName="member_class"/>
+        <renameColumn tableName="identifier" oldColumnName="membercode" newColumnName="member_code"/>
+        <renameColumn tableName="identifier" oldColumnName="subsystemcode" newColumnName="subsystem_code"/>
+        <renameColumn tableName="identifier" oldColumnName="servicecode" newColumnName="service_code"/>
+        <renameColumn tableName="identifier" oldColumnName="serviceversion" newColumnName="service_version"/>
+        <renameColumn tableName="identifier" oldColumnName="servercode" newColumnName="server_code"/>
+        <renameColumn tableName="identifier" oldColumnName="groupcode" newColumnName="group_code"/>
+
+        <dropColumn tableName="identifier" columnName="discriminator"/>
+    </changeSet>
+
+    <changeSet author="niis" id="009-identifiers-consolidation-002">
+        <addColumn tableName="identifier">
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="niis" id="009-identifiers-consolidation-003">
+        <sql splitStatements="false"><![CDATA[
+            WITH history_data AS (
+                SELECT h.record_id, min(h.timestamp) AS created_at, max(h.timestamp) AS updated_at
+                FROM history h
+                WHERE h.table_name = 'identifier'
+                GROUP BY h.record_id)
+            UPDATE identifier SET
+                created_at = COALESCE(identifier.created_at, COALESCE(history_data.created_at, TIMESTAMP '1970-01-01 00:00:00')),
+                updated_at = COALESCE(identifier.updated_at, COALESCE(history_data.updated_at, TIMESTAMP '1970-01-01 00:00:00'))
+                FROM history_data
+            WHERE identifier.id = history_data.record_id
+              AND (identifier.created_at IS NULL OR identifier.updated_at IS NULL);
+        ]]></sql>
+    </changeSet>
+
+    <changeSet author="niis" id="009-identifiers-consolidation-004">
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS set_timestamps ON identifier;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON identifier
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+        ]]></sql>
+
+        <addNotNullConstraint tableName="identifier" columnName="created_at"/>
+        <addNotNullConstraint tableName="identifier" columnName="updated_at"/>
+    </changeSet>
+
+    <changeSet author="niis" id="009-identifiers-consolidation-005">
+        <sql splitStatements="false"><![CDATA[
+            CREATE SEQUENCE identifier_id_seq OWNED BY identifier.id;
+            ALTER TABLE identifier ALTER COLUMN id SET DEFAULT nextval('identifier_id_seq');
+            SELECT setval('identifier_id_seq', COALESCE((SELECT MAX(id) FROM identifier), 1), true);
+            ]]></sql>
+    </changeSet>
+
+    <changeSet author="niis" id="009-identifiers-consolidation-006">
+        <sql>ALTER TABLE identifier RENAME CONSTRAINT identifierpk TO identifier_pkey</sql>
+    </changeSet>
+
+</databaseChangeLog>
