@@ -12,4 +12,9 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-yum.sh,target=
 RUN yum -y install sudo git rpm-build \
     && yum clean all \
     && sed -i 's/requiretty/!requiretty/' /etc/sudoers
+
+# Cleanup mirror configuration
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-yum.sh,target=/tmp/cleanup-mirror-yum.sh \
+    /bin/bash /tmp/cleanup-mirror-yum.sh
+
 WORKDIR /workspace

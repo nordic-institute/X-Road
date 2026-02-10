@@ -14,6 +14,10 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     apt-get -qq install \
     software-properties-common git curl wget debhelper devscripts
 
+# Cleanup mirror configuration
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
+
 ENV DEBEMAIL='info@niis.org'
 ENV DEBFULLNAME='NIIS'
 

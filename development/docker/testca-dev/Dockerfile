@@ -65,6 +65,11 @@ COPY files/ca-entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh
 
 COPY --chown=root:root files/ca-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# Cleanup mirror configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
+
 CMD ["/root/entrypoint.sh"]
 
 EXPOSE 8887 8888 8899
