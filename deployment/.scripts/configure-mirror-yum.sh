@@ -69,7 +69,7 @@ setup_mirror() {
     EXTRAS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/extras/${ARCH}/os/"
     EPEL_URL="${MIRROR_BASE_URL}/mirror-epel/${VERSION}/Everything/${ARCH}/"
 
-    # GPG key paths (Rocky keys ship with the base image, EPEL key must be imported)
+    # GPG key paths
     ROCKY_GPG_KEY="file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}"
     EPEL_GPG_KEY="file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-${VERSION}"
 
@@ -82,9 +82,22 @@ password $MIRROR_TOKEN
 EOF
     chmod 600 /root/.netrc
 
-    # 5. Import EPEL GPG key (not present in base Rocky image)
+    # 5. Import GPG keys not present in minimal container images
     # -------------------------------------------------------------------------
-    # Fetch from mirror (mirrors dl.fedoraproject.org/pub/epel/) using .netrc for auth
+    mkdir -p /etc/pki/rpm-gpg
+
+    # Rocky Linux GPG key
+    if [ ! -f "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}" ]; then
+        ROCKY_KEY_URL="${MIRROR_BASE_URL}/mirror-rocky/RPM-GPG-KEY-Rocky-${VERSION}"
+        echo "Importing Rocky Linux GPG key from mirror..."
+        if curl -fsSL --netrc -o "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}" "$ROCKY_KEY_URL"; then
+            rpm --import "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}"
+        else
+            echo "Warning: Failed to fetch Rocky Linux GPG key. Package installation may fail."
+        fi
+    fi
+
+    # EPEL GPG key
     EPEL_KEY_URL="${MIRROR_BASE_URL}/mirror-epel/RPM-GPG-KEY-EPEL-${VERSION}"
     echo "Importing EPEL GPG key from mirror..."
     if curl -fsSL --netrc -o /tmp/RPM-GPG-KEY-EPEL-${VERSION} "$EPEL_KEY_URL"; then
