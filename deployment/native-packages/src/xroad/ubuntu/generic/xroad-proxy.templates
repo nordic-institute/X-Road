@@ -43,17 +43,3 @@ Type: error
 Description: Error applying selected memory config, please fix issues
   output was:
   ${ERR}
-
-Template: xroad-common/username
-Type: string
-Default:
-Description: Enter X-Road Superuser username
- Username for X-Road admin rights
- .
- This user will be promoted to _ALL_ X-Road groups of privileges
-
-Template: xroad-common/non_existing_user
-Type: error
-Description: User does not exist
-  Specified user does not exist
-

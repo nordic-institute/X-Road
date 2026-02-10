@@ -24,10 +24,21 @@ This is meta package for local database dependencies
 %build
 
 %install
+mkdir -p %{buildroot}/usr/share/xroad/scripts
+
+cp -p %{_sourcedir}/database-local/xroad-init-local-postgres.sh %{buildroot}/usr/share/xroad/scripts/
 
 %files
+%attr(540,root,root) /usr/share/xroad/scripts/xroad-init-local-postgres.sh
 
 %pre -p /bin/bash
 %upgrade_check
 
-%post
+%post -p /bin/bash
+if [ $1 -eq 1 ] ; then
+  # Initial installation
+  if ! /usr/share/xroad/scripts/xroad-init-local-postgres.sh; then
+    echo "Error: Failed to initialize DB."
+    exit 1
+  fi
+fi

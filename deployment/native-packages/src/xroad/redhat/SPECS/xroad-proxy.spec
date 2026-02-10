@@ -50,7 +50,6 @@ mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
-cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
@@ -86,7 +85,6 @@ rm -rf %{buildroot}
 %config %attr(644,root,root) /etc/sudoers.d/xroad-proxy
 
 %attr(550,root,xroad) /usr/share/xroad/bin/xroad-proxy
-%attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,root) /usr/share/xroad/bin/xroad-add-admin-user.sh
 %attr(540,root,root) /usr/share/xroad/scripts/setup_serverconf_db.sh
 %attr(540,root,root) /usr/share/xroad/scripts/setup_messagelog_db.sh
@@ -121,7 +119,6 @@ if [ $1 -gt 1 ] ; then
     fi
 
     rpm -q xroad-proxy --queryformat="%%{version}" &> %{_localstatedir}/lib/rpm-state/%{name}/prev-version
-
 fi
 
 %define execute_init_or_update_resources()                                            \
@@ -139,12 +136,8 @@ fi
 
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    if ! /usr/share/xroad/scripts/xroad-initdb.sh; then
-      echo "Error: Failed to initialize DB."
-      exit 1
-    fi
     if ! grep -qs DISABLE_PORT_REDIRECT /etc/sysconfig/xroad-proxy; then
-    cat <<"EOF" >>/etc/sysconfig/xroad-proxy
+      cat <<"EOF" >>/etc/sysconfig/xroad-proxy
 # Setting DISABLE_PORT_REDIRECT to false enables iptables port redirection (default: disabled)
 # DISABLE_PORT_REDIRECT=true
 EOF
@@ -158,35 +151,12 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
-# create TLS certificate provisioning properties
-CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-HOST=$(hostname -f)
-if (( ${#HOST} > 64 )); then
-    HOST="$(hostname -s)"
-fi
-IP_LIST=$(ip addr | grep 'scope global' | awk '{split($2,a,"/"); print a[1]}' | paste -sd "," -)
-DNS_LIST="$(hostname -f)$(hostname -s)"
-if ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.common-name' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.alt-names' &>/dev/null \
-   && ! /usr/share/xroad/scripts/yaml_helper.sh exists "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names' &>/dev/null; then
-
-    echo "Setting proxy internal TLS certificate provisioning properties in $CONFIG_FILE"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.common-name" "$HOST"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.alt-names" "$DNS_LIST"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names" "$IP_LIST"
-else
-  echo "Skipping setting proxy internal TLS certificate provisioning properties in $CONFIG_FILE, already set"
-fi
-
+# create TLS certificate provisioning properties (if not already created)
+/usr/share/xroad/scripts/write_tls_config.sh setup_default proxy
 
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
 mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
-
-# RHEL7 java-21-* package makes java binaries available since %post scriptlet
-%if 0%{?el7}
-%execute_init_or_update_resources
-%endif
 
 %preun
 %systemd_preun xroad-proxy.service
@@ -195,9 +165,6 @@ mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
 %systemd_postun_with_restart xroad-proxy.service xroad-confclient.service rsyslog.service
 
 %posttrans -p /bin/bash
-# RHEL8/9 java-21-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8} || 0%{?el9}
 %execute_init_or_update_resources
-%endif
 
 %changelog

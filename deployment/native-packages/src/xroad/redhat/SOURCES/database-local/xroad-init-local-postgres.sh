@@ -2,9 +2,6 @@
 #
 # Database setup
 #
-is_rhel8or9() {
-     ([[ -f /etc/os-release ]] && source /etc/os-release && [[ "$ID" == *rhel* && ("$VERSION_ID" == 8* || "$VERSION_ID" == 9*) ]])
-}
 
 get_prop() {
   local tmp="$(crudini --get "$1" '' "$2" 2>/dev/null)"
@@ -12,7 +9,11 @@ get_prop() {
 }
 
 init_local_postgres() {
-    local root_properties=/etc/xroad.properties
+    if [ -f /etc/xroad/xroad.properties ]; then
+      local -r root_properties=/etc/xroad/xroad.properties
+    else
+      local -r root_properties=/etc/xroad.properties
+    fi
     SERVICE_NAME=postgresql
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
@@ -31,12 +32,7 @@ init_local_postgres() {
     fi
 
     if [ ! -e "$PGDATA/PG_VERSION" ]; then
-        if is_rhel8or9; then
-            cmd="--initdb"
-        else
-            cmd="initdb"
-        fi
-        PGSETUP_INITDB_OPTIONS="--auth-host=md5 -E UTF8" postgresql-setup $cmd || return 1
+        PGSETUP_INITDB_OPTIONS="--auth-host=md5 -E UTF8" postgresql-setup --initdb || return 1
     fi
 
     # ensure that PostgreSQL is running
@@ -44,6 +40,3 @@ init_local_postgres() {
 }
 
 init_local_postgres
-/usr/share/xroad/scripts/setup_opmonitor_db.sh
-
-exit 0

@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.codeborne.selenide.Condition.text;
 import static java.time.Duration.ofSeconds;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class CommonStepDefs extends BaseUiStepDefs {
@@ -101,7 +101,12 @@ public class CommonStepDefs extends BaseUiStepDefs {
 
     @Step("file {string} exists")
     public void fileExists(String filePath) {
-        var fileContent = systemTestContainerSetup.execInContainer(SsSystemTestContainerSetup.PROXY, "cat", filePath).getStdout();
-        assertFalse(fileContent.isEmpty());
+        var res = systemTestContainerSetup.execInContainer("stat", filePath);
+
+        assertEquals(
+                0,
+                res.getExitCode(),
+                "File is missing: " + filePath + "\n" + res.getStderr()
+        );
     }
 }
