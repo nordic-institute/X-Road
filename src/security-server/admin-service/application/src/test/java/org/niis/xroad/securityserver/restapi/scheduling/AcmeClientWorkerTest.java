@@ -56,6 +56,7 @@ import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.scheduling.support.NoOpTaskScheduler;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import javax.security.auth.x500.X500Principal;
@@ -85,6 +86,7 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockSignCsrBytes;
 
+@WithAnonymousUser
 public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     private static final String DNS = "ss9";
