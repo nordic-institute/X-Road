@@ -79,7 +79,7 @@ public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
     private volatile boolean restoreInProgress = false;
-    private final GlobalConfCheckerHelper globalConfCheckerHelper;
+    private final ScheduledJobHelper scheduledJobHelper;
     private final GlobalConfProvider globalConfProvider;
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
@@ -133,7 +133,7 @@ public class GlobalConfChecker {
             return;
         }
 
-        ServerConfEntity serverConf = globalConfCheckerHelper.getServerConf();
+        ServerConfEntity serverConf = scheduledJobHelper.getServerConf();
 
         var securityServerId = buildSecurityServerId(serverConf);
 
