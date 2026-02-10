@@ -8,12 +8,14 @@ on:
     paths:
       - 'src/**'
       - '.github/**'
+      - 'deployment/**'
       - 'development/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
     paths:
       - 'src/**'
       - '.github/**'
+      - 'deployment/**'
       - 'development/**'
 
 permissions:
