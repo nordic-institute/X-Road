@@ -53,6 +53,16 @@ else
 fi
 
 ROOT=${DIR}/build/xroad/redhat
+
+HOST_ARCH="$(uname -m)"
+if [[ "$HOST_ARCH" == "x86_64" ]]; then
+    CROSS_TARGET="aarch64"
+else
+    CROSS_TARGET="x86_64"
+fi
+
+# Pass 1: build all packages for host arch (noarch + signer for host arch)
+warn "Pass 1: building all packages for $HOST_ARCH..."
 rpmbuild \
     --define "last_supported_version $LAST_SUPPORTED_VERSION" \
     --define "xroad_version $VERSION" \
@@ -63,4 +73,20 @@ rpmbuild \
     --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
     --define "_binary_payload $compress" \
     -"${CMD}" "${ROOT}/SPECS/"${FILES}
+warn "Pass 1: $HOST_ARCH build finished."
+
+# Pass 2: build xroad-signer for the other architecture
+warn "Pass 2: cross-building xroad-signer for $CROSS_TARGET..."
+rpmbuild \
+    --define "last_supported_version $LAST_SUPPORTED_VERSION" \
+    --define "xroad_version $VERSION" \
+    --define "rel $RELEASE" \
+    "${macro_snapshot[@]}" \
+    --define "_topdir $ROOT" \
+    --define "srcdir $DIR/src/xroad" \
+    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
+    --define "_binary_payload $compress" \
+    --target "$CROSS_TARGET" \
+    -bb "${ROOT}/SPECS/xroad-signer.spec"
+warn "Pass 2: $CROSS_TARGET cross-build finished."
 

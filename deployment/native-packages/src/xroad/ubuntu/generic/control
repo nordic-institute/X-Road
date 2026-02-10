@@ -28,20 +28,20 @@ Description: X-Road central server
  X-Road central server programs and utilities
 
 Package: xroad-base
-Architecture: amd64 arm64
+Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
 Depends: ${misc:Depends}, openjdk-21-jre-headless | java21-runtime-headless | java21-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent, bc, python3, python3-yaml
 Description: X-Road base components
  X-Road base components and utilities
 
 Package: xroad-confclient
-Architecture: amd64 arm64
+Architecture: all
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Description: X-Road configuration client components
  X-Road configuration client
 
 Package: xroad-nginx
-Architecture: amd64 arm64
+Architecture: all
 Pre-Depends: nginx-light (>=1.5.10) | nginx-core (>=1.5.10)
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
 Description: X-Road nginx component
@@ -161,7 +161,7 @@ Description: X-Road Central Server Management Service
  X-Road Central Server management service component
 
 Package: xroad-secret-store-local
-Architecture: amd64 arm64
+Architecture: all
 Conflicts: xroad-secret-store-remote
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Depends: jq, gpg, bao (>= 2.0.0), xroad-base (=${binary:Version})
@@ -173,7 +173,7 @@ Conflicts: xroad-secret-store-local
 Description: Meta-package for X-Road remote secret store dependencies
 
 Package: xroad-backup-manager
-Architecture: amd64 arm64
+Architecture: all
 Replaces: xroad-proxy (<< 7.9.0)
 Breaks: xroad-proxy (<< 7.9.0)
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
