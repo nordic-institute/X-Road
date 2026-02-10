@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,19 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog;
+package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.LogMessage;
+import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Base class for log manager actors.
+ * Base class for log manager.
  */
 @Slf4j
 public abstract class AbstractLogManager {
