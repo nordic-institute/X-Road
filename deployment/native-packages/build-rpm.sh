@@ -86,6 +86,7 @@ rpmbuild \
     --define "srcdir $DIR/src/xroad" \
     --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
     --define "_binary_payload $compress" \
+    --define "__strip /bin/true" \
     --target "$CROSS_TARGET" \
     -bb "${ROOT}/SPECS/xroad-signer.spec"
 warn "Pass 2: $CROSS_TARGET cross-build finished."
