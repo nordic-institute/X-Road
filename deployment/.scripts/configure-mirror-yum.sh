@@ -69,6 +69,10 @@ setup_mirror() {
     EXTRAS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/extras/${ARCH}/os/"
     EPEL_URL="${MIRROR_BASE_URL}/mirror-epel/${VERSION}/Everything/${ARCH}/"
 
+    # GPG key paths (Rocky keys ship with the base image, EPEL key must be imported)
+    ROCKY_GPG_KEY="file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}"
+    EPEL_GPG_KEY="file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-${VERSION}"
+
     # 4. Configure Authentication
     # -------------------------------------------------------------------------
     cat > /root/.netrc <<EOF
@@ -78,7 +82,19 @@ password $MIRROR_TOKEN
 EOF
     chmod 600 /root/.netrc
 
-    # 5. Create mirror repos as OVERLAY (Keep original repos)
+    # 5. Import EPEL GPG key (not present in base Rocky image)
+    # -------------------------------------------------------------------------
+    # Fetch from mirror (mirrors dl.fedoraproject.org/pub/epel/) using .netrc for auth
+    EPEL_KEY_URL="${MIRROR_BASE_URL}/mirror-epel/RPM-GPG-KEY-EPEL-${VERSION}"
+    echo "Importing EPEL GPG key from mirror..."
+    if curl -fsSL --netrc -o /tmp/RPM-GPG-KEY-EPEL-${VERSION} "$EPEL_KEY_URL"; then
+        rpm --import /tmp/RPM-GPG-KEY-EPEL-${VERSION}
+        rm -f /tmp/RPM-GPG-KEY-EPEL-${VERSION}
+    else
+        echo "Warning: Failed to fetch EPEL GPG key. EPEL packages may not install."
+    fi
+
+    # 6. Create mirror repos as OVERLAY (Keep original repos)
     # -------------------------------------------------------------------------
     echo "Adding mirror repository overlay (priority=1)..."
 
@@ -95,7 +111,8 @@ EOF
 name=Mirror - Rocky Linux $VERSION - BaseOS
 baseurl=${BASEOS_URL}
 enabled=1
-gpgcheck=0
+gpgcheck=1
+gpgkey=${ROCKY_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
@@ -107,7 +124,8 @@ EOF
 name=Mirror - Rocky Linux $VERSION - AppStream
 baseurl=${APPSTREAM_URL}
 enabled=1
-gpgcheck=0
+gpgcheck=1
+gpgkey=${ROCKY_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
@@ -119,7 +137,8 @@ EOF
 name=Mirror - Rocky Linux $VERSION - Extras
 baseurl=${EXTRAS_URL}
 enabled=1
-gpgcheck=0
+gpgcheck=1
+gpgkey=${ROCKY_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
@@ -131,7 +150,8 @@ EOF
 name=Mirror - EPEL $VERSION
 baseurl=${EPEL_URL}
 enabled=1
-gpgcheck=0
+gpgcheck=1
+gpgkey=${EPEL_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
@@ -140,7 +160,7 @@ EOF
 
     echo "Mirror YUM/DNF configuration complete (overlay mode - original repos preserved)."
 
-    # 6. Verify configuration
+    # 7. Verify configuration
     # -------------------------------------------------------------------------
     echo "Testing repository access..."
     $PKG_MGR repolist || echo "Warning: Repository list failed. Check credentials and URLs."

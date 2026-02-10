@@ -16,7 +16,7 @@ IMAGE_TAG="${IMAGE_TAG:-latest}"
 BUILD_PLATFORMS="${BUILD_PLATFORMS:-}"  # Empty = host platform only
 
 # Available releases
-ALL_RELEASES=(deb-jammy deb-nole rpm-el8 rpm-el9)
+ALL_RELEASES=(deb-jammy deb-noble rpm-el8 rpm-el9)
 
 # Parse arguments
 FORCE_BUILD=false

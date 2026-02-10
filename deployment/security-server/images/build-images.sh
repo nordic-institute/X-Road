@@ -318,7 +318,6 @@ for service in "${SERVICES[@]}"; do
     --build-context "license=${BUILD_DIR}"
     --build-context "pkcs11driver=${PKCS11_DIR}"
     --build-context "entrypoint=${context_dir}"
-    --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
     "${MIRROR_BUILD_ARGS[@]}"
   )
 
