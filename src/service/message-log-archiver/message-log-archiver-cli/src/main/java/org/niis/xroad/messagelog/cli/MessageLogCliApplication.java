@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,21 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog;
 
-/**
- * Message log database encryption properties.
- */
-public interface MessageLogDatabaseEncryptionProperties {
-    /**
-     * @return true if message log database encryption is enabled
-     */
-    boolean enabled();
+package org.niis.xroad.messagelog.cli;
 
-    /**
-     * @return message log encryption key ID. Required when encryption is enabled.
-     * This ID is used as the HKDF salt for key derivation from the Vault secret.
-     */
-    String keyId();
+import io.quarkus.runtime.QuarkusApplication;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.messagelog.archiver.core.MessageLogArchiverService;
+
+@RequiredArgsConstructor
+@Slf4j
+public class MessageLogCliApplication implements QuarkusApplication {
+    private static final String COMMAND_ARCHIVE = "archive";
+    private static final String COMMAND_CLEANUP = "cleanup";
+
+    private final MessageLogArchiverService messageLogArchiverService;
+
+    @Override
+    public int run(String... args) {
+        if (args != null && args.length == 1) {
+            String command = args[0];
+            if (COMMAND_ARCHIVE.equalsIgnoreCase(command) || COMMAND_CLEANUP.equalsIgnoreCase(command)) {
+                if (COMMAND_ARCHIVE.equalsIgnoreCase(command)) {
+                    messageLogArchiverService.triggerArchival();
+                } else {
+                    messageLogArchiverService.triggerCleanup();
+                }
+                return 0;
+            }
+        }
+
+        usage();
+        return 1;
+    }
+
+    private void usage() {
+        log.error("Usage: MessageLogCliApplication [archive|cleanup]");
+    }
+
 }
-

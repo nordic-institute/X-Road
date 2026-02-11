@@ -86,12 +86,12 @@ public class LogArchiver {
     private final DatabaseCtx databaseCtx;
     private final VaultClient vaultClient;
 
-    public void execute(MessageLogArchiverProperties executionProperties,
-                        MessageLogEncryptionProperties databaseEncryptionProperties) {
+    public void execute(MessageLogArchiverProperties archiverProperties,
+                        MessageLogEncryptionProperties encryptionProperties) {
         try {
             Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {
-                while (handleArchive(executionProperties, databaseEncryptionProperties, maxRecordId)) {
+                while (handleArchive(archiverProperties, encryptionProperties, maxRecordId)) {
                     // body intentionally empty
                 }
             }

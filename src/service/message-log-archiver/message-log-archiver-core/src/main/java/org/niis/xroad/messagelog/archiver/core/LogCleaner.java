@@ -46,10 +46,10 @@ import java.time.temporal.ChronoUnit;
 public class LogCleaner {
     private final DatabaseCtx databaseCtx;
 
-    public void execute(MessageLogArchiverProperties executionProperties) {
+    public void execute(MessageLogArchiverProperties archiverProperties) {
         try {
             log.info("Removing archived records from database...");
-            final long removed = handleClean(executionProperties);
+            final long removed = handleClean(archiverProperties);
             if (removed == 0) {
                 log.info("No archived records to remove from database");
             } else {

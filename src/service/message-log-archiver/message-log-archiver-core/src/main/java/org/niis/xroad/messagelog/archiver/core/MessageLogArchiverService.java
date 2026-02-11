@@ -30,9 +30,9 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +47,9 @@ public class MessageLogArchiverService {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor(Thread.ofVirtual().factory());
     private final LogArchiver logArchiver;
     private final LogCleaner logCleaner;
+
+    private final MessageLogArchiverProperties archiverProperties;
+    private final MessageLogEncryptionProperties encryptionProperties;
 
     @PreDestroy
     public void destroy() {
@@ -66,122 +69,30 @@ public class MessageLogArchiverService {
 
     public void triggerArchival() {
         log.info("Received archival trigger request");
-//
-//        var executionProperties = mapToExecutionProperties(request.getMessageLogConfig());
-//
-//        executorService.submit(() -> {
-//            try {
-//                log.info("Starting archival operation");
-//                logArchiver.execute(executionProperties);
-//                log.info("Archival operation completed successfully");
-//
-//                var response = MessageLogArchivalResp.newBuilder()
-//                        .setSuccess(true)
-//                        .setMessage("Archival completed successfully")
-//                        .build();
-//                responseObserver.onNext(response);
-//                responseObserver.onCompleted();
-//            } catch (Exception e) {
-//                log.error("Archival operation failed", e);
-//
-//                var response = MessageLogArchivalResp.newBuilder()
-//                        .setSuccess(false)
-//                        .setMessage("Archival failed: " + e.getMessage())
-//                        .build();
-//                responseObserver.onNext(response);
-//                responseObserver.onCompleted();
-//            }
-//        });
+
+        executorService.submit(() -> {
+            try {
+                log.info("Starting archival operation");
+                logArchiver.execute(archiverProperties, encryptionProperties);
+                log.info("Archival operation completed successfully");
+            } catch (Exception e) {
+                log.error("Archival operation failed", e);
+            }
+        });
     }
 
     public void triggerCleanup() {
         log.info("Received cleanup trigger request");
-//
-//        var executionProperties = mapToExecutionProperties(request.getMessageLogConfig());
-//
-//        executorService.submit(() -> {
-//            try {
-//                log.info("Starting cleanup operation");
-//                logCleaner.execute(executionProperties);
-//                log.info("Cleanup operation completed successfully");
-//
-//                var response = MessageLogCleanupResp.newBuilder()
-//                        .setSuccess(true)
-//                        .setMessage("Cleanup completed successfully")
-//                        .setRecordsRemoved(0)
-//                        .build();
-//                responseObserver.onNext(response);
-//                responseObserver.onCompleted();
-//            } catch (Exception e) {
-//                log.error("Cleanup operation failed", e);
-//
-//                var response = MessageLogCleanupResp.newBuilder()
-//                        .setSuccess(false)
-//                        .setMessage("Cleanup failed: " + e.getMessage())
-//                        .setRecordsRemoved(0)
-//                        .build();
-//                responseObserver.onNext(response);
-//                responseObserver.onCompleted();
-//            }
-//        });
+
+        executorService.submit(() -> {
+            try {
+                log.info("Starting cleanup operation");
+                logCleaner.execute(archiverProperties);
+                log.info("Cleanup operation completed successfully");
+            } catch (Exception e) {
+                log.error("Cleanup operation failed", e);
+            }
+        });
     }
 
-//    private LogArchiverExecutionProperties mapToExecutionProperties(MessageLogConfig config) {
-//        var archiveGroupingStrategy = parseGroupingStrategy(config.getArchiveGroupingStrategy());
-//        var digestAlgorithm = DigestAlgorithm.ofName(config.getDigestAlgorithm());
-//        var archiveGrouping = convertArchiveGrouping(config.getArchiveGroupingMap());
-//
-//        var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
-//                config.getArchiveEncryptionEnabled(),
-//                optionalOf(config.hasArchiveEncryptionDefaultKeyId(), config::getArchiveEncryptionDefaultKeyId),
-//                archiveGroupingStrategy,
-//                archiveGrouping
-//        );
-//
-//        var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
-//                config.getDatabaseEncryptionEnabled(),
-//                nullableOf(config.hasDatabaseEncryptionKeyId(), config::getDatabaseEncryptionKeyId)
-//        );
-//
-//        return new LogArchiverExecutionProperties(
-//                archiveEncryption,
-//                databaseEncryption,
-//                config.getCleanTransactionBatchSize(),
-//                config.getCleanKeepRecordsFor(),
-//                config.getArchiveTransactionBatchSize(),
-//                config.getArchivePath(),
-//                nullableOf(config.hasArchiveTransferCommand(), config::getArchiveTransferCommand),
-//                digestAlgorithm,
-//                config.getArchiveMaxFilesize(),
-//                config.getTmpDir()
-//        );
-//    }
-
-    private <T> Optional<T> optionalOf(boolean condition, java.util.function.Supplier<T> supplier) {
-        return condition ? Optional.of(supplier.get()) : Optional.empty();
-    }
-
-    private <T> T nullableOf(boolean condition, java.util.function.Supplier<T> supplier) {
-        return condition ? supplier.get() : null;
-    }
-
-    private GroupingStrategy parseGroupingStrategy(String strategy) {
-        if (strategy == null || strategy.isEmpty()) {
-            return GroupingStrategy.NONE;
-        }
-        try {
-            return GroupingStrategy.valueOf(strategy.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid grouping strategy: {}, defaulting to NONE", strategy);
-            return GroupingStrategy.NONE;
-        }
-    }
-
-//    private Map<String, Set<String>> convertArchiveGrouping(Map<String, StringList> protoMap) {
-//        return protoMap.entrySet().stream()
-//                .collect(Collectors.toMap(
-//                        Map.Entry::getKey,
-//                        entry -> Set.copyOf(entry.getValue().getValuesList())
-//                ));
-//    }
 }

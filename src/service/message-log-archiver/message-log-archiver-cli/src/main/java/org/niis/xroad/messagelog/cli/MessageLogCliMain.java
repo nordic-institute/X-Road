@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,19 +23,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.core.config;
+package org.niis.xroad.messagelog.cli;
 
-import lombok.Setter;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import java.util.Map;
+@QuarkusMain
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class MessageLogCliMain {
 
-@Setter
-//@Configuration
-//@ConfigurationProperties(prefix = "xroad.db.messagelog")
-public class MessageLogDatabaseProperties {
-    private Map<String, String> hibernate = Map.of();
-
-    public Map<String, String> hibernate() {
-        return hibernate;
+    public static void main(String[] args) {
+        Quarkus.run(MessageLogCliApplication.class, args);
     }
+
 }

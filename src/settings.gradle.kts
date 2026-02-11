@@ -110,6 +110,7 @@ include("service:signer:signer-client-spring")
 include("service:signer:signer-int-test")
 
 include("service:message-log-archiver")
+include("service:message-log-archiver:message-log-archiver-cli")
 include("service:message-log-archiver:message-log-archiver-core")
 
 include("service:ds-control-plane")
