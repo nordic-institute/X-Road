@@ -30,8 +30,10 @@ package org.niis.xroad.backupmanager.core.repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.niis.xroad.backupmanager.core.BackupManagerProperties;
-import org.niis.xroad.backupmanager.core.BackupValidator;
+import org.niis.xroad.backupmanager.core.backup.BackupManagerProperties;
+import org.niis.xroad.backupmanager.core.backup.BackupValidator;
+import org.niis.xroad.backupmanager.core.backup.job.repository.BackupRepository;
+import org.niis.xroad.backupmanager.core.backup.job.repository.FileSystemBackupRepository;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.ConfigUtils;
 

@@ -13,8 +13,6 @@ dependencies {
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
-  implementation(project(":security-server:admin-service:management-rpc-client"))
-
   implementation(libs.quarkus.scheduler)
 
   implementation(project(":lib:asic-core"))

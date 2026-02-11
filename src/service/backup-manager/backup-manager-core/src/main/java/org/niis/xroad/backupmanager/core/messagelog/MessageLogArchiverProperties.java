@@ -25,12 +25,25 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core;
+package org.niis.xroad.backupmanager.core.messagelog;
 
-import java.time.Instant;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-public record BackupItem(
-        String name,
-        Instant createdAt
-) {
+@ConfigMapping(prefix = "xroad.message-log-job")
+public interface MessageLogArchiverProperties {
+
+    @WithName("archive-cron")
+    @WithDefault("0 0 0/6 1/1 * ?")
+    String archiveCron();
+
+    @WithName("clean-cron")
+    @WithDefault("0 0 0/12 1/1 * ?")
+    String cleanupCron();
+
+    @WithName("command-path")
+    @WithDefault("/usr/share/xroad/bin/xroad-message-log-archiver")
+    String commandPath();
+
 }

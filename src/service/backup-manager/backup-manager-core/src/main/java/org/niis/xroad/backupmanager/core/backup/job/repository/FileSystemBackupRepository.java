@@ -25,14 +25,14 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core.repository;
+package org.niis.xroad.backupmanager.core.backup.job.repository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.backupmanager.core.BackupItem;
-import org.niis.xroad.backupmanager.core.BackupManagerProperties;
-import org.niis.xroad.backupmanager.core.BackupValidator;
+import org.niis.xroad.backupmanager.core.backup.BackupItem;
+import org.niis.xroad.backupmanager.core.backup.BackupManagerProperties;
+import org.niis.xroad.backupmanager.core.backup.BackupValidator;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
 

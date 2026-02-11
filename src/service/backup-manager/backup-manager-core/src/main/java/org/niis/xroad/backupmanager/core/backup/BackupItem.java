@@ -25,39 +25,12 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core;
+package org.niis.xroad.backupmanager.core.backup;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.niis.xroad.backupmanager.core.backup.BackupManagerProperties;
-import org.niis.xroad.backupmanager.core.backup.BackupValidator;
-import org.niis.xroad.common.properties.ConfigUtils;
+import java.time.Instant;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
-class BackupValidatorTest {
-
-    BackupManagerProperties backupManagerProperties = ConfigUtils.defaultConfiguration(BackupManagerProperties.class);
-
-    BackupValidator validator = new BackupValidator(backupManagerProperties);
-
-    @BeforeEach
-    void setUp() {
-        validator.init();
-    }
-
-    @Test
-    void invalidBackupFilename() {
-        assertFalse(validator.isValidBackupFilename("/b.gpg"));
-        assertFalse(validator.isValidBackupFilename("../b.gpg"));
-        assertFalse(validator.isValidBackupFilename("a/b.gpg"));
-    }
-
-    @Test
-    void validBackupFilename() {
-        assertThat(validator.isValidBackupFilename("b.gpg")).isTrue();
-        assertThat(validator.isValidBackupFilename("ss-automatic-backup-2025_05_15_141500.gpg")).isTrue();
-        assertThat(validator.isValidBackupFilename("conf_backup_20250515-134650.gpg")).isTrue();
-    }
+public record BackupItem(
+        String name,
+        Instant createdAt
+) {
 }

@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core.job;
+package org.niis.xroad.backupmanager.core.backup.job;
 
 import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
@@ -37,40 +37,39 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.backupmanager.core.BackupManagerProperties;
-import org.niis.xroad.backupmanager.core.FileSystemBackupHandler;
+import org.niis.xroad.backupmanager.core.backup.BackupManagerProperties;
+import org.niis.xroad.backupmanager.core.backup.FileSystemBackupHandler;
 
 @Startup
 @ApplicationScoped
-@Slf4j
 @RequiredArgsConstructor
-public class AutoBackupJob {
+@Slf4j
+public class OldAutoBackupsRemovalJob {
 
     private final Scheduler scheduler;
     private final BackupManagerProperties backupManagerProperties;
-    private final FileSystemBackupHandler fileSystemBackupHandler;
+    private final FileSystemBackupHandler backupHandler;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNoneBlank(backupManagerProperties.autoBackupCronExpression(),
-                backupManagerProperties.autoBackupScriptPath())
-                && !SchedulerUtils.isOff(backupManagerProperties.autoBackupCronExpression())) {
-            log.info("Scheduling automatic backups with cron expression: '{}'",
-                    backupManagerProperties.autoBackupCronExpression());
+        if (StringUtils.isNotBlank(backupManagerProperties.autoBackupDeleteOldBackupsCron())
+                && !SchedulerUtils.isOff(backupManagerProperties.autoBackupDeleteOldBackupsCron())) {
+            log.info("Scheduling old automatic backups removal job");
             scheduler.newJob(getClass().getSimpleName())
-                    .setCron(backupManagerProperties.autoBackupCronExpression())
+                    .setCron(backupManagerProperties.autoBackupDeleteOldBackupsCron())
                     .setTask(this::execute)
                     .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
                     .setSkipPredicate(applicationNotRunning)
                     .schedule();
         } else {
-            log.info("Automatic backups are disabled. No cron expression or script path provided.");
+            log.info("Old automatic backups removal job disabled.");
         }
     }
 
     private void execute(ScheduledExecution execution) {
-        fileSystemBackupHandler.createAutomaticBackup();
+        log.info("Executing old automatic backups removal job");
+        backupHandler.cleanOldAutomaticBackups();
     }
 
 }

@@ -25,41 +25,23 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core;
+package org.niis.xroad.backupmanager.core.backup.job.repository;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
+import org.niis.xroad.backupmanager.core.backup.BackupItem;
+import org.niis.xroad.common.exception.NotFoundException;
 
-import java.util.regex.Pattern;
+import java.nio.file.Path;
+import java.util.Collection;
 
-@ApplicationScoped
-@RequiredArgsConstructor
-public class BackupValidator {
+public interface BackupRepository {
 
-    private final BackupManagerProperties backupManagerProperties;
+    Collection<BackupItem> listBackups();
 
-    /**
-     * Default criteria for a valid backup file name:
-     * 1) cannot start with "."
-     * 2) must contain one or more word characters ([a-zA-Z_0-9.-]),
-     * 3) must end with ".gpg" or ".tar" depending on env.
-     */
+    void deleteBackup(String name);
 
-    private Pattern backupFileNamePattern;
+    BackupItem storeBackup(String name, byte[] content);
 
-    @PostConstruct
-    public void init() {
-        backupFileNamePattern = Pattern.compile(backupManagerProperties.validFilenamePattern());
-    }
+    byte[] readBackupFile(String filename) throws NotFoundException;
 
-    /**
-     * Check if the given filename is valid and meets the defined criteria
-     *
-     * @param filename backup filename to validate
-     * @return validity status
-     */
-    public boolean isValidBackupFilename(String filename) {
-        return backupFileNamePattern.matcher(filename).matches();
-    }
+    Path getAbsoluteBackupFilePath(String name);
 }

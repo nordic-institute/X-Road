@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core;
+package org.niis.xroad.backupmanager.core.backup;
 
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
@@ -36,7 +36,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.niis.xroad.backupmanager.core.repository.BackupRepository;
+import org.niis.xroad.backupmanager.core.backup.job.repository.BackupRepository;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.util.FormatUtils;
 

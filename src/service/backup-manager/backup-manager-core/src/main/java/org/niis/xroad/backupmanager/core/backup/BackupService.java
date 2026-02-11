@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core;
+package org.niis.xroad.backupmanager.core.backup;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;

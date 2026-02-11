@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.backupmanager.core;
+package org.niis.xroad.backupmanager.core.backup;
 
 import io.grpc.BindableService;
 import io.quarkus.arc.All;
