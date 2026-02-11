@@ -66,7 +66,7 @@ use([
 
 type XaType = 'datetime';
 
-defineProps<{
+const props = defineProps<{
   series: TrafficSeries[];
   loading?: boolean;
 }>();
