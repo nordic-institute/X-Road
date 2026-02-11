@@ -1,5 +1,5 @@
 @SecurityServer
-Feature: 0200 - SS: After installation check
+Feature: 0930 - SS: Operational readiness checks: docs & logs
 
   Scenario: Verify that documentation files are installed
     Given file "/usr/share/doc/xroad-addon-messagelog/LICENSE.txt" exists
@@ -15,3 +15,4 @@ Feature: 0200 - SS: After installation check
     And file "/var/log/xroad/proxy_ui_api_access.log" exists
     And file "/var/log/xroad/serverproxy_access.log" exists
     And file "/var/log/xroad/signer.log" exists
+    And file "/var/log/xroad/signer-console.log" exists
