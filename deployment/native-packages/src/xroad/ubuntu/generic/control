@@ -175,3 +175,9 @@ Breaks: xroad-proxy (<< 7.9.0)
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Description: X-Road backup manager
  X-Road backup manager
+
+Package: xroad-message-log-archiver
+Architecture: all
+Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Description: X-Road message log archiver
+ X-Road message log archiver and cleanup CLI application

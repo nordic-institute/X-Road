@@ -31,6 +31,9 @@ case $1 in
 "backup-manager")
   gradleModule="service/backup-manager/backup-manager-application"
   ;;
+"message-log-archiver")
+  gradleModule="service/message-log-archiver/message-log-archiver-cli"
+  ;;
 "cs-admin-service")
   gradleModule="central-server/admin-service"
   ;;

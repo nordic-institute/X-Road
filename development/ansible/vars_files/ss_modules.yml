@@ -20,6 +20,10 @@ ss_modules:
     build: build
     target: /usr/share/xroad/jlib/backup-manager
     service: xroad-backup-manager
+  message-log-archiver:
+    dir: service/message-log-archiver/message-log-archiver-cli
+    build: build
+    target: /usr/share/xroad/jlib/message-log-archiver
   proxy-ui-api:
     dir: security-server/admin-service/application
     build: build
