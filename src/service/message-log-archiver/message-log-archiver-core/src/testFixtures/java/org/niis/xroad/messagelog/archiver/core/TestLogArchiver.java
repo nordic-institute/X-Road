@@ -24,26 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon.messagelog;
+package org.niis.xroad.messagelog.archiver.core;
 
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
-import org.niis.xroad.messagelog.archiver.core.LogCleaner;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
+import org.niis.xroad.common.pgp.PgpKeyManager;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-class TestLogCleaner extends LogCleaner {
+public class TestLogArchiver extends LogArchiver {
 
     private static CountDownLatch gate = new CountDownLatch(1);
 
-    TestLogCleaner(DatabaseCtx databaseCtx) {
-        super(databaseCtx);
+    public TestLogArchiver(PgpKeyManager keyManager,
+                    BouncyCastlePgpEncryptionService encryptionService,
+                    GlobalConfProvider globalConfProvider,
+                    DatabaseCtx messageLogDatabaseCtx,
+                    VaultClient vaultClient) {
+        super(keyManager, encryptionService, globalConfProvider, messageLogDatabaseCtx, vaultClient);
     }
 
-    public static void waitForCleanSuccessful() throws Exception {
+    @SuppressWarnings("checkstyle:magicnumber")
+    public static void waitForArchiveSuccessful() throws Exception {
         try {
             gate.await(5, TimeUnit.SECONDS);
         } finally {
@@ -52,9 +59,7 @@ class TestLogCleaner extends LogCleaner {
     }
 
     @Override
-    protected long handleClean(LogArchiverExecutionProperties executionProperties) {
-        final long removed = super.handleClean(executionProperties);
+    protected void onArchivingDone() {
         gate.countDown();
-        return removed;
     }
 }

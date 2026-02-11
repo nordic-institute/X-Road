@@ -114,26 +114,26 @@ public class LegacyConfigPathMapping {
         addMapping("message-log.disabled-body-logging-remote-producer-subsystems", "proxy.message-log.disabled-body-logging-remote-producer-subsystems");
 
         // message-log - hash/digest algorithm
-        addMapping("message-log.hash-algo-id", "proxy.message-log.hash-algo-id");
+        addMapping("message-log.hash-algo-id", "proxy.message-log.hash-algo-id", "message-log-archiver.hash-algo-id");
 
         // message-log - archiver properties (moved to archiver sub-section and renamed)
-        addMapping("message-log.archive-max-filesize", "proxy.message-log.archiver.max-filesize");
-        addMapping("message-log.archive-path", "proxy.message-log.archiver.archive-path");
-        addMapping("message-log.archive-transfer-command", "proxy.message-log.archiver.archive-transfer-command");
-        addMapping("message-log.clean-interval", "proxy.message-log.archiver.clean-interval");
-        addMapping("message-log.keep-records-for", "proxy.message-log.archiver.clean-keep-records-for");
-        addMapping("message-log.archive-transaction-batch", "proxy.message-log.archiver.transaction-batch-size");
-        addMapping("message-log.archive-transfer-command-parameters", "proxy.message-log.archiver.archive-transfer-command-parameters");
+        addMapping("message-log.archive-max-filesize", "message-log-archiver.max-filesize");
+        addMapping("message-log.archive-path", "message-log-archiver.archive-path");
+        addMapping("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
+        addMapping("message-log.clean-interval", "message-log-archiver.clean-interval");
+        addMapping("message-log.keep-records-for", "message-log-archiver.clean-keep-records-for");
+        addMapping("message-log.archive-transaction-batch", "message-log-archiver.transaction-batch-size");
+        addMapping("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
 
         // message-log - archive encryption/grouping properties (moved to archiver sub-section and renamed)
-        addMapping("message-log.archive-encryption-enabled", "proxy.message-log.archiver.encryption-enabled");
-        addMapping("message-log.archive-default-encryption-key", "proxy.message-log.archiver.default-key-id");
-        addMapping("message-log.archive-grouping", "proxy.message-log.archiver.grouping-strategy");
-        addMapping("message-log.archive-encryption-keys-config", "proxy.message-log.archiver.grouping-keys");
+        addMapping("message-log.archive-encryption-enabled", "message-log-encryption.archive.encryption-enabled");
+        addMapping("message-log.archive-default-encryption-key", "pmessage-log-encryption.archive.default-key-id");
+        addMapping("message-log.archive-grouping", "message-log-encryption.archive.grouping-strategy");
+        addMapping("message-log.archive-encryption-keys-config", "message-log-encryption.archive.grouping-keys");
 
         // message-log - database encryption properties (moved to database-encryption sub-section)
-        addMapping("message-log.messagelog-encryption-enabled", "proxy.message-log.database-encryption.enabled");
-        addMapping("message-log.messagelog-key-id", "proxy.message-log.database-encryption.key-id");
+        addMapping("message-log.messagelog-encryption-enabled", "message-log-encryption.db.encryption-enabled");
+        addMapping("message-log.messagelog-key-id", "message-log-encryption.db.key-id");
 
         // op-monitor
         addMapping("op-monitor-service.socket-timeout-seconds", "proxy.addon.op-monitor.connection.socket-timeout-seconds");

@@ -30,9 +30,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
-import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
 import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
 import org.niis.xroad.proxy.core.addon.messagelog.LogManager;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
@@ -70,13 +68,4 @@ public class ProxyMessageLogConfig {
         }
     }
 
-    @ApplicationScoped
-    MessageLogArchivalProperties messageLogArchivalProperties(ProxyMessageLogProperties messageLogProperties) {
-        return messageLogProperties.archiver();
-    }
-
-    @ApplicationScoped
-    MessageLogDatabaseEncryptionProperties messageLogEncryptionProperties(ProxyMessageLogProperties messageLogProperties) {
-        return messageLogProperties.databaseEncryption();
-    }
 }

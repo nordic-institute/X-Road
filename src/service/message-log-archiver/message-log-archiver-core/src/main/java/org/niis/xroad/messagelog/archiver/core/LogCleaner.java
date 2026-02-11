@@ -29,10 +29,11 @@ package org.niis.xroad.messagelog.archiver.core;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.MutationQuery;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
 import java.time.temporal.ChronoUnit;
 
@@ -41,10 +42,11 @@ import java.time.temporal.ChronoUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class LogCleaner {
     private final DatabaseCtx databaseCtx;
 
-    public void execute(LogArchiverExecutionProperties executionProperties) {
+    public void execute(MessageLogArchiverProperties executionProperties) {
         try {
             log.info("Removing archived records from database...");
             final long removed = handleClean(executionProperties);
@@ -58,17 +60,17 @@ public class LogCleaner {
         }
     }
 
-    protected long handleClean(LogArchiverExecutionProperties executionProperties) {
+    protected long handleClean(MessageLogArchiverProperties messageLogCleanerProperties) {
 
         final Long time =
-                TimeUtils.now().minus(executionProperties.cleanKeepRecordsFor(), ChronoUnit.DAYS).toEpochMilli();
+                TimeUtils.now().minus(messageLogCleanerProperties.cleanKeepRecordsFor(), ChronoUnit.DAYS).toEpochMilli();
         long count = 0;
         int removed;
         do {
             removed = databaseCtx.doInTransaction(session -> {
                 final MutationQuery query = session.createNamedMutationQuery("delete-logrecords");
                 query.setParameter("time", time);
-                query.setParameter("limit", executionProperties.cleanTransactionBatchSize());
+                query.setParameter("limit", messageLogCleanerProperties.cleanTransactionBatchSize());
                 return query.executeUpdate();
             });
             log.debug("Removed {} archived records", removed);

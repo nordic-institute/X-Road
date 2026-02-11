@@ -81,7 +81,8 @@ public final class MessageRecordEncryption {
     private final String currentKeyId;
     private final boolean encryptionEnabled;
 
-    public MessageRecordEncryption(@Nonnull MessageLogDatabaseEncryptionProperties properties, @Nonnull VaultClient vaultClient) {
+    public MessageRecordEncryption(@Nonnull MessageLogEncryptionProperties.DbEncryptionConfig properties,
+                                   @Nonnull VaultClient vaultClient) {
         this.encryptionEnabled = properties.enabled();
 
         try {

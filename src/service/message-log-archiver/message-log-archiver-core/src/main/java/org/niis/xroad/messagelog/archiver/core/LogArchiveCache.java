@@ -36,7 +36,7 @@ import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.archive.EncryptionConfig;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -72,7 +72,7 @@ class LogArchiveCache implements Closeable {
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final Path workingDir;
 
-    private final LogArchiverExecutionProperties executionProperties;
+    private final MessageLogArchiverProperties messageLogArchiverProperties;
 
     private AsicContainerNameGenerator nameGenerator;
     private State state = State.NEW;
@@ -90,11 +90,11 @@ class LogArchiveCache implements Closeable {
 
     LogArchiveCache(LinkingInfoBuilder linkingInfoBuilder,
                     @Nullable EncryptionConfig encryptionConfig,
-                    Path workingDir, LogArchiverExecutionProperties executionProperties) {
+                    Path workingDir, MessageLogArchiverProperties messageLogArchiverProperties) {
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;
-        this.executionProperties = executionProperties;
+        this.messageLogArchiverProperties = messageLogArchiverProperties;
         resetCacheState();
     }
 
@@ -196,7 +196,7 @@ class LogArchiveCache implements Closeable {
     }
 
     private boolean archiveExceedsRotationSize() {
-        return archivesTotalSize > executionProperties.archiveMaxFilesize();
+        return archivesTotalSize > messageLogArchiverProperties.maxFilesize();
     }
 
     private void addContainerToArchive(MessageRecord messageRecord)
@@ -204,7 +204,7 @@ class LogArchiveCache implements Closeable {
         String archiveFilename = nameGenerator.getArchiveFilename(messageRecord.getQueryId(), messageRecord.isResponse(),
                 messageRecord.getId());
 
-        final MessageDigest digest = MessageDigest.getInstance(executionProperties.digestAlgorithm().name());
+        final MessageDigest digest = MessageDigest.getInstance(messageLogArchiverProperties.hashAlg().name());
         final ZipEntry entry = new ZipEntry(archiveFilename);
         entry.setLastModifiedTime(FileTime.from(messageRecord.getTime(), TimeUnit.MILLISECONDS));
         archiveTmp.putNextEntry(entry);
@@ -225,7 +225,7 @@ class LogArchiveCache implements Closeable {
         deleteArchiveArtifacts(null);
         archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
         if (encryptionConfig != null) {
-            outputStream = encryptionConfig.createEncryptionStream(archiveTmpFile, executionProperties.tmpDir());
+            outputStream = encryptionConfig.createEncryptionStream(archiveTmpFile);
         } else {
             outputStream = Files.newOutputStream(archiveTmpFile);
         }

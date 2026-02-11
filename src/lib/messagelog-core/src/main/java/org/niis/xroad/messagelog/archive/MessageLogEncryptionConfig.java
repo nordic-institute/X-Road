@@ -32,8 +32,7 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
 
 public class MessageLogEncryptionConfig {
@@ -59,13 +58,13 @@ public class MessageLogEncryptionConfig {
     @ApplicationScoped
     public EncryptionConfigProvider encryptionConfigProvider(PgpKeyManager keyManager,
                                                              BouncyCastlePgpEncryptionService encryption,
-                                                             MessageLogArchivalProperties messageLogArchivalProperties) {
-        return EncryptionConfigProvider.create(keyManager, encryption, messageLogArchivalProperties);
+                                                             MessageLogEncryptionProperties messageLogEncryptionProperties) {
+        return EncryptionConfigProvider.create(keyManager, encryption, messageLogEncryptionProperties.archive());
     }
 
     @ApplicationScoped
-    public MessageRecordEncryption messageRecordEncryption(MessageLogDatabaseEncryptionProperties encryptionProperties,
+    public MessageRecordEncryption messageRecordEncryption(MessageLogEncryptionProperties encryptionProperties,
                                                           VaultClient vaultClient) {
-        return new MessageRecordEncryption(encryptionProperties, vaultClient);
+        return new MessageRecordEncryption(encryptionProperties.db(), vaultClient);
     }
 }

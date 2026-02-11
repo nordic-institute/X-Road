@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,25 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog;
+package org.niis.xroad.messagelog.archiver.core;
 
-import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
-/**
- * Message log archival properties
- */
-public interface MessageLogArchivalProperties {
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
-    boolean encryptionEnabled();
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-    Optional<String> defaultKeyId();
+public class TestLogCleaner extends LogCleaner {
 
-    GroupingStrategy groupingStrategy();
+    private static CountDownLatch gate = new CountDownLatch(1);
 
-    Map<String, Set<String>> grouping();
+    public TestLogCleaner(DatabaseCtx databaseCtx) {
+        super(databaseCtx);
+    }
 
+    @SuppressWarnings("checkstyle:magicnumber")
+    public static void waitForCleanSuccessful() throws Exception {
+        try {
+            gate.await(5, TimeUnit.SECONDS);
+        } finally {
+            gate = new CountDownLatch(1);
+        }
+    }
+
+    @Override
+    protected long handleClean(MessageLogArchiverProperties messageLogCleanerProperties) {
+        final long removed = super.handleClean(messageLogCleanerProperties);
+        gate.countDown();
+        return removed;
+    }
 }

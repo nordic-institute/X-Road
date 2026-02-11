@@ -31,10 +31,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.Grouping;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -66,7 +67,8 @@ public class LogArchiveWriter implements Closeable {
     private Path archiveTmp;
 
     private final EncryptionConfigProvider encryptionConfigProvider;
-    private final LogArchiverExecutionProperties executionProperties;
+    private final MessageLogArchiverProperties archiverProperties;
+    private final MessageLogEncryptionProperties.ArchiveEncryptionConfig archiveEncryptionConfig;
 
     private Grouping grouping;
 
@@ -77,17 +79,19 @@ public class LogArchiveWriter implements Closeable {
      * @param outputPath          directory where the log archive is created
      * @param archiveBase         interface to archive database
      * @param encryption          BouncyCastle PGP encryption facade for Vault-based encryption
-     * @param executionProperties execution properties
+     * @param archiverProperties  archiver properties
      */
     public LogArchiveWriter(GlobalConfProvider globalConfProvider, Path outputPath, LogArchiveBase archiveBase,
                             EncryptionConfigProvider encryption,
-                            LogArchiverExecutionProperties executionProperties) {
+                            MessageLogArchiverProperties archiverProperties,
+                            MessageLogEncryptionProperties.ArchiveEncryptionConfig encryptionProperties) {
         this.globalConfProvider = globalConfProvider;
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
-        this.linkingInfoBuilder = new LinkingInfoBuilder(executionProperties.digestAlgorithm());
+        this.linkingInfoBuilder = new LinkingInfoBuilder(archiverProperties.hashAlg());
         this.encryptionConfigProvider = encryption;
-        this.executionProperties = executionProperties;
+        this.archiverProperties = archiverProperties;
+        this.archiveEncryptionConfig = encryptionProperties;
     }
 
     /**
@@ -96,7 +100,7 @@ public class LogArchiveWriter implements Closeable {
      * encrypted.
      *
      * @param logRecord the log record
-     * @return true if the a archive file was rotated
+     * @return true if the archive file was rotated
      */
     @ArchUnitSuppressed("NoVanillaExceptions")
     public boolean write(MessageRecord logRecord) throws Exception {
@@ -134,11 +138,11 @@ public class LogArchiveWriter implements Closeable {
         logArchiveCache = new LogArchiveCache(
                 linkingInfoBuilder,
                 encryptionConfigProvider.forGrouping(grouping),
-                outputPath, executionProperties);
+                outputPath, archiverProperties);
     }
 
     private Grouping forRecord(MessageRecord messageRecord) {
-        return executionProperties.archiveEncryption().groupingStrategy().forClient(
+        return archiveEncryptionConfig.groupingStrategy().forClient(
                 ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
                         messageRecord.getMemberClass(),
                         messageRecord.getMemberCode(),

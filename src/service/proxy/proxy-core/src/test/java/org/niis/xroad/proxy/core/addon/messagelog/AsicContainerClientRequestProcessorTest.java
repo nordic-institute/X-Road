@@ -43,7 +43,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.MessageLogEncryptionConfig;
@@ -252,10 +252,10 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         Map<String, String> config = new java.util.HashMap<>();
         config.put("xroad.proxy.message-log.timestamper.timestamp-immediately", "false");
         config.put("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1800");
-        config.put("xroad.proxy.message-log.archiver.grouping-strategy", GroupingStrategy.MEMBER.name());
-        config.put("xroad.proxy.message-log.archiver.encryption-enabled", String.valueOf(encrypted));
+        config.put("xroad.message-log-encryption.archive.grouping-strategy", GroupingStrategy.MEMBER.name());
+        config.put("xroad.message-log-encryption.archive.encryption-enabled", String.valueOf(encrypted));
 
-        testSetUp(config);
+        testSetUp(config, false);
 
         // initialize states
         initLogManager();
@@ -280,11 +280,13 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         var keyProvider = messageLogEncryptionConfig.keyProvider(vaultClient);
         var keyManager = messageLogEncryptionConfig.keyManager(keyProvider);
         var pgpEncryptionService = messageLogEncryptionConfig.pgpEncryption(keyManager);
-        var messageLogProperties = mock(MessageLogArchivalProperties.class);
-        when(messageLogProperties.encryptionEnabled()).thenReturn(encrypted);
-        when(messageLogProperties.defaultKeyId()).thenReturn(Optional.empty());
-        when(messageLogProperties.groupingStrategy()).thenReturn(GroupingStrategy.NONE);
-        when(messageLogProperties.grouping()).thenReturn(Map.of());
+        var messageLogProperties = mock(MessageLogEncryptionProperties.class);
+        var archiveEncryptionConfig = mock(MessageLogEncryptionProperties.ArchiveEncryptionConfig.class);
+        when(archiveEncryptionConfig.encryptionEnabled()).thenReturn(encrypted);
+        when(archiveEncryptionConfig.defaultKeyId()).thenReturn(Optional.empty());
+        when(archiveEncryptionConfig.groupingStrategy()).thenReturn(GroupingStrategy.NONE);
+        when(archiveEncryptionConfig.grouping()).thenReturn(Map.of());
+        when(messageLogProperties.archive()).thenReturn(archiveEncryptionConfig);
         encryptionConfigProvider = messageLogEncryptionConfig.encryptionConfigProvider(keyManager, pgpEncryptionService,
                 messageLogProperties);
     }

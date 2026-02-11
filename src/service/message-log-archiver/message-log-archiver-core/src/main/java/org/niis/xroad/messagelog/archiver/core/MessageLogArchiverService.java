@@ -26,7 +26,9 @@
  */
 package org.niis.xroad.messagelog.archiver.core;
 
-import jakarta.annotation.Nonnull;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
@@ -35,6 +37,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+@ApplicationScoped
+@RequiredArgsConstructor
 @Slf4j
 public class MessageLogArchiverService {
 
@@ -44,11 +48,7 @@ public class MessageLogArchiverService {
     private final LogArchiver logArchiver;
     private final LogCleaner logCleaner;
 
-    public MessageLogArchiverService(@Nonnull LogArchiver logArchiver, @Nonnull LogCleaner logCleaner) {
-        this.logArchiver = logArchiver;
-        this.logCleaner = logCleaner;
-    }
-
+    @PreDestroy
     public void destroy() {
         log.info("Shutting down MessageLogArchiverService executor");
         executorService.shutdown();

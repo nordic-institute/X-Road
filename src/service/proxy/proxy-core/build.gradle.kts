@@ -32,12 +32,12 @@ dependencies {
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(":service:message-log-archiver:message-log-archiver-core"))
 
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
+  testImplementation(testFixtures(project(":service:message-log-archiver:message-log-archiver-core")))
   testImplementation(libs.bouncyCastle.bcpg)
   testImplementation(libs.commons.cli)
   testImplementation(libs.hsqldb)

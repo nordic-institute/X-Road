@@ -31,12 +31,10 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
-import io.quarkus.scheduler.common.runtime.util.SchedulerUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.management.rpc.ManagementRpcClient;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogArchivalRequest;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogArchivalResp;
@@ -55,25 +53,25 @@ public class LogArchiverJob {
 
     @PostConstruct
     public void init() {
-        var archiverProps = messageLogProperties.archiver();
-
-        if (StringUtils.isNotBlank(archiverProps.archiveInterval())
-                && !SchedulerUtils.isOff(archiverProps.archiveInterval())) {
-            log.info("Scheduling {}", this.getClass().getSimpleName());
-            scheduler.newJob(this.getClass().getSimpleName())
-                    .setCron(archiverProps.archiveInterval())
-                    .setTask(this::execute)
-                    .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                    .setSkipPredicate(applicationNotRunning)
-                    .schedule();
-        } else {
-            log.info("{} is disabled.", this.getClass().getSimpleName());
-        }
+//        var archiverProps = messageLogProperties.archiver();
+//
+//        if (StringUtils.isNotBlank(archiverProps.archiveInterval())
+//                && !SchedulerUtils.isOff(archiverProps.archiveInterval())) {
+//            log.info("Scheduling {}", this.getClass().getSimpleName());
+//            scheduler.newJob(this.getClass().getSimpleName())
+//                    .setCron(archiverProps.archiveInterval())
+//                    .setTask(this::execute)
+//                    .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+//                    .setSkipPredicate(applicationNotRunning)
+//                    .schedule();
+//        } else {
+//            log.info("{} is disabled.", this.getClass().getSimpleName());
+//        }
     }
 
     void execute(ScheduledExecution execution) {
         var startTime = System.currentTimeMillis();
-        
+
         try {
             log.info("Starting Message-Log archival job");
 
@@ -86,7 +84,7 @@ public class LogArchiverJob {
                 @Override
                 public void onNext(MessageLogArchivalResp response) {
                     var duration = System.currentTimeMillis() - startTime;
-                    
+
                     if (response.getSuccess()) {
                         log.info("Message-Log archival completed successfully in {} ms: {}", duration, response.getMessage());
                     } else {

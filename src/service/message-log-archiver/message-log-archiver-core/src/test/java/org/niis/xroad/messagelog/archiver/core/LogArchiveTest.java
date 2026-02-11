@@ -27,7 +27,6 @@
 
 package org.niis.xroad.messagelog.archiver.core;
 
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.apache.commons.io.FileUtils;
@@ -43,15 +42,17 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.LogRecord;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.messagelog.archive.DisabledEncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.IOException;
@@ -197,12 +198,12 @@ class LogArchiveTest {
     }
 
     private LogArchiveWriter createWriter(long maxFilesize, GroupingStrategy groupingStrategy) {
-        LogArchiverExecutionProperties executionProperties = createExecutionProperties(maxFilesize, groupingStrategy);
         return new LogArchiveWriter(globalConfProvider,
                 Paths.get("build/slog"),
                 dummyLogArchiveBase(),
                 encryptionConfigProvider,
-                executionProperties) {
+                createArchiverProperties(maxFilesize),
+                createEncryptionProperties(groupingStrategy)) {
 
             @Override
             protected void rotate() throws IOException {
@@ -212,31 +213,17 @@ class LogArchiveTest {
         };
     }
 
-    private LogArchiverExecutionProperties createExecutionProperties(long maxFilesize, GroupingStrategy groupingStrategy) {
-        var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
-                false,
-                Optional.empty(),
-                groupingStrategy,
-                Map.of()
-        );
+    private MessageLogArchiverProperties createArchiverProperties(long maxFilesize) {
+        return ConfigUtils.initConfiguration(MessageLogArchiverProperties.class,
+                Map.of("xroad.message-log-archiver.clean-transaction-batch-size", "100",
+                        "xroad.message-log-archiver.transaction-batch-size", "100",
+                        "xroad.message-log-archiver.archive-path", "build/slog",
+                        "xroad.message-log-archiver.max-filesize", String.valueOf(maxFilesize)));
+    }
 
-        var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
-                false,
-                null
-        );
-
-        return new LogArchiverExecutionProperties(
-                archiveEncryption,
-                databaseEncryption,
-                100,
-                30,
-                100,
-                "build/slog",
-                null,
-                DigestAlgorithm.SHA512,
-                maxFilesize,
-                "build/tmp"
-        );
+    private MessageLogEncryptionProperties.ArchiveEncryptionConfig createEncryptionProperties(GroupingStrategy groupingStrategy) {
+        return ConfigUtils.initConfiguration(MessageLogEncryptionProperties.ArchiveEncryptionConfig.class,
+                Map.of("xroad.message-log-encryption.archive.grouping-strategy", groupingStrategy.name()));
     }
 
     private LogArchiveBase dummyLogArchiveBase() {

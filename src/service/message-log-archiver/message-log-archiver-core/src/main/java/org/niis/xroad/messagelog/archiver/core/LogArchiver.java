@@ -28,6 +28,7 @@ package org.niis.xroad.messagelog.archiver.core;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -42,10 +43,11 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.LogRecord;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.mapper.ArchiveDigestMapper;
 import org.niis.xroad.messagelog.entity.ArchiveDigestEntity;
 import org.niis.xroad.messagelog.entity.MessageRecordEntity;
@@ -71,6 +73,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class LogArchiver {
 
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
@@ -83,11 +86,12 @@ public class LogArchiver {
     private final DatabaseCtx databaseCtx;
     private final VaultClient vaultClient;
 
-    public void execute(LogArchiverExecutionProperties executionProperties) {
+    public void execute(MessageLogArchiverProperties executionProperties,
+                        MessageLogEncryptionProperties databaseEncryptionProperties) {
         try {
             Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {
-                while (handleArchive(executionProperties, maxRecordId)) {
+                while (handleArchive(executionProperties, databaseEncryptionProperties, maxRecordId)) {
                     // body intentionally empty
                 }
             }
@@ -103,17 +107,19 @@ public class LogArchiver {
                 .executeUpdate();
     }
 
-    private boolean handleArchive(LogArchiverExecutionProperties executionProperties, long maxRecordId) {
+    private boolean handleArchive(MessageLogArchiverProperties executionProperties,
+                                  MessageLogEncryptionProperties messageLogEncryptionProperties,
+                                  long maxRecordId) {
         return databaseCtx.doInTransaction(session -> {
-            final int limit = executionProperties.archiveTransactionBatchSize();
+            final int limit = executionProperties.transactionBatchSize();
             final long start = System.currentTimeMillis();
             final MessageRecordEncryption messageRecordEncryption = new MessageRecordEncryption(
-                    executionProperties.databaseEncryption(), vaultClient);
+                    messageLogEncryptionProperties.db(), vaultClient);
 
             int recordsArchived = 0;
             log.info("Archiving log records...");
 
-            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(executionProperties, session)) {
+            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(executionProperties, messageLogEncryptionProperties, session)) {
                 List<Long> recordIds = new ArrayList<>(100);
                 try (Stream<MessageRecordEntity> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
                     for (Iterator<MessageRecordEntity> it = records.iterator(); it.hasNext(); ) {
@@ -122,7 +128,7 @@ public class LogArchiver {
                         recordIds.add(messageRecord.getId());
                         messageRecordEncryption.prepareDecryption(messageRecord);
                         if (archiveWriter.write(messageRecord)) {
-                            executionProperties.archiveTransferCommandOpt().ifPresent(this::runTransferCommand);
+                            executionProperties.archiveTransferCommand().ifPresent(this::runTransferCommand);
                         }
                         //evict record from persistence context to avoid running out of memory
                         session.detach(entity);
@@ -146,7 +152,7 @@ public class LogArchiver {
                 throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
             } finally {
                 if (recordsArchived > 0) {
-                    executionProperties.archiveTransferCommandOpt().ifPresent(this::runTransferCommand);
+                    executionProperties.archiveTransferCommand().ifPresent(this::runTransferCommand);
                     log.info("Archived {} log records in {} ms", recordsArchived, System.currentTimeMillis() - start);
                 }
             }
@@ -155,20 +161,23 @@ public class LogArchiver {
         });
     }
 
-    private LogArchiveWriter createLogArchiveWriter(LogArchiverExecutionProperties executionProperties, Session session)
+    private LogArchiveWriter createLogArchiveWriter(MessageLogArchiverProperties archiverProperties,
+                                                    MessageLogEncryptionProperties encryptionProperties,
+                                                    Session session)
             throws IOException {
         var encryptionConfigProvider = EncryptionConfigProvider.create(keyManager,
-                encryptionService, executionProperties.archiveEncryption());
+                encryptionService, encryptionProperties.archive());
 
         return new LogArchiveWriter(globalConfProvider,
-                getArchivePath(executionProperties),
+                getArchivePath(archiverProperties),
                 new HibernateLogArchiveBase(session),
                 encryptionConfigProvider,
-                executionProperties
+                archiverProperties,
+                encryptionProperties.archive()
         );
     }
 
-    private Path getArchivePath(LogArchiverExecutionProperties executionProperties) throws IOException {
+    private Path getArchivePath(MessageLogArchiverProperties executionProperties) throws IOException {
         var archivePath = Paths.get(executionProperties.archivePath());
         if (!Files.isDirectory(archivePath)) {
             throw new IOException("Log output path (" + archivePath + ") must be directory");

@@ -159,10 +159,16 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
 
     private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics() {
+        // todo: fixme:
+//        return new MessageLogEncryptionStatusDiagnostics(
+//                messageLogProperties.archiver().encryptionEnabled(),
+//                messageLogProperties.databaseEncryption().enabled(),
+//                messageLogProperties.archiver().groupingStrategy().name(),
+//                getMessageLogArchiveEncryptionMembers());
         return new MessageLogEncryptionStatusDiagnostics(
-                messageLogProperties.archiver().encryptionEnabled(),
-                messageLogProperties.databaseEncryption().enabled(),
-                messageLogProperties.archiver().groupingStrategy().name(),
+                false,
+                true,
+                "TODO?",
                 getMessageLogArchiveEncryptionMembers());
     }
 

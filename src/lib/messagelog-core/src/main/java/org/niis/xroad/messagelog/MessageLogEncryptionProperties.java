@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,53 +23,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.core.config;
+package org.niis.xroad.messagelog;
 
-
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public record LogArchiverExecutionProperties(
-        ArchiveEncryptionProperties archiveEncryption,
-        DatabaseEncryptionProperties databaseEncryption,
-        int cleanTransactionBatchSize,
-        int cleanKeepRecordsFor,
-        int archiveTransactionBatchSize,
-        String archivePath,
-        String archiveTransferCommand,
-        DigestAlgorithm digestAlgorithm,
-        long archiveMaxFilesize,
-        String tmpDir
-) {
+/**
+ * Message log archival properties
+ */
+@ConfigMapping(prefix = "xroad.message-log-encryption")
+public interface MessageLogEncryptionProperties {
 
-    public Optional<String> archiveTransferCommandOpt() {
-        return Optional.ofNullable(archiveTransferCommand);
+    @WithName("archive")
+    ArchiveEncryptionConfig archive();
+
+    @WithName("db")
+    DbEncryptionConfig db();
+
+    interface ArchiveEncryptionConfig {
+
+        @WithName("encryption-enabled")
+        @WithDefault("false")
+        boolean encryptionEnabled();
+
+        @WithName("default-key-id")
+        Optional<String> defaultKeyId();
+
+        @WithName("grouping-strategy")
+        @WithDefault("NONE")
+        GroupingStrategy groupingStrategy();
+
+        @WithName("grouping-keys")
+        @WithDefault("")
+        Map<String, Set<String>> grouping();
+
     }
 
-    /**
-     * Archive encryption configuration
-     */
-    public record ArchiveEncryptionProperties(
-            boolean encryptionEnabled,
-            Optional<String> defaultKeyId,
-            GroupingStrategy groupingStrategy,
-            Map<String, Set<String>> grouping
-    ) implements MessageLogArchivalProperties {
+    interface DbEncryptionConfig {
+        /**
+         * @return true if message log database encryption is enabled
+         */
+        @WithName("encryption-enabled")
+        @WithDefault("false")
+        boolean enabled();
+
+        /**
+         * @return message log encryption key ID. Required when encryption is enabled.
+         * This ID is used as the HKDF salt for key derivation from the Vault secret.
+         */
+        @WithName("key-id")
+        @WithDefault("default")
+        String keyId();
     }
 
-    /**
-     * Database encryption configuration
-     */
-    public record DatabaseEncryptionProperties(
-            boolean enabled,
-            String keyId
-    ) implements MessageLogDatabaseEncryptionProperties {
-    }
 }

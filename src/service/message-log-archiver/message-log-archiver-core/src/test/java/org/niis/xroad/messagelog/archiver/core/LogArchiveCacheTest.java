@@ -45,11 +45,12 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.archive.EncryptionConfig;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 import org.niix.xroad.common.pgp.test.StreamingPgpDecryptor;
 
 import java.io.ByteArrayInputStream;
@@ -306,31 +307,12 @@ class LogArchiveCacheTest {
         archiveMaxFilesize = DEFAULT_ARCHIVE_MAX_FILESIZE;
     }
 
-    private LogArchiverExecutionProperties createExecutionProperties() {
-        var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
-                false,
-                Optional.empty(),
-                GroupingStrategy.NONE,
-                Map.of()
-        );
-
-        var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
-                false,
-                null
-        );
-
-        return new LogArchiverExecutionProperties(
-                archiveEncryption,
-                databaseEncryption,
-                100,
-                30,
-                100,
-                "build/slog",
-                null,
-                DigestAlgorithm.SHA512,
-                archiveMaxFilesize,
-                "build/tmp"
-        );
+    private MessageLogArchiverProperties createArchiverProperties() {
+        return ConfigUtils.initConfiguration(MessageLogArchiverProperties.class,
+                Map.of("xroad.message-log-archiver.clean-transaction-batch-size", "100",
+                        "xroad.message-log-archiver.transaction-batch-size", "100",
+                        "xroad.message-log-archiver.archive-path", "build/slog",
+                        "xroad.message-log-archiver.max-filesize", String.valueOf(archiveMaxFilesize)));
     }
 
     private MessageRecord createRequestRecordNormal() throws Exception {
@@ -508,7 +490,7 @@ class LogArchiveCacheTest {
                 builder,
                 encryptionConfig,
                 Paths.get("build/tmp/"),
-                createExecutionProperties()
+                createArchiverProperties()
         );
     }
 

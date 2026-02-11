@@ -31,12 +31,10 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
-import io.quarkus.scheduler.common.runtime.util.SchedulerUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.management.rpc.ManagementRpcClient;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogCleanupRequest;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogCleanupResp;
@@ -55,25 +53,25 @@ public class LogCleanerJob {
 
     @PostConstruct
     public void init() {
-        var archiverProps = messageLogProperties.archiver();
-
-        if (StringUtils.isNotBlank(archiverProps.cleanInterval())
-                && !SchedulerUtils.isOff(archiverProps.cleanInterval())) {
-            log.info("Scheduling {}", this.getClass().getSimpleName());
-            scheduler.newJob(this.getClass().getSimpleName())
-                    .setCron(archiverProps.cleanInterval())
-                    .setTask(this::execute)
-                    .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                    .setSkipPredicate(applicationNotRunning)
-                    .schedule();
-        } else {
-            log.info("{} is disabled.", this.getClass().getSimpleName());
-        }
+//        var archiverProps = messageLogProperties.archiver();
+//
+//        if (StringUtils.isNotBlank(archiverProps.cleanInterval())
+//                && !SchedulerUtils.isOff(archiverProps.cleanInterval())) {
+//            log.info("Scheduling {}", this.getClass().getSimpleName());
+//            scheduler.newJob(this.getClass().getSimpleName())
+//                    .setCron(archiverProps.cleanInterval())
+//                    .setTask(this::execute)
+//                    .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+//                    .setSkipPredicate(applicationNotRunning)
+//                    .schedule();
+//        } else {
+//            log.info("{} is disabled.", this.getClass().getSimpleName());
+//        }
     }
 
     void execute(ScheduledExecution execution) {
         var startTime = System.currentTimeMillis();
-        
+
         try {
             log.info("Starting Message-Log cleanup job");
 
@@ -86,7 +84,7 @@ public class LogCleanerJob {
                 @Override
                 public void onNext(MessageLogCleanupResp response) {
                     var duration = System.currentTimeMillis() - startTime;
-                    
+
                     if (response.getSuccess()) {
                         log.info("Message-Log cleanup completed successfully in {} ms: {} (records removed: {})",
                                 duration, response.getMessage(), response.getRecordsRemoved());

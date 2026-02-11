@@ -24,32 +24,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.messagelog.archiver.core.config;
 
-import io.quarkus.vault.VaultKVSecretEngine;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Disposes;
-import jakarta.inject.Singleton;
-import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
-import org.niis.xroad.messagelog.MessageLogDbProperties;
-import org.niis.xroad.messagelog.archive.MessageLogEncryptionConfig;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
-public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig {
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-    @Singleton
-    MessageLogDatabaseCtx databaseCtx(MessageLogDbProperties properties) {
-        return new MessageLogDatabaseCtx(properties.hibernate());
-    }
+import java.util.Optional;
 
-    public void cleanup(@Disposes MessageLogDatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
-    }
+// todo: fixme: recheck prefixes
+@ConfigMapping(prefix = "xroad.message-log-archiver")
+public interface MessageLogArchiverProperties {
 
-    @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+    @WithName("archive-interval")
+    @WithDefault("0 0 0/6 1/1 * ?")
+    String archiveInterval();
+
+    @WithName("clean-interval")
+    @WithDefault("0 0 0/12 1/1 * ?")
+    String cleanInterval();
+
+    @WithName("clean-transaction-batch-size")
+    @WithDefault("10000")
+    int cleanTransactionBatchSize();
+
+    @WithName("clean-keep-records-for")
+    @WithDefault("30")
+    int cleanKeepRecordsFor();
+
+    @WithName("max-filesize")
+    @WithDefault("33554432")
+    int maxFilesize();
+
+    @WithName("transaction-batch-size")
+    @WithDefault("10000")
+    int transactionBatchSize();
+
+    @WithName("archive-path")
+    @WithDefault("/var/lib/xroad")
+    String archivePath();
+
+    @WithName("archive-transfer-command")
+    Optional<String> archiveTransferCommand();
+
+    // todo: duplicates value proxy.message-log.hash-algo-id
+    @WithName("hash-algo-id")
+    @WithDefault("SHA-512")
+    String hashAlgoIdStr();
+
+    default DigestAlgorithm hashAlg() {
+        return Optional.ofNullable(hashAlgoIdStr())
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
 }

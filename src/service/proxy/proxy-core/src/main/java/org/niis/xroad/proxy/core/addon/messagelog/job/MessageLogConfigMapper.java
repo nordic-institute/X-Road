@@ -29,11 +29,7 @@ package org.niis.xroad.proxy.core.addon.messagelog.job;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.messagelog.archiver.proto.MessageLogConfig;
-import org.niis.xroad.messagelog.archiver.proto.StringList;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Maps ProxyProperties archiver configuration to MessageLogConfig proto message.
@@ -49,34 +45,34 @@ public class MessageLogConfigMapper {
      * @return MessageLogConfig proto message
      */
     public MessageLogConfig buildMessageLogConfig() {
-        var archiverProps = messageLogProperties.archiver();
-        var databaseEncryptionProps = messageLogProperties.databaseEncryption();
+//        var archiverProps = messageLogProperties.archiver();
+//        var databaseEncryptionProps = messageLogProperties.databaseEncryption();
 
-        MessageLogConfig.Builder builder = MessageLogConfig.newBuilder()
-                .setArchiveEncryptionEnabled(archiverProps.encryptionEnabled())
-                .setArchiveGroupingStrategy(archiverProps.groupingStrategy().name())
-                .setCleanTransactionBatchSize(archiverProps.cleanTransactionBatchSize())
-                .setCleanKeepRecordsFor(archiverProps.cleanKeepRecordsFor())
-                .setArchiveTransactionBatchSize(archiverProps.transactionBatchSize())
-                .setArchivePath(archiverProps.archivePath())
-                .setGroupingStrategy(archiverProps.groupingStrategy().name())
-                .setDigestAlgorithm(messageLogProperties.hashAlgoIdStr())
-                .setArchiveMaxFilesize(archiverProps.maxFilesize())
-                .setTmpDir(archiverProps.archivePath())
-                .setDatabaseEncryptionEnabled(databaseEncryptionProps.enabled())
-                .setDatabaseEncryptionKeyId(databaseEncryptionProps.keyId());
+        MessageLogConfig.Builder builder = MessageLogConfig.newBuilder();
+//                .setArchiveEncryptionEnabled(archiverProps.encryptionEnabled())
+//                .setArchiveGroupingStrategy(archiverProps.groupingStrategy().name())
+//                .setCleanTransactionBatchSize(archiverProps.cleanTransactionBatchSize())
+//                .setCleanKeepRecordsFor(archiverProps.cleanKeepRecordsFor())
+//                .setArchiveTransactionBatchSize(archiverProps.transactionBatchSize())
+//                .setArchivePath(archiverProps.archivePath())
+//                .setGroupingStrategy(archiverProps.groupingStrategy().name())
+//                .setDigestAlgorithm(messageLogProperties.hashAlgoIdStr())
+//                .setArchiveMaxFilesize(archiverProps.maxFilesize())
+//                .setTmpDir(archiverProps.archivePath())
+//                .setDatabaseEncryptionEnabled(databaseEncryptionProps.enabled())
+//                .setDatabaseEncryptionKeyId(databaseEncryptionProps.keyId());
 
         // Add optional fields
-        archiverProps.defaultKeyId().ifPresent(builder::setArchiveEncryptionDefaultKeyId);
-        archiverProps.archiveTransferCommand().ifPresent(builder::setArchiveTransferCommand);
+//        archiverProps.defaultKeyId().ifPresent(builder::setArchiveEncryptionDefaultKeyId);
+//        archiverProps.archiveTransferCommand().ifPresent(builder::setArchiveTransferCommand);
 
         // Convert archive grouping map
-        Map<String, StringList> archiveGrouping = archiverProps.grouping().entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> StringList.newBuilder().addAllValues(entry.getValue()).build()
-                ));
-        builder.putAllArchiveGrouping(archiveGrouping);
+//        Map<String, StringList> archiveGrouping = archiverProps.grouping().entrySet().stream()
+//                .collect(Collectors.toMap(
+//                        Map.Entry::getKey,
+//                        entry -> StringList.newBuilder().addAllValues(entry.getValue()).build()
+//                ));
+//        builder.putAllArchiveGrouping(archiveGrouping);
 
         return builder.build();
     }
