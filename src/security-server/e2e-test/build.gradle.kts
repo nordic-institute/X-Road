@@ -31,7 +31,7 @@ intTestComposeEnv {
     "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer",
     "PROXY_IMG" to "ss-proxy",
     "PROXY_UI_IMG" to "ss-proxy-ui-api",
-    "BACKUP_MANAGER_IMG" to "ss-backup-manager",
+    "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
     "OP_MONITOR_IMG" to "ss-op-monitor",
     "CA_IMG" to "testca-dev"
   )

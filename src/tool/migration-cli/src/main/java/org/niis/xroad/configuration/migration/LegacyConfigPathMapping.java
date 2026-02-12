@@ -91,9 +91,9 @@ public class LegacyConfigPathMapping {
         addMapping("proxy.server-conf-acl-cache-size", "common-server-conf.acl-cache-size");
         addMapping("proxy.grpc-port", "proxy.rpc.port");
 
-        addMapping("proxy.backup-encryption-enabled", "backup-manager.backup-encryption-enabled");
-        addMapping("proxy.backup-encryption-keyids", "backup-manager.backup-encryption-keyids");
-        addMapping("configuration-client.proxy-configuration-backup-cron", "backup-manager.autobackup-cron-expression");
+        addMapping("proxy.backup-encryption-enabled", "auxiliary-service.backup.encryption-enabled");
+        addMapping("proxy.backup-encryption-keyids", "auxiliary-service.backup.encryption-keyids");
+        addMapping("configuration-client.proxy-configuration-backup-cron", "auxiliary-service.backup.autobackup-cron-expression");
 
         // message-log - timestamper properties (moved to timestamper sub-section)
         addMapping("message-log.timestamper-client-connect-timeout", "proxy.message-log.timestamper.client-connect-timeout");

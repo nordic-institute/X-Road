@@ -39,7 +39,7 @@ dependencies {
   implementation(project(":service:monitor:monitor-api"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:op-monitor:op-monitor-client"))
-  implementation(project(":service:backup-manager:backup-manager-rpc-client"))
+  implementation(project(":service:auxiliary-service:auxiliary-service-rpc-client"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
   implementation(project(":service:proxy:proxy-rpc-client"))

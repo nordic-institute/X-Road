@@ -215,7 +215,7 @@ services:
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
       XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy"
-      XROAD_COMMON_RPC_CHANNEL_BACKUP_MANAGER_HOST: "backup-manager"
+      XROAD_COMMON_RPC_CHANNEL_AUXILIARY_SERVICE_HOST: "auxiliary-service"
       XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
@@ -324,8 +324,8 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
-  backup-manager:
-    imageName: ss-backup-manager
+  auxiliary-service:
+    imageName: ss-auxiliary-service
     resources:
       requests:
         memory: 256Mi
@@ -354,7 +354,7 @@ services:
       - /var/lib/xroad
     env:
       JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=64m
-      XROAD_HOST: "backup-manager"
+      XROAD_HOST: "auxiliary-service"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_SERVERCONF_DB_HOST: "db-serverconf"
       XROAD_SERVERCONF_DB_PORT: "5432"

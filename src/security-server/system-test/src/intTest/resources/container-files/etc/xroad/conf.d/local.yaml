@@ -48,9 +48,10 @@ xroad:
     automatic-activate-acme-sign-certificate: true
   op-monitor:
     scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
-  backup-manager:
-    backup-encryption-enabled: true
-    backup-encryption-keyids: [ "backup.key1@example.org", "backup.key2@example.org", "backup.key3@example.org" ]
+  auxiliary-service:
+    backup:
+      encryption-enabled: true
+      encryption-keyids: [ "backup.key1@example.org", "backup.key2@example.org", "backup.key3@example.org" ]
   acme: |
     eab-credentials:
       certificate-authorities:

@@ -15,11 +15,11 @@ ss_modules:
     build: build
     target: /usr/share/xroad/jlib/configuration-client
     service: xroad-confclient
-  backup-manager:
-    dir: service/backup-manager/backup-manager-application
+  auxiliary-service:
+    dir: service/auxiliary-service/auxiliary-service-application
     build: build
-    target: /usr/share/xroad/jlib/backup-manager
-    service: xroad-backup-manager
+    target: /usr/share/xroad/jlib/auxiliary-service
+    service: xroad-auxiliary-service
   message-log-archiver:
     dir: service/message-log-archiver/message-log-archiver-cli
     build: build

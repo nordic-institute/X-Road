@@ -68,9 +68,9 @@ include("lib:vault-quarkus")
 // Service projects
 include("service")
 
-include("service:backup-manager:backup-manager-application")
-include("service:backup-manager:backup-manager-rpc-client")
-include("service:backup-manager:backup-manager-core")
+include("service:auxiliary-service:auxiliary-service-application")
+include("service:auxiliary-service:auxiliary-service-rpc-client")
+include("service:auxiliary-service:auxiliary-service-core")
 
 include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
