@@ -35,6 +35,7 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
@@ -66,6 +67,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final ProxyMemoryStatusService proxyMemoryStatusService;
     private final EncryptionConfigProvider encryptionConfigProvider;
     private final ProxyMessageLogProperties messageLogProperties;
+    private final MessageLogEncryptionProperties messageLogEncryptionProperties;
 
     private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
@@ -159,16 +161,10 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
 
     private MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics() {
-        // todo: fixme:
-//        return new MessageLogEncryptionStatusDiagnostics(
-//                messageLogProperties.archiver().encryptionEnabled(),
-//                messageLogProperties.databaseEncryption().enabled(),
-//                messageLogProperties.archiver().groupingStrategy().name(),
-//                getMessageLogArchiveEncryptionMembers());
         return new MessageLogEncryptionStatusDiagnostics(
-                false,
-                true,
-                "TODO?",
+                messageLogEncryptionProperties.archive().encryptionEnabled(),
+                messageLogEncryptionProperties.db().enabled(),
+                messageLogEncryptionProperties.archive().groupingStrategy().name(),
                 getMessageLogArchiveEncryptionMembers());
     }
 
