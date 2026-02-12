@@ -120,11 +120,11 @@ public class LegacyConfigPathMapping {
         addMapping("message-log.archive-max-filesize", "message-log-archiver.max-filesize");
         addMapping("message-log.archive-path", "message-log-archiver.archive-path");
         addMapping("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
-        addMapping("message-log.archive-interval", "message-log-archiver.archive-interval");
-        addMapping("message-log.clean-interval", "message-log-archiver.clean-interval");
         addMapping("message-log.keep-records-for", "message-log-archiver.clean-keep-records-for");
         addMapping("message-log.archive-transaction-batch", "message-log-archiver.transaction-batch-size");
         addMapping("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
+        addMapping("message-log.archive-interval", "auxiliary-service.message-log.archive-cron");
+        addMapping("message-log.clean-interval", "auxiliary-service.message-log.clean-cron");
 
         // message-log - archive encryption/grouping properties (moved to archiver sub-section and renamed)
         addMapping("message-log.archive-encryption-enabled", "message-log-encryption.archive.encryption-enabled");

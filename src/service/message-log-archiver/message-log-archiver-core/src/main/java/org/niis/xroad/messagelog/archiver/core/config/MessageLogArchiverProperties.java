@@ -35,17 +35,8 @@ import io.smallrye.config.WithName;
 
 import java.util.Optional;
 
-// todo: fixme: recheck prefixes
 @ConfigMapping(prefix = "xroad.message-log-archiver")
 public interface MessageLogArchiverProperties {
-
-    @WithName("archive-interval")
-    @WithDefault("0 0 0/6 1/1 * ?")
-    String archiveInterval();
-
-    @WithName("clean-interval")
-    @WithDefault("0 0 0/12 1/1 * ?")
-    String cleanInterval();
 
     @WithName("clean-transaction-batch-size")
     @WithDefault("10000")

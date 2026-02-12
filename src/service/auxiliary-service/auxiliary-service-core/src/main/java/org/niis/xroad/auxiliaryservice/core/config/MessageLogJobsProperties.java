@@ -32,7 +32,7 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = "xroad.auxiliary-service.message-log")
-public interface MessageLogArchiverProperties {
+public interface MessageLogJobsProperties {
 
     @WithName("archive-cron")
     @WithDefault("0 0 0/6 1/1 * ?")

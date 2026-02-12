@@ -39,7 +39,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.auxiliaryservice.core.config.MessageLogArchiverProperties;
+import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
 
 @Startup
 @ApplicationScoped
@@ -48,7 +48,7 @@ import org.niis.xroad.auxiliaryservice.core.config.MessageLogArchiverProperties;
 public class MessageLogCleanupJob {
 
     private final Scheduler scheduler;
-    private final MessageLogArchiverProperties properties;
+    private final MessageLogJobsProperties properties;
     private final ExternalProcessRunner externalProcessRunner;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
