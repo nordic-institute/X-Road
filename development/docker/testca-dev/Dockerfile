@@ -1,24 +1,24 @@
-FROM ubuntu:24.04
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}ubuntu:24.04
 
-# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
-RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
+
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # ACME
 ARG A2C_VER=0.35
 ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get -qq update \
-  && apt-get -qq install --no-install-recommends  \
-    ca-certificates supervisor nginx-light python3 python3-pip  \
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates supervisor nginx python3 python3-pip \
     uwsgi uwsgi-plugin-python3 curl nano \
-  && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-1_all.deb  \
-  && apt-get -qq clean
+  && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-1_all.deb \
+  && apt-get clean
 
 #Setup TEST-CA with TSA and OCSP
 RUN useradd -m ca -U \
@@ -65,6 +65,11 @@ COPY files/ca-entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh
 
 COPY --chown=root:root files/ca-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# Cleanup mirror configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
+
 CMD ["/root/entrypoint.sh"]
 
 EXPOSE 8887 8888 8899

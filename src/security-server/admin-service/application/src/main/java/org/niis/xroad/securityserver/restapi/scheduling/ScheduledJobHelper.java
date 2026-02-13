@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -34,7 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Helper class for GlobalConfChecker.
+ * Helper class for Scheduled jobs.
  * This class does not require authentication, because its
  * methods are accessed from a scheduled job that's run
  * unauthenticated.
@@ -42,11 +44,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @Transactional
-class GlobalConfCheckerHelper {
+class ScheduledJobHelper {
     private final ServerConfRepository serverConfRepository;
 
     @Autowired
-    GlobalConfCheckerHelper(ServerConfRepository serverConfRepository) {
+    ScheduledJobHelper(ServerConfRepository serverConfRepository) {
         this.serverConfRepository = serverConfRepository;
     }
 
@@ -56,5 +58,14 @@ class GlobalConfCheckerHelper {
      */
     ServerConfEntity getServerConf() {
         return serverConfRepository.getServerConf();
+    }
+
+    /**
+     * Get the Security Server's id
+     * @return SecurityServerId.Conf
+     */
+    SecurityServerId.Conf getSecurityServerId() {
+        ServerConfEntity serverConf = getServerConf();
+        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
     }
 }

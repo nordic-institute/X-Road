@@ -29,11 +29,16 @@ OPTIONS:
                             Default: host platform only
     --push                  Push images to registry
                             Default: true in CI, false locally
+    --no-cache              Disable Docker build cache
+    --no-mirror             Skip package mirror configuration
     --help                  Show this help
 
 ENVIRONMENT VARIABLES:
     IMAGE_REGISTRY          Docker registry URL (default: localhost:5555)
     IMAGE_TAG               Image tag to use (default: xroadVersion-xroadBuildType)
+    XROAD_MIRROR_UBUNTU_URL Package mirror URL (optional)
+    XROAD_MIRROR_USERNAME   Mirror username (optional)
+    XROAD_MIRROR_TOKEN      Mirror token (optional)
 
 EXAMPLES:
     # Build all services for host platform (local dev)
@@ -55,6 +60,8 @@ EOF
 SERVICES=()
 PLATFORMS=""
 PUSH=""
+NO_CACHE="false"
+NO_MIRROR="false"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -67,6 +74,14 @@ while [[ $# -gt 0 ]]; do
     ;;
   --push)
     PUSH="true"
+    shift
+    ;;
+  --no-cache)
+    NO_CACHE="true"
+    shift
+    ;;
+  --no-mirror)
+    NO_MIRROR="true"
     shift
     ;;
   -*)
@@ -134,11 +149,69 @@ if [[ -z "$IMAGE_TAG" ]]; then
   fi
 fi
 
+# Prepare cache flag
+CACHE_FLAG=()
+if [[ "$NO_CACHE" == "true" ]]; then
+  CACHE_FLAG=(--no-cache)
+fi
+
+# Prepare mirror build args (unless --no-mirror flag is set)
+# Always include mirror-scripts build context (Dockerfiles require it even if mirror not used)
+MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts")
+log_info "=== Mirror Configuration ==="
+log_info "NO_MIRROR flag: $NO_MIRROR"
+log_info "XROAD_MIRROR_DOCKER_URL: ${XROAD_MIRROR_DOCKER_URL:-<not set>}"
+log_info "XROAD_MIRROR_UBUNTU_URL: ${XROAD_MIRROR_UBUNTU_URL:-<not set>}"
+log_info "XROAD_MIRROR_USERNAME: ${XROAD_MIRROR_USERNAME:-<not set>}"
+if [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  log_info "XROAD_MIRROR_TOKEN: <present>"
+else
+  log_info "XROAD_MIRROR_TOKEN: <not set>"
+fi
+
+# Add Docker Hub mirror build arg if configured
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
+  log_success "Docker mirror ENABLED: $XROAD_MIRROR_DOCKER_URL"
+fi
+
+# Add GitHub mirror URL if configured (used for JMX Prometheus JAR download)
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_GITHUB_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "GITHUB_URL=${XROAD_MIRROR_GITHUB_URL}")
+  log_success "GitHub mirror ENABLED: $XROAD_MIRROR_GITHUB_URL"
+fi
+
+# Add kubectl mirror URL if configured
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_K8S_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "KUBECTL_DIST_URL=${XROAD_MIRROR_K8S_URL}")
+  log_success "kubectl mirror ENABLED: $XROAD_MIRROR_K8S_URL"
+fi
+
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+  )
+  log_success "APT mirror ENABLED: $XROAD_MIRROR_UBUNTU_URL"
+else
+  log_warn "APT mirror DISABLED (using public repos)"
+fi
+
+# Pass mirror credentials to all builds (used by APT, curl-based downloads, etc.)
+if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
+fi
+log_info "MIRROR_BUILD_ARGS: ${MIRROR_BUILD_ARGS[*]}"
+echo
+
 log_info "=== X-Road Security Server Images Build ==="
 log_info "Registry: $REGISTRY"
 log_info "Image Tag: $IMAGE_TAG"
 log_info "Platforms: ${PLATFORMS:-host platform}"
 log_info "Push: $PUSH"
+log_info "Cache: $(if [[ "$NO_CACHE" == "true" ]]; then echo "disabled"; else echo "enabled"; fi)"
 log_info "Services: ${SERVICES[*]}"
 echo
 
@@ -236,8 +309,8 @@ for service in "${SERVICES[@]}"; do
 
   # Build command with ALL contexts
   build_cmd=(
-    docker buildx build
-    --no-cache
+    docker buildx build --progress=plain
+    "${CACHE_FLAG[@]}"
     --file "${SCRIPT_DIR}/${dockerfile}"
     --build-arg "REGISTRY=${REGISTRY}"
     --build-arg "IMAGE_TAG=${IMAGE_TAG}"
@@ -245,6 +318,7 @@ for service in "${SERVICES[@]}"; do
     --build-context "license=${BUILD_DIR}"
     --build-context "pkcs11driver=${PKCS11_DIR}"
     --build-context "entrypoint=${context_dir}"
+    "${MIRROR_BUILD_ARGS[@]}"
   )
 
   # Add BASE_IMAGE build arg if specified in CSV (pass as-is, Dockerfile constructs full path)
