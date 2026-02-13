@@ -25,11 +25,6 @@ xroad:
     health-check-port: 5558
     message-log:
       timestamping-prioritization-strategy: PAID_FIRST
-      database-encryption:
-        enabled: true
-        key-id: default
-      archiver:
-        encryption-enabled: true
     addon:
       op-monitor:
         enabled: true
@@ -46,6 +41,12 @@ xroad:
     rate-limit-requests-per-minute: 10000
     acme-challenge-port-enabled: true
     automatic-activate-acme-sign-certificate: true
+  message-log-encryption:
+    db:
+      encryption-enabled: true
+      key-id: default
+    archive:
+      encryption-enabled: true
   op-monitor:
     scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
   auxiliary-service:
