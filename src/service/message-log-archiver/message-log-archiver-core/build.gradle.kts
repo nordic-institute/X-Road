@@ -9,8 +9,8 @@ dependencies {
   annotationProcessor(libs.mapstructProcessor)
 
   implementation(project(":common:common-db"))
+  implementation(project(":common:common-domain"))
   implementation(project(":lib:asic-core"))
-  implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:messagelog-core"))
   implementation(project(":lib:vault-quarkus"))
 
@@ -23,7 +23,6 @@ dependencies {
 
   testFixturesImplementation(project(":common:common-db"))
   testFixturesImplementation(project(":common:common-pgp"))
-  testFixturesImplementation(project(":lib:globalconf-core"))
   testFixturesImplementation(project(":lib:messagelog-core"))
   testFixturesImplementation(project(":lib:vault-quarkus"))
 }

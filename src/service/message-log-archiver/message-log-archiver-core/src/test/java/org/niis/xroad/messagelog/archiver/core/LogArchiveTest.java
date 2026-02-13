@@ -43,7 +43,6 @@ import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
@@ -53,7 +52,6 @@ import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
 import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
-import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -75,9 +73,10 @@ class LogArchiveTest {
     private static final int NUM_TIMESTAMPS = 3;
     private static final int NUM_RECORDS_PER_TIMESTAMP = 5;
 
+    private static final String INSTANCE_IDENTIFIER = "INSTANCE";
+
     private boolean rotated;
     private long recordNo;
-    private GlobalConfProvider globalConfProvider;
     private EncryptionConfigProvider encryptionConfigProvider;
 
     static Stream<Arguments> params() {
@@ -93,13 +92,6 @@ class LogArchiveTest {
 
     @BeforeEach
     void setup() throws Exception {
-        globalConfProvider = new EmptyGlobalConf() {
-            @Override
-            public String getInstanceIdentifier() {
-                return "INSTANCE";
-            }
-        };
-
         recordNo = 0;
         rotated = false;
 
@@ -198,7 +190,7 @@ class LogArchiveTest {
     }
 
     private LogArchiveWriter createWriter(long maxFilesize, GroupingStrategy groupingStrategy) {
-        return new LogArchiveWriter(globalConfProvider,
+        return new LogArchiveWriter(INSTANCE_IDENTIFIER,
                 Paths.get("build/slog"),
                 dummyLogArchiveBase(),
                 encryptionConfigProvider,
@@ -250,7 +242,7 @@ class LogArchiveTest {
 
         MessageRecord messageRecord = new MessageRecord("qid" + recordNo,
                 "msg" + recordNo, "sig" + recordNo, false,
-                ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
+                ClientId.Conf.create(INSTANCE_IDENTIFIER, "memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b");
         messageRecord.setId(recordNo);
         messageRecord.setTime(RandomUtils.insecure().randomLong());

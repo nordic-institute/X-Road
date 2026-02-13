@@ -157,7 +157,7 @@ abstract class AbstractMessageLogTest {
             Files.createDirectory(archivesPath);
         }
 
-        logArchiverRef = new TestLogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx, vaultClient);
+        logArchiverRef = new TestLogArchiver(keyManager, encryptionService, databaseCtx, vaultClient);
         logCleanerRef = new TestLogCleaner(databaseCtx);
     }
 
@@ -216,7 +216,7 @@ abstract class AbstractMessageLogTest {
     }
 
     void startArchiving() {
-        logArchiverRef.execute(messageLogArchiverProperties, messageLogEncryptionProperties);
+        logArchiverRef.execute(globalConfProvider.getInstanceIdentifier(), messageLogArchiverProperties, messageLogEncryptionProperties);
     }
 
     void startCleaning() {

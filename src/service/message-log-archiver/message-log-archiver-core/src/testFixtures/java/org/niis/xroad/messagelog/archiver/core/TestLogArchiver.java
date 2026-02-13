@@ -32,7 +32,6 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -43,10 +42,9 @@ public class TestLogArchiver extends LogArchiver {
 
     public TestLogArchiver(PgpKeyManager keyManager,
                     BouncyCastlePgpEncryptionService encryptionService,
-                    GlobalConfProvider globalConfProvider,
                     DatabaseCtx messageLogDatabaseCtx,
                     VaultClient vaultClient) {
-        super(keyManager, encryptionService, globalConfProvider, messageLogDatabaseCtx, vaultClient);
+        super(keyManager, encryptionService, messageLogDatabaseCtx, vaultClient);
     }
 
     @SuppressWarnings("checkstyle:magicnumber")

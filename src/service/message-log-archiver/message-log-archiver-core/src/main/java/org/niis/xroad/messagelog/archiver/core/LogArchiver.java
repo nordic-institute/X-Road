@@ -41,7 +41,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
@@ -82,22 +81,22 @@ public class LogArchiver {
 
     private final PgpKeyManager keyManager;
     private final BouncyCastlePgpEncryptionService encryptionService;
-    private final GlobalConfProvider globalConfProvider;
     private final DatabaseCtx databaseCtx;
     private final VaultClient vaultClient;
 
-    public void execute(MessageLogArchiverProperties archiverProperties,
+    public void execute(String instanceIdentifier, MessageLogArchiverProperties archiverProperties,
                         MessageLogEncryptionProperties encryptionProperties) {
         try {
             Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {
-                while (handleArchive(archiverProperties, encryptionProperties, maxRecordId)) {
+                while (handleArchive(instanceIdentifier, archiverProperties, encryptionProperties, maxRecordId)) {
                     // body intentionally empty
                 }
             }
             onArchivingDone();
         } catch (Exception ex) {
             log.error("Failed to archive log records", ex);
+            throw ex;
         }
     }
 
@@ -107,7 +106,7 @@ public class LogArchiver {
                 .executeUpdate();
     }
 
-    private boolean handleArchive(MessageLogArchiverProperties executionProperties,
+    private boolean handleArchive(String instanceIdentifier, MessageLogArchiverProperties executionProperties,
                                   MessageLogEncryptionProperties messageLogEncryptionProperties,
                                   long maxRecordId) {
         return databaseCtx.doInTransaction(session -> {
@@ -119,7 +118,8 @@ public class LogArchiver {
             int recordsArchived = 0;
             log.info("Archiving log records...");
 
-            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(executionProperties, messageLogEncryptionProperties, session)) {
+            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(instanceIdentifier, executionProperties,
+                    messageLogEncryptionProperties, session)) {
                 List<Long> recordIds = new ArrayList<>(100);
                 try (Stream<MessageRecordEntity> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
                     for (Iterator<MessageRecordEntity> it = records.iterator(); it.hasNext(); ) {
@@ -148,7 +148,7 @@ public class LogArchiver {
                     markTimestampRecordsArchived(session);
                 }
                 session.flush();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
             } finally {
                 if (recordsArchived > 0) {
@@ -161,14 +161,15 @@ public class LogArchiver {
         });
     }
 
-    private LogArchiveWriter createLogArchiveWriter(MessageLogArchiverProperties archiverProperties,
+    private LogArchiveWriter createLogArchiveWriter(String instanceIdentifier,
+                                                    MessageLogArchiverProperties archiverProperties,
                                                     MessageLogEncryptionProperties encryptionProperties,
                                                     Session session)
             throws IOException {
         var encryptionConfigProvider = EncryptionConfigProvider.create(keyManager,
                 encryptionService, encryptionProperties.archive());
 
-        return new LogArchiveWriter(globalConfProvider,
+        return new LogArchiveWriter(instanceIdentifier,
                 getArchivePath(archiverProperties),
                 new HibernateLogArchiveBase(session),
                 encryptionConfigProvider,

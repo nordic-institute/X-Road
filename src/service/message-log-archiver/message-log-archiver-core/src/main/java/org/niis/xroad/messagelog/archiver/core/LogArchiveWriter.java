@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
@@ -56,7 +55,7 @@ public class LogArchiveWriter implements Closeable {
 
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
-    private final GlobalConfProvider globalConfProvider;
+    private final String instanceIdentifier;
     private final Path outputPath;
     private final LogArchiveBase archiveBase;
 
@@ -75,17 +74,17 @@ public class LogArchiveWriter implements Closeable {
     /**
      * Creates new LogArchiveWriter
      *
-     * @param globalConfProvider  Global configuration provider
+     * @param instanceIdentifier X-Road instance identifier
      * @param outputPath          directory where the log archive is created
      * @param archiveBase         interface to archive database
      * @param encryption          BouncyCastle PGP encryption facade for Vault-based encryption
      * @param archiverProperties  archiver properties
      */
-    public LogArchiveWriter(GlobalConfProvider globalConfProvider, Path outputPath, LogArchiveBase archiveBase,
+    public LogArchiveWriter(String instanceIdentifier, Path outputPath, LogArchiveBase archiveBase,
                             EncryptionConfigProvider encryption,
                             MessageLogArchiverProperties archiverProperties,
                             MessageLogEncryptionProperties.ArchiveEncryptionConfig encryptionProperties) {
-        this.globalConfProvider = globalConfProvider;
+        this.instanceIdentifier = instanceIdentifier;
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
         this.linkingInfoBuilder = new LinkingInfoBuilder(archiverProperties.hashAlg());
@@ -143,7 +142,7 @@ public class LogArchiveWriter implements Closeable {
 
     private Grouping forRecord(MessageRecord messageRecord) {
         return archiveEncryptionConfig.groupingStrategy().forClient(
-                ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
+                ClientId.Conf.create(instanceIdentifier,
                         messageRecord.getMemberClass(),
                         messageRecord.getMemberCode(),
                         messageRecord.getSubsystemCode()));

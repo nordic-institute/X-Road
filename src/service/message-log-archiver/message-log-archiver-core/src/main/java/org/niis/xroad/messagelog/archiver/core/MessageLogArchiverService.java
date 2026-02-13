@@ -26,73 +26,43 @@
  */
 package org.niis.xroad.messagelog.archiver.core;
 
-import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
 public class MessageLogArchiverService {
 
-    private static final long SHUTDOWN_TIMEOUT_SECONDS = 120;
-
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor(Thread.ofVirtual().factory());
     private final LogArchiver logArchiver;
     private final LogCleaner logCleaner;
 
     private final MessageLogArchiverProperties archiverProperties;
     private final MessageLogEncryptionProperties encryptionProperties;
 
-    @PreDestroy
-    public void destroy() {
-        log.info("Shutting down MessageLogArchiverService executor");
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                log.warn("Executor did not terminate within {} seconds, forcing shutdown", SHUTDOWN_TIMEOUT_SECONDS);
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Shutdown interrupted, forcing shutdown", e);
-            executorService.shutdownNow();
-        }
-    }
-
-    public void triggerArchival() {
+    public void triggerArchival(String instanceIdentifier) {
         log.info("Received archival trigger request");
-
-        executorService.submit(() -> {
-            try {
-                log.info("Starting archival operation");
-                logArchiver.execute(archiverProperties, encryptionProperties);
-                log.info("Archival operation completed successfully");
-            } catch (Exception e) {
-                log.error("Archival operation failed", e);
-            }
-        });
+        try {
+            log.info("Starting archival operation");
+            logArchiver.execute(instanceIdentifier, archiverProperties, encryptionProperties);
+            log.info("Archival operation completed successfully");
+        } catch (Exception e) {
+            log.error("Archival operation failed", e);
+        }
     }
 
     public void triggerCleanup() {
         log.info("Received cleanup trigger request");
-
-        executorService.submit(() -> {
-            try {
-                log.info("Starting cleanup operation");
-                logCleaner.execute(archiverProperties);
-                log.info("Cleanup operation completed successfully");
-            } catch (Exception e) {
-                log.error("Cleanup operation failed", e);
-            }
-        });
+        try {
+            log.info("Starting cleanup operation");
+            logCleaner.execute(archiverProperties);
+            log.info("Cleanup operation completed successfully");
+        } catch (Exception e) {
+            log.error("Cleanup operation failed", e);
+        }
     }
 
 }

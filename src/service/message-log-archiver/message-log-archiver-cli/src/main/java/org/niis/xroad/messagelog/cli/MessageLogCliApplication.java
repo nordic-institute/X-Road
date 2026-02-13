@@ -42,14 +42,14 @@ public class MessageLogCliApplication implements QuarkusApplication {
 
     @Override
     public int run(String... args) {
-        if (args != null && args.length == 1) {
+        if (args != null && args.length >= 1) {
             String command = args[0];
-            if (COMMAND_ARCHIVE.equalsIgnoreCase(command) || COMMAND_CLEANUP.equalsIgnoreCase(command)) {
-                if (COMMAND_ARCHIVE.equalsIgnoreCase(command)) {
-                    messageLogArchiverService.triggerArchival();
-                } else {
-                    messageLogArchiverService.triggerCleanup();
-                }
+            if (COMMAND_ARCHIVE.equalsIgnoreCase(command) && args.length == 2) {
+                String instanceIdentifier = args[1];
+                messageLogArchiverService.triggerArchival(instanceIdentifier);
+                return 0;
+            } else if (COMMAND_CLEANUP.equalsIgnoreCase(command) && args.length == 1) {
+                messageLogArchiverService.triggerCleanup();
                 return 0;
             }
         }
@@ -59,7 +59,7 @@ public class MessageLogCliApplication implements QuarkusApplication {
     }
 
     private void usage() {
-        log.error("Usage: MessageLogCliApplication [archive|cleanup]");
+        log.error("Usage: MessageLogCliApplication archive <instanceIdentifier> | cleanup");
     }
 
 }

@@ -3,20 +3,20 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
+// asic-core brings it, todo
+configurations.named("implementation") {
+  exclude(module = "globalconf-impl")
+  exclude(module = "configuration-client-rpc-client")
+  exclude(module = "configuration-client-model")
+  exclude(module = "rpc-core")
+}
+
 dependencies {
   implementation(platform(libs.quarkus.bom))
   implementation(libs.bundles.quarkus.core)
 
   implementation(project(":lib:properties-quarkus"))
-
   implementation(project(":service:message-log-archiver:message-log-archiver-core"))
-  implementation(project(":lib:rpc-quarkus"))
-
-//  implementation(project(":common:common-db"))
-//  implementation(project(":common:common-pgp"))
-//
-//  testImplementation(libs.quarkus.junit5)
-//  testImplementation(libs.mockito.jupiter)
 }
 
 tasks.jar {
