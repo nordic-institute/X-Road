@@ -39,7 +39,8 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -59,9 +60,12 @@ import static org.junit.Assert.assertTrue;
  */
 public class ProxyMessageEncoderTest {
 
+    private final String tmpDir = "build/tmp";
+
     ByteArrayOutputStream out;
     ProxyMessageEncoder encoder;
     GlobalConfProvider globalConfProvider;
+    OcspVerifierFactory ocspVerifierFactory;
 
     /**
      * Initialize.
@@ -70,7 +74,9 @@ public class ProxyMessageEncoderTest {
     public void initialize() {
         out = new ByteArrayOutputStream();
         encoder = new ProxyMessageEncoder(out, getHashAlgoId());
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create("dummy");
+        ocspVerifierFactory = new OcspVerifierFactory();
+        ocspVerifierFactory = new OcspVerifierFactory();
     }
 
     /**
@@ -185,8 +191,9 @@ public class ProxyMessageEncoderTest {
     }
 
     private ProxyMessage decode() throws Exception {
-        ProxyMessage proxyMessage = new ProxyMessage("text/xml");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, proxyMessage, encoder.getContentType(), getHashAlgoId());
+        ProxyMessage proxyMessage = new ProxyMessage("text/xml", tmpDir);
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, new OcspVerifierFactory(),
+                proxyMessage, encoder.getContentType(), getHashAlgoId());
         decoder.parse(new ByteArrayInputStream(out.toByteArray()));
 
         return proxyMessage;

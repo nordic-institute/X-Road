@@ -25,47 +25,37 @@
    THE SOFTWARE.
  -->
 <template>
-  <article id="anchor" class="mt-5">
+  <XrdCard data-test="anchor" :translated-title="title">
+    <template #title-actions>
+      <slot />
+    </template>
     <v-data-table
       v-if="anchors"
-      class="elevation-0 data-table"
+      class="xrd"
+      hide-default-footer
       :headers="headers"
       :items="anchors"
       :items-per-page="-1"
       :loading="loading"
       item-key="hash"
     >
-      <template #top>
-        <data-table-toolbar :title-value="title">
-          <slot />
-        </data-table-toolbar>
-      </template>
       <template #[`item.hash`]="{ item }">
-        <xrd-icon-base class="internal-conf-icon">
-          <XrdIconCertificate />
-        </xrd-icon-base>
-        <span data-test="anchor-hash">{{ item.hash }}</span>
+        <XrdLabelWithIcon data-test="anchor-hash" icon="tag" icon-color="tertiary" label-color="primary" semi-bold :label="item.hash" />
       </template>
       <template #[`item.createdAt`]="{ item }">
-        <date-time
-          data-test="anchor-created-at"
-          :value="item.createdAt"
-          with-seconds
-        />
-      </template>
-      <template #bottom>
-        <XrdDataTableFooter />
+        <XrdDateTime data-test="anchor-created-at" :value="item.createdAt" with-seconds />
       </template>
     </v-data-table>
-  </article>
+  </XrdCard>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import DateTime from '@/components/ui/DateTime.vue';
-import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import { XrdIconCertificate, XrdDataTableFooter } from '@niis/shared-ui';
-import { DataTableHeader } from '@/ui-types';
+<script lang="ts" setup>
+import { computed, PropType } from 'vue';
+
+import { useI18n } from 'vue-i18n';
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
+
+import { XrdCard, XrdDateTime, XrdLabelWithIcon } from '@niis/shared-ui';
 
 export interface Anchor {
   title: string;
@@ -73,59 +63,34 @@ export interface Anchor {
   createdAt?: string;
 }
 
-export default defineComponent({
-  components: {
-    XrdDataTableFooter,
-    DataTableToolbar,
-    DateTime,
-    XrdIconCertificate,
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
   },
-  props: {
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    anchor: {
-      type: Object as PropType<Anchor>,
-      default: null,
-    },
+  anchor: {
+    type: Object as PropType<Anchor>,
+    default: null,
   },
-  data() {
-    return {};
-  },
-  computed: {
-    title(): string {
-      return this.anchor ? this.anchor.title : '';
-    },
-    anchors(): Anchor[] {
-      return this.anchor ? [this.anchor] : [];
-    },
-    headers(): DataTableHeader[] {
-      return [
+});
+
+const { t } = useI18n();
+
+const title = computed(() => props.anchor?.title || ''),
+  anchors = computed(() => (props.anchor ? [props.anchor] : [])),
+  headers = computed(
+    () =>
+      [
         {
-          title: this.$t('globalConf.anchor.certificateHash') as string,
+          title: t('globalConf.anchor.certificateHash') as string,
           align: 'start',
           key: 'hash',
         },
         {
-          title: this.$t('globalConf.anchor.created') as string,
+          title: t('globalConf.anchor.created') as string,
           align: 'start',
           key: 'createdAt',
         },
-      ];
-    },
-  },
-
-  methods: {},
-});
+      ] as DataTableHeader[],
+  );
 </script>
-
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-@use '@niis/shared-ui/src/assets/colors';
-
-.internal-conf-icon {
-  margin-right: 15px;
-  color: colors.$Purple100;
-}
-</style>

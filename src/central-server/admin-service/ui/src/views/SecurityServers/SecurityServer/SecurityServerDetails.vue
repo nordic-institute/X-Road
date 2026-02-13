@@ -25,124 +25,70 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <xrd-empty-placeholder
-      :data="securityServer"
-      :loading="loading"
-      :no-items-text="$t('noData.noData')"
-      skeleton-type="table-heading"
-    />
-    <main
-      v-if="securityServer && !loading"
-      data-test="security-server-details-view"
-      class="mt-5"
-    >
-      <!-- Security Server Details -->
-      <div id="security-server-details">
-        <info-card
-          :title-text="$t('securityServers.ownerName')"
-          :info-text="securityServer.owner_name"
-          data-test="security-server-owner-name"
-        />
+  <XrdSubView>
+    <XrdCard data-test="security-server-details-view" :loading="loading">
+      <XrdCardTable>
+        <XrdCardTableRow data-test="security-server-owner-name" label="securityServers.ownerName" :value="securityServer?.owner_name" />
 
-        <info-card
-          :title-text="$t('securityServers.ownerClass')"
-          :info-text="securityServer.server_id.member_class"
+        <XrdCardTableRow
           data-test="security-server-owner-class"
+          label="securityServers.ownerClass"
+          :value="securityServer?.server_id.member_class"
         />
 
-        <info-card
-          :title-text="$t('securityServers.ownerCode')"
-          :info-text="securityServer.server_id.member_code"
+        <XrdCardTableRow
           data-test="security-server-owner-code"
+          label="securityServers.ownerCode"
+          :value="securityServer?.server_id.member_code"
         />
-      </div>
 
-      <info-card
-        class="mb-6"
-        :title-text="$t('securityServers.serverCode')"
-        :info-text="securityServer.server_id.server_code"
-        data-test="security-server-server-code"
-      />
+        <XrdCardTableRow
+          data-test="security-server-server-code"
+          label="securityServers.serverCode"
+          :value="securityServer?.server_id.server_code"
+        />
 
-      <info-card
-        class="mb-6"
-        data-test="security-server-address"
-        :title-text="$t('securityServers.address')"
-        :info-text="securityServer.server_address"
-        :action-text="$t('action.edit')"
-        :show-action="canEditAddress"
-        @action-clicked="showEditAddressDialog = true"
-      />
+        <XrdCardTableRow data-test="security-server-address" label="securityServers.address" :value="securityServer?.server_address">
+          <XrdBtn v-if="canEditAddress" variant="text" color="tertiary" text="action.edit" @click="showEditAddressDialog = true" />
+        </XrdCardTableRow>
 
-      <info-card
-        class="mb-6"
-        data-test="security-server-maintenance-mode"
-        :title-text="$t('securityServers.maintenanceMode')"
-      >
-        <xrd-icon-base v-if="securityServer.in_maintenance_mode" class="mr-4">
-          <xrd-icon-checked :color="colors.Success100" />
-        </xrd-icon-base>
-        {{ securityServer.maintenance_mode_message }}
-      </info-card>
+        <XrdCardTableRow data-test="security-server-maintenance-mode" label="securityServers.maintenanceMode">
+          <template v-if="securityServer?.in_maintenance_mode" #value>
+            <v-icon class="mr-2" icon="check_circle" color="success" filled />
+            {{ securityServer.maintenance_mode_message }}
+          </template>
+        </XrdCardTableRow>
 
-      <info-card
-        :title-text="$t('securityServers.registered')"
-        data-test="security-server-registered"
-      >
-        <date-time :value="securityServer.created_at" with-seconds />
-      </info-card>
-
-      <div class="delete-action" @click="showDeleteServerDialog = true">
-        <div>
-          <v-icon
-            class="xrd-large-button-icon"
-            :color="colors.Purple100"
-            icon="mdi-close-circle"
-          />
-        </div>
-        <div
-          v-if="canDeleteServer"
-          class="action-text"
-          data-test="btn-delete-security-server"
-        >
-          {{
-            `${$t('securityServers.securityServer.deleteSecurityServer')} "${
-              securityServer.server_id.server_code
-            }"`
-          }}
-        </div>
-      </div>
-    </main>
-    <delete-security-server-dialog
-      v-if="serverCode && showDeleteServerDialog"
-      :server-code="serverCode"
-      :security-server-id="serverId"
-      @cancel="showDeleteServerDialog = false"
-    />
+        <XrdCardTableRow data-test="security-server-registered" label="securityServers.registered">
+          <template #value>
+            <XrdDateTime :value="securityServer?.created_at" with-seconds />
+          </template>
+        </XrdCardTableRow>
+      </XrdCardTable>
+    </XrdCard>
     <edit-security-server-address-dialog
-      v-if="address && showEditAddressDialog"
+      v-if="showEditAddressDialog"
       :address="address"
       :security-server-id="serverId"
-      @cancel="showEditAddressDialog = false"
-      @save="showEditAddressDialog = false"
+      @cancel="closeEditAddress"
+      @save="closeEditAddress"
     />
-  </div>
+  </XrdSubView>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import InfoCard from '@/components/ui/InfoCard.vue';
+
+import { mapState, mapStores } from 'pinia';
+
+import { XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime, XrdSubView } from '@niis/shared-ui';
+
 import { Permissions } from '@/global';
-import { mapActions, mapState, mapStores } from 'pinia';
-import { useSecurityServer } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import { useUser } from '@/store/modules/user';
-import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
-import DeleteSecurityServerDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
-import { useNotifications } from '@/store/modules/notifications';
-import DateTime from '@/components/ui/DateTime.vue';
-import { XrdIconChecked, Colors } from '@niis/shared-ui';
+
+import EditSecurityServerAddressDialog from './dialogs/EditSecurityServerAddressDialog.vue';
 
 /**
  * Component for a Security server details view
@@ -150,11 +96,13 @@ import { XrdIconChecked, Colors } from '@niis/shared-ui';
 export default defineComponent({
   name: 'SecurityServerDetails',
   components: {
-    XrdIconChecked,
-    DateTime,
-    DeleteSecurityServerDialog,
+    XrdCardTable,
+    XrdCardTableRow,
+    XrdBtn,
+    XrdCard,
+    XrdSubView,
+    XrdDateTime,
     EditSecurityServerAddressDialog,
-    InfoCard,
   },
   props: {
     serverId: {
@@ -164,7 +112,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       showEditAddressDialog: false,
       showDeleteServerDialog: false,
     };
@@ -172,67 +119,26 @@ export default defineComponent({
   computed: {
     ...mapState(useUser, ['hasPermission']),
     ...mapStores(useSecurityServer),
-    securityServer(): SecurityServer | null {
-      return this.securityServerStore.currentSecurityServer;
+    securityServer(): SecurityServer | undefined {
+      return this.securityServerStore.current;
     },
     loading(): boolean {
-      return this.securityServerStore.currentSecurityServerLoading;
+      return this.securityServerStore.loadingCurrent || false;
     },
     canEditAddress(): boolean {
       return this.hasPermission(Permissions.EDIT_SECURITY_SERVER_ADDRESS);
     },
-    canDeleteServer(): boolean {
-      return this.hasPermission(Permissions.DELETE_SECURITY_SERVER);
-    },
-    address(): string | null {
-      return this.securityServer?.server_address || null;
+    address(): string {
+      return this.securityServer?.server_address ?? '';
     },
     serverCode(): string | null {
       return this.securityServer?.server_id.server_code || null;
     },
   },
   methods: {
-    ...mapActions(useNotifications, ['showSuccess']),
+    closeEditAddress() {
+      this.showEditAddressDialog = false;
+    },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-@use '@niis/shared-ui/src/assets/tables' as *;
-
-#security-server-details {
-  margin-top: 24px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-
-  margin-bottom: 24px;
-
-  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
-  .details-card {
-    width: 100%;
-
-    &:first-child {
-      margin-right: 30px;
-    }
-
-    &:last-child {
-      margin-left: 30px;
-    }
-  }
-}
-
-.delete-action {
-  margin-top: 34px;
-  color: colors.$Link;
-  cursor: pointer;
-  display: flex;
-  flex-direction: row;
-
-  .action-text {
-    margin-top: 2px;
-  }
-}
-</style>

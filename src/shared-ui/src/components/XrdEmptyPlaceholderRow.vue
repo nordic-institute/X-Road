@@ -28,7 +28,7 @@
   <tr v-if="show">
     <td :colspan="colspan">
       <div v-if="loading">
-        <v-progress-linear height="2" indeterminate />
+        <v-progress-linear class="xrd" height="2" indeterminate />
         <div class="empty-text">
           {{ $t('noData.loading') }}
         </div>
@@ -95,17 +95,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '../assets/colors';
-
 .empty-text {
   height: 112px;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-left: -16px; /* Removes the default left padding that comes from the thead style */
-}
-
-td {
-  border-bottom: colors.$WarmGrey30 solid 1px;
 }
 </style>

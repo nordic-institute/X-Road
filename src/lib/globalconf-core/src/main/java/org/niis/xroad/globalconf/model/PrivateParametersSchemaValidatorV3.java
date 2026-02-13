@@ -25,8 +25,9 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
+
+import org.niis.xroad.common.core.exception.ErrorCode;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -62,6 +63,6 @@ public class PrivateParametersSchemaValidatorV3 extends SchemaValidator {
      * @throws IOException if validation fails
      */
     public static void validate(Source source) throws IOException {
-        validate(SCHEMA, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
+        validate(SCHEMA, source, ErrorCode.MALFORMED_GLOBALCONF);
     }
 }

@@ -1,0 +1,91 @@
+---
+- name: Check for EPEL repo
+  stat:
+    path: "/etc/yum.repos.d/epel.repo"
+  register: epel
+
+- name: EPEL repo key
+  rpm_key:
+    state: present
+    key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ansible_distribution_major_version}}
+
+- name: Install EPEL repository (RHEL8)
+  raw: |
+    yum -y install "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+  when:
+    - not epel.stat.exists
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+  changed_when: true
+
+- name: Install EPEL repository (RHEL9+)
+  yum:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
+  when:
+    - not epel.stat.exists
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9
+
+- name: X-Road repo key
+  rpm_key:
+    state: present
+    key: "{{ rhel_repo_gpgkey }}"
+  when: rhel_repo_gpgkey is defined and package_source == "remote"
+
+- name: Setup the correct repository for X-Road installation (RHEL)
+  yum_repository:
+    name: "x-road"
+    file: "xroad"
+    description: "X-Road repository for RHEL{{ ansible_distribution_major_version }}"
+    baseurl: "{{ rhel_repo_baseurl }}"
+    gpgcheck: "{{ rhel_repo_gpgcheck | default('no') }}"
+    gpgkey: "{{ rhel_repo_gpgkey | default('') }}"
+    repo_gpgcheck: "{{ rhel_repo_gpgcheck | default('no') }}"
+    metadata_expire: "{{ rhel_repo_metadaexpire | default('86400') }}"
+    state: present
+    enabled: yes
+
+- name: X-Road dependencies repo key
+  rpm_key:
+    state: present
+    key: "{{ rhel_deps_repo_gpgkey }}"
+  when: rhel_deps_repo_gpgkey is defined
+
+- name: Setup repository for X-Road dependencies (RHEL)
+  yum_repository:
+    name: "x-road-dependencies"
+    file: "x-road-dependencies"
+    description: "X-Road dependencies repository for RHEL"
+    baseurl: "{{ rhel_deps_repo_baseurl }}"
+    gpgcheck: "{{ rhel_deps_repo_gpgcheck | default('no') }}"
+    gpgkey: "{{ rhel_deps_repo_gpgkey | default('') }}"
+    repo_gpgcheck: "{{ rhel_deps_repo_gpgcheck | default('no') }}"
+    metadata_expire: "{{ rhel_deps_repo_metadaexpire | default('86400') }}"
+    state: present
+    enabled: yes
+
+- name: Touch repo file
+  file:
+    path: "/etc/yum.repos.d/xroad.repo"
+    modification_time: now
+
+- name: Install required packages (RHEL8)
+  become: yes
+  command: dnf -y install curl cronie tar acl tzdata-java
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 8
+
+- name: Install required packages (RHEL9+)
+  become: yes
+  package:
+    name:
+      - curl
+      - cronie
+      - tar
+      - acl
+      - tzdata-java
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int >= 9

@@ -27,8 +27,6 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.ValidationHelper;
 import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
@@ -43,6 +41,8 @@ import org.niis.xroad.cs.openapi.model.MembersDto;
 import org.niis.xroad.cs.openapi.model.PagedGroupMemberListViewDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignGlobalGroupsApi;
+import org.niis.xroad.test.framework.core.asserts.Assertion;
+import org.niis.xroad.test.framework.core.asserts.ValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
@@ -54,22 +54,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.Boolean.TRUE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.partitioningBy;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.math.NumberUtils.createInteger;
-import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.ERROR_RESPONSE_BODY;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.notNullAssertion;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.test.util.AssertionErrors.fail;
 
 @SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection", "checkstyle:MagicNumber", "java:S1192"})
 public class GlobalGroupsStepDefs extends BaseStepDefs {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,11 +29,7 @@ import { AxiosResponse } from 'axios';
 import dayjs from 'dayjs';
 
 // Filters an array of objects excluding specified object key
-export function selectedFilter<T extends object, K extends keyof T>(
-  arr: T[],
-  search: string,
-  excluded?: K,
-): T[] {
+export function selectedFilter<T extends object, K extends keyof T>(arr: T[], search: string, excluded?: K): T[] {
   // Clean the search string
   const mySearch = search.toString().toLowerCase();
   if (mySearch.trim() === '') {
@@ -55,6 +52,17 @@ export function selectedFilter<T extends object, K extends keyof T>(
   });
 
   return filtered;
+}
+
+// Checks if the given WSDL URL valid
+export function isValidWsdlURL(str: string): boolean {
+  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
+  return !!pattern.test(str);
+}
+
+// Checks if the given REST URL is valid
+export function isValidRestURL(str: string): boolean {
+  return isValidWsdlURL(str);
 }
 
 // Save response data as a file
@@ -91,13 +99,9 @@ export function saveResponseAsFile(
   URL.revokeObjectURL(link.href);
 }
 
+
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
-export function containsClient(
-  clients: Client[],
-  memberClass: string,
-  memberCode: string,
-  subsystemCode: string | undefined,
-): boolean {
+export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string | undefined): boolean {
   if (!memberClass || !memberCode || !subsystemCode) {
     return false;
   }
@@ -125,17 +129,17 @@ export function containsClient(
 }
 
 // Create a client ID
-export function createClientId(
-  instanceId: string,
-  memberClass: string,
-  memberCode: string,
-  subsystemCode?: string,
-): string {
+export function createClientId(instanceId: string, memberClass: string, memberCode: string, subsystemCode?: string): string {
   if (subsystemCode) {
     return `${instanceId}:${memberClass}:${memberCode}:${subsystemCode}`;
   }
 
   return `${instanceId}:${memberClass}:${memberCode}`;
+}
+
+// Create a client ID
+export function createFullServiceId(clientId: string, serviceCode: string): string {
+  return `${clientId}:${serviceCode}`;
 }
 
 // Debounce function
@@ -169,15 +173,4 @@ export type Mutable<T> = {
 // Deep clones an object or array using JSON
 export function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
-}
-
-export function formatDateTime(
-  valueAsText: string | undefined,
-  format: string,
-): string {
-  if (!valueAsText) {
-    return '-';
-  }
-  const time = dayjs(valueAsText);
-  return time.isValid() ? time.format(format) : '-';
 }

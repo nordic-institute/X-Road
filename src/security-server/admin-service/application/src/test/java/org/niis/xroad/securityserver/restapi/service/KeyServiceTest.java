@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.SecurityHelper;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
@@ -91,6 +92,9 @@ public class KeyServiceTest extends AbstractServiceTestContext {
 
     @Autowired
     TokenPinValidator tokenPinValidator;
+
+    @Autowired
+    AdminServiceProperties adminServiceProperties;
 
     // token ids for mocking
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
@@ -311,7 +315,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     private void mockPossibleActionsRuleEngineAllowAll() {
-        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine(adminServiceProperties) {
             @Override
             public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo token,
                                                                      KeyInfo keyInfo) {
@@ -323,7 +327,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     private void mockPossibleActionsRuleEngineDenyAll() {
-        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine(adminServiceProperties) {
             @Override
             public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo token,
                                                                      KeyInfo keyInfo) {

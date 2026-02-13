@@ -34,8 +34,8 @@ import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.openapi.OcspRespondersApi;
-import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.CostTypeDto;
+import org.niis.xroad.cs.openapi.model.OcspResponderCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -96,7 +96,7 @@ public class OcspRespondersController implements OcspRespondersApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
-    public ResponseEntity<CertificateDetailsDto> getOcspRespondersCertificate(Integer id) {
+    public ResponseEntity<OcspResponderCertificateDetailsDto> getOcspRespondersCertificate(Integer id) {
         return ok(certificateDetailsDtoConverter.convert(ocspRespondersService.getOcspResponderCertificateDetails(id)));
     }
 }

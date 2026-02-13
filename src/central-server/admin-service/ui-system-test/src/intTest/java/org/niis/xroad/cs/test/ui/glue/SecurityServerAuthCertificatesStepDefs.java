@@ -45,7 +45,7 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class SecurityServerAuthCertificatesStepDefs extends BaseUiStepDefs {
 
@@ -91,26 +91,26 @@ public class SecurityServerAuthCertificatesStepDefs extends BaseUiStepDefs {
 
     @Step("user cannot delete Authentication certificate")
     public void deleteButtonIsDisable() {
-        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnDelete()
                 .shouldBe(visible)
                 .shouldNotBe(enabled);
     }
 
     @Step("closes delete Authentication certificate dialog")
     public void closeDeleteDialog() {
-        securityServerAuthCertificatesPageObj.getDeleteDialog().cancelButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnCancel()
                 .shouldBe(visible, enabled)
                 .click();
 
-        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnDelete()
                 .shouldNotBe(visible);
-        securityServerAuthCertificatesPageObj.getDeleteDialog().cancelButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnCancel()
                 .shouldNotBe(visible);
     }
 
     @Step("deletes Authentication certificate")
     public void deleteAuthenticationCertificate() {
-        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+        securityServerAuthCertificatesPageObj.getDeleteDialog().btnDelete()
                 .shouldBe(visible, enabled)
                 .click();
 

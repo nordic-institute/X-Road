@@ -26,17 +26,17 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.ServerConf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,7 +46,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
  * service class for handling serverconf
@@ -149,9 +149,9 @@ public class ServerConfService {
     private ServerConfEntity getServerConfGracefully() {
         try {
             return getServerConfEntity();
-        } catch (CodedException ce) {
-            log.info("ServerConfService#isServerConfInitialized: CodedException thrown when getting Server Conf", ce);
-            if (ce.getFaultCode().equals(X_MALFORMED_SERVERCONF)) {
+        } catch (XrdRuntimeException ce) {
+            log.info("ServerConfService#isServerConfInitialized: XrdRuntimeException thrown when getting Server Conf", ce);
+            if (ce.getErrorCode().equals(MALFORMED_SERVERCONF.code())) {
                 return null;
             } else {
                 throw ce;

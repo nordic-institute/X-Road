@@ -29,9 +29,12 @@ package org.niis.xroad.serverconf.impl.entity;
 import jakarta.persistence.Access;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,6 +59,10 @@ public class EndpointEntity implements BaseEndpoint {
     @Column(name = "servicecode", nullable = false)
     private String serviceCode;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "client_id", nullable = false)
+    private ClientEntity client;
+
     @Column(name = "method", nullable = false)
     private String method;
 
@@ -68,7 +75,8 @@ public class EndpointEntity implements BaseEndpoint {
     public EndpointEntity() {
     }
 
-    private EndpointEntity(String serviceCode, String method, String path, boolean generated) {
+    private EndpointEntity(ClientEntity clientEntity, String serviceCode, String method, String path, boolean generated) {
+        this.client = clientEntity;
         this.serviceCode = serviceCode;
         this.method = method;
         this.path = path;
@@ -77,7 +85,7 @@ public class EndpointEntity implements BaseEndpoint {
         validateArguments();
     }
 
-    public static EndpointEntity create(String serviceCode, String method, String path, boolean generated) {
-        return new EndpointEntity(serviceCode, method, path, generated);
+    public static EndpointEntity create(ClientEntity clientEntity, String serviceCode, String method, String path, boolean generated) {
+        return new EndpointEntity(clientEntity, serviceCode, method, path, generated);
     }
 }

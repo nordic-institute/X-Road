@@ -1,0 +1,14 @@
+fullnameOverride: db-openbao
+image:
+  repository: bitnamilegacy/postgresql
+  tag: "16.6.0"
+auth:
+  database: openbao
+  username: openbao
+  password: secret
+primary:
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 256Mi

@@ -8,6 +8,7 @@ dependencies {
 
   implementation("org.springframework:spring-context")
   implementation("org.springframework:spring-tx")
+  implementation(libs.jakarta.validationApi)
 
   testImplementation(project(":common:common-test"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")

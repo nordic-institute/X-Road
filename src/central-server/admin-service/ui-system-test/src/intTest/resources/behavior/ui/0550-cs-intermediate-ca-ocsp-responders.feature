@@ -1,6 +1,7 @@
 @CentralServer
 @CertificationService
 @IntermediateCA
+@IntermediateCAOCSPResponders
 Feature: 0550 - CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA OCSP Responders
 
   Background:

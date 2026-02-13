@@ -25,13 +25,13 @@
  */
 package org.niis.xroad.proxy.core.conf;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -44,7 +44,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_SIGNATURE;
 
 /**
  * Encapsulates security-related parameters of a given member,
@@ -54,6 +54,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 public class SigningCtxImpl implements SigningCtx {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
+    private final DigestAlgorithm messageSignDigestAlgorithm;
     /**
      * The subject id of the signer.
      */
@@ -78,7 +79,7 @@ public class SigningCtxImpl implements SigningCtx {
         builder.addOcspResponses(ocspResponses);
         builder.setSigningCert(cert);
 
-        return builder.build(key, SystemProperties.getProxyMessageSignDigestName());
+        return builder.build(key, messageSignDigestAlgorithm);
     }
 
     private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws CertificateEncodingException, IOException {
@@ -93,8 +94,8 @@ public class SigningCtxImpl implements SigningCtx {
         CertChain chain = globalConfProvider.getCertChain(subject.getXRoadInstance(), cert);
 
         if (chain == null) {
-            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Got empty certificate chain for certificate %s",
-                    cert.getSerialNumber());
+            throw XrdRuntimeException.systemException(CANNOT_CREATE_SIGNATURE,
+                    "Got empty certificate chain for certificate %s".formatted(cert.getSerialNumber()));
         }
 
         return chain.getAdditionalCerts();

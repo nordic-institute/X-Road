@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Initialization
 Feature: 0400 - SS: System Parameters
   Verify that SS can be initialized from fresh state.

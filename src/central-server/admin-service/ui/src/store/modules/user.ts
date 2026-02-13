@@ -30,7 +30,6 @@ import axios from 'axios';
 import { defineStore } from 'pinia';
 import { Tab } from '@niis/shared-ui';
 import { User } from '@/openapi-types';
-import { mainTabs } from '@/global';
 import { get } from '@/util/api';
 
 export const useUser = defineStore('user', {
@@ -61,18 +60,13 @@ export const useUser = defineStore('user', {
 
     canAssignRole: (state) => {
       return (role: string) => {
-        return (
-          state.roles.includes(role) ||
-          (role === 'XROAD_MANAGEMENT_SERVICE' &&
-            state.roles.includes('XROAD_SYSTEM_ADMINISTRATOR'))
-        );
+        return state.roles.includes(role) || (role === 'XROAD_MANAGEMENT_SERVICE' && state.roles.includes('XROAD_SYSTEM_ADMINISTRATOR'));
       };
     },
 
     hasAnyOfPermissions: (state) => {
       // Return true if the user has at least one of the tabs permissions
-      return (perm: string[]): boolean =>
-        perm?.some((permission) => state.permissions.includes(permission));
+      return (perm: string[]): boolean => perm?.some((permission) => state.permissions.includes(permission));
     },
 
     getAllowedTabs: (state) => (tabs: Tab[]) => {
@@ -80,25 +74,14 @@ export const useUser = defineStore('user', {
       return tabs?.filter((tab: Tab) => {
         const neededPermissions = tab.permissions;
 
-        return !!(
-          neededPermissions &&
-          neededPermissions?.some((permission) =>
-            state.permissions.includes(permission),
-          )
-        );
+        return !!(neededPermissions && neededPermissions?.some((permission) => state.permissions.includes(permission)));
       });
-    },
-
-    getFirstAllowedTab(): Tab {
-      return this.getAllowedTabs(mainTabs)[0];
     },
   },
 
   actions: {
     async login(authData: { username: string; password: string }) {
-      const data = `username=${encodeURIComponent(
-        authData.username,
-      )}&password=${encodeURIComponent(authData.password)}`;
+      const data = `username=${encodeURIComponent(authData.username)}&password=${encodeURIComponent(authData.password)}`;
 
       return axiosAuth({
         url: '/login',
@@ -130,9 +113,7 @@ export const useUser = defineStore('user', {
         .then((user) => {
           this.username = user?.data?.username;
           this.setPermissions(user?.data?.permissions);
-          this.roles = user?.data?.roles.map((role) =>
-            role.startsWith('ROLE_') ? role.slice(5) : role,
-          );
+          this.roles = user?.data?.roles.map((role) => (role.startsWith('ROLE_') ? role.slice(5) : role));
         })
         .catch((error) => {
           throw error;

@@ -25,18 +25,15 @@
  */
 package org.niis.xroad.monitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import com.codahale.metrics.Metric;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.monitor.core.executablelister.OsInfoLister;
 import org.niis.xroad.monitor.core.executablelister.PackageLister;
 import org.niis.xroad.monitor.core.executablelister.ProcessLister;
 import org.niis.xroad.monitor.core.executablelister.XroadProcessLister;
-import org.springframework.scheduling.TaskScheduler;
 
-import java.time.Duration;
 import java.util.ArrayList;
 
 /**
@@ -44,39 +41,33 @@ import java.util.ArrayList;
  * parsing output from those.
  */
 @Slf4j
-public class ExecListingSensor extends AbstractSensor {
+@ApplicationScoped
+public class ExecListingSensor {
 
     private MetricRegistryHolder registryHolder;
 
-    /**
-     * Constructor
-     */
-    public <T extends Metric> ExecListingSensor(TaskScheduler taskScheduler) {
-        super(taskScheduler);
-        log.info("Creating sensor, measurement interval: {}", getInterval());
-        updateMetrics();
-        scheduleSingleMeasurement(getInterval());
+    public ExecListingSensor(EnvMonitorProperties envMonitorProperties) {
+        log.info("Creating sensor, measurement interval: {}", envMonitorProperties.execListingSensorInterval());
     }
 
-    private void createOrUpdateMetricPair(String parsedName, String jmxName, JmxStringifiedData data) {
+    private void createOrUpdateMetricPair(String parsedName, String stringName, StringifiedData data) {
         createOrUpdateParsedMetric(parsedName, data);
-        createJmxMetric(jmxName, data);
+        createStringMetric(stringName, data);
     }
 
-    private void createOrUpdateParsedMetric(String metricName, JmxStringifiedData data) {
-        SimpleSensor<JmxStringifiedData> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
+    private void createOrUpdateParsedMetric(String metricName, StringifiedData data) {
+        SimpleSensor<StringifiedData> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
         sensor.update(data);
     }
 
-    private void createJmxMetric(String metricName, JmxStringifiedData data) {
+    private void createStringMetric(String metricName, StringifiedData data) {
         SimpleSensor<ArrayList> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
-        sensor.update(data.getJmxStringData());
+        sensor.update(data.getStringData());
     }
 
-    private void createOsStringMetric(String metricName, JmxStringifiedData<String> data) {
+    private void createOsStringMetric(String metricName, StringifiedData<String> data) {
         SimpleSensor<String> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
-        sensor.update(data.getJmxStringData().get(0));
-
+        sensor.update(data.getStringData().getFirst());
     }
 
     private void updateMetrics() {
@@ -103,17 +94,12 @@ public class ExecListingSensor extends AbstractSensor {
         createOsStringMetric(SystemMetricNames.OS_INFO, new OsInfoLister().list());
     }
 
-    @Override
+    @Scheduled(every = "${xroad.env-monitor.exec-listing-sensor-interval}",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void measure() {
         log.debug("Updating metrics");
         updateMetrics();
-        scheduleSingleMeasurement(getInterval());
-
-    }
-
-    @Override
-    protected Duration getInterval() {
-        return Duration.ofSeconds(SystemProperties.getEnvMonitorExecListingSensorInterval());
     }
 
 }

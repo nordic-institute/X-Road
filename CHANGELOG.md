@@ -1,5 +1,7 @@
 # Change Log
 
+## 8.0.0 - UNRELEASED
+
 ## 7.8.1 - UNRELEASED
 
 ## 7.8.0 - 2026-02-02

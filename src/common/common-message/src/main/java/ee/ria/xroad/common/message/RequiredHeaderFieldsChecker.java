@@ -25,20 +25,19 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.annotation.XmlElement;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER_FIELD;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class RequiredHeaderFieldsChecker extends Unmarshaller.Listener {
@@ -63,9 +62,8 @@ class RequiredHeaderFieldsChecker extends Unmarshaller.Listener {
                 Object value = getValue(field, obj);
 
                 if (annotation.required() && value == null) {
-                    throw new CodedException(X_MISSING_HEADER_FIELD,
-                            "Required field '%s' is missing",
-                            annotation.name());
+                    throw XrdRuntimeException.systemException(MISSING_HEADER_FIELD,
+                            "Required field '%s' is missing".formatted(annotation.name()));
                 }
 
                 if (value instanceof ValidatableField vField) {

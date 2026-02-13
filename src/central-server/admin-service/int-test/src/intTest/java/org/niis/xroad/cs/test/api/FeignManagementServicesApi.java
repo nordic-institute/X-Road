@@ -28,6 +28,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.ManagementServicesApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "managementServicesApi", path = "/api/v1")
+@FeignClient
 public interface FeignManagementServicesApi extends ManagementServicesApi {
 }

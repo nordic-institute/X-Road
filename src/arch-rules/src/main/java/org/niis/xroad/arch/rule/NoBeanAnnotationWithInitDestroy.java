@@ -28,24 +28,26 @@ package org.niis.xroad.arch.rule;
 import com.societegenerale.commons.plugin.rules.ArchRuleTest;
 import com.societegenerale.commons.plugin.service.ScopePathProvider;
 import com.societegenerale.commons.plugin.utils.ArchUtils;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.context.annotation.Bean;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 
 public class NoBeanAnnotationWithInitDestroy implements ArchRuleTest {
 
+    private static final String BEAN_ANNOTATION = "org.springframework.context.annotation.Bean";
+    private static final String INFER_METHOD = "(inferred)";
+
     @Override
     public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
         methods().that()
-                .areAnnotatedWith(Bean.class)
+                .areAnnotatedWith(BEAN_ANNOTATION)
                 .should(new BeanWithInitAndDestroyCondition())
                 .because("Beans can be defined in multiple places, which leads to verbose definitions"
                         + " and additional points of failures (missed init/destroy methods)")
@@ -61,12 +63,19 @@ public class NoBeanAnnotationWithInitDestroy implements ArchRuleTest {
 
         @Override
         public void check(JavaMethod javaMethod, ConditionEvents events) {
-            var destroyMethodValue = javaMethod.getAnnotationOfType(Bean.class).destroyMethod();
-            var initMethodValue = javaMethod.getAnnotationOfType(Bean.class).initMethod();
+            Optional<JavaAnnotation<JavaMethod>> beanAnnotation = javaMethod.getAnnotations().stream()
+                    .filter(a -> a.getRawType().getName().equals(BEAN_ANNOTATION))
+                    .findFirst();
 
-            var destroyMethodSet = StringUtils.isNotBlank(destroyMethodValue)
-                    && !destroyMethodValue.equals(AbstractBeanDefinition.INFER_METHOD);
-            var initMethodSet = StringUtils.isNotBlank(initMethodValue);
+            if (beanAnnotation.isEmpty()) {
+                return;
+            }
+
+            String destroyMethodValue = getAnnotationProperty(beanAnnotation.get(), "destroyMethod", "");
+            String initMethodValue = getAnnotationProperty(beanAnnotation.get(), "initMethod", "");
+
+            boolean destroyMethodSet = !destroyMethodValue.isEmpty() && !destroyMethodValue.equals(INFER_METHOD);
+            boolean initMethodSet = !initMethodValue.isEmpty();
 
             if (destroyMethodSet || initMethodSet) {
                 var message = "Method <%s> is annotated with @Bean and initMethod(%s)/destroyMethod(%s)"
@@ -75,6 +84,11 @@ public class NoBeanAnnotationWithInitDestroy implements ArchRuleTest {
                                 destroyMethodValue);
                 events.add(SimpleConditionEvent.violated(javaMethod, message));
             }
+        }
+
+        @SuppressWarnings("unchecked")
+        private <T> T getAnnotationProperty(JavaAnnotation<?> annotation, String propertyName, T defaultValue) {
+            return (T) annotation.getProperties().getOrDefault(propertyName, defaultValue);
         }
     }
 }

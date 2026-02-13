@@ -35,10 +35,10 @@ import org.niis.xroad.cs.test.api.FeignTokensApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.APPLICATION_JSON;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -142,7 +142,6 @@ public class TokensApiStepDefs extends BaseStepDefs {
         }
         this.requestTokenId = tokenId;
     }
-
 
     @Step("Token logout token is successful")
     public void logoutRequestIsValidated() {

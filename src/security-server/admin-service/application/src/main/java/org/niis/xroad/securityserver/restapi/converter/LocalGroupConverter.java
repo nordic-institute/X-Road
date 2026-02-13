@@ -71,6 +71,7 @@ public class LocalGroupConverter {
         localGroupDto.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroup.getUpdated()));
         localGroupDto.setMemberCount(localGroup.getGroupMembers().size());
         localGroupDto.setMembers(localGroup.getGroupMembers().stream().map(this::convert).collect(Collectors.toSet()));
+        localGroupDto.setClientId(clientIdConverter.convertId(localGroup.getClient().getIdentifier()));
 
         return localGroupDto;
     }

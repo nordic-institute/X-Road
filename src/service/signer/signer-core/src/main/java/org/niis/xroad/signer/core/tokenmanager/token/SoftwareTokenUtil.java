@@ -25,10 +25,8 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.ResourceUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.ContentSigner;
@@ -36,15 +34,8 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -54,20 +45,9 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.Enumeration;
-import java.util.List;
-import java.util.Set;
 
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 
 /**
  * Utility methods for software token.
@@ -75,86 +55,18 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 @Slf4j
 public final class SoftwareTokenUtil {
 
-    static final String PIN_ALIAS = "pin";
-
-    static final String PIN_FILE = ".softtoken";
-
-    static final String P12 = ".p12";
-
-    static final FileAttribute<Set<PosixFilePermission>> SOFT_TOKEN_KEY_DIR_PERMISSIONS =
-            PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ,
-                    GROUP_EXECUTE));
-    static final String SOFT_TOKEN_KEY_DIR_NAME = "softtoken";
-    static final String SOFT_TOKEN_KEY_BAK_DIR_NAME = ".softtoken.bak";
-
-    private static final FilenameFilter P12_FILTER = (dir, name) -> name != null && !name.startsWith(PIN_FILE) && name.endsWith(P12);
-
-    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-
-    private static final String KEY_CONF_FILE = SystemProperties.getKeyConfFile();
-
     private SoftwareTokenUtil() {
     }
 
-    /**
-     * @return true if software token is initialized
-     */
-    public static boolean isTokenInitialized() {
-        return new File(getKeyStoreFileName(PIN_FILE)).exists();
+    public static PrivateKey loadPrivateKey(byte[] keyStoreFile, String alias, char[] password)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
+        KeyStore ks = loadPkcs12KeyStore(new ByteArrayInputStream(keyStoreFile), password);
+        return loadPrivateKey(ks, alias, password);
     }
 
-    /**
-     * @param keyId the key id
-     * @return the key store file name for a key id
-     */
-    public static String getKeyStoreFileName(String keyId) {
-        return getKeyDir() + File.separator + keyId + P12;
-    }
-
-    /**
-     * @return /path/to/signer/.softtoken.bak
-     */
-    public static Path getBackupKeyDir() {
-        return getKeyDir().toPath().getParent().resolve(SOFT_TOKEN_KEY_BAK_DIR_NAME);
-    }
-
-    /**
-     * @return key backup dir path with timestamp in the name e.g. /path/to/signer/.softtoken.bak-20210218102059
-     */
-    public static Path getBackupKeyDirForDateNow() {
-        Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
-        String nowString = TIMESTAMP_FORMAT.format(nowTimestamp);
-        return getBackupKeyDir().resolve("-" + nowString);
-    }
-
-    /**
-     * Create a temp directory for key stores. Used e.g. when changing pin codes for key stores
-     *
-     * @throws IOException creating temp dir fails
-     */
-    public static Path createTempKeyDir() throws IOException {
-        return Files.createTempDirectory(Paths.get(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)),
-                SOFT_TOKEN_KEY_DIR_NAME + "-", SOFT_TOKEN_KEY_DIR_PERMISSIONS);
-    }
-
-    static List<String> listKeysOnDisk() {
-        List<String> keys = new ArrayList<>();
-
-        for (String p12File : getKeyDir().list(P12_FILTER)) {
-            keys.add(p12File.substring(0, p12File.indexOf(P12)));
-        }
-
-        return keys;
-    }
-
-    static File getKeyDir() {
-        return new File(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
-                + SOFT_TOKEN_KEY_DIR_NAME + File.separator);
-    }
-
-    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password)
-            throws OperatorCreationException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        var signALgo = KeyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
+    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password, KeyManagers keyManagers)
+            throws OperatorCreationException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException {
+        var signALgo = keyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
         ContentSigner signer = CryptoUtils.createContentSigner(signALgo, kp.getPrivate());
 
         X509Certificate[] certChain = new X509Certificate[1];
@@ -170,9 +82,8 @@ public final class SoftwareTokenUtil {
         return keyStore;
     }
 
-    static PrivateKey loadPrivateKey(String keyStoreFile, String alias, char[] password)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
-        KeyStore ks = loadPkcs12KeyStore(new File(keyStoreFile), password);
+    static PrivateKey loadPrivateKey(KeyStore ks, String alias, char[] password)
+            throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
 
         if (privateKey == null) {
@@ -188,32 +99,22 @@ public final class SoftwareTokenUtil {
                 }
             }
 
-            throw XrdRuntimeException.systemInternalError("Private key not found in keystore '" + keyStoreFile + "', wrong password?");
+            throw XrdRuntimeException.systemInternalError("Private key not found in keystore '" + ks + "', wrong password?");
         }
 
         return privateKey;
     }
 
-    static Certificate loadCertificate(String keyStoreFile, String alias, char[] password)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
-        KeyStore ks = loadPkcs12KeyStore(new File(keyStoreFile), password);
+    public static KeyStore rewriteKeyStoreWithNewPin(KeyStore oldKeyStore, String keyAlias, char[] oldPin, char[] newPin)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
+        PrivateKey privateKey = loadPrivateKey(oldKeyStore, keyAlias, oldPin);
 
-        Certificate cert = ks.getCertificate(alias);
+        KeyStore newKeyStore = KeyStore.getInstance("pkcs12");
+        newKeyStore.load(null, null);
+        Certificate[] certChain = oldKeyStore.getCertificateChain(keyAlias);
+        KeyStore.PrivateKeyEntry pkEntry = new KeyStore.PrivateKeyEntry(privateKey, certChain);
+        newKeyStore.setEntry(keyAlias, pkEntry, new KeyStore.PasswordProtection(newPin));
 
-        if (cert == null) {
-            // Could not find certificate for given alias, attempt to find
-            // certificate for any alias in the key store
-            Enumeration<String> aliases = ks.aliases();
-
-            while (aliases.hasMoreElements()) {
-                cert = ks.getCertificate(aliases.nextElement());
-
-                if (cert != null) {
-                    return cert;
-                }
-            }
-        }
-
-        return cert;
+        return newKeyStore;
     }
 }

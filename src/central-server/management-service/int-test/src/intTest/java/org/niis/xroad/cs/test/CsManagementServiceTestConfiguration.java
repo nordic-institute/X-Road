@@ -25,46 +25,65 @@
  */
 package org.niis.xroad.cs.test;
 
-import com.nortal.test.core.services.TestableApplicationInfoProvider;
-import feign.Contract;
-import feign.Feign;
-import feign.codec.Decoder;
 import feign.codec.Encoder;
-import feign.hc5.ApacheHttp5Client;
+import lombok.RequiredArgsConstructor;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.mockserver.client.MockServerClient;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
-import org.niis.xroad.cs.test.container.MockServerAuxContainer;
-import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.niis.xroad.test.framework.core.feign.FeignFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
+
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+
+import static org.niis.xroad.cs.test.IntTestComposeSetup.CS;
+import static org.niis.xroad.cs.test.IntTestComposeSetup.Port.API;
 
 @Configuration
-@Import(FeignClientsConfiguration.class)
+@RequiredArgsConstructor
 public class CsManagementServiceTestConfiguration {
 
     @Bean
-    public FeignManagementRequestsApi feignManagementRequestsApi(Decoder decoder,
-                                                                 TestableApplicationInfoProvider applicationInfoProvider,
-                                                                 Contract contract) {
-        return Feign.builder()
-                .client(new ApacheHttp5Client(HttpClients.createDefault()))
-                .encoder(new Encoder.Default())
-                .decoder(decoder)
-                .requestInterceptor(requestTemplate -> requestTemplate.target(String.format("http://%s:%s",
-                        applicationInfoProvider.getHost(),
-                        applicationInfoProvider.getPort())))
-                .contract(contract)
-                .target(FeignManagementRequestsApi.class, "http://localhost");
+    FeignManagementRequestsApi feignManagementRequestsApi(FeignFactory feignFactory, final IntTestComposeSetup testSetup) {
+        var container = testSetup.getContainerMapping(CS, API);
+
+        var baseUrl = "http://" + container.host() + ":" + container.port();
+        return feignFactory.createClient(FeignManagementRequestsApi.class, baseUrl, new Encoder.Default(), Collections.emptyList());
     }
 
     @Bean
-    @Lazy
-    public MockServerClient mockServerClient(final MockServerAuxContainer mockServerAuxContainer) {
-        return new MockServerClient(mockServerAuxContainer.getTestContainer().getHost(),
-                mockServerAuxContainer.getTestContainer().getServerPort());
+    @SuppressWarnings("checkstyle:magicnumber")
+    HttpClient httpClient() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        var sslcontext = SSLContexts.custom()
+                .loadTrustMaterial((chain, authType) -> true)
+                .build();
+
+        var connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setTlsSocketStrategy(new DefaultClientTlsStrategy(sslcontext, NoopHostnameVerifier.INSTANCE))
+                .setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofSeconds(3)).build())
+                .setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(Timeout.ofSeconds(3)).build())
+                .build();
+
+        return HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .disableCookieManagement()
+                .disableRedirectHandling()
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setResponseTimeout(Timeout.ofSeconds(3))
+                        .setConnectionRequestTimeout(Timeout.ofSeconds(2))
+                        .build())
+                .build();
     }
 
 }

@@ -31,8 +31,8 @@ import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingDummyServerProxy;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 
 /**
  * Client sends normal message, SP emulator responds with SOAP response
@@ -53,7 +53,7 @@ public class ServerProxyMissingBody extends MessageTestCase implements UsingDumm
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_SERVICE_FAILED_X,
-                X_MISSING_BODY);
+        assertErrorCode(SERVER_CLIENTPROXY_X, SERVICE_FAILED.code(),
+                MISSING_BODY.code());
     }
 }

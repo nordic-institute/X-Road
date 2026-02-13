@@ -27,16 +27,18 @@
 package org.niis.xroad.serverconf.impl.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import org.niis.xroad.serverconf.impl.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.util.List;
 
-@Mapper
+@Mapper(uses = {ClientMapper.class})
 public interface EndpointMapper extends GenericUniDirectionalMapper<EndpointEntity, Endpoint> {
     EndpointMapper INSTANCE = Mappers.getMapper(EndpointMapper.class);
+
     static EndpointMapper get() {
         return INSTANCE;
     }
@@ -46,6 +48,7 @@ public interface EndpointMapper extends GenericUniDirectionalMapper<EndpointEnti
 
     List<Endpoint> toTargets(List<EndpointEntity> entities);
 
+    @Mapping(target = "client", ignore = true)
     EndpointEntity toEntity(Endpoint domain);
 
     List<EndpointEntity> toEntities(List<Endpoint> domains);

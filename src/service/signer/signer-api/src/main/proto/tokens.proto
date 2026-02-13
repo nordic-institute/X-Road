@@ -42,10 +42,9 @@ message TokenInfoProto {
   bool active = 6;
   optional string serial_number = 7;
   optional string label = 8;
-  int32 slot_index = 9;
-  TokenStatusInfo status = 10;
-  repeated KeyInfoProto key_info = 11;
-  map<string, string> token_info = 12;
+  TokenStatusInfo status = 9;
+  repeated KeyInfoProto key_info = 10;
+  map<string, string> token_info = 11;
 }
 
 message TokenInfoAndKeyIdProto {

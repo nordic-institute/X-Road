@@ -26,12 +26,13 @@
  */
 package org.niis.xroad.cs.test.hook;
 
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.hooks.AfterScenarioHook;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
+import org.niis.xroad.cs.test.service.LiquibaseExecutor;
 import org.niis.xroad.cs.test.utils.CentralServerInitializer;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.hooks.AfterScenarioHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,7 +56,7 @@ public class DefaultServerStateInitializationHook implements AfterScenarioHook {
                 .anyMatch(TAG_RESET_DB::equalsIgnoreCase);
 
         if (resetDatabase) {
-            log.info("Scenario [{}] was marked as {}. Resetting database.",
+            log.debug("Scenario [{}] was marked as {}. Resetting database.",
                     cucumberScenarioProvider.getCucumberScenario().getName(),
                     TAG_RESET_DB);
             liquibaseExecutor.executeChangesets();

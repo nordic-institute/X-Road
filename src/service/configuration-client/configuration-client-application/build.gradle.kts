@@ -1,13 +1,14 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.shadow)
+  id("xroad.quarkus-application-conventions")
   id("maven-publish")
 }
 
+
 publishing {
   publications {
-    create<MavenPublication>("shadow") {
-      from(components["shadow"])
+    create<MavenPublication>("quarkus") {
+      from(components["java"])
 
       groupId = "org.niis.xroad"
       artifactId = "configuration-client"
@@ -37,33 +38,19 @@ publishing {
 }
 
 dependencies {
-  implementation(platform(libs.springBoot.bom))
-
+  implementation(project(":lib:rpc-quarkus"))
   implementation(project(":common:common-core"))
+  implementation(project(":lib:properties-quarkus"))
   implementation(project(":service:configuration-client:configuration-client-core"))
 
-  implementation("org.springframework:spring-context")
-  implementation(libs.logback.classic)
-  testImplementation(project(":common:common-test"))
-}
+  implementation(libs.bundles.quarkus.core)
+  implementation(libs.bundles.quarkus.containerized)
+  implementation(libs.quarkus.extension.systemd.notify)
+  implementation(libs.quarkus.quartz)
 
-tasks.jar {
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.confclient.application.ConfClientDaemonMain")
-  }
-}
-
-tasks.shadowJar {
-  exclude("**/module-info.class")
-  archiveClassifier.set("")
-  archiveBaseName.set("configuration-client")
-  mergeServiceFiles()
+  testImplementation(libs.quarkus.junit5)
 }
 
 tasks.jar {
   enabled = false
-}
-
-tasks.build {
-  dependsOn(tasks.shadowJar)
 }

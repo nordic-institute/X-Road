@@ -26,7 +26,9 @@
 package org.niis.xroad.signer.core.protocol;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.handler.ActivateTokenReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.DeleteTokenReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetHSMOperationalInfoReqHandler;
@@ -56,15 +58,13 @@ import org.niis.xroad.signer.proto.ListTokensResp;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.niis.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
-import org.springframework.stereotype.Service;
 
 /**
  * Token gRPC service.
  */
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     private final ActivateTokenReqHandler activateTokenReqHandler;

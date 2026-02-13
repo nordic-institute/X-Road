@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.common;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,7 +39,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class CostTypePrioritizer<T extends SortableByCostType> {
     private final List<T> toBeSorted;
 
-    public List<String> prioritize(SystemProperties.ServicePrioritizationStrategy prioritizationStrategy) {
+    public List<String> prioritize(ServicePrioritizationStrategy prioritizationStrategy) {
         Stream<T> sortedStream = toBeSorted.stream().filter(item -> isNotBlank(item.getSortableValue()));
 
         switch (prioritizationStrategy) {

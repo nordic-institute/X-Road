@@ -38,6 +38,16 @@ public final class SignatureData {
     private final String hashChainResult;
     private final String hashChain;
 
+    public SignatureData(String signatureXml) {
+        this(signatureXml, null, null);
+    }
+
+    public SignatureData(String signatureXml, String hashChainResult, String hashChain) {
+        this.signatureXml = signatureXml;
+        this.hashChainResult = hashChainResult;
+        this.hashChain = hashChain;
+    }
+
     /**
      * @return true if this signature is a batch signature
      */

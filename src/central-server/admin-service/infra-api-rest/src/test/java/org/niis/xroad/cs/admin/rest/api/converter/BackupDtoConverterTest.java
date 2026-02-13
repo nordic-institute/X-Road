@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
