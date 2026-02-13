@@ -114,7 +114,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
     @SneakyThrows
     @Step("Execute command sudo -u xroad signer-console {string}")
     public void signerConsoleCommand(String strCommand) {
-        execInContainer("sudo", "-u", "xroad", "signer-console", strCommand);
+        systemTestContainerSetup.execInContainer("sudo", "-u", "xroad", "signer-console", strCommand);
     }
 
     @SneakyThrows
