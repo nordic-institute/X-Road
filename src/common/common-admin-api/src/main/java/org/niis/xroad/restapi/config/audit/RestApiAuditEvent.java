@@ -48,6 +48,11 @@ public enum RestApiAuditEvent {
     INIT_ANCHOR("Initialize anchor"),
     INIT_SERVER_CONFIGURATION("Initialize server configuration"),
     INIT_CENTRAL_SERVER("Initialize central server"),
+    INIT_SERVER_CONF("Initialize server configuration step"),
+    INIT_SOFTTOKEN("Initialize software token step"),
+    INIT_GPG_KEY("Initialize GPG key step"),
+    INIT_MLOG_ENCRYPTION("Initialize message log encryption step"),
+    INIT_ALL_STEPS("Initialize all pending steps"),
 
     // clients events
     ADD_CLIENT("Add client"),

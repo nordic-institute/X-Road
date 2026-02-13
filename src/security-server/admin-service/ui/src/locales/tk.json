@@ -17,7 +17,8 @@
   "action": {
     "disable": "Öçür",
     "enable": "Işe giriz",
-    "order": "Sargyt et"
+    "order": "Sargyt et",
+    "retry": "Gaýtadan synanyşmak"
   },
   "alert": {
     "warningCount": "Şol bir duýduryşlaryň jemi Amount of same warnings"

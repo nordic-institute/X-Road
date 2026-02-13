@@ -17,7 +17,8 @@
   "action": {
     "disable": "Desativar",
     "enable": "Ativar",
-    "order": "Ordenar"
+    "order": "Ordenar",
+    "retry": "Tentar novamente"
   },
   "alert": {
     "warningCount": "Quantidade de alertas iguais"
