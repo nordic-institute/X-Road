@@ -1,8 +1,8 @@
 @SecurityServer
 @UI
+@Skip #TODO either remove altogether or bring back those files to containers
 Feature: 0200 - SS: Operational readiness checks: docs & logs
 
-  @Skip #TODO either remove altogether or bring back those files to containers
   Scenario: Verify that documentation files are installed
     And file "/usr/share/doc/xroad-proxy/LICENSE.txt" exists
 
