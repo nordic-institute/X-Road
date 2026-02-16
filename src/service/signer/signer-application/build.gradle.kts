@@ -14,6 +14,10 @@ dependencies {
   implementation(project(":service:signer:signer-core"))
   implementation(project(":service:signer:signer-jpa"))
 
+  // healthcheck
+  implementation(project(":common:common-db"))
+  implementation(project(":lib:health-check-core"))
+
   implementation(libs.bundles.quarkus.core)
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)

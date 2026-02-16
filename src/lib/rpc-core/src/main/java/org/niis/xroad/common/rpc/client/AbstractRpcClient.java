@@ -35,12 +35,22 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
+import io.grpc.ManagedChannel;
+
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 public abstract class AbstractRpcClient implements AutoCloseable {
+
+    /**
+     * Get the managed channel used by this RPC client.
+     * Used for health checks to verify channel connectivity.
+     *
+     * @return the ManagedChannel instance, or null if not initialized
+     */
+    public abstract ManagedChannel getChannel();
 
     public void exec(Runnable action) {
         try {

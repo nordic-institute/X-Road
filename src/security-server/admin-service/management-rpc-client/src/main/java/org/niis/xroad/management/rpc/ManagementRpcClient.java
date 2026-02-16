@@ -59,6 +59,11 @@ public class ManagementRpcClient extends AbstractRpcClient {
         return ErrorOrigin.PROXY;
     }
 
+    @Override
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
     @PostConstruct
     public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),

@@ -24,36 +24,58 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.healthcheck;
 
-package org.niis.xroad.signer.core.healthcheck;
-
+import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
-import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 
 /**
- * TODO this is a sample readiness check for the token registry.
- * Technically it should not trigger as it is loaded from post-construct.
+ * Readiness check for OpenBao/Vault KV secret engine connectivity.
+ * This check verifies that the KV secret engine is accessible.
+ *
+ * <p>This check is automatically activated in services that have
+ * VaultKVSecretEngine configured (Signer, Proxy, Op-Monitor).
+ * If no VaultKVSecretEngine is configured, the check reports UP
+ * with status NOT_CONFIGURED.
  */
 @Slf4j
 @Readiness
 @ApplicationScoped
-@RequiredArgsConstructor
-public class TokenRegistryReadinessCheck implements HealthCheck {
-    private static final String NAME = "TOKEN_REGISTRY_READINESS_CHECK";
+public class OpenBaoKvReadinessCheck implements HealthCheck {
 
-    private final TokenRegistry tokenRegistry;
+    private static final String NAME = "OPENBAO_KV_READINESS_CHECK";
+
+    @Inject
+    Instance<VaultKVSecretEngine> kvSecretEngineInstance;
 
     @Override
     public HealthCheckResponse call() {
-        if (tokenRegistry.isInitialized()) {
-            return HealthCheckResponse.up(NAME);
+        if (kvSecretEngineInstance.isUnsatisfied()) {
+            return HealthCheckResponse.builder()
+                    .name(NAME)
+                    .up()
+                    .withData("status", "NOT_CONFIGURED")
+                    .build();
         }
-        log.warn("Token registry is not initialized, returning down status for readiness check");
-        return HealthCheckResponse.down(NAME);
+
+        try {
+            VaultKVSecretEngine kvSecretEngine = kvSecretEngineInstance.get();
+            // Execute a simple operation to verify connectivity
+            kvSecretEngine.listSecrets("");
+            return HealthCheckResponse.up(NAME);
+        } catch (Exception e) {
+            log.warn("OpenBao KV readiness check failed: {}", e.getMessage());
+            return HealthCheckResponse.builder()
+                    .name(NAME)
+                    .down()
+                    .withData("error", e.getMessage())
+                    .build();
+        }
     }
 }

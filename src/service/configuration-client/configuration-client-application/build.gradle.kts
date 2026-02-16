@@ -48,6 +48,9 @@ dependencies {
   implementation(libs.quarkus.extension.systemd.notify)
   implementation(libs.quarkus.quartz)
 
+  // healthcheck
+  implementation(project(":lib:health-check-core"))
+
   testImplementation(libs.quarkus.junit5)
 }
 
