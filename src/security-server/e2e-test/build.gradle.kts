@@ -12,6 +12,7 @@ dependencies {
   intTestImplementation(project(":lib:asic-core"))
   intTestImplementation(project(":common:common-test"))
   intTestImplementation(project(":lib:globalconf-impl"))
+  intTestImplementation(project(":lib:vault-core"))
 }
 
 intTestComposeEnv {
