@@ -19,6 +19,7 @@ xmlUnit = "2.11.0"
 bouncyCastle = "1.83"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
+testcontainers = "1.21.4"
 selenide="7.13.0"
 protoc = "4.33.5"
 grpc = "1.79.0"
@@ -74,6 +75,7 @@ julOverSlf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j" }
 testAutomation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
 testAutomation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }
 testAutomation-containers = { module = "com.nortal.test:test-automation-containers", version.ref = "testAutomationFramework" }
+testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testAutomation-feign = { module = "com.nortal.test:test-automation-feign", version.ref = "testAutomationFramework" }
 testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
