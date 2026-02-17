@@ -9,6 +9,7 @@ configurations.named("implementation") {
   exclude(module = "configuration-client-rpc-client")
   exclude(module = "configuration-client-model")
   exclude(module = "rpc-core")
+  exclude(module = "xml-apis") // conflicts with JDK's javax.xml; its TransformerFactory requires xalan
 }
 
 dependencies {

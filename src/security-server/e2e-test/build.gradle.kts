@@ -33,7 +33,8 @@ intTestComposeEnv {
     "PROXY_UI_IMG" to "ss-proxy-ui-api",
     "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
     "OP_MONITOR_IMG" to "ss-op-monitor",
-    "CA_IMG" to "testca-dev"
+    "CA_IMG" to "testca-dev",
+    "MESSAGE_LOG_ARCHIVER_IMG" to "ss-message-log-archiver"
   )
 }
 

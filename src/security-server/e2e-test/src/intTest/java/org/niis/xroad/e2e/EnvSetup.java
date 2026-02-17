@@ -56,6 +56,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String COMPOSE_SS_BATCH_SIGNATURES_FILE = "compose.ss-batch-signature-enabled.e2e.yaml";
     private static final String COMPOSE_SS_SOFTTOKEN_SIGNER_FILE = "compose.ss-softtoken-signer-enabled.e2e.yaml";
     private static final String COMPOSE_SS_MSGLOG_ENCRYPTION = "compose.ss-msglog-encryption.e2e.yaml";
+    private static final String COMPOSE_SS_MSGLOG_CLI = "compose.ss-msglog.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String OPENBAO = "openbao";
@@ -64,6 +65,8 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String SIGNER = "signer";
     private static final String SOFTTOKEN_SIGNER = "softtoken-signer";
     private static final String CONFIGURATION_CLIENT = "configuration-client";
+    private static final String AUX_SERVICE = "auxiliary-service";
+    private static final String MESSAGE_LOG_CLI = "message-log-cli";
     private static final String XROAD_NETWORK = "xroad-network";
 
     public static final String DB_MESSAGELOG = "db-messagelog";
@@ -121,7 +124,10 @@ public class EnvSetup extends BaseComposeSetup {
     }
 
     private ComposeContainer createSSEnvironment(String name, Set<Feature> features) {
-        var files = new ArrayList<>(List.of(getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE)));
+        var files = new ArrayList<>(List.of(
+                getComposeFilePath(COMPOSE_SS_FILE),
+                getComposeFilePath(COMPOSE_SS_E2E_FILE),
+                getComposeFilePath(COMPOSE_SS_MSGLOG_CLI)));
 
         features.forEach(f -> files.add(getComposeFilePath(f.getComposeFile())));
 
@@ -133,7 +139,9 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
                 .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER))
-                .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO));
+                .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO))
+                .withLogConsumer(AUX_SERVICE, createLogConsumer(name, AUX_SERVICE))
+                .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI));
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
