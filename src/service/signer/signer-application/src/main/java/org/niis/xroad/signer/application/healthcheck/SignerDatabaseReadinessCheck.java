@@ -29,7 +29,7 @@ package org.niis.xroad.signer.application.healthcheck;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.health.Readiness;
 import org.niis.xroad.common.healthcheck.HibernateDatabaseReadinessCheck;
 import org.niis.xroad.signer.jpa.SignerDatabaseCtx;
@@ -40,10 +40,10 @@ import org.niis.xroad.signer.jpa.SignerDatabaseCtx;
  */
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class SignerDatabaseReadinessCheck extends HibernateDatabaseReadinessCheck {
 
-    @Inject
-    SignerDatabaseCtx signerDatabaseCtx;
+    private final SignerDatabaseCtx signerDatabaseCtx;
 
     @Override
     protected DatabaseCtx getDatabaseCtx() {

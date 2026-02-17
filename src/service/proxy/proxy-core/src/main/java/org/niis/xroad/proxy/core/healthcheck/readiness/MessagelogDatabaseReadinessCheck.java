@@ -28,8 +28,9 @@ package org.niis.xroad.proxy.core.healthcheck.readiness;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
+import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.health.Readiness;
 import org.niis.xroad.common.healthcheck.HibernateDatabaseReadinessCheck;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
@@ -37,13 +38,15 @@ import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 /**
  * Readiness check for the Proxy messagelog database connectivity.
  * Verifies that the messagelog database is accessible by executing a simple query.
+ * Only active when message logging is enabled.
  */
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
+@LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
 public class MessagelogDatabaseReadinessCheck extends HibernateDatabaseReadinessCheck {
 
-    @Inject
-    MessageLogDatabaseCtx messageLogDatabaseCtx;
+    private final MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     @Override
     protected DatabaseCtx getDatabaseCtx() {

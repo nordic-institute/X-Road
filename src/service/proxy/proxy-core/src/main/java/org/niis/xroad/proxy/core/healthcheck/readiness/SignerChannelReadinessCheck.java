@@ -28,7 +28,7 @@ package org.niis.xroad.proxy.core.healthcheck.readiness;
 
 import io.grpc.ManagedChannel;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.health.Readiness;
 import org.niis.xroad.common.healthcheck.GrpcChannelReadinessCheck;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -39,10 +39,10 @@ import org.niis.xroad.signer.client.SignerRpcClient;
  */
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class SignerChannelReadinessCheck extends GrpcChannelReadinessCheck {
 
-    @Inject
-    SignerRpcClient signerRpcClient;
+    private final SignerRpcClient signerRpcClient;
 
     @Override
     protected ManagedChannel getChannel() {

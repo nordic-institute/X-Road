@@ -30,12 +30,14 @@ import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
 import org.niis.xroad.confclient.core.config.ConfClientJobConfig;
+
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 
 /**
  * Readiness check for GlobalConf status.
@@ -51,11 +53,11 @@ import org.niis.xroad.confclient.core.config.ConfClientJobConfig;
 @Slf4j
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class GlobalConfReadinessCheck implements HealthCheck {
     private static final String NAME = "GLOBALCONF_READINESS_CHECK";
 
-    @Inject
-    ConfClientJobConfig.ConfigurationClientJobListener jobListener;
+    private final ConfClientJobConfig.ConfigurationClientJobListener jobListener;
 
     @Override
     public HealthCheckResponse call() {
@@ -64,7 +66,7 @@ public class GlobalConfReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("status", "NOT_YET_CHECKED")
+                    .withData(STATUS, "NOT_YET_CHECKED")
                     .build();
         }
 
@@ -73,7 +75,7 @@ public class GlobalConfReadinessCheck implements HealthCheck {
             case OK -> HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("status", "OK")
+                    .withData(STATUS, "OK")
                     .build();
             case UNINITIALIZED -> {
                 // UNINITIALIZED is acceptable - system not initialized
@@ -81,7 +83,7 @@ public class GlobalConfReadinessCheck implements HealthCheck {
                 yield HealthCheckResponse.builder()
                         .name(NAME)
                         .up()
-                        .withData("status", "UNINITIALIZED")
+                        .withData(STATUS, "UNINITIALIZED")
                         .build();
             }
             case ERROR, UNKNOWN -> {
@@ -89,7 +91,7 @@ public class GlobalConfReadinessCheck implements HealthCheck {
                 yield HealthCheckResponse.builder()
                         .name(NAME)
                         .down()
-                        .withData("status", status.name())
+                        .withData(STATUS, status.name())
                         .withData("description", diagnosticsStatus.getDescription() != null
                                 ? diagnosticsStatus.getDescription() : "No description available")
                         .build();

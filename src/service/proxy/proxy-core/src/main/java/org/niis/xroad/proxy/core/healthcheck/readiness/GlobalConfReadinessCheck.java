@@ -27,39 +27,76 @@
 package org.niis.xroad.proxy.core.healthcheck.readiness;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
-import org.niis.xroad.proxy.core.healthcheck.HealthCheckResult;
-import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
+import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.globalconf.model.GlobalConfInitState;
+
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 
 /**
- * MicroProfile Health wrapper for the existing GlobalConf validity check.
- * Verifies that the global configuration is valid and not expired.
+ * Readiness check for GlobalConf status.
+ * <p>
+ * IMPORTANT: UNINITIALIZED and related startup states are considered UP, not DOWN.
+ * This is critical to prevent cascade failures during system startup:
+ * - New Security Server installation starts with no globalconf
+ * - Configuration-client needs time to download globalconf on first boot
+ * - Marking as DOWN would cause unnecessary pod restarts and prevent initial setup
+ * <p>
+ * Only actual failure states are considered failures.
  */
 @Slf4j
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class GlobalConfReadinessCheck implements HealthCheck {
     private static final String NAME = "PROXY_GLOBALCONF_READINESS_CHECK";
 
-    @Inject
-    HealthChecks healthChecks;
+    private final GlobalConfSource globalConfSource;
 
     @Override
     public HealthCheckResponse call() {
-        HealthCheckResult result = healthChecks.checkGlobalConfStatus().get();
-        if (result.isOk()) {
-            return HealthCheckResponse.up(NAME);
-        } else {
-            log.warn("GlobalConf readiness check failed: {}", result.getErrorMessage());
-            return HealthCheckResponse.builder()
-                    .name(NAME)
-                    .down()
-                    .withData("error", result.getErrorMessage())
-                    .build();
-        }
+        GlobalConfInitState state = globalConfSource.getReadinessState();
+
+        return switch (state) {
+            case INITIALIZED -> {
+                // Verify the config is also valid (not expired)
+                if (!globalConfSource.isExpired()) {
+                    yield HealthCheckResponse.builder()
+                            .name(NAME)
+                            .up()
+                            .withData(STATUS, "OK")
+                            .build();
+                } else {
+                    log.warn("GlobalConf is initialized but expired, reporting readiness as DOWN");
+                    yield HealthCheckResponse.builder()
+                            .name(NAME)
+                            .down()
+                            .withData(STATUS, "EXPIRED")
+                            .build();
+                }
+            }
+            case UNKNOWN, UNINITIALIZED, READY_TO_INIT,
+                    FAILURE_MISSING_ANCHOR, FAILURE_MISSING_INSTANCE_IDENTIFIER -> {
+                // These states are acceptable during startup - system not yet initialized/configured
+                log.debug("GlobalConf is {}, reporting readiness as UP (startup in progress)", state);
+                yield HealthCheckResponse.builder()
+                        .name(NAME)
+                        .up()
+                        .withData(STATUS, state.name())
+                        .build();
+            }
+            default -> {
+                log.warn("GlobalConf status is {}, reporting readiness as DOWN", state);
+                yield HealthCheckResponse.builder()
+                        .name(NAME)
+                        .down()
+                        .withData(STATUS, state.name())
+                        .build();
+            }
+        };
     }
 }

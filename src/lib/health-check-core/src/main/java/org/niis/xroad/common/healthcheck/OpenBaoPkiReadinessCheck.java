@@ -30,12 +30,16 @@ import io.quarkus.vault.VaultPKISecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
 import org.niis.xroad.common.rpc.RpcProperties;
+
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.REASON;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 
 /**
  * Readiness check for OpenBao/Vault PKI secret engine connectivity.
@@ -50,15 +54,14 @@ import org.niis.xroad.common.rpc.RpcProperties;
 @Slf4j
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class OpenBaoPkiReadinessCheck implements HealthCheck {
 
     private static final String NAME = "OPENBAO_PKI_READINESS_CHECK";
 
-    @Inject
-    Instance<RpcProperties> rpcPropertiesInstance;
+    private final Instance<RpcProperties> rpcPropertiesInstance;
 
-    @Inject
-    Instance<VaultPKISecretEngineFactory> pkiSecretEngineFactoryInstance;
+    private final Instance<VaultPKISecretEngineFactory> pkiSecretEngineFactoryInstance;
 
     @Override
     public HealthCheckResponse call() {
@@ -67,7 +70,7 @@ public class OpenBaoPkiReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("status", "NOT_CONFIGURED")
+                    .withData(STATUS, "NOT_CONFIGURED")
                     .build();
         }
 
@@ -78,8 +81,8 @@ public class OpenBaoPkiReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("status", "NOT_REQUIRED")
-                    .withData("reason", "mTLS is disabled")
+                    .withData(STATUS, "NOT_REQUIRED")
+                    .withData(REASON, "mTLS is disabled")
                     .build();
         }
 
@@ -89,7 +92,7 @@ public class OpenBaoPkiReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .down()
-                    .withData("error", "PKI engine not configured but mTLS is enabled")
+                    .withData(ERROR, "PKI engine not configured but mTLS is enabled")
                     .build();
         }
 
@@ -112,7 +115,7 @@ public class OpenBaoPkiReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .down()
-                    .withData("error", e.getMessage())
+                    .withData(ERROR, e.getMessage())
                     .build();
         }
     }

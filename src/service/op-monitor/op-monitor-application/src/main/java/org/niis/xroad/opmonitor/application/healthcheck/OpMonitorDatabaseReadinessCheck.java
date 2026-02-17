@@ -29,7 +29,7 @@ package org.niis.xroad.opmonitor.application.healthcheck;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.health.Readiness;
 import org.niis.xroad.common.healthcheck.HibernateDatabaseReadinessCheck;
 import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
@@ -40,10 +40,10 @@ import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
  */
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class OpMonitorDatabaseReadinessCheck extends HibernateDatabaseReadinessCheck {
 
-    @Inject
-    OpMonitorDatabaseCtx opMonitorDatabaseCtx;
+    private final OpMonitorDatabaseCtx opMonitorDatabaseCtx;
 
     @Override
     protected DatabaseCtx getDatabaseCtx() {

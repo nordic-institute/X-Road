@@ -28,14 +28,13 @@ package org.niis.xroad.common.rpc.client;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
-
-import io.grpc.ManagedChannel;
 
 import java.util.concurrent.Callable;
 import java.util.function.Function;

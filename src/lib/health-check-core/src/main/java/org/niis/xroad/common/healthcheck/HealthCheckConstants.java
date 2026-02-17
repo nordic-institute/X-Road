@@ -24,38 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.softtoken.healthcheck;
+package org.niis.xroad.common.healthcheck;
 
-import io.grpc.ManagedChannel;
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
-import org.eclipse.microprofile.health.Readiness;
-import org.niis.xroad.common.healthcheck.GrpcChannelReadinessCheck;
-import org.niis.xroad.signer.client.SignerRpcClient;
+import lombok.experimental.UtilityClass;
 
-/**
- * Readiness check for the gRPC channel to the main Signer service.
- * The softtoken-signer depends on the main signer for key information synchronization.
- */
-@Readiness
-@ApplicationScoped
-@RequiredArgsConstructor
-public class SignerChannelReadinessCheck extends GrpcChannelReadinessCheck {
+@UtilityClass
+public class HealthCheckConstants {
 
-    private final SignerRpcClient signerRpcClient;
+    public static final String STATUS = "status";
+    public static final String TARGET = "target";
+    public static final String STATE = "state";
+    public static final String ERROR = "error";
+    public static final String REASON = "reason";
 
-    @Override
-    protected ManagedChannel getChannel() {
-        return signerRpcClient.getChannel();
-    }
-
-    @Override
-    protected String getCheckName() {
-        return "SOFTTOKEN_SIGNER_CHANNEL_READINESS_CHECK";
-    }
-
-    @Override
-    protected String getTargetService() {
-        return "signer";
-    }
 }

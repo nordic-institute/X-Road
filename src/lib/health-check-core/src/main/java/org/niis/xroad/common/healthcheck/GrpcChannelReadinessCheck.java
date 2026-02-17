@@ -36,6 +36,10 @@ import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import java.util.EnumSet;
 import java.util.Set;
 
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATE;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.TARGET;
+
 /**
  * Abstract base class for gRPC channel connectivity readiness checks.
  * Checks the channel connectivity state to determine if the channel is ready to handle requests.
@@ -55,6 +59,7 @@ import java.util.Set;
  */
 @Slf4j
 public abstract class GrpcChannelReadinessCheck implements HealthCheck {
+
 
     /**
      * States that indicate the channel is ready or will become ready.
@@ -97,8 +102,8 @@ public abstract class GrpcChannelReadinessCheck implements HealthCheck {
         if (channel == null) {
             log.warn("gRPC channel to {} is not initialized", getTargetService());
             return builder.down()
-                    .withData("error", "Channel not initialized")
-                    .withData("target", getTargetService())
+                    .withData(ERROR, "Channel not initialized")
+                    .withData(TARGET, getTargetService())
                     .build();
         }
 
@@ -107,15 +112,15 @@ public abstract class GrpcChannelReadinessCheck implements HealthCheck {
 
         if (ACCEPTABLE_STATES.contains(state)) {
             return builder.up()
-                    .withData("state", state.name())
-                    .withData("target", getTargetService())
+                    .withData(STATE, state.name())
+                    .withData(TARGET, getTargetService())
                     .build();
         }
 
         log.warn("gRPC channel to {} is in state: {}", getTargetService(), state);
         return builder.down()
-                .withData("state", state.name())
-                .withData("target", getTargetService())
+                .withData(STATE, state.name())
+                .withData(TARGET, getTargetService())
                 .build();
     }
 }

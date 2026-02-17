@@ -26,40 +26,37 @@
  */
 package org.niis.xroad.proxy.core.healthcheck.readiness;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.health.Readiness;
-import org.niis.xroad.proxy.core.healthcheck.HealthCheckResult;
-import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
+import org.niis.xroad.common.healthcheck.HibernateDatabaseReadinessCheck;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 
 /**
- * MicroProfile Health wrapper for the existing ServerConf database health check.
- * Verifies that the serverconf database is accessible and properly initialized.
+ * Readiness check for the Proxy serverconf database connectivity.
+ * Verifies that the serverconf database is accessible by executing a simple query.
  */
-@Slf4j
 @Readiness
 @ApplicationScoped
-public class ServerConfDatabaseReadinessCheck implements HealthCheck {
-    private static final String NAME = "PROXY_SERVERCONF_READINESS_CHECK";
+@RequiredArgsConstructor
+public class ServerConfDatabaseReadinessCheck extends HibernateDatabaseReadinessCheck {
 
-    @Inject
-    HealthChecks healthChecks;
+    private final ServerConfDatabaseCtx serverConfDatabaseCtx;
 
     @Override
-    public HealthCheckResponse call() {
-        HealthCheckResult result = healthChecks.checkServerConfDatabaseStatus().get();
-        if (result.isOk()) {
-            return HealthCheckResponse.up(NAME);
-        } else {
-            log.warn("ServerConf readiness check failed: {}", result.getErrorMessage());
-            return HealthCheckResponse.builder()
-                    .name(NAME)
-                    .down()
-                    .withData("error", result.getErrorMessage())
-                    .build();
-        }
+    protected DatabaseCtx getDatabaseCtx() {
+        return serverConfDatabaseCtx;
+    }
+
+    @Override
+    protected String getCheckName() {
+        return "PROXY_SERVERCONF_DATABASE_READINESS_CHECK";
+    }
+
+    @Override
+    protected String getDatabaseName() {
+        return "serverconf";
     }
 }

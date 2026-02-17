@@ -27,15 +27,19 @@
 package org.niis.xroad.confclient.application.healthcheck;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
 
 import javax.sql.DataSource;
+
 import java.sql.Connection;
+
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 
 /**
  * Readiness check for the Configuration-Client database connectivity.
@@ -46,12 +50,12 @@ import java.sql.Connection;
 @Slf4j
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class ServerConfDatabaseReadinessCheck implements HealthCheck {
     private static final String NAME = "CONFCLIENT__SERVERCONF_READINESS_CHECK";
     private static final int VALIDATION_TIMEOUT_SECONDS = 5;
 
-    @Inject
-    Provider<DataSource> dataSourceProvider;
+    private final Provider<DataSource> dataSourceProvider;
 
     @Override
     public HealthCheckResponse call() {
@@ -62,7 +66,7 @@ public class ServerConfDatabaseReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("status", "NOT_CONFIGURED")
+                    .withData(STATUS, "NOT_CONFIGURED")
                     .build();
         }
 
@@ -74,7 +78,7 @@ public class ServerConfDatabaseReadinessCheck implements HealthCheck {
                 return HealthCheckResponse.builder()
                         .name(NAME)
                         .down()
-                        .withData("error", "Connection validation failed")
+                        .withData(ERROR, "Connection validation failed")
                         .build();
             }
         } catch (Exception e) {
@@ -82,7 +86,7 @@ public class ServerConfDatabaseReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .down()
-                    .withData("error", e.getMessage())
+                    .withData(ERROR, e.getMessage())
                     .build();
         }
     }

@@ -29,11 +29,14 @@ package org.niis.xroad.common.healthcheck;
 import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
+
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 
 /**
  * Readiness check for OpenBao/Vault KV secret engine connectivity.
@@ -47,12 +50,12 @@ import org.eclipse.microprofile.health.Readiness;
 @Slf4j
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class OpenBaoKvReadinessCheck implements HealthCheck {
 
     private static final String NAME = "OPENBAO_KV_READINESS_CHECK";
 
-    @Inject
-    Instance<VaultKVSecretEngine> kvSecretEngineInstance;
+    private final Instance<VaultKVSecretEngine> kvSecretEngineInstance;
 
     @Override
     public HealthCheckResponse call() {
@@ -60,7 +63,7 @@ public class OpenBaoKvReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("status", "NOT_CONFIGURED")
+                    .withData(STATUS, "NOT_CONFIGURED")
                     .build();
         }
 
@@ -74,7 +77,7 @@ public class OpenBaoKvReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .down()
-                    .withData("error", e.getMessage())
+                    .withData(ERROR, e.getMessage())
                     .build();
         }
     }

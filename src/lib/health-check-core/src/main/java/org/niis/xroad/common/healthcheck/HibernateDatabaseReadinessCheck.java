@@ -33,8 +33,12 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
+
 @Slf4j
 public abstract class HibernateDatabaseReadinessCheck implements HealthCheck {
+
+    private static final String DATABASE = "database";
 
     /**
      * Get the DatabaseCtx to check connectivity for.
@@ -66,8 +70,8 @@ public abstract class HibernateDatabaseReadinessCheck implements HealthCheck {
         if (databaseCtx == null) {
             log.warn("DatabaseCtx for {} is not configured", getDatabaseName());
             return builder.down()
-                    .withData("error", "DatabaseCtx not configured")
-                    .withData("database", getDatabaseName())
+                    .withData(ERROR, "DatabaseCtx not configured")
+                    .withData(DATABASE, getDatabaseName())
                     .build();
         }
 
@@ -78,13 +82,13 @@ public abstract class HibernateDatabaseReadinessCheck implements HealthCheck {
                 return null;
             });
             return builder.up()
-                    .withData("database", getDatabaseName())
+                    .withData(DATABASE, getDatabaseName())
                     .build();
         } catch (Exception e) {
             log.warn("Database connectivity check failed for {}: {}", getDatabaseName(), e.getMessage());
             return builder.down()
-                    .withData("error", e.getMessage())
-                    .withData("database", getDatabaseName())
+                    .withData(ERROR, e.getMessage())
+                    .withData(DATABASE, getDatabaseName())
                     .build();
         }
     }

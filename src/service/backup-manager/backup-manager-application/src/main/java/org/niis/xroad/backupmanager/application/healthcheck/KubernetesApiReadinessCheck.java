@@ -27,7 +27,7 @@
 package org.niis.xroad.backupmanager.application.healthcheck;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.health.HealthCheck;
@@ -43,9 +43,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.REASON;
+import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 
 /**
  * Readiness check for Kubernetes API connectivity.
@@ -53,12 +58,12 @@ import java.security.cert.X509Certificate;
 @Slf4j
 @Readiness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class KubernetesApiReadinessCheck implements HealthCheck {
 
     private static final String NAME = "KUBERNETES_API_READINESS_CHECK";
 
-    @Inject
-    BackupManagerReadinessCheckProperties healthCheckProperties;
+    private final BackupManagerReadinessCheckProperties healthCheckProperties;
 
     @Override
     public HealthCheckResponse call() {
@@ -68,8 +73,8 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("status", "NOT_REQUIRED")
-                    .withData("reason", "Not running in Kubernetes environment")
+                    .withData(STATUS, "NOT_REQUIRED")
+                    .withData(REASON, "Not running in Kubernetes environment")
                     .build();
         }
 
@@ -79,13 +84,13 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
                 return HealthCheckResponse.builder()
                         .name(NAME)
                         .up()
-                        .withData("status", "CONNECTED")
+                        .withData(STATUS, "CONNECTED")
                         .build();
             } else {
                 return HealthCheckResponse.builder()
                         .name(NAME)
                         .down()
-                        .withData("error", "Kubernetes API not accessible")
+                        .withData(ERROR, "Kubernetes API not accessible")
                         .build();
             }
         } catch (Exception e) {
@@ -93,13 +98,14 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .down()
-                    .withData("error", e.getMessage())
+                    .withData(ERROR, e.getMessage())
                     .build();
         }
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private boolean checkKubernetesApiAccess(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps)
-            throws Exception {
+            throws IOException, GeneralSecurityException {
         String k8sHost = k8sProps.serviceHost();
         String k8sPort = k8sProps.servicePort();
 
@@ -136,7 +142,7 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
     }
 
     private SSLContext createSslContext(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps)
-            throws Exception {
+            throws GeneralSecurityException, IOException {
         Path caCertPath = Path.of(k8sProps.caCertPath());
         if (!Files.exists(caCertPath)) {
             // Fall back to default SSL context if CA cert not available
