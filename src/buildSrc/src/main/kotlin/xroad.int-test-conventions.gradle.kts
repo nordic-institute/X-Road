@@ -21,6 +21,7 @@ val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs"
 dependencies {
   "intTestCompileOnly"(libs.findLibrary("lombok").get())
   "intTestAnnotationProcessor"(libs.findLibrary("lombok").get())
+  "intTestImplementation"(platform(libs.findLibrary("testcontainers-core").get()))
 }
 
 tasks.named<Checkstyle>("checkstyleIntTest") {
