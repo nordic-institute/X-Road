@@ -138,6 +138,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
           pr-comment: true
   BuildAndPackageOnArm:
     name: Build and package code for arm architecture
@@ -206,6 +207,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
           pr-comment: true
   RunCSSystemTests:
     name: Run Central Server system tests
@@ -299,6 +301,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
           pr-comment: true
       - name: Upload GMT jsons
         uses: actions/upload-artifact@v6
@@ -391,6 +394,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
           pr-comment: true
   RunE2ETests:
     name: Run E2E tests
