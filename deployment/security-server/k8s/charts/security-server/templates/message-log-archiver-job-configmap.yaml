@@ -1,0 +1,52 @@
+{{- $image := .Values.global.image }}
+{{- $archiver := .Values.messageLogArchiver }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-message-log-archiver-job-template
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+data:
+  job-template.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: "__JOBNAME__"
+    spec:
+      ttlSecondsAfterFinished: 172800 # 48 hours
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: message-log-archiver
+              image: {{ $image.registry }}/{{ $archiver.imageName }}:{{ $image.tag }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - >-
+                  exec java
+                  -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+                  -Djava.library.path=/usr/share/xroad/lib
+                  -Dquarkus.profile=containerized
+                  ${JAVA_OPTS:-}
+                  -jar /opt/app/quarkus-run.jar
+                  __CLI_ARGS__
+              env:
+              {{- range $name, $value := $archiver.env }}
+                - name: {{ $name }}
+                  value: {{ $value | quote }}
+              {{- end }}
+              {{- range $archiver.envFromSecrets }}
+                - name: {{ .name }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .secretName }}
+                      key: {{ .key }}
+              {{- end }}
+              volumeMounts:
+                - mountPath: /var/lib/xroad
+                  name: archive-volume
+          volumes:
+            - name: archive-volume
+              persistentVolumeClaim:
+                claimName: {{ .Release.Name }}-message-log-archives-pvc

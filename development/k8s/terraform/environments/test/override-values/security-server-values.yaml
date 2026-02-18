@@ -113,3 +113,7 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: auxiliary-service-openbao-tls-certificate
+
+messageLogArchiver:
+  env:
+    QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
