@@ -45,6 +45,12 @@ env | grep XROAD_MIRROR | grep -v TOKEN
 
 You should see all mirror URLs listed (token is excluded for security).
 
+### 4. Log-in to docker registry
+
+```bash
+docker login artifactory.niis.org -u <your-username> -p <your-artifactory-token>
+```
+
 ## Disabling Mirrors
 
 - **Gradle:** remove or comment out the properties from `~/.gradle/gradle.properties`
