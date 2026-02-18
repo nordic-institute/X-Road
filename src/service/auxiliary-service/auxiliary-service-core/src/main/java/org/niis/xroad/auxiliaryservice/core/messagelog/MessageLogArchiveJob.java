@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @Startup
 @ApplicationScoped
@@ -50,6 +51,7 @@ public class MessageLogArchiveJob {
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
     private final ExternalProcessRunner externalProcessRunner;
+    private final GlobalConfProvider globalConfProvider;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
@@ -72,7 +74,7 @@ public class MessageLogArchiveJob {
         try {
             log.info("Executing message log archival");
             ExternalProcessRunner.ProcessResult result = externalProcessRunner
-                    .executeAndThrowOnFailure(properties.commandPath(), "archive");
+                    .executeAndThrowOnFailure(properties.commandPath(), "archive", globalConfProvider.getInstanceIdentifier());
             log.info("Message log archival finished: {}", String.join("\n", result.getProcessOutput()));
         } catch (Exception e) {
             log.error("Error executing message log archival", e);
