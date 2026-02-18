@@ -31,4 +31,9 @@ public class NoopVaultKeyClient implements VaultKeyClient {
     public VaultKeyData provisionNewCerts() {
         return new VaultKeyData(null, null, null);
     }
+
+    @Override
+    public void healthCheck() {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }

@@ -154,6 +154,11 @@ public class SpringVaultClient implements VaultClient {
         throw new NotImplementedException();
     }
 
+    @Override
+    public void healthCheck() {
+        throw new NotImplementedException();
+    }
+
     private Optional<Map<String, Object>> readSecret(String path) {
         if (vaultClient == null) {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");

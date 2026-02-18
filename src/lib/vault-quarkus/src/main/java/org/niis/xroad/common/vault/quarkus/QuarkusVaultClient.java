@@ -209,4 +209,11 @@ public class QuarkusVaultClient implements VaultClient {
         kvSecretEngine.writeSecret(path, secret);
     }
 
+    @Override
+    public void healthCheck() {
+        // Execute a list operation to verify actual connectivity to OpenBao
+        // This makes a real network call, not just a null check
+        kvSecretEngine.listSecrets("");
+    }
+
 }

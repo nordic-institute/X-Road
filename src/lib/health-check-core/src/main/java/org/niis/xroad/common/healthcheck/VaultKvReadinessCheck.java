@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.healthcheck;
 
-import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
+import org.niis.xroad.common.vault.VaultClient;
 
 import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
 import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
@@ -51,15 +51,16 @@ import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 @Readiness
 @ApplicationScoped
 @RequiredArgsConstructor
-public class OpenBaoKvReadinessCheck implements HealthCheck {
+public class VaultKvReadinessCheck implements HealthCheck {
 
-    private static final String NAME = "OPENBAO_KV_READINESS_CHECK";
+    private static final String NAME = "VAULT_KV_READINESS_CHECK";
 
-    private final Instance<VaultKVSecretEngine> kvSecretEngineInstance;
+    private final Instance<VaultClient> vaultClient;
 
     @Override
     public HealthCheckResponse call() {
-        if (kvSecretEngineInstance.isUnsatisfied()) {
+        // VaultKVSecretEngine not configured means it's not needed
+        if (vaultClient.isUnsatisfied()) {
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
@@ -68,16 +69,30 @@ public class OpenBaoKvReadinessCheck implements HealthCheck {
         }
 
         try {
-            VaultKVSecretEngine kvSecretEngine = kvSecretEngineInstance.get();
-            // Execute a simple operation to verify connectivity
-            kvSecretEngine.listSecrets("");
-            return HealthCheckResponse.up(NAME);
+            // Execute health check to verify actual connectivity to OpenBao
+            // This makes a real network call, not just a null check
+            vaultClient.get().healthCheck();
+            return HealthCheckResponse.builder()
+                    .name(NAME)
+                    .up()
+                    .build();
         } catch (Exception e) {
-            log.warn("OpenBao KV readiness check failed: {}", e.getMessage());
+            String errorMessage = e.getMessage();
+            // 404 errors are acceptable - they indicate the KV mount is empty or not yet configured
+            // but still prove that Vault is reachable
+            if (errorMessage != null && errorMessage.contains("404")) {
+                log.debug("Vault KV secret engine returned 404 (empty or not configured), connectivity verified");
+                return HealthCheckResponse.builder()
+                        .name(NAME)
+                        .up()
+                        .withData(STATUS, "EMPTY")
+                        .build();
+            }
+            log.warn("Vault KV readiness check failed: {}", errorMessage);
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .down()
-                    .withData(ERROR, e.getMessage())
+                    .withData(ERROR, errorMessage)
                     .build();
         }
     }

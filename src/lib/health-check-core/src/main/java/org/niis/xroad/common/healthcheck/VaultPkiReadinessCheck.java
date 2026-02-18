@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.common.healthcheck;
 
-import io.quarkus.vault.VaultPKISecretEngine;
-import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +34,7 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
 import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.vault.VaultKeyClient;
 
 import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
 import static org.niis.xroad.common.healthcheck.HealthCheckConstants.REASON;
@@ -55,26 +54,16 @@ import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 @Readiness
 @ApplicationScoped
 @RequiredArgsConstructor
-public class OpenBaoPkiReadinessCheck implements HealthCheck {
+public class VaultPkiReadinessCheck implements HealthCheck {
 
     private static final String NAME = "OPENBAO_PKI_READINESS_CHECK";
 
-    private final Instance<RpcProperties> rpcPropertiesInstance;
+    private final RpcProperties rpcProperties;
 
-    private final Instance<VaultPKISecretEngineFactory> pkiSecretEngineFactoryInstance;
+    private final Instance<VaultKeyClient> vaultKeyClient;
 
     @Override
     public HealthCheckResponse call() {
-        // Check if RPC properties are available
-        if (rpcPropertiesInstance.isUnsatisfied()) {
-            return HealthCheckResponse.builder()
-                    .name(NAME)
-                    .up()
-                    .withData(STATUS, "NOT_CONFIGURED")
-                    .build();
-        }
-
-        RpcProperties rpcProperties = rpcPropertiesInstance.get();
 
         // Check if mTLS is enabled
         if (!rpcProperties.useTls()) {
@@ -87,28 +76,22 @@ public class OpenBaoPkiReadinessCheck implements HealthCheck {
         }
 
         // Check if PKI factory is available
-        if (pkiSecretEngineFactoryInstance.isUnsatisfied()) {
-            log.warn("OpenBao PKI readiness check failed: VaultPKISecretEngineFactory not configured but mTLS is enabled");
+        if (vaultKeyClient.isUnsatisfied()) {
+            log.warn("OpenBao PKI readiness check failed: VaultKeyClient instance not present but mTLS is enabled");
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .down()
-                    .withData(ERROR, "PKI engine not configured but mTLS is enabled")
+                    .withData(ERROR, "VaultKeyClient instance not present but mTLS is enabled")
                     .build();
         }
 
         try {
-            VaultPKISecretEngineFactory pkiFactory = pkiSecretEngineFactoryInstance.get();
-            String pkiPath = rpcProperties.certificateProvisioning().secretStorePkiPath();
-            VaultPKISecretEngine pkiEngine = pkiFactory.engine(pkiPath);
-
-            // Verify connectivity by fetching the Certificate Revocation List
-            // This is a lightweight read operation that confirms the PKI engine is accessible
-            pkiEngine.getCertificateRevocationList();
-
+            // Execute health check to verify actual connectivity to OpenBao PKI engine
+            // This makes a real network call, not just a null check
+            vaultKeyClient.get().healthCheck();
             return HealthCheckResponse.builder()
                     .name(NAME)
                     .up()
-                    .withData("pkiPath", pkiPath)
                     .build();
         } catch (Exception e) {
             log.warn("OpenBao PKI readiness check failed: {}", e.getMessage());
