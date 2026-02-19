@@ -18,6 +18,7 @@ yarn-error.log*
 
 # Generated type definitions
 src/openapi-types
+src/openapi-types-v2
 
 # Editor directories and files
 .idea
