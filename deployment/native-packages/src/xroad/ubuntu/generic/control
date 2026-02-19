@@ -58,7 +58,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-auxiliary-service (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-auxiliary-service (=${binary:Version}), xroad-message-log-archiver (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 

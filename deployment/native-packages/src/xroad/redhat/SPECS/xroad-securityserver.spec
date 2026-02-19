@@ -14,6 +14,7 @@ Requires:           xroad-proxy = %version-%release
 Requires:           xroad-proxy-ui-api = %version-%release
 Requires:           xroad-monitor = %version-%release
 Requires:           xroad-auxiliary-service = %version-%release
+Requires:           xroad-message-log-archiver = %version-%release
 Conflicts:          xroad-centralserver
 
 %description
