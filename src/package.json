@@ -50,7 +50,7 @@
     "vue-i18n": "^11.2.8",
     "vue-tsc": "^3.2.4"
   },
-  "packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40",
+  "packageManager": "pnpm@10.30.0+sha512.2b5753de015d480eeb88f5b5b61e0051f05b4301808a82ec8b840c9d2adf7748eb352c83f5c1593ca703ff1017295bc3fdd3119abb9686efc96b9fcb18200937",
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
