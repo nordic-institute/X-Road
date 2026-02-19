@@ -17,7 +17,7 @@ env variables.
 Example:
 
 ```
-./gradlew :security-server:system-test:systemTest -PsystemTestSsPackageHost="<package-host>" -PsystemTestSsTags="@SecurityServer and not @Skip"
+./gradlew :security-server:system-test:intTest -PsystemTestSsPackageHost="<package-host>" -PsystemTestSsTags="@SecurityServer and not @Skip"
 ```
 
 # Reports
