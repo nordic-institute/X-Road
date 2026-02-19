@@ -13,7 +13,7 @@ data:
     metadata:
       name: "__JOBNAME__"
     spec:
-      ttlSecondsAfterFinished: 172800 # 48 hours
+      ttlSecondsAfterFinished: {{ $archiver.ttlSecondsAfterFinished }}
       backoffLimit: 1
       template:
         spec:

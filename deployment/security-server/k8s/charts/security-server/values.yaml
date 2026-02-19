@@ -408,6 +408,7 @@ services:
           name: message-log-archiver-job-template
 
 messageLogArchiver:
+  ttlSecondsAfterFinished: 172800 # 48 hours
   imageName: ss-message-log-archiver
   env:
     JAVA_OPTS: "-Xmx200m -XX:MaxMetaspaceSize=90m -XX:+ExitOnOutOfMemoryError"
