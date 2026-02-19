@@ -17,8 +17,7 @@
   "action": {
     "disable": "Desactivar",
     "enable": "Permitir",
-    "order": "Orden",
-    "retry": "Reintentar"
+    "order": "Orden"
   },
   "alert": {
     "warningCount": "Cantidad de advertencias similares"

@@ -17,8 +17,7 @@
   "action": {
     "disable": "Blokeeri",
     "enable": "Aktiveeri",
-    "order": "Telli",
-    "retry": "Proovi uuesti"
+    "order": "Telli"
   },
   "alert": {
     "warningCount": "Samade hoiatuste hulk"

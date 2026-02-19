@@ -132,11 +132,6 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         exec(() -> backupServiceBlockingStub.generateGgpKey(request));
     }
 
-    public boolean hasGpgKey() {
-        var response = exec(() -> backupServiceBlockingStub.getGpgStatus(Empty.getDefaultInstance()));
-        return response.getInitialized();
-    }
-
     public BackupEncryptionStatusDiagnostics getEncryptionStatus() {
         var response = exec(() -> backupServiceBlockingStub.getBackupEncryptionStatus(Empty.getDefaultInstance()));
         return new BackupEncryptionStatusDiagnostics(
