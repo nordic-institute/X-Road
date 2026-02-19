@@ -75,9 +75,9 @@ public class MessageLogArchiveJob {
             log.info("Executing message log archival");
             ExternalProcessRunner.ProcessResult result = externalProcessRunner
                     .executeAndThrowOnFailure(properties.commandPath(), "archive", globalConfProvider.getInstanceIdentifier());
-            log.info("Message log archival finished: {}", String.join("\n", result.getProcessOutput()));
+            log.info("Message log archival job initialized: {}", String.join("\n", result.getProcessOutput()));
         } catch (Exception e) {
-            log.error("Error executing message log archival", e);
+            log.error("Error starting message log archival job.", e);
         }
     }
 
