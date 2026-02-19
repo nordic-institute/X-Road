@@ -5,6 +5,7 @@
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:               xroad-monitor
+BuildArch:          noarch
 Version:            %{xroad_version}
 Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            X-Road Monitoring

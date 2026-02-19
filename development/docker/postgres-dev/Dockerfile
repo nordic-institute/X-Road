@@ -1,4 +1,5 @@
-FROM postgres:16
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}postgres:16
 
 # Copy performance configuration
 COPY --chown=postgres:postgres files/postgresql-performance.conf /etc/postgresql/16/main/postgresql-performance.conf

@@ -54,10 +54,29 @@ EOF
 
     dch -b -v "$version.$suffix" "Build for $dist"
     dch --distribution $dist -r ""
-    dpkg-buildpackage -tc -b -us -uc
+    local host_arch
+    host_arch="$(dpkg --print-architecture)"
+    local cross_arch
+    if [[ "$host_arch" == "amd64" ]]; then
+        cross_arch="arm64"
+    else
+        cross_arch="amd64"
+    fi
+
+    # Pass 1: build all packages for host arch (all _all.deb + signer for host arch)
+    warn "Pass 1: building all packages for $host_arch..."
+    dpkg-buildpackage -b -us -uc
+    warn "Pass 1: $host_arch build finished."
+
+    # Pass 2: cross-build arch-specific packages for the other arch (only signer)
+    warn "Pass 2: cross-building xroad-signer for $cross_arch..."
+    dpkg-buildpackage -B -us -uc -a "$cross_arch" -tc
+    warn "Pass 2: $cross_arch cross-build finished."
     popd
 
-    find $root -name "xroad*$suffix*.deb" -exec mv {} "build/$suffix/" \;
+    warn "Collecting .deb packages..."
+    find $root \( -name "xroad*$suffix*_all.deb" -o -name "xroad*$suffix*_amd64.deb" -o -name "xroad*$suffix*_arm64.deb" \) -exec mv {} "build/$suffix/" \;
+    warn "Done."
 }
 
 function prepare {

@@ -28,6 +28,8 @@ VERSION=""
 PACKAGES_PATH=""
 PLATFORMS=""  # Empty by default = build for host platform only
 BUILD_START_TIME=$(date +%s)
+# Set default password for build secrets if not provided
+export USER_PASSWD="${USER_PASSWD:-secret}"
 
 # Help function
 show_help() {
@@ -45,16 +47,21 @@ OPTIONS:
     --platforms PLATFORMS   Build platforms (default: host platform, e.g. --platforms linux/amd64,linux/arm64)
     --help                  Show this help
 
+ENVIRONMENT VARIABLES:
+    XROAD_MIRROR_UBUNTU_URL Package mirror URL (optional)
+    XROAD_MIRROR_USERNAME   Mirror username (optional)
+    XROAD_MIRROR_TOKEN      Mirror token (optional)
+
 EXAMPLES:
     # Local development build for host platform (after building packages)
     ./build-cs-dev-image.sh
-    
+
     # Multi-platform build
     ./build-cs-dev-image.sh --platforms linux/amd64,linux/arm64
-    
+
     # Local build with custom registry
     ./build-cs-dev-image.sh --registry my-registry.local:5000
-    
+
     # CI build with specific version
     ./build-cs-dev-image.sh --environment ci --registry ghcr.io/org/repo --version 8.0.0-SNAPSHOT --platforms linux/amd64,linux/arm64
 
@@ -135,17 +142,17 @@ if [[ -z "$VERSION" ]]; then
   log_info "Reading version from gradle.properties..."
   XROAD_VERSION=$(read_gradle_property "xroadVersion" "$GRADLE_PROPERTIES")
   XROAD_BUILD_TYPE=$(read_gradle_property "xroadBuildType" "$GRADLE_PROPERTIES")
-  
+
   if [[ -z "$XROAD_VERSION" ]]; then
     log_error "xroadVersion not found in gradle.properties"
     exit 1
   fi
-  
+
   if [[ -z "$XROAD_BUILD_TYPE" ]]; then
     log_error "xroadBuildType not found in gradle.properties"
     exit 1
   fi
-  
+
   VERSION="${XROAD_VERSION}-${XROAD_BUILD_TYPE}"
   log_info "Using version from gradle.properties: ${VERSION}"
 fi
@@ -175,12 +182,31 @@ fi
 log_info "Building central-server-dev image..."
 build_start=$(date +%s)
 
+# Prepare mirror build args (only if mirror configured)
+MIRROR_BUILD_ARGS=()
+
+# Add Docker Hub mirror build arg if configured
+if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
+fi
+
+if [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
+fi
+
 build_cmd=(
-  docker buildx build
+  docker buildx build --progress=plain
   --file "$SCRIPT_DIR/Dockerfile"
   --build-arg PACKAGE_SOURCE=internal
   --build-context "perf=$PERF_PATH"
   --build-context "packages=$PACKAGES_PATH"
+  --build-context "mirror-scripts=${XROAD_HOME}/deployment/.scripts"
+  --secret "id=user_passwd,env=USER_PASSWD"
+  "${MIRROR_BUILD_ARGS[@]}"
 )
 
 # Add platform flag only if specified
@@ -199,7 +225,7 @@ build_cmd+=(
 if "${build_cmd[@]}"; then
   build_end=$(date +%s)
   build_duration=$((build_end - build_start))
-  
+
   log_success "Built central-server-dev in $(format_duration $build_duration)"
 else
   log_error "Failed to build central-server-dev image"
@@ -215,4 +241,4 @@ log_success "=== Build Complete ==="
 log_success "Total time: $(format_duration $TOTAL_BUILD_TIME)"
 log_success "Image: ${IMAGE_NAME}:${VERSION}"
 echo
-log_success "✅ Central Server dev image built successfully!"
+log_success "Central Server dev image built successfully!"

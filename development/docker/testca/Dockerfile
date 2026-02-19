@@ -1,11 +1,13 @@
-FROM ubuntu:24.04
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}ubuntu:24.04
 
-# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
-RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
-    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+# Configure package mirror for APT
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
+
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # ACME
 ARG A2C_VER=0.35
@@ -56,6 +58,10 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
 COPY --chown=www-data:www-data build/acme2certifier/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
 COPY --chown=www-data:www-data build/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
 COPY --chown=www-data:www-data build/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
+
+# Cleanup mirror configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
 
 CMD ["/root/entrypoint.sh"]
 
