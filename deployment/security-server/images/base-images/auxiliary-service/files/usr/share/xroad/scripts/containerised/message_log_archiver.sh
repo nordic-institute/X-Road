@@ -5,7 +5,7 @@
 # Usage: message_log_archiver.sh archive <instanceId>
 #        message_log_archiver.sh cleanup
 
-abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
+abort() { echo "FATAL: $*" >&2; exit 1; }
 
 JOB_TEMPLATE="/etc/xroad/job-templates/job-template.yaml"
 
@@ -36,27 +36,24 @@ if [ ! -f "$JOB_TEMPLATE" ]; then
   abort "Job template not found at ${JOB_TEMPLATE}."
 fi
 
+# Check if there is already an active (running/pending) job for this command.
+# Jobs with status.active > 0 have pods that are still running or pending.
+active_jobs=$(kubectl get jobs -o jsonpath='{range .items[?(@.status.active)]}{.metadata.name}{"\n"}{end}' 2>/dev/null \
+  | grep -c "^message-log-${command}-" || true)
+
+if [[ "$active_jobs" -gt 0 ]]; then
+  echo "A message-log ${command} job is already running. Skipping."
+  exit 0
+fi
+
 jobname="message-log-${command}-$(date +%Y%m%d%H%M%S)"
 
 echo "Creating Kubernetes Job '${jobname}' for message log ${command}..."
 
-sed -e "s|__JOBNAME__|${jobname}|g" \
+if ! sed -e "s|__JOBNAME__|${jobname}|g" \
     -e "s|__CLI_ARGS__|${cli_args}|g" \
-    "$JOB_TEMPLATE" | kubectl apply -f -
-
-if [ $? -ne 0 ]; then
+    "$JOB_TEMPLATE" | kubectl apply -f -; then
   abort "Failed to create Job '${jobname}'."
 fi
 
-echo "Job '${jobname}' created. Waiting for completion..."
-
-if ! kubectl wait --for=condition=complete job/"${jobname}" --timeout=600s; then
-  pod=$(kubectl get pods --selector=job-name="${jobname}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-  if [[ -n "$pod" ]]; then
-    echo "--- Pod logs ---"
-    kubectl logs "$pod" 2>/dev/null || true
-  fi
-  abort "Job '${jobname}' did not complete successfully within timeout."
-fi
-
-echo "Message log ${command} completed successfully."
+echo "Job '${jobname}' created successfully."
