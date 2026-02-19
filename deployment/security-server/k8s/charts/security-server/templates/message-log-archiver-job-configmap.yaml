@@ -43,10 +43,23 @@ data:
                       name: {{ .secretName }}
                       key: {{ .key }}
               {{- end }}
+              {{- if $archiver.volumeMounts }}
               volumeMounts:
-                - mountPath: /var/lib/xroad
-                  name: archive-volume
+              {{- toYaml $archiver.volumeMounts | nindent 14 }}
+              {{- end }}
+          {{- if $archiver.volumes }}
           volumes:
-            - name: archive-volume
+          {{- range $archiver.volumes }}
+          {{- if .persistentVolumeClaim }}
+            - name: {{ .name }}
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-message-log-archives-pvc
+                claimName: {{ $.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+          {{- else if .configMap }}
+            - name: {{ .name }}
+              configMap:
+                name: {{ $.Release.Name }}-{{ .configMap.name }}
+          {{- else }}
+            - {{ toYaml . | nindent 14 }}
+          {{- end }}
+          {{- end }}
+          {{- end }}

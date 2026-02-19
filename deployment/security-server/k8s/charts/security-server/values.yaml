@@ -427,6 +427,13 @@ messageLogArchiver:
     - name: "DB_CONFIG_SOURCE_PASSWORD"
       secretName: "db-serverconf"
       key: "password"
+  volumeMounts:
+    - mountPath: /var/lib/xroad
+      name: archive-volume
+  volumes:
+    - name: archive-volume
+      persistentVolumeClaim:
+        claimName: message-log-archives-pvc
 
 persistentVolumeClaims:
   backups-pvc:
