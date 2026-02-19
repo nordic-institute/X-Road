@@ -30,7 +30,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
@@ -71,11 +70,6 @@ public class SpringVaultKeyClient implements VaultKeyClient {
         } else {
             throw XrdRuntimeException.systemInternalError("Failed to get certificate from Vault. Data is null.");
         }
-    }
-
-    @Override
-    public void healthCheck() {
-        throw new NotImplementedException();
     }
 
     private VaultCertificateRequest buildVaultCertificateRequest() {

@@ -39,8 +39,6 @@ public interface VaultKeyClient {
 
     VaultKeyData provisionNewCerts() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    void healthCheck();
-
     record VaultKeyData(
             X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,
             X509Certificate[] trustCerts

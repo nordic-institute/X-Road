@@ -117,9 +117,4 @@ public class NoopVaultClient implements VaultClient {
     public void deleteTokenPin(String tokenId) {
         throw new UnsupportedOperationException("Not supported");
     }
-
-    @Override
-    public void healthCheck() {
-        throw new UnsupportedOperationException("Not supported");
-    }
 }

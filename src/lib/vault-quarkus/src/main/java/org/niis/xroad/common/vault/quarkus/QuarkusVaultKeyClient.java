@@ -98,11 +98,4 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
         }
         return request;
     }
-
-    @Override
-    public void healthCheck() {
-        // Fetch the CA certificate to verify actual connectivity to OpenBao PKI engine
-        // This makes a real network call, not just a null check
-        pkiSecretEngine.getCertificateAuthority();
-    }
 }

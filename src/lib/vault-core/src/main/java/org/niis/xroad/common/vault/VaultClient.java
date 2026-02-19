@@ -126,12 +126,6 @@ public interface VaultClient {
      */
     void deleteTokenPin(String tokenId);
 
-    /**
-     * Performs a health check by verifying connectivity to the Vault KV secret engine.
-     * Makes an actual network call to verify the Vault is reachable.
-     */
-    void healthCheck();
-
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();
         try (PemWriter pemWriter = new PemWriter(stringWriter)) {
