@@ -352,7 +352,7 @@ services:
     skipDefaultMounts:
       - /var/lib/xroad
     env:
-      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=64m
+      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=70m
       XROAD_HOST: "auxiliary-service"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
