@@ -5,8 +5,6 @@ quarkus:
     locations:
       - xroad-common.yaml
       - xroad-logging.yaml
-#  banner:
-#    enabled: false
 
 "%native":
   quarkus:

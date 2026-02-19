@@ -73,9 +73,9 @@ public class MessageLogCleanupJob {
             log.info("Executing message log cleanup");
             ExternalProcessRunner.ProcessResult result = externalProcessRunner
                     .executeAndThrowOnFailure(properties.commandPath(), "cleanup");
-            log.info("Message log cleanup finished: {}", String.join("\n", result.getProcessOutput()));
+            log.info("Message log cleanup job initialized: {}", String.join("\n", result.getProcessOutput()));
         } catch (Exception e) {
-            log.error("Error executing message log cleanup", e);
+            log.error("Error starting message log cleanup job.", e);
         }
     }
 

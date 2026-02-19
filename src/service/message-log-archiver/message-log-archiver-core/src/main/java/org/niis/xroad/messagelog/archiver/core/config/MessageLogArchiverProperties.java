@@ -61,7 +61,7 @@ public interface MessageLogArchiverProperties {
     @WithName("archive-transfer-command")
     Optional<String> archiveTransferCommand();
 
-    // todo: duplicates value proxy.message-log.hash-algo-id
+    // duplicates value proxy.message-log.hash-algo-id
     @WithName("hash-algo-id")
     @WithDefault("SHA-512")
     String hashAlgoIdStr();
