@@ -56,4 +56,19 @@ if ! sed -e "s|__JOBNAME__|${jobname}|g" \
   abort "Failed to create Job '${jobname}'."
 fi
 
-echo "Job '${jobname}' created successfully."
+echo "Job '${jobname}' created successfully. Waiting for completion..."
+
+# Wait for the job to complete (success or failure). --timeout=0 means wait indefinitely.
+if kubectl wait --for=condition=complete --timeout=0 "job/${jobname}" 2>/dev/null; then
+  echo "Job '${jobname}' completed successfully."
+  exit 0
+fi
+
+# If we get here, the job did not complete successfully. Check if it failed.
+if kubectl wait --for=condition=failed --timeout=0 "job/${jobname}" 2>/dev/null; then
+  echo "Job '${jobname}' failed." >&2
+  kubectl logs "job/${jobname}" --tail=50 2>/dev/null >&2
+  exit 1
+fi
+
+abort "Job '${jobname}' ended in an unexpected state."

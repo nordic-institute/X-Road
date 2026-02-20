@@ -27,7 +27,7 @@
 
 package org.niis.xroad.auxiliaryservice.core.messagelog;
 
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.BlockingProcessRunner;
 
 import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
@@ -49,7 +49,7 @@ public class MessageLogCleanupJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
-    private final ExternalProcessRunner externalProcessRunner;
+    private final BlockingProcessRunner blockingProcessRunner;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
@@ -71,11 +71,11 @@ public class MessageLogCleanupJob {
     private void execute(ScheduledExecution execution) {
         try {
             log.info("Executing message log cleanup");
-            ExternalProcessRunner.ProcessResult result = externalProcessRunner
+            var result = blockingProcessRunner
                     .executeAndThrowOnFailure(properties.commandPath(), "cleanup");
-            log.info("Message log cleanup job initialized: {}", String.join("\n", result.getProcessOutput()));
+            log.info("Message log cleanup job completed: {}", String.join("\n", result.getProcessOutput()));
         } catch (Exception e) {
-            log.error("Error starting message log cleanup job.", e);
+            log.error("Error executing message log cleanup job.", e);
         }
     }
 

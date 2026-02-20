@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.common.util.process;
 
-package org.niis.xroad.auxiliaryservice.core.config;
+/**
+ * Executes external processes and waits indefinitely for completion.
+ * Suitable for long-running tasks.
+ */
+public class BlockingProcessRunner extends ExternalProcessRunner {
 
-import ee.ria.xroad.common.util.process.BlockingProcessRunner;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Typed;
-
-public class AuxiliaryServiceConfig {
-
-    @ApplicationScoped
-    ExternalProcessRunner externalProcessRunner() {
-        return new ExternalProcessRunner();
-    }
-
-    @ApplicationScoped
-    @Typed(BlockingProcessRunner.class)
-    BlockingProcessRunner blockingProcessRunner() {
-        return new BlockingProcessRunner();
+    @Override
+    protected int waitForProcess(Process process) throws InterruptedException {
+        return process.waitFor();
     }
 }
