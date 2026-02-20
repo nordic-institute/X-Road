@@ -35,6 +35,7 @@ import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -72,7 +73,7 @@ public class SharedParametersCache {
         return sharedParameters.getInstanceIdentifier();
     }
 
-    SharedParametersCache(@NonNull SharedParameters sharedParameters) throws CertificateEncodingException, IOException {
+    public SharedParametersCache(@NonNull SharedParameters sharedParameters) {
         this.sharedParameters = sharedParameters;
 
         cacheCaCerts();
@@ -81,7 +82,7 @@ public class SharedParametersCache {
     }
 
 
-    private void cacheCaCerts() throws CertificateEncodingException, IOException {
+    private void cacheCaCerts() {
         List<X509Certificate> allCaCerts = new ArrayList<>();
 
         for (SharedParameters.ApprovedCA ca : sharedParameters.getApprovedCAs()) {
@@ -107,11 +108,15 @@ public class SharedParametersCache {
             }
             allCaCerts.addAll(pkiCaCerts);
 
-            for (X509Certificate cert : allCaCerts) {
-                X509CertificateHolder certHolder =
-                        new X509CertificateHolder(cert.getEncoded());
-                subjectsAndCaCerts.put(certHolder.getSubject(), cert);
+            try {
+                for (X509Certificate cert : allCaCerts) {
+                    X509CertificateHolder certHolder = new X509CertificateHolder(cert.getEncoded());
+                    subjectsAndCaCerts.put(certHolder.getSubject(), cert);
+                }
+            } catch (CertificateEncodingException | IOException e) {
+                throw XrdRuntimeException.systemInternalError("Failed to create SharedParametersCache for instance ", e);
             }
+
         }
     }
 

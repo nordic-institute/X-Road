@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
@@ -35,6 +33,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.SystemProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.File;
@@ -64,7 +63,6 @@ public abstract class ConfProxyUtil {
 
     /**
      * Executes the utility program.
-     *
      * @param commandLine holds arguments for the utility program
      * @throws Exception in case of any errors
      */
@@ -85,7 +83,6 @@ public abstract class ConfProxyUtil {
     /**
      * Loads configuration proxy properties based on the instance provided
      * through the commandline.
-     *
      * @param commandLine holds arguments for the utility program
      * @return configuration proxy properties instance
      */
@@ -110,7 +107,6 @@ public abstract class ConfProxyUtil {
     /**
      * Makes sure the configuration proxy instance that is requested from the
      * commandline exists.
-     *
      * @param commandLine holds arguments for the utility program
      */
     protected final void ensureProxyExists(final CommandLine commandLine) {
@@ -128,7 +124,6 @@ public abstract class ConfProxyUtil {
 
     /**
      * Abort the configuration proxy utility program with the provided message.
-     *
      * @param msg the error message to display
      */
     protected final void fail(final String msg, final Exception e) {

@@ -28,13 +28,11 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.util.TimeUtils;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.backupmanager.proto.BackupInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +45,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class BackupConverterTest {
 
-    private BackupConverter backupConverter;
+    private final BackupConverter backupConverter = new BackupConverter();
 
     private static final String BACKUP_FILE_1 = "ss-automatic-backup-2020_02_19_031502.tar";
 
@@ -55,26 +53,20 @@ public class BackupConverterTest {
 
     private static final String BACKUP_FILE_3 = "ss-automatic-backup-2019_12_31_031502.tar";
 
-    private static final OffsetDateTime DEFAULT_CREATED_TIME = TimeUtils.now().atOffset(ZoneOffset.UTC);
-
-    @Before
-
-    public void setup() {
-        backupConverter = new BackupConverter();
-    }
+    private static final Instant DEFAULT_CREATED_TIME = TimeUtils.now();
 
     @Test
     public void convertSingleBackup() {
-        BackupDto backup = backupConverter.convert(new BackupFile(BACKUP_FILE_1, DEFAULT_CREATED_TIME));
+        BackupDto backup = backupConverter.convert(new BackupInfo(BACKUP_FILE_1, DEFAULT_CREATED_TIME));
 
         assertEquals(BACKUP_FILE_1, backup.getFilename());
     }
 
     @Test
     public void convertMultipleBackups() {
-        List<BackupFile> files = new ArrayList<>(Arrays.asList(new BackupFile(BACKUP_FILE_1, DEFAULT_CREATED_TIME),
-                new BackupFile(BACKUP_FILE_2, DEFAULT_CREATED_TIME),
-                new BackupFile(BACKUP_FILE_3, DEFAULT_CREATED_TIME)));
+        List<BackupInfo> files = new ArrayList<>(Arrays.asList(new BackupInfo(BACKUP_FILE_1, DEFAULT_CREATED_TIME),
+                new BackupInfo(BACKUP_FILE_2, DEFAULT_CREATED_TIME),
+                new BackupInfo(BACKUP_FILE_3, DEFAULT_CREATED_TIME)));
         Set<BackupDto> backups = backupConverter.convert(files);
 
         assertEquals(3, backups.size());
@@ -82,7 +74,7 @@ public class BackupConverterTest {
 
     @Test
     public void convertMEmptyList() {
-        List<BackupFile> files = new ArrayList<>();
+        List<BackupInfo> files = new ArrayList<>();
         Set<BackupDto> backups = backupConverter.convert(files);
 
         assertEquals(0, backups.size());

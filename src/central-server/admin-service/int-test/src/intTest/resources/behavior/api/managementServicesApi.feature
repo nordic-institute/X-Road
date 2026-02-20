@@ -74,6 +74,15 @@ Feature: Management services API
       | $wsdlAddress                         | http://cs/managementservices.wsdl         |
       | $serviceProviderId                   |                                           |
 
+  @Modifying
+  Scenario: Management service TLS key and certificate is successfully created for privileged user
+    Given Authentication header is set to SECURITY_OFFICER
+    And Vault's TLS credentials issuance response is mocked
+    And Vault's TLS credentials addition response is mocked
+    And Vault's TLS credentials retrieval response is mocked
+    When Management service TLS key and certificate is created
+    Then Response is of status code 201
+
   Scenario: Get management services configuration is forbidden for non privileged user
     Given Authentication header is set to REGISTRATION_OFFICER
     When Management services configuration is retrieved
@@ -81,27 +90,26 @@ Feature: Management services API
 
   Scenario: Get management service TLS certificate is retrieved for privileged user
     Given Authentication header is set to SECURITY_OFFICER
+    And Vault's TLS credentials retrieval response is mocked
     When Management service TLS certificate is retrieved
     Then Response is of status code 200
 
   Scenario: Management service TLS certificate is successfully downloaded for privileged user
     Given Authentication header is set to SECURITY_OFFICER
+    And Vault's TLS credentials retrieval response is mocked
     When Management service TLS certificate is downloaded
     Then Response is of status code 200
 
-  @Modifying
-  Scenario: Management service TLS key and certificate is successfully reCreated for privileged user
-    Given Authentication header is set to SECURITY_OFFICER
-    When Management service TLS key and certificate is created
-    Then Response is of status code 201
-
   Scenario: Management service certificate sign request is successfully created for privileged user
     Given Authentication header is set to SECURITY_OFFICER
+    And Vault's TLS credentials retrieval response is mocked
     When Management service certificate CSR is generated
     Then Response is of status code 200
 
   @Modifying
   Scenario: Management service TLS certificate is successfully uploaded for privileged user
     Given Authentication header is set to SECURITY_OFFICER
+    And Vault's TLS credentials addition response is mocked
+    And Vault's TLS credentials retrieval response is mocked
     When Management service TLS certificate is uploaded
     Then Response is of status code 200

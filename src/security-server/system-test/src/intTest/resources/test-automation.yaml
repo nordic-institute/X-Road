@@ -1,0 +1,20 @@
+test-framework:
+  component-scan:
+    additional-packages:
+      - org.niis.xroad.ss.test
+  cucumber:
+    glue:
+      - "org.niis.xroad.ss.test.ui.glue"
+      - "org.niis.xroad.ss.test.addons.glue"
+      - "org.niis.xroad.ss.test.globalconf.glue"
+      - "org.niis.xroad.test.framework"
+    filter-tags: "not @Skip"
+  selenide:
+    enabled: true
+
+"%cli":
+  test-framework:
+    working-dir: "test-framework-working-dir/"
+    resource-dir: "test-framework-working-dir/resources/"
+    allure:
+      results-directory: "test-framework-working-dir/allure-results"

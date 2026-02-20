@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -58,7 +56,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.CERT_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.CSR_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.KEY_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.LOGIN_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.PIN_INCORRECT;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_PIN_INCORRECT;
@@ -101,17 +98,6 @@ public class TokenService {
      */
     public List<CertificateInfo> getSignCertificates(Client client) {
         return getCertificates(client, true);
-    }
-
-    /**
-     * get all certificates for a given client.
-     *
-     * @param client client whose member certificates need to be
-     *               linked to
-     * @return
-     */
-    public List<CertificateInfo> getAllCertificates(Client client) {
-        return getCertificates(client, false);
     }
 
     /**
@@ -164,8 +150,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -196,8 +180,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -218,8 +200,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -251,8 +231,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -271,8 +249,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -293,8 +269,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -353,8 +327,6 @@ public class TokenService {
             } else {
                 throw e;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -402,8 +374,6 @@ public class TokenService {
             } else {
                 throw se;
             }
-        } catch (CodedException ce) {
-            throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
         }
@@ -423,7 +393,7 @@ public class TokenService {
             signerRpcClient.deleteToken(id);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e, ACTION_NOT_POSSIBLE.build());
-        } catch (CodedException ce) {
+        } catch (XrdRuntimeException ce) {
             throw ce;
         } catch (Exception other) {
             throw new InternalServerErrorException(other);
@@ -431,10 +401,10 @@ public class TokenService {
     }
 
     private boolean isCausedByIncorrectPin(XrdRuntimeException e) {
-        if (e.isCausedBy(PIN_INCORRECT)) {
+        if (e.isCausedBy(TOKEN_PIN_INCORRECT)) {
             return true;
         } else if (e.isCausedBy(LOGIN_FAILED)) {
-            // only way to detect HSM pin incorrect is by matching to codedException
+            // only way to detect HSM pin incorrect is by matching to xrdRuntimeException
             // fault string.
             return e.getMessage().contains(ERROR_CKR_PIN_INCORRECT);
         }

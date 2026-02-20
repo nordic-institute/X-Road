@@ -30,6 +30,6 @@ package org.niis.xroad.cs.test.api;
 import org.niis.xroad.cs.openapi.GlobalGroupsApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient(name = "feignGlobalGroupsApi", path = "/api/v1")
+@FeignClient
 public interface FeignGlobalGroupsApi extends GlobalGroupsApi {
 }

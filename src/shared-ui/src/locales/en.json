@@ -1,14 +1,17 @@
 {
   "403": {
     "goBack": "Go back",
-    "mainTitle": "Permission denied",
-    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "text1": "Seems like you do not have the permission to view this page.",
+    "text2": "If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "title": "Permission denied",
     "topTitle": "Forbidden"
   },
   "404": {
-    "pageNotFound": "404 - page not found",
-    "text": "Seems like you found the",
-    "textUnicorn": "unicorn"
+    "returnToFront": "Return to front page",
+    "text1": "An error occurred while trying to navigate to the requested page",
+    "text2": "Let’s contact the mission control to recalculate the route.",
+    "title": "Navigation error",
+    "topTitle": "404 - page not found"
   },
   "action": {
     "activate": "Activate",
@@ -30,6 +33,7 @@
     "emptySearch": "Your search for {msg} found no results.",
     "export": "Export",
     "finish": "Finish",
+    "generateCsr": "Generate CSR",
     "goToFront": "Go to the front page",
     "next": "Next",
     "no": "No",
@@ -49,13 +53,71 @@
     "upload": "Upload",
     "yes": "Yes"
   },
+  "adminUsers": {
+    "addUser": {
+      "button": "Add user",
+      "step": {
+        "credentials": {
+          "username": "Username",
+          "password": "Password",
+          "passwordConfirm": "Confirm password",
+          "createKeyButton": "Create Key",
+          "name": "Credentials"
+        },
+        "roles": {
+          "description": "Please select the roles associated with the user. The roles define the permissions granted to the user.",
+          "name": "Roles",
+          "selectRoles": "Select roles"
+        }
+      },
+      "success": "User ({username}) successfully added",
+      "title": "Add admin user"
+    },
+    "table": {
+      "action": {
+        "changePassword": {
+          "dialog": {
+            "oldPassword": "Old password",
+            "newPassword": "New password",
+            "newPasswordConfirmation": "Confirm new password",
+            "title": "Change password for user ({username})"
+          },
+          "success": "User ({username}) password changed successfully"
+        },
+        "edit": {
+          "dialog": {
+            "message": "Roles associated with the user:",
+            "title": "Edit user ({username})"
+          },
+          "success": "User ({username}) edited successfully"
+        },
+        "delete": {
+          "button": "Delete user",
+          "confirmationDialog": {
+            "message": "Are you sure you want to delete user ({username})?",
+            "title": "Are you sure?"
+          },
+          "success": "User ({username}) deleted successfully"
+        }
+      },
+      "header": {
+        "username": "Username",
+        "roles": "Roles"
+      }
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
+    }
+  },
   "alert": {
     "count": "Amount of same errors:",
     "id": "ID"
   },
   "apiKey": {
     "createApiKey": {
-      "button": "CREATE API KEY",
+      "button": "Create API key",
       "step": {
         "keyDetails": {
           "apiKey": "API key",
@@ -63,7 +125,8 @@
           "assignedRoles": "Roles assigned",
           "createKeyButton": "Create Key",
           "name": "Key Details",
-          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
+          "note": "NOTE: save the API key in a secure place.",
+          "noteDetail": "The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
         },
         "roles": {
           "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key.",
@@ -143,6 +206,7 @@
     "ecParameters": "EC Public Key Parameters",
     "ecPoint": "EC Public Key Point",
     "hashInfo": "Hash (SHA-256)",
+    "issuerDistinguishedName": "Issuer Distinguished Name",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
       "DATA_ENCIPHERMENT": "Data Encipherment",
@@ -154,8 +218,32 @@
       "KEY_ENCIPHERMENT": "Key Encipherment",
       "NON_REPUDIATION": "Non Repudiation"
     },
+    "keyUsages": "Key Usages",
+    "notAfter": "Not After",
+    "notBefore": "Not Before",
+    "publicKeyAlgorithm": "Public Key Algorithm",
     "rsaExp": "RSA Public Key Exponent",
-    "rsaModulus": "RSA Public Key Modulus"
+    "rsaModulus": "RSA Public Key Modulus",
+    "serial": "Serial",
+    "signature": "Signature",
+    "signatureAlgorithm": "Signature Algorithm",
+    "subjectAlternativeNames": "Subject Alternative Names",
+    "subjectDistinguishedName": "Subject Distinguished Name",
+    "version": "Version"
+  },
+  "common": {
+    "false": "False",
+    "inParenthesis": "({0})",
+    "no": "No",
+    "true": "True",
+    "yes": "Yes"
+  },
+  "dataTables": {
+    "paginator": {
+      "allPerPage": "All",
+      "info": "{start}-{end} of {total}",
+      "rowsPerPage": "Rows per page:"
+    }
   },
   "error_code": {
     "api_key_not_found": "API key not found",
@@ -179,6 +267,7 @@
     "invalid_certificate": "Invalid X.509 certificate",
     "invalid_distinguished_name": "Distinguished name is invalid",
     "invalid_filename": "Invalid filename",
+    "password_incorrect": "Password incorrect",
     "resource_read_failed": "Failed to read resource",
     "restore_process_failed": "Restore process failed",
     "token_fetch_failed": "Error getting tokens.",
@@ -190,13 +279,20 @@
       "pin_min_char_classes_count": "PIN minimum character classes count: {0}",
       "pin_min_length": "PIN minimum length: {0}"
     },
+    "user_password_invalid_characters": "The provided password contains invalid characters",
+    "user_weak_password": "The provided password was too weak",
     "validation_failure": "Validation failure"
   },
   "fields": {
     "code": "Code",
     "description": "Description",
+    "distinguishedName": "Distinguished Name",
     "memberClass": "Member Class",
+    "newPassword": "New Password",
+    "newPasswordConfirmation": "Confirm New Password",
+    "oldPassword": "Old Password",
     "password": "Password",
+    "passwordConfirm": "Confirm Password",
     "securityServerCode": "Security Server Code",
     "shared": "sharedlib",
     "subsystemName": "Subsystem Name",
@@ -205,7 +301,7 @@
   "footer": {
     "copyright": {
       "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "licenceInfo": "Licence info",
+      "domain": "niis.org",
       "title": "Copyright"
     },
     "software": {
@@ -229,7 +325,8 @@
     "errorMsg401": "Wrong username or password",
     "generalError": "Login failed. Please try again.",
     "logIn": "Log in",
-    "logOut": "Log out"
+    "logOut": "Log out",
+    "changePassword": "Password"
   },
   "logout": {
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
@@ -244,6 +341,25 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noTokens": "No tokens"
+  },
+  "tlsCertificates": {
+    "downloadCertificate": "Download certificate",
+    "downloadSuccess": "Management service TLS certificate successfully downloaded",
+    "generateCsr": {
+      "button": "Generate CSR",
+      "content": "First, provide a distinguished name. Then, generate a new CSR and save it into a safe place",
+      "distinguishedName": "Enter Distinguished name",
+      "title": "Generate TLS Certificate Signing Request",
+      "tooltip": "The Distinguished Name (DN) uniquely identifies an entity in an X.509 certificate. The following attribute types are commonly found in the DN: CN = Common name, O = Organization name, C = Country code."
+    },
+    "generateKey": {
+      "button": "Re-create key"
+    },
+    "keyText": "Internal TLS Key",
+    "uploadCertificate": {
+      "button": "Upload certificate",
+      "label": "Upload the certificate file from your computer"
+    }
   },
   "type": "Type",
   "validation": {

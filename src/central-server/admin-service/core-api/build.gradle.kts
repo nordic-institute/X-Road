@@ -5,7 +5,7 @@ plugins {
 dependencies {
   api(platform(libs.springBoot.bom))
   api(project(":lib:globalconf-spring"))
-  api(project(":service:signer:signer-client"))
+  api(project(":service:signer:signer-client-spring"))
   api(project(":common:common-admin-api"))
   api(project(":common:common-management-request"))
 

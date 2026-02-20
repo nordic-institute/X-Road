@@ -33,6 +33,10 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
@@ -42,11 +46,7 @@ import org.niis.xroad.securityserver.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
-import org.niis.xroad.serverconf.impl.entity.GlobalGroupIdEntity;
-import org.niis.xroad.serverconf.impl.entity.LocalGroupIdEntity;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 

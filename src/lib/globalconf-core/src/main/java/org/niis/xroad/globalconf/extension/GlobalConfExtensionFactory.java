@@ -26,9 +26,8 @@
  */
 package org.niis.xroad.globalconf.extension;
 
-import ee.ria.xroad.common.conf.AbstractXmlConf;
-
 import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.globalconf.model.AbstractXmlConf;
 
 /**
  * Factory for creating GlobalConf extensions

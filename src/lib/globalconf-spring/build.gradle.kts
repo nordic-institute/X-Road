@@ -7,5 +7,5 @@ dependencies {
 
   api(project(":lib:globalconf-impl"))
 
-  implementation("org.springframework:spring-context-support")
+  implementation("org.springframework.boot:spring-boot-starter")
 }

@@ -31,7 +31,7 @@ import io.cucumber.java.en.Step;
 
 import java.util.Map;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 
 public class HistoryStepDefs extends BaseStepDefs {
 

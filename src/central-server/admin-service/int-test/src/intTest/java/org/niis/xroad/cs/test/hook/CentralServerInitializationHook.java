@@ -26,21 +26,36 @@
  */
 package org.niis.xroad.cs.test.hook;
 
-import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.test.service.LiquibaseExecutor;
 import org.niis.xroad.cs.test.utils.CentralServerInitializer;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Hook responsible for initializing CS instance for tests.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class CentralServerInitializationHook implements BeforeSuiteHook {
+public class CentralServerInitializationHook {
+    private final LiquibaseExecutor liquibaseExecutor;
     private final CentralServerInitializer centralServerInitializer;
 
-    @Override
-    public void beforeSuite() {
-        centralServerInitializer.initializeWithDefaults();
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
+
+    @EventListener
+    public void onContextRefreshed(ContextRefreshedEvent event) {
+        // Ensure this runs only once (Spring may fire this event multiple times)
+        if (initialized.compareAndSet(false, true)) {
+            log.info("Initializing Central Server for tests...");
+            liquibaseExecutor.executeChangesets();
+            log.info("Initializing Central Server...");
+            centralServerInitializer.initializeWithDefaults();
+        }
     }
 }

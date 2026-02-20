@@ -1,6 +1,6 @@
 # X-Road: Use Case Model for Operational Monitoring Daemon <!-- omit in toc -->
 
-Version: 0.10  
+Version: 0.11  
 Doc. ID: UC-OPMON
 
 | Date       | Version | Description                                                           | Author           |
@@ -11,6 +11,7 @@ Doc. ID: UC-OPMON
 | 18.02.2019 | 0.8     | Main success scenario updated: optional id for request/response pairs | Caro Hautamäki   |
 | 12.12.2019 | 0.9     | Update the document with refactored fields                            | Ilkka Seppälä    |
 | 01.06.2023 | 0.10    | Update references                                                     | Petteri Kivimäki |
+| 11.11.2025 | 0.11    | Drop JMX interfaces                                                   | Justas Samuolis  |
 
 ## Table of Contents <!-- omit in toc -->
     
@@ -38,7 +39,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 1.1 Purpose
 
-The purpose of this document is to describe the events that take place in the operational monitoring daemon during the communication with security server and/or with an external monitoring system (e.g. Zabbix).
+The purpose of this document is to describe the events that take place in the operational monitoring daemon during the communication with security server.
 
 The use cases include verifications that take place, and the main error conditions that may be encountered during the described process. The general system errors that may be encountered in most of the use cases (e.g., database connection errors or out of memory errors) are not described in this document.
 
@@ -51,13 +52,12 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 <a name="ARC-OPMOND"></a>**ARC-OPMOND** -- X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
 <a name="PR-OPMON"></a>**PR-OPMON** -- X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).  
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 
 ## 2 Overview
 
-The main function of the operational monitoring daemon is to collect operational monitoring data and health data of the X-Road security server(s). The operational monitoring daemon makes operational and health data available for the owner of the security server, regular client and central monitoring client via security server. Local health data is available for external monitoring systems (e.g. Zabbix) over JMXMP interface.
+The main function of the operational monitoring daemon is to collect operational monitoring data and health data of the X-Road security server(s). The operational monitoring daemon makes operational and health data available for the owner of the security server, regular client and central monitoring client via security server.
 
 An overview of the components of the monitoring daemon and its interfaces is provided in \[[ARC-OPMOND](#ARC-OPMOND)\].
 
@@ -68,8 +68,6 @@ An overview of the components of the monitoring daemon and its interfaces is pro
 The X-Road monitoring use case model includes the following actors.
 
 - Security server -- A local security server that sends operational data stored in the operational monitoring buffer to the monitoring daemon and mediates operational data messages between operational monitoring daemon and remote security servers.
-
-- External monitoring system -- A monitoring tool (e.g. Zabbix) that collects local security server health data via JMXMP interface.
 
 The relationships between the actors and use cases are described in Figure 1.
 
@@ -260,15 +258,15 @@ The relationships between the actors and use cases are described in Figure 1.
 
 **Level:** System task
 
-**Actors:** Security server, External monitoring system
+**Actors:** Security server
 
-**Brief Description:** Local health data requests are sent to the operational monitoring daemon by an external monitoring system over JMXMP interface. Health data requests coming from remote security servers are received by the local security server that sends the requests to the operational monitoring daemon.
+**Brief Description:** Health data requests coming from remote security servers are received by the local security server that sends the requests to the operational monitoring daemon.
 
 **Preconditions:** -
 
 **Postconditions:** System has replied with a response message.
 
-**Trigger:** The operational monitoring daemon receives the request from external monitoring system or from local security server.
+**Trigger:** The operational monitoring daemon receives the request from local security server.
 
 **Main Success Scenario:**
 
@@ -304,41 +302,15 @@ The relationships between the actors and use cases are described in Figure 1.
 
 **Extensions:**
 
-1a. System receives a health data request over the JMXMP interface.
+1a. System parses the request and identifies that the client is not specified. System queries health data about all clients.
 
-  * 1a.1. System composes the response according to the requested field. Supported fields are following:
-    * the time when the operational monitoring daemon was started (the Unix timestamp in milliseconds);
-    * the duration of the statistics period in seconds;
-    * per every service:
-      * the time of the last successful request (the Unix timestamp in milliseconds);
-      * the time of the last unsuccessful request (the Unix timestamp in milliseconds);
-      * the number of successful requests occurred during the last period;
-	    * the number of unsuccessful requests occurred during the last period;
-	    * the minimum duration of the requests during the last period in milliseconds;
-  	  * the average duration of the requests during the last period in milliseconds;
-	    * the maximum duration of the requests during the last period in milliseconds;
-	    * the standard deviation of the duration of the requests during the last period;
-  	  * the minimum message size of the requests during the last period in bytes;
-	    * the average message size of the requests during the last period in bytes;
-  	  * the maximum message size of the requests during the last period in bytes;
-	    * the standard deviation of the message size of the requests during the last period;
-  	  * the minimum message size of the responses during the last period in bytes;
-  	  * the average message size of the responses during the last period in bytes;
-  	  * the maximum message size of the responses during the last period in bytes;
-  	  * the standard deviation of the message size of the responses during the last period.
+  * 1a.1. Use case continues from step 3.
 
-  * 1a.2. Use case continues from step 4.
+1b. System verifies that the identifier of a client the health data is requested about is faulty.
 
-2a. System parses the request and identifies that the client is not specified. System queries health data about all clients.
+  * 1b.1. System composes a SOAP fault message.
 
-  * 2a.1. Use case continues from step 3.
-
-2b. System verifies that the identifier of a client the health data is requested about is faulty.
-
-  * 2b.1. System composes a SOAP fault message.
-
-  * 2b.2. Use case continues from step 4.
+  * 1b.2. Use case continues from step 4.
 
 **Related information:**
 - Health data SOAP messages must conform to the profile described in document “X-Road: Operational Monitoring Protocol” \[[PR-OPMON](#PR-OPMON)\].
-- Health data JMX messages must confirm to the profile described in document "X-Road: Operational Monitoring JMX Protocol" \[[PR-OPMONJMX](#PR-OPMONJMX)\].

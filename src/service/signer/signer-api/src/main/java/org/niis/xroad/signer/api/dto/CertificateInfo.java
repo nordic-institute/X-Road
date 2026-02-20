@@ -134,4 +134,11 @@ public class CertificateInfo implements Serializable {
         String issuerCommonName = getIssuerCommonName(x509Certificate);
         return joinWith(" ", issuerCommonName, x509Certificate.getSerialNumber().toString());
     }
+
+    @JsonIgnore
+    public boolean belongsToMember(ClientId member) {
+        return member.equals(getMemberId())
+                || member.subsystemContainsMember(getMemberId());
+    }
+
 }

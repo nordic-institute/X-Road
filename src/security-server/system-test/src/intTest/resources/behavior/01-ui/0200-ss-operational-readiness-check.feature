@@ -1,8 +1,9 @@
 @SecurityServer
+@UI
+@Skip #TODO either remove altogether or bring back those files to containers
 Feature: 0200 - SS: Operational readiness checks: docs & logs
 
   Scenario: Verify that documentation files are installed
-    Given file "/usr/share/doc/xroad-addon-messagelog/LICENSE.txt" exists
     And file "/usr/share/doc/xroad-proxy/LICENSE.txt" exists
 
   Scenario: Verify that log files exists

@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hikari.maximumPoolSize">20</property>
+        <property name="hibernate.id.db_structure_naming_strategy">single</property>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity"/>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity"/>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity"/>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity"/>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity"/>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity"/>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity"/>
+        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity"/>
+
+        <mapping class="org.niis.xroad.signer.jpa.entity.SignerCertificateEntity"/>
+        <mapping class="org.niis.xroad.signer.jpa.entity.SignerCertRequestEntity"/>
+        <mapping class="org.niis.xroad.signer.jpa.entity.SignerTokenEntity"/>
+        <mapping class="org.niis.xroad.signer.jpa.entity.SignerKeyEntity"/>
+    </session-factory>
+</hibernate-configuration>

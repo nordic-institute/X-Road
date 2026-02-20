@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 
@@ -55,7 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.signature.Helper.BASE_URI;
 import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_TIMESTAMP_TAG;
 import static ee.ria.xroad.common.signature.Helper.ID_TS_ROOT_MANIFEST;
@@ -71,6 +69,7 @@ import static ee.ria.xroad.common.signature.Helper.verifyDigest;
 import static ee.ria.xroad.common.signature.Helper.xadesElement;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 
 /**
  * Container class for the XML signature specific objects.
@@ -116,7 +115,7 @@ public class Signature {
             readSignature();
             readObjectContainer();
         } catch (XMLSignatureException e) {
-            throw new CodedException(X_MALFORMED_SIGNATURE, e);
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, e);
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(e);
         }
@@ -273,14 +272,14 @@ public class Signature {
             String certId = certRef.getAttribute(URI_ATTRIBUTE);
 
             if (certId == null || certId.isEmpty()) {
-                throw new CodedException(X_MALFORMED_SIGNATURE, "Missing certificate id attribute");
+                throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, "Missing certificate id attribute");
             }
 
             // we have the ocsp response element id, let's find the response
             Element certElem = XmlUtils.getElementById(document, certId);
 
             if (certElem == null) {
-                throw new CodedException(X_MALFORMED_SIGNATURE, "Could not find certificate with id " + certId);
+                throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, "Could not find certificate with id " + certId);
             }
 
             try {
@@ -288,13 +287,13 @@ public class Signature {
 
                 // we now have the certificate constructed, verify the digest
                 if (!verifyDigest((Element) certRef.getFirstChild(), x509.getEncoded())) {
-                    throw new CodedException(X_MALFORMED_SIGNATURE, "Certificate (%s) digest does not match",
-                            x509.getSerialNumber());
+                    throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, "Certificate (%s) digest does not match".formatted(
+                            x509.getSerialNumber()));
                 }
 
                 extraCertificates.add(x509);
             } catch (CertificateException | IOException e) {
-                throw new CodedException(X_MALFORMED_SIGNATURE, e);
+                throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, e);
             }
         }
 
@@ -310,7 +309,7 @@ public class Signature {
         NodeList ocspValueElements = getEncapsulatedOCSPValueElements(objectContainer.getElement());
 
         if (ocspValueElements == null || ocspValueElements.getLength() == 0) {
-            throw new CodedException(X_MALFORMED_SIGNATURE, "Could not get any OCSP elements from signature");
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, "Could not get any OCSP elements from signature");
         }
 
         for (int i = 0; i < ocspValueElements.getLength(); i++) {
@@ -322,7 +321,7 @@ public class Signature {
             try {
                 ocspResponses.add(new OCSPResp(decodeBase64(base64)));
             } catch (IOException e) {
-                throw new CodedException(X_MALFORMED_SIGNATURE, e);
+                throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, e);
             }
         }
 

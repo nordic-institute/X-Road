@@ -32,8 +32,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_HOST;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_HOST;
 
 /**
  * Client sends request with attachments. The SP will connect to nonexistent
@@ -60,6 +60,6 @@ public class InvalidServiceAddress2 extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_SERVICE_FAILED_X, X_UNKNOWN_HOST);
+        assertErrorCode(SERVER_SERVERPROXY_X, SERVICE_FAILED.code(), UNKNOWN_HOST.code());
     }
 }
