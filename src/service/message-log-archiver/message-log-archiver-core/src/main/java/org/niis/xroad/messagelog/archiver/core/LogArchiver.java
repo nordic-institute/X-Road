@@ -106,6 +106,13 @@ public class LogArchiver {
                 .executeUpdate();
     }
 
+    private void flushArchivedBatch(Session session, List<Long> recordIds) {
+        if (!recordIds.isEmpty()) {
+            markArchived(session, recordIds);
+            recordIds.clear();
+        }
+    }
+
     private boolean handleArchive(String instanceIdentifier, MessageLogArchiverProperties executionProperties,
                                   MessageLogEncryptionProperties messageLogEncryptionProperties,
                                   long maxRecordId) {
@@ -135,16 +142,12 @@ public class LogArchiver {
                         recordsArchived++;
 
                         if (recordsArchived % 100 == 0) {
-                            markArchived(session, recordIds);
-                            recordIds.clear();
+                            flushArchivedBatch(session, recordIds);
                         }
                     }
                 }
                 if (recordsArchived > 0) {
-                    if (!recordIds.isEmpty()) {
-                        markArchived(session, recordIds);
-                        recordIds.clear();
-                    }
+                    flushArchivedBatch(session, recordIds);
                     markTimestampRecordsArchived(session);
                 }
                 session.flush();
