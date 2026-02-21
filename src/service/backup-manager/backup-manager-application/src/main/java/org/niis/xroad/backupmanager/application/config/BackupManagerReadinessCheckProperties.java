@@ -30,6 +30,8 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.util.Optional;
+
 @ConfigMapping(prefix = "xroad.backup-manager.readiness-check")
 public interface BackupManagerReadinessCheckProperties {
 
@@ -47,7 +49,7 @@ public interface BackupManagerReadinessCheckProperties {
          */
         @WithName("service-host")
         @WithDefault("${KUBERNETES_SERVICE_HOST:}")
-        String serviceHost();
+        Optional<String> serviceHost();
 
         /**
          * Kubernetes API server port.
@@ -55,7 +57,7 @@ public interface BackupManagerReadinessCheckProperties {
          */
         @WithName("service-port")
         @WithDefault("${KUBERNETES_SERVICE_PORT:}")
-        String servicePort();
+        Optional<String> servicePort();
 
         @WithName("token-path")
         @WithDefault("/var/run/secrets/kubernetes.io/serviceaccount/token")

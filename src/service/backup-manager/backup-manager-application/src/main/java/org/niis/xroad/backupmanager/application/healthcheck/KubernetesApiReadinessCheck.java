@@ -106,8 +106,8 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
     @SuppressWarnings("checkstyle:MagicNumber")
     private boolean checkKubernetesApiAccess(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps)
             throws IOException, GeneralSecurityException {
-        String k8sHost = k8sProps.serviceHost();
-        String k8sPort = k8sProps.servicePort();
+        String k8sHost = k8sProps.serviceHost().orElseThrow();
+        String k8sPort = k8sProps.servicePort().orElseThrow();
 
         String apiUrl = "https://" + k8sHost + ":" + k8sPort + "/healthz";
         String token = readToken(k8sProps);
@@ -138,7 +138,7 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
     }
 
     private boolean isRunningInKubernetes(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps) {
-        return StringUtils.isNotEmpty(k8sProps.serviceHost());
+        return k8sProps.serviceHost().filter(StringUtils::isNotEmpty).isPresent();
     }
 
     private SSLContext createSslContext(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps)
