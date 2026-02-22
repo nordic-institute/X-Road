@@ -40,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.http.HttpStatus;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 
@@ -64,6 +66,8 @@ public class ReadinessCheckStepDefs {
     private Decoder decoder;
     @Autowired
     private Encoder encoder;
+
+    private final Map<String, FeignReadinessApi> clientCache = new HashMap<>();
 
     @Then("proxy readiness check is UP")
     public void proxyReadinessCheckIsUp() {
@@ -137,12 +141,14 @@ public class ReadinessCheckStepDefs {
     }
 
     private FeignReadinessApi createReadinessClient(String serviceName) {
-        var container = systemTestContainerSetup.getContainerMapping(serviceName, Port.QUARKUS_HEALTH);
-        return Feign.builder()
-                .logLevel(Logger.Level.FULL)
-                .encoder(encoder)
-                .decoder(decoder)
-                .contract(new SpringMvcContract())
-                .target(FeignReadinessApi.class, "http://%s:%d".formatted(container.host(), container.port()));
+        return clientCache.computeIfAbsent(serviceName, name -> {
+            var container = systemTestContainerSetup.getContainerMapping(name, Port.QUARKUS_HEALTH);
+            return Feign.builder()
+                    .logLevel(Logger.Level.FULL)
+                    .encoder(encoder)
+                    .decoder(decoder)
+                    .contract(new SpringMvcContract())
+                    .target(FeignReadinessApi.class, "http://%s:%d".formatted(container.host(), container.port()));
+        });
     }
 }
