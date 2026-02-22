@@ -24,19 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui.container;
+package org.niis.xroad.ss.test.addons.api;
 
-public final class Port {
-    public static final int
-            UI = 4000,
-            PROXY_HTTP = 8080,
-            DB = 5432,
-            PROXY_HEALTHCHECK = 5558,
-            TEST_CA = 8888,
-            // Quarkus health endpoint port for services
-            QUARKUS_HEALTH = 4099;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 
-    private Port() {
-    }
+/**
+ * Feign client for MicroProfile Health readiness endpoint.
+ */
+public interface FeignReadinessApi {
 
+    @GetMapping("/q/health/ready")
+    ResponseEntity<JsonNode> getReadiness();
 }
