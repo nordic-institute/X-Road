@@ -50,6 +50,7 @@ class ServerConfDatabaseReadinessCheckTest {
     @Test
     void successfulQueryReturnsUp() {
         when(serverConfDatabaseCtx.doInTransaction(any())).thenReturn(null);
+        when(serverConfDatabaseCtx.getName()).thenReturn(ServerConfDatabaseCtx.SERVER_CONF_DB_NAME);
 
         var response = check.call();
 
