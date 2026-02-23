@@ -102,5 +102,6 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
           display-table: false
           pr-comment: true
