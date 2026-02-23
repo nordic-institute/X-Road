@@ -11,7 +11,7 @@ configurations.named("runtimeClasspath") {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":lib:health-quarkus"))
+  implementation(project(":lib:health-check-core"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))

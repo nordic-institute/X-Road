@@ -7,7 +7,6 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":lib:health-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":service:backup-manager:backup-manager-core"))

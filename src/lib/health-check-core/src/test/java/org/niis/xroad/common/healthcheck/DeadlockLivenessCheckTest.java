@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.health;
+package org.niis.xroad.common.healthcheck;
 
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.junit.jupiter.api.Test;

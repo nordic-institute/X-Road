@@ -8,7 +8,6 @@ dependencies {
   implementation(platform(libs.quarkus.bom))
 
   implementation(project(":common:common-core"))
-  implementation(project(":lib:health-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":service:signer:signer-api"))

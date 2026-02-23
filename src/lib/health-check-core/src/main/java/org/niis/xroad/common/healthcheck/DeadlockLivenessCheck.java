@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.health;
+package org.niis.xroad.common.healthcheck;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.health.HealthCheck;
@@ -44,7 +44,7 @@ public class DeadlockLivenessCheck implements HealthCheck {
         if (deadlocked != null && deadlocked.length > 0) {
             return HealthCheckResponse.named(NAME)
                     .down()
-                    .withData("deadlocked_threads", deadlocked.length)
+                    .withData("deadlocked_threads", (long) deadlocked.length)
                     .build();
         }
         return HealthCheckResponse.up(NAME);
