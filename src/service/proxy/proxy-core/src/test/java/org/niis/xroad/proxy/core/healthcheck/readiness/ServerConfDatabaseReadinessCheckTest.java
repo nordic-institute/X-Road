@@ -48,7 +48,7 @@ class ServerConfDatabaseReadinessCheckTest {
     private ServerConfDatabaseReadinessCheck check;
 
     @Test
-    void successfulQueryReturnsUp() throws Exception {
+    void successfulQueryReturnsUp() {
         when(serverConfDatabaseCtx.doInTransaction(any())).thenReturn(null);
 
         var response = check.call();

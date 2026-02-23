@@ -60,6 +60,6 @@ public class MessagelogDatabaseReadinessCheck extends HibernateDatabaseReadiness
 
     @Override
     protected String getDatabaseName() {
-        return "messagelog";
+        return messageLogDatabaseCtx.getName();
     }
 }

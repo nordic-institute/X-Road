@@ -57,6 +57,6 @@ public class OpMonitorDatabaseReadinessCheck extends HibernateDatabaseReadinessC
 
     @Override
     protected String getDatabaseName() {
-        return "opmonitor";
+        return opMonitorDatabaseCtx.getName();
     }
 }

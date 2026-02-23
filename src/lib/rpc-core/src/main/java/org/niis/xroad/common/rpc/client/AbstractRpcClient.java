@@ -125,4 +125,24 @@ public abstract class AbstractRpcClient implements AutoCloseable {
      */
     public abstract ErrorOrigin getRpcOrigin();
 
+    /**
+     * Override to enable automatic gRPC channel readiness check registration.
+     * Return null to opt out of auto-registration.
+     *
+     * @return the health check name, or null to opt out
+     */
+    public String getHealthCheckName() {
+        return null;
+    }
+
+    /**
+     * Override to provide the target service name for the auto-registered gRPC channel readiness check.
+     * Return null to opt out of auto-registration.
+     *
+     * @return the target service name (e.g., "signer", "configuration-client"), or null to opt out
+     */
+    public String getHealthCheckTargetService() {
+        return null;
+    }
+
 }

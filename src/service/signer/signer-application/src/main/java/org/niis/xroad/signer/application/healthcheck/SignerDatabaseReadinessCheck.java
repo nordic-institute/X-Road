@@ -57,6 +57,6 @@ public class SignerDatabaseReadinessCheck extends HibernateDatabaseReadinessChec
 
     @Override
     protected String getDatabaseName() {
-        return "signer";
+        return signerDatabaseCtx.getName();
     }
 }

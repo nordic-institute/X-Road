@@ -48,9 +48,9 @@ class SignerDatabaseReadinessCheckTest {
     private SignerDatabaseReadinessCheck check;
 
     @Test
-    void successfulQueryReturnsUp() throws Exception {
+    void successfulQueryReturnsUp() {
         when(signerDatabaseCtx.doInTransaction(any())).thenReturn(null);
-
+        when(signerDatabaseCtx.getName()).thenReturn(SignerDatabaseCtx.NAME);
         var response = check.call();
 
         assertEquals(HealthCheckResponse.Status.UP, response.getStatus());
