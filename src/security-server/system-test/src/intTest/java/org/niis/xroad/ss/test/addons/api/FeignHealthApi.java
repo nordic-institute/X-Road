@@ -31,10 +31,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * Feign client for MicroProfile Health readiness endpoint.
+ * Feign client for Health endpoints.
  */
-public interface FeignReadinessApi {
+public interface FeignHealthApi {
 
     @GetMapping("/q/health/ready")
     ResponseEntity<JsonNode> getReadiness();
+
+    @GetMapping("/q/health/live")
+    ResponseEntity<JsonNode> getLiveness();
+
 }
