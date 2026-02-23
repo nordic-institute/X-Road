@@ -66,6 +66,11 @@ public class ConfClientRpcClient extends AbstractRpcClient {
         return ErrorOrigin.CONF_CLIENT;
     }
 
+    @Override
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
     @PostConstruct
     public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),

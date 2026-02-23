@@ -24,36 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.healthcheck;
 
-package org.niis.xroad.signer.core.healthcheck;
+import lombok.experimental.UtilityClass;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
-import org.eclipse.microprofile.health.Readiness;
-import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
+@UtilityClass
+public class HealthCheckConstants {
 
-/**
- * TODO this is a sample readiness check for the token registry.
- * Technically it should not trigger as it is loaded from post-construct.
- */
-@Slf4j
-@Readiness
-@ApplicationScoped
-@RequiredArgsConstructor
-public class TokenRegistryReadinessCheck implements HealthCheck {
-    private static final String NAME = "TOKEN_REGISTRY_READINESS_CHECK";
+    public static final String STATUS = "status";
+    public static final String TARGET = "target";
+    public static final String STATE = "state";
+    public static final String ERROR = "error";
+    public static final String REASON = "reason";
 
-    private final TokenRegistry tokenRegistry;
-
-    @Override
-    public HealthCheckResponse call() {
-        if (tokenRegistry.isInitialized()) {
-            return HealthCheckResponse.up(NAME);
-        }
-        log.warn("Token registry is not initialized, returning down status for readiness check");
-        return HealthCheckResponse.down(NAME);
-    }
 }

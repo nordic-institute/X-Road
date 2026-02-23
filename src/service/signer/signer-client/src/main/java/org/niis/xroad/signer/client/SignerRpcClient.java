@@ -152,6 +152,11 @@ public class SignerRpcClient extends AbstractRpcClient {
         return ErrorOrigin.SIGNER;
     }
 
+    @Override
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
     @PostConstruct
     public void init() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
