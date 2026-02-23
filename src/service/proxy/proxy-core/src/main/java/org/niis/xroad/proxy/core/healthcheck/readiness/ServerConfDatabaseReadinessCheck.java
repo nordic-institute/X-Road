@@ -57,6 +57,6 @@ public class ServerConfDatabaseReadinessCheck extends HibernateDatabaseReadiness
 
     @Override
     protected String getDatabaseName() {
-        return "serverconf";
+        return serverConfDatabaseCtx.getName();
     }
 }

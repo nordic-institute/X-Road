@@ -7,8 +7,8 @@ Feature: 5000 - SS: Readiness Checks
     Then proxy readiness check is UP
     And "proxy" service readiness check "PROXY_SERVERCONF_DATABASE_READINESS_CHECK" has status "UP"
     And "proxy" service readiness check "PROXY_GLOBALCONF_READINESS_CHECK" has status "UP"
-    And "proxy" service readiness check "PROXY_SIGNER_CHANNEL_READINESS_CHECK" has status "UP"
-    And "proxy" service readiness check "PROXY_CONFCLIENT_CHANNEL_READINESS_CHECK" has status "UP"
+    And "proxy" service readiness check "SIGNER_CHANNEL_READINESS_CHECK" has status "UP"
+    And "proxy" service readiness check "CONFCLIENT_CHANNEL_READINESS_CHECK" has status "UP"
 
   Scenario: Signer service readiness checks are UP
     Then signer readiness check is UP

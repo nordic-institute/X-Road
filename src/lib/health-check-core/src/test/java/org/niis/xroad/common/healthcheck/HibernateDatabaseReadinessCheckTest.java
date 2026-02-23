@@ -78,7 +78,7 @@ class HibernateDatabaseReadinessCheckTest {
     }
 
     @Test
-    void successfulQueryReturnsUp() throws Exception {
+    void successfulQueryReturnsUp() {
         when(databaseCtx.doInTransaction(any())).thenReturn(null);
 
         var response = createCheck(databaseCtx).call();
