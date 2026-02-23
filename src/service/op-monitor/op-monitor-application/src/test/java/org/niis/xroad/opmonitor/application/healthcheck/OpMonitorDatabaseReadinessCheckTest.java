@@ -48,14 +48,15 @@ class OpMonitorDatabaseReadinessCheckTest {
     private OpMonitorDatabaseReadinessCheck check;
 
     @Test
-    void successfulQueryReturnsUp() throws Exception {
+    void successfulQueryReturnsUp() {
         when(opMonitorDatabaseCtx.doInTransaction(any())).thenReturn(null);
+        when(opMonitorDatabaseCtx.getName()).thenReturn(OpMonitorDatabaseCtx.NAME);
 
         var response = check.call();
 
         assertEquals(HealthCheckResponse.Status.UP, response.getStatus());
         assertEquals("OP_MONITOR_DATABASE_READINESS_CHECK", response.getName());
-        assertEquals("opmonitor", response.getData().orElseThrow().get("database"));
+        assertEquals("op-monitor", response.getData().orElseThrow().get("database"));
     }
 
     @Test

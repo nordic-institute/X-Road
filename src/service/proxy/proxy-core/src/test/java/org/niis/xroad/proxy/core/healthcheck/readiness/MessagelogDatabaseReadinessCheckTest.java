@@ -48,8 +48,9 @@ class MessagelogDatabaseReadinessCheckTest {
     private MessagelogDatabaseReadinessCheck check;
 
     @Test
-    void successfulQueryReturnsUp() throws Exception {
+    void successfulQueryReturnsUp() {
         when(messageLogDatabaseCtx.doInTransaction(any())).thenReturn(null);
+        when(messageLogDatabaseCtx.getName()).thenReturn(MessageLogDatabaseCtx.DB_NAME);
 
         var response = check.call();
 

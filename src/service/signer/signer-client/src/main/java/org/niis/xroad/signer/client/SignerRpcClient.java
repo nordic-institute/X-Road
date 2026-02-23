@@ -157,6 +157,16 @@ public class SignerRpcClient extends AbstractRpcClient {
         return channel;
     }
 
+    @Override
+    public String getHealthCheckName() {
+        return "SIGNER_CHANNEL_READINESS_CHECK";
+    }
+
+    @Override
+    public String getHealthCheckTargetService() {
+        return "signer";
+    }
+
     @PostConstruct
     public void init() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
