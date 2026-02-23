@@ -38,6 +38,7 @@ publishing {
 }
 
 dependencies {
+  implementation(project(":lib:health-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":common:common-core"))
   implementation(project(":lib:properties-quarkus"))

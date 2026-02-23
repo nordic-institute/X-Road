@@ -4,7 +4,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-
 configurations.named("runtimeClasspath") {
   exclude(group = "xml-apis", module = "xml-apis")
 }
@@ -12,6 +11,7 @@ configurations.named("runtimeClasspath") {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
+  implementation(project(":lib:health-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))

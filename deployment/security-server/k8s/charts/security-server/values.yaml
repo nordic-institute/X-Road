@@ -74,6 +74,9 @@ services:
     readinessProbe:
       path: "/q/health"
       scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
+      scheme: "HTTP"
     serviceAccount:
       annotations: { }
     env:
@@ -111,6 +114,9 @@ services:
         name: grpc
     readinessProbe:
       path: "/q/health"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
       scheme: "HTTP"
     serviceAccount:
       annotations: { }
@@ -157,6 +163,9 @@ services:
         name: proxy-https
     readinessProbe:
       path: "/q/health"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
       scheme: "HTTP"
     serviceAccount:
       annotations: { }
@@ -254,6 +263,9 @@ services:
     readinessProbe:
       path: "/q/health"
       scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
+      scheme: "HTTP"
     serviceAccount:
       annotations: { }
     env:
@@ -297,6 +309,9 @@ services:
     debugPort: 9999
     readinessProbe:
       path: "/q/health"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
       scheme: "HTTP"
     serviceAccount:
       annotations: { }
@@ -346,6 +361,9 @@ services:
         name: grpc
     readinessProbe:
       path: "/q/health"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
       scheme: "HTTP"
     serviceAccount:
       annotations: { }

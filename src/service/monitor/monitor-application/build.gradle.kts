@@ -6,6 +6,7 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
   implementation(libs.bundles.quarkus.containerized)
+  implementation(project(":lib:health-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
 
