@@ -5,6 +5,7 @@
     name: nginx
     state: present
     update_cache: yes
+    install_recommends: no
 
 - name: Configure Nginx for mock service
   template:

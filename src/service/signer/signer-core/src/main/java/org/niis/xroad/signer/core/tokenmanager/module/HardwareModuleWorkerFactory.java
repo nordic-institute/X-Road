@@ -47,6 +47,7 @@ import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenDefinition;
 import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil;
 import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenWorkerFactory;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
+import org.niis.xroad.signer.core.tokenpinstore.TokenPinStoreProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +67,7 @@ public class HardwareModuleWorkerFactory {
     private final HardwareTokenWorkerFactory tokenWorkerFactory;
     private final TokenManager tokenManager;
     private final TokenLookup tokenLookup;
+    private final TokenPinStoreProvider tokenPinStoreProvider;
 
     public HardwareModuleWorker create(HardwareModuleType moduleType) {
         return new HardwareModuleWorker(moduleType);
@@ -215,7 +217,7 @@ public class HardwareModuleWorkerFactory {
 
         @Override
         protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition) {
-            return tokenWorkerFactory.create(tokenInfo, tokenDefinition);
+            return tokenWorkerFactory.create(tokenInfo, tokenDefinition, tokenPinStoreProvider);
         }
     }
 }

@@ -41,6 +41,9 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     }
   },
+  html: {
+    cspNonce: '__CSP_NONCE__',
+  },
   css: {
     preprocessorOptions: {
       scss: {

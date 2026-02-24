@@ -27,9 +27,10 @@
   tags:
     - clean-local-repo
 
+
 - name: Ensure dpkg-dev
   become: yes
-  apt: name=dpkg-dev state=present update_cache=yes
+  apt: name=dpkg-dev state=present update_cache=yes install_recommends=no
 
 - name: Scan new packages
   become: yes

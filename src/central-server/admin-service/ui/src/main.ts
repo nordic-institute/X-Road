@@ -43,7 +43,7 @@ import { setupAddErrorNavigation } from '@niis/shared-ui';
 import { createFilters } from '@/filters';
 import { RouteName } from '@/global';
 import { createLanguageHelper } from '@/plugins/i18n';
-import validation from '@/plugins/vee-validate';
+import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify'; //
 
 import router from './router/router';
@@ -70,7 +70,7 @@ const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.use(vuetify);
-app.use(validation);
+app.use(createValidators());
 app.use(createFilters());
 
 // translations

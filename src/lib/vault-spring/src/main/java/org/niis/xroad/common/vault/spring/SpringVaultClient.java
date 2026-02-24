@@ -139,6 +139,21 @@ public class SpringVaultClient implements VaultClient {
         );
     }
 
+    @Override
+    public void setTokenPin(String tokenId, char[] pn) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Optional<char[]> getTokenPin(String tokenId) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void deleteTokenPin(String tokenId) {
+        throw new NotImplementedException();
+    }
+
     private Optional<Map<String, Object>> readSecret(String path) {
         if (vaultClient == null) {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");

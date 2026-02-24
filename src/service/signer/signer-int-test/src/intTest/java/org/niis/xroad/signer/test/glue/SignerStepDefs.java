@@ -76,6 +76,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
@@ -862,5 +863,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void tokenTokenIsNotSavedToConfiguration(String tokenFriendlyName, NodeProperties.NodeType nodeType) {
         TokenInfo tokenInfo = getTokenInfoByFriendlyName(tokenFriendlyName, nodeType);
         assertThat(tokenInfo.isSavedToConfiguration()).isFalse();
+    }
+
+    @Step("Waiting {int} seconds for auto-login to take effect")
+    public void waitForAutologinToTakeEffect(int seconds) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(seconds);
     }
 }

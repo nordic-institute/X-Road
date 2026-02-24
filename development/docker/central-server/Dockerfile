@@ -1,10 +1,18 @@
 # syntax=docker/dockerfile:1
 
 # internal or external
-ARG PACKAGE_SOURCE
+ARG PACKAGE_SOURCE=internal
 
-FROM ubuntu:24.04 AS base
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
+
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
+
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
@@ -39,7 +47,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -63,7 +71,7 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -72,6 +80,9 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
 
 # Build final image
 FROM centralserver-${PACKAGE_SOURCE} AS final
+
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
 
 RUN { nginx -s stop ||:; } \
   && rm -f /var/run/nginx.pid \
@@ -92,8 +103,10 @@ RUN { nginx -s stop ||:; } \
   && rm -rf var/lib/apt/lists/*
 
 # Setup additional users
-ARG USER_PASSWD=secret
-RUN useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd"
+# Setup additional users
+RUN --mount=type=secret,id=user_passwd \
+    useradd xrd-sys && adduser xrd-sys xroad-system-administrator && \
+    sh -c "echo \"xrd-sys:\$(cat /run/secrets/user_passwd)\" | chpasswd"
 
 COPY --chown=xroad:xroad files/etc /etc/
 

@@ -100,6 +100,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-softtoken-signer:
@@ -181,6 +183,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-opmonitor:
@@ -262,6 +266,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-cs-admin:
@@ -336,6 +342,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-cs-management:
@@ -410,4 +418,6 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true

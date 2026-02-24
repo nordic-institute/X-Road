@@ -1,5 +1,14 @@
-FROM ubuntu:noble
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
+
+# Configure package mirror for APT
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
+
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
@@ -38,12 +47,10 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     xroad-proxy-ui-api \
     xroad-opmonitor \
     xroad-monitor \
-    xroad-autologin \
     xroad-database-remote \
   && apt-get -qq clean
 
 COPY --chown=xroad:xroad files/override-docker.ini files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
-COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 
 RUN rm -f \
     /etc/xroad/db.properties \
@@ -76,6 +83,10 @@ RUN rm -f \
 COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# Cleanup mirror configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
 
 CMD ["/root/entrypoint.sh"]
 

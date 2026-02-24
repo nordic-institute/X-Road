@@ -379,7 +379,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 }
             }
         }
-        return CostType.UNDEFINED;
+        return null;
     }
 
     @Override

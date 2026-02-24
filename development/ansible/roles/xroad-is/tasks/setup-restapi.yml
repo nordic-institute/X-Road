@@ -13,6 +13,7 @@
     name:
       - openjdk-17-jdk-headless
     update_cache: yes
+    install_recommends: no
     state: present
 
 - name: Get latest example-restapi version

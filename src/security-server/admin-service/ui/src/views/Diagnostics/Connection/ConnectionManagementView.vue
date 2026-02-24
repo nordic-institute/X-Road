@@ -218,7 +218,9 @@ export default defineComponent({
       }
     }
 
-    this.testManagementServiceStatus();
+    if (this.selectedSecurityServerId) {
+      this.testManagementServiceStatus();
+    }
   },
 
   methods: {

@@ -9,6 +9,13 @@
 
 ################################################################################
 FROM eclipse-temurin:11 AS build-xrd4j-lib
+
+# Optimize APT for flaky mirrors (e.g. ports.ubuntu.com)
+RUN echo 'Acquire::Connect::Timeout "5";' > /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::http::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::https::Timeout "10";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99timeouts && \
+    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
 RUN apt-get update && apt-get install -y git
 WORKDIR /app
 ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dmaven.repo.local=/app/.m2_repository -Dgradle.user.home=/app/.gradle_home"

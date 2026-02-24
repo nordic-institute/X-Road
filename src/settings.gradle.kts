@@ -1,13 +1,24 @@
-// Load local properties if they exist
-val localPropertiesFile = file("gradle-local.properties")
-if (localPropertiesFile.exists()) {
-  gradle.projectsLoaded {
-    val localProps = java.util.Properties().apply {
-      load(localPropertiesFile.inputStream())
-    }
-    // Override properties from local file
-    localProps.forEach { (key, value) ->
-      gradle.rootProject.extensions.extraProperties.set(key.toString(), value.toString())
+pluginManagement {
+  repositories {
+    fun getConfig(name: String): String? =
+        System.getenv(name) ?: providers.gradleProperty(name).orNull
+
+    val pluginsUrl = getConfig("XROAD_MIRROR_PLUGINS_URL")
+    val username = getConfig("XROAD_MIRROR_USERNAME")
+    val token = getConfig("XROAD_MIRROR_TOKEN")
+
+    if (!pluginsUrl.isNullOrBlank() && !username.isNullOrBlank() && !token.isNullOrBlank()) {
+      maven {
+        name = "MirrorPlugins"
+        url = uri(pluginsUrl)
+        credentials {
+          this.username = username
+          password = token
+        }
+      }
+    } else {
+      gradlePluginPortal()
+      mavenCentral()
     }
   }
 }
@@ -17,9 +28,28 @@ rootProject.name = "x-road-core"
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
-    mavenCentral()
+    fun getConfig(name: String): String? =
+        System.getenv(name) ?: providers.gradleProperty(name).orNull
+
+    val mavenUrl = getConfig("XROAD_MIRROR_MAVEN_URL")
+    val username = getConfig("XROAD_MIRROR_USERNAME")
+    val token = getConfig("XROAD_MIRROR_TOKEN")
+
+    if (!mavenUrl.isNullOrBlank() && !username.isNullOrBlank() && !token.isNullOrBlank()) {
+      maven {
+        name = "Mirror"
+        url = uri(mavenUrl)
+        credentials {
+          this.username = username
+          password = token
+        }
+      }
+    } else {
+      mavenCentral()
+    }
     mavenLocal()
     maven {
+      //TODO Remove once EDC-V artifacts are in Maven Central
       url = uri("https://central.sonatype.com/repository/maven-snapshots/")
     }
   }

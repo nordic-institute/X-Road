@@ -9,6 +9,7 @@
     name: "{{ items }}"
     state: present
     update_cache: yes
+    install_recommends: no
   vars:
     items:
       - acl

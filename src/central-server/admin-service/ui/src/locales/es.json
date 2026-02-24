@@ -12,7 +12,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "El campo debe contener una dirección IP o múltiples direcciones separadas por coma",
-    "invalidUrl": "La URL no es válida, ejemplos de formatos de URL válidos: 'http://www.ejemplo.com', 'https://www.ejemplo.com'"
+    "invalidUrl": "La URL no es válida, ejemplos de formatos de URL válidos: 'http://www.ejemplo.com', 'https://www.ejemplo.com'",
+    "description": "Use únicamente caracteres válidos en la descripción"
   },
   "error_code": {
     "backup_deletion_failed": "No se pudo eliminar la copia de seguridad",

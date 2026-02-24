@@ -12,7 +12,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "Поле должно содержать IP-адрес или несколько адресов, разделённых запятой",
-    "invalidUrl": "URL недействителен. Примеры действительных форматов URL: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL недействителен. Примеры действительных форматов URL: 'http://www.example.com', 'https://www.example.com'",
+    "description": "Используйте только допустимые символы в описании"
   },
   "error_code": {
     "backup_deletion_failed": "Не удалось удалить резервную копию",

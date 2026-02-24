@@ -13,6 +13,7 @@ dependencies {
 
   implementation(project(":common:common-domain"))
   implementation(project(":service:signer:signer-client"))
+  implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
 
   testImplementation(libs.quarkus.junit5)

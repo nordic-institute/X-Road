@@ -63,6 +63,7 @@ class HardwareTokenSignerTest {
 
     private static final String KEY_ID = "keyId";
     private static final String TOKEN_ID = "tokenId";
+    private static final char[] PIN = "pin".toCharArray();
 
     @Mock
     HardwareTokenSigner.SignPrivateKeyProvider privateKeyProvider;
@@ -75,7 +76,7 @@ class HardwareTokenSignerTest {
 
     @Test
     void testSignNoSessionProvider() {
-        try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, properties)) {
+        try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, PIN, properties)) {
 
             var thrown = assertThrows(XrdRuntimeException.class,
                     () -> signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes()));
@@ -98,7 +99,7 @@ class HardwareTokenSignerTest {
 
         when(privateKeyProvider.getPrivateKey(any(), eq(KEY_ID))).thenReturn(null);
 
-        try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, properties)) {
+        try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, PIN, properties)) {
 
             var thrown = assertThrows(XrdRuntimeException.class,
                     () -> signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes()));
@@ -130,11 +131,11 @@ class HardwareTokenSignerTest {
         when(privateKey.getKeyType()).thenReturn(keyTypeAttribute);
         when(privateKeyProvider.getPrivateKey(any(), eq(KEY_ID))).thenReturn(privateKey);
 
-        try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, properties)) {
+        try (var signer = HardwareTokenSigner.create(privateKeyProvider, tokenDefinition, token, TOKEN_ID, PIN, properties)) {
 
             signer.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "data".getBytes());
 
-            verify(managedSession, pinVerificationPerSigning ? times(1) : never()).login();
+            verify(managedSession, pinVerificationPerSigning ? times(1) : never()).login(PIN);
             verify(managedSession, pinVerificationPerSigning ? times(1) : never()).logout();
 
             verify(sessionMock).signInit(isA(Mechanism.class), eq(privateKey));

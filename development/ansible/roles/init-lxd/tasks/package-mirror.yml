@@ -1,0 +1,26 @@
+- name: Gather facts from target container
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+
+- name: Configure package mirror for APT (Debian-based)
+  script:
+    cmd: >-
+      {{ playbook_dir }}/../../deployment/.scripts/configure-mirror-apt.sh
+      '{{ package_mirror_url }}'
+      '{{ package_mirror_user }}'
+  environment:
+    XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
+  delegate_to: "{{ item }}"
+  when: hostvars[item].ansible_os_family == "Debian"
+
+- name: Configure package mirror for YUM (RedHat-based)
+  script:
+    cmd: >-
+      {{ playbook_dir }}/../../deployment/.scripts/configure-mirror-yum.sh
+      '{{ package_mirror_url | regex_replace('/mirror-.*$', '') }}'
+      '{{ package_mirror_user }}'
+  environment:
+    XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
+  delegate_to: "{{ item }}"
+  when: hostvars[item].ansible_os_family == "RedHat"

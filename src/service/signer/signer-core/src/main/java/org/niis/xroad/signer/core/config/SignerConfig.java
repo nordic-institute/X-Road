@@ -26,8 +26,11 @@
 package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
+import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
@@ -48,6 +51,11 @@ public class SignerConfig {
         } else {
             return new OcspClientExecuteScheduler.NoopScheduler();
         }
+    }
+
+    @ApplicationScoped
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
+        return new QuarkusVaultClient(kvSecretEngine);
     }
 
 }

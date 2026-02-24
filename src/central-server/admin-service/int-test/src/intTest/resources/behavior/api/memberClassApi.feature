@@ -10,6 +10,10 @@ Feature: Member Class Api
    When member class 'TEST' is created
    Then Response is of status code 409 and error code 'member_class_exists'
 
+  Scenario: Create member class with invalid description not allowed
+    Given member class 'TEST' is created with description 'Invalid description$€'
+    Then Response is of status code 400
+
   Scenario: Delete member class
     Given member class 'TEST' is created
     And member class list contains 1 items
@@ -35,3 +39,8 @@ Feature: Member Class Api
     Given member class 'TEST' is created with description 'Class description'
     When member class 'TEST' description is updated to 'New description'
     Then member class 'TEST' has description 'New description'
+
+  Scenario: Update member class with invalid description
+    Given member class 'TEST' is created with description 'Class description'
+    When member class 'TEST' description is updated with invalid description 'Invali description $€'
+    Then Response is of status code 400

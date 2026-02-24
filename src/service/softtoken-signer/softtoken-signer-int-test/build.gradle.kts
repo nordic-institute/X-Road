@@ -14,7 +14,11 @@ dependencies {
 }
 
 intTestComposeEnv {
+  env("XROAD_SECRET_STORE_ROOT_TOKEN", "root-token")
+  env("XROAD_SECRET_STORE_TOKEN", "system-test-xroad-token")
+
   images(
+    "OPENBAO_DEV_IMG" to "openbao-dev",
     "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
     "SIGNER_IMG" to "ss-signer",
     "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer"

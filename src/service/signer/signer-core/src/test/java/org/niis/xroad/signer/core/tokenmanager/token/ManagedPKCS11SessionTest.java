@@ -33,12 +33,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,7 +48,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -133,17 +128,12 @@ class ManagedPKCS11SessionTest {
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
         doNothing().when(session).login(Session.CKUserType.USER, PIN);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
-            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
+        // When
+        boolean result = managedSession.login(PIN);
 
-            // When
-            boolean result = managedSession.login();
-
-            // Then
-            assertTrue(result);
-            psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            verify(session).login(Session.CKUserType.USER, PIN);
-        }
+        // Then
+        assertTrue(result);
+        verify(session).login(Session.CKUserType.USER, PIN);
     }
 
     @Test
@@ -152,17 +142,12 @@ class ManagedPKCS11SessionTest {
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
-            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(null);
+        // When
+        boolean result = managedSession.login(new char[0]);
 
-            // When
-            boolean result = managedSession.login();
-
-            // Then
-            assertFalse(result);
-            psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            verify(session, never()).login(anyLong(), any()); // Login not called
-        }
+        // Then
+        assertFalse(result);
+        verify(session, never()).login(anyLong(), any()); // Login not called
     }
 
     @Test
@@ -173,16 +158,11 @@ class ManagedPKCS11SessionTest {
         PKCS11Exception expectedException = new PKCS11Exception(0L);
         doThrow(expectedException).when(session).login(Session.CKUserType.USER, PIN);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
-            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
+        // When & Assert
+        PKCS11Exception thrown = assertThrows(PKCS11Exception.class, () -> managedSession.login(PIN));
+        assertEquals(expectedException, thrown);
 
-            // When & Assert
-            PKCS11Exception thrown = assertThrows(PKCS11Exception.class, managedSession::login);
-            assertEquals(expectedException, thrown);
-
-            psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            verify(session).login(Session.CKUserType.USER, PIN);
-        }
+        verify(session).login(Session.CKUserType.USER, PIN);
     }
 
     @Test
@@ -193,17 +173,12 @@ class ManagedPKCS11SessionTest {
         RuntimeException expectedException = new RuntimeException("Other login failure");
         doThrow(expectedException).when(session).login(Session.CKUserType.USER, PIN);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
-            psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(Optional.of(PIN));
+        // When
+        boolean result = managedSession.login(PIN);
 
-            // When
-            boolean result = managedSession.login();
-
-            // Then
-            assertFalse(result);
-            psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            verify(session).login(Session.CKUserType.USER, PIN);
-        }
+        // Then
+        assertFalse(result);
+        verify(session).login(Session.CKUserType.USER, PIN);
     }
 
     @Test

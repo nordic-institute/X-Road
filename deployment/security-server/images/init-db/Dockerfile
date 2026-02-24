@@ -1,4 +1,5 @@
-FROM liquibase:4.33.0
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}liquibase:4.33.0
 
 # Build arg for the changelog file name (e.g., "serverconf-changelog.xml")
 ARG CHANGELOG_FILE

@@ -88,5 +88,9 @@ public interface QuarkusRpcProperties extends RpcProperties {
         @WithName("retry-max-attempts")
         @WithDefault(DEFAULT_RETRY_MAX_ATTEMPTS)
         int retryMaxAttempts();
+
+        @WithName("retry-timeout")
+        @WithDefault(DEFAULT_RETRY_TIMEOUT)
+        Duration retryTimeout();
     }
 }

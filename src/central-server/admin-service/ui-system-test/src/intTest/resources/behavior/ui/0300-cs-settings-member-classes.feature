@@ -43,3 +43,13 @@ Feature: 0300 - CS: System Settings -> System parameters  -> Member Classes
     When Member class E2E-TC0400-2 delete button is clicked
     And Dialog Save button is clicked
     Then A member with code E2E-TC0400-2 is not present
+
+  Scenario: Member Class is created with invalid description
+    And A new member class E2E-TC0400-3 with invalid description is added
+    Then Error message for member class description is displayed
+
+  Scenario: Member Class description is edited with invalid description
+    And A new member class E2E-TC0400-4 with description initial-desc is added
+    When Member class E2E-TC0400-4 edit dialog is opened
+    And Member class description is set to invalid-desc$€ in popup
+    Then Error message for member class description is displayed

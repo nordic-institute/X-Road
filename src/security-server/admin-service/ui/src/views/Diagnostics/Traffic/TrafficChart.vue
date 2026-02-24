@@ -66,7 +66,7 @@ use([
 
 type XaType = 'datetime';
 
-defineProps<{
+const props = defineProps<{
   series: TrafficSeries[];
   loading?: boolean;
 }>();
@@ -120,6 +120,7 @@ const chartOptions = computed(() => ({
   },
   tooltip: {
     trigger: 'axis',
+    renderMode: 'richText',
   },
   toolbox: {
     feature: {

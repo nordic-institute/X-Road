@@ -45,6 +45,7 @@
               color="tertiary"
               text="action.edit"
               variant="text"
+              data-test="global-group-edit-button"
               @click="showEditDescriptionDialog = true"
             />
           </td>

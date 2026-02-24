@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.validation.ConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
@@ -49,6 +50,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.assertMissingLocationHeader;
@@ -110,6 +112,13 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
                 localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(TestUtils.GROUP_DESC, response.getBody().getDescription());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC"})
+    public void updateGroupWithInvalidDescription() throws Exception {
+        assertThrows(ConstraintViolationException.class, () -> localGroupsApiController.updateLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1,
+                new LocalGroupDescriptionDto().description("Invalid Description$€")));
     }
 
     @Test

@@ -36,6 +36,7 @@ import java.util.Map;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
@@ -57,6 +58,23 @@ public class SystemSettingsMemberClassesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("A new member class {} with invalid description is added")
+    public void memberClassIsAddedWithInvalidDescription(String code) {
+        settingsMemberClassesPageObj.btnAddMemberClass().click();
+        commonPageObj.dialog.btnSave()
+                .shouldBe(visible)
+                .shouldBe(disabled);
+        vTextField(settingsMemberClassesPageObj.addEditDialog.inputMemberClassCode()).setValue(code);
+        vTextField(settingsMemberClassesPageObj.addEditDialog.inputMemberClassDescription()).setValue("invaliddescription$€");
+    }
+
+    @Step("Error message for member class description is displayed")
+    public void memberClassDescriptionShowsError() {
+        commonPageObj.dialog.btnSave().shouldBe(visible, disabled);
+        settingsMemberClassesPageObj.addEditDialog.inputMemberClassDescriptionValidation()
+                .shouldBe(visible).shouldHave(text("Use valid description characters only"));
     }
 
     @Step("A set of member classes are added")

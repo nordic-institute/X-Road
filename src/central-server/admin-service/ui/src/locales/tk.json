@@ -12,7 +12,8 @@
   },
   "customValidation": {
     "invalidIpAddress": "Meýdançada bir ýa-da otur bilen bölünen birnäçe IP salgylary bolmaly",
-    "invalidUrl": "URL nädogry, dogry URL formatlarynyň nusgalary: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL nädogry, dogry URL formatlarynyň nusgalary: 'http://www.example.com', 'https://www.example.com'",
+    "description": "Beýany meýdançasynda diňe dogry nyşanlary ulanyň"
   },
   "error_code": {
     "backup_deletion_failed": "Ätiýaçlyk nusgasyny pozup bolmady",

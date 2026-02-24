@@ -46,11 +46,11 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenPinManager;
 import org.niis.xroad.signer.core.tokenmanager.module.SoftwareModuleType;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
+import org.niis.xroad.signer.core.tokenpinstore.TokenPinStoreProvider;
 import org.niis.xroad.signer.proto.AuthKeyProto;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
 
@@ -74,6 +74,7 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
     private final OcspVerifierFactory ocspVerifierFactory;
     private final TokenLookup tokenLookup;
     private final TokenPinManager tokenPinManager;
+    private final TokenPinStoreProvider tokenPinStoreProvider;
 
     @Override
     @SuppressWarnings({"squid:S3776"})
@@ -119,14 +120,14 @@ public class GetAuthKeyReqHandler extends AbstractRpcHandler<GetAuthKeyReq, Auth
     }
 
     private AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
-        final var password = PasswordStore.getPassword(SoftwareTokenDefinition.ID);
+        final var pin = tokenPinStoreProvider.getPin(SoftwareTokenDefinition.ID);
 
         final var builder = AuthKeyProto.newBuilder()
                 .setAlias(keyInfo.getId())
                 .setKeyStore(getKeyStore(keyInfo.getId()))
                 .setCert(certInfo.asMessage());
 
-        password.ifPresent(passwd -> builder.setPassword(new String(passwd)));
+        pin.ifPresent(passwd -> builder.setPassword(new String(passwd)));
         return builder.build();
     }
 

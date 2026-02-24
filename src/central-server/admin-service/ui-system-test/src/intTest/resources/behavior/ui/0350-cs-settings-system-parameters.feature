@@ -19,3 +19,11 @@ Feature: 0350 - CS: System Settings -> System parameters
     And Dialog Save button is clicked
     Then Instance Identifier is CS-E2E
     And  Central Server address is valid-edited.example.org
+
+  Scenario: Central Server address is edited with invalid address
+    Given System settings sub-tab is selected
+    And System Parameters card is visible
+    And Central Server address is valid-edited.example.org
+    When Central Server address edit dialog is opened
+    And Central Server address invalid-edited.example.org% entered in popup
+    Then Error message for system parameters address is displayed

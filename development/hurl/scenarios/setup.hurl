@@ -683,7 +683,7 @@ Content-Type: application/json
   "password": "Secret1234"
 }
 
-HTTP 200
+HTTP *
 
 # Add sign key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/keys-with-csrs

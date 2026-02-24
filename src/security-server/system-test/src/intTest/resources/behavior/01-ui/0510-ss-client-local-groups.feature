@@ -24,6 +24,12 @@ Feature: 0510 - SS: Client Local groups
       | bbb-1      | desc-400   |
       | yyy-1      | none       |
 
+  Scenario: Local group is not added as description is invalid
+    When Client "Test service" is opened
+    And Local groups sub-tab is selected
+    And Local group "group-1" with invalid description is added
+    Then Form shows an error "Use valid description characters only"
+
   Scenario: Local group is not added as it already exists
     When Client "Test service" is opened
     And Local groups sub-tab is selected
@@ -95,6 +101,13 @@ Feature: 0510 - SS: Client Local groups
     Then Following members are present in local group:
       | DEV:COM:1234:random-sub-1  |
       | DEV:COM:1234:test-consumer |
+
+  Scenario: Local group group-1 is edited with invalid description
+    When Client "Test service" is opened
+    And Local groups sub-tab is selected
+    And Local group "group-1" is selected
+    And Local group description is set to invalid description
+    Then Form shows an error "Use valid description characters only"
 
   Scenario: Local group group-1 member is removed
     When Client "Test service" is opened

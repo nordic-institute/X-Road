@@ -25,19 +25,22 @@
  * THE SOFTWARE.
  */
 
-import createValidators from '@/plugins/vee-validate';
+import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
 import { useLanguageHelper } from '@niis/shared-ui';
 import {createLanguageHelper} from '@/plugins/i18n';
 import { validate } from 'vee-validate';
 import en from '@/locales/en.json';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('vee-validate', () => {
-  describe('ipAddresses', async () => {
-    createValidators.install();
+  beforeAll(async () => {
     await createLanguageHelper();
-    await useLanguageHelper().selectLanguage('en')
+    await useLanguageHelper().selectLanguage('en');
 
+    createValidators().install();
+  });
+
+  describe('ipAddresses', async () => {
     it('should validate ip v4 correctly', async () => {
 
       let result = await validate('192.3.4.XX', 'ipAddresses');

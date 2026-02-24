@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.RuntimeToken;
@@ -140,7 +141,12 @@ public final class TokenPinManager {
     public boolean verifyTokenPin(String tokenId, char[] pin) {
         var pinHash = softwarePinHasher.hashPin(pin);
         var actualHash = tokenRegistry.readAction(ctx ->
-                ctx.findToken(tokenId).softwareTokenPinHash().orElse(null));
+                ctx.findToken(tokenId).softwareTokenPinHash().orElseThrow(() ->
+                                XrdRuntimeException.systemException(ErrorCode.TOKEN_NOT_INITIALIZED)
+                                        .details("Token " + tokenId + " not initialized ")
+                                        .build()
+                )
+        );
 
         var result = Arrays.equals(pinHash, actualHash);
 
