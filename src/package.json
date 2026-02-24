@@ -8,12 +8,14 @@
     "test-ss": "pnpm run --filter xroad-securityserver-admin-ui test",
     "build-workspace": "pnpm -r run build",
     "prepReportDirs": "mkdirp ./build && mkdirp ./build/reports",
-    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json >build/reports/audit-ci.txt"
+    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/audit-ci.txt"
   },
   "pnpm": {
     "overrides": {
       "glob": "^11.1.0",
-      "@isaacs/brace-expansion": "5.0.1"
+      "@isaacs/brace-expansion": "5.0.1",
+      "minimatch": "^10.2.1",
+      "axios": "~1.13.5"
     }
   },
   "devDependencies": {
@@ -47,7 +49,7 @@
     "vue-i18n": "^11.2.8",
     "vue-tsc": "^3.2.4"
   },
-  "packageManager": "pnpm@10.18.0+sha512.e804f889f1cecc40d572db084eec3e4881739f8dec69c0ff10d2d1beff9a4e309383ba27b5b750059d7f4c149535b6cd0d2cb1ed3aeb739239a4284a68f40cfa",
+  "packageManager": "pnpm@10.30.1",
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
