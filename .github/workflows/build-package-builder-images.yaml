@@ -4,8 +4,7 @@ on:
   # Build on changes to package builder Dockerfiles or preparation script
   push:
     branches:
-      - develop-8.x
-      - XRDDEV-3003
+      - develop
     paths:
       - 'deployment/native-packages/docker/**/Dockerfile'
       - 'deployment/native-packages/docker/prepare-builder-image.sh'
