@@ -10,7 +10,7 @@ jobs:
     steps:
       # 0. Checkout repository (Required to read the config file)
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       # 1. Install the ORT Server Client (OSC) and Authenticate
       - name: Setup Double Open CLI
