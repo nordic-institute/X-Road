@@ -106,6 +106,11 @@ public class SignerSignRpcClient extends AbstractRpcClient implements SignerSign
     }
 
     @Override
+    public ManagedChannel getChannel() {
+        return signerChannel;
+    }
+
+    @Override
     @WithSpan("SignerSignRpcClient#sign")
     public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) {
         var serviceStub = shouldUseSoftTokenSigner(keyId) ? softTokenSignerSignServiceBlockingStub : signerSignServiceBlockingStub;

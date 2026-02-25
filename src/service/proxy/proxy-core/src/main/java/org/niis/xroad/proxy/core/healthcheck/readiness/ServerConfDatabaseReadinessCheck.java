@@ -24,36 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.proxy.core.healthcheck.readiness;
 
-package org.niis.xroad.signer.core.healthcheck;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
-import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
+import org.niis.xroad.common.healthcheck.HibernateDatabaseReadinessCheck;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 
 /**
- * TODO this is a sample readiness check for the token registry.
- * Technically it should not trigger as it is loaded from post-construct.
+ * Readiness check for the Proxy serverconf database connectivity.
+ * Verifies that the serverconf database is accessible by executing a simple query.
  */
-@Slf4j
 @Readiness
 @ApplicationScoped
 @RequiredArgsConstructor
-public class TokenRegistryReadinessCheck implements HealthCheck {
-    private static final String NAME = "TOKEN_REGISTRY_READINESS_CHECK";
+public class ServerConfDatabaseReadinessCheck extends HibernateDatabaseReadinessCheck {
 
-    private final TokenRegistry tokenRegistry;
+    private final ServerConfDatabaseCtx serverConfDatabaseCtx;
 
     @Override
-    public HealthCheckResponse call() {
-        if (tokenRegistry.isInitialized()) {
-            return HealthCheckResponse.up(NAME);
-        }
-        log.warn("Token registry is not initialized, returning down status for readiness check");
-        return HealthCheckResponse.down(NAME);
+    protected DatabaseCtx getDatabaseCtx() {
+        return serverConfDatabaseCtx;
+    }
+
+    @Override
+    protected String getCheckName() {
+        return "PROXY_SERVERCONF_DATABASE_READINESS_CHECK";
+    }
+
+    @Override
+    protected String getDatabaseName() {
+        return serverConfDatabaseCtx.getName();
     }
 }
