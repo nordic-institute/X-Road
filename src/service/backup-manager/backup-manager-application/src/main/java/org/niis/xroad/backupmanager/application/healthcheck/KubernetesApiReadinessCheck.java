@@ -27,7 +27,6 @@
 package org.niis.xroad.backupmanager.application.healthcheck;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.health.HealthCheck;
@@ -58,16 +57,22 @@ import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 @Slf4j
 @Readiness
 @ApplicationScoped
-@RequiredArgsConstructor
 public class KubernetesApiReadinessCheck implements HealthCheck {
 
     private static final String NAME = "KUBERNETES_API_READINESS_CHECK";
 
-    private final BackupManagerReadinessCheckProperties healthCheckProperties;
+    private final BackupManagerReadinessCheckProperties properties;
+    private final SSLContext kubernetesApiSslContext;
+
+    public KubernetesApiReadinessCheck(BackupManagerReadinessCheckProperties properties) throws GeneralSecurityException, IOException {
+        this.properties = properties;
+
+        kubernetesApiSslContext = createSslContext(this.properties.kubernetes());
+    }
 
     @Override
     public HealthCheckResponse call() {
-        var k8sProps = healthCheckProperties.kubernetes();
+        var k8sProps = properties.kubernetes();
 
         if (!isRunningInKubernetes(k8sProps)) {
             return HealthCheckResponse.builder()
@@ -109,16 +114,14 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
         String k8sHost = k8sProps.serviceHost().orElseThrow();
         String k8sPort = k8sProps.servicePort().orElseThrow();
 
-        String apiUrl = "https://" + k8sHost + ":" + k8sPort + "/healthz";
+        String apiUrl = "https://" + k8sHost + ":" + k8sPort + "/readyz";
         String token = readToken(k8sProps);
 
         HttpsURLConnection connection = null;
         try {
-            SSLContext sslContext = createSslContext(k8sProps);
-
             URI uri = URI.create(apiUrl);
             connection = (HttpsURLConnection) uri.toURL().openConnection();
-            connection.setSSLSocketFactory(sslContext.getSocketFactory());
+            connection.setSSLSocketFactory(kubernetesApiSslContext.getSocketFactory());
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Authorization", "Bearer " + token);
             connection.setConnectTimeout(k8sProps.connectTimeoutMs());
