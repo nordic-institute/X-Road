@@ -62,6 +62,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
     public static final String OPENBAO = "openbao";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
+    public static final String DS_DATA_PLANE = "ds-data-plane";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
@@ -98,7 +99,8 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
                 .withLogConsumer(NGINX, createLogConsumer(NGINX))
                 .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
-                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE));
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
+                .withLogConsumer(DS_DATA_PLANE, createLogConsumer(DS_DATA_PLANE));
     }
 
     @Override

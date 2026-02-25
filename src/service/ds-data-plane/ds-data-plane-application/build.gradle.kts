@@ -15,5 +15,8 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)
 
-  runtimeOnly(libs.edc.bom.dataplane)
+  runtimeOnly(libs.edc.bom.dataplane) {
+    exclude("org.eclipse.edc", "data-plane-self-registration")
+  }
+  runtimeOnly(libs.edc.core.participantcontext.config)
 }

@@ -236,6 +236,7 @@ edc-api-observability = { module = "org.eclipse.edc:api-observability", version.
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
+edc-core-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
 
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
