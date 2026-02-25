@@ -72,7 +72,7 @@ services:
       - port: 5665
         name: grpc
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       scheme: "HTTP"
     livenessProbe:
       path: "/q/health/live"
@@ -113,7 +113,7 @@ services:
       - port: 5560
         name: grpc
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       scheme: "HTTP"
     livenessProbe:
       path: "/q/health/live"
@@ -162,7 +162,7 @@ services:
       - port: 8443
         name: proxy-https
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       scheme: "HTTP"
     livenessProbe:
       path: "/q/health/live"
@@ -261,7 +261,7 @@ services:
         name: http
     debugPort: 9999
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       scheme: "HTTP"
     livenessProbe:
       path: "/q/health/live"
@@ -308,7 +308,7 @@ services:
         name: opmon-daemon
     debugPort: 9999
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       scheme: "HTTP"
     livenessProbe:
       path: "/q/health/live"
@@ -360,7 +360,7 @@ services:
       - port: 7665
         name: grpc
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       scheme: "HTTP"
     livenessProbe:
       path: "/q/health/live"
