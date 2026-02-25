@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.core.globalconf.GlobalConfRpcCache;
 import org.quartz.DisallowConcurrentExecution;
@@ -69,6 +71,12 @@ public class ConfigurationClientJob implements Job {
         } catch (FileNotFoundException e) {
             context.setResult(createDiagnosticsStatus(DiagnosticStatus.UNINITIALIZED));
         } catch (Exception e) {
+            if (e instanceof XrdRuntimeException xrdRuntimeException) {
+                if (ErrorCode.ANCHOR_FILE_NOT_FOUND.code().equals(xrdRuntimeException.getErrorCode())) {
+                    context.setResult(createDiagnosticsStatus(DiagnosticStatus.UNINITIALIZED));
+                    return;
+                }
+            }
             DiagnosticsStatus status = createDiagnosticsStatus(DiagnosticStatus.ERROR);
             status.setErrorCode(DiagnosticsUtils.getErrorCode(e));
             status.setErrorCodeMetadata(DiagnosticsUtils.getErrorCodeMetadata(e));

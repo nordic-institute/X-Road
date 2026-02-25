@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.db;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
@@ -44,6 +45,7 @@ import java.util.Map;
  */
 @Slf4j
 public class DatabaseCtx {
+    @Getter
     private final String name;
     private final SessionFactory sessionFactory;
 

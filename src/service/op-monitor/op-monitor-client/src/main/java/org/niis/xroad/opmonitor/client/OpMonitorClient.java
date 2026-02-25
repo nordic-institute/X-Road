@@ -63,6 +63,11 @@ public class OpMonitorClient extends AbstractRpcClient {
         return ErrorOrigin.OP_MONITOR;
     }
 
+    @Override
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
     @PostConstruct
     public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),

@@ -6,6 +6,7 @@ plugins {
 dependencies {
 
   implementation(project(":common:common-core"))
+  implementation(project(":lib:health-check-core"))
   implementation(project(":common:common-jetty"))
 
   implementation(project(":lib:globalconf-impl"))

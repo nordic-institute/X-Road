@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.14<br/>
-19.12.2023
+Version: 1.15<br/>
+25.02.2026
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -28,6 +28,7 @@ Doc. ID: ARC-TEC
 | 20.11.2023 | 1.12    | Update version references                              | Ričardas Bučiūnas    |
 | 19.12.2023 | 1.13    | Added RHEL 9                                           | Justas Samuolis      |
 | 17.07.2024 | 1.14    | Update to Java 21                                      | Ovidijus Narkevičius |
+| 25.02.2026 | 1.15    | Update PostgreSQL to version 15 on RHEL                 | Ričardas Bučiūnas    |
  
 ## Table of Contents
 
@@ -87,9 +88,7 @@ Table 1. Technology matrix of the X-Road
 | Logback                            |          X          |         X          |            X            |                 X                 |
 | gRPC                               |          X          |         X          |            X            |                 X                 |
 | Jetty 11                           |  X\[[3](#Ref_3)\]   |  X\[[4](#Ref_4)\]  |                         |                                   |
-| Ubuntu 20.04                       |          X          |         X          |            X            |                 X                 |
 | Ubuntu 22.04                       |          X          |         X          |            X            |                 X                 |
-| Red Hat Enterprise Linux 7 (RHEL7) |          X          |                    |                         |                 X                 |
 | Red Hat Enterprise Linux 8 (RHEL8) |          X          |                    |                         |                 X                 |
 | Red Hat Enterprise Linux 9 (RHEL9) |          X          |                    |                         |                 X                 |
 | PostgreSQL 12+\[[5](#Ref_5)\]      |          X          |         X          |                         |                 X                 |
@@ -120,7 +119,7 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 \[4\] Central Server uses embedded Jetty for management service and registration service.
 
 <a id="Ref_5" class="anchor"></a>
-\[5\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10, RHEL9 - 13, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server. 
+\[5\] PostgreSQL version varies depending on operating system. By default, RHEL8 uses version 15, RHEL9 - 15, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
 
 ## 3 Central Server technologies
 
@@ -155,7 +154,7 @@ Table 2. Technology matrix of the Central Server
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 <a id="Ref_3" class="anchor"></a>
-\[3\] PostgreSQL version varies depending on operating system. By default, Ubuntu 20.04 uses 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[3\] PostgreSQL version varies depending on operating system. By default, Ubuntu 22.04 uses version 14. User may also use external PostgreSQL server.
 
 See [[ARC-CS]](#ARC-CS) for the Central Server details.
 
@@ -214,7 +213,7 @@ Table 4. Technology matrix of the Security Server
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 <a id="Ref_3" class="anchor"></a>
-\[3\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10,  RHEL9 - 13, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[3\] PostgreSQL version varies depending on operating system. By default, RHEL8 uses version 15, RHEL9 - 15, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
 
 See [[ARC-SS]](#ARC-SS) for the Security Server details.
 
@@ -237,7 +236,7 @@ Table 5. Technology matrix of the operational monitoring daemon
 | systemd                       |            X             |                       |                      |            X             |
 
 <a id="Ref_1" class="anchor"></a>
-\[1\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10,  RHEL9 - 13, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[1\] PostgreSQL version varies depending on operating system. By default, RHEL8 uses version 15, RHEL9 - 15, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
 
 
 See [[ARC-OPMOND]](#ARC-OPMOND) for the operational monitoring daemon details.
