@@ -67,7 +67,7 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
     public KubernetesApiReadinessCheck(BackupManagerReadinessCheckProperties properties) throws GeneralSecurityException, IOException {
         this.properties = properties;
 
-        kubernetesApiSslContext = createSslContext(this.properties.kubernetes());
+        kubernetesApiSslContext = createSslContext(properties.kubernetes());
     }
 
     @Override
