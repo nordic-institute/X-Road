@@ -27,13 +27,15 @@
 package org.niis.xroad.backupmanager.application.healthcheck;
 
 import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.backupmanager.application.config.BackupManagerReadinessCheckProperties;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,12 +50,17 @@ class KubernetesApiReadinessCheckTest {
     @Mock
     private BackupManagerReadinessCheckProperties.KubernetesApiProperties kubernetesProps;
 
-    @InjectMocks
     private KubernetesApiReadinessCheck check;
+
+    @BeforeEach
+    void setUp() throws GeneralSecurityException, IOException {
+        when(healthCheckProperties.kubernetes()).thenReturn(kubernetesProps);
+        when(kubernetesProps.caCertPath()).thenReturn("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
+        check = new KubernetesApiReadinessCheck(healthCheckProperties);
+    }
 
     @Test
     void notInKubernetesReturnsUpNotRequired() {
-        when(healthCheckProperties.kubernetes()).thenReturn(kubernetesProps);
         when(kubernetesProps.serviceHost()).thenReturn(Optional.empty());
 
         var response = check.call();
@@ -64,7 +71,6 @@ class KubernetesApiReadinessCheckTest {
 
     @Test
     void emptyServiceHostReturnsUpNotRequired() {
-        when(healthCheckProperties.kubernetes()).thenReturn(kubernetesProps);
         when(kubernetesProps.serviceHost()).thenReturn(Optional.of(""));
 
         var response = check.call();
@@ -75,7 +81,6 @@ class KubernetesApiReadinessCheckTest {
 
     @Test
     void kubernetesEnvWithMissingTokenFileReturnsDown() {
-        when(healthCheckProperties.kubernetes()).thenReturn(kubernetesProps);
         when(kubernetesProps.serviceHost()).thenReturn(Optional.of("10.0.0.1"));
         when(kubernetesProps.servicePort()).thenReturn(Optional.of("443"));
         when(kubernetesProps.tokenPath()).thenReturn("/nonexistent/kubernetes/token");
