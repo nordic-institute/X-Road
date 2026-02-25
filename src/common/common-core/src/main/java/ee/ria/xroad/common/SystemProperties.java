@@ -1690,13 +1690,13 @@ public final class SystemProperties {
     }
 
     private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
-            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,"
             + "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
+            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,"
             + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
             + "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,"
+            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,"
             + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,"
-            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
-            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384";
+            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256";
 
     /**
      * Get proxy client's accepted TLS cipher suites (between is and ss).
@@ -1707,9 +1707,10 @@ public final class SystemProperties {
         return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
     }
 
-    private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
-            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
-            + "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384";
+    private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
+                    + "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,"
+                    + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
+                    + "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384";
 
     /**
      * Get X-Road accepted TLS cipher suites (between ss and ss).
