@@ -32,7 +32,9 @@ public final class Port {
             PROXY_HTTP = 8080,
             DB = 5432,
             PROXY_HEALTHCHECK = 5558,
-            TEST_CA = 8888;
+            TEST_CA = 8888,
+            // Quarkus health endpoint port for services
+            QUARKUS_HEALTH = 4099;
 
     private Port() {
     }

@@ -28,6 +28,7 @@ package org.niis.xroad.common.rpc.client;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -41,6 +42,14 @@ import java.util.function.Function;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 public abstract class AbstractRpcClient implements AutoCloseable {
+
+    /**
+     * Get the managed channel used by this RPC client.
+     * Used for health checks to verify channel connectivity.
+     *
+     * @return the ManagedChannel instance, or null if not initialized
+     */
+    public abstract ManagedChannel getChannel();
 
     public void exec(Runnable action) {
         try {
@@ -115,5 +124,25 @@ public abstract class AbstractRpcClient implements AutoCloseable {
      * Get rpc origin that will be populated for exceptions
      */
     public abstract ErrorOrigin getRpcOrigin();
+
+    /**
+     * Override to enable automatic gRPC channel readiness check registration.
+     * Return null to opt out of auto-registration.
+     *
+     * @return the health check name, or null to opt out
+     */
+    public String getHealthCheckName() {
+        return null;
+    }
+
+    /**
+     * Override to provide the target service name for the auto-registered gRPC channel readiness check.
+     * Return null to opt out of auto-registration.
+     *
+     * @return the target service name (e.g., "signer", "configuration-client"), or null to opt out
+     */
+    public String getHealthCheckTargetService() {
+        return null;
+    }
 
 }

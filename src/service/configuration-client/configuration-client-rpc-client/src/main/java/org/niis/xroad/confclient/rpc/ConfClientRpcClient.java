@@ -66,6 +66,21 @@ public class ConfClientRpcClient extends AbstractRpcClient {
         return ErrorOrigin.CONF_CLIENT;
     }
 
+    @Override
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
+    @Override
+    public String getHealthCheckName() {
+        return "CONFCLIENT_CHANNEL_READINESS_CHECK";
+    }
+
+    @Override
+    public String getHealthCheckTargetService() {
+        return "configuration-client";
+    }
+
     @PostConstruct
     public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),

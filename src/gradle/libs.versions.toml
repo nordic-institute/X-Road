@@ -8,14 +8,14 @@
 metrics = "4.2.37"
 jetty = "12.0.31"
 jaxb = "4.0.5"
-hibernate = "7.1.4.Final"
+hibernate = "7.2.4.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.4"
 mockito = "5.21.0"
 springBoot = "3.5.6"
 springFramework = "7.0.1"
-junitJupiter = "6.0.2"
-junitPlatform = "6.0.2"
+junitJupiter = "6.0.3"
+junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
 bouncyCastle = "1.83"
 slf4j = "2.0.17"
@@ -31,9 +31,9 @@ protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
-quarkus = "3.30.4"
-quarkus-vault = "4.4.0"
-smallryeConfig = "3.14.1"
+quarkus = "3.31.4"
+quarkus-vault = "4.5.0"
+smallryeConfig = "3.15.1"
 microprofile = "3.1"
 feign = "13.6"
 testCucumber = "7.32.0"
@@ -78,7 +78,7 @@ quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "qua
 quarkus-jdbc-postgresql = { group = "io.quarkus", name = "quarkus-jdbc-postgresql", version.ref = "quarkus" }
 quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "quarkus" }
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
-quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }
+quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
 microprofile-config-api = { group = "org.eclipse.microprofile.config", name = "microprofile-config-api", version.ref = "microprofile" }
 
@@ -140,7 +140,7 @@ jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", 
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
 jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
 jakarta-cdiApi = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version = "4.1.0" }
-jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
+jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.5" }
 jakarta-soapApi = { module = "jakarta.xml.soap:jakarta.xml.soap-api", version = "3.0.2" }
 jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
 

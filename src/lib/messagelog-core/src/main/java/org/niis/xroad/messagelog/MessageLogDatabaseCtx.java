@@ -32,7 +32,7 @@ import jakarta.inject.Inject;
 import java.util.Map;
 
 public class MessageLogDatabaseCtx extends DatabaseCtx {
-    private static final String DB_NAME = "messagelog";
+    public static final String DB_NAME = "messagelog";
 
     @Inject
     public MessageLogDatabaseCtx(Map<String, String> hibernateProperties) {

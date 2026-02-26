@@ -47,6 +47,9 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.quartz)
 
+  // healthcheck
+  implementation(project(":lib:health-check-core"))
+
   testImplementation(libs.quarkus.junit5)
 }
 

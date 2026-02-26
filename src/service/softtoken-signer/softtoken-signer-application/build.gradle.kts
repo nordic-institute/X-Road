@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
   implementation(platform(libs.quarkus.bom))
+  implementation(project(":lib:health-check-core"))
   implementation(project(":service:signer:signer-api"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:signer:signer-common"))
