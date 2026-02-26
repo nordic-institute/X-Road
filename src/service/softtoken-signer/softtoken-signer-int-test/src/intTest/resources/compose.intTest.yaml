@@ -99,6 +99,9 @@ services:
     pull_policy: always
     environment:
       - XROAD_HOST=softtoken-signer
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
       - XROAD_COMMON_RPC_USE_TLS=false
       - XROAD_SOFTTOKEN_SIGNER_RPC_LISTEN_ADDRESS=0.0.0.0
       - XROAD_SOFTTOKEN_SIGNER_KEYS_SYNC_RATE=3S

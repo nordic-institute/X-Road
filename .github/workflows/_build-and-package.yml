@@ -107,7 +107,7 @@ jobs:
           if [[ "${{ github.ref_type }}" == "tag" || "$XROAD_BUILD_TYPE" == "RELEASE" ]]; then
             # For releases, use simple version
             SERVICE_IMAGE_TAG="${XROAD_VERSION}"
-          elif [[ "$BRANCH_NAME" == "develop-8.x" ]]; then
+          elif [[ "$BRANCH_NAME" == "develop" ]]; then
             # For develop branch, include build number for uniqueness
             SERVICE_IMAGE_TAG="${XROAD_VERSION}-SNAPSHOT-${BUILD_NUMBER}"
           else
@@ -312,6 +312,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
           display-table: false
           pr-comment: true
 

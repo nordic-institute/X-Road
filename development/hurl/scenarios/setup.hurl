@@ -575,37 +575,19 @@ anchor: file,gconf_anchor.xml;
 
 HTTP 201
 
-# Initialize SS1 Security Server using V2 API (step-by-step)
-POST https://{{ss1_host}}:4000/api/v1/v2/initialization/serverconf
+# Initialize SS1 Security Server
+POST https://{{ss1_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
-  "security_server_code": "SS1",
   "owner_member_class": "COM",
   "owner_member_code": "4321",
+  "security_server_code": "SS1",
+  "software_token_pin": "Secret1234",
   "ignore_warnings": true
 }
 
-HTTP *
-
-POST https://{{ss1_host}}:4000/api/v1/v2/initialization/softtoken
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
-Content-Type: application/json
-{
-  "software_token_pin": "Secret1234"
-}
-
-HTTP *
-
-POST https://{{ss1_host}}:4000/api/v1/v2/initialization/gpg-key
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
-
-HTTP *
-
-POST https://{{ss1_host}}:4000/api/v1/v2/initialization/messagelog-encryption
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
-
-HTTP *
+HTTP 201
 
 # Log in to the Security Servers token
 PUT https://{{ss1_host}}:4000/api/v1/tokens/0/login

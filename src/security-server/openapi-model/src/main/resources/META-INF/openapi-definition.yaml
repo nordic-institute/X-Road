@@ -2731,7 +2731,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-
   /local-groups/{group_id}:
     get:
       tags:
@@ -7314,7 +7313,6 @@ components:
         enforce_token_pin_policy:
           type: boolean
           description: whether the token pin policy is enforced or not
-
     KeyWithCertificateSigningRequestId:
       type: object
       description: Key and TokenCertificateSigningRequest id

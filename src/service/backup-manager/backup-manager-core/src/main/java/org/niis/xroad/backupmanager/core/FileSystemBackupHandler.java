@@ -90,7 +90,6 @@ public class FileSystemBackupHandler {
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             throw XrdRuntimeException.systemException(BACKUP_GENERATION_FAILED, e);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             throw XrdRuntimeException.systemException(BACKUP_GENERATION_INTERRUPTED, e);
         }
 
@@ -110,10 +109,10 @@ public class FileSystemBackupHandler {
             params = ArrayUtils.addAll(params, "-E", "encrypt");
         }
 
-        final String[] currentParams = params;
-        params = backupManagerProperties.backupEncryptionKeyids()
-                .map(keyids -> ArrayUtils.addAll(currentParams, "-k", String.join(",", keyids)))
-                .orElse(currentParams);
+        if (backupManagerProperties.backupEncryptionKeyids().isPresent()) {
+            params = ArrayUtils.addAll(params, "-k",
+                    String.join(",", backupManagerProperties.backupEncryptionKeyids().get()));
+        }
 
         return params;
     }
@@ -136,7 +135,6 @@ public class FileSystemBackupHandler {
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
             throw XrdRuntimeException.systemException(BACKUP_RESTORATION_FAILED, e);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             throw XrdRuntimeException.systemException(BACKUP_RESTORATION_INTERRUPTED, e);
         }
     }
@@ -177,24 +175,6 @@ public class FileSystemBackupHandler {
         return backupRepository.storeBackup(name, content);
     }
 
-    public boolean hasGpgKey() {
-        try {
-            String[] args = new String[]{"--homedir", backupManagerProperties.gpgKeysHomePath(),
-                    "--list-keys", "--with-colons"};
-            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
-                    .executeAndThrowOnFailure("gpg", args);
-            return processResult.getProcessOutput().stream()
-                    .anyMatch(line -> line.startsWith("pub:") || line.startsWith("sec:"));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("GPG key existence check was interrupted: {}", e.getMessage());
-            return false;
-        } catch (Exception e) {
-            log.warn("Could not check GPG key existence: {}", e.getMessage());
-            return false;
-        }
-    }
-
     public void generateGpgKey(String keyName) {
         String[] args = new String[]{backupManagerProperties.gpgKeysHomePath(), keyName};
         try {
@@ -210,7 +190,6 @@ public class FileSystemBackupHandler {
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             throw XrdRuntimeException.systemException(GPG_KEY_GENERATION_FAILED, e);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             throw XrdRuntimeException.systemException(GPG_KEY_GENERATION_INTERRUPTED, e);
         }
     }
@@ -223,9 +202,6 @@ public class FileSystemBackupHandler {
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
                     .executeAndThrowOnFailure(backupManagerProperties.autoBackupScriptPath(), args);
             log.info("Auto-backup execution output: {}", String.join("\n", processResult.getProcessOutput()));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Auto-backup script was interrupted", e);
         } catch (Exception e) {
             log.error("Error executing auto-backup script", e);
         }
@@ -284,10 +260,10 @@ public class FileSystemBackupHandler {
             params = ArrayUtils.addAll(params, "-E", "encrypt");
         }
 
-        final String[] currentParams = params;
-        params = backupManagerProperties.backupEncryptionKeyids()
-                .map(keyids -> ArrayUtils.addAll(currentParams, "-k", String.join(",", keyids)))
-                .orElse(currentParams);
+        if (backupManagerProperties.backupEncryptionKeyids().isPresent()) {
+            params = ArrayUtils.addAll(params, "-k",
+                    String.join(",", backupManagerProperties.backupEncryptionKeyids().get()));
+        }
         return params;
     }
 

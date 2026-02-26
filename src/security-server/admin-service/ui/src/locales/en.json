@@ -17,8 +17,7 @@
   "action": {
     "disable": "Disable",
     "enable": "Enable",
-    "order": "Order",
-    "retry": "Retry"
+    "order": "Order"
   },
   "adminUsers": {
     "role": {
@@ -351,7 +350,10 @@
       "statusInfo": "Message exchange status",
       "success": "Success",
       "successfulRequests": "Successful requests",
-      "time": "Time"
+      "time": "Time",
+      "failedRequests": "Failed requests",
+      "disabledTitle": "Operational Data Monitoring Is Disabled",
+      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
     },
     "connection": {
       "ok": "Everything ok",
@@ -694,23 +696,7 @@
       "pinMatchError": "PIN confirmation does not match",
       "title": "Token PIN"
     },
-    "serverConf": {
-      "title": "Server Configuration",
-      "error": "Failed to initialise server configuration"
-    },
-    "softToken": {
-      "title": "Software Token",
-      "error": "Failed to initialise software token"
-    },
-    "autoInit": {
-      "title": "Finalise",
-      "info": "Completing remaining initialisation steps automatically...",
-      "gpgKey": "Generate GPG key for backup encryption",
-      "messageLog": "Initialise message log encryption",
-      "gpgKeyError": "Failed to generate GPG key",
-      "messageLogError": "Failed to initialise message log encryption"
-    },
-    "success": "Server initialised successfully",
+    "success": "Server initialised",
     "title": "Initial configuration",
     "warning": {
       "init_server_id_exists": "Server id exists",

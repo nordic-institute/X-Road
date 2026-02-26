@@ -61,6 +61,11 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         return ErrorOrigin.BACKUP_MANAGER;
     }
 
+    @Override
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
     @PostConstruct
     public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
@@ -130,11 +135,6 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
                 .setKeyName(keyName)
                 .build();
         exec(() -> backupServiceBlockingStub.generateGgpKey(request));
-    }
-
-    public boolean hasGpgKey() {
-        var response = exec(() -> backupServiceBlockingStub.getGpgStatus(Empty.getDefaultInstance()));
-        return response.getInitialized();
     }
 
     public BackupEncryptionStatusDiagnostics getEncryptionStatus() {
