@@ -74,6 +74,12 @@
             "templateIds": "NOTICE_DEFAULT,NOTICE_SUMMARY"
           },
           "secrets": {}
+        },
+        "WebApp": {
+          "options": {
+            "deduplicateDependencyTree": "true"
+          },
+          "secrets": {}
         }
       }
     },
