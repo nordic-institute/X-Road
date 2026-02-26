@@ -11,7 +11,7 @@ env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
 jobs:
-  PublishCS:
+  PublishCA:
     name: Publish test CA image
     runs-on: ubuntu-22.04
     permissions:
@@ -32,8 +32,30 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ github.workspace }}/Docker/testca
+          build-args: |
+            PACKAGE_SOURCE=internal
           push: true
-          tags: ghcr.io/nordic-institute/xrddev-testca:latest
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-testca:arm-latest' || 'ghcr.io/nordic-institute/xrddev-testca:amd-latest' }}
+  PublishMultiArchCA:
+    runs-on: ubuntu-22.04
+    needs: PublishCA
+    name: Publish test CA multi-arch manifest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push manifest
+        run: |
+          docker manifest create ghcr.io/nordic-institute/xrddev-testca:latest \
+            --amend ghcr.io/nordic-institute/xrddev-testca:amd-latest \
+            --amend ghcr.io/nordic-institute/xrddev-testca:arm-latest
+          docker manifest push ghcr.io/nordic-institute/xrddev-testca:latest
       - name: Clean old CA images
         uses: snok/container-retention-policy@v2
         with:
