@@ -12,7 +12,6 @@ dependencies {
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
 
-  implementation(libs.quarkus.extension.systemd.notify)
   implementation(libs.smallrye.config.core)
   implementation(libs.bundles.quarkus.containerized)
 }

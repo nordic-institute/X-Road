@@ -9,8 +9,6 @@ dependencies {
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
 
-  implementation(libs.quarkus.extension.systemd.notify)
-
   implementation(project(":service:monitor:monitor-core"))
 }
 

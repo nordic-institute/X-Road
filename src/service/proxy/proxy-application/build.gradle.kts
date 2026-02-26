@@ -16,6 +16,4 @@ dependencies {
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))
   implementation(libs.bundles.quarkus.containerized)
-
-  implementation(libs.quarkus.extension.systemd.notify)
 }
