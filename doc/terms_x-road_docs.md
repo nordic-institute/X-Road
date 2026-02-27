@@ -1,51 +1,38 @@
 # X-Road Terms and Abbreviations
 
-**X-ROAD 7**
+**X-ROAD 8**
 
-Version: 0.9  
+Version: 0.11  
 Doc. ID:  TA-TERMS
 
 ## Version history
 
-| Date         | Version | Description                                                                                                                                                      | Author           |
-|--------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
-| 06.07.2015   | 0.1     | Initial draft                                                                                                                                                    |                  |
-| 23.02.2017   | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder    |
-| 14.11.2017   | 0.3     | All the descriptions in Estonian language removed. Couple of new descriptions added                                                                              | Antti Luoma      |
-| 06.03.2018   | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document                                                                 | Tatu Repo        |
-| 03.01.2019   | 0.5     | Minor changes - typos fixed.                                                                                                                                     | Yamato Kataoka   |
-| 16.04.2019   | 0.6     | Add description of REST services.                                                                                                                                | Petteri Kivimäki |
-| 02.06.2021   | 0.7     | Add backup encryption related terms.                                                                                                                             | Andres Allkivi   |
-| 25.08.2021   | 0.8     | Update X-Road references from version 6 to 7                                                                                                                     | Caro Hautamäki   |
-| 17.04.2023   | 0.9     | Remove central services support                                                                                                                                  | Justas Samuolis  |
-| 11.11.2025   | 0.10    | Drop JMX                                                                                                                                                         | Justas Samuolis  |
-
+| Date       | Version | Description                                                                                                                                                      | Author           |
+|------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| 06.07.2015 | 0.1     | Initial draft                                                                                                                                                    |                  |
+| 23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder    |
+| 14.11.2017 | 0.3     | All the descriptions in Estonian language removed. Couple of new descriptions added                                                                              | Antti Luoma      |
+| 06.03.2018 | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document                                                                 | Tatu Repo        |
+| 03.01.2019 | 0.5     | Minor changes - typos fixed.                                                                                                                                     | Yamato Kataoka   |
+| 16.04.2019 | 0.6     | Add description of REST services.                                                                                                                                | Petteri Kivimäki |
+| 02.06.2021 | 0.7     | Add backup encryption related terms.                                                                                                                             | Andres Allkivi   |
+| 25.08.2021 | 0.8     | Update X-Road references from version 6 to 7                                                                                                                     | Caro Hautamäki   |
+| 17.04.2023 | 0.9     | Remove central services support                                                                                                                                  | Justas Samuolis  |
+| 11.11.2025 | 0.10    | Drop JMX                                                                                                                                                         | Petteri Kivimäki |
+| 27.02.2026 | 0.11    | Dataspace-aligned terminology, simplified model                                                                                                                                                         | Justas Samuolis  |
 ## Table of Contents
 
 <!-- toc -->
 
 - [License](#license)
-- [1 X-Road and X-Road Instance](#1-x-road-and-x-road-instance)
-- [2 Participants of X-Road](#2-participants-of-x-road)
-- [3 Trust services](#3-trust-services)
-- [4 Roles of X-Road member](#4-roles-of-x-road-member)
-  * [4.1 In terms of dataservice](#41-in-terms-of-dataservice)
-  * [4.2 In terms of management of security server](#42-in-terms-of-management-of-security-server)
-- [5 X-Road interfacing steps](#5-x-road-interfacing-steps)
-- [6 Elements of X-Road technology](#6-elements-of-x-road-technology)
-  * [6.1 Technology in general](#61-technology-in-general)
-  * [6.2 X-Road internal components](#62-x-road-internal-components)
-  * [6.3 X-Road external components](#63-x-road-external-components)
-  * [6.4 Elements of X-Road software](#64-elements-of-x-road-software)
-    + [6.4.1 Service and message](#641-service-and-message)
-    + [6.4.2 Subsystems and access rights](#642-subsystems-and-access-rights)
-  * [6.5 X-Road protocols](#65-x-road-protocols)
-  * [6.6 Logging and security](#66-logging-and-security)
-  * [6.7 Identifiers and codes](#67-identifiers-and-codes)
-  * [6.8 Global configuration concepts](#68-global-configuration-concepts)
-- [7 Technical terms](#7-technical-terms)
-  * [7.1 Trust and security terminology](#71-trust-and-security-terminology)
-  * [7.2 General software terminology](#72-general-software-terminology)
+- [1 Dataspace and Dataspace Identifier](#1-dataspace-and-dataspace-identifier)
+- [2 Participants of the Dataspace](#2-participants-of-the-dataspace)
+- [3 Trust Services](3#-trust-services)
+- [4 Governance and Roles](#3-governance-and-roles)
+- [5 Data Sharing Concepts](#4-data-sharing-concepts)
+- [6 Technical Components](#5-technical-components)
+- [7 Identifier Structure](#6-identifier-structure)
+- [8 Technical Terms](#7-technical-terms)
 
 <!-- tocstop -->
 
@@ -53,293 +40,265 @@ Doc. ID:  TA-TERMS
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
-## 1 X-Road and X-Road Instance
+## 1 Dataspace and Dataspace Identifier
 
-**External X-Road instance** – an instance that has been federated with the local instance. For example, the FI-instance is defined as an external instance in the EE's local point of view.
+### Dataspace
 
-**Local X-Road instance** – a group of members that are registered in a particular instance.
+A governance framework and supporting technical services that enable
+trusted data sharing between Participants based on agreed policies,
+semantic models, protocols and processes.
 
-**United/federated X-Road** – a legal, organizational and technical environment, enabling universal internet-based secure data exchange between the members of united/federated X-Road instances
+In X-Road context, a Dataspace replaces the concept previously known as
+an X-Road instance.
 
-**X-Road instance** – a legal, organizational and technical environment, enabling universal internet-based secure data exchange between the members of X-Road and limited to the participants administered by one governing authority.
+### Federation
 
-## 2 Participants of X-Road
+Interconnection between two or more dataspaces enabling cross-dataspace
+data sharing.
 
-**Approved trust service provider** – participant of X-Road, who meets the requirements established by X-Road governing authority and has passed the process of recognition of X-Road trust service provider.
+## 2 Participants of the Dataspace
 
-**End user of dataservice** – information system, part of information system or physical person, who uses data service through the information system of X-Road member.
+### Participant
 
-**Local member** – a member entitled to exchange data/messages on the united X-Road and managed by governing authority of the local X-Road instance.
+A legal or natural person acting in a dataspace participant role and
+registered in a Dataspace.
 
-**United / Federated member** – a member entitled to exchange data/messages on their behalf on the united X-Road, but managed by governing authority of the external X-Road instance.
+A Participant may provide and/or consume Datasets.
 
-**X-Road Center** – participant of X-Road administering components of the X-Road software centre.
+### Provider
 
-**X-Road governing authority** – authority, that sets the requirements for using X-road and establishing the procedure for using X-Road, managing and regulating participants of X-Road.
+A Participant that offers a Dataset to other Participants.
 
-**X-Road member / member** – participant of X-Road entitled to exchange data/messages on X-Road.
+### Consumer
 
-## 3 Trust services
+A Participant that requests access to an offered Dataset.
 
-**Approved certification service provider** – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and certificate validation service (OCSP).
+### Participant Role
 
-**Approved timestamp service provider** – Provider of a trust service approved on X-Road, who provides the timestamp service.
+A set of activities within a Dataspace for the purpose of data sharing
+or related activities.
 
-**Authentication certificate of security server** – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to security server, certifying authenticity of security server and used for authentication of security servers upon establishment of connection between security servers. Upon establishment of connection, it is checked from global configuration, if the security server trying to establish connection has registered the used authentication certificate in X-Road governing authority (i.e. the used authentication certificate is bound to the ID of security server).
+## 3 Trust Services
 
-**Certification authority** (**CA**) – is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate.
+Trust Services provide cryptographic assurance mechanisms that support authentication, integrity, and non-repudiation within the Dataspace.
 
-**Certification service CA** – is used in the X-Road system as a trust anchor for a certification service. The certification service CA may, but does not have to be a Root CA.
+### Certification Authority (CA)
 
-**Certificate signing request**  (**CSR**) – is generated in the security server for a certain approved certification authority for signing a public key and associated information.
+An entity that issues digital certificates.
 
-**Internal TLS certificates** – are used for setting up the TLS connection between the security server and the client information systems.
+A digital certificate binds a public key to the identity of its subject and enables verification of authenticity and integrity.
 
-**Signature certificate of a member** – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to a member, used for verification of the integrity of mediated messages and association of the member with the message.
+Within X-Road, a Certification Authority acts as a trust anchor. It may be a Root CA or an intermediate CA.
 
-**Timestamp** – means data in electronic form which binds other data in electronic form to a particular time establishing evidence that the latter data existed at that time (EU No 910/2014)
+### Approved Certification Service Provider
 
-**Timestamping authority** (**TSA**) – is an entity that issues timestamps. Timestamps are used to prove the existence of certain data before a certain point of time without the possibility that the owner can backdate the timestamps.
+A Certification Authority approved by the Dataspace Governance Authority to issue certificates used within the Dataspace.
 
-**TLS certificate** – is a certificate used by the security server to authenticate the information system when HTTPS protocol is used for connections between the service client's or service provider's security server and information system.
+An Approved Certification Service Provider may provide:
 
-**Validation service** (**OCSP**) – Validation service of the validity of certificate issued by certification service provider approved on X-Road.
+- Authentication certificates for Participant Agents
+- Sign certificates for Participants
+- Certificate status validation services (OCSP)
 
-## 4 Roles of X-Road member
+### Validation service (OCSP)
 
-### 4.1 In terms of dataservice
+A service that provides real-time validation of the status of digital certificates.
 
-**Dataservice client** – member of X-Road responsible for using the dataservice in accordance with dataservice usage agreements. Technically, dataservice client is a party of interaction sending the request.
+It confirms whether a certificate is valid, revoked, or expired.
 
-**Dataservice host** – A member enabling access to X-Road services through their information system (as the provider or user of the service) for natural or legal persons, who need not be members of X-Road.
+### Timestamping Authority (TSA)
 
-**Dataservice provider** – member of X-Road responsible for dataservice provision, incl. granting the service SLA, managing the agreements with dataservice clients, granting access rights etc. Technically, dataservice provider is a party of interaction sending the response.
+An entity that issues cryptographic timestamps.
 
-### 4.2 In terms of management of security server
+Timestamps provide verifiable proof that specific data existed at a certain point in time and prevent backdating.
 
-**Security server client** – a member or a subsystem of a member, whose relation with the security server is registered in X-Road governing authority and who can use the security server on behalf of a member to exchange data on X-Road.
+### Approved Timestamp Service Provider
 
-**Security server host** – a member who provides security server hosting services to third parties and other members.
+A Timestamping Authority approved by the Dataspace Governance Authority to provide timestamp services within the Dataspace.
 
-**Security server owner** – a member responsible for security server and creation of a secure data exchange channel.
+### Timestamp
 
-## 5 X-Road interfacing steps
+Data in electronic form that binds other data to a particular time, establishing evidence that the bound data existed at that time (EU No 910/2014).
 
-**Affiliation of membership** – a process ending with becoming a member of X-Road. Becoming a member requires conclusion of affiliation contract and registration of data of the member (name and ID of the member) in X-Road central server. Requirements for affiliation are established by X-Road governing authority with relevant regulation/affiliation conditions
+## 4 Governance and Roles
 
-**Dataservice interfacing** – a process, where a member of X-Road creates organizational and technical capacity for offering or using dataservice. Interfacing includes development of the service by the member as well as its setup in security server, conclusion of service usage contracts and granting access rights. In order to use the service, service provider, as well as service client, shall undergo interfacing.
+### Dataspace Governance Authority
 
-**Interaction** – activation procedure of dataservice (single use), bilateral information exchange through dataservice, i.e. request of dataservice by the service client by sending a request, to which the service provider will send a response.
+The role responsible for establishing, governing, managing and enforcing
+the technical policies and business rules of a Dataspace.
 
-**Registration of security server** – a process, where organizational and technical capacity of a member of X-Road is created to enable contacting the information system of the member of X-Road via X-Road. The result is a member of X-Road, with whom a secure data exchange channel of X-Road can be established. To ensure this, at least one security server shall be bound to the member in the central server.
+### Dataspace Operator
 
-**Registration of subsystem** – a process for establishing organizational and technical capacity to distinguish organizational users or user groups on the level of a subsystem. Technically, subsystems shall be registered as security server clients.
+An entity responsible for operating technical services of a Dataspace on
+behalf of the Governance Authority.
 
-## 6 Elements of X-Road technology
+Operational responsibilities may be delegated, but governance control
+remains with the Governance Authority.
 
-### 6.1 Technology in general
+### Governance Framework
 
-**Core technology** – Component of X-Road software, ensuring integrity and verification value of messages between members. Core technology includes central server, configuration proxy, and security server.
+Strategies, policies and decision-making structures through which
+Dataspace governance operates.
 
-**Service technology** – Component of X-Road software, simplifying or enabling the use of core technology.
+## 5 Data Sharing Concepts
 
-### 6.2 X-Road internal components
+### Dataset
 
-**Central components** – are central server and configuration proxy.
+Data or a technical service that can be shared by a Participant.
 
-**Central server** – the component that manages all registrations of a local X-Road instance (security servers, members, subsystems). It is the primary configuration source in an X-Road system. Central server always manages an internal configuration source (i.e. configuration source distributing the internal configuration) and in addition, an external configuration source (i.e. configuration source distributing the external configuration) in case the X-Road system is federation-capable.  
+This replaces the former concept of dataservice.
 
-**Configuration proxy** – an intermediary that may optionally be used to mediate configuration originating from the central server to the configuration clients. Configuration proxy manages configuration sources that are used to distribute configuration downloaded from other configuration sources.
-  - **Configuration proxy instance** – a process within the configuration proxy that deals with distributing the global configuration files of a specific X-Road instance.
+### Policy
 
-**Security server** – standard software solution for using secure data exchange channel of X-Road and ensuring confidentiality, authenticity and integrity of messages/data exchanged on X-Road.
-  
-**System configuration** –  consists of data stored in the database, and in the various configuration files held in the file system of an X-Road component.
+A set of rules, duties and obligations defining the terms of use for a
+Dataset.
 
-### 6.3 X-Road external components
+### Offer
 
-**Adapter Service** – converts a request or response query to X-Road Message Protocol for SOAP or X-Road Message Protocol for REST. 
+A concrete Policy associated with a specific Dataset.
 
-**Information system** – a system including technological as well as organizational information processing of a member of X-Road. The information system (IS) uses and/or provides services via the X-Road.
+### Agreement
 
-**Subsystem** – represents a part of an X-Road member's information system. X-Road members must declare parts of its information system as subsystems to use or provide X-Road services.
+A Policy agreed between a Provider and a Consumer as the result of
+Contract Negotiation.
 
--   The access rights of an X-Road members’ subsystems are independent – access rights given to one subsystem do not affect the access rights of the members’ other subsystems.
+### Contract Negotiation
 
--   Services provided by a subsystem are independent of the services provided by the members’ other subsystems.
+A set of interactions between Provider and Consumer that establish an
+Agreement.
 
--   To sign the messages sent by a subsystem when using or providing X-Road services, the signing certificate of the member that manages the subsystem is used. An X-Road member can associate several different subsystems with one security server, and one subsystem can be associated with several security servers.
- 
+### Transfer Process
 
-### 6.4 Elements of X-Road software
+Interactions between Provider and Consumer that give access to a Dataset
+under an Agreement.
 
-#### 6.4.1 Service and message
+### Dataspace Protocol
 
-**Dataservice** – web-service executed by a member of X-Road, in order to enable access to the resources of information system of X-Road dataservice provider. The predefined request-response, sent by the information system of a member to the information system of another member and receiving agreed data in response.
+A set of messages and message sequences enabling interaction between
+Participant Agents in a Dataspace.
 
-**Management service** – services provided by the X-Road governing organization to manage security servers and security server clients. Management services are implemented as standard X-Road services following X-Road message protocol.
+### Data Sharing Contract
 
-**Message** – Data set meeting profile description and service description required by X-Road governing authority. Messages are divided into requests and responses. SOAP message consists of headers and a SOAP body that contains service specific content. REST message consists of HTTP verb, path, query parameters, HTTP headers and message body.
+A legally binding agreement between Participants containing policies,
+terms and conditions for data sharing.
 
-**Metadata service** – services between members executed by X-Road governing authority, enabling members of X-Road to get an overview of X-Road (e.g. enabling to get an overview of completed services and access rights needed for the consumption of services). Generally, it shall meet the description of X-Road service.
+## 6 Technical Components
 
-**Monitoring services** – The X-Road monitoring solution is conceptually split into two parts: environmental and operational monitoring. 
+### Participant Agent
 
-- **Environmental monitoring** – is the monitoring of the X-Road environment: details of the security servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc.
+A technical system that performs operations and interactions in a
+Dataspace on behalf of a Participant.
 
-- **Operational monitoring** – is the monitoring of operational statistics such as which services have been called, how many times, what is the average response time, etc.
-    + **Operational monitoring data** – contains operational data (such as which services have been called, how many times, what was the size of the response, etc.) of the X-Road security server(s).
-    + **Operational monitoring daemon** – collects and shares operational monitoring data of the X-Road security server(s), calculates and shares health data of the X-Road security server(s) that is based on collected operational monitoring data.
+A Participant Agent:
 
-**Service client** – is an X-Road member, subsystem, local access rights group or global access rights group that has access rights to one or more services of a security server client.
+- Implements Dataspace Protocols
+- Manages Contract Negotiation and Transfer Processes
+- Enables Dataset sharing
 
-**X-Road service** – SOAP- or REST-based web service or API that is offered by an X-Road member or by a subsystem and that can be used by other X-Road members or subsystems.
+The term Connector may be used as an equivalent term in dataspace
+protocol contexts.
 
-#### 6.4.2 Subsystems and access rights
+### Registry
 
-**Access right** – in X-Road technology enables specifying the rights of security server clients (subsystems) to use dataservices.
+A system that maintains the authoritative state of Participants and
+their technical endpoints within a Dataspace.
 
-**Access right group** – set of security server clients (subsystems), enabling to grant access rights to the entire group of subsystems and to delegate administration of access rights to the group administrator. Logical name can be assigned to an access right group.
+### Registry Proxy
 
-**Global access right group** – access right group administered in the central server by the central server administrator, usable in the entire X-Road federation.
+A component that distributes or relays Registry configuration.
 
-**Local access right group** – access right group administered in security server by security server administrator, usable only in the specific security server within one security server client.
+### Subsystem
 
-### 6.5 X-Road protocols
+A logical part of a Participant's information system that is
+independently identifiable within the Dataspace. Participants
+must declare parts of their information system as subsystems
+to consume or provide Data Assets.
 
-**Federation Protocol** – protocol that is used to distribute configuration between two federated X-Road instances.
+Subsystem is an X-Road-specific concept and has no direct dataspace
+equivalent.
 
-**Message protocol** – protocol that is used between information systems and security servers in the X-Road system.
+## 7 Identifier Structure
 
-**Message Transport Protocol** – communications protocol that is used by service client's and service provider's security servers to exchange messages with each other.
+X-Road uses structured identifiers to ensure their global uniqueness.
 
-**Protocol for Downloading Configuration** – protocol that is used to distribute configuration to security servers of an X-Road instance.
+Identifiers are hierarchical and composable.
 
-**Service Metadata Protocol** – protocol that describes methods that can be used by X-Road participants to discover what services are available to them and download the WSDL files describing these services.
+### Dataspace Identifier
 
-### 6.6 Logging and security
+An identifier that uniquely identifies a Dataspace.
 
-**Audit log** – log, where the user actions (through user interface), when the user changes the system state or configuration, are logged regardless of whether the outcome was a success or failure.
+The Dataspace Identifier ensures global uniqueness across federated
+dataspaces.
 
-**Batch signature** – e-stamp provided to a set of documents, enabling to separate a single document from the set and verify its signature.
+### Participant Identifier
 
-**Message log** – a log, where exchanged X-Road messages are logged and provided with batch signature. Records all regular messages passing through the security server into the database. The messages are stored together with their signatures and signatures are timestamped. The purpose of the message log is to provide means to prove the reception of a request/response message to a third party.
+Uniquely identifies a Participant within a Dataspace.
 
-**System service log** – a log which is made from a running system service of a security server, for example from xroad-confclient, -proxy, signer services.  
+It consists of:
 
-### 6.7 Identifiers and codes
+- Dataspace Identifier
+- Participant Class
+- Participant Code
 
-**Global access group identifier** – identifier, that uniquely identifies access group in X-Road Network. Global access group identifier consists of X-Road instance identifier and global group code.
+#### Participant Class
 
-**Local access group identifier** – identifier, that uniquely identifies access group for a security server client. Global access group identifier consists of X-Road instance identifier and global group code.
+A classification assigned by the Dataspace Governance Authority to
+distinguish categories of Participants with similar characteristics.
 
-**Member class** – identifier, that is identified by the X-Road governing authority and that uniquely identifies members with similar characteristics. All members with the same member class must be uniquely identifiable by their member codes.
+All Participants within the same Participant Class must be uniquely
+identifiable by their Participant Code.
 
-**Member code** – identifier, that uniquely identifies an X-Road member within its member class. The member code remains unchanged during the entire lifetime of the member.
+#### Participant Code
 
-**Member identifier** – identifier, that uniquely identifies a member in the X-Road Network. Member identifier consists of X-Road instance identifier, member class, and member code.
+A unique code identifying a Participant within its Participant Class.
 
-**Security server code** – identifier, that uniquely identifies the security server in all of the security servers of the security server owner.
+The Participant Code remains stable throughout the lifetime of the
+Participant.
 
-**Security server identifier** – identifier, that uniquely identifies security server in X-road Network. The security server identifier consists of security server owner identifier and security server code.
+#### Formal Structure
 
-**Service identifier** – identifier, that uniquely identifies service in X-Road Network. The service identifier consists of member identifier of the service provider, service code and version of the service. Including version of the service in the service identifier is optional.
+Participant Identifier = Dataspace Identifier + Participant Class + Participant Code
 
-**Subsystem code** – code, that uniquely identifies subsystem in all of the subsystems of the member.
+### Subsystem Identifier
 
-**Subsystem identifier** – identifier, that uniquely identifies subsystem in X-Road Network. Subsystem identifier consists of member identifier and subsystem code.
+Uniquely identifies a Subsystem within a Participant.
 
-**X-Road instance identifier** – identifier, that uniquely identifies the X-road instance in the X-Road Network.
+It consists of:
 
-### 6.8 Global configuration concepts
+- Participant Identifier
+- Subsystem Code
 
-**Configuration** – Set of parameters that are distributed by a configuration source. Configuration consists of one or more configuration parts that contain groups of related parameters.
+#### Subsystem Code
 
-**Configuration Anchor** – is a set of information that can be used by configuration clients to access a configuration source and to verify the downloaded configuration. The configuration anchor is distributed as either a separate XML file in case the anchor points to a local configuration source or as a part of private parameters in case the anchor points to the configuration source managed by a federation partner.
+A code uniquely identifying a Subsystem within a Participant.
 
-**Configuration Client** – is an entity that uses configuration anchor(s) for downloading configuration from configuration source(s). In an X-Roads system, security server and configuration proxy act as configuration clients. 
+#### Formal Structure
 
-**Configuration part (file)** – is an XML file containing system parameters.
+Subsystem Identifier = Participant Identifier + Subsystem Code
 
-**Configuration Provider** – is an entity responsible for maintaining and distributing global configuration. The configuration provider manages one or two configuration sources through which configuration is made available for configuration clients. In an X-Roads system, the central server and the configuration proxy act as configuration providers.
+### Participant Agent Identifier
 
-**Configuration Source** – is a component (HTTP server) managed by a configuration provider. The configuration distributed by the source can either be internal configuration or external configuration. The information needed to access and download configuration from a source is contained in the configuration anchor.
+Uniquely identifies a Participant Agent within a Dataspace.
 
-**External configuration** – is distributed by a configuration source and only contains the shared parameters configuration part.
+It consists of:
 
-**Global configuration** – a technical solution, through which X-Road governing authority regulates participants of X-Road. Global configuration consists of XML-files, which are downloaded periodically from the central server of X-Road governing authority by security servers. Global configuration includes following information:
+- Participant Identifier
+- Agent Code
 
--   the addresses and public keys of trust anchors (certification service CAs and time stamping services);
+#### Agent Code
 
--   the public keys of intermediate CAs;
+A code uniquely identifying a Participant Agent under a specific
+Participant.
 
--   the addresses and public keys of OCSP services (if not already available through the certificates' *Authority Information Access* extension);
+## 8 Technical Terms
 
--   information about X-Road members and their subsystems;
-
--   the addresses of the members' security servers registered in X-Road;
-
--   information about the security servers' authentication certificates registered in X-Road;
-
--   information about the security servers' clients registered in X-Road;
-
--   information about global access rights groups;
-
--   X-Road system parameters.  
-
-**Internal configuration** – is distributed by a configuration source and is composed of the following configuration parts: private parameters; shared parameters, and; optionally, other configuration parts that are specific to an X-Road instance – optional parameters.
-
-**Monitoring Parameters** – Set of parameters that control monitoring of security servers
-
-**Optional parameters** – is an optional configuration part that carries system parameters that have a contextual meaning only to a specific X-Road system installation.
-
-**Private parameters** – is a configuration part that holds system parameters that are only used by security servers that are part of the local X-Road system (i.e. the same X-Road system as the central server the configuration part originates from). In case of federated X-Road systems, the private parameters contain configuration anchors pointing to configuration sources distributing external configuration of federation partners.
-
-**Shared parameters** – is a configuration part that holds system parameters that are used both by the security servers of the local X-Road system and by the security servers belonging to X-Road systems federated with the local system.
-
-**Trusted anchor** – is a configuration anchor that points to the external configuration source of a federation partner and has been uploaded to the central server during the federation process. Trusted anchors are distributed to the configuration clients of the local X-Road system as a part of private parameters.
-
-## 7 Technical terms
-
-### 7.1 Trust and security terminology
-
-**CA** - Certification Authority    
-
-**HSM** – Hardware security module
-
-**OCSP** – Online Certificate Status Protocol 
-
-**SSH** - Secure Shell
-
-**TLS** - Transport Layer Security
-
-**TSA** - Timestamping Authority 
-
-**TSP** - Time Stamp Provider
-
-### 7.2 General software terminology
-
-**API** Application Programming Interface
-
-**CI** - Continuous Integration
-
-**DSL** - Domain Specific Language
-
-**GPG / GnuPG** - The GNU Privacy Guard
-
-**HTTP** - Hypertext Transfer Protocol  
-
-**HTTPS** - Hypertext Transfer Protocol Secure
-
-**JSON** - JavaScript Object Notation  
-
-**MIME** - Multipurpose Internet Mail Extensions
-
-**RPC** – Remote Procedure Call
-
-**REST** - Representational State Transfer
-
-**SDK** - Software Development Kit
-
-**SOAP** - Simple Object Access Protocol  
-
+**API** -- Application Programming Interface\
+**HTTP** -- Hypertext Transfer Protocol\
+**HTTPS** -- Hypertext Transfer Protocol Secure\
+**JSON** -- JavaScript Object Notation\
+**REST** -- Representational State Transfer\
+**SOAP** -- Simple Object Access Protocol\
+**TLS** -- Transport Layer Security\
+**OCSP** -- Online Certificate Status Protocol\
+**CA** -- Certification Authority\
+**TSA** -- Timestamping Authority
