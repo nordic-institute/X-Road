@@ -212,7 +212,7 @@ A component that distributes or relays Registry configuration.
 A logical part of a Participant's information system that is
 independently identifiable within the Dataspace. Participants
 must declare parts of their information system as subsystems
-to consume or provide Data Assets.
+to consume or provide Datasets.
 
 Subsystem is an X-Road-specific concept and has no direct dataspace
 equivalent.
