@@ -33,7 +33,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 
 /**
  * The client attempts to make query that it is not allowed to perform.
@@ -55,6 +55,6 @@ public class NotAllowed extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_ACCESS_DENIED);
+        assertErrorCode(SERVER_SERVERPROXY_X, ACCESS_DENIED.code());
     }
 }

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -37,23 +36,26 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.net.URI;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -61,33 +63,34 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
 import static org.niis.xroad.serverconf.IsAuthentication.NOSSL;
 import static org.niis.xroad.serverconf.model.Client.STATUS_REGISTERED;
 
-public class ClientRestMessageProcessorTest {
+class ClientRestMessageProcessorTest {
 
     @SneakyThrows
     @Test
-    public void processShouldAddOpMonitoringData() {
+    void processShouldAddOpMonitoringData() {
         var opMonitoringData = new OpMonitoringData(CLIENT, 100);
         var clientRestMessageProcessor = createMockedClientRestMessageProcessor(opMonitoringData);
 
-        assertThrows(CodedException.class, clientRestMessageProcessor::process);
+        assertThrows(XrdRuntimeException.class, clientRestMessageProcessor::process);
 
         verifyOpMonitoringData(opMonitoringData.getData());
     }
 
-    @SneakyThrows
     private ClientRestMessageProcessor createMockedClientRestMessageProcessor(OpMonitoringData opMonitoringData) {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
-        var certChainFactory = mock(CertChainFactory.class);
         RequestWrapper request = RequestWrapper.of(getMockedRequest());
         var respWrapper = mock(ResponseWrapper.class);
         var httpClient = mock(HttpClient.class);
-        var isAuthenticationData = mock(IsAuthenticationData.class);
-        var commonBeanProxy =
-                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, certChainFactory, null);
-        var clientRestMessageProcessor =
-                new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
+        var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+        var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
+        var clientRestMessageProcessor = new ClientRestMessageProcessor(request, respWrapper,
+                proxyProperties, globalConfProvider, serverConfProvider, mock(ClientAuthenticationService.class),
+                keyConfProvider, null,
+                new OcspVerifierFactory(), commonProperties.tempFilesPath(),
+                httpClient, opMonitoringData);
+
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
         when(serverConfProvider.getMaintenanceMode()).thenReturn(new ServerConfProvider.MaintenanceMode(false, null));
@@ -101,7 +104,7 @@ public class ClientRestMessageProcessorTest {
         assertEquals("GET", data.get("restMethod"));
         assertNull(data.get("restPath"));
         assertEquals(Version.XROAD_VERSION, data.get("xRoadVersion"));
-        assertNotNull("DEV", data.get("clientXRoadInstance"));
+        assertNotNull(data.get("clientXRoadInstance"), "DEV");
         assertEquals("1234", data.get("clientMemberCode"));
         assertEquals("TestService", data.get("clientSubsystemCode"));
         assertEquals("DEV", data.get("serviceXRoadInstance"));

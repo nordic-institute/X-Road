@@ -26,14 +26,11 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.SystemProperties;
-
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 
 /**
  * Connect directly to SP, impersonating CP. Send HTTP GET request.
@@ -47,11 +44,11 @@ public class WrongHttpMethodServerProxy extends MessageTestCase {
     public WrongHttpMethodServerProxy() {
         requestFileName = "getstate.query";
         httpMethod = "GET";
-        url = "http://127.0.0.1:" + System.getProperty(SystemProperties.PROXY_SERVER_PORT, String.valueOf(PortNumbers.PROXY_PORT));
+        url = () -> "http://127.0.0.1:" + proxyTestSuiteHelper.proxyProperties.serverProxyPort();
     }
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_INVALID_HTTP_METHOD);
+        assertErrorCode(SERVER_SERVERPROXY_X, INVALID_HTTP_METHOD.code());
     }
 }

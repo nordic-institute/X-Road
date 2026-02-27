@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -35,18 +35,21 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.securityserver.restapi.service.ServerConfService;
+import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
+import org.niis.xroad.securityserver.restapi.acme.AcmeService;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Component;
@@ -81,9 +84,13 @@ public class AcmeClientWorker {
 
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
-    private final ServerConfService serverConfService;
+    private final ScheduledJobHelper scheduledJobHelper;
+    private final VaultKeyProvider vaultKeyProvider;
     private final MailNotificationHelper mailNotificationHelper;
+    private final AcmeConfig acmeConfig;
+    private final AdminServiceProperties adminServiceProperties;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -217,14 +224,14 @@ public class AcmeClientWorker {
     private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription) {
         String memberId = cert.getMemberId() != null
                 ? cert.getMemberId().asEncodedId()
-                : serverConfService.getSecurityServerOwnerId().asEncodedId();
+                : scheduledJobHelper.getServerConf().getOwner().getIdentifier().asEncodedId();
         setRenewalErrorAndSendFailureNotification(cert, errorDescription, memberId);
     }
 
     private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, String memberId) {
         if (!Objects.equals(cert.getRenewalError(), errorDescription)) {
             setRenewalError(cert.getId(), errorDescription);
-            SecurityServerId.Conf securityServerId = getSecurityServerId();
+            SecurityServerId.Conf securityServerId = scheduledJobHelper.getSecurityServerId();
             mailNotificationHelper.sendFailureNotification(memberId, cert, securityServerId, errorDescription);
         }
     }
@@ -266,7 +273,7 @@ public class AcmeClientWorker {
                             + "expiration date: {}",
                     ex.getMessage());
         }
-        int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
+        int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeRenewalTimeBeforeExpirationDate();
         return Instant.now().isAfter(x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS));
     }
 
@@ -320,7 +327,7 @@ public class AcmeClientWorker {
             }
             newX509Certificate = newCert.getFirst();
             String certStatus = keyUsage == KeyUsageInfo.AUTHENTICATION ? CertificateInfo.STATUS_SAVED : CertificateInfo.STATUS_REGISTERED;
-            activate = keyUsage == KeyUsageInfo.SIGNING && SystemProperties.getAutomaticActivateAcmeSignCertificate();
+            activate = keyUsage == KeyUsageInfo.SIGNING && acmeConfig.isAutomaticActivateAcmeSignCertificate();
             signerRpcClient.importCert(newX509Certificate.getEncoded(), certStatus, oldCertInfo.getMemberId(), activate);
             signerRpcClient.setRenewedCertHash(oldCertInfo.getId(), calculateCertHexHash(newX509Certificate));
         } catch (Exception ex) {
@@ -330,7 +337,7 @@ public class AcmeClientWorker {
 
         CertificateInfo newCertInfo = signerRpcClient.getCertForHash(calculateCertHexHash(newX509Certificate));
         if (activate) {
-            SecurityServerId.Conf securityServerId = getSecurityServerId();
+            SecurityServerId.Conf securityServerId = scheduledJobHelper.getSecurityServerId();
             if (isNotBlank(newCertInfo.getOcspVerifyBeforeActivationError())) {
                 mailNotificationHelper.sendCertActivationFailureNotification(memberId.asEncodedId(),
                         newCertInfo.getCertificateDisplayName(),
@@ -354,7 +361,7 @@ public class AcmeClientWorker {
                                            X509Certificate newX509Certificate,
                                            CertificateInfo newCertInfo,
                                            KeyInfo newKeyInfo) throws Exception {
-        SecurityServerId.Conf securityServerId = getSecurityServerId();
+        SecurityServerId.Conf securityServerId = scheduledJobHelper.getSecurityServerId();
         try {
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 String securityServerAddress =
@@ -377,10 +384,14 @@ public class AcmeClientWorker {
     }
 
     ManagementRequestSender createManagementRequestSender() {
-        ClientId sender = serverConfService.getSecurityServerOwnerId();
+        ClientId sender = scheduledJobHelper.getServerConf().getOwner().getIdentifier();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
-                SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
+                signerSignClient, sender, receiver, adminServiceProperties.getProxyServerUrl(),
+                DigestAlgorithm.ofName(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()),
+                adminServiceProperties.getProxyServerConnectTimeout(),
+                adminServiceProperties.getProxyServerSocketTimeout(),
+                adminServiceProperties.isProxyServerEnableConnectionReuse());
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws CertificateParsingException {
@@ -391,14 +402,10 @@ public class AcmeClientWorker {
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 subjectAltName = getCommonName(oldX509Certificate.getSubjectX500Principal().getName());
             } else {
-                subjectAltName = globalConfProvider.getSecurityServerAddress(getSecurityServerId());
+                subjectAltName = globalConfProvider.getSecurityServerAddress(scheduledJobHelper.getSecurityServerId());
             }
         }
         return subjectAltName;
-    }
-
-    private SecurityServerId.Conf getSecurityServerId() {
-        return serverConfService.getSecurityServerId();
     }
 
     private void rollback(String keyId) {

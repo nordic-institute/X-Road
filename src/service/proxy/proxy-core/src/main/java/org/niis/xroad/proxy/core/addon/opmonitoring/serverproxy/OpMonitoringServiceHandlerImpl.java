@@ -1,0 +1,180 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
+
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.TimeUtils;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
+import org.niis.xroad.proxy.core.serverproxy.ProxyMessageSoapEntity;
+import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
+import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
+
+/**
+ * Service handler for operational monitoring.
+ */
+@Slf4j
+public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
+
+    private final ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties;
+
+    private final String opMonitorAddress;
+
+    private final boolean isEnabledPooledConnectionReuse;
+    private final HttpClient opMonitorHttpClient;
+
+
+    private HttpSender sender;
+
+    public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
+                                          ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
+                                          HttpClient opMonitorHttpClient, boolean isEnabledPooledConnectionReuse) {
+        super(serverConfProvider, globalConfProvider);
+        this.opMonitorProperties = opMonitorProperties;
+        this.opMonitorAddress = getOpMonitorAddress();
+        this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
+        this.opMonitorHttpClient = opMonitorHttpClient;
+    }
+
+    @Override
+    public boolean shouldVerifyAccess() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldVerifySignature() {
+        return true;
+    }
+
+    @Override
+    public boolean shouldLogSignature() {
+        return true;
+    }
+
+    @Override
+    public boolean canHandle(ServiceId requestServiceId,
+                             ProxyMessage proxyRequestMessage) {
+        return switch (requestServiceId.getServiceCode()) {
+            case GET_SECURITY_SERVER_HEALTH_DATA, GET_SECURITY_SERVER_OPERATIONAL_DATA ->
+                    requestServiceId.getClientId().equals(serverConfProvider.getIdentifier().getOwner());
+            default -> false;
+        };
+    }
+
+    @Override
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                              OpMonitoringData opMonitoringData) {
+        log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
+
+        sender = createHttpSender(opMonitorHttpClient);
+        sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().connectionTimeoutSeconds()));
+        sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().socketTimeoutSeconds()));
+        sender.addHeader("accept-encoding", "");
+
+        sendRequest(proxyRequestMessage, opMonitoringData);
+    }
+
+    @Override
+    public void finishHandling() {
+        sender.close();
+        sender = null;
+    }
+
+    @Override
+    public String getResponseContentType() {
+        return sender.getResponseContentType();
+    }
+
+    @Override
+    public InputStream getResponseContent() {
+        return sender.getResponseContent();
+    }
+
+    private HttpSender createHttpSender(HttpClient opMonitorClient) {
+        return new HttpSender(opMonitorClient, isEnabledPooledConnectionReuse);
+    }
+
+    private void sendRequest(ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData) {
+        log.trace("sendRequest {}", opMonitorAddress);
+
+        URI opMonitorUri;
+
+        try {
+            opMonitorUri = getOpMonitorUri();
+        } catch (URISyntaxException e) {
+            log.error("Malformed operational monitoring daemon address '{}'", opMonitorAddress, e);
+
+            throw XrdRuntimeException.systemInternalError("Malformed operational monitoring daemon address");
+        }
+
+        log.info("Sending request to {}", opMonitorUri);
+
+        try {
+            opMonitoringData.setRequestOutTs(getEpochMillisecond());
+
+            sender.doPost(opMonitorUri, new ProxyMessageSoapEntity(proxyRequestMessage));
+
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
+        } catch (Exception ex) {
+            if (ex instanceof XrdRuntimeException) {
+                opMonitoringData.setResponseInTs(getEpochMillisecond());
+            }
+
+            throw XrdRuntimeException.systemException(ex).withPrefix(X_SERVICE_FAILED_X);
+        }
+    }
+
+    private String getOpMonitorAddress() {
+        return String.format("%s://%s:%s%s",
+                opMonitorProperties.connection().scheme(),
+                opMonitorProperties.connection().host(),
+                opMonitorProperties.connection().port(),
+                OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
+    }
+
+    private URI getOpMonitorUri() throws URISyntaxException {
+        return new URI(opMonitorAddress);
+    }
+}

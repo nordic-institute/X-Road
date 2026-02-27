@@ -29,9 +29,9 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.common.test.ui.utils.VuetifyHelper;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
+import org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.disabled;
@@ -39,12 +39,12 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static java.time.Duration.ofSeconds;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.Checkbox;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.TextField;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.Checkbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.TextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientServicesStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj clientInfoPageObj = new ClientInfoPageObj();
@@ -161,7 +161,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.servicesParameters.btnSaveEdit().click();
         commonPageObj.snackBar.success().should(text(message));
         commonPageObj.snackBar.btnClose().click();
-        commonPageObj.dialog.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("Service with a warning is saved and success message {string} is shown")
@@ -173,7 +173,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().should(text(message));
         commonPageObj.snackBar.btnClose().click();
-        commonPageObj.dialog.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("Service add subjects dialog is opened")
@@ -185,43 +185,43 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service subject lookup is executed with member name {string} and subsystem code {string}")
     public void searchAccessRights(String name, String subsystem) {
-        vTextField(clientInfoPageObj.services.addSubject.inputName()).shouldBe(empty).setValue(name);
-        vTextField(clientInfoPageObj.services.addSubject.inputSubsystemCode()).shouldBe(empty).setValue(subsystem);
-        clientInfoPageObj.services.addSubject.btnSearch().click();
+        vTextField(clientInfoPageObj.services.addSubjectDialog.inputName()).shouldBe(empty).setValue(name);
+        vTextField(clientInfoPageObj.services.addSubjectDialog.inputSubsystemCode()).shouldBe(empty).setValue(subsystem);
+        clientInfoPageObj.services.addSubjectDialog.btnSearch().click();
     }
 
     @Step("Adding value for member name, member code, subsystem and then click the remove value button on the input field")
     public void clearSubjectsFilter() {
-        vTextField(clientInfoPageObj.services.addSubject.inputName()).shouldBe(empty).setValue("name");
-        clientInfoPageObj.services.addSubject.buttonClearInputName().click();
+        vTextField(clientInfoPageObj.services.addSubjectDialog.inputName()).shouldBe(empty).setValue("name");
+        clientInfoPageObj.services.addSubjectDialog.buttonClearInputName().click();
 
-        vTextField(clientInfoPageObj.services.addSubject.inputMemberCode()).shouldBe(empty).setValue("memberCode");
-        clientInfoPageObj.services.addSubject.buttonClearInputMemberCode().click();
+        vTextField(clientInfoPageObj.services.addSubjectDialog.inputMemberCode()).shouldBe(empty).setValue("memberCode");
+        clientInfoPageObj.services.addSubjectDialog.buttonClearInputMemberCode().click();
 
-        vTextField(clientInfoPageObj.services.addSubject.inputSubsystemCode()).shouldBe(empty).setValue("subsystemCode");
-        clientInfoPageObj.services.addSubject.buttonClearInputSubsystemCode().click();
+        vTextField(clientInfoPageObj.services.addSubjectDialog.inputSubsystemCode()).shouldBe(empty).setValue("subsystemCode");
+        clientInfoPageObj.services.addSubjectDialog.buttonClearInputSubsystemCode().click();
     }
 
     @Step("Click Search button on subject dialog")
     public void clickSearch() {
-        clientInfoPageObj.services.addSubject.btnSearch().click();
+        clientInfoPageObj.services.addSubjectDialog.btnSearch().click();
     }
 
     @Step("Subject with id {string} and {string} is selected from the table. There are total {} entries")
     public void addAccessRights(String id, String id2, int size) {
-        clientInfoPageObj.services.addSubject.memberTableRows().shouldHave(size(size));
+        clientInfoPageObj.services.addSubjectDialog.memberTableRows().shouldHave(size(size));
 
-        vCheckbox(clientInfoPageObj.services.addSubject.memberTableRowCheckboxOfId(id)).click();
-        vCheckbox(clientInfoPageObj.services.addSubject.memberTableRowCheckboxOfId(id2)).click();
+        vCheckbox(clientInfoPageObj.services.addSubjectDialog.memberTableRowCheckboxOfId(id)).click();
+        vCheckbox(clientInfoPageObj.services.addSubjectDialog.memberTableRowCheckboxOfId(id2)).click();
 
-        clientInfoPageObj.services.addSubject.btnSave().click();
+        clientInfoPageObj.services.addSubjectDialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights added successfully"));
         commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("The query return {} entries in the subjects table")
     public void validateSubjectsTableSize(int size) {
-        clientInfoPageObj.services.addSubject.memberTableRows().shouldHave(size(size));
+        clientInfoPageObj.services.addSubjectDialog.memberTableRows().shouldHave(size(size));
     }
 
     @Step("Service Access Rights table member with id {string} is {selenideValidation}")
@@ -348,7 +348,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service {string} is updated with url {string} and service code {string}")
     public void editRestService(String name, String url, String serviceCode) {
-        clientInfoPageObj.services.headerServiceDescription(name).click();
+        clientInfoPageObj.services.headerServiceDescriptionEdit(name).click();
 
         VuetifyHelper.TextField urlTextField = vTextField(clientInfoPageObj.services.servicesEdit.textFieldUrl());
         VuetifyHelper.TextField serviceCodeTextField = vTextField(clientInfoPageObj.services.servicesEdit.textFieldServiceCode());
@@ -395,7 +395,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service {string} is deleted")
     public void editRestService(String name) {
-        clientInfoPageObj.services.headerServiceDescription(name).click();
+        clientInfoPageObj.services.headerServiceDescriptionEdit(name).click();
 
         clientInfoPageObj.services.servicesEdit.btnServiceDelete().click();
         commonPageObj.dialog.title().shouldBe(visible);
@@ -435,7 +435,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service {string} is updated with url {string}")
     public void editWsdlService(String name, String url) {
-        clientInfoPageObj.services.headerServiceDescription(name).click();
+        clientInfoPageObj.services.headerServiceDescriptionEdit(name).click();
 
         VuetifyHelper.TextField urlTextField = vTextField(clientInfoPageObj.services.servicesEdit.textFieldUrl());
         urlTextField.clear();
@@ -445,7 +445,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         urlTextField.setValue(url);
 
         clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
-        clientInfoPageObj.services.servicesEdit.btnContinueWarn().click();
+        commonPageObj.dialog.btnConfirm().click();
         commonPageObj.snackBar.success().shouldHave(text("Description saved"));
     }
 

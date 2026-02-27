@@ -40,7 +40,7 @@ public class ApiKeysPageObj {
     }
 
     public SelenideElement apiKeyRow(String apiKeyId) {
-        var xpath = "//div[@data-test='api-keys-view']//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='api-keys-view']//div[@data-test='api-key-id' and ./span[contains(., '%s')]]";
         return $x(String.format(xpath, apiKeyId));
     }
 
@@ -71,19 +71,11 @@ public class ApiKeysPageObj {
         }
 
         public SelenideElement createdApiKeyId() {
-            return $x("//td[@data-test='created-apikey-id']");
-        }
-
-        public SelenideElement btnCreateKey() {
-            return $x("//button[@data-test='create-key-button']");
+            return $x("//div[@data-test='created-apikey-id']//input");
         }
 
         public SelenideElement btnNext() {
             return $x("//button[@data-test='next-button']");
-        }
-
-        public SelenideElement btnPrevious() {
-            return $x("//button[@data-test='previous-button']");
         }
 
         public SelenideElement btnFinish() {

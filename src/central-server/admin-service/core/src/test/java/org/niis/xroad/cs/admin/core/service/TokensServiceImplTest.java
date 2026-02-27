@@ -27,8 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -142,7 +140,7 @@ class TokensServiceImplTest {
     @Test
     void loginShouldThrowFinalTryException() {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_FINAL_TRY));
-        doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
+        doThrow(XrdRuntimeException.systemInternalError("error")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(BadRequestException.class)
@@ -154,7 +152,8 @@ class TokensServiceImplTest {
     @Test
     void loginShouldThrowUserPinLockedOnActivation() {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_LOCKED));
-        doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
+        doThrow(XrdRuntimeException.systemInternalError("error"))
+                .when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(BadRequestException.class)
@@ -295,7 +294,6 @@ class TokensServiceImplTest {
                 .setActive(false)
                 .setSerialNumber(TOKEN_SERIAL_NUMBER)
                 .setLabel("label")
-                .setSlotIndex(13)
                 .setStatus(status)
                 .putAllTokenInfo(tokenParams)
                 .build());

@@ -32,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.SingleMetrics;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -41,7 +42,7 @@ class OsVersionCollectorTest {
     private static final String OS_VERSION = "Ubuntu 123";
 
     @Mock
-    private MonitorClient monitorClient;
+    private MonitorRpcClient monitorClient;
 
     @InjectMocks
     private OsVersionCollector osVersionCollector;

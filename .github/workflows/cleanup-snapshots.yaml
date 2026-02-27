@@ -1,0 +1,80 @@
+name: Cleanup Old Snapshot Images
+
+on:
+  # Run daily at 03:00 UTC (after daily base image builds at 02:00)
+  schedule:
+    - cron: '0 3 * * *'
+
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (only show what would be deleted)'
+        required: false
+        type: boolean
+        default: true
+      cut_off:
+        description: 'Age cutoff (e.g., "7 days", "2 weeks")'
+        required: false
+        type: string
+        default: '30 days'
+
+permissions:
+  packages: write
+  contents: read
+
+env:
+  # Set to 'true' to enable dry-run for scheduled runs (safe for testing)
+  # Set to 'false' to actually delete images on scheduled runs
+  SCHEDULED_DRY_RUN: 'true'
+
+jobs:
+  cleanup-snapshots:
+    name: Cleanup old snapshot images
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # All images that receive SNAPSHOT tags during CI builds.
+        # Update this list when adding/removing published container images.
+        package:
+          # Security Server base images
+          - base-images/ss-baseline-runtime
+          - base-images/ss-baseline-backup-manager-runtime
+          - base-images/ss-baseline-signer-runtime
+          # Security Server service images
+          - ss-proxy
+          - ss-monitor
+          - ss-op-monitor
+          - ss-configuration-client
+          - ss-signer
+          - ss-softtoken-signer
+          - ss-backup-manager
+          - ss-proxy-ui-api
+          - ss-db-messagelog-init
+          - ss-db-opmonitor-init
+          - ss-db-serverconf-init
+          # Development images
+          - openbao-dev
+          - testca-dev
+          - postgres-dev
+          - central-server-dev
+          # Package builder images
+          - package-builder-deb-jammy
+          - package-builder-deb-noble
+          - package-builder-rpm-el8
+          - package-builder-rpm-el9
+    steps:
+      - name: Cleanup old snapshot images (${{ matrix.package }})
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          package: ${{ matrix.package }}
+          owner: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          delete-tags: '*SNAPSHOT*'
+          older-than: ${{ inputs.cut_off || '30 days' }}
+          delete-untagged: true
+          delete-ghost-images: true
+          delete-partial-images: true
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || github.event_name == 'schedule' && env.SCHEDULED_DRY_RUN == 'true' }}
+          log-level: info

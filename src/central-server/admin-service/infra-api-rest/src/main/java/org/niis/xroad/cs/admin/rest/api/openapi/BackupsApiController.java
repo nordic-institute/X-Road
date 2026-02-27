@@ -29,15 +29,15 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
+import org.niis.xroad.cs.admin.api.service.BackupService;
+import org.niis.xroad.cs.admin.api.service.ConfigurationBackupGenerator;
+import org.niis.xroad.cs.admin.api.service.ConfigurationRestorationService;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.openapi.BackupsApi;
 import org.niis.xroad.cs.openapi.model.BackupDto;
 import org.niis.xroad.cs.openapi.model.BackupRestorationStatusDto;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.service.BackupService;
-import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
-import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -69,7 +69,7 @@ public class BackupsApiController implements BackupsApi {
     private final ConfigurationRestorationService configurationRestorationService;
     private final TokensService tokensService;
     private final BackupDtoConverter backupDtoConverter;
-    private final BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
+    private final ConfigurationBackupGenerator configurationBackupGenerator;
     private final FileVerifier fileVerifier;
 
     @Override
@@ -77,7 +77,7 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
     public ResponseEntity<BackupDto> addBackup() {
         try {
-            BackupFile backupFile = centralServerConfigurationBackupGenerator.generateBackup();
+            BackupFile backupFile = configurationBackupGenerator.generateBackup();
             return ResponseEntity
                     .status(CREATED)
                     .body(backupDtoConverter.toTarget(backupFile));

@@ -53,7 +53,7 @@ from email.mime.text import MIMEText
 # an external operational monitoring daemon is used, we expect
 # the clocks to be in sync with the security server.
 # Additionally under heavy load store query may be delayed for up to
-# 5 seconds (by default op-monitor-buffer.sending-interval-seconds = 5).
+# 5 seconds (by default op-monitor.buffer.sending-interval-seconds = 5).
 WAIT_FOR_OPERATIONAL_DATA_SECONDS = 6
 
 # Size of the output limit for requests and responses that could be
@@ -136,7 +136,7 @@ def post_xml_request(
 def post_multipart_request(
         request_path: str, data: str, attachment_count: int,
         get_raw_stream: bool = False) -> requests.Response:
-    """ Build a MIME multipart message, send a POST request with the 
+    """ Build a MIME multipart message, send a POST request with the
     multipart/related content type and return the response.
     """
 
@@ -239,7 +239,7 @@ def assert_soap_fault(response_xml: minidom.Document):
 def parse_multipart_response(response: requests.Response) -> Tuple:
     """ Return a tuple of the MIME parts and the raw contents of
     a multipart response.
-    
+
     If no boundary is found we assume the response is not a
     multipart one and the raw response can be used.
     """
@@ -348,7 +348,7 @@ def assert_present_in_json(json_payload: dict, fields_and_values: list):
 
 
 def assert_missing_in_json(json_payload: dict, field: str):
-    """ Raise an exception if the field exists in any JSON record in 
+    """ Raise an exception if the field exists in any JSON record in
     response payload.
     """
     for rec in json_payload.get("records", []):
@@ -376,7 +376,7 @@ def assert_json_fields(json_payload: dict, fields_and_values: list):
 
 
 def assert_empty_json_records(json_payload: dict):
-    """ Raise an exception if any JSON record in response 
+    """ Raise an exception if any JSON record in response
     payload is not empty. """
     for rec in json_payload.get("records", []):
         if str(rec) != '{}':
@@ -525,7 +525,7 @@ def print_plain_soap_query_data_response(response_xml: minidom.Document):
 def assert_get_next_records_from_in_range(operational_data_response_soap: bytes,
                                           timestamp_before_request: int):
     """ Check if 'nextRecordsFrom' value is in expected range.
-    
+
     Otherwise, throw an exception -- the response was inconsistent with
     the expectation.
     """

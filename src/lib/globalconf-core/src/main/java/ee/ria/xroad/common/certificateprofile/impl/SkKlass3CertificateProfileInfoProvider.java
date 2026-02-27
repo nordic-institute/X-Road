@@ -129,19 +129,19 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
             String sn = CertUtils.getRDNValue(x500Name, BCStyle.SERIALNUMBER);
 
             if (StringUtils.isEmpty(sn)) {
-                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.systemException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Subject name does not contain serial number")
                         .build();
             }
 
             if (!StringUtils.isNumeric(sn)) {
-                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.systemException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Serial number is not an integer")
                         .build();
             }
 
             if (sn.length() != SN_LENGTH) {
-                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.systemException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Serial number must be " + SN_LENGTH + " digits long")
                         .build();
             }
@@ -174,7 +174,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
                 case '1', '2', '3', '4', '5', '6' -> COM_MEMBER;
                 case '7' -> GOV_MEMBER;
                 case '8', '9' -> NGO_MEMBER;
-                default -> throw XrdRuntimeException.businessException(ErrorCode.INTERNAL_ERROR)
+                default -> throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                         .details("Malformed serial number: " + sn)
                         .build();
             };

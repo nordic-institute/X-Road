@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -65,9 +66,7 @@ export const useGeneral = defineStore('general', {
     fetchMemberName(memberClass: string, memberCode: string) {
       // this is currently an inline schema and is not automatically generated to a typescript type
       return api
-        .get<MemberName>(
-          `/member-names?member_class=${memberClass}&member_code=${memberCode}`,
-        )
+        .get<MemberName>(`/member-names?member_class=${memberClass}&member_code=${memberCode}`)
         .then((res) => {
           this.memberName = res.data.member_name || '';
         })
@@ -81,9 +80,7 @@ export const useGeneral = defineStore('general', {
         .get('/xroad-instances')
         .then((res) => {
           this.xRoadInstances = res.data as XRoadInstance[];
-          this.xRoadInstanceIdentifiers = this.xRoadInstances.map(
-            (instance) => instance.identifier
-          );
+          this.xRoadInstanceIdentifiers = this.xRoadInstances.map((instance) => instance.identifier);
         })
         .catch((error) => {
           throw error;

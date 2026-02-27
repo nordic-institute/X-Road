@@ -25,24 +25,19 @@
  */
 package org.niis.xroad.proxy.core.util;
 
+import io.quarkus.scheduler.Scheduled;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
-/**
- * Periodic reload of global configuration
- */
 @Slf4j
 @RequiredArgsConstructor
-@DisallowConcurrentExecution
-public class ServerConfStatsLogger implements Job {
+public class ServerConfStatsLogger {
     private final ServerConfProvider serverConfProvider;
 
-    @Override
-    public void execute(JobExecutionContext context) {
+    @Scheduled(every = "60s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
+    public void execute() {
         serverConfProvider.logStatistics();
     }
 }

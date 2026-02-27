@@ -27,13 +27,10 @@
 
 package org.niis.xroad.opmonitor.test;
 
-import org.junit.platform.suite.api.IncludeEngines;
 import org.junit.platform.suite.api.SelectClasspathResource;
-import org.junit.platform.suite.api.Suite;
+import org.niis.xroad.test.framework.core.BaseTestRunner;
 
-@Suite
-@IncludeEngines("cucumber")
 @SelectClasspathResource("behavior")
-public class OpMonitorIntTest {
+public class OpMonitorIntTest extends BaseTestRunner {
 }
 

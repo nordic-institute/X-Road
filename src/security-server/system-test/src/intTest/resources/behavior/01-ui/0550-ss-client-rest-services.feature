@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0550 - SS: Client REST with base path services
 

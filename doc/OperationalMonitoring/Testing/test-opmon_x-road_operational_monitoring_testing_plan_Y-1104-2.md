@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.10  
+Version: 0.11  
 Doc ID: TEST-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -11,6 +11,7 @@ Doc ID: TEST-OPMON
 | 05.02.2020 | 0.8     | Update information about the test suites.                            | Ilkka Seppälä    |
 | 25.06.2020 | 0.9     | Update information about the JMX interface.                          | Petteri Kivimäki |
 | 01.06.2023 | 0.10    | Update references                                                    | Petteri Kivimäki |
+| 11.11.2025 | 0.11    | Drop JMX interface                                                   | Justas Samuolis  |
 
 ## Table of Contents
 <!-- toc -->
@@ -28,15 +29,13 @@ Doc ID: TEST-OPMON
   - [3 The Protocols and Interfaces used in the Operational Monitoring System in the Context of Testing](#3-the-protocols-and-interfaces-used-in-the-operational-monitoring-system-in-the-context-of-testing)
   - [4 The Use Cases of the Operational Monitoring Daemon in the Context of Testing](#4-the-use-cases-of-the-operational-monitoring-daemon-in-the-context-of-testing)
   - [5 Automated Integration Testing in Detail](#5-automated-integration-testing-in-detail)
-  - [6 Testing the JMXMP Interface](#6-testing-the-jmxmp-interface)
-    - [6.1 Testing the JMXMP Interface Using jconsole](#61-testing-the-jmxmp-interface-using-jconsole)
-  - [7 Manual Integration Testing in Detail](#7-manual-integration-testing-in-detail)
-    - [7.1 Test Helpers](#71-test-helpers)
-    - [7.2 Send a Request to a Non-operational Service Cluster](#72-send-a-request-to-a-non-operational-service-cluster)
-    - [7.3 Run Operational Monitoring Data Cleanup](#73-run-operational-monitoring-data-cleanup)
-    - [7.4 Receive Operational Data in Multiple Batches](#74-receive-operational-data-in-multiple-batches)
-    - [7.5 Configure an External Monitoring Daemon](#75-configure-an-external-monitoring-daemon)
-    - [7.6 Use Invalid Certificates for TLS Connection](#76-use-invalid-certificates-for-tls-connection)
+  - [6 Manual Integration Testing in Detail](#6-manual-integration-testing-in-detail)
+    - [6.1 Test Helpers](#61-test-helpers)
+    - [6.2 Send a Request to a Non-operational Service Cluster](#62-send-a-request-to-a-non-operational-service-cluster)
+    - [6.3 Run Operational Monitoring Data Cleanup](#63-run-operational-monitoring-data-cleanup)
+    - [6.4 Receive Operational Data in Multiple Batches](#64-receive-operational-data-in-multiple-batches)
+    - [6.5 Configure an External Monitoring Daemon](#65-configure-an-external-monitoring-daemon)
+    - [6.6 Use Invalid Certificates for TLS Connection](#66-use-invalid-certificates-for-tls-connection)
 
 <!-- tocstop -->
 
@@ -62,7 +61,6 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 <a name="TEST-OPMONSTRAT"></a>**TEST-OPMONSTRAT** -- X-Road: Operational Monitoring Testing Strategy. Document ID: [TEST-OPMONSTRAT](test-opmonstrat_x-road_operational_monitoring_testing_strategy_Y-1104-1.md)  
 <a name="UC-OPMON"></a>**UC-OPMON** -- X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
 <a name="UG-SS"></a>**UG-SS** -- X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Operational Monitoring Daemon JMXMP Interface. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Components of the Operational Monitoring System in the Context of Testing
@@ -101,11 +99,8 @@ The operational monitoring service receives and processes operational and health
 The operational monitoring system supports the following protocols and interfaces:
 * Store Operational Data (JSON)
 * X-Road Message Protocol (SOAP, both regular X-Road messages and operational monitoring query requests)
-* JMXMP interface for providing third-party monitoring systems (e.g. Zabbix) installed at security servers with health check data.
 
 The JSON and SOAP-based interfaces are tested as part of the build-time unit tests as well as during automated integration testing. Within the set of unit tests, the focus is on low-level error handling, as opposed to the integration tests which focus on expected behavior in both successful and unsuccessful situations.
-
-The JMXMP interface is tested manually.
 
 ## 4 The Use Cases of the Operational Monitoring Daemon in the Context of Testing
 
@@ -138,51 +133,11 @@ The following test cases have been automated at integration testing level:
 11. `test_zero_buffer_size`, verifying that in case the operational monitoring buffer size has been set to zero, the operational monitoring data of X-Road requests is not stored by the operational monitoring daemon and can't be queried.
 12. `test_time_interval`, verifying that operational data can be queried about specific time intervals as required, and that errors are handled as required.
 
-
-## 6 Testing the JMXMP Interface
-
-The JMXMP interface gets the data it exposes from the same component that is used to serve health data over the Operational Monitoring Query interface. Thus, the internal implementation of the health metrics registry is tested in the automated test case [test_health_data](#test_health_data). The main difference when directly using the JMXMP interface is in the format that the items are presented. The data exposed over JMXMP and their format are described in detail in \[[PR-OPMONJMX](#PR-OPMONJMX)\].
-
-For quick reference, a couple of examples follow.
-
-The keys of JMX items related to services are similar to this example:
-  ```
-  metrics:name=requestDuration(XTEE-CI-XM/GOV/00000001//getSecurityServerOperationalData)
-  ```
-where "//" represents a missing subsystem (the `getSecurityServerOperationalData` service is provided by the owner of the security server).
-
-The keys of general JMX items are similar to this example:
-  ```
-  metrics:name=monitoringStartupTimestamp
-  ```
-
-During the project, the JMXMP interface will  be tested manually, using pre-configured Zabbix items in one or more Zabbix instances available in the testing environment, and using the `jconsole` application for directly observing the JMX metrics as they become available.
-
-The configuration and usage of Zabbix is out of the scope of this document. The `jconsole` application is available in Java SDK-s, the installation of which is not in the scope of this document.
-
-Direct observation of JMX metrics in `jconsole` is described in the following section.
-
-### 6.1 Testing the JMXMP Interface Using jconsole
-
-By default, the JMX interface of the operational monitoring daemon is disabled. In order to conveniently access this interface from a remote host, either directly or through an SSH tunnel, the following configuration must be used in `/etc/xroad/services/local.properties`, effectively making changes on the `XROAD_OPMON_PARAMS` parameter value:
-
-```bash
-XROAD_OPMON_PARAMS=-Djava.rmi.server.hostname=<address> -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=<port> -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
-```
-
-where `address` should be set to the desired listening address for access by `jconsole` and `port` should be set to the port number suitable for the system under test.
-
-The health metrics of the operational monitoring daemon will appear on the `MBeans` tab, in the `metrics` subtree.
-
-The items appearing under this subtree can be observed as the automated integration tests are run. Please refer to \[[PR-OPMONJMX](#PR-OPMONJMX)\] for the exact set of items required for each mediated request. Note that a separate `jconsole` session should be opened for the producer and the consumer security servers, to gain access to all the metrics made available.
-
-**NOTE** Because the health metrics related to mediated services are reset upon each restart of the operational monitoring daemon, the necessary configuration of the system should be carried out before running each automated test case. Please refer to `src/systemtest/op-monitoring/integration/run_tests.py` (`LOCAL_INI_PARAMETERS` and each test case in `OperationalMonitoringIntegrationTest`) for information about the necessary configuration.
-
-## 7 Manual Integration Testing in Detail
+## 6 Manual Integration Testing in Detail
 
 This chapter contains the descriptions of manual test cases of the operational monitoring system. Manual test cases cover only the functionality that is not covered by automated integration tests. Manual integration tests are carried out on a pre-configured testing system with the required X-Road components installed and configured, as described in \[[TEST-OPMONSTRAT](#TEST-OPMONSTRAT)\].
 
-### 7.1 Test Helpers
+### 6.1 Test Helpers
 The test steps described here are to be executed when refered to in test cases.
 * <a name="log_in_db"></a>**Logging in to operational monitoring database as user opmonitor**: In the server running the operational monitoring daemon, enter the command
    ```bash
@@ -191,7 +146,7 @@ The test steps described here are to be executed when refered to in test cases.
 
    The password for user opmonitor can be found in `/etc/xroad/db.properties`.
 
-### 7.2 Send a Request to a Non-operational Service Cluster
+### 6.2 Send a Request to a Non-operational Service Cluster
 
 Test case for verifying that the value of the operational monitoring data field 'service_security_server_address' in the operational monitoring database is null and that the request is marked as unsuccessful, in case an X-Road request is made to a non-operational service cluster. This test case is a supplement to the automated integration test [test_service_cluster](#test_service_cluster).
 
@@ -209,7 +164,7 @@ Test case for verifying that the value of the operational monitoring data field 
 * The value of the field 'succeeded' is false.
 * The value of the field 'service_security_server_address' is null.
 
-### 7.3 Run Operational Monitoring Data Cleanup
+### 6.3 Run Operational Monitoring Data Cleanup
 
 Test case for verifying that operational monitoring data is cleaned up periodically. The test can be executed in any of the operational monitoring daemon servers.
 
@@ -244,7 +199,7 @@ Test case for verifying that operational monitoring data is cleaned up periodica
 * The operational data record with a timestamp from 2 weeks ago has been deleted from the operational monitoring database.
 * The number of records in the table `operational_data` is equal to the number of records before adding the record with a timestamp from 2 weeks ago.
 
-### 7.4 Receive Operational Data in Multiple Batches
+### 6.4 Receive Operational Data in Multiple Batches
 
 Test case for verifying that in case the amount of relevant operational data records exceeds the value of the *op-monitor.max-records-in-payload* system parameter, the operational data is returned in correct batches and the value of 'nextRecordsFrom' element in the operational data response is correct. This test case is a supplement to the automated integration test [ test_limited_operational_data_response](#test_limited_operational_data_response).
 
@@ -293,7 +248,7 @@ All test steps are executed in security server *xtee9.ci.kit*.
 
    **Expected output**: There are 2 operational data records in the operational data response: the client and producer side records of the operational data request. The element 'nextRecordsFrom' is present in the response. The value of the element 'nextRecordsFrom' is (the value of 'monitoring_data_ts' of the operational data request records + 1).
 
-### 7.5 Configure an External Monitoring Daemon
+### 6.5 Configure an External Monitoring Daemon
 Test case for verifying that it is possible to configure a secure connection between the security server and the external operational monitoring daemon.
 
 **Preconditions:**
@@ -314,7 +269,7 @@ Test case for verifying that it is possible to configure a secure connection bet
 
   **Expected output:** A health data response is received. The health data response contains the health data about the service that was queried in the first X-Road request as well as the health data about the service 'getSecurityServerOperationalData'.
 
-### 7.6 Use Invalid Certificates for TLS Connection
+### 6.6 Use Invalid Certificates for TLS Connection
 Test case for verifying that the secure connection between the security server and the external operational monitoring daemon fails in case invalid certificates are configured for the TLS connection.
 
 **Preconditions:**

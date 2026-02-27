@@ -27,15 +27,11 @@ package org.niis.xroad.globalconf.model;
 
 import java.time.OffsetDateTime;
 
-public interface SharedParametersProvider {
+public interface SharedParametersProvider extends ParameterProvider {
 
     SharedParametersProvider refresh(OffsetDateTime fileExpiresOn);
 
     SharedParameters getSharedParameters();
-
-    OffsetDateTime getExpiresOn();
-
-    boolean hasChanged();
 
     SharedParametersMarshaller getMarshaller();
 }

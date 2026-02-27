@@ -34,11 +34,7 @@ import static java.lang.String.format;
 public class CertificatePageObj {
 
     public SelenideElement signatureField(String field) {
-        return $x(format("//div[ b[@class ='cert-label' and text()='%s:']]//span", field));
-    }
-
-    public SelenideElement btnClose() {
-        return $x("//button[@data-test='close-x']");
+        return $x(format("//tr[td[contains(., '%s')]]/td[2]", field));
     }
 
     public SelenideElement btnDelete() {

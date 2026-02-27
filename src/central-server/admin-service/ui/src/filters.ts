@@ -26,71 +26,10 @@
  */
 import type { App } from 'vue';
 
-// Format date string. Result YYYY-MM-DD.
-export function formatDate(value: string): string {
-  const timestamp = Date.parse(value);
-
-  if (isNaN(timestamp)) {
-    return '-';
-  }
-
-  const date = new Date(value);
-
-  return (
-    date.getFullYear() +
-    '-' +
-    (date.getMonth() + 1).toString().padStart(2, '0') +
-    '-' +
-    date.getDate().toString().padStart(2, '0')
-  );
-}
-
-// Format date string. Result YYYY-MM-DD HH:MM.
-export function formatDateTime(value: string): string {
-  const timestamp = Date.parse(value);
-
-  if (isNaN(timestamp)) {
-    return '-';
-  }
-
-  const date = new Date(value);
-
-  return (
-    date.getFullYear() +
-    '-' +
-    (date.getMonth() + 1).toString().padStart(2, '0') +
-    '-' +
-    date.getDate().toString().padStart(2, '0') +
-    ' ' +
-    date.getHours().toString().padStart(2, '0') +
-    ':' +
-    date.getMinutes().toString().padStart(2, '0')
-  );
-}
-
-// Format date string. Result YYYY-MM-DD HH:MM:SS.
-export function formatDateTimeSeconds(value: string): string {
-  const timestamp = Date.parse(value);
-
-  if (isNaN(timestamp)) {
-    return '-';
-  }
-
-  const date = new Date(value);
-
-  return (
-    formatDateTime(value) + ':' + date.getSeconds().toString().padStart(2, '0')
-  );
-}
-
 export function createFilters(i18nMessages = {}) {
   return {
     install(app: App) {
-      app.config.globalProperties.$filters = {
-        formatDate,
-        formatDateTime,
-        formatDateTimeSeconds,
-      };
+      app.config.globalProperties.$filters = {};
     },
   };
 }

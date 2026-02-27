@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.globalconf;
 
+import org.niis.xroad.globalconf.model.FileSource;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -60,7 +61,4 @@ public interface GlobalConfSource {
 
     FileSource getFile(String fileName);
 
-    interface FileSource {
-
-    }
 }

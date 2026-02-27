@@ -29,31 +29,35 @@ package org.niis.xroad.cs.admin.core.config;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
+import org.niis.xroad.common.vault.NoopVaultKeyClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
+import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
+import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
+import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
-import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
+import org.springframework.vault.core.VaultTemplate;
 
-@Import({GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class})
+@Import({SpringGlobalConfConfig.class,
+        SpringOcspVerifierConfig.class,
+        SpringSignerClientConfiguration.class,
+        SpringRpcConfig.class,
+        SpringVaultClientConfig.class
+})
 @Configuration
 public class BootstrapConfiguration {
 
     private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
-
-    @Bean
-    @Profile("!int-test")
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
-    }
 
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
@@ -74,6 +78,18 @@ public class BootstrapConfiguration {
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
         return bean;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
+    VaultKeyClient springVaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
+        return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false", matchIfMissing = true)
+    VaultKeyClient noopVaultKeyClient() {
+        return new NoopVaultKeyClient();
     }
 }
 

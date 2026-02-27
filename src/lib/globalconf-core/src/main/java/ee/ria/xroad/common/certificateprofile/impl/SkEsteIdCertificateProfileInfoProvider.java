@@ -108,7 +108,7 @@ public class SkEsteIdCertificateProfileInfoProvider
         ClientId.Conf getSubjectIdentifier(X500Name x500name) {
             String sn = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
             if (StringUtils.isEmpty(sn)) {
-                throw XrdRuntimeException.businessException(ErrorCode.INVALID_CERTIFICATE)
+                throw XrdRuntimeException.systemException(ErrorCode.INVALID_CERTIFICATE)
                         .details("Subject name does not contain serial number")
                         .build();
             }

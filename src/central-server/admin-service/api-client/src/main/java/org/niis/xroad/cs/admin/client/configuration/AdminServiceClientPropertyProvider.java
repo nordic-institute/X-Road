@@ -30,22 +30,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.net.URI;
-import java.nio.file.Path;
 
 /**
  * Admin service API client property provider.
  */
 public interface AdminServiceClientPropertyProvider {
-
-    /**
-     * Path to a trust store containing certificates for the central server admin API
-     */
-    Path getApiTrustStore();
-
-    /**
-     * Password for the trust store
-     */
-    String getApiTrustStorePassword();
 
     /**
      * API token for the central server API (required)

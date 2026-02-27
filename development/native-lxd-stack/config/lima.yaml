@@ -7,25 +7,44 @@ images:
 
 cpus: 4
 memory: 10GiB
+disk: "64GiB"
 
+vmType: "vz"
+networks:
+  - socket: "/opt/homebrew/var/run/socket_vmnet"
 mounts:
   - location: "~"
     writable: true
+
+containerd:
+  system: false
+  user: false
 
 portForwards:
   - guestIP: "0.0.0.0"
     guestPortRange: [3000, 3999]
     hostIP: "0.0.0.0"
     hostPortRange: [3000, 3999]
+  - guestPort: 28443
+    hostPort: 28443
 
 provision:
   - mode: system
     script: |
       #!/bin/bash
+      
+      # Ensure LXD is installed
+      snap refresh lxd --channel=latest/stable || snap install lxd --channel=latest/stable
+      
+      # Wait for LXD socket to be available
+      echo "Waiting for LXD socket..."
+      while [ ! -S /var/snap/lxd/common/lxd/unix.socket ]; do
+        sleep 1
+      done
+      
       cat > /tmp/lxd_preseed.yaml <<EOF
       config:
         core.https_address: '[::]:28443'
-        core.trust_password: secret
       networks:
         - config:
             ipv4.address: 10.10.10.1/24
@@ -54,4 +73,6 @@ provision:
       cluster: null
       EOF
       cat /tmp/lxd_preseed.yaml | lxd init --preseed
+      
+      # Ensure permissions
       usermod -aG lxd ${USER}

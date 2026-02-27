@@ -43,15 +43,15 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
+import static org.niis.xroad.test.framework.core.asserts.Assertions.equalsAssertion;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.test.util.AssertionErrors.fail;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class MembersApiStepDefs extends BaseStepDefs {

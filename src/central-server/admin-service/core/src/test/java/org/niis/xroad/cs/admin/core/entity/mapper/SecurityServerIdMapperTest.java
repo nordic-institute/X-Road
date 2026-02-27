@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;

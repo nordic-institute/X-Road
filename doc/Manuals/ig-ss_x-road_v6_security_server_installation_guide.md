@@ -459,7 +459,7 @@ The installation is successful if system services are started and the user inter
 
 * Ensure that the Security Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
-### 2.10 Installing the Support for Hardware Tokens
+### 2.10 Installing the Support for Hardware Tokens (TODO this is outdated!!!)
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,44 +26,22 @@
  -->
 <template>
   <div>
-    <XrdSubTabs :tabs />
+    <XrdViewNavigation :allowed-tabs="availableTabs" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
+import { XrdViewNavigation } from '@niis/shared-ui';
 import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
 
 export default defineComponent({
   components: {
-    XrdSubTabs,
+    XrdViewNavigation,
   },
   computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'system-parameters-tab-button',
-          name: 'tab.settings.systemParameters',
-          to: {
-            name: RouteName.SystemParameters,
-          },
-          permissions: [Permissions.VIEW_SYS_PARAMS],
-        },
-        {
-          key: 'backupandrestore-tab-button',
-          name: 'tab.settings.backupAndRestore',
-          to: {
-            name: RouteName.BackupAndRestore,
-          },
-          permissions: [Permissions.BACKUP_CONFIGURATION],
-        },
-      ];
-      return this.getAllowedTabs(allTabs);
-    },
+    ...mapState(useSettingsTabs, ['availableTabs']),
   },
 });
 </script>

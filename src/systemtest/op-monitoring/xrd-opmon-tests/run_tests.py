@@ -147,7 +147,7 @@ class OperationalMonitoringIntegrationTest(unittest.TestCase):
         # This is to check that setting operational monitoring buffer
         # size to zero results with operational data not being sent to
         # the operational monitoring daemon.
-        ini_parameters["op-monitor-buffer.size"] = 0
+        ini_parameters["op-monitor.buffer.size"] = 0
         self._run_test(test_zero_buffer_size, ini_parameters, QUERY_PARAMETERS)
 
     @staticmethod
@@ -208,7 +208,7 @@ def _configure_ini_parameters(
         server_addresses: Tuple, target_ini_parameters: dict,
         initial_parameters: dict, ssh_user: str, mode: str):
     """ Helper for reconfiguring the servers before and after the tests.
-    
+
     Use mode="edit" for initial editing and mode="restore" for restoring
     the configuration.
     """
@@ -233,7 +233,7 @@ def _configure_ini_parameters(
                 if ini_section == "op-monitor":
                     opmonitor_needs_restart = True
                     target = "daemon"
-                elif ini_section == "op-monitor-buffer":
+                elif ini_section == "op-monitor.buffer":
                     proxy_needs_restart = True
                     target = "buffer"
                 else:

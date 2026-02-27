@@ -73,13 +73,12 @@ public class SettingsMemberClassesPageObj {
 
     public SelenideElement listSizeSelector() {
         return $x("//div[@data-test='member-classes-list']"
-                + "//div[contains(@class, 'v-data-table-footer__items-per-page')]"
-                + "/div[contains(@class, 'v-select')]");
+                + "//div[@data-test='xrd-paginator-select']");
     }
 
     public SelenideElement listSizeSelectorText() {
         return $x("//div[@data-test='member-classes-list']"
-                + "//div[contains(@class, 'v-data-table-footer__items-per-page')]"
+                + "//div[@data-test='xrd-paginator']"
                 + "//span[@class='v-select__selection-text']");
     }
 

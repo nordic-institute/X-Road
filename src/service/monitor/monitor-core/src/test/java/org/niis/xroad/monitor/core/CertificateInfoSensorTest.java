@@ -47,10 +47,9 @@ import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
-import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
-import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +59,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.monitor.core.CertificateInfoSensor.CERT_HEX_DELIMITER;
 
@@ -81,6 +79,33 @@ class CertificateInfoSensorTest {
     private static final String TSP_NOT_AFTER = "2014-11-29T11:53:06Z";
 
     private CertificateInfoSensor certificateInfoSensor;
+
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties() {
+        @Override
+        public Duration certificateInfoSensorInterval() {
+            return Duration.ofDays(1);
+        }
+
+        @Override
+        public Duration diskSpaceSensorInterval() {
+            return Duration.ofSeconds(60);
+        }
+
+        @Override
+        public Duration execListingSensorInterval() {
+            return Duration.ofSeconds(60);
+        }
+
+        @Override
+        public Duration systemMetricsSensorInterval() {
+            return Duration.ofSeconds(5);
+        }
+
+        @Override
+        public boolean limitRemoteDataSet() {
+            return true;
+        }
+    };
 
     @BeforeEach
     void init() throws Exception {
@@ -104,10 +129,8 @@ class CertificateInfoSensorTest {
 
         var serverConfProvider = new EmptyServerConf();
 
-        var taskScheduler = spy(TaskScheduler.class);
-        when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
-
-        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, serverConfProvider, mock(SignerRpcClient.class));
+        certificateInfoSensor = new CertificateInfoSensor(envMonitorProperties, serverConfProvider,
+                mock(SignerRpcClient.class));
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {
@@ -125,7 +148,6 @@ class CertificateInfoSensorTest {
                 .setActive(false)
                 .setSerialNumber("serialNumber")
                 .setLabel("label")
-                .setSlotIndex(-1)
                 .setStatus(TokenStatusInfo.OK)
                 .addAllKeyInfo(keyInfos)
                 .build());
@@ -163,9 +185,9 @@ class CertificateInfoSensorTest {
         certificateInfoSensor.measure();
 
         Map<String, Metric> result = metrics.getMetrics();
-        assertEquals(2, result.entrySet().size()); // certs & jmx certs
-        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
-                (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)
+        assertEquals(2, result.size()); // certs & string certs
+        SimpleSensor<StringifiedData<CertificateMonitoringInfo>> certificates =
+                (SimpleSensor<StringifiedData<CertificateMonitoringInfo>>)
                         result.get(SystemMetricNames.CERTIFICATES);
         SimpleSensor<ArrayList<String>> certificatesAsText = (SimpleSensor<ArrayList<String>>)
                 result.get(SystemMetricNames.CERTIFICATES_STRINGS);
@@ -202,9 +224,9 @@ class CertificateInfoSensorTest {
         certificateInfoSensor.measure();
 
         Map<String, Metric> result = metrics.getMetrics();
-        assertEquals(2, result.entrySet().size()); // certs & jmx certs
-        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
-                (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)
+        assertEquals(2, result.size()); // certs & string certs
+        SimpleSensor<StringifiedData<CertificateMonitoringInfo>> certificates =
+                (SimpleSensor<StringifiedData<CertificateMonitoringInfo>>)
                         result.get(SystemMetricNames.CERTIFICATES);
         SimpleSensor<ArrayList<String>> certificatesAsText = (SimpleSensor<ArrayList<String>>)
                 result.get(SystemMetricNames.CERTIFICATES_STRINGS);

@@ -1,0 +1,18 @@
+serviceAccount:
+  name: "openbao-init-sa"
+  create: true
+
+image: "dwdraju/alpine-curl-jq"
+imagePullPolicy: IfNotPresent
+
+openbao:
+  address: "https://openbao:8200"
+  # In a clustered OpenBao deployment, each node must be unsealed individually.
+  # If not explicitly specified, 'openbao.address' is used.
+  nodes: []
+  # - "https://openbao-0.openbao-internal:8200"
+  # - "https://openbao-1.openbao-internal:8200"
+  shamir:
+    threshold: 3
+    shares: 5
+  xroad_token_secret_name: xroad-token # Name of the Kubernetes secret that stores the X-Road access token, created during OpenBao initialization
