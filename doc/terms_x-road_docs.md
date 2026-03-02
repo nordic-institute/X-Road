@@ -25,14 +25,14 @@ Doc. ID:  TA-TERMS
 <!-- toc -->
 
 - [License](#license)
-- [1 Dataspace and Dataspace Identifier](#1-dataspace-and-dataspace-identifier)
-- [2 Participants of the Dataspace](#2-participants-of-the-dataspace)
-- [3 Trust Services](3#-trust-services)
-- [4 Governance and Roles](#3-governance-and-roles)
-- [5 Data Sharing Concepts](#4-data-sharing-concepts)
-- [6 Technical Components](#5-technical-components)
-- [7 Identifier Structure](#6-identifier-structure)
-- [8 Technical Terms](#7-technical-terms)
+- [1 Dataspace](#1-dataspace)
+- [2 Governance and Roles](#2-governance-and-roles)
+- [3 Participants of the Dataspace](#3-participants-of-the-dataspace)
+- [4 Trust Services](4#-trust-services)
+- [5 Data Sharing Concepts](#5-data-sharing-concepts)
+- [6 Technical Components](#6-technical-components)
+- [7 Identifier Structure](#7-identifier-structure)
+- [8 Technical Terms](#8-technical-terms)
 
 <!-- tocstop -->
 
@@ -40,7 +40,7 @@ Doc. ID:  TA-TERMS
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
-## 1 Dataspace and Dataspace Identifier
+## 1 Dataspace
 
 ### Dataspace
 
@@ -56,11 +56,31 @@ an X-Road instance.
 Interconnection between two or more dataspaces enabling cross-dataspace
 data sharing.
 
-## 2 Participants of the Dataspace
+## 2 Governance and Roles
+
+### Dataspace Governance Authority
+
+The role responsible for establishing, governing, managing and enforcing
+the technical policies and business rules of a Dataspace.
+
+### Dataspace Operator
+
+An entity responsible for operating technical services of a Dataspace on
+behalf of the Governance Authority.
+
+Operational responsibilities may be delegated, but governance control
+remains with the Governance Authority.
+
+### Governance Framework
+
+Strategies, policies and decision-making structures through which
+Dataspace governance operates.
+
+## 3 Participants of the Dataspace
 
 ### Participant
 
-A legal or natural person acting in a dataspace participant role and
+A legal person acting in a dataspace participant role and
 registered in a Dataspace.
 
 A Participant may provide and/or consume Datasets.
@@ -78,7 +98,7 @@ A Participant that requests access to an offered Dataset.
 A set of activities within a Dataspace for the purpose of data sharing
 or related activities.
 
-## 3 Trust Services
+## 4 Trust Services
 
 Trust Services provide cryptographic assurance mechanisms that support authentication, integrity, and non-repudiation within the Dataspace.
 
@@ -119,26 +139,6 @@ A Timestamping Authority approved by the Dataspace Governance Authority to provi
 ### Timestamp
 
 Data in electronic form that binds other data to a particular time, establishing evidence that the bound data existed at that time (EU No 910/2014).
-
-## 4 Governance and Roles
-
-### Dataspace Governance Authority
-
-The role responsible for establishing, governing, managing and enforcing
-the technical policies and business rules of a Dataspace.
-
-### Dataspace Operator
-
-An entity responsible for operating technical services of a Dataspace on
-behalf of the Governance Authority.
-
-Operational responsibilities may be delegated, but governance control
-remains with the Governance Authority.
-
-### Governance Framework
-
-Strategies, policies and decision-making structures through which
-Dataspace governance operates.
 
 ## 5 Data Sharing Concepts
 
@@ -207,12 +207,25 @@ their technical endpoints within a Dataspace.
 
 A component that distributes or relays Registry configuration.
 
+### Information System
+
+A technical system operated by a Participant that processes, stores, 
+or manages data and supports the Participant’s activities.
+
+An Information System may act as a Provider, a Consumer, or both within 
+a Dataspace by exposing or consuming Datasets through one or more 
+Subsystems.
+
+An Information System may consist of multiple technical components 
+and may expose one or more Subsystems that are independently identifiable 
+within a Dataspace.
+
 ### Subsystem
 
 A logical part of a Participant's information system that is
-independently identifiable within the Dataspace. Participants
-must declare parts of their information system as subsystems
-to consume or provide Datasets.
+independently identifiable within the Dataspace. A Subsystem must
+be registered in the Dataspace Registry and is used as a client
+on a Participant Agent to consume and/or provide Datasets.
 
 Subsystem is an X-Road-specific concept and has no direct dataspace
 equivalent.
@@ -292,13 +305,6 @@ Participant.
 
 ## 8 Technical Terms
 
-**API** -- Application Programming Interface\
-**HTTP** -- Hypertext Transfer Protocol\
-**HTTPS** -- Hypertext Transfer Protocol Secure\
-**JSON** -- JavaScript Object Notation\
-**REST** -- Representational State Transfer\
-**SOAP** -- Simple Object Access Protocol\
-**TLS** -- Transport Layer Security\
-**OCSP** -- Online Certificate Status Protocol\
 **CA** -- Certification Authority\
+**OCSP** -- Online Certificate Status Protocol\
 **TSA** -- Timestamping Authority
