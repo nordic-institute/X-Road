@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.30
+Version: 1.31
 Doc. ID: IG-XLB
 
 
@@ -37,6 +37,7 @@ Doc. ID: IG-XLB
 | 06.05.2025 | 1.28    | Added more details about the soft token status check result caching                                                      | Petteri Kivimäki            |
 | 01.08.2025 | 1.29    | Fix a broken link                                                                                                        | Petteri Kivimäki            |
 | 25.02.2026 | 1.30    | Update PostgreSQL to version 15 on RHEL                                                                                  | Ričardas Bučiūnas           |
+| 02.03.2026 | 1.31    | Fix broken link                                                                                                          | Petteri Kivimäki            |
 
 ## Table of Contents
 
@@ -119,7 +120,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 |             Document Id              | Document                                                                                                                                   |
 | :----------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
-|            \[SS-CLUSTER\]            | [Readme: Security Server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/tree/develop/ansible/ss_cluster/README.md) |
+|            \[SS-CLUSTER\]            | [Readme: Security Server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/blob/develop/development/ansible/ss_cluster/README.md) |
 |              \[IG-SS\]               | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md)                                     |
 |              \[UG-SS\]               | [X-Road 7 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md)                                                     |
 | <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)                                                                               |
