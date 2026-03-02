@@ -18,8 +18,8 @@ Doc. ID:  TA-TERMS
 | 02.06.2021 | 0.7     | Add backup encryption related terms.                                                                                                                             | Andres Allkivi   |
 | 25.08.2021 | 0.8     | Update X-Road references from version 6 to 7                                                                                                                     | Caro Hautamäki   |
 | 17.04.2023 | 0.9     | Remove central services support                                                                                                                                  | Justas Samuolis  |
-| 11.11.2025 | 0.10    | Drop JMX                                                                                                                                                         | Petteri Kivimäki |
-| 27.02.2026 | 0.11    | Dataspace-aligned terminology, simplified model                                                                                                                                                         | Justas Samuolis  |
+| 11.11.2025 | 0.10    | Drop JMX                                                                                                                                                         | Justas Samuolis  |
+| 27.02.2026 | 0.11    | Dataspace-aligned terminology, simplified model                                                                                                                  | Petteri Kivimäki |
 ## Table of Contents
 
 <!-- toc -->
