@@ -11,7 +11,6 @@ dependencies {
   implementation(project(":lib:properties-quarkus"))
 
   implementation(libs.bundles.quarkus.containerized)
-  implementation(libs.quarkus.extension.systemd.notify)
 
   runtimeOnly(libs.edc.bom.dataplane)
 }
