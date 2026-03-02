@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import io.grpc.BindableService;
-import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -43,6 +42,7 @@ import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesColle
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -59,6 +59,8 @@ import static org.niis.xroad.securityserver.restapi.service.CertificateAuthority
 @EnableConfigurationProperties(AdminRpcServerProperties.class)
 public class SecurityServerConfiguration {
 
+    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
+
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
@@ -73,10 +75,12 @@ public class SecurityServerConfiguration {
     }
 
     @Bean
-    @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3)
     @Profile("nontest")
-    public Filter ipThrottlingFilter(AdminServiceProperties properties) {
-        return new IpThrottlingFilter(properties);
+    public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(AdminServiceProperties properties) {
+        var filter = new IpThrottlingFilter(properties);
+        var bean = new FilterRegistrationBean<>(filter);
+        bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        return bean;
     }
 
     @Bean

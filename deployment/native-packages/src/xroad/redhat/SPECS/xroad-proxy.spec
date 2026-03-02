@@ -20,6 +20,16 @@ Requires(postun):   systemd
 Requires:           net-tools, tar
 Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release, rsyslog
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
+Obsoletes:          xroad-addon-messagelog < 8.0.0
+Obsoletes:          xroad-addon-metaservices < 8.0.0
+Obsoletes:          xroad-addon-proxymonitor < 8.0.0
+Obsoletes:          xroad-addon-wsdlvalidator < 8.0.0
+Obsoletes:          xroad-addon-opmonitoring < 8.0.0
+Conflicts:          xroad-addon-messagelog
+Conflicts:          xroad-addon-metaservices
+Conflicts:          xroad-addon-proxymonitor
+Conflicts:          xroad-addon-wsdlvalidator
+Conflicts:          xroad-addon-opmonitoring
 
 %define src %{_topdir}/..
 

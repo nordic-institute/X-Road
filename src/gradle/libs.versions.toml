@@ -33,7 +33,6 @@ jacoco = "0.8.12"
 resilience4j = "2.3.0"
 quarkus = "3.31.4"
 quarkus-vault = "4.5.0"
-quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.15.1"
 microprofile = "3.1"
 feign = "13.6"
@@ -81,8 +80,6 @@ quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "qua
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
 quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
-quarkus-extension-systemd-notify = { group = "io.quarkiverse.systemd.notify", name = "quarkus-systemd-notify", version.ref = "quarkus-systemd-notify" }
-
 microprofile-config-api = { group = "org.eclipse.microprofile.config", name = "microprofile-config-api", version.ref = "microprofile" }
 
 smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
