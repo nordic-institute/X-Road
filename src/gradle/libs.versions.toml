@@ -240,6 +240,8 @@ edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = 
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 edc-core-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
 
+edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
+
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
 edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
@@ -287,6 +289,10 @@ edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", versio
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
 edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc" }
+edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", version.ref = "edc" }
+edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
+edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }
+edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
 
 edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version = "0.0.6-SNAPSHOT" }
 

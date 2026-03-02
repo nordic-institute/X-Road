@@ -16,6 +16,7 @@ Requires:           xroad-monitor = %version-%release
 Requires:           xroad-backup-manager = %version-%release
 Requires:           xroad-ds-control-plane = %version-%release
 Requires:           xroad-ds-data-plane = %version-%release
+Requires:           xroad-ds-identity-hub = %version-%release
 Conflicts:          xroad-centralserver
 
 %description

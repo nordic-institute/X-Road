@@ -36,3 +36,8 @@ ss_modules:
     build: build
     target: /usr/share/xroad/jlib/ds-data-plane
     service: xroad-ds-data-plane
+  ds-identity-hub:
+    dir: service/ds-identity-hub/ds-identity-hub-application
+    build: build
+    target: /usr/share/xroad/jlib/ds-identity-hub
+    service: xroad-ds-identity-hub
