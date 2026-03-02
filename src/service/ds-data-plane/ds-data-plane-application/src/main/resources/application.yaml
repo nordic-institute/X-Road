@@ -39,7 +39,7 @@ edc:
   dpf:
     selector:
       url: https://127.0.0.1:9192/control/v1/dataplanes
-  hostname: host.docker.internal
+  hostname: ${HOSTNAME}
   component:
     id: DSP-compatibility-test
   transfer:
@@ -65,3 +65,6 @@ edc:
       jwks:
         url: https://example.com/jwks
       issuer: test-issuer
+  controlplane:
+    control:
+      url: http://ds-control-plane:9191/api/control

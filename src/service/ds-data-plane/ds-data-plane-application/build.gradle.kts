@@ -9,6 +9,8 @@ dependencies {
 
   implementation(project(":service:ds-data-plane:ds-data-plane-db"))
 
+  runtimeOnly(project(":service:ds-data-plane:ds-xroad-data-plane"))
+
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
 
@@ -17,6 +19,7 @@ dependencies {
 
   runtimeOnly(libs.edc.bom.dataplane) {
     exclude("org.eclipse.edc", "data-plane-self-registration")
+    exclude("org.eclipse.edc", "data-plane-signaling-api")
   }
   runtimeOnly(libs.edc.core.participantcontext.config)
 }

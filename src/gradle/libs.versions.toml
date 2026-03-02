@@ -42,7 +42,7 @@ testContainers = "2.0.2"
 testAllure = "2.31.0"
 testSelenide = "7.12.3"
 shadowPlugin = "8.3.9"
-edc = "0.16.0-SNAPSHOT"
+edc = "0.17.0-SNAPSHOT"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -232,6 +232,8 @@ edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiabl
 edc-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
 edc-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
+edc-contolplane-api-config = { module = "org.eclipse.edc:control-api-configuration", version.ref = "edc" }
+edc-dataplane-signaling = { module = "org.eclipse.edc:data-plane-signaling", version.ref = "edc" }
 
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
@@ -283,6 +285,10 @@ edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 # BOM modules
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
+edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
+edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc" }
+
+edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version = "0.0.6-SNAPSHOT" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }

@@ -7,7 +7,10 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":service:ds-control-plane:ds-control-plane-db"))
+  implementation(project(":service:ds-control-plane:ds-control-plane-db")) {
+    exclude("org.eclipse.edc", "transfer-data-plane-signaling") // deprecated
+  }
+
   implementation(project(":service:ds-control-plane:ds-ext-sample"))
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
@@ -16,15 +19,20 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)
 
-  implementation(libs.edc.virtual.controlplane.feature.sql.bom)
-  implementation(libs.edc.spi.dataplane)
-  implementation(libs.edc.spi.jsonld)
-  implementation(libs.edc.spi.transaction.datasource)
-  implementation(libs.edc.spi.controlplane)
-  implementation(libs.edc.spi.participantcontext.config)
-  implementation(libs.edc.lib.jsonld)
-  implementation(libs.edc.lib.sql)
+  runtimeOnly(libs.edc.dataplane.signaling)
+  runtimeOnly(libs.edc.contolplane.api.config)
 
-  implementation(libs.edc.core.sql.bootstrapper)  //TODO runs DML on startup. move to different module?
-  implementation(libs.bundles.edc.dcp)
+  runtimeOnly(libs.edc.virtual.controlplane.feature.sql.bom) {
+    exclude("org.eclipse.edc", "transfer-data-plane-signaling") // deprecated
+  }
+  runtimeOnly(libs.edc.spi.dataplane)
+  runtimeOnly(libs.edc.spi.jsonld)
+  runtimeOnly(libs.edc.spi.transaction.datasource)
+  runtimeOnly(libs.edc.spi.controlplane)
+  runtimeOnly(libs.edc.spi.participantcontext.config)
+  runtimeOnly(libs.edc.lib.jsonld)
+  runtimeOnly(libs.edc.lib.sql)
+
+  runtimeOnly(libs.edc.core.sql.bootstrapper)  //TODO runs DML on startup. move to different module?
+  runtimeOnly(libs.bundles.edc.dcp)
 }
