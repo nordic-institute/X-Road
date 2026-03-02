@@ -38,7 +38,9 @@ Doc. ID:  TA-TERMS
 
 ## License
 
-This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+This document is licensed under the Creative Commons Attribution-ShareAlike 
+3.0 Unported License. To view a copy of this license, 
+visit http://creativecommons.org/licenses/by-sa/3.0/
 
 ## 1 Dataspace
 
@@ -76,11 +78,17 @@ remains with the Governance Authority.
 Strategies, policies and decision-making structures through which
 Dataspace governance operates.
 
+### Trust Framework
+
+A composition of policies, rules, standards, and procedures designed 
+for trust decisions in Dataspaces based on assurances. Trust Framework 
+is part of the Dataspace Governance Framework.
+
 ## 3 Participants of the Dataspace
 
 ### Participant
 
-A legal person acting in a dataspace participant role and
+A legal person acting in a Dataspace Participant role and
 registered in a Dataspace.
 
 A Participant may provide and/or consume Datasets.
@@ -100,19 +108,32 @@ or related activities.
 
 ## 4 Trust Services
 
-Trust Services provide cryptographic assurance mechanisms that support authentication, integrity, and non-repudiation within the Dataspace.
+Trust Services provide cryptographic assurance mechanisms that support 
+authentication, integrity, and non-repudiation within the Dataspace.
+
+### Trust Anchor
+
+A Trust Anchor is an entity accredited by the Dataspace Governance Authority 
+to formally confirm that certain requirements, properties, or conditions 
+are met.
+
+Trust Anchors issue attestations that other Participants in the Dataspace 
+can rely on as trustworthy statements about specific claims.
+
+A Trust Anchor may be a Certificate Authority (CA) or another approved 
+authority authorised to issue such attestations.
 
 ### Certification Authority (CA)
 
 An entity that issues digital certificates.
 
-A digital certificate binds a public key to the identity of its subject and enables verification of authenticity and integrity.
-
-Within X-Road, a Certification Authority acts as a trust anchor. It may be a Root CA or an intermediate CA.
+A digital certificate binds a public key to the identity of its subject and
+enables verification of authenticity and integrity.
 
 ### Approved Certification Service Provider
 
-A Certification Authority approved by the Dataspace Governance Authority to issue certificates used within the Dataspace.
+A Certification Authority approved by the Dataspace Governance Authority 
+to issue certificates used within the Dataspace.
 
 An Approved Certification Service Provider may provide:
 
@@ -120,25 +141,34 @@ An Approved Certification Service Provider may provide:
 - Sign certificates for Participants
 - Certificate status validation services (OCSP)
 
+Within X-Road, an Approved Certification Service Provider acts as a Trust Anchor. It 
+may be a Root CA or an intermediate CA.
+
 ### Validation service (OCSP)
 
-A service that provides real-time validation of the status of digital certificates.
+A service that provides real-time validation of the status of digital 
+certificates. It confirms whether a certificate is valid, revoked, or expired.
 
-It confirms whether a certificate is valid, revoked, or expired.
+The service is provided by an Approved Certification Service Provider.
 
 ### Timestamping Authority (TSA)
 
 An entity that issues cryptographic timestamps.
 
-Timestamps provide verifiable proof that specific data existed at a certain point in time and prevent backdating.
+Timestamps provide verifiable proof that specific data existed at 
+a certain point in time and prevent backdating.
 
 ### Approved Timestamp Service Provider
 
-A Timestamping Authority approved by the Dataspace Governance Authority to provide timestamp services within the Dataspace.
+A Timestamping Authority approved by the Dataspace Governance Authority 
+to provide timestamp services within the Dataspace.
+
+Within X-Road, an Approved Timestamping Authority acts as a Trust Anchor.
 
 ### Timestamp
 
-Data in electronic form that binds other data to a particular time, establishing evidence that the bound data existed at that time (EU No 910/2014).
+Data in electronic form that binds other data to a particular time, 
+establishing evidence that the bound data existed at that time (EU No 910/2014).
 
 ## 5 Data Sharing Concepts
 
@@ -195,17 +225,23 @@ A Participant Agent:
 - Manages Contract Negotiation and Transfer Processes
 - Enables Dataset sharing
 
-The term Connector may be used as an equivalent term in dataspace
-protocol contexts.
+The term Connector may be used as an equivalent term in Dataspace
+Protocol contexts.
+
+In X-Road context, a Participant Agent replaces the component previously known as a Security Server.
 
 ### Registry
 
 A system that maintains the authoritative state of Participants and
-their technical endpoints within a Dataspace.
+their Participant Agents within a Dataspace.
+
+In X-Road context, a Registry replaces the component previously known as a Central Server.
 
 ### Registry Proxy
 
 A component that distributes or relays Registry configuration.
+
+In X-Road context, a Registry Proxy replaces the component previously known as a Configuration Proxy.
 
 ### Information System
 
@@ -220,7 +256,7 @@ An Information System may consist of multiple technical components
 and may expose one or more Subsystems that are independently identifiable 
 within a Dataspace.
 
-### Subsystem
+#### Subsystem
 
 A logical part of a Participant's information system that is
 independently identifiable within the Dataspace. A Subsystem must
@@ -243,6 +279,8 @@ An identifier that uniquely identifies a Dataspace.
 The Dataspace Identifier ensures global uniqueness across federated
 dataspaces.
 
+In X-Road context, a Dataspace Identifier replaces the concept previously known as an Instance Identifier.
+
 ### Participant Identifier
 
 Uniquely identifies a Participant within a Dataspace.
@@ -253,6 +291,8 @@ It consists of:
 - Participant Class
 - Participant Code
 
+In X-Road context, a Participant Identifier replaces the concept previously known as a Member Identifier.
+
 #### Participant Class
 
 A classification assigned by the Dataspace Governance Authority to
@@ -261,12 +301,16 @@ distinguish categories of Participants with similar characteristics.
 All Participants within the same Participant Class must be uniquely
 identifiable by their Participant Code.
 
+In X-Road context, a Participant Class replaces the concept previously known as a Member Class.
+
 #### Participant Code
 
 A unique code identifying a Participant within its Participant Class.
 
 The Participant Code remains stable throughout the lifetime of the
 Participant.
+
+In X-Road context, a Participant Code replaces the concept previously known as a Member Code.
 
 #### Formal Structure
 
@@ -298,10 +342,15 @@ It consists of:
 - Participant Identifier
 - Agent Code
 
+In X-Road context, a Participant Agent Identifier replaces the 
+concept previously known as a Security Server Identifier.
+
 #### Agent Code
 
 A code uniquely identifying a Participant Agent under a specific
 Participant.
+
+In X-Road context, an Agent Code  replaces the concept previously known as a Security Server Code.
 
 ## 8 Technical Terms
 
