@@ -86,6 +86,11 @@ is part of the Dataspace Governance Framework.
 
 ## 3 Participants of the Dataspace
 
+### Participant Role
+
+A set of activities within a Dataspace for the purpose of data sharing
+or related activities.
+
 ### Participant
 
 A legal person acting in a Dataspace Participant role and
@@ -100,11 +105,6 @@ A Participant that offers a Dataset to other Participants.
 ### Consumer
 
 A Participant that requests access to an offered Dataset.
-
-### Participant Role
-
-A set of activities within a Dataspace for the purpose of data sharing
-or related activities.
 
 ## 4 Trust Services
 
