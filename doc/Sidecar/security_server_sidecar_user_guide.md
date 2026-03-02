@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.21
+Version: 1.22
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -29,6 +29,7 @@ Doc. ID: UG-SS-SIDECAR
 | 28.08.2025 | 1.19    | Added paragraph about custom ACME challenge port number | Mikk-Erik Bachmann        |
 | 14.10.2025 | 1.20    | Document multiple token autologin support               | Raido Kaju                |
 | 18.12.2025 | 1.21    | Added hardware token installation paragraph             | Marc David                |
+| 02.03.2026 | 1.22    | Fix broken link                                         | Petteri Kivimäki          |
 
 ## License
 
@@ -388,7 +389,7 @@ Security Server Sidecar provides built-in support for hardware security tokens, 
 
 1. Make the PKCS\#11 provider library (and any required additional files) available in the sidecar container by mounting them as volumes.
 2. Create the `devices.ini` file under your mount for `/etc/xroad` and add the path for the PKCS\#11 library inside it (note that the library path should match the path inside the container you chose in the last step).
-    * More information on how to configure the `devices.ini` file itself can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
+    * More information on how to configure the `devices.ini` file itself can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
 3. Restarting the Security Service Sidecar container might be required:
 
     ```bash
