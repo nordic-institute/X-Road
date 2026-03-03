@@ -60,10 +60,11 @@ jobs:
           - x-road/postgres-dev
           - x-road/central-server-dev
           # Package builder images
-          - x-road/package-builder-deb-jammy
-          - x-road/package-builder-deb-noble
-          - x-road/package-builder-rpm-el8
-          - x-road/package-builder-rpm-el9
+    # TODO: these require different behaviour as they're rarely updated.
+    #          - x-road/package-builder-deb-jammy
+    #          - x-road/package-builder-deb-noble
+    #          - x-road/package-builder-rpm-el8
+    #          - x-road/package-builder-rpm-el9
     steps:
       - name: Cleanup old snapshot images (${{ matrix.package }})
         uses: dataaxiom/ghcr-cleanup-action@v1
