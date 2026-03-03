@@ -15,8 +15,8 @@ YAML_HELPER="$SCRIPT_DIR/../lib/yaml_helper.sh"
 split_ip_dns() {
   local input="$1"
   local ip_list dns_list
-  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
-  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
+  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,)
+  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,)
   echo "$ip_list" "$dns_list"
 }
 
