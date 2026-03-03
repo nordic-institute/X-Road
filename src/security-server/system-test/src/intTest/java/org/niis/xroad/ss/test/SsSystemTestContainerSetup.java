@@ -83,7 +83,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(SIGNER, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(CONFIGURATION_CLIENT, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(OP_MONITOR, Port.QUARKUS_HEALTH, forListeningPort())
-                .withExposedService(BACKUP_MANAGER, Port.QUARKUS_HEALTH, forListeningPort())
+                .withExposedService(AUXILIARY_SERVICE, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
