@@ -40,7 +40,8 @@ jobs:
         package:
           # Security Server base images
           - base-images/ss-baseline-runtime
-          - base-images/ss-baseline-backup-manager-runtime
+          - base-images/ss-baseline-backup-manager-runtime # keeping temporarily to cleanup old images
+          - base-images/ss-baseline-auxiliary-service-runtime
           - base-images/ss-baseline-signer-runtime
           # Security Server service images
           - ss-proxy
@@ -49,7 +50,8 @@ jobs:
           - ss-configuration-client
           - ss-signer
           - ss-softtoken-signer
-          - ss-backup-manager
+          - ss-backup-manager # keeping temporarily to cleanup old images
+          - ss-auxiliary-service
           - ss-proxy-ui-api
           - ss-db-messagelog-init
           - ss-db-opmonitor-init

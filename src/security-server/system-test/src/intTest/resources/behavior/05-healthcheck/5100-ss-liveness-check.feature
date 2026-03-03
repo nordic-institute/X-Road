@@ -23,7 +23,7 @@ Feature: 5100 - SS: Liveness Checks
     And "op-monitor" service liveness check "DEADLOCK_CHECK" has status "UP"
     And "op-monitor" service liveness check "HEAP_MEMORY_CHECK" has status "UP"
 
-  Scenario: Backup-manager service liveness checks are UP
-    Then backup-manager liveness check is UP
-    And "backup-manager" service liveness check "DEADLOCK_CHECK" has status "UP"
-    And "backup-manager" service liveness check "HEAP_MEMORY_CHECK" has status "UP"
+  Scenario: Auxiliary-service service liveness checks are UP
+    Then auxiliary-service liveness check is UP
+    And "auxiliary-service" service liveness check "DEADLOCK_CHECK" has status "UP"
+    And "auxiliary-service" service liveness check "HEAP_MEMORY_CHECK" has status "UP"

@@ -23,5 +23,5 @@ Feature: 5000 - SS: Readiness Checks
     Then op-monitor readiness check is UP
     And "op-monitor" service readiness check "OP_MONITOR_DATABASE_READINESS_CHECK" has status "UP"
 
-  Scenario: Backup-manager service readiness checks are UP
-    Then backup-manager readiness check is UP
+  Scenario: Auxiliary-service service readiness checks are UP
+    Then auxiliary-service readiness check is UP

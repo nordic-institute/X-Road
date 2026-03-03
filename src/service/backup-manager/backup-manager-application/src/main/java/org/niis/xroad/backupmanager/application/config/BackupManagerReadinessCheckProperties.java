@@ -32,7 +32,7 @@ import io.smallrye.config.WithName;
 
 import java.util.Optional;
 
-@ConfigMapping(prefix = "xroad.backup-manager.readiness-check")
+@ConfigMapping(prefix = "xroad.auxiliary-service.readiness-check")
 public interface BackupManagerReadinessCheckProperties {
 
     /**
