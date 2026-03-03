@@ -339,7 +339,7 @@ services:
     environment:
       - DEBUG=true
       - XROAD_HOST=auxiliary-service
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
