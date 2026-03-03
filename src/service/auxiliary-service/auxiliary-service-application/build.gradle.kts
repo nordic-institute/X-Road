@@ -10,8 +10,8 @@ dependencies {
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":service:auxiliary-service:auxiliary-service-core"))
+  implementation(project(":lib:health-check-core"))
 
   implementation(libs.postgresql)
   implementation(libs.bundles.quarkus.containerized)
-  implementation(libs.quarkus.extension.systemd.notify)
 }

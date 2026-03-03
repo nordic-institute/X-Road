@@ -61,6 +61,11 @@ public class AuxiliaryServiceRpcClient extends AbstractRpcClient {
         return ErrorOrigin.AUXILIARY_SERVICE;
     }
 
+    @Override
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
     @PostConstruct
     public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),

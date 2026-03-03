@@ -38,6 +38,9 @@ import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReport
 import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -53,16 +56,20 @@ import static org.niis.xroad.securityserver.restapi.service.CertificateAuthority
 @Configuration
 public class SecurityServerConfiguration {
 
+    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
+
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
     }
 
     @Bean
-    @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3)
     @Profile("nontest")
-    public Filter ipThrottlingFilter(AdminServiceProperties properties) {
-        return new IpThrottlingFilter(properties);
+    public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(AdminServiceProperties properties) {
+        var filter = new IpThrottlingFilter(properties);
+        var bean = new FilterRegistrationBean<>(filter);
+        bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        return bean;
     }
 
     @Bean

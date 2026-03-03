@@ -7,6 +7,7 @@ plugins {
 dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
 
+  implementation(project(":lib:health-check-core"))
   implementation(project(":lib:vault-quarkus"))
   implementation(project(":common:common-jetty"))
   implementation(project(":lib:messagelog-core"))

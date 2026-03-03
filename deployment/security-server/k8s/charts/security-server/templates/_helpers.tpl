@@ -160,6 +160,18 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 3
+          {{- if .config.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ .config.livenessProbe.path }}
+              port: {{ .config.livenessProbe.port | default (index .config.ports 0).port }}
+              scheme: {{ .config.livenessProbe.scheme | default "HTTP" }}
+            initialDelaySeconds: {{ .config.livenessProbe.initialDelaySeconds | default 30 }}
+            periodSeconds: {{ .config.livenessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .config.livenessProbe.timeoutSeconds | default 3 }}
+            successThreshold: 1
+            failureThreshold: {{ .config.livenessProbe.failureThreshold | default 3 }}
+          {{- end }}
 
       volumes:
         - name: tmp-volume

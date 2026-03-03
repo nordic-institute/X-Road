@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.36  
+Version: 1.37
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -49,6 +49,7 @@ Doc. ID: IG-SS-RHEL
 | 18.02.2025 | 1.34    | Configuring memory allocation fo proxy service                                                                                                                                                                       | Ovidijus Narkevičius |
 | 10.03.2025 | 1.35    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
 | 21.03.2025 | 1.36    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
+| 25.02.2026 | 1.37    | Update PostgreSQL to version 15 on RHEL                                                                                                                                                                               | Ričardas Bučiūnas    |
 
 ## License
 
@@ -302,10 +303,11 @@ If you are installing the default setup with local PostgreSQL database, continue
 
 #### 2.6.1 Local Database Setup
 
-When installing the default setup with local database, PostgreSQL packages need to be installed before continuing with X-Road Security Server installation: 
+When installing the default setup with local database, PostgreSQL packages need to be installed before continuing with X-Road Security Server installation. Enable the PostgreSQL 15 module stream first:
 
 ```bash
-sudo yum install postgresql-server postgresql-contrib
+sudo dnf module enable postgresql:15
+sudo dnf install postgresql-server postgresql-contrib
 ```
 
 #### 2.6.2 Remote Database Setup (optional)
@@ -328,10 +330,10 @@ For the application level backup and restore feature to work correctly, it is im
 
 ```bash
 psql --version
-psql (PostgreSQL) 10.16
+psql (PostgreSQL) 15.x
 
 psql -h <database host> -U <superuser> -tAc 'show server_version'
-10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
+15.x
 ```
 
 The Security Server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
