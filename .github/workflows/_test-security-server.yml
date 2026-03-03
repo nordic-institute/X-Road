@@ -87,7 +87,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload ss-system-test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ss-system-test-report-${{ github.run_number }}
