@@ -12,7 +12,6 @@ dependencies {
   implementation(project(":service:ds-control-plane:ds-ext-sample"))
 
   implementation(libs.bundles.quarkus.containerized)
-  implementation(libs.quarkus.extension.systemd.notify)
 
   implementation(libs.edc.virtual.controlplane.feature.sql.bom)
   implementation(libs.edc.spi.dataplane)

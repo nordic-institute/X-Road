@@ -37,7 +37,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download ss-system-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ss-system-test-jar
 
@@ -87,7 +87,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload ss-system-test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ss-system-test-report-${{ github.run_number }}
@@ -101,4 +101,6 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true

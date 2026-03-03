@@ -24,37 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.scheduling;
+package org.niis.xroad.common.healthcheck;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.experimental.UtilityClass;
 
-/**
- * Helper class for GlobalConfChecker.
- * This class does not require authentication, because its
- * methods are accessed from a scheduled job that's run
- * unauthenticated.
- */
-@Slf4j
-@Service
-@Transactional
-class GlobalConfCheckerHelper {
-    private final ServerConfRepository serverConfRepository;
+@UtilityClass
+public class HealthCheckConstants {
 
-    @Autowired
-    GlobalConfCheckerHelper(ServerConfRepository serverConfRepository) {
-        this.serverConfRepository = serverConfRepository;
-    }
+    public static final String STATUS = "status";
+    public static final String TARGET = "target";
+    public static final String STATE = "state";
+    public static final String ERROR = "error";
+    public static final String REASON = "reason";
 
-    /**
-     * Get the Security Server's ServerConf
-     * @return ServerConfEntity
-     */
-    ServerConfEntity getServerConf() {
-        return serverConfRepository.getServerConf();
-    }
 }

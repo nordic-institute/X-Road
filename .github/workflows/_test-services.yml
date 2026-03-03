@@ -37,7 +37,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download signer-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: signer-int-test-jar
 
@@ -87,7 +87,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload signer-int-test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: signer-int-test-report-${{ github.run_number }}
@@ -100,6 +100,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-softtoken-signer:
@@ -118,7 +120,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download softtoken-signer-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: softtoken-signer-int-test-jar
 
@@ -168,7 +170,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload softtoken-signer-int-test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: softtoken-signer-int-test-report-${{ github.run_number }}
@@ -181,6 +183,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-opmonitor:
@@ -199,7 +203,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download opmonitor-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: opmonitor-int-test-jar
 
@@ -249,7 +253,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload opmonitor-int-test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: opmonitor-int-test-report-${{ github.run_number }}
@@ -262,6 +266,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-cs-admin:
@@ -280,7 +286,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download cs-admin-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: cs-admin-int-test-jar
 
@@ -323,7 +329,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload cs-admin-int-test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: cs-admin-int-test-report-${{ github.run_number }}
@@ -336,6 +342,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true
 
   test-cs-management:
@@ -354,7 +362,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download cs-management-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: cs-management-int-test-jar
 
@@ -397,7 +405,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload cs-management-int-test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: cs-management-int-test-report-${{ github.run_number }}
@@ -410,4 +418,6 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
         with:
           task: display-results
+          display-badge: false
+          display-table: false
           pr-comment: true

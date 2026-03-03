@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.106  
+Version: 2.107  
 Doc. ID: UG-SS
 
 ---
@@ -135,6 +135,7 @@ Doc. ID: UG-SS
 | 07.12.2025 | 2.104   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
 | 15.12.2025 | 2.105   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
 | 29.01.2026 | 2.106   | Added information on how to delete a subsystem from the Security Server                                                                                                                                                                                                                                                                                                                                     | Raido Kaju           |
+| 02.03.2026 | 2.107   | Fix broken link                                                                                                                                                                                                                                                                                                                                                                                             | Petteri Kivimäki     |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -363,7 +364,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 11. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-12. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
+12. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/service/proxy/proxy-monitoring-api/src/main/resources/monitoring.xsd).
 
 13. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 

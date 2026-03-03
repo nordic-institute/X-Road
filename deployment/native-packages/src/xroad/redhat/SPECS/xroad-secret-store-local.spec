@@ -3,6 +3,7 @@
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:               xroad-secret-store-local
+BuildArch:          noarch
 Version:            %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:            %{rel}%{?snapshot}%{?dist}
@@ -64,6 +65,17 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
     update-ca-trust
 
     /usr/share/xroad/scripts/secret-store-init-db.sh
+
+    # Workaround for OpenBao known issue on older systemd (RHEL8):
+    # https://github.com/openbao/openbao/blob/main/website/content/docs/known-issues.mdx
+%if 0%{?rhel} <= 8
+    mkdir -p /etc/systemd/system/openbao.service.d
+    cat > /etc/systemd/system/openbao.service.d/rhel8-securebits.conf <<EOF
+[Service]
+SecureBits=
+EOF
+    systemctl daemon-reload
+%endif
 
     # Enable and start service
     if ! systemctl enable openbao.service; then

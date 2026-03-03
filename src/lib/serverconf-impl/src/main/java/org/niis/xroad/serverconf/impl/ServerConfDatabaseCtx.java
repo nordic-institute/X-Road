@@ -35,7 +35,7 @@ import org.niis.xroad.serverconf.ServerConfDbProperties;
 
 @Singleton
 public class ServerConfDatabaseCtx extends DatabaseCtx {
-    private static final String SERVER_CONF_DB_NAME = "serverconf";
+    public static final String SERVER_CONF_DB_NAME = "serverconf";
 
     @Inject
     public ServerConfDatabaseCtx(ServerConfDbProperties dbProperties) {

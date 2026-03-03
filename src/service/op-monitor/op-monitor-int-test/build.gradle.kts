@@ -13,7 +13,11 @@ dependencies {
 }
 
 intTestComposeEnv {
+  env("XROAD_SECRET_STORE_ROOT_TOKEN", "root-token")
+  env("XROAD_SECRET_STORE_TOKEN", "system-test-xroad-token")
+
   images(
+    "OPENBAO_DEV_IMG" to "openbao-dev",
     "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
     "OP_MONITOR_IMG" to "ss-op-monitor"
   )

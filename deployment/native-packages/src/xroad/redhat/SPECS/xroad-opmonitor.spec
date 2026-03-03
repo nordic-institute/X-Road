@@ -8,6 +8,7 @@
 %global _python_bytecompile_errors_terminate_build 0
 
 Name:               xroad-opmonitor
+BuildArch:          noarch
 Version:            %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:            %{rel}%{?snapshot}%{?dist}
