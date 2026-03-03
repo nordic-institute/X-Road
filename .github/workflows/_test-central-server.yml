@@ -37,7 +37,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download cs-system-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: cs-system-test-jar
 
