@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.backupmanager.application.healthcheck;
+package org.niis.xroad.auxiliaryservice.application.healthcheck;
 
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.backupmanager.application.config.BackupManagerReadinessCheckProperties;
+import org.niis.xroad.auxiliaryservice.application.config.AuxiliaryServiceReadinessCheckProperties;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -45,10 +45,10 @@ import static org.mockito.Mockito.when;
 class KubernetesApiReadinessCheckTest {
 
     @Mock
-    private BackupManagerReadinessCheckProperties healthCheckProperties;
+    private AuxiliaryServiceReadinessCheckProperties healthCheckProperties;
 
     @Mock
-    private BackupManagerReadinessCheckProperties.KubernetesApiProperties kubernetesProps;
+    private AuxiliaryServiceReadinessCheckProperties.KubernetesApiProperties kubernetesProps;
 
     private KubernetesApiReadinessCheck check;
 

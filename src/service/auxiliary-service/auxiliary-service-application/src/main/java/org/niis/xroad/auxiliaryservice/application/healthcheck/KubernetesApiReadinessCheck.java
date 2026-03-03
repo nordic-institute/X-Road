@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.backupmanager.application.healthcheck;
+package org.niis.xroad.auxiliaryservice.application.healthcheck;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
-import org.niis.xroad.backupmanager.application.config.BackupManagerReadinessCheckProperties;
+import org.niis.xroad.auxiliaryservice.application.config.AuxiliaryServiceReadinessCheckProperties;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -61,10 +61,10 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
 
     private static final String NAME = "KUBERNETES_API_READINESS_CHECK";
 
-    private final BackupManagerReadinessCheckProperties properties;
+    private final AuxiliaryServiceReadinessCheckProperties properties;
     private final SSLContext kubernetesApiSslContext;
 
-    public KubernetesApiReadinessCheck(BackupManagerReadinessCheckProperties properties) throws GeneralSecurityException, IOException {
+    public KubernetesApiReadinessCheck(AuxiliaryServiceReadinessCheckProperties properties) throws GeneralSecurityException, IOException {
         this.properties = properties;
 
         kubernetesApiSslContext = createSslContext(properties.kubernetes());
@@ -109,7 +109,7 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private boolean checkKubernetesApiAccess(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps)
+    private boolean checkKubernetesApiAccess(AuxiliaryServiceReadinessCheckProperties.KubernetesApiProperties k8sProps)
             throws IOException, GeneralSecurityException {
         String k8sHost = k8sProps.serviceHost().orElseThrow();
         String k8sPort = k8sProps.servicePort().orElseThrow();
@@ -136,15 +136,15 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
         }
     }
 
-    private String readToken(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps) throws IOException {
+    private String readToken(AuxiliaryServiceReadinessCheckProperties.KubernetesApiProperties k8sProps) throws IOException {
         return Files.readString(Path.of(k8sProps.tokenPath())).trim();
     }
 
-    private boolean isRunningInKubernetes(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps) {
+    private boolean isRunningInKubernetes(AuxiliaryServiceReadinessCheckProperties.KubernetesApiProperties k8sProps) {
         return k8sProps.serviceHost().filter(StringUtils::isNotEmpty).isPresent();
     }
 
-    private SSLContext createSslContext(BackupManagerReadinessCheckProperties.KubernetesApiProperties k8sProps)
+    private SSLContext createSslContext(AuxiliaryServiceReadinessCheckProperties.KubernetesApiProperties k8sProps)
             throws GeneralSecurityException, IOException {
         Path caCertPath = Path.of(k8sProps.caCertPath());
         if (!Files.exists(caCertPath)) {

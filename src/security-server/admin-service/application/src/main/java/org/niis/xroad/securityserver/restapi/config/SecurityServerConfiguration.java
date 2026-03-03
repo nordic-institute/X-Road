@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
-import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
@@ -38,8 +37,6 @@ import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReport
 import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.backupmanager.application.config;
+package org.niis.xroad.auxiliaryservice.application.config;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
@@ -33,7 +33,7 @@ import io.smallrye.config.WithName;
 import java.util.Optional;
 
 @ConfigMapping(prefix = "xroad.auxiliary-service.readiness-check")
-public interface BackupManagerReadinessCheckProperties {
+public interface AuxiliaryServiceReadinessCheckProperties {
 
     /**
      * Kubernetes API configuration for the Kubernetes API readiness check.
