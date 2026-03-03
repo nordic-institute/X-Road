@@ -34,6 +34,9 @@ parse_args() {
           shift
           ;;
       --config-file)
+          if [[ $# -lt 2 ]]; then
+              log_die "Missing path argument for --config-file"
+          fi
           XROAD_INSTALLER_CONFIG_FILE="$2"
           shift 2
           ;;
