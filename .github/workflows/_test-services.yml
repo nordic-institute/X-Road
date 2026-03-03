@@ -37,7 +37,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download signer-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: signer-int-test-jar
 
@@ -120,7 +120,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download softtoken-signer-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: softtoken-signer-int-test-jar
 
@@ -203,7 +203,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download opmonitor-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: opmonitor-int-test-jar
 
@@ -286,7 +286,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download cs-admin-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: cs-admin-int-test-jar
 
@@ -362,7 +362,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Download cs-management-int-test
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: cs-management-int-test-jar
 
