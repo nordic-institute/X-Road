@@ -61,7 +61,11 @@ case "$1" in
   db_subst xroad-common/proxy-memory DEFAULT_XM "$DEFAULT_XM"
   db_subst xroad-common/proxy-memory RECOMMENDED_XM "$RECOMMENDED_XM"
 
-  db_set xroad-common/proxy-memory "$CURRENT_XM"
+  # Only set to current if no value was preseeded
+  db_get xroad-common/proxy-memory || RET=""
+  if [ -z "$RET" ] && [ -n "$CURRENT_XM" ]; then
+    db_set xroad-common/proxy-memory "$CURRENT_XM"
+  fi
 
   while :; do
     # Get memory config string from the user
