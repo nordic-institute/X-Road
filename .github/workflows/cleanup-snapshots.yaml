@@ -26,7 +26,7 @@ permissions:
 env:
   # Set to 'true' to enable dry-run for scheduled runs (safe for testing)
   # Set to 'false' to actually delete images on scheduled runs
-  SCHEDULED_DRY_RUN: 'true'
+  SCHEDULED_DRY_RUN: 'false'
 
 jobs:
   cleanup-snapshots:
