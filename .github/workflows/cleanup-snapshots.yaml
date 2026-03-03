@@ -51,6 +51,11 @@ jobs:
           - x-road/ss-softtoken-signer
           - x-road/ss-backup-manager
           - x-road/ss-proxy-ui-api
+          # Data space service images
+          - x-road/ds-control-plane
+          - x-road/ds-data-plane
+          - x-road/ds-identity-hub
+          # Database initialization images
           - x-road/ss-db-messagelog-init
           - x-road/ss-db-opmonitor-init
           - x-road/ss-db-serverconf-init
