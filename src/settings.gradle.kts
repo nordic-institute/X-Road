@@ -94,6 +94,7 @@ include("lib:rpc-quarkus")
 include("lib:vault-core")
 include("lib:vault-spring")
 include("lib:vault-quarkus")
+include("lib:health-check-core")
 
 // Service projects
 include("service")

@@ -13,6 +13,8 @@ quarkus:
     read-timeout: 10S
     kv-secret-engine-version: 1
     kv-secret-engine-mount-path: xrd-secret
+    health:
+      enabled: true
   live-reload:
     enabled: false
   http:
