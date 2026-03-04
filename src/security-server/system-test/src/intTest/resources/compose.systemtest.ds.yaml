@@ -46,7 +46,7 @@ services:
           memory: 256M
 
   ds-control-plane:
-    image: ${DS_CONTROL_PLANE_IMG:-localhost:5555/ds-control-plane}
+    image: ${DS_CONTROL_PLANE_IMG}
     pull_policy: always
     environment:
       - HOSTNAME=ds-control-plane
@@ -86,7 +86,7 @@ services:
         condition: service_healthy
 
   ds-data-plane:
-    image: ${DS_DATA_PLANE_IMG:-localhost:5555/ds-data-plane}
+    image: ${DS_DATA_PLANE_IMG}
     pull_policy: always
     environment:
       - DEBUG=true
