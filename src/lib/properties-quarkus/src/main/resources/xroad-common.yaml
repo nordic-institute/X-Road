@@ -15,6 +15,7 @@ quarkus:
     kv-secret-engine-mount-path: xrd-secret
     health:
       enabled: true
+      stand-by-ok: true
   live-reload:
     enabled: false
   http:
