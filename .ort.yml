@@ -190,7 +190,7 @@ resolutions:
     - message: "proprietary-free license LicenseRef-verbatim-no-modifications in Maven:org.hsqldb:hsqldb:2.7.*"
       reason: "NOT_MODIFIED_EXCEPTION"
       comment: "The license represented by LicenseRef-verbatim-no-modifications allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
-    - message: "CC-BY-SA-3.0 in Unmanaged::X-Road:.*"
+    - message: ".*CC-BY-SA-3.0 in Unmanaged::X-Road:.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The files meant by this license hit are not distributed with X-Road."
   issues:
