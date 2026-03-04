@@ -143,7 +143,7 @@ services:
       retries: 3
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
     volumes:
-      - ./files/jwks/:/jwks
+      - ./container-files/jwks/:/jwks
 
 #networks:
 #  xrd-ss-network:
