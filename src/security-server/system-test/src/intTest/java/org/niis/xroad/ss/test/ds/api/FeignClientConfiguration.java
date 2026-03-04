@@ -53,7 +53,7 @@ public class FeignClientConfiguration {
 
     private String getBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT);
-        return "http://%s:%d/api/mgmt/v4alpha/participants".formatted(container.host(), container.port());
+        return "http://%s:%d/api/mgmt/v5alpha/participants".formatted(container.host(), container.port());
     }
 
     @Bean
