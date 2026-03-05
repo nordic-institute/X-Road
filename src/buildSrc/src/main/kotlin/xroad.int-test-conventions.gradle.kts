@@ -211,8 +211,6 @@ afterEvaluate {
       from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
 
       mergeServiceFiles()
-      exclude("**/module-info.class")
-
       manifest {
         attributes(
           "Main-Class" to intTestShadowJar.mainClass.first()

@@ -44,7 +44,7 @@ tasks.jar {
 
 tasks.shadowJar {
   archiveClassifier.set("")
-  exclude("**/module-info.class")
+
   from(rootProject.file("LICENSE.txt"))
   mergeServiceFiles()
 }
