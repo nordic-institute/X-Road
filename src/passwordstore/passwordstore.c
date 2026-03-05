@@ -36,6 +36,10 @@
 
 #include "passwordstore.h"
 
+static void secure_bzero(void *ptr, size_t len) {
+    volatile unsigned char *p = (volatile unsigned char *)ptr;
+    while (len--) *p++ = 0;
+}
 
 static int openSHMem(struct xmem *xm, int perms, int write_lock,
         const char *pathname_for_ftok)
@@ -328,8 +332,12 @@ error:
         closeSHMem(&xm);
     }
 
+    if (*ret_buf != NULL && *ret_buf_len > 0) {
+        secure_bzero(*ret_buf, (size_t)*ret_buf_len);
+    }
     free(*ret_buf);
     *ret_buf = NULL;
+    *ret_buf_len = 0;
 
     return res;
 }
@@ -343,7 +351,7 @@ int LEGACY_passwordWrite(const char *pathname_for_ftok, const char *password_id,
 
     // Password database that also contains the added password
     char *encoded_db = NULL;
-    size_t encoded_db_len;
+    size_t encoded_db_len = 0;
 
     char *xm_ptr;
 
@@ -390,12 +398,21 @@ int LEGACY_passwordWrite(const char *pathname_for_ftok, const char *password_id,
     if ((error_code = closeSHMem(&xm)) != 0) {
         goto error;
     }
+    if (encoded_db != NULL && encoded_db_len > 0) {
+        secure_bzero(encoded_db, encoded_db_len);
+    }
     free(encoded_db);
+    encoded_db = NULL;
 
     return error_code;
 
 error:
+    if (encoded_db != NULL && encoded_db_len > 0) {
+        secure_bzero(encoded_db, encoded_db_len);
+    }
     free(encoded_db);
+    encoded_db = NULL;
+
     if (xm_opened) {
         closeSHMem(&xm);
     }

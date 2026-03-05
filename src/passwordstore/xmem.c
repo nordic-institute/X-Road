@@ -9,6 +9,11 @@
 
 #include "xmem.h"
 
+static void secure_bzero(void *ptr, size_t len) {
+    volatile unsigned char *p = (volatile unsigned char *)ptr;
+    while (len--) *p++ = 0;
+}
+
 #if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
 /* union semun is defined by including <sys/sem.h> */
 #else
@@ -228,7 +233,17 @@ int xmem_close(struct xmem* xm)
                 int current_dshmid= *((int *)xm->pshmptr);
 
                 /* laseme selle segmendi minna */
-                if(current_dshmid != -1){
+                if (current_dshmid != -1) {
+                    struct shmid_ds ds;
+                    void *ptr;
+
+                    if (shmctl(current_dshmid, IPC_STAT, &ds) == 0) {
+                        ptr = shmat(current_dshmid, 0, 0);
+                        if (ptr != (void *)-1) {
+                            secure_bzero(ptr, ds.shm_segsz);
+                            shmdt(ptr);
+                        }
+                    }
                     shmctl(current_dshmid, IPC_RMID, 0);
                 }
 
@@ -347,8 +362,17 @@ int xmem_resize(struct xmem* xm, size_t size)
             /* jooksva andmesegmendi voti */
             int current_dshmid= *((int *)xm->pshmptr);
 
-            if(current_dshmid != -1){
-                /* havitame selle segmendi ara kah */
+            if (current_dshmid != -1) {
+                struct shmid_ds ds;
+                void *ptr;
+
+                if (shmctl(current_dshmid, IPC_STAT, &ds) == 0) {
+                    ptr = shmat(current_dshmid, 0, 0);
+                    if (ptr != (void *)-1) {
+                        secure_bzero(ptr, ds.shm_segsz);
+                        shmdt(ptr);
+                    }
+                }
                 shmctl(current_dshmid, IPC_RMID, 0);
             }
 
@@ -441,8 +465,11 @@ int xmem_resize_and_copy(struct xmem* xm, size_t size)
             }
 
             /* laseme vanal segmendil minna */
-            if(oldptr){
-                shmdt(oldptr);
+            if (oldptr) {
+                 if (current_size) {
+                     secure_bzero(oldptr, current_size);
+                 }
+                 shmdt(oldptr);
             }
 
             /* havitame vana segmendi ara, nii et detach ta ara havitaks */

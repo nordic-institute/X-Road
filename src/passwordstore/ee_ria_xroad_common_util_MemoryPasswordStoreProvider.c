@@ -30,6 +30,11 @@
 
 #include "passwordstore.h"
 
+static void secure_bzero(void *ptr, size_t len) {
+    volatile unsigned char *p = (volatile unsigned char *)ptr;
+    while (len--) *p++ = 0;
+}
+
 JNIEXPORT jbyteArray JNICALL
 Java_ee_ria_xroad_common_util_MemoryPasswordStoreProvider_read(JNIEnv *env, jclass jc,
         jstring j_pathname_for_ftok, jstring j_id)
@@ -37,7 +42,7 @@ Java_ee_ria_xroad_common_util_MemoryPasswordStoreProvider_read(JNIEnv *env, jcla
     (void)jc;
 
     jbyteArray res = NULL;
-    int error_code;
+    int error_code = 0;
     signed char *ret_buf;
     const char *pathname_for_ftok = NULL;
     const char *id = NULL;
@@ -68,7 +73,6 @@ Java_ee_ria_xroad_common_util_MemoryPasswordStoreProvider_read(JNIEnv *env, jcla
         if (res == NULL) {
             // Out of memory.
             error_code = MALLOC_FAILURE;
-            free(ret_array);
             goto error;
         }
         ret_buf = (*env)->GetByteArrayElements(env, res, NULL);
@@ -88,7 +92,11 @@ error:
         (*env)->ReleaseStringUTFChars(env, j_id, id);
     }
 
+    if (ret_array != NULL && ret_len > 0) {
+        secure_bzero(ret_array, (size_t)ret_len);
+    }
     free(ret_array);
+    ret_array = NULL;
 
     if (error_code == 0) {
         return res;
