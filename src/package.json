@@ -16,7 +16,8 @@
       "@isaacs/brace-expansion": "5.0.1",
       "minimatch": "^10.2.3",
       "axios": "~1.13.5",
-      "rollup": "^4.59.0"
+      "rollup": "^4.59.0",
+      "immutable": "5.1.5"
     }
   },
   "devDependencies": {
