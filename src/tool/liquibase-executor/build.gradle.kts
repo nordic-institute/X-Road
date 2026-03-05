@@ -5,10 +5,13 @@ plugins {
 
 dependencies {
   implementation(libs.liquibase.core)
-  implementation("info.picocli:picocli:4.7.7")
+  implementation(libs.picocli)
   implementation(libs.postgresql)
   implementation(libs.slf4j.api)
   implementation(libs.logback.classic)
+  implementation(libs.julOverSlf4j)
+
+  testImplementation(libs.h2database)
 }
 
 tasks.jar {
