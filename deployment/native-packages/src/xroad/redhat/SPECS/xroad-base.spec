@@ -48,16 +48,10 @@ mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/var/lib/xroad
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
-ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.7.8.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
-ln -s /usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core.jar
-
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../../src/common/common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../../src/security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.8.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../../src/tool/liquibase-executor/build/libs/liquibase-executor.jar %{buildroot}/usr/share/xroad/db/liquibase-executor.jar
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
-cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core-4.19.0.jar
 cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
 cp -p %{srcdir}/common/helper-scripts/yaml_helper.py %{buildroot}/usr/share/xroad/scripts/yaml_helper.py
 cp -p %{srcdir}/common/helper-scripts/yaml_helper.sh %{buildroot}/usr/share/xroad/scripts/yaml_helper.sh
@@ -81,10 +75,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %attr(644,root,root) %{_unitdir}/xroad-base.service
 %dir /usr/share/xroad
-/usr/share/xroad/jlib/common-db.jar
-/usr/share/xroad/jlib/common-db-1.0.jar
-/usr/share/xroad/jlib/postgresql.jar
-/usr/share/xroad/jlib/postgresql-*.jar
 /usr/share/xroad/scripts/_backup_xroad.sh
 /usr/share/xroad/scripts/generate_certificate.sh
 /usr/share/xroad/scripts/generate_gpg_keypair.sh
@@ -96,8 +86,7 @@ rm -rf %{buildroot}
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
 %attr(755,root,root) /usr/share/xroad/scripts/write_tls_config.sh
 %attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_admin_user.sh
-/usr/share/xroad/db/liquibase-core.jar
-/usr/share/xroad/db/liquibase-core-*.jar
+/usr/share/xroad/db/liquibase-executor.jar
 /usr/share/xroad/db/liquibase.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
@@ -113,16 +102,16 @@ fi
 
 %define set_default_java_version()                                                                                         \
   if [ $1 -ge 1 ] ; then                                                                                                \
-    `# 7.4.0. Check that the default java version is at least 21`                                                       \
+    `# Check that the default java version is at least 25`                                                       \
     java_version_supported() {                                                                                          \
       local java_exec=$1                                                                                                \
       local java_version=$("$java_exec" -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)                 \
-      [[ $java_version -ge 21 ]]                                                                                        \
+      [[ $java_version -ge 25 ]]                                                                                        \
     }                                                                                                                   \
     if ! java_version_supported /etc/alternatives/java; then                                                            \
-      if [ -x /etc/alternatives/jre_21/bin/java ] && java_version_supported /etc/alternatives/jre_21/bin/java; then     \
-        echo "Configuring Java 21 as the default version..."                                                            \
-        alternatives --set java $(readlink -f /etc/alternatives/jre_21)/bin/java                                        \
+      if [ -x /etc/alternatives/jre_25/bin/java ] && java_version_supported /etc/alternatives/jre_25/bin/java; then     \
+        echo "Configuring Java 25 as the default version..."                                                            \
+        alternatives --set java $(readlink -f /etc/alternatives/jre_25)/bin/java                                        \
       else                                                                                                              \
         echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2   \
       fi                                                                                                                 \
