@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
 
+    <property name="LOG_DIR" value="/var/log/xroad" />
+    <property name="SCHEMA" value="${xroad.liquibase.schema:-unknown}" />
+
+    <!-- Stdout: clean messages for deployment scripts and container logs -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%msg%n</pattern>
@@ -8,7 +12,18 @@
         </encoder>
     </appender>
 
+    <!-- File: timestamped for post-mortem debugging -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_DIR}/schema-${SCHEMA}-update.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>

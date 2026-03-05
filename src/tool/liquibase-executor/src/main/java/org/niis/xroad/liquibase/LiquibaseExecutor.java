@@ -26,11 +26,20 @@
 package org.niis.xroad.liquibase;
 
 import liquibase.integration.commandline.LiquibaseCommandLine;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
- * Entry point wrapper for Liquibase CLI that disables analytics
- * before any Liquibase class initialization and delegates all
- * command processing to {@link LiquibaseCommandLine}.
+ * Entry point wrapper for Liquibase CLI that configures logging and disables analytics
+ * before any Liquibase class initialization, then delegates all command processing
+ * to {@link LiquibaseCommandLine}.
+ *
+ * <p>Logging setup:
+ * <ul>
+ *   <li>Sets {@code xroad.liquibase.schema} system property from {@code --defaultSchemaName}
+ *       CLI argument, used by logback.xml for schema-specific log file paths.</li>
+ *   <li>Installs JUL-to-SLF4J bridge so that Liquibase 5.x internal logging (which uses
+ *       {@code java.util.logging}) is routed through SLF4J/Logback.</li>
+ * </ul>
  */
 public final class LiquibaseExecutor {
 
@@ -41,13 +50,24 @@ public final class LiquibaseExecutor {
     }
 
     /**
-     * Main entry point. Disables Liquibase analytics, then delegates to LiquibaseCommandLine.
+     * Main entry point. Sets up schema-specific logging, installs JUL-to-SLF4J bridge,
+     * disables Liquibase analytics, then delegates to LiquibaseCommandLine.
      *
      * @param args CLI arguments passed through to Liquibase
      */
     public static void main(String[] args) {
+        // 1. Set schema name for logback file path BEFORE any SLF4J logger init
+        String schema = extractArg(args, "--defaultSchemaName");
+        System.setProperty("xroad.liquibase.schema", schema != null ? schema : "unknown");
+
+        // 2. Disable analytics before any Liquibase class initialization
         System.setProperty("liquibase.analytics.enabled", "false");
 
+        // 3. Bridge java.util.logging (used internally by Liquibase 5.x) to SLF4J/Logback
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+
+        // 4. Handle --version or delegate to Liquibase CLI
         if (args.length == 1 && "--version".equals(args[0])) {
             System.out.println(VERSION);
             LiquibaseCommandLine cli = new LiquibaseCommandLine();
@@ -58,5 +78,25 @@ public final class LiquibaseExecutor {
         LiquibaseCommandLine cli = new LiquibaseCommandLine();
         int exitCode = cli.execute(args);
         System.exit(exitCode);
+    }
+
+    /**
+     * Extracts the value of a named CLI argument.
+     * Supports both {@code --arg=value} and {@code --arg value} formats.
+     *
+     * @param args    the CLI arguments array
+     * @param argName the argument name (e.g., {@code "--defaultSchemaName"})
+     * @return the argument value, or {@code null} if not found
+     */
+    private static String extractArg(String[] args, String argName) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].startsWith(argName + "=")) {
+                return args[i].substring(argName.length() + 1);
+            }
+            if (args[i].equals(argName) && i + 1 < args.length) {
+                return args[i + 1];
+            }
+        }
+        return null;
     }
 }
