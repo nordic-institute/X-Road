@@ -121,9 +121,8 @@ fi
 
 url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
-(cd /usr/share/xroad/db &&
-  JAVA_OPTS="-Ddb_user=$USER -Ddb_schema=$SCHEMA" /usr/share/xroad/db/liquibase.sh \
-  --classpath=/usr/share/xroad/jlib/postgresql.jar \
+/usr/share/xroad/db/liquibase.sh \
+  --search-path=/usr/share/xroad/db \
   --url="${db_url}${url_concat_string}currentSchema=${SCHEMA},public" \
   --changeLogFile=centerui-changelog.xml \
   --password="${ADMIN_PASSWORD}" \
@@ -132,4 +131,3 @@ url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
   $context \
   update \
   || abort "Database schema migration failed."
-)

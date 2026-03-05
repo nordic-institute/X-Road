@@ -42,8 +42,6 @@ migrate() {
     die "Running database migrations failed, missing some required parameters from ${db_properties}"
   fi
 
-  cd /usr/share/xroad/db/ || die "Running database migrations failed, please check that directory /usr/share/xroad/db exists"
-
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
     context="--contexts=admin"
@@ -53,8 +51,8 @@ migrate() {
 
   url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
-  LIQUIBASE_HOME="$(pwd)" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
-    --classpath=/usr/share/xroad/jlib/postgresql.jar \
+  /usr/share/xroad/db/liquibase.sh \
+    --search-path=/usr/share/xroad/db \
     --url="${db_url}${url_concat_string}currentSchema=${db_schema},public" \
     --changeLogFile=centerui-changelog.xml \
     --password="${db_admin_password}" \

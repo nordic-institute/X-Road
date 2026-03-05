@@ -175,8 +175,6 @@ EOF
     crudini --set ${db_properties} '' "xroad.db.$db_name.hibernate.connection.password" "${db_password}"
   fi
 
-  cd /usr/share/xroad/db/ || die "Running migrations failed, plase check that directory /usr/share/xroad/db exists"
-
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
     context="--contexts=admin"
@@ -184,8 +182,8 @@ EOF
 
   url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
-  LIQUIBASE_HOME="/usr/share/xroad/db" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
-    --classpath=/usr/share/xroad/jlib/postgresql.jar \
+  /usr/share/xroad/db/liquibase.sh \
+    --search-path=/usr/share/xroad/db \
     --url="${db_url}${url_concat_string}currentSchema=${db_schema},public" \
     --changeLogFile="$db_name-changelog.xml" \
     --password="${db_admin_password}" \
