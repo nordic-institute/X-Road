@@ -14,7 +14,7 @@ RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install \
     sudo ca-certificates gnupg supervisor net-tools iproute2 locales \
-    openjdk-21-jre-headless rlwrap ca-certificates-java \
+    openjdk-25-jre-headless rlwrap ca-certificates-java \
     crudini adduser expect curl wget openssl nano-tiny bc \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \

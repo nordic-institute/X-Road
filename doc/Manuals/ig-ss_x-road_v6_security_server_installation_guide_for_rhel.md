@@ -236,9 +236,9 @@ Requirements to software and settings:
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
-#### 2.3.1 Installing Java 21
+#### 2.3.1 Installing Java 25
 
-Java 21 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server, however it is not included in default repositories for RHEL 7.
+Java 25 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server.
 Sample installation steps are provided below.
 
 * Check the current java version:
@@ -247,10 +247,10 @@ Sample installation steps are provided below.
   java -version
   ```
 
-If the current Java version is 21, following steps should be skipped. If not, install Java 21 (OpenJDK):
+If the current Java version is 25, following steps should be skipped. If not, install Java 25 (OpenJDK):
 
 ```bash
-sudo yum install openjdk-21-jre-headless
+sudo yum install openjdk-25-jre-headless
 ```
 
 After the installation, verify the current java version:
@@ -259,7 +259,7 @@ After the installation, verify the current java version:
 java -version
 ```
 
-The output should contain Java version 21. If it does not, set the default Java version to 21 using *alternatives*:
+The output should contain Java version 25. If it does not, set the default Java version to 25 using *alternatives*:
 
 ```bash
 sudo alternatives --config java
