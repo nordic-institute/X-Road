@@ -4,7 +4,7 @@ inputs:
   java-version:
     description: 'Java version to set up'
     required: false
-    default: '21'
+    default: '25'
   gradle-cache-read-only:
     description: 'Whether Gradle cache should be read-only'
     required: false
