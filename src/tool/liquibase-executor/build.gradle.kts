@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
   implementation(libs.liquibase.core)
+  implementation("info.picocli:picocli:4.7.7")
   implementation(libs.postgresql)
   implementation(libs.slf4j.api)
   implementation(libs.logback.classic)
