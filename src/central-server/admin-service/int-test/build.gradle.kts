@@ -8,9 +8,6 @@ configurations {
     isCanBeConsumed = false
     isCanBeResolved = true
   }
-  create("liquibaseLibs") {
-    apply(plugin = "base")
-  }
 }
 
 dependencies {
