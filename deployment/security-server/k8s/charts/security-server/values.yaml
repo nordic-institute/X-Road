@@ -5,10 +5,10 @@ global:
     pullPolicy: IfNotPresent
 
 init:
+  imageName: ss-db-init
   securityContext:
     runAsUser: 1001
   serverconf:
-    imageName: ss-db-serverconf-init
     host: "db-serverconf"
     port: "5432"
     database: "serverconf"
@@ -17,14 +17,12 @@ init:
     proxyUiSuperuser: "xrd"
 #    proxyUiSuperuserPassword:
   messagelog:
-    imageName: ss-db-messagelog-init
     host: "db-messagelog"
     port: "5432"
     database: "messagelog"
     username: "messagelog"
     schema: "public"
   opmonitor:
-    imageName: ss-db-opmonitor-init
     host: "db-opmonitor"
     port: "5432"
     database: "op-monitor"
@@ -384,7 +382,7 @@ services:
       XROAD_OPENBAO_DB_DATABASE: "openbao"
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
-      SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta2"
+      SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-init:8.0.0-beta2"
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
       PROXY_UI_SUPERUSER: "xrd"
       DB_CONFIG_SOURCE_ENABLED: "true"

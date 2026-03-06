@@ -40,7 +40,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ $name }}-db-init
-          image: {{ .root.Values.global.image.registry }}/{{ .config.imageName }}:{{ .root.Values.global.image.tag }}
+          image: {{ .root.Values.global.image.registry }}/{{ .root.Values.init.imageName }}:{{ .root.Values.global.image.tag }}
           imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
           securityContext:
             {{- toYaml .root.Values.init.securityContext | nindent 12 }}
@@ -50,24 +50,25 @@ spec:
             limits:
               memory: "512Mi"
           env:
-            - name: LIQUIBASE_COMMAND_USERNAME
+            - name: JDBC_URL
+              value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
+            - name: DB_USER
               value: "postgres"
-            - name: LIQUIBASE_COMMAND_PASSWORD
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-{{ $name }}
                   key: postgres-password
-            - name: LIQUIBASE_COMMAND_URL
-              value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
-              {{ $config.url | quote }}
+            - name: DB_SCHEMA
+              value: {{ $name | quote }}
             - name: db_schema
               value: {{ $config.schema | quote }}
             - name: db_user
               value: {{ $config.username | quote }}
             {{- if and (eq $name "serverconf") (hasKey $config "proxyUiSuperuserPassword") }}
-            - name: PROXY_UI_SUPERUSER
+            - name: proxy_ui_superuser
               value: {{ $config.proxyUiSuperuser | quote }}
-            - name: PROXY_UI_SUPERUSER_PASSWORD
+            - name: proxy_ui_superuser_password
               valueFrom:
                 secretKeyRef:
                   name: {{ $name }}-db-init-secret
