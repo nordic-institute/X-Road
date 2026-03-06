@@ -67,7 +67,10 @@ public final class LiquibaseExecutor {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        // 4. Handle --version or delegate to Liquibase CLI
+        // 4. Translate --schema convenience argument to --changeLogFile
+        args = translateSchemaArg(args);
+
+        // 5. Handle --version or delegate to Liquibase CLI
         if (args.length == 1 && "--version".equals(args[0])) {
             System.out.println(VERSION);
             LiquibaseCommandLine cli = new LiquibaseCommandLine();
@@ -78,6 +81,61 @@ public final class LiquibaseExecutor {
         LiquibaseCommandLine cli = new LiquibaseCommandLine();
         int exitCode = cli.execute(args);
         System.exit(exitCode);
+    }
+
+    /**
+     * Translates the {@code --schema} convenience argument to a full
+     * {@code --changeLogFile=liquibase/<name>-changelog.xml} argument.
+     * Supports both {@code --schema=<name>} and {@code --schema <name>} formats.
+     * If no {@code --schema} argument is found, returns args unchanged.
+     *
+     * @param args the CLI arguments array
+     * @return a new array with --schema replaced by --changeLogFile, or the original array if no --schema found
+     */
+    static String[] translateSchemaArg(String[] args) {
+        String schemaName = null;
+        int schemaIndex = -1;
+        boolean spaceSeparated = false;
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].startsWith("--schema=")) {
+                schemaName = args[i].substring("--schema=".length());
+                schemaIndex = i;
+                break;
+            }
+            if ("--schema".equals(args[i]) && i + 1 < args.length) {
+                schemaName = args[i + 1];
+                schemaIndex = i;
+                spaceSeparated = true;
+                break;
+            }
+        }
+
+        if (schemaName == null) {
+            return args;
+        }
+
+        String changeLogFileArg = "--changeLogFile=liquibase/" + schemaName + "-changelog.xml";
+
+        if (spaceSeparated) {
+            // Remove both --schema and <name>, insert --changeLogFile
+            String[] result = new String[args.length - 1];
+            int j = 0;
+            for (int i = 0; i < args.length; i++) {
+                if (i == schemaIndex) {
+                    result[j++] = changeLogFileArg;
+                    i++; // skip the next arg (schema name)
+                } else {
+                    result[j++] = args[i];
+                }
+            }
+            return result;
+        } else {
+            // Replace --schema=<name> with --changeLogFile=...
+            String[] result = args.clone();
+            result[schemaIndex] = changeLogFileArg;
+            return result;
+        }
     }
 
     /**
