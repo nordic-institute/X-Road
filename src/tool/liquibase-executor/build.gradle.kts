@@ -11,6 +11,8 @@ dependencies {
   implementation(libs.logback.classic)
   implementation(libs.julOverSlf4j)
 
+  compileOnly(project(":common:common-core"))
+
   testImplementation(libs.h2database)
 }
 

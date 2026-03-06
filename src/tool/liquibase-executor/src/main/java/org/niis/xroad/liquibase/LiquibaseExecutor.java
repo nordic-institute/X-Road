@@ -26,7 +26,7 @@
 package org.niis.xroad.liquibase;
 
 import liquibase.integration.commandline.LiquibaseCommandLine;
-import org.slf4j.Logger;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import picocli.CommandLine;
@@ -134,6 +134,8 @@ public class LiquibaseExecutor implements Callable<Integer> {
         SLF4JBridgeHandler.install();
     }
 
+    @ArchUnitSuppressed(value = "NoVanillaExceptions",
+            reason = "throws Exception inherited from Callable<Integer> interface required by picocli")
     @Override
     public Integer call() {
         // Logger created here (not as static field) to ensure xroad.liquibase.schema
