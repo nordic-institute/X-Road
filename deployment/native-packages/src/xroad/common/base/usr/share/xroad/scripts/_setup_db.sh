@@ -183,13 +183,12 @@ EOF
   url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
   /usr/share/xroad/db/liquibase.sh \
-    --schema=$db_name \
+    --changelog=$db_name \
     --url="${db_url}${url_concat_string}currentSchema=${db_schema},public" \
     --password="${db_admin_password}" \
     --username="${db_admin_conn_user}" \
     --defaultSchemaName="${db_schema}" \
-    "-Ddb_user=${db_user}" \
-    "-Ddb_schema=${db_schema}" \
+    --prop-db-user="${db_user}" \
     $context \
     update ||
     die "Running database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"

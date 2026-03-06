@@ -122,13 +122,12 @@ fi
 url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
 /usr/share/xroad/db/liquibase.sh \
-  --schema=centerui \
+  --changelog=centerui \
   --url="${db_url}${url_concat_string}currentSchema=${SCHEMA},public" \
   --password="${ADMIN_PASSWORD}" \
   --username="${ADMIN_USER}" \
   --defaultSchemaName="${SCHEMA}" \
-  "-Ddb_user=${USER}" \
-  "-Ddb_schema=${SCHEMA}" \
+  --prop-db-user="${USER}" \
   $context \
   update \
   || abort "Database schema migration failed."
