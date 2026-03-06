@@ -26,250 +26,183 @@
 package org.niis.xroad.liquibase;
 
 import liquibase.integration.commandline.LiquibaseCommandLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
- * Entry point wrapper for Liquibase CLI that configures logging, disables analytics,
- * translates X-Road-specific flags, and validates required arguments before delegating
- * all command processing to {@link LiquibaseCommandLine}.
+ * Entry point wrapper for Liquibase CLI that uses picocli for argument parsing,
+ * configures logging via slf4j, disables analytics, and translates X-Road-specific
+ * flags before delegating to {@link LiquibaseCommandLine}.
  *
- * <p>X-Road-specific flags:
- * <ul>
- *   <li>{@code --changelog=<name>} - translates to {@code --changeLogFile=liquibase/<name>-changelog.xml}</li>
- *   <li>{@code --prop-db-user=<val>} - translates to {@code -Ddb_user=<val>}</li>
- *   <li>{@code --prop-proxy-ui-superuser=<val>} - translates to {@code -Dproxy_ui_superuser=<val>}</li>
- *   <li>{@code --prop-proxy-ui-superuser-password=<val>} - translates to {@code -Dproxy_ui_superuser_password=<val>}</li>
- * </ul>
- *
- * <p>{@code -Ddb_schema} is auto-derived from {@code --defaultSchemaName} value.
- * Raw {@code -D} flags are rejected; use {@code --prop-*} flags instead.
+ * <p>All accepted arguments are explicitly declared as picocli {@link Option} fields.
+ * Unknown options are rejected by picocli automatically.
  */
-public final class LiquibaseExecutor {
+@Command(
+        name = "liquibase-executor",
+        version = "X-Road Liquibase Executor 1.0",
+        mixinStandardHelpOptions = true,
+        description = "X-Road Liquibase migration executor"
+)
+public class LiquibaseExecutor implements Callable<Integer> {
 
-    private static final String VERSION = "X-Road Liquibase Executor 1.0";
+    @Option(names = "--changelog", required = true,
+            description = "Database changelog name (serverconf, centerui, messagelog, op-monitor)")
+    String changelog;
+
+    @Option(names = "--url", required = true,
+            description = "JDBC database URL")
+    String url;
+
+    @Option(names = "--username",
+            description = "Database username")
+    String username;
+
+    @Option(names = "--password",
+            description = "Database password")
+    String password;
+
+    @Option(names = "--defaultSchemaName",
+            description = "Default database schema name (also auto-derives -Ddb_schema)")
+    String defaultSchemaName;
+
+    @Option(names = "--contexts",
+            description = "Liquibase contexts to run")
+    String contexts;
+
+    @Option(names = "--prop-db-user",
+            description = "Runtime DB user for GRANT statements (translates to -Ddb_user)")
+    String propDbUser;
+
+    @Option(names = "--prop-proxy-ui-superuser",
+            description = "Docker-only: proxy UI superuser (translates to -Dproxy_ui_superuser)")
+    String propProxyUiSuperuser;
+
+    @Option(names = "--prop-proxy-ui-superuser-password",
+            description = "Docker-only: proxy UI superuser password (translates to -Dproxy_ui_superuser_password)")
+    String propProxyUiSuperuserPassword;
+
+    @Parameters(index = "0", description = "Liquibase command (e.g., update)")
+    String command;
 
     /**
-     * Known --prop-* flag names mapped to their Liquibase -D property names.
-     * Hyphenated flag names are translated to underscored property names.
-     */
-    static final Map<String, String> KNOWN_PROPS = Map.of(
-            "db-user", "db_user",
-            "db-schema", "db_schema",
-            "proxy-ui-superuser", "proxy_ui_superuser",
-            "proxy-ui-superuser-password", "proxy_ui_superuser_password"
-    );
-
-    private LiquibaseExecutor() {
-        // utility class
-    }
-
-    /**
-     * Main entry point. Sets up schema-specific logging, installs JUL-to-SLF4J bridge,
-     * disables Liquibase analytics, translates args, validates, then delegates to LiquibaseCommandLine.
+     * Main entry point. Sets up system properties before picocli parsing,
+     * then delegates to picocli for execution.
      *
-     * @param args CLI arguments passed through to Liquibase
+     * @param args CLI arguments
      */
     public static void main(String[] args) {
-        // 1. Set schema name for logback file path BEFORE any SLF4J logger init
-        String schema = extractArg(args, "--defaultSchemaName");
-        System.setProperty("xroad.liquibase.schema", schema != null ? schema : "unknown");
-
-        // 2. Disable analytics before any Liquibase class initialization
-        System.setProperty("liquibase.analytics.enabled", "false");
-
-        // 3. Bridge java.util.logging (used internally by Liquibase 5.x) to SLF4J/Logback
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
-
-        try {
-            // 4. Translate X-Road-specific args and validate
-            args = translateArgs(args);
-        } catch (IllegalArgumentException e) {
-            System.err.println("ERROR: " + e.getMessage());
-            System.exit(1);
-            return;
-        }
-
-        // 5. Handle --help: print X-Road help then delegate to Liquibase
-        if (args.length == 1 && "--help".equals(args[0])) {
-            System.out.print(getHelpText());
-            LiquibaseCommandLine cli = new LiquibaseCommandLine();
-            cli.execute(new String[]{"--help"});
-            return;
-        }
-
-        // 6. Handle --version
-        if (args.length == 1 && "--version".equals(args[0])) {
-            System.out.println(VERSION);
-            LiquibaseCommandLine cli = new LiquibaseCommandLine();
-            cli.execute(new String[]{"--version"});
-            return;
-        }
-
-        // 7. Delegate to Liquibase CLI
-        LiquibaseCommandLine cli = new LiquibaseCommandLine();
-        int exitCode = cli.execute(args);
+        initSystemProperties(args);
+        int exitCode = new CommandLine(new LiquibaseExecutor()).execute(args);
         System.exit(exitCode);
     }
 
     /**
-     * Translates X-Road-specific arguments to Liquibase-native arguments.
-     * Performs a single pass translating --changelog, --prop-*, rejecting raw -D and old --schema,
-     * then auto-derives -Ddb_schema from --defaultSchemaName.
+     * Lightweight pre-scan of raw args to set system properties that must be
+     * configured before any SLF4J logger initialization or Liquibase class loading.
      *
-     * <p>For --help and --version, bypasses all validation and returns args unchanged.
-     *
-     * @param args the CLI arguments array
-     * @return a new array with X-Road args translated to Liquibase-native args
-     * @throws IllegalArgumentException if validation fails (unknown prop, raw -D, missing required args, old --schema)
+     * @param args raw CLI arguments
      */
-    static String[] translateArgs(String[] args) {
-        // Bypass validation for --help and --version
-        for (String arg : args) {
-            if ("--help".equals(arg) || "--version".equals(arg)) {
-                return args;
-            }
-        }
-
-        List<String> result = new ArrayList<>();
-        List<String> dFlags = new ArrayList<>();
-        String defaultSchemaName = extractArg(args, "--defaultSchemaName");
-        boolean hasChangelog = false;
-        boolean hasUrl = false;
-        boolean hasExplicitDbSchema = false;
-
+    static void initSystemProperties(String[] args) {
+        // Extract --defaultSchemaName for logback file path (supports both = and space formats)
+        String schema = null;
         for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-
-            if (arg.startsWith("--changelog")) {
-                // Translate --changelog=X to --changeLogFile=liquibase/X-changelog.xml
-                String value;
-                if (arg.contains("=")) {
-                    value = arg.substring("--changelog=".length());
-                } else if (i + 1 < args.length) {
-                    value = args[++i];
-                } else {
-                    throw new IllegalArgumentException("--changelog requires a value");
-                }
-                result.add("--changeLogFile=liquibase/" + value + "-changelog.xml");
-                hasChangelog = true;
-
-            } else if (arg.startsWith("--prop-")) {
-                // Translate --prop-X=V to -DX=V with known-set validation
-                String propNameAndValue;
-                if (arg.contains("=")) {
-                    propNameAndValue = arg.substring("--prop-".length());
-                } else if (i + 1 < args.length) {
-                    String propName = arg.substring("--prop-".length());
-                    propNameAndValue = propName + "=" + args[++i];
-                } else {
-                    throw new IllegalArgumentException(arg + " requires a value");
-                }
-
-                int eqIdx = propNameAndValue.indexOf('=');
-                String propName = propNameAndValue.substring(0, eqIdx);
-                String propValue = propNameAndValue.substring(eqIdx + 1);
-
-                String liquibaseProp = KNOWN_PROPS.get(propName);
-                if (liquibaseProp == null) {
-                    throw new IllegalArgumentException("Unknown property '--prop-" + propName
-                            + "'. Known properties: " + String.join(", ",
-                            KNOWN_PROPS.keySet().stream().sorted().toList()));
-                }
-
-                if ("db_schema".equals(liquibaseProp)) {
-                    hasExplicitDbSchema = true;
-                }
-                dFlags.add("-D" + liquibaseProp + "=" + propValue);
-
-            } else if (arg.startsWith("-D")) {
-                // Reject raw -D flags
-                throw new IllegalArgumentException("Raw -D flags are not accepted. Use --prop-* instead: " + arg);
-
-            } else if (arg.startsWith("--schema")) {
-                // Reject old --schema flag
-                throw new IllegalArgumentException("--schema is no longer accepted. Use --changelog instead.");
-
-            } else {
-                // Pass through everything else (--url, --password, --username, --defaultSchemaName, --contexts, update, etc.)
-                result.add(arg);
-                if (arg.startsWith("--url")) {
-                    hasUrl = true;
-                }
-                if (arg.startsWith("--changeLogFile")) {
-                    hasChangelog = true;
-                }
+            if (args[i].startsWith("--defaultSchemaName=")) {
+                schema = args[i].substring("--defaultSchemaName=".length());
+                break;
+            }
+            if ("--defaultSchemaName".equals(args[i]) && i + 1 < args.length) {
+                schema = args[i + 1];
+                break;
             }
         }
+        System.setProperty("xroad.liquibase.schema", schema != null ? schema : "unknown");
 
-        // Auto-derive -Ddb_schema from --defaultSchemaName (unless explicitly provided via --prop-db-schema)
-        if (defaultSchemaName != null && !hasExplicitDbSchema) {
+        // Disable analytics before any Liquibase class initialization
+        System.setProperty("liquibase.analytics.enabled", "false");
+
+        // Bridge java.util.logging (used internally by Liquibase 5.x) to SLF4J/Logback
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+    }
+
+    @Override
+    public Integer call() {
+        // Logger created here (not as static field) to ensure xroad.liquibase.schema
+        // system property is set before logback reads it for file path
+        var logger = LoggerFactory.getLogger(LiquibaseExecutor.class);
+
+        String[] liquibaseArgs = buildLiquibaseArgs();
+
+        logger.info("Executing Liquibase: {}", String.join(" ", liquibaseArgs));
+
+        LiquibaseCommandLine cli = new LiquibaseCommandLine();
+        int exitCode = cli.execute(liquibaseArgs);
+
+        if (exitCode == 0) {
+            logger.info("Liquibase completed successfully");
+        } else {
+            logger.error("Liquibase failed with exit code {}", exitCode);
+        }
+
+        return exitCode;
+    }
+
+    /**
+     * Builds the Liquibase-native argument array from picocli-parsed fields.
+     * -D flags are placed after the command word as required by Liquibase's picocli subcommand parsing.
+     *
+     * @return the translated argument array for LiquibaseCommandLine
+     */
+    String[] buildLiquibaseArgs() {
+        List<String> args = new ArrayList<>();
+        List<String> dFlags = new ArrayList<>();
+
+        // Translate --changelog to --changeLogFile
+        args.add("--changeLogFile=liquibase/" + changelog + "-changelog.xml");
+
+        // Pass through standard Liquibase options
+        args.add("--url=" + url);
+        if (username != null) {
+            args.add("--username=" + username);
+        }
+        if (password != null) {
+            args.add("--password=" + password);
+        }
+        if (defaultSchemaName != null) {
+            args.add("--defaultSchemaName=" + defaultSchemaName);
+        }
+        if (contexts != null) {
+            args.add("--contexts=" + contexts);
+        }
+
+        // Command word
+        args.add(command);
+
+        // -D flags after command word
+        if (propDbUser != null) {
+            dFlags.add("-Ddb_user=" + propDbUser);
+        }
+        if (propProxyUiSuperuser != null) {
+            dFlags.add("-Dproxy_ui_superuser=" + propProxyUiSuperuser);
+        }
+        if (propProxyUiSuperuserPassword != null) {
+            dFlags.add("-Dproxy_ui_superuser_password=" + propProxyUiSuperuserPassword);
+        }
+        // Auto-derive -Ddb_schema from --defaultSchemaName
+        if (defaultSchemaName != null) {
             dFlags.add("-Ddb_schema=" + defaultSchemaName);
         }
 
-        // Append all -D flags at the end (after command word) as required by picocli subcommand parsing
-        result.addAll(dFlags);
-
-        // Validate required args
-        if (!hasChangelog) {
-            throw new IllegalArgumentException("--changelog is required. "
-                    + "Usage: liquibase.sh --changelog=<name> --url=<jdbc-url> [options] update");
-        }
-        if (!hasUrl) {
-            throw new IllegalArgumentException("--url is required. "
-                    + "Usage: liquibase.sh --changelog=<name> --url=<jdbc-url> [options] update");
-        }
-
-        return result.toArray(new String[0]);
-    }
-
-    /**
-     * Returns X-Road-specific help text describing the executor's custom flags.
-     *
-     * @return the help text string
-     */
-    static String getHelpText() {
-        return """
-                X-Road Liquibase Executor
-
-                X-Road-specific flags (processed before Liquibase CLI):
-                  --changelog=<name>                        Database changelog name (serverconf, centerui, messagelog, op-monitor)
-                                                            Translates to --changeLogFile=liquibase/<name>-changelog.xml
-                  --prop-db-user=<user>                     Runtime DB user for GRANT statements (-Ddb_user)
-                  --prop-proxy-ui-superuser=<user>           Docker-only: proxy UI superuser (-Dproxy_ui_superuser)
-                  --prop-proxy-ui-superuser-password=<pw>    Docker-only: proxy UI superuser password (-Dproxy_ui_superuser_password)
-                  --help                                    Show this help and Liquibase help
-                  --version                                 Show X-Road executor and Liquibase versions
-
-                Note: -Ddb_schema is auto-derived from --defaultSchemaName
-                Note: Raw -D flags are not accepted; use --prop-* flags instead
-
-                --- Liquibase CLI help follows ---
-
-                """;
-    }
-
-    /**
-     * Extracts the value of a named CLI argument.
-     * Supports both {@code --arg=value} and {@code --arg value} formats.
-     *
-     * @param args    the CLI arguments array
-     * @param argName the argument name (e.g., {@code "--defaultSchemaName"})
-     * @return the argument value, or {@code null} if not found
-     */
-    static String extractArg(String[] args, String argName) {
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].startsWith(argName + "=")) {
-                return args[i].substring(argName.length() + 1);
-            }
-            if (args[i].equals(argName) && i + 1 < args.length) {
-                return args[i + 1];
-            }
-        }
-        return null;
+        args.addAll(dFlags);
+        return args.toArray(new String[0]);
     }
 }
