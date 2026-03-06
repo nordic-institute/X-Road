@@ -192,9 +192,8 @@ EOF
   url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
   /usr/share/xroad/db/liquibase.sh \
-    --search-path=/usr/share/xroad/db \
+    --schema=${db_name} \
     --url="${db_url}${url_concat_string}currentSchema=${db_schema},public" \
-    --changeLogFile=${db_name}-changelog.xml \
     --password="${db_admin_password}" \
     --username="${db_admin_conn_user}" \
     --defaultSchemaName="${db_schema}" \

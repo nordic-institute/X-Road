@@ -52,9 +52,8 @@ migrate() {
   url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
   /usr/share/xroad/db/liquibase.sh \
-    --search-path=/usr/share/xroad/db \
+    --schema=centerui \
     --url="${db_url}${url_concat_string}currentSchema=${db_schema},public" \
-    --changeLogFile=centerui-changelog.xml \
     --password="${db_admin_password}" \
     --username="${db_admin_user}" \
     --defaultSchemaName="${db_schema}" \

@@ -122,9 +122,8 @@ fi
 url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
 /usr/share/xroad/db/liquibase.sh \
-  --search-path=/usr/share/xroad/db \
+  --schema=centerui \
   --url="${db_url}${url_concat_string}currentSchema=${SCHEMA},public" \
-  --changeLogFile=centerui-changelog.xml \
   --password="${ADMIN_PASSWORD}" \
   --username="${ADMIN_USER}" \
   --defaultSchemaName="${SCHEMA}" \
