@@ -26,7 +26,7 @@ permissions:
 env:
   # Set to 'true' to enable dry-run for scheduled runs (safe for testing)
   # Set to 'false' to actually delete images on scheduled runs
-  SCHEDULED_DRY_RUN: 'true'
+  SCHEDULED_DRY_RUN: 'false'
 
 jobs:
   cleanup-snapshots:
@@ -39,31 +39,32 @@ jobs:
         # Update this list when adding/removing published container images.
         package:
           # Security Server base images
-          - base-images/ss-baseline-runtime
-          - base-images/ss-baseline-backup-manager-runtime
-          - base-images/ss-baseline-signer-runtime
+          - x-road/base-images/ss-baseline-runtime
+          - x-road/base-images/ss-baseline-backup-manager-runtime
+          - x-road/base-images/ss-baseline-signer-runtime
           # Security Server service images
-          - ss-proxy
-          - ss-monitor
-          - ss-op-monitor
-          - ss-configuration-client
-          - ss-signer
-          - ss-softtoken-signer
-          - ss-backup-manager
-          - ss-proxy-ui-api
-          - ss-db-messagelog-init
-          - ss-db-opmonitor-init
-          - ss-db-serverconf-init
+          - x-road/ss-proxy
+          - x-road/ss-monitor
+          - x-road/ss-op-monitor
+          - x-road/ss-configuration-client
+          - x-road/ss-signer
+          - x-road/ss-softtoken-signer
+          - x-road/ss-backup-manager
+          - x-road/ss-proxy-ui-api
+          - x-road/ss-db-messagelog-init
+          - x-road/ss-db-opmonitor-init
+          - x-road/ss-db-serverconf-init
           # Development images
-          - openbao-dev
-          - testca-dev
-          - postgres-dev
-          - central-server-dev
+          - x-road/openbao-dev
+          - x-road/testca-dev
+          - x-road/postgres-dev
+          - x-road/central-server-dev
           # Package builder images
-          - package-builder-deb-jammy
-          - package-builder-deb-noble
-          - package-builder-rpm-el8
-          - package-builder-rpm-el9
+    # TODO: these require different behaviour as they're rarely updated.
+    #          - x-road/package-builder-deb-jammy
+    #          - x-road/package-builder-deb-noble
+    #          - x-road/package-builder-rpm-el8
+    #          - x-road/package-builder-rpm-el9
     steps:
       - name: Cleanup old snapshot images (${{ matrix.package }})
         uses: dataaxiom/ghcr-cleanup-action@v1

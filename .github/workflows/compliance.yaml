@@ -10,7 +10,7 @@ jobs:
     steps:
       # 0. Checkout repository (Required to read the config file)
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       # 1. Install the ORT Server Client (OSC) and Authenticate
       - name: Setup Double Open CLI
@@ -41,7 +41,7 @@ jobs:
       # Run this step even if previous steps failed
       - name: Upload Artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compliance-reports
           path: reports/
