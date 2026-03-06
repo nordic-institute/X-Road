@@ -17,7 +17,7 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-Requires:  jre-21-headless, tzdata-java
+Requires:  jre-25-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl, bc, python3, python3-pyyaml
 
 %define src %{_topdir}/..
