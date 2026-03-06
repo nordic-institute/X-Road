@@ -29,7 +29,10 @@ import liquibase.Scope;
 import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.Test;
+import picocli.CommandLine;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -37,10 +40,9 @@ import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LiquibaseExecutorTest {
@@ -97,291 +99,282 @@ class LiquibaseExecutorTest {
         assertNotNull(resource, "Signer changelog not found on classpath: liquibase/signer/001-signer.xml");
     }
 
-    // --- Changelog translation (renamed from --schema) ---
+    // --- Picocli field binding tests ---
 
     @Test
-    void shouldTranslateChangelogEqualsToChangeLogFile() {
-        String[] args = {"--url=jdbc:h2:mem:test", "--changelog=serverconf", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("--changeLogFile=liquibase/serverconf-changelog.xml"),
-                "Should contain translated --changeLogFile, got: " + resultList);
-        assertTrue(resultList.contains("--url=jdbc:h2:mem:test"), "Should preserve --url");
-        assertTrue(resultList.contains("update"), "Should preserve update command");
+    void shouldParseChangelogEqualsFormat() {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
+        assertEquals("serverconf", executor.changelog);
+        assertEquals("jdbc:h2:mem:test", executor.url);
+        assertEquals("update", executor.command);
     }
 
     @Test
-    void shouldTranslateChangelogSpaceSeparated() {
-        String[] args = {"--changelog", "centerui", "--url=jdbc:h2:mem:test", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("--changeLogFile=liquibase/centerui-changelog.xml"),
-                "Should contain translated --changeLogFile, got: " + resultList);
-        assertTrue(resultList.contains("--url=jdbc:h2:mem:test"), "Should preserve --url");
+    void shouldParseChangelogSpaceSeparated() {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog", "centerui", "--url=jdbc:h2:mem:test", "update");
+        assertEquals("centerui", executor.changelog);
     }
 
     @Test
-    void shouldPreserveArgsWhenNoChangelogPresent() {
-        String[] args = {"--changeLogFile=custom.xml", "--url=jdbc:h2:mem:test", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        assertArrayEquals(new String[]{"--changeLogFile=custom.xml", "--url=jdbc:h2:mem:test", "update"}, result);
+    void shouldParseAllOptionFields() {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs(
+                "--changelog=serverconf",
+                "--url=jdbc:h2:mem:test",
+                "--username=user1",
+                "--password=pass1",
+                "--defaultSchemaName=myschema",
+                "--contexts=user",
+                "--prop-db-user=xroad",
+                "--prop-proxy-ui-superuser=admin",
+                "--prop-proxy-ui-superuser-password=secret",
+                "update"
+        );
+        assertEquals("serverconf", executor.changelog);
+        assertEquals("jdbc:h2:mem:test", executor.url);
+        assertEquals("user1", executor.username);
+        assertEquals("pass1", executor.password);
+        assertEquals("myschema", executor.defaultSchemaName);
+        assertEquals("user", executor.contexts);
+        assertEquals("xroad", executor.propDbUser);
+        assertEquals("admin", executor.propProxyUiSuperuser);
+        assertEquals("secret", executor.propProxyUiSuperuserPassword);
+        assertEquals("update", executor.command);
+    }
+
+    // --- Arg translation tests (via buildLiquibaseArgs) ---
+
+    @Test
+    void shouldTranslateChangelogToChangeLogFile() {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        assertTrue(args.contains("--changeLogFile=liquibase/serverconf-changelog.xml"),
+                "Should translate --changelog to --changeLogFile, got: " + args);
     }
 
     @Test
-    void shouldCoexistChangelogWithOtherArgs() {
-        String[] args = {"--url=jdbc:h2:mem:test", "--defaultSchemaName=serverconf", "--changelog=serverconf", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("--url=jdbc:h2:mem:test"));
-        assertTrue(resultList.contains("--defaultSchemaName=serverconf"));
-        assertTrue(resultList.contains("--changeLogFile=liquibase/serverconf-changelog.xml"));
-        assertTrue(resultList.contains("update"));
-        // Should also auto-derive -Ddb_schema
-        assertTrue(resultList.contains("-Ddb_schema=serverconf"),
-                "Should auto-derive -Ddb_schema from --defaultSchemaName, got: " + resultList);
+    void shouldPassThroughUrlUsernamePasswordContexts() {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs(
+                "--changelog=serverconf", "--url=jdbc:h2:mem:test",
+                "--username=user1", "--password=pass1",
+                "--defaultSchemaName=myschema", "--contexts=user", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        assertTrue(args.contains("--url=jdbc:h2:mem:test"), "Should pass through --url");
+        assertTrue(args.contains("--username=user1"), "Should pass through --username");
+        assertTrue(args.contains("--password=pass1"), "Should pass through --password");
+        assertTrue(args.contains("--defaultSchemaName=myschema"), "Should pass through --defaultSchemaName");
+        assertTrue(args.contains("--contexts=user"), "Should pass through --contexts");
+        assertTrue(args.contains("update"), "Should include command word");
     }
-
-    @Test
-    void shouldRejectOldSchemaFlag() {
-        String[] args = {"--schema=serverconf", "--url=jdbc:h2:mem:test", "update"};
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> LiquibaseExecutor.translateArgs(args));
-        assertTrue(ex.getMessage().contains("--changelog"), "Error should suggest --changelog");
-    }
-
-    // --- Prop translation (--prop-* to -D) ---
 
     @Test
     void shouldTranslatePropDbUser() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test", "--prop-db-user=xroad", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("-Ddb_user=xroad"),
-                "Should translate --prop-db-user to -Ddb_user, got: " + resultList);
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test",
+                "--prop-db-user=xroad", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        assertTrue(args.contains("-Ddb_user=xroad"),
+                "Should translate --prop-db-user to -Ddb_user, got: " + args);
     }
 
     @Test
     void shouldTranslatePropProxyUiSuperuser() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test", "--prop-proxy-ui-superuser=admin", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("-Dproxy_ui_superuser=admin"),
-                "Should translate --prop-proxy-ui-superuser to -Dproxy_ui_superuser, got: " + resultList);
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test",
+                "--prop-proxy-ui-superuser=admin", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        assertTrue(args.contains("-Dproxy_ui_superuser=admin"),
+                "Should translate --prop-proxy-ui-superuser, got: " + args);
     }
 
     @Test
     void shouldTranslatePropProxyUiSuperuserPassword() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test",
-                "--prop-proxy-ui-superuser-password=secret", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("-Dproxy_ui_superuser_password=secret"),
-                "Should translate --prop-proxy-ui-superuser-password, got: " + resultList);
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test",
+                "--prop-proxy-ui-superuser-password=secret", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        assertTrue(args.contains("-Dproxy_ui_superuser_password=secret"),
+                "Should translate --prop-proxy-ui-superuser-password, got: " + args);
     }
-
-    @Test
-    void shouldTranslatePropSpaceSeparated() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test", "--prop-db-user", "xroad", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("-Ddb_user=xroad"),
-                "Should translate space-separated --prop-db-user, got: " + resultList);
-    }
-
-    // --- Known-set validation ---
-
-    @Test
-    void shouldRejectUnknownProp() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test", "--prop-unknown=val", "update"};
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> LiquibaseExecutor.translateArgs(args));
-        assertTrue(ex.getMessage().contains("unknown"), "Error should mention the unknown property name");
-    }
-
-    // --- Raw -D rejection ---
-
-    @Test
-    void shouldRejectRawDFlag() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test", "-Ddb_user=xroad", "update"};
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> LiquibaseExecutor.translateArgs(args));
-        assertTrue(ex.getMessage().contains("--prop-"), "Error should suggest --prop-* instead");
-    }
-
-    @Test
-    void shouldRejectAnyRawDFlag() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test", "-Dfoo=bar", "update"};
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> LiquibaseExecutor.translateArgs(args));
-        assertTrue(ex.getMessage().contains("--prop-"), "Error should suggest --prop-* instead");
-    }
-
-    // --- Auto-derive -Ddb_schema ---
 
     @Test
     void shouldAutoDeriveDbSchemaFromDefaultSchemaName() {
-        String[] args = {"--defaultSchemaName=myschema", "--changelog=serverconf", "--url=jdbc:h2:mem:test", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
-        assertTrue(resultList.contains("-Ddb_schema=myschema"),
-                "Should auto-derive -Ddb_schema from --defaultSchemaName, got: " + resultList);
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test",
+                "--defaultSchemaName=myschema", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        assertTrue(args.contains("-Ddb_schema=myschema"),
+                "Should auto-derive -Ddb_schema from --defaultSchemaName, got: " + args);
     }
 
     @Test
     void shouldNotAddDbSchemaWhenNoDefaultSchemaName() {
-        String[] args = {"--changelog=serverconf", "--url=jdbc:h2:mem:test", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        for (String arg : result) {
-            assertTrue(!arg.startsWith("-Ddb_schema"),
-                    "Should not add -Ddb_schema when no --defaultSchemaName, got: " + Arrays.asList(result));
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        for (String arg : args) {
+            assertFalse(arg.startsWith("-Ddb_schema"),
+                    "Should not add -Ddb_schema when no --defaultSchemaName, got: " + args);
         }
     }
 
     @Test
-    void shouldNotDuplicateDbSchemaWhenExplicitPropProvided() {
-        String[] args = {"--defaultSchemaName=myschema", "--changelog=serverconf", "--url=jdbc:h2:mem:test",
-                "--prop-db-schema=myschema", "update"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        long count = Arrays.stream(result).filter(a -> a.startsWith("-Ddb_schema=")).count();
-        assertEquals(1, count, "Should have exactly one -Ddb_schema, got: " + Arrays.asList(result));
-    }
-
-    // --- Required arg validation ---
-
-    @Test
-    void shouldValidateRequiredChangelogMissing() {
-        String[] args = {"--url=jdbc:h2:mem:test", "update"};
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> LiquibaseExecutor.translateArgs(args));
-        assertTrue(ex.getMessage().contains("--changelog"), "Error should mention --changelog");
-    }
-
-    @Test
-    void shouldValidateRequiredUrlMissing() {
-        String[] args = {"--changelog=serverconf", "update"};
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> LiquibaseExecutor.translateArgs(args));
-        assertTrue(ex.getMessage().contains("--url"), "Error should mention --url");
-    }
-
-    @Test
-    void shouldBypassValidationForHelp() {
-        // --help should not require --changelog or --url
-        String[] args = {"--help"};
-        // Should not throw - help bypasses validation
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        assertArrayEquals(new String[]{"--help"}, result);
-    }
-
-    @Test
-    void shouldBypassValidationForVersion() {
-        String[] args = {"--version"};
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        assertArrayEquals(new String[]{"--version"}, result);
-    }
-
-    // --- Help output ---
-
-    @Test
-    void shouldPrintHelpTextContainingXRoadFlags() {
-        String helpText = LiquibaseExecutor.getHelpText();
-        assertTrue(helpText.contains("--changelog"), "Help should mention --changelog");
-        assertTrue(helpText.contains("--prop-db-user"), "Help should mention --prop-db-user");
-        assertTrue(helpText.contains("--prop-proxy-ui-superuser"), "Help should mention --prop-proxy-ui-superuser");
-        assertTrue(helpText.contains("--prop-proxy-ui-superuser-password"),
-                "Help should mention --prop-proxy-ui-superuser-password");
-        assertTrue(helpText.contains("-Ddb_schema"), "Help should mention -Ddb_schema auto-derivation");
-        assertTrue(helpText.contains("--prop-"), "Help should mention --prop- usage");
-    }
-
-    // --- -D flag positioning (must appear AFTER command word) ---
-
-    @Test
     void shouldPlaceDFlagsAfterCommandWord() {
-        // Regression case: exact input from CS migrate.sh
-        String[] args = {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs(
                 "--changelog=centerui",
                 "--url=jdbc:postgresql://localhost/centerui_production",
                 "--defaultSchemaName=centerui",
                 "--prop-db-user=centerui",
                 "--contexts=admin",
-                "update"
-        };
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
+                "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
 
-        int updateIdx = resultList.indexOf("update");
+        int updateIdx = args.indexOf("update");
         assertTrue(updateIdx >= 0, "Result should contain 'update' command word");
 
-        // All -D flags must appear AFTER the command word
-        for (int i = 0; i < resultList.size(); i++) {
-            if (resultList.get(i).startsWith("-D")) {
+        for (int i = 0; i < args.size(); i++) {
+            if (args.get(i).startsWith("-D")) {
                 assertTrue(i > updateIdx,
-                        "Flag " + resultList.get(i) + " at index " + i
+                        "Flag " + args.get(i) + " at index " + i
                                 + " should appear after 'update' at index " + updateIdx
-                                + ". Full result: " + resultList);
+                                + ". Full result: " + args);
             }
         }
 
-        // Verify both -D flags are present
-        assertTrue(resultList.contains("-Ddb_user=centerui"), "Should have -Ddb_user=centerui");
-        assertTrue(resultList.contains("-Ddb_schema=centerui"), "Should have -Ddb_schema=centerui");
+        assertTrue(args.contains("-Ddb_user=centerui"), "Should have -Ddb_user=centerui");
+        assertTrue(args.contains("-Ddb_schema=centerui"), "Should have -Ddb_schema=centerui");
     }
 
     @Test
     void shouldPlaceDFlagsAfterCommandWordWithMultipleProps() {
-        String[] args = {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs(
                 "--changelog=serverconf",
                 "--url=jdbc:postgresql://localhost/serverconf",
                 "--defaultSchemaName=serverconf",
                 "--prop-db-user=xroad",
                 "--prop-proxy-ui-superuser=admin",
-                "update"
-        };
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
+                "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
 
-        int updateIdx = resultList.indexOf("update");
+        int updateIdx = args.indexOf("update");
         assertTrue(updateIdx >= 0, "Result should contain 'update' command word");
 
-        // All -D flags must appear AFTER the command word
-        for (int i = 0; i < resultList.size(); i++) {
-            if (resultList.get(i).startsWith("-D")) {
+        for (int i = 0; i < args.size(); i++) {
+            if (args.get(i).startsWith("-D")) {
                 assertTrue(i > updateIdx,
-                        "Flag " + resultList.get(i) + " at index " + i
+                        "Flag " + args.get(i) + " at index " + i
                                 + " should appear after 'update' at index " + updateIdx
-                                + ". Full result: " + resultList);
+                                + ". Full result: " + args);
             }
         }
 
-        // Verify all three -D flags are present
-        assertTrue(resultList.contains("-Ddb_user=xroad"), "Should have -Ddb_user");
-        assertTrue(resultList.contains("-Dproxy_ui_superuser=admin"), "Should have -Dproxy_ui_superuser");
-        assertTrue(resultList.contains("-Ddb_schema=serverconf"), "Should have -Ddb_schema");
+        assertTrue(args.contains("-Ddb_user=xroad"), "Should have -Ddb_user");
+        assertTrue(args.contains("-Dproxy_ui_superuser=admin"), "Should have -Dproxy_ui_superuser");
+        assertTrue(args.contains("-Ddb_schema=serverconf"), "Should have -Ddb_schema");
+    }
+
+    // --- Help and version via picocli ---
+
+    @Test
+    void shouldShowHelpWithAllXRoadOptions() {
+        var executor = new LiquibaseExecutor();
+        var cmd = new CommandLine(executor);
+        StringWriter sw = new StringWriter();
+        cmd.setOut(new PrintWriter(sw));
+        int exitCode = cmd.execute("--help");
+        assertEquals(0, exitCode);
+        String help = sw.toString();
+        assertTrue(help.contains("--changelog"), "Help should mention --changelog");
+        assertTrue(help.contains("--url"), "Help should mention --url");
+        assertTrue(help.contains("--prop-db-user"), "Help should mention --prop-db-user");
+        assertTrue(help.contains("--prop-proxy-ui-superuser"), "Help should mention --prop-proxy-ui-superuser");
+        assertTrue(help.contains("--prop-proxy-ui-superuser-password"),
+                "Help should mention --prop-proxy-ui-superuser-password");
+    }
+
+    @Test
+    void shouldShowVersion() {
+        var executor = new LiquibaseExecutor();
+        var cmd = new CommandLine(executor);
+        StringWriter sw = new StringWriter();
+        cmd.setOut(new PrintWriter(sw));
+        int exitCode = cmd.execute("--version");
+        assertEquals(0, exitCode);
+        String version = sw.toString();
+        assertTrue(version.contains("X-Road Liquibase Executor"),
+                "Version should contain executor name, got: " + version);
+    }
+
+    // --- Picocli error handling ---
+
+    @Test
+    void shouldRejectUnknownOption() {
+        var executor = new LiquibaseExecutor();
+        var cmd = new CommandLine(executor);
+        StringWriter errSw = new StringWriter();
+        cmd.setErr(new PrintWriter(errSw));
+        int exitCode = cmd.execute("--unknown=foo", "--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
+        assertTrue(exitCode != 0, "Unknown option should cause non-zero exit code");
+    }
+
+    @Test
+    void shouldRejectRawDFlag() {
+        var executor = new LiquibaseExecutor();
+        var cmd = new CommandLine(executor);
+        StringWriter errSw = new StringWriter();
+        cmd.setErr(new PrintWriter(errSw));
+        int exitCode = cmd.execute("-Dfoo=bar", "--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
+        assertTrue(exitCode != 0, "Raw -D flag should cause non-zero exit code");
+    }
+
+    @Test
+    void shouldRejectMissingChangelog() {
+        var executor = new LiquibaseExecutor();
+        var cmd = new CommandLine(executor);
+        StringWriter errSw = new StringWriter();
+        cmd.setErr(new PrintWriter(errSw));
+        int exitCode = cmd.execute("--url=jdbc:h2:mem:test", "update");
+        assertTrue(exitCode != 0, "Missing --changelog should cause non-zero exit code");
+    }
+
+    @Test
+    void shouldRejectMissingUrl() {
+        var executor = new LiquibaseExecutor();
+        var cmd = new CommandLine(executor);
+        StringWriter errSw = new StringWriter();
+        cmd.setErr(new PrintWriter(errSw));
+        int exitCode = cmd.execute("--changelog=serverconf", "update");
+        assertTrue(exitCode != 0, "Missing --url should cause non-zero exit code");
     }
 
     // --- Full pipeline ---
 
     @Test
     void shouldTranslateFullPipeline() {
-        String[] args = {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs(
                 "--changelog=serverconf",
                 "--url=jdbc:pg:test",
                 "--defaultSchemaName=myschema",
                 "--prop-db-user=xroad",
                 "--contexts=user",
                 "update"
-        };
-        String[] result = LiquibaseExecutor.translateArgs(args);
-        List<String> resultList = Arrays.asList(result);
+        );
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
 
-        assertTrue(resultList.contains("--changeLogFile=liquibase/serverconf-changelog.xml"),
+        assertTrue(args.contains("--changeLogFile=liquibase/serverconf-changelog.xml"),
                 "Should translate --changelog");
-        assertTrue(resultList.contains("--url=jdbc:pg:test"), "Should preserve --url");
-        assertTrue(resultList.contains("--defaultSchemaName=myschema"), "Should preserve --defaultSchemaName");
-        assertTrue(resultList.contains("-Ddb_user=xroad"), "Should translate --prop-db-user");
-        assertTrue(resultList.contains("--contexts=user"), "Should preserve --contexts");
-        assertTrue(resultList.contains("update"), "Should preserve update command");
-        assertTrue(resultList.contains("-Ddb_schema=myschema"), "Should auto-derive -Ddb_schema");
+        assertTrue(args.contains("--url=jdbc:pg:test"), "Should preserve --url");
+        assertTrue(args.contains("--defaultSchemaName=myschema"), "Should preserve --defaultSchemaName");
+        assertTrue(args.contains("-Ddb_user=xroad"), "Should translate --prop-db-user");
+        assertTrue(args.contains("--contexts=user"), "Should preserve --contexts");
+        assertTrue(args.contains("update"), "Should preserve update command");
+        assertTrue(args.contains("-Ddb_schema=myschema"), "Should auto-derive -Ddb_schema");
     }
 }
