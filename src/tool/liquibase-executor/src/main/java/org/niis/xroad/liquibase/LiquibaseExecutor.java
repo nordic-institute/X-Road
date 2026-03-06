@@ -136,6 +136,7 @@ public final class LiquibaseExecutor {
         }
 
         List<String> result = new ArrayList<>();
+        List<String> dFlags = new ArrayList<>();
         String defaultSchemaName = extractArg(args, "--defaultSchemaName");
         boolean hasChangelog = false;
         boolean hasUrl = false;
@@ -183,7 +184,7 @@ public final class LiquibaseExecutor {
                 if ("db_schema".equals(liquibaseProp)) {
                     hasExplicitDbSchema = true;
                 }
-                result.add("-D" + liquibaseProp + "=" + propValue);
+                dFlags.add("-D" + liquibaseProp + "=" + propValue);
 
             } else if (arg.startsWith("-D")) {
                 // Reject raw -D flags
@@ -207,8 +208,11 @@ public final class LiquibaseExecutor {
 
         // Auto-derive -Ddb_schema from --defaultSchemaName (unless explicitly provided via --prop-db-schema)
         if (defaultSchemaName != null && !hasExplicitDbSchema) {
-            result.add("-Ddb_schema=" + defaultSchemaName);
+            dFlags.add("-Ddb_schema=" + defaultSchemaName);
         }
+
+        // Append all -D flags at the end (after command word) as required by picocli subcommand parsing
+        result.addAll(dFlags);
 
         // Validate required args
         if (!hasChangelog) {
