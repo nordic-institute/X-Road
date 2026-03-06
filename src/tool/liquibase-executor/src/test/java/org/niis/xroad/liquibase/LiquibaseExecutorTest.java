@@ -30,11 +30,14 @@ import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.Test;
 
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LiquibaseExecutorTest {
@@ -71,5 +74,50 @@ class LiquibaseExecutorTest {
                 assertEquals(2, rs.getInt(1), "Expected 2 changesets in DATABASECHANGELOG");
             }
         }
+    }
+
+    @Test
+    void shouldTranslateSchemaEqualsToChangeLogFile() {
+        String[] args = {"--url=jdbc:h2:mem:test", "--schema=serverconf", "update"};
+        String[] result = LiquibaseExecutor.translateSchemaArg(args);
+        assertArrayEquals(new String[]{"--url=jdbc:h2:mem:test", "--changeLogFile=liquibase/serverconf-changelog.xml", "update"}, result);
+    }
+
+    @Test
+    void shouldTranslateSchemaSpaceSeparatedToChangeLogFile() {
+        String[] args = {"--schema", "centerui", "--url=jdbc:h2:mem:test", "update"};
+        String[] result = LiquibaseExecutor.translateSchemaArg(args);
+        assertArrayEquals(new String[]{"--changeLogFile=liquibase/centerui-changelog.xml", "--url=jdbc:h2:mem:test", "update"}, result);
+    }
+
+    @Test
+    void shouldPreserveArgsWhenNoSchemaPresent() {
+        String[] args = {"--changeLogFile=custom.xml", "--url=jdbc:h2:mem:test", "update"};
+        String[] result = LiquibaseExecutor.translateSchemaArg(args);
+        assertArrayEquals(new String[]{"--changeLogFile=custom.xml", "--url=jdbc:h2:mem:test", "update"}, result);
+    }
+
+    @Test
+    void shouldCoexistWithOtherArgs() {
+        String[] args = {"--url=jdbc:h2:mem:test", "--defaultSchemaName=serverconf", "--schema=serverconf", "update"};
+        String[] result = LiquibaseExecutor.translateSchemaArg(args);
+        assertArrayEquals(new String[]{"--url=jdbc:h2:mem:test", "--defaultSchemaName=serverconf",
+                "--changeLogFile=liquibase/serverconf-changelog.xml", "update"}, result);
+    }
+
+    @Test
+    void shouldResolveAllChangelogRootsFromClasspath() {
+        String[] changelogs = {"centerui-changelog.xml", "serverconf-changelog.xml",
+                "messagelog-changelog.xml", "op-monitor-changelog.xml"};
+        for (String changelog : changelogs) {
+            URL resource = getClass().getClassLoader().getResource("liquibase/" + changelog);
+            assertNotNull(resource, "Changelog not found on classpath: liquibase/" + changelog);
+        }
+    }
+
+    @Test
+    void shouldResolveSignerChangelogFromClasspath() {
+        URL resource = getClass().getClassLoader().getResource("liquibase/signer/001-signer.xml");
+        assertNotNull(resource, "Signer changelog not found on classpath: liquibase/signer/001-signer.xml");
     }
 }
