@@ -11,7 +11,7 @@ configurations {
 }
 
 dependencies {
-  intTestImplementation(project(path = ":central-server:admin-service:infra-jpa", configuration = "changelogJar"))
+  intTestImplementation(project(":tool:liquibase-executor"))
   intTestImplementation(project(":central-server:openapi-model"))
 
   intTestImplementation(libs.liquibase.core)
