@@ -32,10 +32,6 @@ tasks.shadowJar {
   mergeServiceFiles()
 }
 
-tasks.build {
-  dependsOn(tasks.shadowJar)
-}
-
 tasks.jar {
   enabled = false
 }

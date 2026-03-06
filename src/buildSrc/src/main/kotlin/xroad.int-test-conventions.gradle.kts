@@ -187,11 +187,6 @@ tasks.jar {
   enabled = false
 }
 
-// Connect build to shadowJar
-tasks.build {
-  dependsOn(tasks.named("shadowJar"))
-}
-
 // Configure shadowJar with common settings
 afterEvaluate {
   if (intTestShadowJar.archiveBaseName.isNotEmpty() && intTestShadowJar.mainClass.isNotEmpty()) {

@@ -24,7 +24,3 @@ tasks.shadowJar {
   archiveVersion.set("")
 
 }
-
-tasks.build {
-  finalizedBy(tasks.shadowJar)
-}

@@ -53,10 +53,6 @@ tasks.jar {
   enabled = false
 }
 
-tasks.build {
-  dependsOn(tasks.shadowJar)
-}
-
 val createDirs by tasks.registering {
   doLast {
     schemaTargetDir.mkdirs()

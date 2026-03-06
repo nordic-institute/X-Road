@@ -28,7 +28,3 @@ tasks.shadowJar {
   from(rootProject.file("LICENSE.txt"))
   mergeServiceFiles()
 }
-
-tasks.build {
-  dependsOn(tasks.shadowJar)
-}
