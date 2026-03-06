@@ -100,6 +100,8 @@ url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
   --password="${db_admin_password}" \
   --username="${db_admin_user}" \
   --defaultSchemaName="${db_schema}" \
+  "-Ddb_user=${db_user}" \
+  "-Ddb_schema=${db_schema}" \
   $context \
   update \
   || abort "Database schema migration failed."

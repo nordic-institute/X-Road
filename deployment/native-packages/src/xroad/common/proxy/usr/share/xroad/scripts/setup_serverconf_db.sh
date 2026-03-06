@@ -197,6 +197,8 @@ EOF
     --password="${db_admin_password}" \
     --username="${db_admin_conn_user}" \
     --defaultSchemaName="${db_schema}" \
+    "-Ddb_user=${db_user}" \
+    "-Ddb_schema=${db_schema}" \
     $context \
     update ||
     die "Running database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
