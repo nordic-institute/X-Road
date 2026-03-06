@@ -12,18 +12,17 @@ done
 
 # Build CLI arguments
 ARGS=(
-  "--schema=$DB_SCHEMA"
+  "--changelog=$DB_SCHEMA"
   "--url=$JDBC_URL"
   "--username=$DB_USER"
   "--password=$DB_PASSWORD"
   "--defaultSchemaName=${DEFAULT_SCHEMA_NAME:-public}"
-  "--log-level=debug"
 )
 
 # Optional changelog properties (only pass if set)
-for prop in db_user db_schema proxy_ui_superuser proxy_ui_superuser_password; do
+for prop in db_user proxy_ui_superuser proxy_ui_superuser_password; do
   if [[ -n "${!prop:-}" ]]; then
-    ARGS+=("-D${prop}=${!prop}")
+    ARGS+=("--prop-${prop//_/-}=${!prop}")
   fi
 done
 
