@@ -294,6 +294,72 @@ class LiquibaseExecutorTest {
         assertTrue(helpText.contains("--prop-"), "Help should mention --prop- usage");
     }
 
+    // --- -D flag positioning (must appear AFTER command word) ---
+
+    @Test
+    void shouldPlaceDFlagsAfterCommandWord() {
+        // Regression case: exact input from CS migrate.sh
+        String[] args = {
+                "--changelog=centerui",
+                "--url=jdbc:postgresql://localhost/centerui_production",
+                "--defaultSchemaName=centerui",
+                "--prop-db-user=centerui",
+                "--contexts=admin",
+                "update"
+        };
+        String[] result = LiquibaseExecutor.translateArgs(args);
+        List<String> resultList = Arrays.asList(result);
+
+        int updateIdx = resultList.indexOf("update");
+        assertTrue(updateIdx >= 0, "Result should contain 'update' command word");
+
+        // All -D flags must appear AFTER the command word
+        for (int i = 0; i < resultList.size(); i++) {
+            if (resultList.get(i).startsWith("-D")) {
+                assertTrue(i > updateIdx,
+                        "Flag " + resultList.get(i) + " at index " + i
+                                + " should appear after 'update' at index " + updateIdx
+                                + ". Full result: " + resultList);
+            }
+        }
+
+        // Verify both -D flags are present
+        assertTrue(resultList.contains("-Ddb_user=centerui"), "Should have -Ddb_user=centerui");
+        assertTrue(resultList.contains("-Ddb_schema=centerui"), "Should have -Ddb_schema=centerui");
+    }
+
+    @Test
+    void shouldPlaceDFlagsAfterCommandWordWithMultipleProps() {
+        String[] args = {
+                "--changelog=serverconf",
+                "--url=jdbc:postgresql://localhost/serverconf",
+                "--defaultSchemaName=serverconf",
+                "--prop-db-user=xroad",
+                "--prop-proxy-ui-superuser=admin",
+                "update"
+        };
+        String[] result = LiquibaseExecutor.translateArgs(args);
+        List<String> resultList = Arrays.asList(result);
+
+        int updateIdx = resultList.indexOf("update");
+        assertTrue(updateIdx >= 0, "Result should contain 'update' command word");
+
+        // All -D flags must appear AFTER the command word
+        for (int i = 0; i < resultList.size(); i++) {
+            if (resultList.get(i).startsWith("-D")) {
+                assertTrue(i > updateIdx,
+                        "Flag " + resultList.get(i) + " at index " + i
+                                + " should appear after 'update' at index " + updateIdx
+                                + ". Full result: " + resultList);
+            }
+        }
+
+        // Verify all three -D flags are present
+        assertTrue(resultList.contains("-Ddb_user=xroad"), "Should have -Ddb_user");
+        assertTrue(resultList.contains("-Dproxy_ui_superuser=admin"), "Should have -Dproxy_ui_superuser");
+        assertTrue(resultList.contains("-Ddb_schema=serverconf"), "Should have -Ddb_schema");
+    }
+
     // --- Full pipeline ---
 
     @Test
