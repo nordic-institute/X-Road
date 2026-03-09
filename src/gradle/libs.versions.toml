@@ -236,8 +236,13 @@ edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 edc-core-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
+edc-core-edrstore = { module = "org.eclipse.edc:edr-store-core", version.ref = "edc" }
+edc-edrstore-receiver = { module = "org.eclipse.edc:edr-store-receiver", version.ref = "edc" }
+edc-edr-cache-api = { module = "org.eclipse.edc:edr-cache-api", version.ref = "edc" }
 
 edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
+
+edcv-tasks-store-poll-executor = { module = "org.eclipse.edc.virtualized:tasks-store-poll-executor", version.ref = "edc" }
 
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
@@ -306,12 +311,12 @@ metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 edc-dcp = [
-#  "edc-crypto-verifiablecredentials-jwt",
-#  "edc-crypto-verifiablecredentials-ldp",
-#  "edc-iam-dcp-core",
+  #  "edc-crypto-verifiablecredentials-jwt",
+  #  "edc-crypto-verifiablecredentials-ldp",
+  #  "edc-iam-dcp-core",
   "edc-oauth2-client",
-#  "edc-iam-decentralized",
-#  "edc-iam-dcp-trustedissuers",
+  #  "edc-iam-decentralized",
+  #  "edc-iam-dcp-trustedissuers",
   "edc-iam-mock"
 ]
 edc-connector = [

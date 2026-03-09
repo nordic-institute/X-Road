@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.e2e;
 
+import com.github.dockerjava.api.model.ContainerNetwork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
@@ -52,6 +53,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
+    private static final String COMPOSE_SS_E2E_DS_FILE = "compose.e2e.ds.yaml";
     private static final String COMPOSE_SS_HSM_FILE = "compose.ss-hsm.e2e.yaml";
     private static final String COMPOSE_SS_BATCH_SIGNATURES_FILE = "compose.ss-batch-signature-enabled.e2e.yaml";
     private static final String COMPOSE_SS_SOFTTOKEN_SIGNER_FILE = "compose.ss-softtoken-signer-enabled.e2e.yaml";
@@ -64,6 +66,8 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String SIGNER = "signer";
     private static final String SOFTTOKEN_SIGNER = "softtoken-signer";
     private static final String CONFIGURATION_CLIENT = "configuration-client";
+    public static final String DS_CONTROL_PLANE = "ds-control-plane";
+    private static final String DS_DATA_PLANE = "ds-data-plane";
     private static final String XROAD_NETWORK = "xroad-network";
 
     public static final String DB_MESSAGELOG = "db-messagelog";
@@ -102,7 +106,7 @@ public class EnvSetup extends BaseComposeSetup {
         return null;
     }
 
-    private void connectToExternalNetwork(ComposeContainer env, String... serviceNames) {
+    private void connectToExternalNetwork(ComposeContainer env, List<String> serviceNames, String envName) {
         for (String serviceName : serviceNames) {
             var containerState = env.getContainerByServiceName(serviceName).orElseThrow();
             var dockerClient = containerState.getDockerClient();
@@ -116,24 +120,33 @@ public class EnvSetup extends BaseComposeSetup {
             dockerClient.connectToNetworkCmd()
                     .withContainerId(containerState.getContainerId())
                     .withNetworkId(networkId)
+                    .withContainerNetwork(new ContainerNetwork()
+                            .withAliases("%s-%s".formatted(envName, serviceName)))
                     .exec();
         }
     }
 
     private ComposeContainer createSSEnvironment(String name, Set<Feature> features) {
-        var files = new ArrayList<>(List.of(getComposeFilePath(COMPOSE_SS_FILE), getComposeFilePath(COMPOSE_SS_E2E_FILE)));
+        var files = new ArrayList<>(List.of(
+                getComposeFilePath(COMPOSE_SS_FILE),
+                getComposeFilePath(COMPOSE_SS_E2E_FILE),
+                getComposeFilePath(COMPOSE_SS_E2E_DS_FILE)));
 
         features.forEach(f -> files.add(getComposeFilePath(f.getComposeFile())));
 
         var env = new ComposeContainer(name + "-", files)
+                .withEnv("ENV_PREFIX", name + "-")
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
                 .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER))
-                .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO));
+                .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO))
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE))
+                .withLogConsumer(DS_DATA_PLANE, createLogConsumer(name, DS_DATA_PLANE));
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
@@ -141,11 +154,12 @@ public class EnvSetup extends BaseComposeSetup {
 
         env.start();
 
+        List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER,
+                DS_CONTROL_PLANE, DS_DATA_PLANE));
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
-            connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER, SOFTTOKEN_SIGNER);
-        } else {
-            connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
+            services.add(SOFTTOKEN_SIGNER);
         }
+        connectToExternalNetwork(env, services, name);
 
         if (features.contains(Feature.MESSAGE_LOG_ENCRYPTION)) {
             importPublicKeysToBao(env);
@@ -163,6 +177,10 @@ public class EnvSetup extends BaseComposeSetup {
         var container = env.getContainerByServiceName(OPENBAO).orElseThrow();
         container.execInContainer("bao", "write", "xrd-secret/" + MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH,
                 "payload=@/gpg-keys/public-keys.asc");
+    }
+
+    public String getContainerName(String env, String container) {
+        return getContainerName(mapEnvironment(env), container);
     }
 
     private String getContainerName(ComposeContainer env, String container) {
@@ -226,6 +244,7 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
         public static final int DB = 5432;
+        public static final int CONTROL_PLANE_MANAGEMENT = 8081;
 
     }
 

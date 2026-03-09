@@ -28,6 +28,7 @@
 package org.niis.xroad.edc.extension.dataplane;
 
 import org.eclipse.dataplane.Dataplane;
+import org.eclipse.dataplane.domain.DataAddress;
 import org.eclipse.dataplane.domain.Result;
 import org.eclipse.dataplane.domain.dataflow.DataFlow;
 import org.eclipse.dataplane.logic.OnPrepare;
@@ -44,6 +45,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
+
+import java.util.List;
 
 import static org.niis.xroad.edc.extension.dataplane.XRoadDataPlaneExtension.NAME;
 
@@ -99,7 +102,15 @@ public class XRoadDataPlaneExtension implements ServiceExtension {
     private static final class DataplaneOnStart implements OnStart {
         @Override
         public Result<DataFlow> action(DataFlow dataFlow) {
-            return Result.success(dataFlow);
+            switch (dataFlow.getTransferType()) {
+                case "Xrd-PULL":
+                    DataAddress dataAddress = new DataAddress(dataFlow.getTransferType(),
+                            "http", "http://url-returned-from-dataplane/test", List.of());
+                    dataFlow.setDataAddress(dataAddress);
+                    return Result.success(dataFlow);
+                default:
+                    return Result.failure(new EdcException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
+            }
         }
     }
 
