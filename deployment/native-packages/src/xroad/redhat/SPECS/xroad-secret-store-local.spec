@@ -10,7 +10,7 @@ Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            Meta-package for local secret store dependencies
 Group:              Applications/Internet
 License:            MIT
-Requires:           jq, bao >= 2.0.0
+Requires:           jq, openbao < 2.6.0
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 Conflicts:          xroad-secret-store-remote
 

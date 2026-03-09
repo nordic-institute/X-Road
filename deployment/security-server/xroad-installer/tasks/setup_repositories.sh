@@ -34,6 +34,9 @@ esac
 # Optional separate settings for dependencies repository (defaults to main repo settings)
 XROAD_DEPENDENCIES_GPG_KEY_URL="${XROAD_DEPENDENCIES_GPG_KEY_URL:-$XROAD_REPO_GPG_KEY_URL}"
 
+# OpenBao official repository
+OPENBAO_REPO_GPG_KEY_URL="${OPENBAO_REPO_GPG_KEY_URL:-https://openbao.org/assets/openbao-gpg-pub-20240618.asc}"
+
 # Setup repositories for Ubuntu
 setup_repositories_ubuntu() {
   local xroad_dep_keyring_path="/usr/share/keyrings/xroad-keyring.asc"
@@ -93,6 +96,22 @@ setup_repositories_ubuntu() {
   log_info "Repository configuration added to $sources_file"
   log_message ""
 
+  # Add official OpenBao repository
+  local openbao_keyring_path="/usr/share/keyrings/openbao-keyring.asc"
+  log_message "Adding OpenBao repository GPG key"
+  log_message "  URL: $OPENBAO_REPO_GPG_KEY_URL"
+  if curl -fsSL "$OPENBAO_REPO_GPG_KEY_URL" -o "$openbao_keyring_path"; then
+    log_info "OpenBao GPG key added successfully"
+  else
+    log_die "Failed to download OpenBao GPG key from $OPENBAO_REPO_GPG_KEY_URL"
+  fi
+
+  local openbao_sources_file="/etc/apt/sources.list.d/openbao.list"
+  echo "deb [signed-by=$openbao_keyring_path] https://pkgs.openbao.org/deb/ stable main" \
+    | tee "$openbao_sources_file" > /dev/null
+  log_info "OpenBao repository configuration added to $openbao_sources_file"
+  log_message ""
+
   # Update repository metadata
   log_message "Updating repository metadata"
   log_message "  Running: apt-get update"
@@ -146,6 +165,23 @@ setup_repositories_rhel() {
       log_die "Failed to import dependencies GPG key"
     fi
   fi
+
+  # Add official OpenBao repository
+  local openbao_repo_file="/etc/yum.repos.d/openbao.repo"
+  log_message "Adding OpenBao repository"
+  cat > "$openbao_repo_file" <<EOF
+[openbao]
+name=openbao
+baseurl=https://pkgs.openbao.org/rpm/\$basearch
+repo_gpgcheck=0
+gpgcheck=1
+enabled=1
+gpgkey=$OPENBAO_REPO_GPG_KEY_URL
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+EOF
+  log_info "OpenBao repository configuration added to $openbao_repo_file"
 
   log_message "Updating package manager cache..."
   yum makecache
