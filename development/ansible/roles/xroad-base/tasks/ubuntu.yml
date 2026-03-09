@@ -46,6 +46,16 @@
     - "{{ ubuntu_deps_apt_repo_with_option }}"
   when: ansible_distribution == "Ubuntu"
 
+- name: Add OpenBao apt repo key
+  shell: "curl -fsSL https://openbao.org/assets/openbao-gpg-pub-20240618.asc -o /usr/share/keyrings/openbao-keyring.asc"
+
+- name: Add OpenBao apt repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/openbao-keyring.asc] https://pkgs.openbao.org/deb/ stable main"
+    state: present
+    filename: openbao
+    update_cache: yes
+
 - name: enable UTF-8 locales
   locale_gen:
     name: "{{ item }}"
