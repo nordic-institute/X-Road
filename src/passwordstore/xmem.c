@@ -240,8 +240,12 @@ int xmem_close(struct xmem* xm)
                     if (shmctl(current_dshmid, IPC_STAT, &ds) == 0) {
                         ptr = shmat(current_dshmid, 0, 0);
                         if (ptr != (void *)-1) {
+                            /* normal case: we can attach a fresh pointer and wipe it */
                             secure_bzero(ptr, ds.shm_segsz);
                             shmdt(ptr);
+                        } else if (xm->dshmptr != 0 && xm->dshmid == current_dshmid) {
+                            /* fallback: wipe through existing attached mapping */
+                            secure_bzero(xm->dshmptr, ds.shm_segsz);
                         }
                     }
                     shmctl(current_dshmid, IPC_RMID, 0);
@@ -369,8 +373,12 @@ int xmem_resize(struct xmem* xm, size_t size)
                 if (shmctl(current_dshmid, IPC_STAT, &ds) == 0) {
                     ptr = shmat(current_dshmid, 0, 0);
                     if (ptr != (void *)-1) {
+                        /* normal case: we can attach a fresh pointer and wipe it */
                         secure_bzero(ptr, ds.shm_segsz);
                         shmdt(ptr);
+                    } else if (xm->dshmptr != 0 && xm->dshmid == current_dshmid) {
+                        /* fallback: wipe through existing attached mapping */
+                        secure_bzero(xm->dshmptr, ds.shm_segsz);
                     }
                 }
                 shmctl(current_dshmid, IPC_RMID, 0);
