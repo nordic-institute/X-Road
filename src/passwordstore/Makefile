@@ -9,7 +9,8 @@ OBJECTS = xmem.o passwordstore.o ee_ria_xroad_common_util_MemoryPasswordStorePro
 TEST_PROGRAMS = test_passwordstore_write test_passwordstore_read \
 		test_passwordstore_clear \
 		test_xmem_wipe_on_resize \
-		test_jni_read_error_handling
+		test_jni_read_error_handling \
+    test_xmem_resize_and_copy_shrink
 
 AUTOMATIC_TESTS =
 
@@ -46,5 +47,8 @@ test_xmem_wipe_on_resize: test_xmem_wipe_on_resize.o xmem.o
 
 test_jni_read_error_handling: test_jni_read_error_handling.o ee_ria_xroad_common_util_MemoryPasswordStoreProvider.o
 	$(CC) -o $@ $+ -Wl,--wrap=free
+
+test_xmem_resize_and_copy_shrink: test_xmem_resize_and_copy_shrink.o xmem.o
+	$(CC) -o $@ $+
 
 include ../Makefile.common

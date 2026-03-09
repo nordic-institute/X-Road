@@ -460,8 +460,11 @@ int xmem_resize_and_copy(struct xmem* xm, size_t size)
                 oldptr= 0;
             }
             /* kui molemad on mittenullid, siis kopeeri andmed */
-            if(newptr && oldptr && current_size){
-                memcpy(newptr, oldptr, current_size);
+            if (newptr && oldptr) {
+                size_t copy_size = (current_size < size) ? current_size : size;
+                if (copy_size) {
+                    memcpy(newptr, oldptr, copy_size);
+                }
             }
 
             /* laseme vanal segmendil minna */
