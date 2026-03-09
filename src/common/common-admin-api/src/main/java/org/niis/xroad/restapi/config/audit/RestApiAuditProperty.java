@@ -142,6 +142,8 @@ public enum RestApiAuditProperty {
     AUTH_CERT_PROFILE_ID,
     SIGN_CERT_PROFILE_ID,
 
+    SYSTEM_PARAMETER,
+
     TSA_ID,
     TSA_NAME,
     TSA_URL,

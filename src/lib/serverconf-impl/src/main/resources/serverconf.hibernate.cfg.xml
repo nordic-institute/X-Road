@@ -18,6 +18,7 @@
         <mapping class="org.niis.xroad.serverconf.impl.entity.AccessRightEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.CertificateEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.ClientEntity"/>
+        <mapping class="org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.EndpointEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.GroupMemberEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.LocalGroupEntity"/>

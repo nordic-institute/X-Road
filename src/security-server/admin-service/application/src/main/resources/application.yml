@@ -118,6 +118,7 @@ xroad:
       enabled: true
       listen-address: "127.0.0.1"
       port: 4060
+    configurable-properties-path: "classpath:configurable-properties.yaml"
 
 file-upload-endpoints:
   endpoint-definitions:
