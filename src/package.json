@@ -41,7 +41,7 @@
     "prettier": "^3.8.1",
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.97.3",
-    "sass-loader": "^16.0.7",
+    "sass-loader": "^16.0.6",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1",
@@ -51,7 +51,7 @@
     "vue-i18n": "^11.2.8",
     "vue-tsc": "^3.2.5"
   },
-  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
+  "packageManager": "pnpm@10.31.0+sha512.e3927388bfaa8078ceb79b748ffc1e8274e84d75163e67bc22e06c0d3aed43dd153151cbf11d7f8301ff4acb98c68bdc5cadf6989532801ffafe3b3e4a63c268",
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
