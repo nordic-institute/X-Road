@@ -1,5 +1,5 @@
 @LivenessCheck
-Feature: 5100 - SS: Liveness Checks
+Feature: 6100 - SS: Liveness Checks
   Verifies that all Security Server services report healthy liveness status
   when the system is properly initialized and running.
 

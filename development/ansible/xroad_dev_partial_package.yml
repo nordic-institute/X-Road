@@ -1,0 +1,73 @@
+---
+# This playbook builds X-Road packages and installs them via package manager
+# Usage: ansible-playbook -i <inventory> xroad_dev_partial_package.yml -e selected_modules=proxy,signer
+
+- name: Build packages
+  hosts: compile_servers
+  strategy: free
+  tasks:
+    - name: Build packages using build_packages.sh
+      shell: |
+        cd {{ playbook_dir }}/../../src
+        ./build_packages.sh --package-only
+      args:
+        executable: /bin/bash
+  tags:
+    - build-packages
+
+- name: Configure local repositories on CS
+  hosts: cs_servers
+  strategy: free
+  roles:
+    - packages-to-local-repo
+  tags:
+    - local-repo
+
+- name: Configure local repositories on CP
+  hosts: cp_servers
+  strategy: free
+  roles:
+    - packages-to-local-repo
+  tags:
+    - local-repo
+
+- name: Configure local repositories on SS
+  hosts: ss_servers
+  strategy: free
+  roles:
+    - packages-to-local-repo
+  tags:
+    - local-repo
+
+- name: Reinstall packages on CS
+  hosts: cs_servers
+  become: true
+  strategy: free
+  vars_files:
+    - vars_files/module_packages.yml
+  roles:
+    - { role: reinstall-packages, modules: "{{ common_packages | combine(cs_packages) }}" }
+  tags:
+    - reinstall
+
+- name: Reinstall packages on CP
+  hosts: cp_servers
+  become: true
+  strategy: free
+  vars_files:
+    - vars_files/module_packages.yml
+  roles:
+    - { role: reinstall-packages, modules: "{{ common_packages | combine(cp_packages) }}" }
+  tags:
+    - reinstall
+
+- name: Reinstall packages on SS
+  hosts: ss_servers
+  become: true
+  strategy: free
+  vars_files:
+    - vars_files/module_packages.yml
+  roles:
+    - { role: reinstall-packages, modules: "{{ common_packages | combine(ss_packages) }}" }
+  tags:
+    - reinstall
