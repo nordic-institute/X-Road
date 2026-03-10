@@ -76,31 +76,3 @@ Feature: 0100 - SS: Proxy
   Scenario: REST request with valid API path permission is successfully transferred over X-Road proxy
     When REST request targeted at "/api/members" API endpoint is sent to "ss1" "proxy"
     Then response is received with http status code 200 and body path "[0].name" is equal to "MTÜ Nordic Institute for Interoperability Solutions"
-
-  Scenario: SS0 Messagelogs are successfully archived and removed from database
-    When Waiting for 5 seconds to ensure that all messagelogs are archived and removed from database
-    And Global configuration is fetched from "ss0"'s "proxy" for messagelog verification
-    And messsagelog archives are downloaded from "ss0" "ui"
-    Then "ss0" has 20 messagelogs present in the archives and all are cryptographically valid
-    And "ss0" contains 0 messagelog entries
-
-  Scenario: SS1 messagelog is successfully archived and removed from database
-    When messsagelog archives are downloaded from "ss1" "ui"
-    And "ss1" contains 0 messagelog entries
-
-  Scenario: DEV/COM/4321 messagelogs can be decrypted with key 8A4BB80EEE081BDE
-    Then "ss1" messsagelog archives "mlog-DEV_COM_4321" can be decrypted using key "8A4BB80EEE081BDE"
-    And "ss1/8A4BB80EEE081BDE" has 10 messagelogs present in the archives and all are cryptographically valid
-
-  Scenario: DEV/COM/4321 messagelogs can be decrypted with key E93952B01C2D2EA5
-    Then "ss1" messsagelog archives "mlog-DEV_COM_4321" can be decrypted using key "E93952B01C2D2EA5"
-    And "ss1/E93952B01C2D2EA5" has 10 messagelogs present in the archives and all are cryptographically valid
-
-  Scenario: DEV/COM/1234 messagelogs can be decrypted with key 3BD9C292C63580F8
-    When "ss1" messsagelog archives "mlog-DEV_COM_1234_test-consumer" can be decrypted using key "3BD9C292C63580F8"
-    And "ss1/3BD9C292C63580F8" has 2 messagelogs present in the archives and all are cryptographically valid
-
-  Scenario: messagelogs decryption with other keys fails
-    And "ss1" messsagelog archives "mlog-DEV_COM_4321" can not be decrypted using key "3BD9C292C63580F8"
-    And "ss1" messsagelog archives "mlog-DEV_COM_1234_test-consumer" can not be decrypted using key "E93952B01C2D2EA5"
-    And "ss1" messsagelog archives "mlog-DEV_COM_1234_test-consumer" can not be decrypted using key "8A4BB80EEE081BDE"

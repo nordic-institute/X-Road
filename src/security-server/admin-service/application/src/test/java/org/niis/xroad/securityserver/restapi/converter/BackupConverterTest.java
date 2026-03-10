@@ -29,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.Test;
-import org.niis.xroad.backupmanager.proto.BackupInfo;
+import org.niis.xroad.auxiliaryservice.proto.BackupInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 
 import java.time.Instant;

@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
@@ -110,9 +109,6 @@ public class CsrfWebMvcTest {
 
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
-
-    @MockitoBean
-    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     @Before
     // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)

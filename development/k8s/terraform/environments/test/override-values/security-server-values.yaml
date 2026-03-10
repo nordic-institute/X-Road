@@ -97,13 +97,13 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
         name: op-monitor-openbao-tls-certificate
-  backup-manager:
+  auxiliary-service:
     env:
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
       PROXY_UI_SUPERUSER: xrd
       QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
     extraVolumes:
-      - name: backup-manager-openbao-tls-certificate
+      - name: auxiliary-service-openbao-tls-certificate
         secret:
           secretName: openbao-server-tls
           items:
@@ -112,4 +112,8 @@ services:
     extraVolumeMounts:
       - mountPath: /etc/xroad/ssl/openbao.crt  # Mount as file
         subPath: openbao.crt
-        name: backup-manager-openbao-tls-certificate
+        name: auxiliary-service-openbao-tls-certificate
+
+messageLogArchiver:
+  env:
+    QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"

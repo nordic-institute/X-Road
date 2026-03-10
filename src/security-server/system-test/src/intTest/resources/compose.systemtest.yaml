@@ -45,7 +45,7 @@ services:
       testca:
         condition: service_healthy
 
-  backup-manager:
+  auxiliary-service:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
     ports:
