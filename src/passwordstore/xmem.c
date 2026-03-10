@@ -238,6 +238,9 @@ int xmem_close(struct xmem* xm)
                     void *ptr;
 
                     if (shmctl(current_dshmid, IPC_STAT, &ds) == 0) {
+                        /* Attach the segment temporarily to wipe it before IPC_RMID.
+                         * We cannot rely on xm->dshmptr because the segment may not
+                         * currently be mapped in this process. */
                         ptr = shmat(current_dshmid, 0, 0);
                         if (ptr != (void *)-1) {
                             /* normal case: we can attach a fresh pointer and wipe it */
@@ -365,12 +368,15 @@ int xmem_resize(struct xmem* xm, size_t size)
         }else{
             /* jooksva andmesegmendi voti */
             int current_dshmid= *((int *)xm->pshmptr);
-
+            /* Wipe and remove the current data segment */
             if (current_dshmid != -1) {
                 struct shmid_ds ds;
                 void *ptr;
 
                 if (shmctl(current_dshmid, IPC_STAT, &ds) == 0) {
+                    /* Attach the segment temporarily to wipe it before IPC_RMID.
+                     * We cannot rely on xm->dshmptr because the segment may not
+                     * currently be mapped in this process. */
                     ptr = shmat(current_dshmid, 0, 0);
                     if (ptr != (void *)-1) {
                         /* normal case: we can attach a fresh pointer and wipe it */
@@ -477,10 +483,10 @@ int xmem_resize_and_copy(struct xmem* xm, size_t size)
 
             /* laseme vanal segmendil minna */
             if (oldptr) {
-                 if (current_size) {
-                     secure_bzero(oldptr, current_size);
-                 }
-                 shmdt(oldptr);
+                if (current_size) {
+                    secure_bzero(oldptr, current_size);
+                }
+                shmdt(oldptr);
             }
 
             /* havitame vana segmendi ara, nii et detach ta ara havitaks */
