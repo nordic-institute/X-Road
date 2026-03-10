@@ -52,7 +52,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -129,9 +128,18 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .then();
     }
 
-    @Step("Waiting for {int} seconds to ensure that all messagelogs are archived and removed from database")
-    public void waitForMessagelogsToBeArchivedAndRemovedFromDatabase(int seconds) throws InterruptedException {
-        TimeUnit.SECONDS.sleep(seconds);
+    @Step("message log {string} is triggered on {string}")
+    public void messageLogCommandIsExecuted(String command, String env) throws IOException, InterruptedException {
+        var container = envSetup.getContainerByServiceName(env, "message-log-cli").orElseThrow();
+        var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+                + " -Dquarkus.profile=containerized"
+                + " -jar /opt/app/quarkus-run.jar " + command
+                + " 2>&1 | tee /proc/1/fd/1";
+        var result = container.execInContainer("sh", "-c", javaCmd);
+        if (result.getExitCode() != 0) {
+            throw new RuntimeException("Message log %s failed (exit code %d): %s".formatted(
+                    command, result.getExitCode(), result.getStderr()));
+        }
     }
 
     @Step("Global configuration is fetched from {string}'s {string} for messagelog verification")
@@ -167,13 +175,13 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("messsagelog archives are downloaded from {string} {string}")
     public void messsagelogArchivesAreDownloadedFrom(String env, String service) {
-        downloadMessageLogArchives(env, service, "/var/lib/xroad", coreProperties.resourceDir()  + env);
+        downloadMessageLogArchives(env, service, "/var/lib/xroad", coreProperties.resourceDir() + env);
     }
 
     @Step("{string} has {int} messagelogs present in the archives and all are cryptographically valid")
     public void serviceHasMessagelogArchivePresent(String env, int expectedMessagelogCount)
             throws IOException {
-        var localCompressedArchivesPath = coreProperties.resourceDir()  + env + "/messagelog-archives.tar.gz";
+        var localCompressedArchivesPath = coreProperties.resourceDir() + env + "/messagelog-archives.tar.gz";
 
         try (var tis = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(localCompressedArchivesPath)))) {
             var messagelogCount = 0;
@@ -226,11 +234,11 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
         String outputDir = "/tmp/" + UUID.randomUUID();
 
-        var container = envSetup.getContainerByServiceName(env, "ui").orElseThrow();
+        var container = envSetup.getContainerByServiceName(env, "message-log-cli").orElseThrow();
         Container.ExecResult execResult = container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
                 filePrefix, keyfile, "secret", outputDir);
 
-        downloadMessageLogArchives(env, "ui", outputDir, coreProperties.resourceDir()  + env + "/" + keyId);
+        downloadMessageLogArchives(env, "message-log-cli", outputDir, coreProperties.resourceDir() + env + "/" + keyId);
 
         int processedFilesCount = getFilesCountFromOutput(execResult.getStdout());
 
@@ -253,7 +261,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
         String outputDir = "/tmp/" + UUID.randomUUID();
 
-        var container = envSetup.getContainerByServiceName(env, "ui").orElseThrow();
+        var container = envSetup.getContainerByServiceName(env, "message-log-cli").orElseThrow();
         container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
                 filePrefix, keyfile, "secret", outputDir);
 

@@ -10,8 +10,6 @@ dependencies {
 
   implementation(project(":common:common-db"))
   implementation(project(":common:common-message"))
-  implementation(project(":lib:globalconf-core"))
-  implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:asic-core"))
 
   implementation(libs.mapstruct)

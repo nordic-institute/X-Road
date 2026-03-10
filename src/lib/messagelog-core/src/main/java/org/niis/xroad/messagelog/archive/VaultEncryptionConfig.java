@@ -50,7 +50,7 @@ public record VaultEncryptionConfig(
         List<EncryptionMember> encryptionMembers) implements EncryptionConfig {
 
     @Override
-    public OutputStream createEncryptionStream(Path outputFile, String tempFilesPath) {
+    public OutputStream createEncryptionStream(Path outputFile) {
         return new BouncyCastleOutputStream(encryption, outputFile, encryptionKeyIds);
     }
 }

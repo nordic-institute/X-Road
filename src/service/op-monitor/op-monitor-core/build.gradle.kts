@@ -27,6 +27,8 @@ dependencies {
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-db"))
   implementation(project(":lib:globalconf-impl"))
+  implementation(project(":lib:rpc-core"))
+  implementation(project(":lib:properties-core"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":lib:vault-quarkus"))
 

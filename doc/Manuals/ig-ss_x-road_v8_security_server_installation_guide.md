@@ -267,7 +267,7 @@ The installation is successful if system services are started and the user inter
   sudo systemctl list-units "xroad-*"
 
   UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
-  xroad-backup-manager.service     loaded active running X-Road backup manager
+  xroad-auxiliary-service.service   loaded active running X-Road auxiliary service
   xroad-base.service               loaded active exited  X-Road initialization
   xroad-confclient.service         loaded active running X-Road confclient
   xroad-monitor.service            loaded active running X-Road Monitor

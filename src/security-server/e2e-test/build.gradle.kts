@@ -12,6 +12,7 @@ dependencies {
   intTestImplementation(project(":lib:asic-core"))
   intTestImplementation(project(":common:common-test"))
   intTestImplementation(project(":lib:globalconf-impl"))
+  intTestImplementation(project(":lib:vault-core"))
 }
 
 intTestComposeEnv {
@@ -31,8 +32,10 @@ intTestComposeEnv {
     "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer",
     "PROXY_IMG" to "ss-proxy",
     "PROXY_UI_IMG" to "ss-proxy-ui-api",
-    "BACKUP_MANAGER_IMG" to "ss-backup-manager",
+    "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
     "OP_MONITOR_IMG" to "ss-op-monitor",
+    "CA_IMG" to "testca-dev",
+    "MESSAGE_LOG_ARCHIVER_IMG" to "ss-message-log-archiver",
     "CA_IMG" to "testca-dev",
     "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
     "DS_DATA_PLANE_IMG" to "ds-data-plane",

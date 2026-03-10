@@ -36,7 +36,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyUtils;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,11 +55,11 @@ import java.util.stream.Collectors;
 public final class VaultMemberEncryptionConfigProvider implements EncryptionConfigProvider {
     private final PgpKeyManager keyManager;
     private final BouncyCastlePgpEncryptionService encryption;
-    private final MessageLogArchivalProperties messageLogArchivalProperties;
+    private final MessageLogEncryptionProperties.ArchiveEncryptionConfig archiveEncryptionConfig;
 
     @Override
     public EncryptionConfig forClientId(ClientId clientId) {
-        var grouping = messageLogArchivalProperties.groupingStrategy().forClient(clientId);
+        var grouping = archiveEncryptionConfig.groupingStrategy().forClient(clientId);
         return forGrouping(grouping);
     }
 
@@ -145,7 +145,7 @@ public final class VaultMemberEncryptionConfigProvider implements EncryptionConf
     public List<PGPPublicKey> getPublicKeysForMember(String memberId) throws PGPException {
 
         // Check if member-specific keys are configured (can be multiple)
-        Set<String> keyIdsForMember = messageLogArchivalProperties.grouping().get(memberId);
+        Set<String> keyIdsForMember = archiveEncryptionConfig.grouping().get(memberId);
         if (keyIdsForMember != null && !keyIdsForMember.isEmpty()) {
             List<PGPPublicKey> memberKeys = keyIdsForMember.stream()
                     .map(keyManager::getPublicKey)
@@ -164,8 +164,8 @@ public final class VaultMemberEncryptionConfigProvider implements EncryptionConf
         }
 
         // Fall back to default key
-        if (messageLogArchivalProperties.defaultKeyId().isPresent()) {
-            var defaultKey = keyManager.getPublicKey(messageLogArchivalProperties.defaultKeyId().get());
+        if (archiveEncryptionConfig.defaultKeyId().isPresent()) {
+            var defaultKey = keyManager.getPublicKey(archiveEncryptionConfig.defaultKeyId().get());
             if (defaultKey.isPresent()) {
                 return Collections.singletonList(defaultKey.get());
             }
