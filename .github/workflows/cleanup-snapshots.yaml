@@ -26,7 +26,7 @@ permissions:
 env:
   # Set to 'true' to enable dry-run for scheduled runs (safe for testing)
   # Set to 'false' to actually delete images on scheduled runs
-  SCHEDULED_DRY_RUN: 'true'
+  SCHEDULED_DRY_RUN: 'false'
 
 jobs:
   cleanup-snapshots:
@@ -51,6 +51,11 @@ jobs:
           - x-road/ss-softtoken-signer
           - x-road/ss-auxiliary-service
           - x-road/ss-proxy-ui-api
+          # Data space service images
+          - x-road/ds-control-plane
+          - x-road/ds-data-plane
+          - x-road/ds-identity-hub
+          # Database initialization images
           - x-road/ss-db-messagelog-init
           - x-road/ss-db-opmonitor-init
           - x-road/ss-db-serverconf-init
@@ -60,10 +65,11 @@ jobs:
           - x-road/postgres-dev
           - x-road/central-server-dev
           # Package builder images
-          - x-road/package-builder-deb-jammy
-          - x-road/package-builder-deb-noble
-          - x-road/package-builder-rpm-el8
-          - x-road/package-builder-rpm-el9
+    # TODO: these require different behaviour as they're rarely updated.
+    #          - x-road/package-builder-deb-jammy
+    #          - x-road/package-builder-deb-noble
+    #          - x-road/package-builder-rpm-el8
+    #          - x-road/package-builder-rpm-el9
     steps:
       - name: Cleanup old snapshot images (${{ matrix.package }})
         uses: dataaxiom/ghcr-cleanup-action@v1

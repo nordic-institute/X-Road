@@ -1,5 +1,5 @@
 @ReadinessCheck
-Feature: 5000 - SS: Readiness Checks
+Feature: 6000 - SS: Readiness Checks
   Verifies that all Security Server services report healthy readiness status
   when the system is properly initialized and running.
 

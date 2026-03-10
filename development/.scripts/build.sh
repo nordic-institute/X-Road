@@ -43,6 +43,15 @@ case $1 in
 "cs-registration-service")
   gradleModule="central-server/registration-service"
   ;;
+"ds-control-plane")
+  gradleModule="service/ds-control-plane/ds-control-plane-application"
+  ;;
+"ds-data-plane")
+  gradleModule="service/ds-data-plane/ds-data-plane-application"
+  ;;
+"ds-identity-hub")
+  gradleModule="service/ds-identity-hub/ds-identity-hub-application"
+  ;;
 esac
 
 cd "$SCRIPT_DIR"/../../src/

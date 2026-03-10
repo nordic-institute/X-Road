@@ -146,9 +146,15 @@ include("service:message-log-archiver:message-log-archiver-core")
 
 include("service:ds-control-plane")
 include("service:ds-control-plane:ds-control-plane-application")
+include("service:ds-control-plane:ds-control-plane-db")
 include("service:ds-control-plane:ds-ext-sample")
 include("service:ds-data-plane")
 include("service:ds-data-plane:ds-data-plane-application")
+include("service:ds-data-plane:ds-data-plane-db")
+include("service:ds-data-plane:ds-xroad-data-plane")
+include("service:ds-identity-hub")
+include("service:ds-identity-hub:ds-identity-hub-application")
+include("service:ds-identity-hub:ds-identity-hub-db")
 
 // Tool projects
 include("tool")
