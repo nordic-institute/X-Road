@@ -28,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.backupmanager.proto.BackupInfo;
-import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
+import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
+import org.niis.xroad.auxiliaryservice.proto.BackupInfo;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
@@ -68,7 +68,7 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GPG_
 public class SecurityServerBackupService {
 
     private final ServerConfService serverConfService;
-    private final BackupManagerRpcClient backupManagerRpcClient;
+    private final AuxiliaryServiceRpcClient auxiliaryServiceRpcClient;
     private final AuditDataHelper auditDataHelper;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final ApplicationEventPublisher eventPublisher;
@@ -77,7 +77,7 @@ public class SecurityServerBackupService {
 
     public Collection<BackupInfo> listBackups() {
         try {
-            return backupManagerRpcClient.listBackups();
+            return auxiliaryServiceRpcClient.listBackups();
         } catch (XrdRuntimeException ce) {
             throw mapException(ce, new InternalServerErrorException("Failed to list backups"));
         }
@@ -86,7 +86,7 @@ public class SecurityServerBackupService {
     public void deleteBackup(String name) {
         auditDataHelper.put(RestApiAuditProperty.BACKUP_FILE_NAME, name);
         try {
-            backupManagerRpcClient.deleteBackup(name);
+            auxiliaryServiceRpcClient.deleteBackup(name);
         } catch (XrdRuntimeException ce) {
             throw mapException(ce, new InternalServerErrorException(ce, BACKUP_DELETION_FAILED.build(ce.getDetails())));
         }
@@ -94,7 +94,7 @@ public class SecurityServerBackupService {
 
     public byte[] readBackup(String name) {
         try {
-            return backupManagerRpcClient.downloadBackup(name);
+            return auxiliaryServiceRpcClient.downloadBackup(name);
         } catch (XrdRuntimeException ce) {
             throw mapException(ce, new NotFoundException(BACKUP_FILE_NOT_FOUND.build(ce.getDetails())));
         }
@@ -102,7 +102,7 @@ public class SecurityServerBackupService {
 
     public BackupInfo generateBackup() {
         try {
-            BackupInfo backup = backupManagerRpcClient.createBackup(serverConfService.getSecurityServerId().toShortString());
+            BackupInfo backup = auxiliaryServiceRpcClient.createBackup(serverConfService.getSecurityServerId().toShortString());
             auditDataHelper.put(RestApiAuditProperty.BACKUP_FILE_NAME, backup.name());
             return backup;
         } catch (XrdRuntimeException ce) {
@@ -113,7 +113,7 @@ public class SecurityServerBackupService {
     public BackupInfo uploadBackup(String name, byte[] data, boolean ignoreWarnings) throws UnhandledWarningsException {
         auditDataHelper.put(RestApiAuditProperty.BACKUP_FILE_NAME, name);
         try {
-            return backupManagerRpcClient.uploadBackup(name, data, ignoreWarnings);
+            return auxiliaryServiceRpcClient.uploadBackup(name, data, ignoreWarnings);
         } catch (XrdRuntimeException ce) {
             if (ce.isCausedBy(FILE_ALREADY_EXISTS)) {
                 throw new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, name));
@@ -127,7 +127,7 @@ public class SecurityServerBackupService {
 
         try {
             eventPublisher.publishEvent(BackupRestoreEvent.START);
-            backupManagerRpcClient.restoreFromBackup(fileName, currentSecurityServerId.getServerId().toShortString());
+            auxiliaryServiceRpcClient.restoreFromBackup(fileName, currentSecurityServerId.getServerId().toShortString());
 
             persistenceUtils.evictPoolConnections();
         } catch (XrdRuntimeException ce) {
@@ -141,7 +141,7 @@ public class SecurityServerBackupService {
 
     public void generateGpgKey(String keyName) {
         try {
-            backupManagerRpcClient.generateGpgKey(keyName);
+            auxiliaryServiceRpcClient.generateGpgKey(keyName);
         } catch (XrdRuntimeException ce) {
             throw mapException(ce, new InternalServerErrorException(ce, GPG_KEY_GENERATION_FAILED.build()));
         }

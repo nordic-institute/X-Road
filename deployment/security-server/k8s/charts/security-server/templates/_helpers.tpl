@@ -194,6 +194,10 @@ spec:
         - name: {{ .name }}
           persistentVolumeClaim:
             claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else if .configMap }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ $.root.Release.Name }}-{{ .configMap.name }}
         {{- else }}
         - {{ toYaml . | nindent 10 }}
         {{- end }}
@@ -205,6 +209,10 @@ spec:
         - name: {{ .name }}
           persistentVolumeClaim:
             claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else if .configMap }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ $.root.Release.Name }}-{{ .configMap.name }}
         {{- else }}
         - {{ toYaml . | nindent 10 }}
         {{- end }}

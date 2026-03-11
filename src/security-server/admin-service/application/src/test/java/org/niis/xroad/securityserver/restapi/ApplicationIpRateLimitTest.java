@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
@@ -88,9 +87,6 @@ class ApplicationIpRateLimitTest {
 
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
-
-    @MockitoBean
-    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     @MockitoBean
     GlobalConfProvider globalConfProvider;

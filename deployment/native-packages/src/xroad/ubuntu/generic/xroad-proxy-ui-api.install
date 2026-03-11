@@ -6,5 +6,5 @@
 ../../../../../../src/security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar usr/share/xroad/jlib/
 ../../../../../../src/3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy-ui-api
 
-../../../../../../src/security-server/admin-service/message-log-archiver/scripts/archive-http-transporter.sh usr/share/xroad/scripts/
-../../../../../../src/security-server/admin-service/message-log-archiver/scripts/demo-upload.pl usr/share/doc/xroad/archive-server/
+../../../../../../src/service/message-log-archiver/scripts/archive-http-transporter.sh usr/share/xroad/scripts/
+../../../../../../src/service/message-log-archiver/scripts/demo-upload.pl usr/share/doc/xroad/archive-server/

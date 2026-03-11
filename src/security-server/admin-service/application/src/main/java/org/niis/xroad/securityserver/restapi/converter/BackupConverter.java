@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import org.niis.xroad.backupmanager.proto.BackupInfo;
+import org.niis.xroad.auxiliaryservice.proto.BackupInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.springframework.stereotype.Component;
 

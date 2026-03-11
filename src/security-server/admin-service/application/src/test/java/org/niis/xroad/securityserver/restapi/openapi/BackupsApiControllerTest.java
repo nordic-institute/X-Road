@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.backupmanager.proto.BackupInfo;
+import org.niis.xroad.auxiliaryservice.proto.BackupInfo;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;

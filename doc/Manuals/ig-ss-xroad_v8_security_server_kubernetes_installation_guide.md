@@ -242,16 +242,16 @@ helm install security-server oci://artifactory.niis.org/xroad8-snapshot-helm/sec
   --set 'services.op-monitor.extraVolumeMounts[0].mountPath=/etc/xroad/ssl/openbao.crt' \
   --set 'services.op-monitor.extraVolumeMounts[0].subPath=openbao.crt' \
   --set 'services.op-monitor.extraVolumeMounts[0].name=op-monitor-openbao-tls-certificate' \
-  --set services.backup-manager.env.SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER=\"true\" \
-  --set services.backup-manager.env.PROXY_UI_SUPERUSER=<proxy_ui_superuser> \
-  --set services.backup-manager.env.QUARKUS_VAULT_TLS_CA_CERT=/etc/xroad/ssl/openbao.crt \
-  --set 'services.backup-manager.extraVolumes[0].name=backup-manager-openbao-tls-certificate' \
-  --set 'services.backup-manager.extraVolumes[0].secret.secretName=openbao-server-tls' \
-  --set 'services.backup-manager.extraVolumes[0].secret.items[0].key=tls.crt' \
-  --set 'services.backup-manager.extraVolumes[0].secret.items[0].path=openbao.crt' \
-  --set 'services.backup-manager.extraVolumeMounts[0].mountPath=/etc/xroad/ssl/openbao.crt' \
-  --set 'services.backup-manager.extraVolumeMounts[0].subPath=openbao.crt' \
-  --set 'services.backup-manager.extraVolumeMounts[0].name=backup-manager-openbao-tls-certificate'
+  --set services.auxiliary-service.env.SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER=\"true\" \
+  --set services.auxiliary-service.env.PROXY_UI_SUPERUSER=<proxy_ui_superuser> \
+  --set services.auxiliary-service.env.QUARKUS_VAULT_TLS_CA_CERT=/etc/xroad/ssl/openbao.crt \
+  --set 'services.auxiliary-service.extraVolumes[0].name=auxiliary-service-openbao-tls-certificate' \
+  --set 'services.auxiliary-service.extraVolumes[0].secret.secretName=openbao-server-tls' \
+  --set 'services.auxiliary-service.extraVolumes[0].secret.items[0].key=tls.crt' \
+  --set 'services.auxiliary-service.extraVolumes[0].secret.items[0].path=openbao.crt' \
+  --set 'services.auxiliary-service.extraVolumeMounts[0].mountPath=/etc/xroad/ssl/openbao.crt' \
+  --set 'services.auxiliary-service.extraVolumeMounts[0].subPath=openbao.crt' \
+  --set 'services.auxiliary-service.extraVolumeMounts[0].name=auxiliary-service-openbao-tls-certificate'
 ```
 
 **Note:** The installation of the `security-server` chart may take up to several minutes to complete.

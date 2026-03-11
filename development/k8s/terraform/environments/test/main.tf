@@ -74,7 +74,7 @@ module "ca_service_bridge" {
     {
       name       = "tsa"
       port       = 8899
-      targetPort = 4003
+      targetPort = 4004
     },
   ]
 

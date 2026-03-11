@@ -33,7 +33,7 @@ public enum ErrorOrigin {
     OP_MONITOR,
     MONITOR,
     CONF_CLIENT,
-    BACKUP_MANAGER,
+    AUXILIARY_SERVICE,
     SIGNER;
 
     public String toPrefix() {

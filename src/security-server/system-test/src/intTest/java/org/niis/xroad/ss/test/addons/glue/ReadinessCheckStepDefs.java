@@ -26,11 +26,11 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
-import io.cucumber.java.en.Then;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.api.FeignHealthApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.BACKUP_MANAGER;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.AUXILIARY_SERVICE;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.CONFIGURATION_CLIENT;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.OP_MONITOR;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.PROXY;
@@ -45,38 +45,39 @@ public class ReadinessCheckStepDefs {
     @Autowired
     private HealthCheckAssertions healthCheckAssertions;
 
-    @Then("proxy readiness check is UP")
+    @Step("proxy readiness check is UP")
     public void proxyReadinessCheckIsUp() {
         healthCheckAssertions.assertOverallStatusIsUp(PROXY, FeignHealthApi::getReadiness);
     }
 
-    @Then("signer readiness check is UP")
+    @Step("signer readiness check is UP")
     public void signerReadinessCheckIsUp() {
         healthCheckAssertions.assertOverallStatusIsUp(SIGNER, FeignHealthApi::getReadiness);
     }
 
-    @Then("configuration-client readiness check is UP")
+    @Step("configuration-client readiness check is UP")
     public void configurationClientReadinessCheckIsUp() {
         healthCheckAssertions.assertOverallStatusIsUp(CONFIGURATION_CLIENT, FeignHealthApi::getReadiness);
     }
 
-    @Then("op-monitor readiness check is UP")
+    @Step("op-monitor readiness check is UP")
     public void opMonitorReadinessCheckIsUp() {
         healthCheckAssertions.assertOverallStatusIsUp(OP_MONITOR, FeignHealthApi::getReadiness);
     }
 
-    @Then("backup-manager readiness check is UP")
+    @Step("auxiliary-service readiness check is UP")
     public void backupManagerReadinessCheckIsUp() {
-        healthCheckAssertions.assertOverallStatusIsUp(BACKUP_MANAGER, FeignHealthApi::getReadiness);
+        healthCheckAssertions.assertOverallStatusIsUp(AUXILIARY_SERVICE, FeignHealthApi::getReadiness);
     }
 
-    @Then("{string} service readiness check is UP")
+    @Step("{string} service readiness check is UP")
     public void serviceReadinessCheckIsUp(String serviceName) {
         healthCheckAssertions.assertOverallStatusIsUp(serviceName, FeignHealthApi::getReadiness);
     }
 
-    @Then("{string} service readiness check {string} has status {string}")
+    @Step("{string} service readiness check {string} has status {string}")
     public void serviceReadinessCheckHasStatus(String serviceName, String checkName, String expectedStatus) {
         healthCheckAssertions.assertCheckHasStatus(serviceName, checkName, expectedStatus, FeignHealthApi::getReadiness);
     }
+
 }

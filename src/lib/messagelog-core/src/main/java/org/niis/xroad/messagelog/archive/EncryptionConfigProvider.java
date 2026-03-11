@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 
 import java.io.IOException;
 import java.util.List;
@@ -68,10 +68,10 @@ public interface EncryptionConfigProvider {
 
     static EncryptionConfigProvider create(PgpKeyManager keyManager,
                                            BouncyCastlePgpEncryptionService encryption,
-                                           MessageLogArchivalProperties messageLogArchivalProperties) {
-        if (messageLogArchivalProperties.encryptionEnabled()) {
-            return switch (messageLogArchivalProperties.groupingStrategy()) {
-                case MEMBER, SUBSYSTEM -> new VaultMemberEncryptionConfigProvider(keyManager, encryption, messageLogArchivalProperties);
+                                           MessageLogEncryptionProperties.ArchiveEncryptionConfig archiveEncryptionConfig) {
+        if (archiveEncryptionConfig.encryptionEnabled()) {
+            return switch (archiveEncryptionConfig.groupingStrategy()) {
+                case MEMBER, SUBSYSTEM -> new VaultMemberEncryptionConfigProvider(keyManager, encryption, archiveEncryptionConfig);
                 default -> new VaultServerEncryptionConfigProvider(keyManager, encryption);
 
             };
