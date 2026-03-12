@@ -45,9 +45,8 @@ import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -170,7 +169,7 @@ public class GlobalConfChecker {
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
                 updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
                                 globalConfProvider.getInstanceIdentifier()),
-                        TimestampingServiceMapper.get().toTargets(serverConf.getTimestampingServices())
+                        serverConf.getTimestampingServices()
                 );
             }
         } catch (Exception e) {
@@ -184,9 +183,9 @@ public class GlobalConfChecker {
      * @param globalTsps timestamping services from global configuration
      * @param localTsps  timestamping services from local database
      */
-    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TimestampingService> localTsps) {
+    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TimestampingServiceEntity> localTsps) {
 
-        for (TimestampingService localTsp : localTsps) {
+        for (TimestampingServiceEntity localTsp : localTsps) {
             List<SharedParameters.ApprovedTSA> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
                     .toList();
@@ -195,10 +194,10 @@ public class GlobalConfChecker {
                         globalTspMatches.stream().filter(t -> !t.getUrl().equals(localTsp.getUrl())).findAny();
                 if (urlChanges.isPresent()) {
                     log.warn("Skipping timestamping service URL update due to multiple services with the same name: {}",
-                            globalTspMatches.get(0).getName());
+                            globalTspMatches.getFirst().getName());
                 }
             } else if (globalTspMatches.size() == 1) {
-                SharedParameters.ApprovedTSA globalTspMatch = globalTspMatches.get(0);
+                SharedParameters.ApprovedTSA globalTspMatch = globalTspMatches.getFirst();
                 if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
                     log.info("Timestamping service URL has changed in the global configuration. "
                                     + "Updating the changes to the local configuration, Name: {}, Old URL: {}, New URL: {}",
