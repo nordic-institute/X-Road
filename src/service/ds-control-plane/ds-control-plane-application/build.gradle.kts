@@ -25,6 +25,7 @@ dependencies {
   runtimeOnly(libs.edc.core.edrstore)
   runtimeOnly(libs.edc.edrstore.receiver)
   runtimeOnly(libs.edc.edr.cache.api)
+  runtimeOnly(libs.edc.vault.hashicorp)
 
   runtimeOnly(libs.edc.dataplane.signaling)
   runtimeOnly(libs.edc.contolplane.api.config)
