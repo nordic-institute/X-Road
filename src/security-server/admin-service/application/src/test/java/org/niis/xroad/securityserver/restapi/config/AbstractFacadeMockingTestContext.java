@@ -27,10 +27,9 @@ package org.niis.xroad.securityserver.restapi.config;
 
 
 import org.junit.runner.RunWith;
-import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
+import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
@@ -85,9 +84,7 @@ public abstract class AbstractFacadeMockingTestContext {
     @MockitoBean
     protected ConfClientRpcClient confClientRpcClient;
     @MockitoBean
-    protected BackupManagerRpcClient backupManagerRpcClient;
+    protected AuxiliaryServiceRpcClient auxiliaryServiceRpcClient;
     @MockitoBean
     protected ServerConfDatabaseCtx databaseCtx;
-    @MockitoBean
-    protected MessageLogDatabaseCtx messageLogDatabaseCtx;
 }

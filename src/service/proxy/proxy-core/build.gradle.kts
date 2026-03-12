@@ -14,12 +14,11 @@ dependencies {
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
-  implementation(project(":security-server:admin-service:management-rpc-client"))
-
   implementation(libs.quarkus.scheduler)
 
   implementation(project(":lib:asic-core"))
   implementation(project(":lib:globalconf-impl"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:keyconf-impl"))
 
@@ -33,14 +32,12 @@ dependencies {
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(":security-server:admin-service:message-log-archiver")) {
-    exclude(group = "org.springframework.boot")
-  }
 
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
+  testImplementation(testFixtures(project(":service:message-log-archiver:message-log-archiver-core")))
   testImplementation(libs.bouncyCastle.bcpg)
   testImplementation(libs.commons.cli)
   testImplementation(libs.hsqldb)
@@ -53,6 +50,7 @@ dependencies {
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":lib:messagelog-core"))
+  testFixturesImplementation(project(":service:configuration-client:configuration-client-rpc-client"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
   testFixturesImplementation(project(":service:monitor:monitor-rpc-client"))
   testFixturesImplementation(testFixtures(project(":lib:properties-core")))

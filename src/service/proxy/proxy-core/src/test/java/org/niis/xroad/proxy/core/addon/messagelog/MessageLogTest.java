@@ -56,6 +56,8 @@ import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
 import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.messagelog.archiver.core.TestLogArchiver;
+import org.niis.xroad.messagelog.archiver.core.TestLogCleaner;
 import org.niis.xroad.messagelog.entity.AbstractLogRecordEntity;
 import org.niis.xroad.messagelog.entity.ArchiveDigestEntity;
 import org.niis.xroad.messagelog.entity.DigestEntryEmbeddable;
@@ -220,7 +222,7 @@ class MessageLogTest extends AbstractMessageLogTest {
         assertEquals(logRecord.getQueryId(), message.getQueryId());
         final AsicContainer asic = logRecord.toAsicContainer();
         assertArrayEquals(asic.getMessage().getBytes(StandardCharsets.UTF_8), message.getMessageBytes());
-        final byte[] attachment = IOUtils.readFully(asic.getAttachments().getFirst(), body.length);
+        final byte[] attachment = IOUtils.toByteArray(asic.getAttachments().getFirst(), body.length);
         assertArrayEquals(body, attachment);
     }
 
@@ -629,13 +631,15 @@ class MessageLogTest extends AbstractMessageLogTest {
         Map<String, String> config = new java.util.HashMap<>();
         config.put("xroad.proxy.message-log.timestamper.timestamp-immediately", "false");
         config.put("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1800");
-        config.put("xroad.proxy.message-log.archiver.grouping-strategy", GroupingStrategy.MEMBER.name());
-        config.put("xroad.proxy.message-log.archiver.archive-path", "build/archive");
-        config.put("xroad.proxy.message-log.archiver.clean-keep-records-for", "0");
-        config.put("xroad.proxy.message-log.database-encryption.enabled", String.valueOf(encrypted));
+
+        config.put("xroad.message-log-archiver.archive-path", "build/archive");
+        config.put("xroad.message-log-archiver.clean-keep-records-for", "0");
+
+        config.put("xroad.message-log-encryption.archive.grouping-strategy", GroupingStrategy.MEMBER.name());
+        config.put("xroad.message-log-encryption.db.encryption-enabled", String.valueOf(encrypted));
 
         if (encrypted) {
-            config.put("xroad.proxy.message-log.database-encryption.key-id", TEST_KEY_ID);
+            config.put("xroad.message-log-encryption.db.key-id", TEST_KEY_ID);
         }
 
         testSetUp(config, encrypted);
@@ -656,10 +660,10 @@ class MessageLogTest extends AbstractMessageLogTest {
 
     protected void setupTestWithConfig(Map<String, String> additionalConfig, boolean encrypted) throws Exception {
         Map<String, String> config = new java.util.HashMap<>(additionalConfig);
-        config.put("xroad.proxy.message-log.database-encryption.enabled", String.valueOf(encrypted));
+        config.put("xroad.message-log-encryption.db.encryption-enabled", String.valueOf(encrypted));
 
         if (encrypted) {
-            config.put("xroad.proxy.message-log.database-encryption.key-id", TEST_KEY_ID);
+            config.put("xroad.message-log-encryption.db.key-id", TEST_KEY_ID);
         }
 
         testSetUp(config, encrypted);

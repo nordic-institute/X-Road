@@ -30,7 +30,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.api.FeignHealthApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.BACKUP_MANAGER;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.AUXILIARY_SERVICE;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.CONFIGURATION_CLIENT;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.OP_MONITOR;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.PROXY;
@@ -65,9 +65,9 @@ public class LivenessCheckStepDefs {
         healthCheckAssertions.assertOverallStatusIsUp(OP_MONITOR, FeignHealthApi::getLiveness);
     }
 
-    @Step("backup-manager liveness check is UP")
+    @Step("auxiliary-service liveness check is UP")
     public void backupManagerLivenessCheckIsUp() {
-        healthCheckAssertions.assertOverallStatusIsUp(BACKUP_MANAGER, FeignHealthApi::getLiveness);
+        healthCheckAssertions.assertOverallStatusIsUp(AUXILIARY_SERVICE, FeignHealthApi::getLiveness);
     }
 
     @Step("{string} service liveness check {string} has status {string}")

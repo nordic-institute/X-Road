@@ -40,7 +40,7 @@ jobs:
         package:
           # Security Server base images
           - x-road/base-images/ss-baseline-runtime
-          - x-road/base-images/ss-baseline-backup-manager-runtime
+          - x-road/base-images/ss-baseline-auxiliary-service-runtime
           - x-road/base-images/ss-baseline-signer-runtime
           # Security Server service images
           - x-road/ss-proxy
@@ -49,7 +49,7 @@ jobs:
           - x-road/ss-configuration-client
           - x-road/ss-signer
           - x-road/ss-softtoken-signer
-          - x-road/ss-backup-manager
+          - x-road/ss-auxiliary-service
           - x-road/ss-proxy-ui-api
           # Data space service images
           - x-road/ds-control-plane

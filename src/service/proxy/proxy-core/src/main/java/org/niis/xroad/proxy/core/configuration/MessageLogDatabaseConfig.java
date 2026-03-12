@@ -36,7 +36,7 @@ import org.niis.xroad.messagelog.MessageLogDbProperties;
 public class MessageLogDatabaseConfig {
 
     @Singleton
-    MessageLogDatabaseCtx serverConfCtx(MessageLogDbProperties messageLogDbProperties) {
+    MessageLogDatabaseCtx messageLogDbCtx(MessageLogDbProperties messageLogDbProperties) {
         return create(messageLogDbProperties);
     }
 

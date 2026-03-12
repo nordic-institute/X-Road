@@ -99,9 +99,9 @@ include("lib:health-check-core")
 // Service projects
 include("service")
 
-include("service:backup-manager:backup-manager-application")
-include("service:backup-manager:backup-manager-rpc-client")
-include("service:backup-manager:backup-manager-core")
+include("service:auxiliary-service:auxiliary-service-application")
+include("service:auxiliary-service:auxiliary-service-rpc-client")
+include("service:auxiliary-service:auxiliary-service-core")
 
 include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
@@ -139,6 +139,10 @@ include("service:signer:signer-cli")
 include("service:signer:signer-client")
 include("service:signer:signer-client-spring")
 include("service:signer:signer-int-test")
+
+include("service:message-log-archiver")
+include("service:message-log-archiver:message-log-archiver-cli")
+include("service:message-log-archiver:message-log-archiver-core")
 
 include("service:ds-control-plane")
 include("service:ds-control-plane:ds-control-plane-application")
@@ -191,9 +195,6 @@ include("security-server:admin-service")
 include("security-server:admin-service:application")
 include("security-server:admin-service:infra-jpa")
 include("security-server:admin-service:ui")
-include("security-server:admin-service:message-log-archiver")
-include("security-server:admin-service:message-log-archiver-api")
-include("security-server:admin-service:management-rpc-client")
 include("security-server:system-test")
 include("security-server:e2e-test")
 

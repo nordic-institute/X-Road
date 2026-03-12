@@ -28,8 +28,11 @@ case $1 in
 "monitor")
   gradleModule="service/monitor/monitor-application"
   ;;
-"backup-manager")
-  gradleModule="service/backup-manager/backup-manager-application"
+"auxiliary-service")
+  gradleModule="service/auxiliary-service/auxiliary-service-application"
+  ;;
+"message-log-archiver")
+  gradleModule="service/message-log-archiver/message-log-archiver-cli"
   ;;
 "cs-admin-service")
   gradleModule="central-server/admin-service"
