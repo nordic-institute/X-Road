@@ -5,15 +5,15 @@
 # In some cases referincing library directly like 'libs.protobuf.protoc' may not work, possible workaround could be:
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
-metrics = "4.2.37"
-jetty = "12.0.31"
+metrics = "4.2.38"
+jetty = "12.1.7"
 jaxb = "4.0.5"
 hibernate = "7.2.4.Final"
 mapstruct = "1.6.3"
-jackson = "2.19.4"
-mockito = "5.21.0"
+jackson = "2.21"
+mockito = "5.23.0"
 springBoot = "3.5.6"
-springFramework = "7.0.1"
+springFramework = "7.0.5"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
@@ -21,25 +21,25 @@ bouncyCastle = "1.83"
 slf4j = "2.0.17"
 protoc = "4.33.5"
 grpc = "1.79.0"
-swaggerParser = "2.1.37"
-logback = "1.5.27"
-logbackAccess = "2.0.9"
-apacheCxf = "4.1.4"
-liquibase = "5.0.1"
+swaggerParser = "2.1.39"
+logback = "1.5.32"
+logbackAccess = "2.0.12"
+apacheCxf = "4.2.0"
+liquibase = "5.0.2"
 archUnitPlugin = "4.0.0"
 protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
 quarkus = "3.31.4"
-quarkus-vault = "4.5.0"
-smallryeConfig = "3.15.1"
+quarkus-vault = "4.6.0"
+smallryeConfig = "3.16.0"
 microprofile = "3.1"
-feign = "13.6"
-testCucumber = "7.32.0"
-testContainers = "2.0.2"
-testAllure = "2.31.0"
-testSelenide = "7.12.3"
+feign = "13.9.3"
+testCucumber = "7.34.3"
+testContainers = "2.0.3"
+testAllure = "2.33.0"
+testSelenide = "7.15.0"
 shadowPlugin = "8.3.9"
 edc = "0.17.0-SNAPSHOT"
 
@@ -161,7 +161,7 @@ apache-commonsCompress = { module = "org.apache.commons:commons-compress", versi
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.15.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.13.0" }
-apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.12.1" }
+apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.13.1" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
@@ -169,11 +169,11 @@ apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.3" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.4" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.5.1" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.6" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.11.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.20.0" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.21.0" }
 commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1" }
 commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
@@ -185,7 +185,7 @@ openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
 openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
 openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
 
-lombok = { module = "org.projectlombok:lombok", version = "1.18.42" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.44" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -193,13 +193,13 @@ logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", versi
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.7" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.10" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
-h2database = { module = "com.h2database:h2", version = "2.2.224" }
+h2database = { module = "com.h2database:h2", version = "2.4.240" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.41" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.45" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -334,8 +334,8 @@ quarkus-containerized = [
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.18.0" }
-sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
+openapi-generator = { id = "org.openapi.generator", version = "7.20.0" }
+sonarqube = { id = "org.sonarqube", version = "7.2.3.7755" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
