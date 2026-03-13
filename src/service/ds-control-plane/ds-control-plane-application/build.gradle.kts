@@ -12,6 +12,7 @@ dependencies {
   }
 
   implementation(project(":service:ds-control-plane:ds-ext-sample"))
+  implementation(project(":service:ds-control-plane:ds-xroad-edr-api"))
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))

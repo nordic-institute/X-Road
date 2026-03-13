@@ -17,3 +17,6 @@ Feature: 0300 - Data spaces baseline
     And Transfer process is started using participant context "test-part-ctx" on "ss0" with provider "ss1"
     And Transfer process is in state "STARTED" using participant context "test-part-ctx" on "ss0"
     Then EDR is retrieved on "ss0"
+
+  Scenario: Consumer acquires EDR via xroad-edr-api endpoint
+    Then EDR is acquired via xroad-edr-api for context "test-part-ctx" on "ss0" from "ss1" for asset "asset-1"
