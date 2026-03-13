@@ -51,12 +51,15 @@ configure_openbao_rpm() {
     fi
 
     # GPG key is on openbao.org, not in the packages mirror — always fetch from official URL.
-    # Skip repo setup with a warning if unreachable.
     mkdir -p /etc/pki/rpm-gpg
-    if ! curl -fsSL -o "$GPG_KEY_FILE" "$OPENBAO_GPG_URL"; then
-        echo "Warning: Failed to fetch OpenBao GPG key from $OPENBAO_GPG_URL. Skipping OpenBao RPM repo setup."
-        return 0
-    fi
+    if command -v curl >/dev/null; then
+        curl -fsSL -o "$GPG_KEY_FILE" "$OPENBAO_GPG_URL"
+    elif command -v wget >/dev/null; then
+        wget -qO "$GPG_KEY_FILE" "$OPENBAO_GPG_URL"
+    else
+        echo "ERROR: Neither curl nor wget found. Cannot download OpenBao GPG key."
+        return 1
+    fi || { echo "ERROR: Failed to fetch OpenBao GPG key from $OPENBAO_GPG_URL. Cannot configure OpenBao RPM repo."; return 1; }
     rpm --import "$GPG_KEY_FILE"
     echo "OpenBao GPG key imported."
 

@@ -51,10 +51,14 @@ configure_openbao_deb() {
 
     # GPG key is on openbao.org, not in the packages mirror — always fetch from official URL
     mkdir -p /usr/share/keyrings
-    if ! curl -fsSL "$OPENBAO_GPG_URL" -o "$OPENBAO_KEYRING"; then
-        echo "Warning: Failed to download OpenBao GPG key from $OPENBAO_GPG_URL. Skipping OpenBao DEB repo setup."
-        return 0
-    fi
+    if command -v curl >/dev/null; then
+        curl -fsSL -o "$OPENBAO_KEYRING" "$OPENBAO_GPG_URL"
+    elif command -v wget >/dev/null; then
+        wget -qO "$OPENBAO_KEYRING" "$OPENBAO_GPG_URL"
+    else
+        echo "ERROR: Neither curl nor wget found. Cannot download OpenBao GPG key."
+        return 1
+    fi || { echo "ERROR: Failed to download OpenBao GPG key from $OPENBAO_GPG_URL. Cannot configure OpenBao DEB repo."; return 1; }
 
     echo "deb [signed-by=$OPENBAO_KEYRING] $OPENBAO_DEB_URL/ stable main" \
         > /etc/apt/sources.list.d/openbao.list
