@@ -8,8 +8,8 @@
   apt:
     name: "{{ items }}"
     state: present
-    update_cache: yes
-    install_recommends: no
+    update_cache: true
+    install_recommends: false
   vars:
     items:
       - acl
@@ -40,7 +40,7 @@
     repo: "{{ item }}"
     state: present
     filename: xroad
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ ubuntu_apt_repo_with_option }}"
     - "{{ ubuntu_deps_apt_repo_with_option }}"

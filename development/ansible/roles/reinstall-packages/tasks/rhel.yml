@@ -1,11 +1,11 @@
 ---
 - name: Update dnf cache
-  become: yes
+  become: true
   dnf:
-    update_cache: yes
+    update_cache: true
 
 - name: Force reinstall selected packages [{{selected_modules}}]
-  become: yes
+  become: true
   shell: |
     dnf reinstall -y {{ modules[item] }}
   when: item in modules
@@ -19,10 +19,10 @@
   with_items: "{{selected_modules.split(',')}}"
 
 - name: Restart services for reinstalled packages [{{selected_modules}}]
-  become: yes
+  become: true
   service:
     name: "xroad-{{ item }}"
     state: restarted
   when: item in modules
   with_items: "{{selected_modules.split(',')}}"
-  ignore_errors: yes
+  ignore_errors: true

@@ -92,7 +92,7 @@
   tags:
     - ca
     - install
-      
+
 - name: Configure HW tokens (SoftHSM2) for SS
   hosts: ubuntu_hsm_ss
   become: true

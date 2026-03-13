@@ -18,7 +18,7 @@
         - ansible_os_family == "RedHat"
 
 - hosts: cs_servers
-  become: yes
+  become: true
   become_user: root
   roles:
     - xroad-cs
@@ -30,7 +30,7 @@
     - vars_files/base.yml
 
 - hosts: cp_servers
-  become: yes
+  become: true
   become_user: root
   roles:
     - xroad-cp
@@ -41,7 +41,7 @@
     - vars_files/base.yml
 
 - hosts: ss_servers
-  become: yes
+  become: true
   become_user: root
   roles:
     - xroad-ss
@@ -53,8 +53,8 @@
     - vars_files/base.yml
 
 - hosts: ca_servers
-  become: yes
+  become: true
   become_user: root
   roles:
     - role: xroad-ca
-      tags: [ 'ca' ]
+      tags: ["ca"]

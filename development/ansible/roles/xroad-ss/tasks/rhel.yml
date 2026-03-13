@@ -13,8 +13,8 @@
         dest: "/etc/xroad.properties"
         owner: "root"
         group: "root"
-        mode: 0600
-        force: no
+        mode: "0600"
+        force: false
 
     - name: db.properties template
       template:
@@ -22,8 +22,8 @@
         dest: "/etc/xroad/db.properties"
         owner: "xroad"
         group: "xroad"
-        mode: 0751
-        force: no
+        mode: "0751"
+        force: false
 
     - name: openbao.env environment file
       template:
@@ -31,14 +31,14 @@
         dest: "/etc/openbao/openbao.env"
         owner: "openbao"
         group: "openbao"
-        mode: 0600
-        force: no
+        mode: "0600"
+        force: false
   when: (database_admin_password is defined) and (database_admin_password != "")
   tags:
     - install-xroad-ss-packages
 
 - name: Install PostgreSQL packages (RHEL)
-  become: yes
+  become: true
   shell: |
     set -euo pipefail
     dnf module enable postgresql:15 -y

@@ -12,7 +12,7 @@
       server: https://cloud-images.ubuntu.com/releases
       protocol: simplestreams
       alias: "{{ ubuntu_releasever }}"
-    profiles: [ "default" ]
+    profiles: ["default"]
     wait_for_ipv4_addresses: true
     devices: "{{ hostvars[item].container_ports | default({}) }}"
     timeout: 600
@@ -31,7 +31,7 @@
     Acquire::http::Timeout "10";
     Acquire::https::Timeout "10";
     Acquire::Retries "3";
-    Acquire::http::LowSpeedLimit "100000"; 
+    Acquire::http::LowSpeedLimit "100000";
     Acquire::http::LowSpeedTime "10";
     EOF
   delegate_to: "{{ item }}"
@@ -44,7 +44,7 @@
 
 - name: Disable unattended-upgrades
   raw: systemctl stop unattended-upgrades && systemctl disable unattended-upgrades
-  ignore_errors: yes
+  ignore_errors: true
   delegate_to: "{{ item }}"
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
@@ -61,7 +61,7 @@
       server: https://images.lxd.canonical.com
       protocol: simplestreams
       alias: "rockylinux/{{ rhel_releasever }}"
-    profiles: [ "default" ]
+    profiles: ["default"]
     wait_for_ipv4_addresses: true
     devices: "{{ hostvars[item].container_ports | default({}) }}"
     timeout: 600

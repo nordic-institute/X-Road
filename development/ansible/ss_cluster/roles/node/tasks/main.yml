@@ -1,11 +1,11 @@
 ---
 - assert:
-      that:
-          - "{{ ( ansible_distribution | lower ) in ['ubuntu','redhat','rocky'] }}"
+    that:
+      - "{{ ( ansible_distribution | lower ) in ['ubuntu','redhat','rocky'] }}"
 
 - name: test postgres version
   become_user: postgres
-  become: yes
+  become: true
   shell: |
     psql --no-align --tuples-only -c "SELECT current_setting('server_version_num');"
   register: postgres_version
@@ -17,8 +17,8 @@
 - name: ensure that acl utilities is installed
   # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user 
   package:
-      name: acl
-      state: present
+    name: acl
+    state: present
 
 - name: check node.ini
   stat: path=/etc/xroad/conf.d/node.ini
@@ -26,13 +26,13 @@
 
 - name: stop services
   service:
-      name: "{{ item }}"
-      state: stopped
+    name: "{{ item }}"
+    state: stopped
   with_items:
-      - xroad-proxy
-      - xroad-confclient
-      - xroad-signer
-      - xroad-proxy-ui-api
+    - xroad-proxy
+    - xroad-confclient
+    - xroad-signer
+    - xroad-proxy-ui-api
   when: not node_ini.stat.exists
   register: services_stopped
 
@@ -40,60 +40,60 @@
 
 - name: create db config folder
   file:
-      path: /etc/xroad/postgresql
-      owner: root
-      group: postgres
-      mode: 0750
-      state: directory
+    path: /etc/xroad/postgresql
+    owner: root
+    group: postgres
+    mode: "0750"
+    state: directory
 
 - name: fix config folder permissions
   file:
-      path: /etc/xroad
-      owner: xroad
-      group: xroad
-      mode: 0751
-      state: directory
+    path: /etc/xroad
+    owner: xroad
+    group: xroad
+    mode: "0751"
+    state: directory
 
 - name: copy postgresql certificates
   copy:
-      src: "{{ item }}"
-      dest: "/etc/xroad/postgresql/"
-      owner: postgres
-      group: postgres
-      mode: 0400
+    src: "{{ item }}"
+    dest: "/etc/xroad/postgresql/"
+    owner: postgres
+    group: postgres
+    mode: "0400"
   with_items:
-      - "ca/ca.crt"
-      - "ca/{{ nodename }}/server.crt"
-      - "ca/{{ nodename }}/server.key"
+    - "ca/ca.crt"
+    - "ca/{{ nodename }}/server.crt"
+    - "ca/{{ nodename }}/server.key"
 
 - name: setup serverconf database
   include_tasks: "{{ ansible_distribution | lower }}.yml"
 
 - name: disable connection keep-alives
   ini_file:
-      dest: /etc/xroad/conf.d/local.ini
-      section: proxy
-      option: server-support-clients-pooled-connections
-      value: false
+    dest: /etc/xroad/conf.d/local.ini
+    section: proxy
+    option: server-support-clients-pooled-connections
+    value: false
 
 - name: enable health check
   ini_file:
-      dest: /etc/xroad/conf.d/local.ini
-      section: proxy
-      option: health-check-port
-      value: "{{ xroad_proxy_health_check_port }}"
+    dest: /etc/xroad/conf.d/local.ini
+    section: proxy
+    option: health-check-port
+    value: "{{ xroad_proxy_health_check_port }}"
 
 - name: configure db properties
   ini_file:
-      dest: "/etc/xroad/db.properties"
-      section: null
-      option: "{{ item.option }}"
-      value: "{{ item.value }}"
+    dest: "/etc/xroad/db.properties"
+    section:
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
   with_items:
-      - {option: 'serverconf.hibernate.connection.url', value: 'jdbc:postgresql://127.0.0.1:{{ serverconf_db_port }}/serverconf'}
-      - {option: 'serverconf.hibernate.connection.password', value: '{{ serverconf_password }}'}
+    - { option: "serverconf.hibernate.connection.url", value: "jdbc:postgresql://127.0.0.1:{{ serverconf_db_port }}/serverconf" }
+    - { option: "serverconf.hibernate.connection.password", value: "{{ serverconf_password }}" }
 
 - name: ensure that rsync is installed
   package:
-      name: rsync
-      state: present
+    name: rsync
+    state: present
