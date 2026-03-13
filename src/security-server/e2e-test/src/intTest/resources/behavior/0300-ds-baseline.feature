@@ -1,7 +1,7 @@
 @Dataspaces
 Feature: 0300 - Data spaces baseline
 
-  Scenario: Asset is created on ss2
+  Scenario: Asset is created on ss1
     Given Participant context "test-part-ctx" is created on "ss1"
     And Participant context "test-part-ctx" config is created on "ss1"
     And Asset is created in participant context "test-part-ctx" on "ss1"
