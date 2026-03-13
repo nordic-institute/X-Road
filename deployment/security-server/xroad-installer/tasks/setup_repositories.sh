@@ -34,8 +34,9 @@ esac
 # Optional separate settings for dependencies repository (defaults to main repo settings)
 XROAD_DEPENDENCIES_GPG_KEY_URL="${XROAD_DEPENDENCIES_GPG_KEY_URL:-$XROAD_REPO_GPG_KEY_URL}"
 
-# OpenBao official repository
-OPENBAO_REPO_GPG_KEY_URL="${OPENBAO_REPO_GPG_KEY_URL:-https://openbao.org/assets/openbao-gpg-pub-20240618.asc}"
+# Mirror credentials for optional package mirror support (passed through to OpenBao configure scripts)
+XROAD_MIRROR_URL="${XROAD_MIRROR_URL:-}"
+XROAD_MIRROR_USER="${XROAD_MIRROR_USER:-}"
 
 # Setup repositories for Ubuntu
 setup_repositories_ubuntu() {
@@ -96,20 +97,17 @@ setup_repositories_ubuntu() {
   log_info "Repository configuration added to $sources_file"
   log_message ""
 
-  # Add official OpenBao repository
-  local openbao_keyring_path="/usr/share/keyrings/openbao-keyring.asc"
-  log_message "Adding OpenBao repository GPG key"
-  log_message "  URL: $OPENBAO_REPO_GPG_KEY_URL"
-  if curl -fsSL "$OPENBAO_REPO_GPG_KEY_URL" -o "$openbao_keyring_path"; then
-    log_info "OpenBao GPG key added successfully"
-  else
-    log_die "Failed to download OpenBao GPG key from $OPENBAO_REPO_GPG_KEY_URL"
+  # Add OpenBao repository (official or mirrored)
+  log_message "Adding OpenBao APT repository"
+  local openbao_deb_script="$SCRIPT_DIR/lib/configure-mirror-openbao-deb.sh"
+  if [[ ! -f "$openbao_deb_script" ]]; then
+    log_die "configure-mirror-openbao-deb.sh not found at $openbao_deb_script"
   fi
-
-  local openbao_sources_file="/etc/apt/sources.list.d/openbao.list"
-  echo "deb [signed-by=$openbao_keyring_path] https://pkgs.openbao.org/deb/ stable main" \
-    | tee "$openbao_sources_file" > /dev/null
-  log_info "OpenBao repository configuration added to $openbao_sources_file"
+  if bash "$openbao_deb_script" "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"; then
+    log_info "OpenBao APT repository configured"
+  else
+    log_die "Failed to configure OpenBao APT repository"
+  fi
   log_message ""
 
   # Update repository metadata
@@ -166,22 +164,17 @@ setup_repositories_rhel() {
     fi
   fi
 
-  # Add official OpenBao repository
-  local openbao_repo_file="/etc/yum.repos.d/openbao.repo"
-  log_message "Adding OpenBao repository"
-  cat > "$openbao_repo_file" <<EOF
-[openbao]
-name=openbao
-baseurl=https://pkgs.openbao.org/rpm/\$basearch
-repo_gpgcheck=0
-gpgcheck=1
-enabled=1
-gpgkey=$OPENBAO_REPO_GPG_KEY_URL
-sslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
-EOF
-  log_info "OpenBao repository configuration added to $openbao_repo_file"
+  # Add OpenBao repository (official or mirrored)
+  log_message "Adding OpenBao YUM/DNF repository"
+  local openbao_rpm_script="$SCRIPT_DIR/lib/configure-mirror-openbao-rpm.sh"
+  if [[ ! -f "$openbao_rpm_script" ]]; then
+    log_die "configure-mirror-openbao-rpm.sh not found at $openbao_rpm_script"
+  fi
+  if bash "$openbao_rpm_script" "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"; then
+    log_info "OpenBao YUM/DNF repository configured"
+  else
+    log_die "Failed to configure OpenBao YUM/DNF repository"
+  fi
 
   log_message "Updating package manager cache..."
   yum makecache
