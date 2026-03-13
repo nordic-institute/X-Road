@@ -64,24 +64,9 @@
     state: present
     enabled: yes
 
-- name: Add OpenBao repo key (RHEL)
-  rpm_key:
-    state: present
-    key: "https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
-
-- name: Setup OpenBao repository (RHEL)
-  yum_repository:
-    name: "openbao"
-    file: "openbao"
-    description: "OpenBao repository"
-    baseurl: "https://pkgs.openbao.org/rpm/$basearch"
-    gpgcheck: yes
-    gpgkey: "https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
-    repo_gpgcheck: no
-    sslverify: yes
-    metadata_expire: "300"
-    state: present
-    enabled: yes
+- name: Configure OpenBao YUM/DNF repository
+  script:
+    cmd: "{{ playbook_dir }}/../../deployment/.scripts/configure-mirror-openbao-rpm.sh"
 
 - name: Touch repo file
   file:

@@ -11,8 +11,10 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
     --mount=type=secret,id=mirror_token \
-    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER" && \
+    /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
@@ -81,8 +83,11 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
 # Build final image
 FROM centralserver-${PACKAGE_SOURCE} AS final
 
+# Cleanup mirror configuration
 RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
-    /bin/bash /tmp/cleanup-mirror-apt.sh
+    --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-openbao-deb.sh,target=/tmp/cleanup-mirror-openbao-deb.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh && \
+    /bin/bash /tmp/cleanup-mirror-openbao-deb.sh
 
 RUN { nginx -s stop ||:; } \
   && rm -f /var/run/nginx.pid \
