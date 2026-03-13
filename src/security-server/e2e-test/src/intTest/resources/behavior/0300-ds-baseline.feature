@@ -1,5 +1,5 @@
 @Dataspaces
-Feature: 0200 - Data spaces baseline
+Feature: 0300 - Data spaces baseline
 
   Scenario: Asset is created on ss2
     Given Participant context "test-part-ctx" is created on "ss1"
