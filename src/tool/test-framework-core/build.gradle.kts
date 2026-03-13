@@ -41,7 +41,6 @@ dependencies {
   api(libs.test.allure.selenide)
   api(libs.test.allure.commandline){
     exclude(group = "ru.qatools.commons")
-    exclude(group = "org.allurefw")
   }
   api(libs.test.selenide.core)
   api(libs.test.selenide.grid)
