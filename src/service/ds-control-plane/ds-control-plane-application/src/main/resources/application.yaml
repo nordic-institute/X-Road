@@ -37,7 +37,7 @@ edc:
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
-      token: ${XROAD_SECRET_STORE_TOKEN}
+      token: "${XROAD_SECRET_STORE_TOKEN}"
       api:
         secret:
           path: /v1/xrd-secret/ds
