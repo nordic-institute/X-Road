@@ -151,7 +151,6 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO))
                 .withLogConsumer(AUX_SERVICE, createLogConsumer(name, AUX_SERVICE))
                 .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI))
-                .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO))
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE))
                 .withLogConsumer(DS_DATA_PLANE, createLogConsumer(name, DS_DATA_PLANE));
 
