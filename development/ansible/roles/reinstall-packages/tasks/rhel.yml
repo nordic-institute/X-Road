@@ -9,14 +9,14 @@
   shell: |
     dnf reinstall -y {{ modules[item] }}
   when: item in modules
-  with_items: "{{selected_modules.split(',')}}"
+  loop: "{{selected_modules.split(',')}}"
   register: reinstall_result
 
 - name: Show reinstalled packages
   debug:
     msg: "Reinstalled package {{ modules[item] }} for module {{ item }}"
   when: item in modules
-  with_items: "{{selected_modules.split(',')}}"
+  loop: "{{selected_modules.split(',')}}"
 
 - name: Restart services for reinstalled packages [{{selected_modules}}]
   become: true
@@ -24,5 +24,5 @@
     name: "xroad-{{ item }}"
     state: restarted
   when: item in modules
-  with_items: "{{selected_modules.split(',')}}"
+  loop: "{{selected_modules.split(',')}}"
   ignore_errors: true

@@ -28,7 +28,7 @@
   service:
     name: "{{ item }}"
     state: stopped
-  with_items:
+  loop:
     - xroad-proxy
     - xroad-confclient
     - xroad-signer
@@ -61,7 +61,7 @@
     owner: postgres
     group: postgres
     mode: "0400"
-  with_items:
+  loop:
     - "ca/ca.crt"
     - "ca/{{ nodename }}/server.crt"
     - "ca/{{ nodename }}/server.key"
@@ -89,7 +89,7 @@
     section:
     option: "{{ item.option }}"
     value: "{{ item.value }}"
-  with_items:
+  loop:
     - { option: "serverconf.hibernate.connection.url", value: "jdbc:postgresql://127.0.0.1:{{ serverconf_db_port }}/serverconf" }
     - { option: "serverconf.hibernate.connection.password", value: "{{ serverconf_password }}" }
 

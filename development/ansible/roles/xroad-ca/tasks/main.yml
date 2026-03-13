@@ -64,7 +64,7 @@
     dest: /
     group: "root"
     owner: "root"
-  with_items:
+  loop:
     - "etc"
     - "usr"
     - "lib"
@@ -75,14 +75,14 @@
     dest: /home
     group: "ca"
     owner: "ca"
-  with_items:
+  loop:
     - "home/ca"
 
 - name: set file permissions
   file:
     mode: "0755"
     path: "/usr/local/bin/{{ item }}"
-  with_items:
+  loop:
     - "sign"
     - "sign-auth"
     - "sign-sign"
@@ -92,7 +92,7 @@
   file:
     mode: "0740"
     path: "/home/ca/CA/{{ item }}"
-  with_items:
+  loop:
     - "ocsp.sh"
     - "revoke.sh"
     - "sign.sh"
@@ -105,7 +105,7 @@
   file:
     mode: "0664"
     path: "/home/ca/TSA/{{ item }}"
-  with_items:
+  loop:
     - "TSA.cnf"
     - "tsa_server.py"
 
@@ -173,7 +173,7 @@
     dest: /var/www/acme2certifier/acme_srv/acme_srv.cfg
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "acme_srv.cfg"
   when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
@@ -183,7 +183,7 @@
     dest: /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "kid_profiles.json"
   when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
@@ -193,7 +193,7 @@
     dest: /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "openssl_ca_handler.py"
   when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 

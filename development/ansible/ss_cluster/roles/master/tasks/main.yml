@@ -9,7 +9,7 @@
   service:
     name: "{{ item }}"
     state: started
-  with_items:
+  loop:
     - xroad-proxy
     - xroad-confclient
     - xroad-signer

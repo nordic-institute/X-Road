@@ -41,7 +41,7 @@
     state: present
     filename: xroad
     update_cache: true
-  with_items:
+  loop:
     - "{{ ubuntu_apt_repo_with_option }}"
     - "{{ ubuntu_deps_apt_repo_with_option }}"
   when: ansible_distribution == "Ubuntu"
@@ -50,4 +50,4 @@
   locale_gen:
     name: "{{ item }}"
     state: present
-  with_items: "{{ (['en_US.UTF-8'] + extra_locales | default([])) | unique }}"
+  loop: "{{ (['en_US.UTF-8'] + extra_locales | default([])) | unique }}"

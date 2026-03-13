@@ -40,7 +40,7 @@
     regexp: "^\\s*#?{{ item.option }}\\s*="
     line: "{{ item.option }} = {{ item.value }}"
     state: "{{ item.state | default('present') }}"
-  with_items:
+  loop:
     - { option: "ssl", value: "on" }
     - { option: "ssl_ca_file", value: "'/etc/xroad/postgresql/ca.crt'" }
     - { option: "ssl_cert_file", value: "'/etc/xroad/postgresql/server.crt'" }
@@ -62,7 +62,7 @@
     regexp: "^\\s*#?{{ item.option }}\\s*="
     line: "{{ item.option }} = {{ item.value }}"
     state: "{{ item.state | default('present') }}"
-  with_items:
+  loop:
     - option: "primary_conninfo"
       value: "'host={{ master_host }} port={{ serverconf_db_port }} user={{ nodename }} sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key
         sslrootcert=/etc/xroad/postgresql/ca.crt'"

@@ -25,7 +25,7 @@
     question: "{{ item.question }}"
     vtype: "string" # parametrize if you add a different type of question to item list
     value: "{{ item.value }}"
-  with_items:
+  loop:
     - { question: "xroad-common/username", value: "{{ xroad_ui_user }}" }
     - { question: "xroad-common/database-host", value: "{{ database_host }}" }
     - { question: "xroad-common/proxy-memory", value: "d" }

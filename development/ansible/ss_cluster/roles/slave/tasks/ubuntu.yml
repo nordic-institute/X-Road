@@ -11,7 +11,7 @@
         name: "{{ item }}"
         enabled: true
         state: started
-      with_items:
+      loop:
         - xroad-sync.service
         - xroad-sync.timer
   when: ansible_distribution_release == "jammy"
