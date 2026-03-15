@@ -7,10 +7,8 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
     --mount=type=secret,id=mirror_token \
-    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER" && \
-    /bin/bash /tmp/configure-mirror-openbao-deb.sh
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 RUN apt-get -qq update \
     && apt-get -qq install openssh-server rsync
@@ -33,8 +31,6 @@ COPY files/primary-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # Cleanup mirror configuration (restore public mirrors for published image)
 RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
-    --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-openbao-deb.sh,target=/tmp/cleanup-mirror-openbao-deb.sh \
-    /bin/bash /tmp/cleanup-mirror-apt.sh && \
-    /bin/bash /tmp/cleanup-mirror-openbao-deb.sh
+    /bin/bash /tmp/cleanup-mirror-apt.sh
 
 CMD ["/root/entrypoint.sh"]

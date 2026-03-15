@@ -11,10 +11,8 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
     --mount=type=secret,id=mirror_token \
-    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER" && \
-    /bin/bash /tmp/configure-mirror-openbao-deb.sh
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
@@ -35,7 +33,12 @@ ARG REPO=https://artifactory.niis.org/xroad-snapshot-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
 
-# Add X-Road dependencies repo
+# Add OpenBao repo
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-openbao-deb.sh
+
+# Add X-Road dependencies repo (previously hosted OpenBao packages before the official repository was available - retained for similar potential cases in the future)
 ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
 RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
   && apt-key add '/tmp/deps-repokey.gpg'
@@ -59,7 +62,12 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 #Xroad CS from internal packages
 FROM base AS centralserver-internal
 
-# Add X-Road dependencies repo
+# Add OpenBao repo
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-openbao-deb.sh
+
+# Add X-Road dependencies repo (previously hosted OpenBao packages before the official repository was available - retained for similar potential cases in the future)
 ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
 RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
   && apt-key add '/tmp/deps-repokey.gpg'

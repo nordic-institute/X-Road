@@ -3,26 +3,25 @@
 # Configure OpenBao APT Repository (Container Side)
 #
 # Configures APT to install OpenBao from a mirrored or official repository.
-# Uses mirror-openbao-pkgs-deb (Debian remote repo in Artifactory) when credentials
-# are present, falls back to official https://pkgs.openbao.org/deb/ otherwise.
+# Uses the provided mirror URL when credentials are present, falls back to
+# the official https://pkgs.openbao.org/deb/ otherwise.
 #
 # The GPG key is on openbao.org (not pkgs.openbao.org) so it is always fetched
 # from the official URL regardless of mirror availability.
 #
 # Usage:
-#   ./configure-mirror-openbao-deb.sh <MIRROR_URL> <MIRROR_USER>
+#   ./configure-mirror-openbao-deb.sh <OPENBAO_MIRROR_URL> <MIRROR_USER>
 #
 # Arguments:
-#   MIRROR_URL  - Ubuntu mirror URL (e.g., https://artifactory.example.org/artifactory/mirror-ubuntu)
-#                 Used to derive the Artifactory base URL for the OpenBao DEB mirror.
-#   MIRROR_USER - Username for authentication
+#   OPENBAO_MIRROR_URL - OpenBao DEB mirror URL (e.g., https://artifactory.example.org/artifactory/mirror-openbao-pkgs-deb)
+#   MIRROR_USER        - Username for authentication
 #
 # Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible)
 
 configure_openbao_deb() {
     echo "Configuring OpenBao APT repository..."
 
-    local MIRROR_URL="$1"
+    local OPENBAO_MIRROR_URL="$1"
     local MIRROR_USER="$2"
     local OPENBAO_KEYRING="/usr/share/keyrings/openbao-keyring.asc"
     local OPENBAO_GPG_URL="https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
@@ -36,11 +35,8 @@ configure_openbao_deb() {
         MIRROR_TOKEN="$XROAD_MIRROR_TOKEN"
     fi
 
-    if [ -n "$MIRROR_URL" ] && [ -n "$MIRROR_USER" ] && [ -n "$MIRROR_TOKEN" ]; then
-        # Derive Artifactory base URL from Ubuntu mirror URL by stripping the mirror-ubuntu path segment
-        local MIRROR_BASE_URL
-        MIRROR_BASE_URL=$(echo "$MIRROR_URL" | sed -E 's|/mirror-ubuntu(-ports|-archive)?(/.*)?$||')
-        OPENBAO_DEB_URL="${MIRROR_BASE_URL}/mirror-openbao-pkgs-deb"
+    if [ -n "$OPENBAO_MIRROR_URL" ] && [ -n "$MIRROR_USER" ] && [ -n "$MIRROR_TOKEN" ]; then
+        OPENBAO_DEB_URL="$OPENBAO_MIRROR_URL"
         echo "Using mirrored OpenBao DEB repository: $OPENBAO_DEB_URL"
         # Authentication for the mirror host is already configured in /etc/apt/auth.conf.d/mirror.conf
         # by configure-mirror-apt.sh (same Artifactory instance).

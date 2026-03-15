@@ -3,25 +3,25 @@
 # Configure OpenBao YUM/DNF Repository (Container Side)
 #
 # Configures YUM/DNF to install OpenBao from a mirrored or official repository.
-# Uses mirror-openbao-pkgs-rpm (RPM remote repo in Artifactory) when credentials
-# are present, falls back to official https://pkgs.openbao.org/rpm/ otherwise.
+# Uses the provided mirror URL when credentials are present, falls back to
+# the official https://pkgs.openbao.org/rpm/ otherwise.
 #
 # The GPG key is on openbao.org (not pkgs.openbao.org) so it is always fetched
 # from the official URL regardless of mirror availability.
 #
 # Usage:
-#   ./configure-mirror-openbao-rpm.sh <MIRROR_BASE_URL> <MIRROR_USER>
+#   ./configure-mirror-openbao-rpm.sh <OPENBAO_MIRROR_URL> <MIRROR_USER>
 #
 # Arguments:
-#   MIRROR_BASE_URL - Artifactory base URL (e.g., https://artifactory.example.org/artifactory)
-#   MIRROR_USER     - Username for authentication
+#   OPENBAO_MIRROR_URL - OpenBao RPM mirror URL (e.g., https://artifactory.example.org/artifactory/mirror-openbao-pkgs-rpm/x86_64)
+#   MIRROR_USER        - Username for authentication
 #
 # Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible)
 
 configure_openbao_rpm() {
     echo "Configuring OpenBao YUM/DNF repository..."
 
-    local MIRROR_BASE_URL="$1"
+    local OPENBAO_MIRROR_URL="$1"
     local MIRROR_USER="$2"
     local OPENBAO_GPG_URL="https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
     local GPG_KEY_FILE="/etc/pki/rpm-gpg/openbao-gpg-pub-20240618.asc"
@@ -37,11 +37,8 @@ configure_openbao_rpm() {
         MIRROR_TOKEN="$XROAD_MIRROR_TOKEN"
     fi
 
-    local ARCH
-    ARCH=$(uname -m)
-
-    if [ -n "$MIRROR_BASE_URL" ] && [ -n "$MIRROR_USER" ] && [ -n "$MIRROR_TOKEN" ]; then
-        OPENBAO_RPM_URL="${MIRROR_BASE_URL}/mirror-openbao-pkgs-rpm/${ARCH}"
+    if [ -n "$OPENBAO_MIRROR_URL" ] && [ -n "$MIRROR_USER" ] && [ -n "$MIRROR_TOKEN" ]; then
+        OPENBAO_RPM_URL="$OPENBAO_MIRROR_URL"
         REPO_USER="$MIRROR_USER"
         REPO_PASSWORD="$MIRROR_TOKEN"
         echo "Using mirrored OpenBao RPM repository: $OPENBAO_RPM_URL"
