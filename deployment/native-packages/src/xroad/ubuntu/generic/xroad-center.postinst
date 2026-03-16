@@ -194,7 +194,7 @@ EOF
     if [ "$skip_migrations" = true ] ; then
       echo "skipping database migrations"
     else
-      /usr/share/xroad/db/migrate.sh || abort "Database migration failed. ABORTING."
+      /usr/share/xroad/scripts/setup_centerui_db.sh || abort "Database migration failed. ABORTING."
     fi
 }
 
