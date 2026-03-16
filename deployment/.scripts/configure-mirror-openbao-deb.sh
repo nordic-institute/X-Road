@@ -25,7 +25,6 @@ configure_openbao_deb() {
     local MIRROR_USER="$2"
     local OPENBAO_KEYRING="/usr/share/keyrings/openbao-keyring.asc"
     local OPENBAO_GPG_URL="https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
-    local OPENBAO_DEB_URL
     local MIRROR_TOKEN=""
 
     # Token from Docker secret or environment variable
@@ -36,13 +35,15 @@ configure_openbao_deb() {
     fi
 
     if [ -n "$OPENBAO_MIRROR_URL" ] && [ -n "$MIRROR_USER" ] && [ -n "$MIRROR_TOKEN" ]; then
-        OPENBAO_DEB_URL="$OPENBAO_MIRROR_URL"
-        echo "Using mirrored OpenBao DEB repository: $OPENBAO_DEB_URL"
-        # Authentication for the mirror host is already configured in /etc/apt/auth.conf.d/mirror.conf
-        # by configure-mirror-apt.sh (same Artifactory instance).
+        echo "Using mirrored OpenBao DEB repository: $OPENBAO_MIRROR_URL"
+
+        MIRROR_HOST=$(echo "$OPENBAO_MIRROR_URL" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+        mkdir -p /etc/apt/auth.conf.d
+        echo "machine $MIRROR_HOST login $MIRROR_USER password $MIRROR_TOKEN" > /etc/apt/auth.conf.d/mirror-openbao.conf
+        chmod 600 /etc/apt/auth.conf.d/mirror-openbao.conf
     else
-        OPENBAO_DEB_URL="https://pkgs.openbao.org/deb"
-        echo "Using official OpenBao DEB repository: $OPENBAO_DEB_URL"
+        OPENBAO_MIRROR_URL="https://pkgs.openbao.org/deb"
+        echo "Using official OpenBao DEB repository: $OPENBAO_MIRROR_URL"
     fi
 
     # GPG key is on openbao.org, not in the packages mirror — always fetch from official URL
@@ -56,7 +57,7 @@ configure_openbao_deb() {
         return 1
     fi || { echo "ERROR: Failed to download OpenBao GPG key from $OPENBAO_GPG_URL. Cannot configure OpenBao DEB repo."; return 1; }
 
-    echo "deb [signed-by=$OPENBAO_KEYRING] $OPENBAO_DEB_URL/ stable main" \
+    echo "deb [signed-by=$OPENBAO_KEYRING] $OPENBAO_MIRROR_URL/ stable main" \
         > /etc/apt/sources.list.d/openbao.list
 
     echo "OpenBao APT repository configured."

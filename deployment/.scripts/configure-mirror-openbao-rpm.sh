@@ -25,9 +25,6 @@ configure_openbao_rpm() {
     local MIRROR_USER="$2"
     local OPENBAO_GPG_URL="https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
     local GPG_KEY_FILE="/etc/pki/rpm-gpg/openbao-gpg-pub-20240618.asc"
-    local OPENBAO_RPM_URL
-    local REPO_USER=""
-    local REPO_PASSWORD=""
     local MIRROR_TOKEN=""
 
     # Token from Docker secret or environment variable
@@ -38,13 +35,18 @@ configure_openbao_rpm() {
     fi
 
     if [ -n "$OPENBAO_MIRROR_URL" ] && [ -n "$MIRROR_USER" ] && [ -n "$MIRROR_TOKEN" ]; then
-        OPENBAO_RPM_URL="$OPENBAO_MIRROR_URL"
-        REPO_USER="$MIRROR_USER"
-        REPO_PASSWORD="$MIRROR_TOKEN"
-        echo "Using mirrored OpenBao RPM repository: $OPENBAO_RPM_URL"
+        echo "Using mirrored OpenBao RPM repository: $OPENBAO_MIRROR_URL"
+
+        MIRROR_HOST=$(echo "$MIRROR_BASE_URL" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+        cat > /root/.netrc <<EOF
+machine $MIRROR_HOST
+login $MIRROR_USER
+password $MIRROR_TOKEN
+EOF
+        chmod 600 /root/.netrc
     else
-        OPENBAO_RPM_URL="https://pkgs.openbao.org/rpm/\$basearch"
-        echo "Using official OpenBao RPM repository: $OPENBAO_RPM_URL"
+        OPENBAO_MIRROR_URL="https://pkgs.openbao.org/rpm/\$basearch"
+        echo "Using official OpenBao RPM repository: $OPENBAO_MIRROR_URL"
     fi
 
     # GPG key is on openbao.org, not in the packages mirror — always fetch from official URL.
@@ -63,7 +65,7 @@ configure_openbao_rpm() {
     cat > /etc/yum.repos.d/openbao.repo <<EOF
 [openbao]
 name=openbao
-baseurl=${OPENBAO_RPM_URL}
+baseurl=${OPENBAO_MIRROR_URL}
 repo_gpgcheck=0
 gpgcheck=1
 enabled=1
@@ -71,8 +73,8 @@ gpgkey=file://${GPG_KEY_FILE}
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 metadata_expire=300
-${REPO_USER:+username=${REPO_USER}}
-${REPO_PASSWORD:+password=${REPO_PASSWORD}}
+${MIRROR_USER:+username=${MIRROR_USER}}
+${MIRROR_TOKEN:+password=${MIRROR_TOKEN}}
 EOF
 
     echo "OpenBao YUM/DNF repository configured."
