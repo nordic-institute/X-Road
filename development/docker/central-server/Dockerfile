@@ -38,11 +38,6 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh
     --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
-# Add X-Road dependencies repo (previously hosted OpenBao packages before the official repository was available - retained for similar potential cases in the future)
-ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
-RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
-  && apt-key add '/tmp/deps-repokey.gpg'
-
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
@@ -66,11 +61,6 @@ FROM base AS centralserver-internal
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
     --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-openbao-deb.sh
-
-# Add X-Road dependencies repo (previously hosted OpenBao packages before the official repository was available - retained for similar potential cases in the future)
-ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
-RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
-  && apt-key add '/tmp/deps-repokey.gpg'
 
 RUN --mount=type=bind,from=packages,target=/tmp/packages \
    cp -r /tmp/packages /tmp/repo \
