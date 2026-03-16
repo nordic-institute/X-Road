@@ -34,6 +34,10 @@ esac
 # Optional separate settings for dependencies repository (defaults to main repo settings)
 XROAD_DEPENDENCIES_GPG_KEY_URL="${XROAD_DEPENDENCIES_GPG_KEY_URL:-$XROAD_REPO_GPG_KEY_URL}"
 
+# Mirror credentials for optional OpenBao mirror support (passed to OpenBao mirror configuring scripts)
+OPENBAO_MIRROR="${OPENBAO_MIRROR:-}"
+OPENBAO_MIRROR_USER="${OPENBAO_MIRROR_USER:-}"
+
 # Setup repositories for Ubuntu
 setup_repositories_ubuntu() {
   local xroad_dep_keyring_path="/usr/share/keyrings/xroad-keyring.asc"
@@ -93,6 +97,19 @@ setup_repositories_ubuntu() {
   log_info "Repository configuration added to $sources_file"
   log_message ""
 
+  # Add OpenBao repository (official or mirrored)
+  log_message "Adding OpenBao APT repository"
+  local openbao_deb_script="$SCRIPT_DIR/lib/configure-mirror-openbao-deb.sh"
+  if [[ ! -f "$openbao_deb_script" ]]; then
+    log_die "configure-mirror-openbao-deb.sh not found at $openbao_deb_script"
+  fi
+  if bash "$openbao_deb_script" "$OPENBAO_MIRROR" "$OPENBAO_MIRROR_USER"; then
+    log_info "OpenBao APT repository configured"
+  else
+    log_die "Failed to configure OpenBao APT repository"
+  fi
+  log_message ""
+
   # Update repository metadata
   log_message "Updating repository metadata"
   log_message "  Running: apt-get update"
@@ -145,6 +162,18 @@ setup_repositories_rhel() {
     else
       log_die "Failed to import dependencies GPG key"
     fi
+  fi
+
+  # Add OpenBao repository (official or mirrored)
+  log_message "Adding OpenBao YUM/DNF repository"
+  local openbao_rpm_script="$SCRIPT_DIR/lib/configure-mirror-openbao-rpm.sh"
+  if [[ ! -f "$openbao_rpm_script" ]]; then
+    log_die "configure-mirror-openbao-rpm.sh not found at $openbao_rpm_script"
+  fi
+  if bash "$openbao_rpm_script" "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"; then
+    log_info "OpenBao YUM/DNF repository configured"
+  else
+    log_die "Failed to configure OpenBao YUM/DNF repository"
   fi
 
   log_message "Updating package manager cache..."

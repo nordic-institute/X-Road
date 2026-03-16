@@ -46,6 +46,10 @@
     - "{{ ubuntu_deps_apt_repo_with_option }}"
   when: ansible_distribution == "Ubuntu"
 
+- name: Configure OpenBao apt repository
+  script:
+    cmd: "{{ playbook_dir }}/../../deployment/.scripts/configure-mirror-openbao-deb.sh"
+
 - name: enable UTF-8 locales
   locale_gen:
     name: "{{ item }}"

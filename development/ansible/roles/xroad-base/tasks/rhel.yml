@@ -64,6 +64,10 @@
     state: present
     enabled: yes
 
+- name: Configure OpenBao YUM/DNF repository
+  script:
+    cmd: "{{ playbook_dir }}/../../deployment/.scripts/configure-mirror-openbao-rpm.sh"
+
 - name: Touch repo file
   file:
     path: "/etc/yum.repos.d/xroad.repo"
