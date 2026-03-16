@@ -173,7 +173,7 @@ class LiquibaseUpgradeValidationTest {
                         "FILENAME should have containerized prefix after mutation");
             }
 
-            // Apply normalization (same logic as containerized-upgrade.sql)
+            // Apply FILENAME normalization: strip 'changelog/' prefix from containerized history
             stmt.execute("UPDATE DATABASECHANGELOG SET filename = REPLACE(filename, 'changelog/', '') "
                     + "WHERE filename LIKE 'changelog/%'");
 
