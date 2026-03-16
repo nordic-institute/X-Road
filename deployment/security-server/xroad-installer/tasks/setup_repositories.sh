@@ -35,7 +35,7 @@ esac
 XROAD_DEPENDENCIES_GPG_KEY_URL="${XROAD_DEPENDENCIES_GPG_KEY_URL:-$XROAD_REPO_GPG_KEY_URL}"
 
 # Mirror credentials for optional OpenBao mirror support (passed to OpenBao mirror configuring scripts)
-OPENBAO_MIRROR_URL="${OPENBAO_MIRROR_URL:-}"
+OPENBAO_MIRROR="${OPENBAO_MIRROR:-}"
 OPENBAO_MIRROR_USER="${OPENBAO_MIRROR_USER:-}"
 
 # Setup repositories for Ubuntu
@@ -103,7 +103,7 @@ setup_repositories_ubuntu() {
   if [[ ! -f "$openbao_deb_script" ]]; then
     log_die "configure-mirror-openbao-deb.sh not found at $openbao_deb_script"
   fi
-  if bash "$openbao_deb_script" "$OPENBAO_MIRROR_URL" "$OPENBAO_MIRROR_USER"; then
+  if bash "$openbao_deb_script" "$OPENBAO_MIRROR" "$OPENBAO_MIRROR_USER"; then
     log_info "OpenBao APT repository configured"
   else
     log_die "Failed to configure OpenBao APT repository"

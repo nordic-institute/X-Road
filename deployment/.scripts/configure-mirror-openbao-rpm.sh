@@ -16,7 +16,7 @@
 #   OPENBAO_MIRROR_URL - OpenBao RPM mirror URL (e.g., https://artifactory.example.org/artifactory/mirror-openbao-pkgs-rpm/x86_64)
 #   MIRROR_USER        - Username for authentication
 #
-# Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible)
+# Token is read from /run/secrets/mirror_token (Docker) or OPENBAO_MIRROR_TOKEN env var
 
 configure_openbao_rpm() {
     echo "Configuring OpenBao YUM/DNF repository..."
@@ -30,8 +30,8 @@ configure_openbao_rpm() {
     # Token from Docker secret or environment variable
     if [ -f /run/secrets/mirror_token ]; then
         MIRROR_TOKEN=$(cat /run/secrets/mirror_token)
-    elif [ -n "$XROAD_MIRROR_TOKEN" ]; then
-        MIRROR_TOKEN="$XROAD_MIRROR_TOKEN"
+    elif [ -n "$OPENBAO_MIRROR_TOKEN" ]; then
+        MIRROR_TOKEN="$OPENBAO_MIRROR_TOKEN"
     fi
 
     if [ -n "$OPENBAO_MIRROR_URL" ] && [ -n "$MIRROR_USER" ] && [ -n "$MIRROR_TOKEN" ]; then

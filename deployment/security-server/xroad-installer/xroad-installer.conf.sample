@@ -69,6 +69,15 @@ XROAD_SECRET_STORE_TYPE=local
 # Default for RPM: xroad-dependencies-rpm
 #XROAD_REPO_DEPENDENCIES=
 
+# OpenBao mirror repository component name. Define when the goal is to install OpenBao from a custom repository/mirror.
+# Default for DEB: https://pkgs.openbao.org/deb
+# Default for RPM: https://pkgs.openbao.org/rpm
+#OPENBAO_MIRROR=
+
+# OpenBao repository authentication.
+# Note that token should also be defined in /run/secrets/mirror_token or via OPENBAO_MIRROR_TOKEN environment variable.
+#OPENBAO_MIRROR_USER=
+
 # 7. Proxy Memory Configuration
 # Memory settings for the proxy service (JVM heap size).
 # Examples: 
