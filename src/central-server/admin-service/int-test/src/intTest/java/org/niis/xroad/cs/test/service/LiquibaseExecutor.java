@@ -38,6 +38,7 @@ import liquibase.logging.core.AbstractLogService;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 import liquibase.ui.LoggerUIService;
+import org.niis.xroad.liquibase.LiquibaseSlf4jLogger;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
