@@ -25,7 +25,10 @@
  */
 package org.niis.xroad.liquibase;
 
+import liquibase.Scope;
+import liquibase.integration.commandline.LiquibaseCommandLine;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -35,6 +38,7 @@ import picocli.CommandLine.Parameters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 /**
  * Entry point wrapper for Liquibase CLI.
@@ -47,7 +51,7 @@ import java.util.Optional;
         description = "X-Road Liquibase migration executor"
 )
 @Slf4j
-public class LiquibaseExecutor {
+public class LiquibaseExecutor implements Callable<Integer> {
 
     @Option(names = "--changelog", required = true,
             description = "Database changelog name (serverconf, centerui, messagelog, op-monitor)")
@@ -88,13 +92,36 @@ public class LiquibaseExecutor {
     @Parameters(index = "0", description = "Liquibase command (e.g., update)")
     String command;
 
+    @ArchUnitSuppressed(value = "NoVanillaExceptions",
+            reason = "throws Exception inherited from Callable<Integer> interface required by picocli")
+    @Override
+    public Integer call() throws Exception {
+        String[] liquibaseArgs = buildLiquibaseArgs();
+
+        log.info("Executing Liquibase: {}", String.join(" ", liquibaseArgs));
+
+        var scopeValues = LiquibaseSlf4jLogger.createLoggableScope(log);
+        int exitCode = Scope.child(scopeValues, () -> {
+            LiquibaseCommandLine cli = new LiquibaseCommandLine();
+            return cli.execute(liquibaseArgs);
+        });
+
+        if (exitCode == 0) {
+            log.info("Liquibase completed successfully");
+        } else {
+            log.error("Liquibase failed with exit code {}", exitCode);
+        }
+
+        return exitCode;
+    }
+
     /**
      * Main entry point. Sets up system properties before picocli parsing,
      * then delegates to picocli for execution.
      *
      * @param args CLI arguments
      */
-    static void main(String[] args) {
+    public static void main(String[] args) {
         initSystemProperties(args);
 
         int exitCode = new CommandLine(new LiquibaseExecutor()).execute(args);
