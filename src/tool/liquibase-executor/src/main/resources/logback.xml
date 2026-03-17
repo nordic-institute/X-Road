@@ -22,6 +22,9 @@
         </encoder>
     </appender>
 
+    <!-- Suppress Liquibase internal INFO chatter; override to DEBUG for migration troubleshooting -->
+    <logger name="liquibase" level="WARN"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>

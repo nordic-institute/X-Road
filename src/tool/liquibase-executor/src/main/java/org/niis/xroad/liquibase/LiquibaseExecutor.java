@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.liquibase;
 
+import liquibase.Scope;
 import liquibase.integration.commandline.LiquibaseCommandLine;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.slf4j.LoggerFactory;
@@ -99,7 +100,7 @@ public class LiquibaseExecutor implements Callable<Integer> {
      *
      * @param args CLI arguments
      */
-    public static void main(String[] args) {
+    static void main(String[] args) {
         initSystemProperties(args);
         int exitCode = new CommandLine(new LiquibaseExecutor()).execute(args);
         System.exit(exitCode);
@@ -137,17 +138,20 @@ public class LiquibaseExecutor implements Callable<Integer> {
     @ArchUnitSuppressed(value = "NoVanillaExceptions",
             reason = "throws Exception inherited from Callable<Integer> interface required by picocli")
     @Override
-    public Integer call() {
+    public Integer call() throws Exception {
         // Logger created here (not as static field) to ensure xroad.liquibase.schema
         // system property is set before logback reads it for file path
-        var logger = LoggerFactory.getLogger(LiquibaseExecutor.class);
+        var logger = LoggerFactory.getLogger("liquibase");
 
         String[] liquibaseArgs = buildLiquibaseArgs();
 
         logger.info("Executing Liquibase: {}", String.join(" ", liquibaseArgs));
 
-        LiquibaseCommandLine cli = new LiquibaseCommandLine();
-        int exitCode = cli.execute(liquibaseArgs);
+        var scopeValues = LiquibaseSlf4jLogger.createLoggableScope(logger);
+        int exitCode = Scope.child(scopeValues, () -> {
+            LiquibaseCommandLine cli = new LiquibaseCommandLine();
+            return cli.execute(liquibaseArgs);
+        });
 
         if (exitCode == 0) {
             logger.info("Liquibase completed successfully");

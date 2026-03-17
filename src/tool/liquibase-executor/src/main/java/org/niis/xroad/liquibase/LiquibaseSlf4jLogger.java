@@ -26,9 +26,14 @@
  */
 package org.niis.xroad.liquibase;
 
+import liquibase.Scope;
+import liquibase.logging.core.AbstractLogService;
 import liquibase.logging.core.AbstractLogger;
+import liquibase.ui.LoggerUIService;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class LiquibaseSlf4jLogger extends AbstractLogger {
@@ -123,5 +128,32 @@ public class LiquibaseSlf4jLogger extends AbstractLogger {
         if (logger.isDebugEnabled()) {
             logger.debug(message, e);
         }
+    }
+
+    /**
+     * Creates a Liquibase Scope values map that routes all Liquibase internal logging
+     * through the given SLF4J logger via {@link LiquibaseSlf4jLogger}.
+     *
+     * @param slf4jLogger the SLF4J logger to route Liquibase log output to
+     * @return scope values map suitable for {@link Scope#child(Map, Scope.ScopedRunner)}
+     */
+    public static Map<String, Object> createLoggableScope(org.slf4j.Logger slf4jLogger) {
+        final Map<String, Object> scopeValues = new HashMap<>();
+        scopeValues.put(Scope.Attr.ui.name(), new LoggerUIService());
+        scopeValues.put(Scope.Attr.logService.name(), new AbstractLogService() {
+            private final LiquibaseSlf4jLogger liquibaseLogger =
+                    new LiquibaseSlf4jLogger(slf4jLogger);
+
+            @Override
+            public int getPriority() {
+                return 1;
+            }
+
+            @Override
+            public liquibase.logging.Logger getLog(Class clazz) {
+                return liquibaseLogger;
+            }
+        });
+        return scopeValues;
     }
 }
