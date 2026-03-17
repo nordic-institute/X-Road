@@ -294,7 +294,7 @@ edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sq
 edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version = "0.0.6-SNAPSHOT" }
 
 #Gradle plugins
-archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "5.0.1" }
+archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "4.0.0" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version = "4.0.0" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
