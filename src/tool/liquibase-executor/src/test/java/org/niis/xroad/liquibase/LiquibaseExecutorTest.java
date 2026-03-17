@@ -46,12 +46,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LiquibaseExecutorTest {
-
     private static final String H2_URL = "jdbc:h2:mem:liquibase-test;DB_CLOSE_DELAY=-1";
     private static final String H2_USER = "sa";
     private static final String H2_PASSWORD = "";
-
-    // --- Integration tests (unchanged) ---
 
     @Test
     void shouldExecuteChangelogAgainstH2() throws Exception {
@@ -99,8 +96,6 @@ class LiquibaseExecutorTest {
         assertNotNull(resource, "Signer changelog not found on classpath: liquibase/signer/001-signer.xml");
     }
 
-    // --- Picocli field binding tests ---
-
     @Test
     void shouldParseChangelogEqualsFormat() {
         var executor = new LiquibaseExecutor();
@@ -143,8 +138,6 @@ class LiquibaseExecutorTest {
         assertEquals("secret", executor.propProxyUiSuperuserPassword);
         assertEquals("update", executor.command);
     }
-
-    // --- Arg translation tests (via buildLiquibaseArgs) ---
 
     @Test
     void shouldTranslateChangelogToChangeLogFile() {
@@ -279,8 +272,6 @@ class LiquibaseExecutorTest {
         assertTrue(args.contains("-Ddb_schema=serverconf"), "Should have -Ddb_schema");
     }
 
-    // --- Help and version via picocli ---
-
     @Test
     void shouldShowHelpWithAllXRoadOptions() {
         var executor = new LiquibaseExecutor();
@@ -310,8 +301,6 @@ class LiquibaseExecutorTest {
         assertTrue(version.contains("X-Road Liquibase Executor"),
                 "Version should contain executor name, got: " + version);
     }
-
-    // --- Picocli error handling ---
 
     @Test
     void shouldRejectUnknownOption() {
@@ -352,8 +341,6 @@ class LiquibaseExecutorTest {
         int exitCode = cmd.execute("--changelog=serverconf", "update");
         assertTrue(exitCode != 0, "Missing --url should cause non-zero exit code");
     }
-
-    // --- Full pipeline ---
 
     @Test
     void shouldTranslateFullPipeline() {

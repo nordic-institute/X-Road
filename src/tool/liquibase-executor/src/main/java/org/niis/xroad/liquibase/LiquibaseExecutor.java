@@ -25,10 +25,7 @@
  */
 package org.niis.xroad.liquibase;
 
-import liquibase.Scope;
-import liquibase.integration.commandline.LiquibaseCommandLine;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -37,15 +34,11 @@ import picocli.CommandLine.Parameters;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Optional;
 
 /**
- * Entry point wrapper for Liquibase CLI that uses picocli for argument parsing,
- * configures logging via slf4j, disables analytics, and translates X-Road-specific
- * flags before delegating to {@link LiquibaseCommandLine}.
+ * Entry point wrapper for Liquibase CLI.
  *
- * <p>All accepted arguments are explicitly declared as picocli {@link Option} fields.
- * Unknown options are rejected by picocli automatically.
  */
 @Command(
         name = "liquibase-executor",
@@ -53,7 +46,8 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true,
         description = "X-Road Liquibase migration executor"
 )
-public class LiquibaseExecutor implements Callable<Integer> {
+@Slf4j
+public class LiquibaseExecutor {
 
     @Option(names = "--changelog", required = true,
             description = "Database changelog name (serverconf, centerui, messagelog, op-monitor)")
@@ -102,6 +96,7 @@ public class LiquibaseExecutor implements Callable<Integer> {
      */
     static void main(String[] args) {
         initSystemProperties(args);
+
         int exitCode = new CommandLine(new LiquibaseExecutor()).execute(args);
         System.exit(exitCode);
     }
@@ -113,53 +108,11 @@ public class LiquibaseExecutor implements Callable<Integer> {
      * @param args raw CLI arguments
      */
     static void initSystemProperties(String[] args) {
-        // Extract --defaultSchemaName for logback file path (supports both = and space formats)
-        String schema = null;
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].startsWith("--defaultSchemaName=")) {
-                schema = args[i].substring("--defaultSchemaName=".length());
-                break;
-            }
-            if ("--defaultSchemaName".equals(args[i]) && i + 1 < args.length) {
-                schema = args[i + 1];
-                break;
-            }
-        }
-        System.setProperty("xroad.liquibase.schema", schema != null ? schema : "unknown");
-
-        // Disable analytics before any Liquibase class initialization
+        System.setProperty("xroad.liquibase.schema", resolveSchema(args).orElse("unknown"));
         System.setProperty("liquibase.analytics.enabled", "false");
 
-        // Bridge java.util.logging (used internally by Liquibase 5.x) to SLF4J/Logback
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
-    }
-
-    @ArchUnitSuppressed(value = "NoVanillaExceptions",
-            reason = "throws Exception inherited from Callable<Integer> interface required by picocli")
-    @Override
-    public Integer call() throws Exception {
-        // Logger created here (not as static field) to ensure xroad.liquibase.schema
-        // system property is set before logback reads it for file path
-        var logger = LoggerFactory.getLogger("liquibase");
-
-        String[] liquibaseArgs = buildLiquibaseArgs();
-
-        logger.info("Executing Liquibase: {}", String.join(" ", liquibaseArgs));
-
-        var scopeValues = LiquibaseSlf4jLogger.createLoggableScope(logger);
-        int exitCode = Scope.child(scopeValues, () -> {
-            LiquibaseCommandLine cli = new LiquibaseCommandLine();
-            return cli.execute(liquibaseArgs);
-        });
-
-        if (exitCode == 0) {
-            logger.info("Liquibase completed successfully");
-        } else {
-            logger.error("Liquibase failed with exit code {}", exitCode);
-        }
-
-        return exitCode;
     }
 
     /**
@@ -203,12 +156,23 @@ public class LiquibaseExecutor implements Callable<Integer> {
         if (propProxyUiSuperuserPassword != null) {
             dFlags.add("-Dproxy_ui_superuser_password=" + propProxyUiSuperuserPassword);
         }
-        // Auto-derive -Ddb_schema from --defaultSchemaName
         if (defaultSchemaName != null) {
             dFlags.add("-Ddb_schema=" + defaultSchemaName);
         }
 
         args.addAll(dFlags);
         return args.toArray(new String[0]);
+    }
+
+    private static Optional<String> resolveSchema(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].startsWith("--defaultSchemaName=")) {
+                return Optional.of(args[i].substring("--defaultSchemaName=".length()));
+            }
+            if ("--defaultSchemaName".equals(args[i]) && i + 1 < args.length) {
+                return Optional.of(args[i + 1]);
+            }
+        }
+        return Optional.empty();
     }
 }

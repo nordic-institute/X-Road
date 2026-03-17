@@ -26,7 +26,14 @@
  */
 package org.niis.xroad.liquibase;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import liquibase.Scope;
+import liquibase.command.CommandScope;
 import liquibase.logging.core.AbstractLogService;
+import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.ui.LoggerUIService;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -34,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,6 +49,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LiquibaseSlf4jLoggerTest {
 
     private static final org.slf4j.Logger TEST_LOGGER = LoggerFactory.getLogger("test.liquibase");
+    private static final String H2_URL = "jdbc:h2:mem:slf4j-log-test;DB_CLOSE_DELAY=-1";
+    private static final String H2_USER = "sa";
+    private static final String H2_PASSWORD = "";
 
     @Test
     void shouldReturnMapWithUiKey() {
@@ -73,5 +84,43 @@ class LiquibaseSlf4jLoggerTest {
         var liquibaseLogger = logService.getLog(getClass());
         assertInstanceOf(LiquibaseSlf4jLogger.class, liquibaseLogger,
                 "Log service must return a LiquibaseSlf4jLogger instance");
+    }
+
+    @Test
+    void shouldRouteLiquibaseInternalLoggingThroughSlf4j() throws Exception {
+        System.setProperty("liquibase.analytics.enabled", "false");
+
+        // Attach ListAppender to root logger to capture all SLF4J output
+        var rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        rootLogger.setLevel(Level.INFO);
+        var listAppender = new ListAppender<ILoggingEvent>();
+        listAppender.start();
+        rootLogger.addAppender(listAppender);
+
+        try {
+            var scopeValues = LiquibaseSlf4jLogger.createLoggableScope(TEST_LOGGER);
+            scopeValues.put(Scope.Attr.resourceAccessor.name(), new ClassLoaderResourceAccessor());
+
+            Scope.child(scopeValues, () -> {
+                CommandScope update = new CommandScope("update");
+                update.addArgumentValue("changelogFile", "test-changelog.xml");
+                update.addArgumentValue("url", H2_URL);
+                update.addArgumentValue("username", H2_USER);
+                update.addArgumentValue("password", H2_PASSWORD);
+                update.execute();
+            });
+
+            var logMessages = listAppender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .toList();
+
+            assertFalse(listAppender.list.isEmpty(), "Expected Liquibase log events to be captured via SLF4J, got: " + logMessages);
+
+            assertTrue(logMessages.stream().anyMatch(msg -> msg.contains("ChangeSet") && msg.contains("ran successfully")),
+                    "Expected internal Liquibase 'ChangeSet ... ran successfully' message, got: " + logMessages);
+        } finally {
+            rootLogger.detachAppender(listAppender);
+            listAppender.stop();
+        }
     }
 }
