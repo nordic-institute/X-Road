@@ -28,6 +28,7 @@ init:
     database: "op-monitor"
     username: "opmonitor"
     schema: "public"
+    changelogName: "op-monitor"
 
 imagePullSecrets: []
 

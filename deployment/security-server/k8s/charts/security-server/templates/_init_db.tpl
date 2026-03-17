@@ -60,7 +60,7 @@ spec:
                   name: db-{{ $name }}
                   key: postgres-password
             - name: DB_SCHEMA
-              value: {{ $name | quote }}
+              value: {{ ($config.changelogName | default $name) | quote }}
             - name: db_schema
               value: {{ $config.schema | quote }}
             - name: db_user
