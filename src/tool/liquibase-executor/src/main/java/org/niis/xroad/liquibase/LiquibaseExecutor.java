@@ -152,6 +152,9 @@ public class LiquibaseExecutor implements Callable<Integer> {
         List<String> args = new ArrayList<>();
         List<String> dFlags = new ArrayList<>();
 
+        // Add classpath search path so embedded JAR resources are found
+        args.add("--searchPath=classpath:");
+
         // Translate --changelog to --changeLogFile
         args.add("--changeLogFile=liquibase/" + changelog + "-changelog.xml");
 
