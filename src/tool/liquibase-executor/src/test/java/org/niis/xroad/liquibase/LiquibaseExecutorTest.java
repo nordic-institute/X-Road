@@ -140,6 +140,17 @@ class LiquibaseExecutorTest {
     }
 
     @Test
+    void shouldIncludeSearchPathInArgs() {
+        var executor = new LiquibaseExecutor();
+        new CommandLine(executor).parseArgs("--changelog=op-monitor", "--url=jdbc:h2:mem:test", "update");
+        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
+        assertEquals("--searchPath=classpath:", args.get(0),
+                "--searchPath=classpath: must be the first argument, got: " + args);
+        assertTrue(args.contains("--changeLogFile=liquibase/op-monitor-changelog.xml"),
+                "Should have --changeLogFile for op-monitor, got: " + args);
+    }
+
+    @Test
     void shouldTranslateChangelogToChangeLogFile() {
         var executor = new LiquibaseExecutor();
         new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
