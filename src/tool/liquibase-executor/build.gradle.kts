@@ -9,7 +9,6 @@ dependencies {
   implementation(libs.postgresql)
   implementation(libs.slf4j.api)
   implementation(libs.logback.classic)
-  implementation(libs.julOverSlf4j)
 
   compileOnly(project(":common:common-core"))
 

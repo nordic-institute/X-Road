@@ -28,7 +28,6 @@ package org.niis.xroad.liquibase;
 import liquibase.integration.commandline.LiquibaseCommandLine;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -127,7 +126,6 @@ public class LiquibaseExecutor implements Callable<Integer> {
     static void initSystemProperties(String[] args) {
         System.setProperty("xroad.liquibase.schema", resolveSchema(args).orElse("unknown"));
         System.setProperty("liquibase.analytics.enabled", "false");
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
     }
 
     /**
