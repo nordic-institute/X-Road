@@ -1,0 +1,47 @@
+quarkus:
+  application:
+    name: auxiliary-service
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  scheduler:
+    start-mode: forced
+    enabled: true
+  quartz:
+    thread-count: 3
+
+"%containerized":
+  xroad:
+    auxiliary-service:
+      rpc:
+        listen-address: 0.0.0.0
+      backup:
+        autobackup-script-path: /usr/share/xroad/scripts/containerised/autobackup.sh
+        script-path: /usr/share/xroad/scripts/containerised/create_backup.sh
+        restore-script-path: /usr/share/xroad/scripts/containerised/restore_backup.sh
+      message-log:
+        command-path: /usr/share/xroad/scripts/containerised/message_log_archiver.sh
+
+"%native":
+  quarkus:
+    config:
+      locations:
+        - xroad-common.yaml
+        - xroad-logging.yaml
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/db.properties
+    log:
+      file:
+        enabled: true
+        path: /var/log/xroad/auxiliary_service.log
+
+"%test":
+  quarkus:
+    log:
+      file:
+        enabled: false
+  xroad:
+    auxiliary-service:
+      rpc:
+        enabled: false

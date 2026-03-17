@@ -94,12 +94,7 @@ public class ExternalProcessRunner {
         int exitCode;
 
         try {
-            boolean hasExited = process.waitFor(TIMEOUT, TimeUnit.MILLISECONDS);
-            // exit value cannot be asked if the process is still running after timeout - instead throw and destroy
-            if (!hasExited) {
-                throw new ProcessFailedException("Process timed out");
-            }
-            exitCode = process.exitValue();
+            exitCode = waitForProcess(process);
             log.info("External command finished with exit status {}", exitCode);
         } catch (InterruptedException e) {
             // retain the interrupted status
@@ -145,6 +140,14 @@ public class ExternalProcessRunner {
             throw new ProcessFailedException(getErrorMsg(processResult), processResult.processOutput);
         }
         return processResult;
+    }
+
+    protected int waitForProcess(Process process) throws InterruptedException, ProcessFailedException {
+        boolean hasExited = process.waitFor(TIMEOUT, TimeUnit.MILLISECONDS);
+        if (!hasExited) {
+            throw new ProcessFailedException("Process timed out");
+        }
+        return process.exitValue();
     }
 
     private static String getErrorMsg(ProcessResult processResult) {

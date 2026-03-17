@@ -41,6 +41,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.messagelog.MessageLogDbProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
 import org.niis.xroad.messagelog.RestLogMessage;
@@ -48,7 +49,9 @@ import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
-import org.niis.xroad.messagelog.archiver.core.config.LogArchiverExecutionProperties;
+import org.niis.xroad.messagelog.archiver.core.TestLogArchiver;
+import org.niis.xroad.messagelog.archiver.core.TestLogCleaner;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 import org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -85,17 +88,14 @@ abstract class AbstractMessageLogTest {
     VaultClient vaultClient;
 
     LogManager logManager;
-    LogArchiverExecutionProperties logArchiverExecutionProperties;
+    MessageLogArchiverProperties messageLogArchiverProperties;
+    MessageLogEncryptionProperties messageLogEncryptionProperties;
 
     protected final String archivesDir = "build/archive";
     protected final Path archivesPath = Paths.get(archivesDir);
 
     private LogArchiver logArchiverRef;
     private LogCleaner logCleanerRef;
-
-    protected void testSetUp(Map<String, String> configOverrides) throws Exception {
-        testSetUp(configOverrides, false);
-    }
 
     protected void testSetUp(Map<String, String> configOverrides, boolean encrypted) throws Exception {
         // Initialize ProxyProperties with overrides
@@ -104,6 +104,9 @@ abstract class AbstractMessageLogTest {
         messageLogProperties = configOverrides.isEmpty()
                 ? ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class)
                 : ConfigUtils.initConfiguration(ProxyMessageLogProperties.class, configOverrides);
+        messageLogEncryptionProperties = ConfigUtils.initConfiguration(
+                MessageLogEncryptionProperties.class, configOverrides);
+        messageLogArchiverProperties = ConfigUtils.initConfiguration(MessageLogArchiverProperties.class, configOverrides);
 
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
@@ -131,13 +134,13 @@ abstract class AbstractMessageLogTest {
             for (int i = 0; i < testSecretKey.length; i++) {
                 testSecretKey[i] = (byte) (i * 17);
             }
-            String keyId = messageLogProperties.databaseEncryption().keyId();
+            String keyId = messageLogEncryptionProperties.db().keyId();
             String base64Key = java.util.Base64.getEncoder().encodeToString(testSecretKey);
             when(vaultClient.getMLogDBEncryptionSecretKeys()).thenReturn(java.util.Map.of(keyId, base64Key));
         }
 
         messageRecordEncryption = new MessageRecordEncryption(
-                messageLogProperties.databaseEncryption(),
+                messageLogEncryptionProperties.db(),
                 vaultClient);
         logRecordManager = new LogRecordManager(databaseCtx, messageRecordEncryption);
 
@@ -154,38 +157,7 @@ abstract class AbstractMessageLogTest {
             Files.createDirectory(archivesPath);
         }
 
-        // Initialize logArchiverExecutionProperties from proxyProperties configuration
-        var archiverProps = messageLogProperties.archiver();
-        var databaseProps = messageLogProperties.databaseEncryption();
-
-        // Create archive encryption properties
-        var archiveEncryption = new LogArchiverExecutionProperties.ArchiveEncryptionProperties(
-                archiverProps.encryptionEnabled(),
-                archiverProps.defaultKeyId(),
-                archiverProps.groupingStrategy(),
-                archiverProps.grouping()
-        );
-
-        // Create database encryption properties
-        var databaseEncryption = new LogArchiverExecutionProperties.DatabaseEncryptionProperties(
-                databaseProps.enabled(),
-                databaseProps.keyId()
-        );
-
-        logArchiverExecutionProperties = new LogArchiverExecutionProperties(
-                archiveEncryption,
-                databaseEncryption,
-                archiverProps.cleanTransactionBatchSize(),
-                archiverProps.cleanKeepRecordsFor(),
-                archiverProps.transactionBatchSize(),
-                archiverProps.archivePath(),
-                archiverProps.archiveTransferCommand().orElse(null),
-                messageLogProperties.hashAlg(),
-                archiverProps.maxFilesize(),
-                archiverProps.archivePath()
-        );
-
-        logArchiverRef = new TestLogArchiver(keyManager, encryptionService, globalConfProvider, databaseCtx, vaultClient);
+        logArchiverRef = new TestLogArchiver(keyManager, encryptionService, databaseCtx, vaultClient);
         logCleanerRef = new TestLogCleaner(databaseCtx);
     }
 
@@ -244,11 +216,11 @@ abstract class AbstractMessageLogTest {
     }
 
     void startArchiving() {
-        logArchiverRef.execute(logArchiverExecutionProperties);
+        logArchiverRef.execute(globalConfProvider.getInstanceIdentifier(), messageLogArchiverProperties, messageLogEncryptionProperties);
     }
 
     void startCleaning() {
-        logCleanerRef.execute(logArchiverExecutionProperties);
+        logCleanerRef.execute(messageLogArchiverProperties);
     }
 
     static void assertMessageRecord(Object o, String queryId) {

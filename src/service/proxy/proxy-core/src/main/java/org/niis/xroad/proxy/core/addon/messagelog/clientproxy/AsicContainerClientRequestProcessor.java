@@ -278,13 +278,12 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final Path tempFile = Files.createTempFile(Paths.get(tempFilesPath), "asic", null);
 
         try {
-            final EncryptionConfig encryptionConfig =
-                    encryptionConfigProvider.forClientId(clientId);
+            final EncryptionConfig encryptionConfig = encryptionConfigProvider.forClientId(clientId);
             final CheckedSupplier<OutputStream> supplier = () -> {
                 jResponse.setContentType(MimeTypes.BINARY);
                 jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
-                return encryptionConfig.createEncryptionStream(tempFile, tempFilesPath);
+                return encryptionConfig.createEncryptionStream(tempFile);
             };
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
@@ -296,7 +295,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         } finally {
             Files.deleteIfExists(tempFile);
         }
-
     }
 
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
@@ -405,7 +403,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final Path tempFile = Files.createTempFile(
                 Paths.get(tempFilesPath), "asic", null);
         try {
-            try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile, tempFilesPath)) {
+            try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile)) {
                 asicContainer.write(os);
             }
             try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {

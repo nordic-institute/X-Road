@@ -40,8 +40,11 @@ intTestComposeEnv {
     "SIGNER_IMG" to "ss-signer",
     "PROXY_IMG" to "ss-proxy",
     "PROXY_UI_IMG" to "ss-proxy-ui-api",
-    "BACKUP_MANAGER_IMG" to "ss-backup-manager",
-    "OP_MONITOR_IMG" to "ss-op-monitor"
+    "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
+    "OP_MONITOR_IMG" to "ss-op-monitor",
+    "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
+    "DS_DATA_PLANE_IMG" to "ds-data-plane",
+    "DS_IDENTITY_HUB_IMG" to "ds-identity-hub"
   )
 }
 

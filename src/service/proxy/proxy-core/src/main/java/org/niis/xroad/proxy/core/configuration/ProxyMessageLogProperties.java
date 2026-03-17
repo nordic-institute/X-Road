@@ -32,25 +32,14 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
-import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @ConfigMapping(prefix = "xroad.proxy.message-log")
 public interface ProxyMessageLogProperties {
     @WithName("enabled")
     @WithDefault("true")
     boolean enabled();
-
-    @WithName("archiver")
-    ArchiverProperties archiver();
-
-    @WithName("database-encryption")
-    DatabaseEncryptionProperties databaseEncryption();
 
     @WithName("timestamper")
     TimestamperProperties timestamper();
@@ -95,65 +84,6 @@ public interface ProxyMessageLogProperties {
         return Optional.ofNullable(hashAlgoIdStr())
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
-    }
-
-    interface DatabaseEncryptionProperties extends MessageLogDatabaseEncryptionProperties {
-        @WithName("enabled")
-        @WithDefault("false")
-        boolean enabled();
-
-        @WithName("key-id")
-        @WithDefault("default")
-        String keyId();
-    }
-
-    interface ArchiverProperties extends MessageLogArchivalProperties {
-
-        @WithName("encryption-enabled")
-        @WithDefault("false")
-        boolean encryptionEnabled();
-
-        @WithName("archive-interval")
-        @WithDefault("0 0 0/6 1/1 * ?")
-        String archiveInterval();
-
-        @WithName("clean-interval")
-        @WithDefault("0 0 0/12 1/1 * ?")
-        String cleanInterval();
-
-        @WithName("clean-transaction-batch-size")
-        @WithDefault("10000")
-        int cleanTransactionBatchSize();
-
-        @WithName("clean-keep-records-for")
-        @WithDefault("30")
-        int cleanKeepRecordsFor();
-
-        @WithName("max-filesize")
-        @WithDefault("33554432")
-        int maxFilesize();
-
-        @WithName("default-key-id")
-        Optional<String> defaultKeyId();
-
-        @WithName("grouping-strategy")
-        @WithDefault("NONE")
-        GroupingStrategy groupingStrategy();
-
-        @WithName("grouping-keys")
-        @WithDefault("")
-        Map<String, Set<String>> grouping();
-
-        @WithName("transaction-batch-size")
-        @WithDefault("10000")
-        int transactionBatchSize();
-
-        @WithName("archive-path")
-        @WithDefault("/var/lib/xroad")
-        String archivePath();
-
-        @WithName("archive-transfer-command")
-        Optional<String> archiveTransferCommand();
     }
 
     interface TimestamperProperties {

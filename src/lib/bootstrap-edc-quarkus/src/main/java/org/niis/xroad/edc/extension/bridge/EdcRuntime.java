@@ -63,6 +63,7 @@ public class EdcRuntime extends BaseRuntime {
             boot(false);
         } catch (Exception e) {
             log.error("Failed to boot EDC runtime", e);
+            throw e;
         }
         log.info("EDC runtime loaded in {} ms", System.currentTimeMillis() - startupTime);
     }

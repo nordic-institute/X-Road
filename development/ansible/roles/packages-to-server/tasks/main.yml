@@ -24,6 +24,15 @@
       when: item in modules and modules[item].lib is not defined
       with_items: "{{ selected_modules.split(',') }}"
 
+    - name: Ensure target directory exists
+      file:
+        path: "{{ modules[item].target }}"
+        state: directory
+        owner: xroad
+        group: xroad
+      when: item in modules and modules[item].lib is not defined
+      with_items: "{{ selected_modules.split(',') }}"
+
     - name: Extract the archive on the target
       unarchive:
         src: "/tmp/{{ item }}.tar"
@@ -37,7 +46,7 @@
     name: "{{modules[item].service}}"
     state: restarted
     enabled: yes
-  when: item in modules
+  when: item in modules and modules[item].service is defined
   with_items: "{{selected_modules.split(',')}}"
   tags: restart-services
 

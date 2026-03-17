@@ -6,11 +6,10 @@ plugins {
 }
 
 dependencies {
-  api(project(":common:common-core"))
-  api(project(":common:common-message"))
   api(project(":lib:globalconf-core"))
-  api(project(":service:configuration-client:configuration-client-rpc-client"))
 
+  implementation(project(":common:common-message"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(libs.smallrye.config.core)
 
   testImplementation(project(":common:common-test"))

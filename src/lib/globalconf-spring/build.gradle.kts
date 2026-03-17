@@ -7,5 +7,7 @@ dependencies {
 
   api(project(":lib:globalconf-impl"))
 
+  implementation(project(":lib:properties-core"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation("org.springframework.boot:spring-boot-starter")
 }
