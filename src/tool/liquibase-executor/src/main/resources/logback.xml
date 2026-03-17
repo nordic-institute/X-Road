@@ -23,7 +23,9 @@
         </encoder>
     </appender>
 
-    <logger name="liquibase" level="INFO"/>
+    <logger name="liquibase" level="INFO" additivity="false">
+        <appender-ref ref="FILE"/>
+    </logger>
     <logger name="liquibase.analytics.configuration" level="OFF"/>
 
     <root level="INFO">

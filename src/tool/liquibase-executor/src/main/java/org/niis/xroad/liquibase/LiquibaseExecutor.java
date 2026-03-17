@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.liquibase;
 
-import liquibase.Scope;
 import liquibase.integration.commandline.LiquibaseCommandLine;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -95,16 +94,13 @@ public class LiquibaseExecutor implements Callable<Integer> {
     @ArchUnitSuppressed(value = "NoVanillaExceptions",
             reason = "throws Exception inherited from Callable<Integer> interface required by picocli")
     @Override
-    public Integer call() throws Exception {
+    public Integer call() {
         String[] liquibaseArgs = buildLiquibaseArgs();
 
         log.info("Executing Liquibase: {}", String.join(" ", liquibaseArgs));
 
-        var scopeValues = LiquibaseSlf4jLogger.createLoggableScope(log);
-        int exitCode = Scope.child(scopeValues, () -> {
-            LiquibaseCommandLine cli = new LiquibaseCommandLine();
-            return cli.execute(liquibaseArgs);
-        });
+        LiquibaseCommandLine cli = new LiquibaseCommandLine();
+        int exitCode = cli.execute(liquibaseArgs);
 
         if (exitCode == 0) {
             log.info("Liquibase completed successfully");
@@ -128,18 +124,10 @@ public class LiquibaseExecutor implements Callable<Integer> {
         System.exit(exitCode);
     }
 
-    /**
-     * Lightweight pre-scan of raw args to set system properties that must be
-     * configured before any SLF4J logger initialization or Liquibase class loading.
-     *
-     * @param args raw CLI arguments
-     */
     static void initSystemProperties(String[] args) {
         System.setProperty("xroad.liquibase.schema", resolveSchema(args).orElse("unknown"));
         System.setProperty("liquibase.analytics.enabled", "false");
-
         SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
     }
 
     /**
@@ -151,9 +139,6 @@ public class LiquibaseExecutor implements Callable<Integer> {
     String[] buildLiquibaseArgs() {
         List<String> args = new ArrayList<>();
         List<String> dFlags = new ArrayList<>();
-
-        // Add classpath search path so embedded JAR resources are found
-        args.add("--searchPath=classpath:");
 
         // Translate --changelog to --changeLogFile
         args.add("--changeLogFile=liquibase/" + changelog + "-changelog.xml");
