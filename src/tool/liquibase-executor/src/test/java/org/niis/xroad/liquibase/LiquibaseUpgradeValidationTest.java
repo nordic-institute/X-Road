@@ -43,19 +43,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Integration tests validating that logicalFilePath attributes correctly handle
- * upgrade paths from both v4.19 native and v4.33 containerized Liquibase histories,
+ * upgrade paths from both native and containerized deployment histories,
  * as well as fresh installs.
  *
  * <p>Uses H2 in-memory databases with purpose-built test changelogs (production changelogs
  * use PostgreSQL-specific SQL that H2 cannot execute).
  *
- * <p>The upgrade simulation strategy:
- * <ol>
- *   <li>Run Liquibase update on a fresh DB (creates tables + correct databasechangelog entries)</li>
- *   <li>Modify FILENAME values to simulate old native or containerized paths</li>
- *   <li>Run Liquibase update again and verify changeset recognition</li>
- * </ol>
- * This avoids synthetic checksums -- Liquibase's own checksums are used throughout.
+ * <p>Upgrade simulation: run fresh install, mutate FILENAME values to simulate
+ * old deployment paths, re-run and verify changeset recognition.
  */
 class LiquibaseUpgradeValidationTest {
 
@@ -95,13 +90,9 @@ class LiquibaseUpgradeValidationTest {
     }
 
     /**
-     * Test 2: Verify that an upgrade from native v4.19 works.
-     * Native installations stored FILENAME without any prefix (matching logicalFilePath values).
-     * After adding logicalFilePath to changelogs, Liquibase should still recognize
-     * previously executed changesets because the FILENAME values match.
-     *
-     * <p>Strategy: Run fresh install, then verify a second run does NOT re-execute changesets.
-     * The native case is the baseline -- logicalFilePath was designed to match native FILENAME format.
+     * Verify that native upgrade works. Native installations stored FILENAME without
+     * any prefix (matching logicalFilePath values), so re-running Liquibase should
+     * recognize all previously executed changesets.
      */
     @Test
     void shouldRecognizeExistingNativeChangesets() throws Exception {
@@ -145,13 +136,10 @@ class LiquibaseUpgradeValidationTest {
     }
 
     /**
-     * Test 3: Verify that an upgrade from containerized v4.33 works after FILENAME normalization.
-     * Containerized installations stored FILENAME with "changelog/" prefix. The normalization
-     * step (UPDATE ... SET filename = REPLACE(filename, 'changelog/', '')) must make them
-     * match the logicalFilePath values so Liquibase recognizes them as already executed.
-     *
-     * <p>Strategy: Run fresh install, mutate FILENAME to add "changelog/" prefix (simulating
-     * containerized history), apply normalization, then re-run and verify recognition.
+     * Verify that containerized upgrade works after FILENAME normalization.
+     * Containerized installations stored FILENAME with "changelog/" prefix.
+     * The normalization step strips this prefix so logicalFilePath values match
+     * and Liquibase recognizes changesets as already executed.
      */
     @Test
     void shouldRecognizeExistingContainerizedChangesetsAfterNormalization() throws Exception {

@@ -146,7 +146,7 @@ class LiquibaseExecutorTest {
         List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
         for (String arg : args) {
             assertFalse(arg.startsWith("--searchPath"),
-                    "Should not include --searchPath (Liquibase CLI finds classpath resources by default), got: " + args);
+                    "Should not include --searchPath (SPI-registered Slf4jLogService handles classpath resource access), got: " + args);
         }
         assertTrue(args.contains("--changeLogFile=liquibase/op-monitor-changelog.xml"),
                 "Should have --changeLogFile for op-monitor, got: " + args);

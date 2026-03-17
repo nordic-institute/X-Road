@@ -38,10 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-/**
- * Entry point wrapper for Liquibase CLI.
- *
- */
+/** Entry point wrapper for Liquibase CLI. */
 @Command(
         name = "liquibase-executor",
         version = "X-Road Liquibase Executor 1.0",
