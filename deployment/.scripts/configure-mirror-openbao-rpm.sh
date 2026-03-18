@@ -69,6 +69,7 @@ baseurl=${OPENBAO_MIRROR_URL}
 repo_gpgcheck=0
 gpgcheck=1
 enabled=1
+priority=1 # Ensure this repo is preferred over other repositories
 gpgkey=file://${GPG_KEY_FILE}
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
