@@ -10,7 +10,7 @@ Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            Meta-package for local secret store dependencies
 Group:              Applications/Internet
 License:            MIT
-Requires:           jq, bao >= 2.0.0
+Requires:           jq, openbao < 2.6.0
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 Conflicts:          xroad-secret-store-remote
 
@@ -35,6 +35,7 @@ cp -p %{_sourcedir}/secret-store-local/xroad-secret-store-local.service %{buildr
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/services/secret-store-local.conf %{buildroot}/etc/xroad/services/
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/backup.d/??_openbao %{buildroot}/etc/xroad/backup.d/
 cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/* %{buildroot}/usr/share/xroad/scripts/
+cp -p %{srcdir}/../../../.scripts/configure-mirror-openbao-rpm.sh %{buildroot}/usr/share/xroad/scripts/configure-mirror-openbao.sh
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
@@ -47,12 +48,19 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %attr(554,root,xroad) /usr/share/xroad/scripts/_openbao.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init-db.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/configure-mirror-openbao.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/backup_openbao_db.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/restore_openbao_db.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
+# Configure OpenBao YUM/DNF repository if not already configured
+CONFIGURE_OPENBAO_REPO="/usr/share/xroad/scripts/configure-mirror-openbao.sh"
+if [ ! -f /etc/yum.repos.d/openbao.repo ] && [ -x "$CONFIGURE_OPENBAO_REPO" ]; then
+    "$CONFIGURE_OPENBAO_REPO"
+fi
+
 %upgrade_check
 
 
