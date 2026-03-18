@@ -203,7 +203,8 @@ afterEvaluate {
       from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
         into("")
       }
-      from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
+      // Let Shadow bundle all intTest dependencies (jars + project class dirs)
+      configurations = listOf(project.configurations["intTestRuntimeClasspath"])
 
       mergeServiceFiles()
       manifest {
