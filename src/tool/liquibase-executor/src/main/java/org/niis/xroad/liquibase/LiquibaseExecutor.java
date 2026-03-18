@@ -38,7 +38,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-/** Entry point wrapper for Liquibase CLI. */
+/**
+ * Entry point wrapper for Liquibase CLI.
+ */
 @Command(
         name = "liquibase-executor",
         version = "X-Road Liquibase Executor 1.0",
@@ -47,6 +49,8 @@ import java.util.concurrent.Callable;
 )
 @Slf4j
 public class LiquibaseExecutor implements Callable<Integer> {
+    private static final String DEFAULT_SCHEMA_NAME_ARG = "--defaultSchemaName";
+    private static final String DEFAULT_SCHEMA_NAME_ARG_EQ = DEFAULT_SCHEMA_NAME_ARG + "=";
 
     @Option(names = "--changelog", required = true,
             description = "Database changelog name (serverconf, centerui, messagelog, op-monitor)")
@@ -64,7 +68,7 @@ public class LiquibaseExecutor implements Callable<Integer> {
             description = "Database password")
     String password;
 
-    @Option(names = "--defaultSchemaName",
+    @Option(names = DEFAULT_SCHEMA_NAME_ARG,
             description = "Default database schema name (also auto-derives -Ddb_schema)")
     String defaultSchemaName;
 
@@ -147,7 +151,7 @@ public class LiquibaseExecutor implements Callable<Integer> {
             args.add("--password=" + password);
         }
         if (defaultSchemaName != null) {
-            args.add("--defaultSchemaName=" + defaultSchemaName);
+            args.add(DEFAULT_SCHEMA_NAME_ARG_EQ + defaultSchemaName);
         }
         if (contexts != null) {
             args.add("--contexts=" + contexts);
@@ -176,10 +180,10 @@ public class LiquibaseExecutor implements Callable<Integer> {
 
     private static Optional<String> resolveSchema(String[] args) {
         for (int i = 0; i < args.length; i++) {
-            if (args[i].startsWith("--defaultSchemaName=")) {
-                return Optional.of(args[i].substring("--defaultSchemaName=".length()));
+            if (args[i].startsWith(DEFAULT_SCHEMA_NAME_ARG_EQ)) {
+                return Optional.of(args[i].substring(DEFAULT_SCHEMA_NAME_ARG_EQ.length()));
             }
-            if ("--defaultSchemaName".equals(args[i]) && i + 1 < args.length) {
+            if (DEFAULT_SCHEMA_NAME_ARG.equals(args[i]) && i + 1 < args.length) {
                 return Optional.of(args[i + 1]);
             }
         }

@@ -97,9 +97,9 @@ class LiquibaseSlf4jLoggerTest {
         listAppender.start();
         rootLogger.addAppender(listAppender);
 
-        try {
+        try (var accessor = new ClassLoaderResourceAccessor()) {
             var scopeValues = LiquibaseSlf4jLogger.createLoggableScope(TEST_LOGGER);
-            scopeValues.put(Scope.Attr.resourceAccessor.name(), new ClassLoaderResourceAccessor());
+            scopeValues.put(Scope.Attr.resourceAccessor.name(), accessor);
 
             Scope.child(scopeValues, () -> {
                 CommandScope update = new CommandScope("update");
