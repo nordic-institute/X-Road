@@ -6,6 +6,7 @@ plugins {
 dependencies {
   api(project(":common:common-db"))
 
+  implementation(libs.commons.codec)
   implementation(libs.quarkus.arc)
 }
 

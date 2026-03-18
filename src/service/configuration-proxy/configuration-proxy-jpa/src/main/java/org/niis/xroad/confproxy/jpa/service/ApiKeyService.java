@@ -42,10 +42,14 @@ import java.util.UUID;
 public class ApiKeyService {
     private final ApiKeyDao apiKeyDao;
     private final DatabaseCtx databaseCtx;
+    private final ApiKeyEncoder apiKeyEncoder;
 
-    public Optional<ApiKey> findByKey(String key) {
-        var entity = databaseCtx.doInTransaction((session) -> apiKeyDao.findByKey(session, key));
-        return entity.map(src -> new ApiKey(src.getId(), Set.copyOf(src.getRoles())));
+    public Optional<ApiKey> findByKey(String rawKey) {
+        return databaseCtx.doInTransaction((session) -> apiKeyDao.findAll(session, ApiKeyEntity.class).stream()
+                .filter(key -> apiKeyEncoder.matches(rawKey, key.getEncodedKey()))
+                .findFirst()
+                .map(src -> new ApiKey(src.getId(), Set.copyOf(src.getRoles())))
+        );
     }
 
     public List<ApiKey> findAll() {
@@ -56,9 +60,11 @@ public class ApiKeyService {
     }
 
     public NewApiKey createNew(Set<Role> roles) {
-        var entity = new ApiKeyEntity(createApiKey(), roles);
+        var plainKey = createApiKey();
+        var encodedKey = apiKeyEncoder.encode(plainKey);
+        var entity = new ApiKeyEntity(encodedKey, roles);
         var created = databaseCtx.doInTransaction((session) -> apiKeyDao.save(session, entity));
-        return new NewApiKey(created.getEncodedKey(), new ApiKey(created.getId(), created.getRoles()));
+        return new NewApiKey(plainKey, new ApiKey(created.getId(), created.getRoles()));
     }
 
     public boolean revoke(long id) {

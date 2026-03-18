@@ -22,13 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confproxy.jpa.dao;
+package org.niis.xroad.confproxy.jpa.service;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
-import org.niis.xroad.confproxy.jpa.entity.ApiKeyEntity;
+import jakarta.inject.Singleton;
+import org.apache.commons.codec.binary.Hex;
 
-@ApplicationScoped
-public class ApiKeyDao extends AbstractDAOImpl<ApiKeyEntity> {
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
+@Singleton
+public class ApiKeyEncoder {
+
+    private static final int ITERATIONS = 1;
+    private static final String ALGORITHM = "SHA-256";
+
+
+    public String encode(String rawApiKey) {
+        byte[] encoded = digest(StandardCharsets.UTF_8.encode(rawApiKey).array());
+        return String.valueOf(Hex.encodeHex(encoded));
+    }
+
+
+    public boolean matches(String rawApiKey, String encodedApiKey) {
+        String encodedRaw = encode(rawApiKey);
+        return encodedRaw.equals(encodedApiKey);
+    }
+
+    private byte[] digest(byte[] value) {
+        MessageDigest messageDigest = createDigest(ALGORITHM);
+        for (int i = 0; i < ITERATIONS; i++) {
+            value = messageDigest.digest(value);
+        }
+        return value;
+    }
+
+    private MessageDigest createDigest(String algorithm) {
+        try {
+            return MessageDigest.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("No such hashing algorithm", e);
+        }
+    }
 }
