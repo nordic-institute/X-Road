@@ -29,6 +29,7 @@ package org.niis.xroad.serverconf;
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
@@ -157,6 +158,15 @@ public interface ServerConfProvider {
      * @return whether the SSL certificate of the service provider is verified.
      */
     boolean isSslAuthentication(ServiceId serviceId);
+
+    /**
+     * @param clientId     the client identifier
+     * @param localGroupId the local group identifier
+     * @return true if the given client is associated with the specified local group on this security server
+     */
+    default boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return false;
+    }
 
     /**
      * @return all members identifiers
