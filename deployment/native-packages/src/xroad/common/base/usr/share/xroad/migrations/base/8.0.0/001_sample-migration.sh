@@ -7,9 +7,11 @@ set -euo pipefail
 
 # --- Prerequisites check ---
 check_prerequisites() {
-    # Verify xroad user exists (should already be created by xroad-base)
-    if ! getent passwd xroad > /dev/null 2>&1; then
-        log_error "xroad user does not exist"
+    # Verify that the local.ini configuration file exists before attempting migration.
+    # This file is required for the migration to proceed — if it is missing, the system
+    # may not have been configured yet or is running a fresh install that does not need migration.
+    if [ ! -f /etc/xroad/conf.d/local.ini ]; then
+        log_error "local.ini not found — skipping migration"
         return 1
     fi
     return 0
@@ -17,16 +19,18 @@ check_prerequisites() {
 
 # --- Migration tasks ---
 run_migration() {
-    # Task: Placeholder for 7.8.0 -> 8.0.0 upgrade tasks
+    # Placeholder for 7.8.0 → 8.0.0 upgrade tasks
     #
-    # Add idempotent migration tasks here. Each task should check
-    # the current state before making changes. Examples:
+    # Add idempotent migration tasks here. Always check the current state before making changes.
+    # Example — migrate a configuration key renamed between versions:
     #
-    #   if [ -f /etc/xroad/conf.d/old-config.ini ]; then
-    #       log "Archiving old-config.ini"
-    #       mv /etc/xroad/conf.d/old-config.ini /etc/xroad/conf.d/old-config.ini.pre-8.0.0
+    #   OLD_KEY="server-address"
+    #   NEW_KEY="proxy-address"
+    #   if grep -q "^${OLD_KEY}=" /etc/xroad/conf.d/local.ini; then
+    #       log "Renaming '${OLD_KEY}' to '${NEW_KEY}' in local.ini"
+    #       sed -i "s/^${OLD_KEY}=/${NEW_KEY}=/" /etc/xroad/conf.d/local.ini
     #   else
-    #       log "old-config.ini already removed, skipping"
+    #       log "'${OLD_KEY}' not found in local.ini, skipping"
     #   fi
 
     log "Noop migration for 8.0.0"
