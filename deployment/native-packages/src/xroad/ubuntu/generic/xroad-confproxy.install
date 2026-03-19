@@ -2,7 +2,6 @@
 ../../../../src/xroad/common/confproxy/usr/* usr/
 ../../../../../../src/service/configuration-proxy/configuration-proxy-cli/build/quarkus-app/* usr/share/xroad/jlib/configuration-proxy-cli/
 ../../../../../../src/service/configuration-proxy/configuration-proxy-application/build/quarkus-app/* usr/share/xroad/jlib/configuration-proxy-application/
-../../../../../../src/service/configuration-proxy/configuration-proxy-jpa/build/resources/main/liquibase/* /usr/share/xroad/db/
 ../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/
 ../../../../../../src/3RD-PARTY-NOTICES.txt usr/share/doc/xroad-confproxy
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-confproxy
