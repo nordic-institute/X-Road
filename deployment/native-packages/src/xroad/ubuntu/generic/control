@@ -74,8 +74,8 @@ Description: X-Road security server
 Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
-Pre-Depends: xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
 

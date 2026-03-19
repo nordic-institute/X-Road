@@ -42,6 +42,7 @@ dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":service:configuration-client:configuration-client-core"))
+  implementation(project(":service:configuration-client:configuration-client-common"))
 
   implementation(libs.bundles.quarkus.core)
   implementation(libs.bundles.quarkus.containerized)

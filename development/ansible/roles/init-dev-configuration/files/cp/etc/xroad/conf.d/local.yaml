@@ -1,0 +1,4 @@
+xroad:
+  configuration-proxy:
+    update-interval: 30s #default 1m
+    address: xrd-cp

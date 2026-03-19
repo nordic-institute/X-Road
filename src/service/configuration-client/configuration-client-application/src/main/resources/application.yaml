@@ -40,6 +40,10 @@ quarkus:
         path: /var/log/xroad/configuration_client.log
 
 "%cli":
+  xroad:
+    configuration-client:
+      rpc:
+        enabled: false
   quarkus:
     config:
       locations:

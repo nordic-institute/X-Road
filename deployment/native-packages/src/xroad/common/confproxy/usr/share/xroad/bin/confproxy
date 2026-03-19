@@ -1,0 +1,23 @@
+#!/bin/bash
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+
+if [ "$(id -nu )" != "xroad" ]
+then
+ die "ABORTED. This script must run under xroad user "
+fi
+
+. /etc/xroad/services/confproxy-cli.conf
+
+JAR="/usr/share/xroad/jlib/configuration-proxy-cli.jar"
+
+cmd="java"
+if [[ -t 0 && -x /usr/bin/rlwrap ]]; then
+  cmd="/usr/bin/rlwrap $cmd"
+fi
+
+exec $cmd ${XROAD_CONFPROXY_CLI_PARAMS} ${XROAD_PARAMS} -jar ${JAR} $@
