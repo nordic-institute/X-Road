@@ -67,7 +67,7 @@ resource "helm_release" "openbao_secret_store" {
 
   repository = "https://openbao.github.io/openbao-helm"
   chart      = "openbao"
-  version    = "0.19.0"
+  version    = "0.25.6"
 
   values = [yamlencode(var.openbao_override_values)]
 
