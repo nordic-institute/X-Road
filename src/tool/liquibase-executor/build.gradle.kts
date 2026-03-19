@@ -15,10 +15,6 @@ dependencies {
   testImplementation(libs.h2database)
 }
 
-tasks.jar {
-  enabled = false
-}
-
 tasks.shadowJar {
   manifest {
     attributes("Main-Class" to "org.niis.xroad.liquibase.LiquibaseExecutor")
