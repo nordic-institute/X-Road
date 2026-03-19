@@ -3,6 +3,3 @@
   command: ./compile_code.sh
   args:
     chdir: ../../src
-    
-
-

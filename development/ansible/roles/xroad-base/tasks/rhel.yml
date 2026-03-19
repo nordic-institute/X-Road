@@ -43,7 +43,7 @@
     repo_gpgcheck: "{{ rhel_repo_gpgcheck | default('no') }}"
     metadata_expire: "{{ rhel_repo_metadaexpire | default('86400') }}"
     state: present
-    enabled: yes
+    enabled: true
 
 - name: Configure OpenBao YUM/DNF repository
   script:
@@ -55,14 +55,14 @@
     modification_time: now
 
 - name: Install required packages (RHEL8)
-  become: yes
+  become: true
   command: dnf -y install curl cronie tar acl tzdata-java
   when:
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int == 8
 
 - name: Install required packages (RHEL9+)
-  become: yes
+  become: true
   package:
     name:
       - curl

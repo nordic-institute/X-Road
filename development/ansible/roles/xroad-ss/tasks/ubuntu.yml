@@ -12,8 +12,8 @@
         dest: "/etc/xroad.properties"
         owner: "root"
         group: "root"
-        mode: 0600
-        force: no
+        mode: "0600"
+        force: false
 
   when: (database_admin_password is defined) and (database_admin_password != "")
   tags:
@@ -25,11 +25,11 @@
     question: "{{ item.question }}"
     vtype: "string" # parametrize if you add a different type of question to item list
     value: "{{ item.value }}"
-  with_items:
-    - { question: "xroad-common/username",           value: "{{ xroad_ui_user }}" }
-    - { question: "xroad-common/database-host",      value: "{{ database_host }}" }
-    - { question: "xroad-common/proxy-memory",       value: "d" }
-    - { question: "xroad-common/service-subject",    value: "{{ inventory_hostname }}" }
+  loop:
+    - { question: "xroad-common/username", value: "{{ xroad_ui_user }}" }
+    - { question: "xroad-common/database-host", value: "{{ database_host }}" }
+    - { question: "xroad-common/proxy-memory", value: "d" }
+    - { question: "xroad-common/service-subject", value: "{{ inventory_hostname }}" }
     - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
   tags:
     - install-xroad-ss-packages
@@ -38,7 +38,7 @@
   apt:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
-    force: yes
+    force: true
   tags:
     - install-xroad-ss-packages
 

@@ -1,6 +1,6 @@
 ---
 - name: create the database
-  become: yes
+  become: true
   become_user: postgres
   command: pg_createcluster -p "{{ serverconf_db_port }}" "{{ postgresql_major_version }}" serverconf
   args:

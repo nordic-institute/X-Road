@@ -3,4 +3,4 @@
   command: ../../src/compile_module.sh {{modules[item].dir}} {{modules[item].build}}
   args:
     chdir: ../../src
-  with_items: "{{selected_modules.split(',')}}"
+  loop: "{{selected_modules.split(',')}}"
