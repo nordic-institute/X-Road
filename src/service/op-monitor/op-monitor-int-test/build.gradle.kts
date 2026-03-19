@@ -18,7 +18,7 @@ intTestComposeEnv {
 
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",
-    "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
+    "DB_INIT_IMG" to "ss-db-init",
     "OP_MONITOR_IMG" to "ss-op-monitor"
   )
 }
