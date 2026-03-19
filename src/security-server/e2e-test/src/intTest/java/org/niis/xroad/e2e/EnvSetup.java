@@ -250,8 +250,8 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
         public static final int DB = 5432;
-        public static final int CONTROL_PLANE_MANAGEMENT = 8081;
-
+        public static final int CONTROL_PLANE_MANAGEMENT = 8182;
+        public static final int CONTROL_PLANE_PROTOCOL = 8183;
     }
 
     enum Feature {

@@ -130,10 +130,11 @@ public class XRoadDataPlaneExtension implements ServiceExtension {
 
     @Settings
     public record ApiConfiguration(
-            @Setting(key = "edc.hostname") String hostname
+            @Setting(key = "edc.hostname") String hostname,
+            @Setting(key = "web.http.port") int defaultPort
     ) {
         public String dataFlowEndpoint() {
-            return "http://%s:8181/api/v1/dataflows".formatted(hostname);
+            return "http://%s:%d/api/v1/dataflows".formatted(hostname, defaultPort);
         }
     }
 }

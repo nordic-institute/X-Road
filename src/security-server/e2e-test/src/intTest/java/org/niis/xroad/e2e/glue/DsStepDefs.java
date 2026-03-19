@@ -204,10 +204,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "test-identity-1",
-                    "counterPartyAddress": "http://%s:8282/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
-                """.formatted(providerCpHost);
+                """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/catalog/request".formatted(participantContext);
         var response = sendRequest(POST, url, AuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
 
@@ -225,7 +225,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "ContractRequest",
-                    "counterPartyAddress": "http://%s:8282/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1",
                     "counterPartyId": "test-identity-1",
                     "protocol": "dataspace-protocol-http:2025-1",
                     "policy": {
@@ -241,7 +241,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         ]
                     }
                 }
-                """.formatted(providerCpHost, offerId);
+                """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL, offerId);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/contractnegotiations".formatted(participantContext);
         var response = sendRequest(POST, url, AuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
 
@@ -277,7 +277,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "TransferRequest",
-                    "counterPartyAddress": "http://%s:8282/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1",
                     "counterPartyId": "test-identity-1",
                     "protocol": "dataspace-protocol-http:2025-1",
                     "contractId": "%s",
@@ -287,7 +287,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "type": "HttpProxy"
                     }
                 }
-                """.formatted(providerCpHost, contractAgreementId);
+                """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL, contractAgreementId);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/transferprocesses".formatted(participantContext);
         var response = sendRequest(POST, url, AuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
 
@@ -330,9 +330,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 {
                     "assetId": "%s",
                     "counterPartyId": "test-identity-1",
-                    "counterPartyAddress": "http://%s:8282/api/dsp/test-part-ctx/2025-1"
+                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1"
                 }
-                """.formatted(assetId, providerCpHost);
+                """.formatted(assetId, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
 
         var response = sendRequest(POST, url, AuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);

@@ -67,10 +67,10 @@ services:
     networks:
       - xrd-ss-network
     ports:
-      - "0:8081" # management, /api/mgmt
       - "0:8181"
-      - "0:8282" # protocol, /api/dsp
-      - "0:9191" # control, /api/control
+      - "0:8182" # management, /api/mgmt
+      - "0:8183" # protocol, /api/dsp
+      - "0:8184" # control, /api/control
       - "0:9999" # debug port
     deploy:
       resources:
@@ -100,8 +100,8 @@ services:
       - XROAD_DB_DS_DATA_PLANE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-data-plane:5432/ds-data-plane
       - XROAD_DB_DS_DATA_PLANE_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_DATA_PLANE_HIBERNATE_CONNECTION_PASSWORD=ds_data_plane_admin_secret
+      - EDC_CONTROLPLANE_CONTROL_URL=http://ds-control-plane:8184/api/control
     #      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-    #      - EDC_DPF_SELECTOR_URL=http://ds-control-plane:9191/api/control/v1/dataplanes
     healthcheck:
       interval: 5s
       retries: 40
@@ -109,9 +109,8 @@ services:
     networks:
       - xrd-ss-network
     ports:
-      - "0:8181" # default /api
-      - "0:8191"
-      - "0:9191" # control, /api/control
+      - "0:9181" # default /api
+      - "0:9184" # control, /api/control
       - "0:9999" # debug port
     deploy:
       resources:
