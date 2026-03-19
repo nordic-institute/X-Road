@@ -140,7 +140,7 @@ public class StaxEventSoapParserImpl implements SoapParser {
     private static final XMLInputFactory INPUT_FACTORY = createInputFactory();
 
     private static XMLInputFactory createInputFactory() {
-        var factory = XMLInputFactory.newFactory();
+        var factory = XMLInputFactory.newDefaultFactory();
         // Security: disable DTD and external entities
         factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
@@ -191,6 +191,7 @@ public class StaxEventSoapParserImpl implements SoapParser {
              var reader = new EventReaderWrapper(INPUT_FACTORY.createXMLEventReader(proxyStream, charset))) {
 
             ParseResult result = parseXml(reader);
+            afterDocument();
 
             if (result.fault != null) {
                 return new SoapFault(
@@ -201,7 +202,6 @@ public class StaxEventSoapParserImpl implements SoapParser {
                         rawXml.toByteArray(),
                         charset);
             }
-            afterDocument();
 
             return new SoapMessageImpl(
                     rawXml.toByteArray(),
