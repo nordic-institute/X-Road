@@ -1,0 +1,3 @@
+#!/bin/bash
+
+confproxy list-api-keys $@

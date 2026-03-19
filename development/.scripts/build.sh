@@ -43,6 +43,15 @@ case $1 in
 "cs-registration-service")
   gradleModule="central-server/registration-service"
   ;;
+"confproxy-cli")
+  gradleModule="service/configuration-proxy/configuration-proxy-cli"
+  ;;
+"confproxy")
+  gradleModule="service/configuration-proxy/configuration-proxy-application"
+  ;;
+"configuration-client")
+  gradleModule="service/configuration-client/configuration-client-application"
+  ;;
 "ds-control-plane")
   gradleModule="service/ds-control-plane/ds-control-plane-application"
   ;;
