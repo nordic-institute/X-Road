@@ -24,10 +24,13 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Deque;
-import java.util.LinkedList;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
+
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventWriter;
@@ -37,15 +40,13 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Deque;
+import java.util.LinkedList;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
@@ -64,7 +65,7 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
     private DelayedEventWriter writer;
     private boolean inHeader;
     private boolean inRequestHash = false;
-    private String headerWhiteSpace = "";
+    private XMLEvent headerWhiteSpace = null;
 
     @Override
     protected InputStream prepareInputStream(InputStream rawInputStream, OutputStream rawOutputStream) throws XMLStreamException {
@@ -101,8 +102,9 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
         if (QNAME_SOAP_HEADER.equals(startElement.getName())) {
             inHeader = true;
         } else if (inHeader && QNAME_XROAD_QUERY_ID.equals(startElement.getName())) {
-            var data = previousEvent.isCharacters() ? previousEvent.asCharacters().getData() : "";
-            headerWhiteSpace = StringUtils.isWhitespace(data) ? data : "";
+            if (previousEvent.isCharacters() && previousEvent.asCharacters().isWhiteSpace()) {
+                headerWhiteSpace = previousEvent;
+            }
         } else if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(startElement.getName())) {
             inRequestHash = true;
 
@@ -130,8 +132,8 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
 
             DigestAlgorithm algoUri = SoapUtils.getHashAlgoId();
 
-            if (!headerWhiteSpace.isEmpty()) {
-                writer.add(EVENT_FACTORY.createCharacters(headerWhiteSpace));
+            if (headerWhiteSpace != null) {
+                writer.add(headerWhiteSpace);
             }
 
             writer.add(EVENT_FACTORY.createStartElement(
@@ -182,7 +184,5 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
         public void close() throws XMLStreamException {
             delegate.close();
         }
-
-
     }
 }

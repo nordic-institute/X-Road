@@ -47,15 +47,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 @ExtendWith(MockitoExtension.class)
 public class ResponseStaxSoapParserImplTest {
 
-    private static final String HASH_ELEM_START = "<xroad:requestHash ";
-    private static final String HASH_ELEM_END = "</xroad:requestHash>";
-    private static final String ID_ELEM_START = "<xroad:id>";
-    private static final String ID_ELEM_END = "</xroad:id>";
-
-    private static final String HASH_ELEM = """
-            <xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">aGFzaA==</xroad:requestHash>
-            """.trim();
-
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ProxyMessage request;
 
