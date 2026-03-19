@@ -9,4 +9,5 @@
     name: xroad-confproxy
     state: latest
     force: true
+- include_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"

@@ -98,6 +98,16 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getConfigurationProxyTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
+    public void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        createTlsCredentials(CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 

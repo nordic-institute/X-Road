@@ -19,7 +19,7 @@ junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
 bouncyCastle = "1.83"
 slf4j = "2.0.17"
-protoc = "4.33.5"
+protoc = "4.34.0"
 grpc = "1.79.0"
 swaggerParser = "2.1.37"
 logback = "1.5.27"
@@ -68,6 +68,9 @@ quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quark
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
 quarkus-arc = { group = "io.quarkus", name = "quarkus-arc", version.ref = "quarkus" }
 quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "quarkus" }
+quarkus-rest-jackson = { group = "io.quarkus", name = "quarkus-rest-jackson", version.ref = "quarkus" }
+quarkus-security = { group = "io.quarkus", name = "quarkus-security", version.ref = "quarkus" }
+quarkus-smallrye-openapi = { group = "io.quarkus", name = "quarkus-smallrye-openapi", version.ref = "quarkus" }
 quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
 quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-config", version.ref = "quarkus" }
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
