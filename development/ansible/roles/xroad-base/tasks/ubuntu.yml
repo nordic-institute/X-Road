@@ -8,8 +8,8 @@
   apt:
     name: "{{ items }}"
     state: present
-    update_cache: yes
-    install_recommends: no
+    update_cache: true
+    install_recommends: false
   vars:
     items:
       - acl
@@ -40,8 +40,8 @@
     repo: "{{ item }}"
     state: present
     filename: xroad
-    update_cache: yes
-  with_items:
+    update_cache: true
+  loop:
     - "{{ ubuntu_apt_repo_with_option }}"
   when: ansible_distribution == "Ubuntu"
 
@@ -49,4 +49,4 @@
   locale_gen:
     name: "{{ item }}"
     state: present
-  with_items: "{{ (['en_US.UTF-8'] + extra_locales | default([])) | unique }}"
+  loop: "{{ (['en_US.UTF-8'] + extra_locales | default([])) | unique }}"

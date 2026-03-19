@@ -17,7 +17,7 @@
     - clean-local-repo
 
 - name: Copy {{ ansible_distribution_release }} DEB packages (Ubuntu)
-  become: yes
+  become: true
   copy: src="../../deployment/native-packages/build/ubuntu{{ ansible_distribution_version }}/" dest="/xroad/"
 
 - name: Add empty Packages to local repo for apt to run
@@ -27,13 +27,12 @@
   tags:
     - clean-local-repo
 
-
 - name: Ensure dpkg-dev
-  become: yes
+  become: true
   apt: name=dpkg-dev state=present update_cache=yes install_recommends=no
 
 - name: Scan new packages
-  become: yes
+  become: true
   shell: "dpkg-scanpackages -m . >Packages"
   args:
     chdir: /xroad

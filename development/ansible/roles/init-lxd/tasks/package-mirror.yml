@@ -1,3 +1,4 @@
+---
 - name: Gather facts from target container
   setup:
   delegate_to: "{{ item }}"
