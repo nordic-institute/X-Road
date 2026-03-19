@@ -11,10 +11,14 @@ plugins {
   id("xroad.module-conventions")
 }
 
-// Suppress duplicate entry warnings for all shadow jars (META-INF/LICENSE, META-INF/NOTICE, etc.)
+// EXCLUDE on non-service files suppresses duplicate META-INF/class warnings.
 plugins.withId("com.gradleup.shadow") {
   tasks.withType<ShadowJar>().configureEach {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles()
+    filesNotMatching("META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
   }
 }
 
