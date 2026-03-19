@@ -160,7 +160,7 @@ Package: xroad-secret-store-local
 Architecture: all
 Conflicts: xroad-secret-store-remote
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
-Depends: jq, gpg, bao (>= 2.0.0), xroad-base (=${binary:Version})
+Depends: jq, gpg, openbao (<< 2.6.0), xroad-base (=${binary:Version})
 Description: Meta-package for X-Road local secret store dependencies
  
 Package: xroad-secret-store-remote
