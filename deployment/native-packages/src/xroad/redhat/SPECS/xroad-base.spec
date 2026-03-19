@@ -96,6 +96,10 @@ rm -rf %{buildroot}
 %attr(755,root,root) /usr/share/xroad/scripts/yaml_helper.sh
 %attr(755,root,root) /usr/share/xroad/scripts/write_tls_config.sh
 %attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_admin_user.sh
+/usr/share/xroad/scripts/_migration_common.sh
+%attr(755,root,root) /usr/share/xroad/scripts/run_migrations.sh
+%dir /usr/share/xroad/migrations
+/usr/share/xroad/migrations/*
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
@@ -105,6 +109,9 @@ rm -rf %{buildroot}
 
 %pre -p /bin/bash
 %upgrade_check
+
+mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+rpm -q xroad-base --queryformat="%%{version}" &> %{_localstatedir}/lib/rpm-state/%{name}/prev-version || true
 
 if ! getent passwd xroad > /dev/null; then
   useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
@@ -180,6 +187,14 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
+
+# Run versioned migration scripts on upgrade
+if [ $1 -gt 1 ] ; then
+    PREV_VERSION=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version 2>/dev/null || echo "")
+    if [ -n "$PREV_VERSION" ]; then
+        /usr/share/xroad/scripts/run_migrations.sh base "$PREV_VERSION" "%{xroad_version}" || true
+    fi
+fi
 
 %posttrans -p /bin/bash
 %set_default_java_version
