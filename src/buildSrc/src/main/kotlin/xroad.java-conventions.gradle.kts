@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
@@ -8,6 +9,13 @@ plugins {
   id("com.societegenerale.commons.plugin.gradle.ArchUnitGradlePlugin")
   id("xroad.java-config-conventions")
   id("xroad.module-conventions")
+}
+
+// Suppress duplicate entry warnings for all shadow jars (META-INF/LICENSE, META-INF/NOTICE, etc.)
+plugins.withId("com.gradleup.shadow") {
+  tasks.withType<ShadowJar>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  }
 }
 
 val mockitoAgent = configurations.maybeCreate("mockitoAgent")
