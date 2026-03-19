@@ -42,7 +42,7 @@ import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
-public class DBBasedProvider implements ConfigurationAnchorProvider {
+public class DBBasedProvider implements org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider {
 
     private static final String SELECT_SQL = "SELECT content FROM configuration_client WHERE name = 'configuration-anchor'";
     private static final String INSERT_SQL = "INSERT INTO configuration_client (name, content) VALUES ('configuration-anchor', ?) "
@@ -52,8 +52,9 @@ public class DBBasedProvider implements ConfigurationAnchorProvider {
 
     @Override
     public Optional<byte[]> get() {
-        try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()) {
+        try (
+                Connection connection = dataSource.getConnection();
+                Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(SELECT_SQL);
             if (resultSet.next()) {
                 return Optional.of(resultSet.getString("content").getBytes(StandardCharsets.UTF_8));
@@ -67,8 +68,9 @@ public class DBBasedProvider implements ConfigurationAnchorProvider {
 
     @Override
     public void save(byte[] content) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(INSERT_SQL)) {
+        try (
+                Connection conn = dataSource.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(INSERT_SQL)) {
             stmt.setString(1, new String(content));
             stmt.executeUpdate();
         } catch (Exception e) {

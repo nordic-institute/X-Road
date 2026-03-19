@@ -74,6 +74,16 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getConfigurationProxyTlsCredentials() {
+        return new InternalSSLKey(null, new X509Certificate[]{});
+    }
+
+    @Override
+    public void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         throw new UnsupportedOperationException("Not supported");
     }

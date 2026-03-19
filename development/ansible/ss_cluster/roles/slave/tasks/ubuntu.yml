@@ -9,9 +9,9 @@
         dest: "/etc/systemd/system/xroad-sync.timer"
     - service:
         name: "{{ item }}"
-        enabled: yes
+        enabled: true
         state: started
-      with_items:
+      loop:
         - xroad-sync.service
         - xroad-sync.timer
   when: ansible_distribution_release == "jammy"

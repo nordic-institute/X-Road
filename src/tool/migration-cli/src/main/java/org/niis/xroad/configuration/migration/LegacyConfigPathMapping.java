@@ -183,6 +183,8 @@ public class LegacyConfigPathMapping {
         REMOVED_KEYS.add("message-log.messagelog-keystore");
         REMOVED_KEYS.add("message-log.messagelog-keystore-password");
         REMOVED_KEYS.add("message-log.archive-gpg-home-directory");
+
+        REMOVED_KEYS.add("configuration-proxy.download-script");
     }
 
     private static void addMapping(String oldKey, String... newKeys) {

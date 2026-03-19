@@ -96,6 +96,16 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getConfigurationProxyTlsCredentials() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 

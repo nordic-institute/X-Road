@@ -1,0 +1,35 @@
+# Override file for integration tests.
+# Merged with compose.main.yaml (copied from development/docker/configuration-proxy/compose.yaml).
+services:
+  signer:
+    environment:
+      - QUARKUS_LOG_LEVEL=INFO
+
+  configuration-proxy:
+    environment:
+      - QUARKUS_LOG_LEVEL=INFO
+      - QUARKUS_LOG_CATEGORY__ORG_NIIS_XROAD_CONFPROXY__LEVEL=DEBUG
+      - XROAD_CONFIGURATION_PROXY_ADDRESS=configuration-proxy-webserver
+      - XROAD_CONFIGURATION_PROXY_UPDATE_INTERVAL=2s
+      - XROAD_CONFIGURATION_PROXY_AUTO_INIT_SOFT_TOKEN=4321
+    ports:
+      - "0:4000"
+      - "0:4099"
+    volumes:
+      - ./cp-container-files/anchors:/home/xroad/anchors:ro
+
+  # Replace dev xrd-cs with a local nginx serving static global configuration
+  xrd-cs:
+    image: nginx:latest
+    volumes:
+      - ./nginx-container-files/etc/nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx-container-files/var/lib/xroad/public:/var/lib/xroad/public
+    ports:
+      - "0:80"
+    networks:
+      - xroad-network
+
+  # Enable webserver for anchor download tests (overrides base compose ports)
+  configuration-proxy-webserver:
+    ports:
+      - "0:80"
