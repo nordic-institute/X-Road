@@ -2,7 +2,7 @@
 - name: check that OS is supported
   fail:
     msg: "This playbook only supports Ubuntu"
-  when: ansible_os_family != "Debian"
+  when: ansible_facts['os_family'] != "Debian"
 
 - name: install required packages
   apt:
@@ -24,13 +24,13 @@
   get_url:
     url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
     dest: /tmp/
-  when: ansible_distribution_release == "jammy"
+  when: ansible_facts['distribution_release'] == "jammy"
 
 # get_url option is not yet supported for noble, in python 3.12 is this fixed
 - name: download acme2certifier (noble only)
   shell: "curl -L -o /tmp/acme2certifier_{{ a2c_ver }}-1_all.deb https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver
     }}-1_all.deb"
-  when: ansible_distribution_release == "noble"
+  when: ansible_facts['distribution_release'] == "noble"
 
 - name: group ca
   group:
@@ -165,7 +165,7 @@
   become_user: root
   when:
     - stat_result.stat.exists == False
-    - (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+    - (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: copy acme2certifier conf
   copy:
@@ -175,7 +175,7 @@
     owner: "www-data"
   loop:
     - "acme_srv.cfg"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when: (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: copy acme2certifier external account binding conf
   copy:
@@ -185,7 +185,7 @@
     owner: "www-data"
   loop:
     - "kid_profiles.json"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when: (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: copy acme2certifier openssl handler
   copy:
@@ -195,7 +195,7 @@
     owner: "www-data"
   loop:
     - "openssl_ca_handler.py"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when: (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: remove obsolete files
   file:

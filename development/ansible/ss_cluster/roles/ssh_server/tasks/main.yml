@@ -12,7 +12,7 @@
       redhat: sshd
       rocky: sshd
   service:
-    name: "{{ ssh_server[ansible_distribution|lower] }}"
+    name: "{{ ssh_server[ansible_facts['distribution']|lower] }}"
     state: started
 
 - name: setup xroad-sync user
