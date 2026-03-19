@@ -16,7 +16,7 @@
             <id:serviceCode>testQuery</id:serviceCode>
         </xroad:service>
         <xroad:userId>user-id-1</xroad:userId>
-    <xroad:id>1234567890</xroad:id>
+        <xroad:id>1234567890</xroad:id>
         <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>

@@ -137,6 +137,9 @@ public class StaxEventSoapParserImpl implements SoapParser {
     private static final String INVALID_BODY_MESSAGE = "Malformed SOAP message: body must have exactly one child element";
     private static final String MISSING_ENVELOPE_MESSAGE = "Malformed SOAP message: envelope missing";
 
+    // ZEPHYR_PROPERTY_PREFIX + STAX_REPORT_CDATA_EVENT from com.sun.org.apache.xerces.internal.impl.Constants
+    private static final String REPORT_CDATA_EVENT = "http://java.sun.com/xml/stream/properties/report-cdata-event";
+
     private static final XMLInputFactory INPUT_FACTORY = createInputFactory();
 
     private static XMLInputFactory createInputFactory() {
@@ -146,6 +149,7 @@ public class StaxEventSoapParserImpl implements SoapParser {
         factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         // Performance settings
         factory.setProperty(XMLInputFactory.IS_COALESCING, false);
+        factory.setProperty(REPORT_CDATA_EVENT, true); //Only works if IS_COALESCING == false
         factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
         return factory;
     }
