@@ -66,8 +66,8 @@ services:
     pull_policy: always
     environment:
       - JDBC_URL=jdbc:postgresql://db-confproxy:5432/confproxy
-      - DB_USER=postgres
-      - DB_PASSWORD=admin_secret
+      - JDBC_USER=postgres
+      - JDBC_PASSWORD=admin_secret
       - CHANGELOG=confproxy
       - DEFAULT_SCHEMA_NAME=public
       - PROP_DB_USER=confproxy

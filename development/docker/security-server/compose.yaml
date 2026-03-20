@@ -107,8 +107,8 @@ services:
     pull_policy: always
     environment:
       - JDBC_URL=jdbc:postgresql://db-serverconf:5432/serverconf
-      - DB_USER=postgres
-      - DB_PASSWORD=admin_secret
+      - JDBC_USER=postgres
+      - JDBC_PASSWORD=admin_secret
       - CHANGELOG=serverconf
       - DEFAULT_SCHEMA_NAME=public
       - PROP_DB_USER=serverconf
@@ -130,8 +130,8 @@ services:
     pull_policy: always
     environment:
       - JDBC_URL=jdbc:postgresql://db-messagelog:5432/messagelog
-      - DB_USER=postgres
-      - DB_PASSWORD=admin_secret
+      - JDBC_USER=postgres
+      - JDBC_PASSWORD=admin_secret
       - CHANGELOG=messagelog
       - DEFAULT_SCHEMA_NAME=public
       - PROP_DB_USER=messagelog

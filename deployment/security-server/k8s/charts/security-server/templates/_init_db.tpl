@@ -52,9 +52,9 @@ spec:
           env:
             - name: JDBC_URL
               value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
-            - name: DB_USER
+            - name: JDBC_USER
               value: "postgres"
-            - name: DB_PASSWORD
+            - name: JDBC_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-{{ $name }}

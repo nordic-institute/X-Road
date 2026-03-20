@@ -145,8 +145,8 @@ services:
     pull_policy: always
     environment:
       - JDBC_URL=jdbc:postgresql://db-serverconf:5432/serverconf
-      - DB_USER=serverconf
-      - DB_PASSWORD=secret
+      - JDBC_USER=serverconf
+      - JDBC_PASSWORD=secret
       - CHANGELOG=serverconf
       - DEFAULT_SCHEMA_NAME=public
       - PROP_DB_USER=serverconf

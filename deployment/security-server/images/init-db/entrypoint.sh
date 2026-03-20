@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Validate required environment variables
-REQUIRED_VARS=(JDBC_URL DB_USER DB_PASSWORD CHANGELOG)
+REQUIRED_VARS=(JDBC_URL JDBC_USER JDBC_PASSWORD CHANGELOG)
 for var in "${REQUIRED_VARS[@]}"; do
   if [[ -z "${!var:-}" ]]; then
     echo "ERROR: Required environment variable $var is not set" >&2
@@ -14,8 +14,8 @@ done
 ARGS=(
   "--changelog=$CHANGELOG"
   "--url=$JDBC_URL"
-  "--username=$DB_USER"
-  "--password=$DB_PASSWORD"
+  "--username=$JDBC_USER"
+  "--password=$JDBC_PASSWORD"
   "--defaultSchemaName=${DEFAULT_SCHEMA_NAME:-public}"
 )
 

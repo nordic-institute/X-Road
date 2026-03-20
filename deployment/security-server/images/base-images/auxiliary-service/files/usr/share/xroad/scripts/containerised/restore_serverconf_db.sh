@@ -110,9 +110,9 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
             env:
               - name: JDBC_URL
                 value: "jdbc:postgresql://${db_addr}:${db_port}/${db_database}"
-              - name: DB_USER
+              - name: JDBC_USER
                 value: "${db_admin_user}"
-              - name: DB_PASSWORD
+              - name: JDBC_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: db-serverconf
