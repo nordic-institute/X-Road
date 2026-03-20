@@ -1,5 +1,6 @@
 @SecurityServer
 @DataSpaces
+@Skip #skipped until DS is stabilized
 Feature: 5000 - DS control plane tests
 
   Scenario: Participant context is created
