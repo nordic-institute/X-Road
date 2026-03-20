@@ -133,10 +133,10 @@ class LiquibaseExecutorTest {
         assertEquals("pass1", executor.password);
         assertEquals("myschema", executor.defaultSchemaName);
         assertEquals("user", executor.contexts);
-        assertEquals("xroad", executor.propDbUser);
-        assertEquals("admin", executor.propProxyUiSuperuser);
-        assertEquals("secret", executor.propProxyUiSuperuserPassword);
         assertEquals("update", executor.command);
+        assertTrue(executor.unmatched.contains("--prop-db-user=xroad"));
+        assertTrue(executor.unmatched.contains("--prop-proxy-ui-superuser=admin"));
+        assertTrue(executor.unmatched.contains("--prop-proxy-ui-superuser-password=secret"));
     }
 
     @Test
@@ -296,10 +296,6 @@ class LiquibaseExecutorTest {
         String help = sw.toString();
         assertTrue(help.contains("--changelog"), "Help should mention --changelog");
         assertTrue(help.contains("--url"), "Help should mention --url");
-        assertTrue(help.contains("--prop-db-user"), "Help should mention --prop-db-user");
-        assertTrue(help.contains("--prop-proxy-ui-superuser"), "Help should mention --prop-proxy-ui-superuser");
-        assertTrue(help.contains("--prop-proxy-ui-superuser-password"),
-                "Help should mention --prop-proxy-ui-superuser-password");
     }
 
     @Test
@@ -316,13 +312,11 @@ class LiquibaseExecutorTest {
     }
 
     @Test
-    void shouldRejectUnknownOption() {
+    void shouldCollectUnknownOptionsAsUnmatched() {
         var executor = new LiquibaseExecutor();
-        var cmd = new CommandLine(executor);
-        StringWriter errSw = new StringWriter();
-        cmd.setErr(new PrintWriter(errSw));
-        int exitCode = cmd.execute("--unknown=foo", "--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
-        assertTrue(exitCode != 0, "Unknown option should cause non-zero exit code");
+        new CommandLine(executor).parseArgs("--unknown=foo", "--changelog=serverconf", "--url=jdbc:h2:mem:test", "update");
+        assertTrue(executor.unmatched.contains("--unknown=foo"),
+                "Unknown options should be collected in unmatched list");
     }
 
     @Test

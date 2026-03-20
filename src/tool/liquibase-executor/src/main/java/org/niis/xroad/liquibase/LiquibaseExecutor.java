@@ -76,20 +76,11 @@ public class LiquibaseExecutor implements Callable<Integer> {
             description = "Liquibase contexts to run")
     String contexts;
 
-    @Option(names = "--prop-db-user",
-            description = "Runtime DB user for GRANT statements (translates to -Ddb_user)")
-    String propDbUser;
-
-    @Option(names = "--prop-proxy-ui-superuser",
-            description = "Docker-only: proxy UI superuser (translates to -Dproxy_ui_superuser)")
-    String propProxyUiSuperuser;
-
-    @Option(names = "--prop-proxy-ui-superuser-password",
-            description = "Docker-only: proxy UI superuser password (translates to -Dproxy_ui_superuser_password)")
-    String propProxyUiSuperuserPassword;
-
     @Parameters(index = "0", description = "Liquibase command (e.g., update)")
     String command;
+
+    @CommandLine.Unmatched
+    List<String> unmatched;
 
     @ArchUnitSuppressed(value = "NoVanillaExceptions",
             reason = "throws Exception inherited from Callable<Integer> interface required by picocli")
@@ -161,14 +152,19 @@ public class LiquibaseExecutor implements Callable<Integer> {
         args.add(command);
 
         // -D flags after command word
-        if (propDbUser != null) {
-            dFlags.add("-Ddb_user=" + propDbUser);
-        }
-        if (propProxyUiSuperuser != null) {
-            dFlags.add("-Dproxy_ui_superuser=" + propProxyUiSuperuser);
-        }
-        if (propProxyUiSuperuserPassword != null) {
-            dFlags.add("-Dproxy_ui_superuser_password=" + propProxyUiSuperuserPassword);
+        // Translate --prop-<name>=<value> to -D<name_with_underscores>=<value>
+        if (unmatched != null) {
+            for (String arg : unmatched) {
+                if (arg.startsWith("--prop-")) {
+                    String rest = arg.substring("--prop-".length());
+                    int eq = rest.indexOf('=');
+                    if (eq > 0) {
+                        String propName = rest.substring(0, eq).replace('-', '_');
+                        String propValue = rest.substring(eq + 1);
+                        dFlags.add("-D" + propName + "=" + propValue);
+                    }
+                }
+            }
         }
         if (defaultSchemaName != null) {
             dFlags.add("-Ddb_schema=" + defaultSchemaName);

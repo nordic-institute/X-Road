@@ -20,9 +20,13 @@ ARGS=(
 )
 
 # Optional changelog properties (PROP_* env vars → --prop-* executor args)
-[[ -n "${PROP_DB_USER:-}" ]] && ARGS+=("--prop-db-user=$PROP_DB_USER")
-[[ -n "${PROP_PROXY_UI_SUPERUSER:-}" ]] && ARGS+=("--prop-proxy-ui-superuser=$PROP_PROXY_UI_SUPERUSER")
-[[ -n "${PROP_PROXY_UI_SUPERUSER_PASSWORD:-}" ]] && ARGS+=("--prop-proxy-ui-superuser-password=$PROP_PROXY_UI_SUPERUSER_PASSWORD")
+# Any env var prefixed with PROP_ is forwarded: PROP_DB_USER → --prop-db-user
+while IFS='=' read -r name value; do
+  prop_name="${name#PROP_}"
+  prop_name="${prop_name//_/-}"
+  prop_name=$(echo "$prop_name" | tr '[:upper:]' '[:lower:]')
+  ARGS+=("--prop-${prop_name}=${value}")
+done < <(env | grep '^PROP_' | sort)
 
 # Optional Liquibase contexts
 if [[ -n "${LIQUIBASE_CONTEXTS:-}" ]]; then
