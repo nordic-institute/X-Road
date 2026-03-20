@@ -149,7 +149,6 @@ services:
       - DB_PASSWORD=secret
       - DB_SCHEMA=serverconf
       - db_user=serverconf
-      - db_schema=public
     depends_on:
       db-serverconf:
         condition: service_healthy
