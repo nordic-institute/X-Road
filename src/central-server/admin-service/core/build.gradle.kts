@@ -2,12 +2,6 @@ plugins {
   id("xroad.java-conventions")
 }
 
-configurations {
-  create("liquibaseLibs") {
-    apply(plugin = "base")
-  }
-}
-
 dependencies {
   annotationProcessor(libs.hibernate.jpamodelgen)
   annotationProcessor(libs.mapstructProcessor)

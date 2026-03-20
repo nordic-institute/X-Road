@@ -48,16 +48,10 @@ mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/var/lib/xroad
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
-ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.7.10.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
-ln -s /usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core.jar
-
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../../src/common/common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../../src/security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.10.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../../src/tool/liquibase-executor/build/libs/liquibase-executor.jar %{buildroot}/usr/share/xroad/db/liquibase-executor.jar
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
-cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core-4.19.0.jar
 cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
 cp -p %{srcdir}/common/helper-scripts/yaml_helper.py %{buildroot}/usr/share/xroad/scripts/yaml_helper.py
 cp -p %{srcdir}/common/helper-scripts/yaml_helper.sh %{buildroot}/usr/share/xroad/scripts/yaml_helper.sh
@@ -81,10 +75,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %attr(644,root,root) %{_unitdir}/xroad-base.service
 %dir /usr/share/xroad
-/usr/share/xroad/jlib/common-db.jar
-/usr/share/xroad/jlib/common-db-1.0.jar
-/usr/share/xroad/jlib/postgresql.jar
-/usr/share/xroad/jlib/postgresql-*.jar
 /usr/share/xroad/scripts/_backup_xroad.sh
 /usr/share/xroad/scripts/generate_certificate.sh
 /usr/share/xroad/scripts/generate_gpg_keypair.sh
@@ -100,8 +90,7 @@ rm -rf %{buildroot}
 %attr(755,root,root) /usr/share/xroad/scripts/run_migrations.sh
 %dir /usr/share/xroad/migrations
 /usr/share/xroad/migrations/*
-/usr/share/xroad/db/liquibase-core.jar
-/usr/share/xroad/db/liquibase-core-*.jar
+/usr/share/xroad/db/liquibase-executor.jar
 /usr/share/xroad/db/liquibase.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt

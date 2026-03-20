@@ -68,17 +68,19 @@ services:
         limits:
           memory: 256M
   db-opmonitor-init:
-    image: ${OP_MONITOR_INIT_IMG}
-    pull_policy: always
+    build:
+      context: .
+      dockerfile: db-init.dockerfile
+      args:
+        - DB_INIT_IMG=${DB_INIT_IMG}
     environment:
-      - LIQUIBASE_COMMAND_USERNAME=opmonitor
-      - LIQUIBASE_COMMAND_PASSWORD=secret
-      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
-      - db_user=opmonitor
-      - db_schema=public
-    volumes:
-      - ./test-data:/liquibase/changelog/test-data
-    command: ["liquibase", "--changeLogFile=changelog/test-data/op-monitor-int-test-changelog.xml", "update"]
+      - JDBC_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - JDBC_USER=opmonitor
+      - JDBC_PASSWORD=secret
+      - CHANGELOG=op-monitor-int-test
+      - DEFAULT_SCHEMA_NAME=public
+      - PROP_DB_USER=opmonitor
+      - LIQUIBASE_CONTEXTS=int-test
     depends_on:
       db-opmonitor:
         condition: service_healthy

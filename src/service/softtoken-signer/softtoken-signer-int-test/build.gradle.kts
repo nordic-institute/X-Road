@@ -19,7 +19,7 @@ intTestComposeEnv {
 
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",
-    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
+    "DB_INIT_IMG" to "ss-db-init",
     "SIGNER_IMG" to "ss-signer",
     "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer"
   )

@@ -76,14 +76,15 @@ services:
           memory: 256M
 
   db-opmonitor-init:
-    image: ${OP_MONITOR_INIT_IMG}
+    image: ${DB_INIT_IMG}
     pull_policy: always
     environment:
-      - LIQUIBASE_COMMAND_USERNAME=opmonitor
-      - LIQUIBASE_COMMAND_PASSWORD=secret
-      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
-      - db_user=opmonitor
-      - db_schema=public
+      - JDBC_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - JDBC_USER=opmonitor
+      - JDBC_PASSWORD=secret
+      - CHANGELOG=op-monitor
+      - DEFAULT_SCHEMA_NAME=public
+      - PROP_DB_USER=opmonitor
     depends_on:
       db-opmonitor:
         condition: service_healthy
