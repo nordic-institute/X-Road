@@ -8,13 +8,10 @@ configurations {
     isCanBeConsumed = false
     isCanBeResolved = true
   }
-  create("liquibaseLibs") {
-    apply(plugin = "base")
-  }
 }
 
 dependencies {
-  intTestImplementation(project(path = ":central-server:admin-service:infra-jpa", configuration = "changelogJar"))
+  intTestImplementation(project(":tool:liquibase-executor"))
   intTestImplementation(project(":central-server:openapi-model"))
 
   intTestImplementation(libs.liquibase.core)

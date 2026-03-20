@@ -30,14 +30,14 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LoggingIdentifierValidatorTest {
+class LoggingIdentifierValidatorTest {
     public static final String VALID_IDENTIFIER = "aa";
     public static final String INVALID_IDENTIFIER = ":";
     public static final String LEGACY_VALID_IDENTIFIER = "a a";
@@ -47,8 +47,8 @@ public class LoggingIdentifierValidatorTest {
     private final Logger logger = (Logger) LoggerFactory.getLogger(LoggingIdentifierValidator.class);
 
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         validator = new LoggingIdentifierValidator();
 
         appender = new ListAppender<>();
@@ -56,29 +56,29 @@ public class LoggingIdentifierValidatorTest {
         logger.addAppender(appender);
     }
 
-    @After
-    public void teardown() {
+    @AfterEach
+    void teardown() {
         logger.detachAppender(appender);
         appender.stop();
     }
 
 
     @Test
-    public void noLogMessageForValidIdentifer() {
+    void noLogMessageForValidIdentifer() {
         validator.isValid(VALID_IDENTIFIER);
 
         assertThat(appender.list).isEmpty();
     }
 
     @Test
-    public void noLogMessageForInvalidIdentifer() {
+    void noLogMessageForInvalidIdentifer() {
         validator.isValid(INVALID_IDENTIFIER);
 
         assertThat(appender.list).isEmpty();
     }
 
     @Test
-    public void logWarningForLegacyValidIdentifier() {
+    void logWarningForLegacyValidIdentifier() {
         validator.isValid(LEGACY_VALID_IDENTIFIER);
 
         assertThat(appender.list).hasSize(1);

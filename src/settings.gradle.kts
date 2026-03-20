@@ -168,6 +168,7 @@ include("tool:asic-verifier-cli")
 include("tool:migration-cli")
 include("tool:messagelog-archive-verifier")
 include("tool:test-framework-core")
+include("tool:liquibase-executor")
 
 // Main projects
 include("shared-ui")

@@ -3,7 +3,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
