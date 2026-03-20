@@ -42,7 +42,6 @@ import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.QUERY_DIR;

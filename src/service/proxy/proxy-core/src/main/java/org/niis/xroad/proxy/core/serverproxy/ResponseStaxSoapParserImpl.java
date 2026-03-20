@@ -29,13 +29,13 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -53,13 +54,6 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
 
     private static final XMLOutputFactory OUTPUT_FACTORY = XMLOutputFactory.newDefaultFactory();
     private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newDefaultFactory();
-
-    static {
-        final var useDoubleQuotes = "com.ctc.wstx.useDoubleQuotesInXmlDecl";
-        if (OUTPUT_FACTORY.isPropertySupported(useDoubleQuotes)) {
-            OUTPUT_FACTORY.setProperty(useDoubleQuotes, true);
-        }
-    }
 
     private final ProxyMessage requestMessage;
     private DelayedEventWriter writer;
@@ -80,14 +74,14 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
     }
 
     @Override
-    protected void onNextEvent(XMLEvent currentEvent, XMLEvent previousEvent) throws XMLStreamException {
-        if (previousEvent != null && previousEvent.isStartDocument() && !currentEvent.isCharacters()) {
+    protected void onNextEvent(XMLEvent currentEvent) throws XMLStreamException {
+        if (writer.peekLast().filter(XMLEvent::isStartDocument).isPresent() && !currentEvent.isCharacters()) {
             //at least in some cases white space characters event is missing after start document <?xml ...?>
-            writer.add(EVENT_FACTORY.createCharacters("\n"));
+            writer.add(EVENT_FACTORY.createSpace("\n"));
         }
 
         if (currentEvent.isStartElement()) {
-            handleStartTag(currentEvent.asStartElement(), previousEvent);
+            handleStartTag(currentEvent.asStartElement());
         }
         if (!inRequestHash) {
             writer.add(currentEvent);
@@ -98,20 +92,23 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
         }
     }
 
-    private void handleStartTag(StartElement startElement, XMLEvent previousEvent) {
+    private void handleStartTag(StartElement startElement) {
         if (QNAME_SOAP_HEADER.equals(startElement.getName())) {
             inHeader = true;
         } else if (inHeader && QNAME_XROAD_QUERY_ID.equals(startElement.getName())) {
-            if (previousEvent.isCharacters() && previousEvent.asCharacters().isWhiteSpace()) {
-                headerWhiteSpace = previousEvent;
-            }
+            headerWhiteSpace = writer.peekLast()
+                    .filter(XMLEvent::isCharacters)
+                    .map(XMLEvent::asCharacters)
+                    .filter(Characters::isWhiteSpace)
+                    .orElse(null);
         } else if (inHeader && QNAME_XROAD_REQUEST_HASH.equals(startElement.getName())) {
             inRequestHash = true;
 
-            var data = writer.peekLast().isCharacters() ? writer.peekLast().asCharacters().getData() : "";
-            if (StringUtils.isWhitespace(data)) {
-                writer.dropLast();
-            }
+            writer.peekLast()
+                    .filter(XMLEvent::isCharacters)
+                    .map(XMLEvent::asCharacters)
+                    .filter(Characters::isWhiteSpace)
+                    .ifPresent(evt -> writer.dropLast());
         }
     }
 
@@ -147,11 +144,15 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
                     QNAME_XROAD_REQUEST_HASH.getNamespaceURI(),
                     QNAME_XROAD_REQUEST_HASH.getLocalPart()));
 
+            headerWhiteSpace = null;
         } catch (Exception e) {
             throw translateException(e);
         }
     }
 
+    /**
+     * For keeping track of few last events for handling some edge cases.
+     */
     @RequiredArgsConstructor
     private final class DelayedEventWriter {
         private static final int MAX_LENGTH = 3;
@@ -166,8 +167,8 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
             queue.addLast(event);
         }
 
-        public XMLEvent peekLast() {
-            return queue.peekLast();
+        public Optional<XMLEvent> peekLast() {
+            return Optional.ofNullable(queue.peekLast());
         }
 
         public void dropLast() {

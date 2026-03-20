@@ -175,7 +175,7 @@ public class StaxEventSoapParserImpl implements SoapParser {
         }
     }
 
-    protected void onNextEvent(XMLEvent currentEvent, XMLEvent previousEvent) throws XMLStreamException {
+    protected void onNextEvent(XMLEvent currentEvent) throws XMLStreamException {
         // noop
     }
 
@@ -688,13 +688,11 @@ public class StaxEventSoapParserImpl implements SoapParser {
     protected final class EventReaderWrapper implements AutoCloseable {
 
         private final XMLEventReader reader;
-        private XMLEvent currentEvent;
 
         public XMLEvent nextEvent() throws XMLStreamException {
-            var previousEvent = currentEvent;
-            currentEvent = reader.nextEvent();
-            onNextEvent(currentEvent, previousEvent);
-            return currentEvent;
+            var evt = reader.nextEvent();
+            onNextEvent(evt);
+            return evt;
         }
 
         public boolean hasNext() {
