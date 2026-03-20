@@ -70,7 +70,7 @@ services:
       - DB_PASSWORD=admin_secret
       - CHANGELOG=confproxy
       - DEFAULT_SCHEMA_NAME=public
-      - db_user=confproxy
+      - PROP_DB_USER=confproxy
     depends_on:
       db-confproxy:
         condition: service_healthy

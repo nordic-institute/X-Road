@@ -149,7 +149,7 @@ services:
       - DB_PASSWORD=secret
       - CHANGELOG=serverconf
       - DEFAULT_SCHEMA_NAME=public
-      - db_user=serverconf
+      - PROP_DB_USER=serverconf
     depends_on:
       db-serverconf:
         condition: service_healthy

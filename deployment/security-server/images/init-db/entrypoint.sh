@@ -19,10 +19,15 @@ ARGS=(
   "--defaultSchemaName=${DEFAULT_SCHEMA_NAME:-public}"
 )
 
-# Optional changelog properties (only pass if set)
-for prop in db_user proxy_ui_superuser proxy_ui_superuser_password; do
-  if [[ -n "${!prop:-}" ]]; then
-    ARGS+=("--prop-${prop//_/-}=${!prop}")
+# Optional changelog properties (PROP_* env vars → --prop-* executor args)
+declare -A PROP_MAP=(
+  [PROP_DB_USER]=db-user
+  [PROP_PROXY_UI_SUPERUSER]=proxy-ui-superuser
+  [PROP_PROXY_UI_SUPERUSER_PASSWORD]=proxy-ui-superuser-password
+)
+for env_var in "${!PROP_MAP[@]}"; do
+  if [[ -n "${!env_var:-}" ]]; then
+    ARGS+=("--prop-${PROP_MAP[$env_var]}=${!env_var}")
   fi
 done
 

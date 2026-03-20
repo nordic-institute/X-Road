@@ -63,12 +63,12 @@ spec:
               value: {{ ($config.changelogName | default $name) | quote }}
             - name: DEFAULT_SCHEMA_NAME
               value: {{ $config.schema | quote }}
-            - name: db_user
+            - name: PROP_DB_USER
               value: {{ $config.username | quote }}
             {{- if and (eq $name "serverconf") (hasKey $config "proxyUiSuperuserPassword") }}
-            - name: proxy_ui_superuser
+            - name: PROP_PROXY_UI_SUPERUSER
               value: {{ $config.proxyUiSuperuser | quote }}
-            - name: proxy_ui_superuser_password
+            - name: PROP_PROXY_UI_SUPERUSER_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ $name }}-db-init-secret

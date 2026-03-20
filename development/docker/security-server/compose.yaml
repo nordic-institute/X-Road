@@ -111,9 +111,9 @@ services:
       - DB_PASSWORD=admin_secret
       - CHANGELOG=serverconf
       - DEFAULT_SCHEMA_NAME=public
-      - db_user=serverconf
-      - proxy_ui_superuser=xrd
-      - proxy_ui_superuser_password=$$argon2id$$v=19$$m=16384,t=2,p=1$$YXF3YXN6eHh6c2F3cQ$$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0
+      - PROP_DB_USER=serverconf
+      - PROP_PROXY_UI_SUPERUSER=xrd
+      - PROP_PROXY_UI_SUPERUSER_PASSWORD=$$argon2id$$v=19$$m=16384,t=2,p=1$$YXF3YXN6eHh6c2F3cQ$$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0
     depends_on:
       db-serverconf:
         condition: service_healthy
@@ -134,7 +134,7 @@ services:
       - DB_PASSWORD=admin_secret
       - CHANGELOG=messagelog
       - DEFAULT_SCHEMA_NAME=public
-      - db_user=messagelog
+      - PROP_DB_USER=messagelog
     depends_on:
       db-messagelog:
         condition: service_healthy

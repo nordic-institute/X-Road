@@ -84,7 +84,7 @@ services:
       - DB_PASSWORD=secret
       - CHANGELOG=op-monitor
       - DEFAULT_SCHEMA_NAME=public
-      - db_user=opmonitor
+      - PROP_DB_USER=opmonitor
     depends_on:
       db-opmonitor:
         condition: service_healthy

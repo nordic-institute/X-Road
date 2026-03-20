@@ -117,19 +117,19 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
                   secretKeyRef:
                     name: db-serverconf
                     key: postgres-password
-              - name: DB_SCHEMA
+              - name: CHANGELOG
                 value: "serverconf"
-              - name: db_schema
+              - name: DEFAULT_SCHEMA_NAME
                 value: "${db_schema}"
-              - name: db_user
+              - name: PROP_DB_USER
                 value: "${db_user}"
 EOF
 
   if [[ "$SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER" == "true" ]]; then
     cat <<EOF
-              - name: proxy_ui_superuser
+              - name: PROP_PROXY_UI_SUPERUSER
                 value: "${PROXY_UI_SUPERUSER}"
-              - name: proxy_ui_superuser_password
+              - name: PROP_PROXY_UI_SUPERUSER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: serverconf-db-init-secret
