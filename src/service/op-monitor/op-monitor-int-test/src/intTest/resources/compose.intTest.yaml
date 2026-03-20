@@ -76,6 +76,7 @@ services:
       - DB_PASSWORD=secret
       - DB_SCHEMA=op-monitor
       - db_user=opmonitor
+      - db_schema=public
     depends_on:
       db-opmonitor:
         condition: service_healthy
