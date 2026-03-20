@@ -129,6 +129,7 @@ public class ProxyMessageDecoder {
 
     /**
      * Construct a message decoder.
+     *
      * @param globalConfProvider the global configuration provider
      * @param callback           the callback executed on the decoded message
      * @param contentType        expected content type of the input stream
@@ -142,6 +143,7 @@ public class ProxyMessageDecoder {
 
     /**
      * Construct a message decoder.
+     *
      * @param globalConfProvider the global configuration provider
      * @param callback           the callback executed on the decoded message
      * @param contentType        expected content type of the input stream
@@ -163,6 +165,7 @@ public class ProxyMessageDecoder {
 
     /**
      * Attempts to decode the proxy SOAP message from the given input stream.
+     *
      * @param is input stream from which to decode the message
      */
     @WithSpan
@@ -182,6 +185,7 @@ public class ProxyMessageDecoder {
 
     /**
      * Verifies that the signature matches the sender.
+     *
      * @param sender        the sender
      * @param signatureData the signature
      */

@@ -126,6 +126,7 @@ public class AsicContainerVerifier {
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
      * given filename. Attempts to verify its contents.
+     *
      * @param globalConfProvider global conf provider
      * @param filename           name of the ASiC container ZIP file
      */

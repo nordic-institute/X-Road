@@ -81,6 +81,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -103,6 +104,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with OCSP responses is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -127,6 +129,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with an attachment is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -150,6 +153,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a SOAP fault message is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -167,6 +171,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with fault instead of signature is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test

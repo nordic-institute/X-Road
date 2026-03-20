@@ -55,6 +55,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Builds SOAP message
+     *
      * @param sender   sender
      * @param receiver receiver
      * @param userId   user id
@@ -69,6 +70,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Builds SOAP message.
+     *
      * @param isRpcEncoded if true, RPC encoded style is used
      * @param sender       sender
      * @param receiver     receiver
@@ -84,6 +86,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Builds SOAP message.
+     *
      * @param isRpcEncoded       if true, RPC encoded style is used
      * @param sender             sender
      * @param receiver           receiver
@@ -113,6 +116,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Returns byte array of file.
+     *
      * @param fileName file name
      * @return byte array of the file
      */
@@ -122,6 +126,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Gets byte array of SOAP message
+     *
      * @param soap SOAP message
      * @return byte array of SOAP message
      */
@@ -135,6 +140,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP message from file
+     *
      * @param fileName SOAP message file name
      * @return SOAP message
      */
@@ -144,6 +150,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP message from file
+     *
      * @param queryDir query directory
      * @param fileName SOAP message file name
      * @return SOAP message
@@ -154,6 +161,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP message from byte array.
+     *
      * @param data byte array of SOAP message
      * @return SOAP message
      */
@@ -164,6 +172,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP request message from file
+     *
      * @param fileName request file name
      * @return SOAP request
      */
@@ -173,6 +182,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create SOAP request
+     *
      * @param queryDir query directory
      * @param fileName input file
      * @return SOAP request
@@ -193,6 +203,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Creates SOAP response message from file.
+     *
      * @param fileName response file name
      * @return SOAP response
      */
@@ -202,6 +213,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create SOAP response
+     *
      * @param queryDir query directory
      * @param fileName input file
      * @return SOAP response
@@ -223,6 +235,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create new query input stream of the query file.
+     *
      * @param fileName query file name
      * @return file input stream of the query file.
      */
@@ -233,6 +246,7 @@ public final class SoapMessageTestUtil {
 
     /**
      * Create new query input stream
+     *
      * @param queryDir query directory
      * @param fileName input file
      * @return input stream

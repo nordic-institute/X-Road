@@ -133,6 +133,7 @@ public final class HashChainBuilder {
 
     /**
      * Constructs a hash chain builder.
+     *
      * @param hashAlgorithm Identifier (not URL) of the hash algorithm
      *                      used in the hash chain. We assume that the
      *                      input data items were created with the same
@@ -152,6 +153,7 @@ public final class HashChainBuilder {
 
     /**
      * Adds new input hash to the tree.
+     *
      * @param hash input hash to add
      */
     public void addInputHash(byte[] hash) {
@@ -166,6 +168,7 @@ public final class HashChainBuilder {
      * Adds a set of input hashes to the tree.
      * It is assumed that all the hashes come from the same message,
      * the first one being SOAP message and the rest being attachments.
+     *
      * @param hashes set of input nashes to add
      * @throws IOException in case of errors
      */
@@ -187,6 +190,7 @@ public final class HashChainBuilder {
 
     /**
      * Finalizes the tree and computes the intermediate nodes and top hash.
+     *
      * @throws IOException in case of errors
      */
     public void finishBuilding() throws IOException {
@@ -214,6 +218,7 @@ public final class HashChainBuilder {
     /**
      * Returns the top hash of the Merkle tree, encoded as the HashChainResult
      * XML element. This data can be signed or time-stamped.
+     *
      * @param hashChainFileName name of the file containing the hash chain
      * @return top hash of the Merkle tree, encoded as the HashChainResult
      * XML element
@@ -246,6 +251,7 @@ public final class HashChainBuilder {
 
     /**
      * Returns XML-encoded hash chain for every input data item.
+     *
      * @param dataFileName name of the file containing data input items
      * @return XML-encoded hash chain for every input data item
      * @throws JAXBException in case of any errors
@@ -349,6 +355,7 @@ public final class HashChainBuilder {
      * For incomplete trees, the hashInputs and hashNodes methods did not
      * create the necessary intermediate nodes. This method walks the tree,
      * discovers the missing nodes and, if necessary, creates them.
+     *
      * @return the hash of the fixed tree node.
      */
     private byte[] fixTree(int nodeIdx) throws IOException {
