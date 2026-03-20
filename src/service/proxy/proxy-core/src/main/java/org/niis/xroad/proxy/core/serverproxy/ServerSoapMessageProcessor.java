@@ -90,7 +90,6 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;

@@ -25,24 +25,25 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import org.apache.commons.io.IOUtils;
-import static org.apache.commons.io.IOUtils.toInputStream;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 
-import ee.ria.xroad.common.util.MimeTypes;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ResponseStaxSoapParserImplTest {
