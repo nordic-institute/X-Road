@@ -1,5 +1,11 @@
 # Change Log
 
+## 7.7.2 - 2026-03-12
+- XRDDEV-3071: As a Developer I want to review our rate-limiting functionality to make sure it works
+- XRDDEV-3109: Signer-console logging not configured (logs not written to signer-console.log or audit.log)
+- XRDDEV-3110: ACME renewal job  gets authentication missing from security context error, but that is for users not background jobs
+- XRDDEV-3127: Url does not update on already-configured timestamping services when auto-update-timestamp-service-url is set to true
+
 ## 7.7.1 - 2025-12-23
 - XRDDEV-3049: As a Developer I want to replace our charting library for a library that has a better license so that we don't have licensing issues
 - XRDDEV-3054: Resolve issue where using wildcard expressions in REST path mappings lead to a vulnerability to path traversal attacks in certain cases

@@ -46,8 +46,8 @@ import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -325,8 +325,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // test with single matching items
         List<SharedParameters.ApprovedTSA> approvedTSATypes =
                 Collections.singletonList(TestUtils.createApprovedTsaType("http://example.com:8121", "Foo"));
-        List<TimestampingService> timestampingServices =
-                Collections.singletonList(TestUtils.createTspType("http://example.com:8121", "Foo"));
+        List<TimestampingServiceEntity> timestampingServices =
+                Collections.singletonList(TestUtils.createTspTypeEntity("http://example.com:8121", "Foo"));
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes, timestampingServices);
         assertEquals(1, approvedTSATypes.size());
         assertEquals(1, timestampingServices.size());
@@ -339,9 +339,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
                 TestUtils.createApprovedTsaType("http://example.com:9999", "Foo"),
                 TestUtils.createApprovedTsaType("http://example.net", "Bar")
         );
-        List<TimestampingService> tspTypes1 = Arrays.asList(
-                TestUtils.createTspType("http://example.com:8121", "Foo"),
-                TestUtils.createTspType("http://example.net", "Bar")
+        List<TimestampingServiceEntity> tspTypes1 = Arrays.asList(
+                TestUtils.createTspTypeEntity("http://example.com:8121", "Foo"),
+                TestUtils.createTspTypeEntity("http://example.net", "Bar")
         );
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes1, tspTypes1);
         assertEquals(2, approvedTSATypes1.size());
@@ -358,10 +358,10 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
                 TestUtils.createApprovedTsaType("http://example.net", "Foo"),
                 TestUtils.createApprovedTsaType("http://example.org:8080", "Zzz")
         );
-        List<TimestampingService> tspTypes2 = Arrays.asList(
-                TestUtils.createTspType("http://example.com:8121", "Foo"),
-                TestUtils.createTspType("http://example.net", "Foo"),
-                TestUtils.createTspType("http://example.org:8080", "Zzz")
+        List<TimestampingServiceEntity> tspTypes2 = Arrays.asList(
+                TestUtils.createTspTypeEntity("http://example.com:8121", "Foo"),
+                TestUtils.createTspTypeEntity("http://example.net", "Foo"),
+                TestUtils.createTspTypeEntity("http://example.org:8080", "Zzz")
         );
         globalConfChecker.updateTimestampServiceUrls(approvedTSATypes2, tspTypes2);
         assertEquals(3, approvedTSATypes2.size());
