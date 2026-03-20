@@ -45,6 +45,7 @@ services:
       - DB_USER=serverconf
       - DB_PASSWORD=secret
       - DB_SCHEMA=serverconf
+      - DEFAULT_SCHEMA_NAME=public
       - db_user=serverconf
     depends_on:
       db-serverconf:

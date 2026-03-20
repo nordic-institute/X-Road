@@ -61,7 +61,7 @@ spec:
                   key: postgres-password
             - name: DB_SCHEMA
               value: {{ ($config.changelogName | default $name) | quote }}
-            - name: db_schema
+            - name: DEFAULT_SCHEMA_NAME
               value: {{ $config.schema | quote }}
             - name: db_user
               value: {{ $config.username | quote }}

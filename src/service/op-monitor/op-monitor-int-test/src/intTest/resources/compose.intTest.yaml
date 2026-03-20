@@ -75,6 +75,7 @@ services:
       - DB_USER=opmonitor
       - DB_PASSWORD=secret
       - DB_SCHEMA=op-monitor
+      - DEFAULT_SCHEMA_NAME=public
       - db_user=opmonitor
     depends_on:
       db-opmonitor:

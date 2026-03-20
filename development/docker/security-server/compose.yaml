@@ -110,8 +110,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=admin_secret
       - DB_SCHEMA=serverconf
+      - DEFAULT_SCHEMA_NAME=public
       - db_user=serverconf
-      - db_schema=public
       - proxy_ui_superuser=xrd
       - proxy_ui_superuser_password=$$argon2id$$v=19$$m=16384,t=2,p=1$$YXF3YXN6eHh6c2F3cQ$$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0
     depends_on:
@@ -133,8 +133,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=admin_secret
       - DB_SCHEMA=messagelog
+      - DEFAULT_SCHEMA_NAME=public
       - db_user=messagelog
-      - db_schema=public
     depends_on:
       db-messagelog:
         condition: service_healthy

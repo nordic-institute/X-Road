@@ -69,8 +69,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=admin_secret
       - DB_SCHEMA=confproxy
+      - DEFAULT_SCHEMA_NAME=public
       - db_user=confproxy
-      - db_schema=public
     depends_on:
       db-confproxy:
         condition: service_healthy

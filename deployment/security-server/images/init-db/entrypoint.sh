@@ -10,9 +10,14 @@ for var in "${REQUIRED_VARS[@]}"; do
   fi
 done
 
+# Capture DB_SCHEMA for changelog selection, then unset to prevent
+# Liquibase 5.x from resolving ${db_schema} changelog property from env var
+CHANGELOG="$DB_SCHEMA"
+unset DB_SCHEMA
+
 # Build CLI arguments
 ARGS=(
-  "--changelog=$DB_SCHEMA"
+  "--changelog=$CHANGELOG"
   "--url=$JDBC_URL"
   "--username=$DB_USER"
   "--password=$DB_PASSWORD"
