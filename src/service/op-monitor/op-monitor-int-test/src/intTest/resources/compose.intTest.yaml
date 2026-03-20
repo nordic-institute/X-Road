@@ -74,7 +74,7 @@ services:
       - JDBC_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
       - DB_USER=opmonitor
       - DB_PASSWORD=secret
-      - DB_SCHEMA=op-monitor
+      - CHANGELOG=op-monitor
       - DEFAULT_SCHEMA_NAME=public
       - db_user=opmonitor
     depends_on:

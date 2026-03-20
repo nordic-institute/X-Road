@@ -2,18 +2,13 @@
 set -euo pipefail
 
 # Validate required environment variables
-REQUIRED_VARS=(JDBC_URL DB_USER DB_PASSWORD DB_SCHEMA)
+REQUIRED_VARS=(JDBC_URL DB_USER DB_PASSWORD CHANGELOG)
 for var in "${REQUIRED_VARS[@]}"; do
   if [[ -z "${!var:-}" ]]; then
     echo "ERROR: Required environment variable $var is not set" >&2
     exit 1
   fi
 done
-
-# Capture DB_SCHEMA for changelog selection, then unset to prevent
-# Liquibase 5.x from resolving ${db_schema} changelog property from env var
-CHANGELOG="$DB_SCHEMA"
-unset DB_SCHEMA
 
 # Build CLI arguments
 ARGS=(

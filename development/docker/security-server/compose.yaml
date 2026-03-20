@@ -109,7 +109,7 @@ services:
       - JDBC_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_USER=postgres
       - DB_PASSWORD=admin_secret
-      - DB_SCHEMA=serverconf
+      - CHANGELOG=serverconf
       - DEFAULT_SCHEMA_NAME=public
       - db_user=serverconf
       - proxy_ui_superuser=xrd
@@ -132,7 +132,7 @@ services:
       - JDBC_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - DB_USER=postgres
       - DB_PASSWORD=admin_secret
-      - DB_SCHEMA=messagelog
+      - CHANGELOG=messagelog
       - DEFAULT_SCHEMA_NAME=public
       - db_user=messagelog
     depends_on:

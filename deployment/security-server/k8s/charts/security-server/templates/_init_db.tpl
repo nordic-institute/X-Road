@@ -59,7 +59,7 @@ spec:
                 secretKeyRef:
                   name: db-{{ $name }}
                   key: postgres-password
-            - name: DB_SCHEMA
+            - name: CHANGELOG
               value: {{ ($config.changelogName | default $name) | quote }}
             - name: DEFAULT_SCHEMA_NAME
               value: {{ $config.schema | quote }}

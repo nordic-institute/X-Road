@@ -68,7 +68,7 @@ services:
       - JDBC_URL=jdbc:postgresql://db-confproxy:5432/confproxy
       - DB_USER=postgres
       - DB_PASSWORD=admin_secret
-      - DB_SCHEMA=confproxy
+      - CHANGELOG=confproxy
       - DEFAULT_SCHEMA_NAME=public
       - db_user=confproxy
     depends_on:
