@@ -36,6 +36,7 @@ import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.test.framework.core.feign.FeignFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -57,6 +58,7 @@ public class FeignClientConfiguration {
     }
 
     @Bean
+    @Lazy
     FeignControlPlaneManagementApi feignControlPlaneManagementApi(Encoder defaultEncoder) {
         var rawStringEncoder = new RawStringEncoder(defaultEncoder);
         return feignFactory.createClient(FeignControlPlaneManagementApi.class, getBaseUrl(),
