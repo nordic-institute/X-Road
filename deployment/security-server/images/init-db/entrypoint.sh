@@ -26,7 +26,7 @@ while IFS='=' read -r name value; do
   prop_name="${prop_name//_/-}"
   prop_name=$(echo "$prop_name" | tr '[:upper:]' '[:lower:]')
   ARGS+=("--prop-${prop_name}=${value}")
-done < <(env | grep '^PROP_' | sort)
+done < <(env | grep '^PROP_' || true)
 
 # Optional Liquibase contexts
 if [[ -n "${LIQUIBASE_CONTEXTS:-}" ]]; then

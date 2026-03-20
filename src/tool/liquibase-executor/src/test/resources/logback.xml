@@ -24,8 +24,7 @@
     <logger name="liquibase" level="INFO"/>
     <logger name="liquibase.analytics.configuration" level="OFF"/>
 
-    <root level="WARN">
-        <appender-ref ref="STDOUT"/>
+    <root level="OFF">
         <appender-ref ref="FILE"/>
     </root>
 </configuration>
