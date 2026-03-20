@@ -149,7 +149,9 @@ public class StaxEventSoapParserImpl implements SoapParser {
         factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         // Performance settings
         factory.setProperty(XMLInputFactory.IS_COALESCING, false);
-        factory.setProperty(REPORT_CDATA_EVENT, true); //Only works if IS_COALESCING == false
+        if (factory.isPropertySupported(REPORT_CDATA_EVENT)) {
+            factory.setProperty(REPORT_CDATA_EVENT, true); // Only works if IS_COALESCING == false
+        }
         factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
         return factory;
     }
