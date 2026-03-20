@@ -93,7 +93,7 @@ services:
       - java
       - -jar
       - /app/liquibase-executor.jar
-      - --changeLogFile=/liquibase/changelog/test-data/op-monitor-int-test-changelog.xml
+      - --changelog=/liquibase/changelog/test-data/op-monitor-int-test-changelog.xml
       - --url=jdbc:postgresql://db-opmonitor:5432/op-monitor
       - --username=opmonitor
       - --password=secret
