@@ -62,7 +62,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
     public static final String OPENBAO = "openbao";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
-    public static final String DS_DATA_PLANE = "ds-data-plane";
+//    public static final String DS_DATA_PLANE = "ds-data-plane";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
@@ -79,8 +79,9 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public ComposeContainer initEnv() {
         return new ComposeContainer("ss-",
                 new File(coreProperties.resourceDir() + COMPOSE_SS_FILE),
-                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_FILE),
-                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_DS_FILE))
+                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_FILE)
+                /*,TODO disabled until DS is stabilized
+                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_DS_FILE)*/)
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(PROXY, Port.QUARKUS_HEALTH, forListeningPort())
@@ -93,7 +94,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
                 .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
-                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
+//                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
@@ -104,8 +105,8 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
                 .withLogConsumer(NGINX, createLogConsumer(NGINX))
                 .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
-                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
-                .withLogConsumer(DS_DATA_PLANE, createLogConsumer(DS_DATA_PLANE));
+                /*.withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
+                .withLogConsumer(DS_DATA_PLANE, createLogConsumer(DS_DATA_PLANE))*/;
     }
 
     @Override
