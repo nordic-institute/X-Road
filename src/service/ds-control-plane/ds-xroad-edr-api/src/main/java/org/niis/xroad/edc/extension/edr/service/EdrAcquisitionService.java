@@ -193,8 +193,12 @@ public class EdrAcquisitionService {
                             .build())
                     .build();
 
-            var negotiation = contractNegotiationService.initiateNegotiation(participantContext, contractRequest);
-            var negotiationId = negotiation.getId();
+            var negotiationResult = contractNegotiationService.initiateNegotiation(participantContext, contractRequest);
+            if (negotiationResult.failed()) {
+                return CompletableFuture.failedFuture(
+                        new EdcException("Could not initiate contract negotiation: %s".formatted(negotiationResult.getFailureDetail())));
+            }
+            var negotiationId = negotiationResult.getContent().getId();
 
             var future = new CompletableFuture<ContractAgreement>();
             negotiationListener.register(negotiationId, future);
