@@ -34,12 +34,9 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.test.framework.core.feign.FeignFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_CONTROL_PLANE;
@@ -57,13 +54,12 @@ public class FeignClientConfiguration {
         return "http://%s:%d/api/mgmt/v5alpha/participants".formatted(container.host(), container.port());
     }
 
-    @Bean
-    @Lazy
+    /*@Bean
     FeignControlPlaneManagementApi feignControlPlaneManagementApi(Encoder defaultEncoder) {
         var rawStringEncoder = new RawStringEncoder(defaultEncoder);
         return feignFactory.createClient(FeignControlPlaneManagementApi.class, getBaseUrl(),
                 rawStringEncoder, Collections.emptyList());
-    }
+    }*/
 
     @RequiredArgsConstructor
     static class RawStringEncoder implements Encoder {
