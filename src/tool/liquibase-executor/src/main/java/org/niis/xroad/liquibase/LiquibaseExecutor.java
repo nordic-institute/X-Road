@@ -52,9 +52,13 @@ public class LiquibaseExecutor implements Callable<Integer> {
     private static final String DEFAULT_SCHEMA_NAME_ARG = "--defaultSchemaName";
     private static final String DEFAULT_SCHEMA_NAME_ARG_EQ = DEFAULT_SCHEMA_NAME_ARG + "=";
 
-    @Option(names = "--changelog", required = true,
+    @Option(names = "--changelog",
             description = "Database changelog name (serverconf, centerui, messagelog, op-monitor)")
     String changelog;
+
+    @Option(names = "--changeLogFile",
+            description = "Direct changelog file path (bypasses --changelog name-to-path translation)")
+    String changeLogFile;
 
     @Option(names = "--url", required = true,
             description = "JDBC database URL")
@@ -139,8 +143,14 @@ public class LiquibaseExecutor implements Callable<Integer> {
         List<String> args = new ArrayList<>();
         List<String> dFlags = new ArrayList<>();
 
-        // Translate --changelog to --changeLogFile
-        args.add("--changeLogFile=liquibase/" + changelog + "-changelog.xml");
+        // Resolve changelog file path
+        if (changeLogFile != null) {
+            args.add("--changeLogFile=" + changeLogFile);
+        } else if (changelog != null) {
+            args.add("--changeLogFile=liquibase/" + changelog + "-changelog.xml");
+        } else {
+            throw new IllegalStateException("Either --changelog or --changeLogFile must be specified");
+        }
 
         // Pass through standard Liquibase options
         args.add("--url=" + url);
