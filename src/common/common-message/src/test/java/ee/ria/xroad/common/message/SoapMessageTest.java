@@ -42,6 +42,7 @@ import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.QUERY_DIR;
@@ -52,6 +53,7 @@ import static ee.ria.xroad.common.message.SoapMessageTestUtil.createSoapMessage;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.fileToBytes;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.messageToBytes;
 import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -232,7 +234,8 @@ public class SoapMessageTest {
     @Test
     public void invalidContentType() throws Exception {
         try (FileInputStream in = new FileInputStream(QUERY_DIR + "simple.query")) {
-            var expected = assertThrows(XrdRuntimeException.class, () -> buildParser().parse(MimeTypes.TEXT_HTML_UTF8, in));
+            var parser = buildParser();
+            var expected = assertThrows(XrdRuntimeException.class, () -> parser.parse(MimeTypes.TEXT_HTML_UTF8, in));
             assertEquals(INVALID_CONTENT_TYPE.code(), expected.getCode());
         }
     }
@@ -355,7 +358,7 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(service, built.getService());
 
-        parsedSoap = buildParser().parse(built.getContentType(), IOUtils.toInputStream(built.getXml()));
+        parsedSoap = buildParser().parse(built.getContentType(), IOUtils.toInputStream(built.getXml(), UTF_8));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         parsed = (SoapMessageImpl) parsedSoap;

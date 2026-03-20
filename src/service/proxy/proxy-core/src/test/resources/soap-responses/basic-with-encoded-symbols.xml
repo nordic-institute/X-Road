@@ -21,8 +21,8 @@
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:testQueryResponse xmlns:ns1="http://cosumer.ee.xroad.net">
-            <quetes>"Hello"</quetes>
-            <appostroves>'Hello'</appostroves>
+            <quotes>"Hello"</quotes>
+            <apostrophes>'Hello'</apostrophes>
             <gt>>Hello></gt>
             <entity-reference in-attribute="&amp;value">&quot;Hello&quot; &amp; Good Bye</entity-reference>
             <character-reference in-attribute="&#39;&#62;value">&#39;&#62;Hello &#39;&#62; Good Bye &#39;&#62;</character-reference>

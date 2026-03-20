@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ResponseStaxSoapParserImplTest {
+class ResponseStaxSoapParserImplTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ProxyMessage request;
@@ -58,7 +58,7 @@ public class ResponseStaxSoapParserImplTest {
             "basic2,expected-basic2",
             "basic3,expected-basic3",
             "basic4,expected-basic4",
-            "basic-no-formating,expected-basic-no-formating",
+            "basic-no-formatting,expected-basic-no-formatting",
             "basic-with-bom,expected-basic",
             "basic-with-random-hash,expected-basic",
             "basic-with-random-hash2,expected-basic",
@@ -67,7 +67,7 @@ public class ResponseStaxSoapParserImplTest {
             "basic-with-encoded-symbols,expected-basic-with-encoded-symbols",
             "basic-cdata,expected-basic-cdata"
     })
-    public void basicCases(String file, String expectedFile) throws IOException {
+    void basicCases(String file, String expectedFile) throws IOException {
         when(request.getSoap().getHash()).thenReturn("hash".getBytes(StandardCharsets.UTF_8));
         var xml = asString(file);
 
@@ -77,7 +77,7 @@ public class ResponseStaxSoapParserImplTest {
     }
 
     @Test
-    public void basicMissingQueryId() throws IOException {
+    void basicMissingQueryId() throws IOException {
         var result = new ResponseStaxSoapParserImpl(request).parse(MimeTypes.TEXT_XML_UTF8, asInputStream("fault-missing-query-id"));
 
         assertEquals(asString("fault-missing-query-id").stripTrailing(), result.getXml());
