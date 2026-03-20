@@ -40,7 +40,7 @@ testContainers = "2.0.3"
 testAllure = "2.33.0"
 testSelenide = "7.14.0"
 shadowPlugin = "8.3.9"
-edc = "0.16.0-SNAPSHOT"
+edc = "0.17.0-SNAPSHOT"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -67,6 +67,9 @@ quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quark
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
 quarkus-arc = { group = "io.quarkus", name = "quarkus-arc", version.ref = "quarkus" }
 quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "quarkus" }
+quarkus-rest-jackson = { group = "io.quarkus", name = "quarkus-rest-jackson", version.ref = "quarkus" }
+quarkus-security = { group = "io.quarkus", name = "quarkus-security", version.ref = "quarkus" }
+quarkus-smallrye-openapi = { group = "io.quarkus", name = "quarkus-smallrye-openapi", version.ref = "quarkus" }
 quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
 quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-config", version.ref = "quarkus" }
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
@@ -228,10 +231,15 @@ edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiabl
 edc-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
 edc-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
+edc-contolplane-api-config = { module = "org.eclipse.edc:control-api-configuration", version.ref = "edc" }
+edc-dataplane-signaling = { module = "org.eclipse.edc:data-plane-signaling", version.ref = "edc" }
 
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
+edc-core-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
+
+edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
@@ -273,9 +281,19 @@ edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", ver
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-iam-dcp-trustedissuers = { module = "org.eclipse.edc:decentralized-claims-issuers-configuration", version.ref = "edc" }
 
+edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
+
 # BOM modules
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
+edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
+edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc" }
+edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", version.ref = "edc" }
+edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
+edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }
+edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
+
+edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version = "0.0.6-SNAPSHOT" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "5.0.1" }
@@ -290,12 +308,13 @@ metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 edc-dcp = [
-  "edc-crypto-verifiablecredentials-jwt",
-  "edc-crypto-verifiablecredentials-ldp",
-  "edc-iam-dcp-core",
+#  "edc-crypto-verifiablecredentials-jwt",
+#  "edc-crypto-verifiablecredentials-ldp",
+#  "edc-iam-dcp-core",
   "edc-oauth2-client",
-  "edc-iam-decentralized",
-  "edc-iam-dcp-trustedissuers",
+#  "edc-iam-decentralized",
+#  "edc-iam-dcp-trustedissuers",
+  "edc-iam-mock"
 ]
 edc-connector = [
   "edc-boot",

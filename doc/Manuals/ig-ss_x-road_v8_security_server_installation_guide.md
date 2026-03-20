@@ -90,14 +90,14 @@ The software can be installed both on physical and virtualized hardware.
 |---------|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1.0     | Ubuntu 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                                     | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                            |
 | 1.1     | https://artifactory.niis.org/xroad8-snapshot-deb                                                                     | X-Road package repository                                                                                                                                                                                                                                                                  |
-| 1.1.1   | https://artifactory.niis.org/artifactory/xroad-dependencies-deb                                                      | X-Road external dependencies repository                                                                                                                                                                                                                                                    |
 | 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                         |
-| 1.4     | **Inbound ports from external network**                                                                              | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
+| 1.3   | https://pkgs.openbao.org/deb                                                                                         | OpenBao package repository                                                                                                                                                                                                                                                                 |
+| 1.4     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                         |
+| 1.5     | **Inbound ports from external network**                                                                              | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
 | &nbsp;  | TCP 80                                                                                                               | Incoming ACME challenge requests from ACME servers                                                                                                                                                                                                                                         |
 | &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
 | &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-| 1.5     | **Outbound ports to external network**                                                                               | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
+| 1.6     | **Outbound ports to external network**                                                                               | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
 | &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
 | &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
 | &nbsp;  | TCP 4001                                                                                                             | Communication with the Central Server                                                                                                                                                                                                                                                      |
@@ -105,16 +105,16 @@ The software can be installed both on physical and virtualized hardware.
 | &nbsp;  | TCP 80,443                                                                                                           | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
 | &nbsp;  | TCP 80,443                                                                                                           | Communication with ACME servers                                                                                                                                                                                                                                                            |
 | &nbsp;  | TCP 587                                                                                                              | Communication with mail servers. The mail server may be located in internal or external network                                                                                                                                                                                            |
-| 1.6     | **Inbound ports from internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
+| 1.7     | **Inbound ports from internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
 | &nbsp;  | TCP 4000                                                                                                             | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
 | &nbsp;  | TCP 8080, 8443                                                                                                       | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
-| 1.7     | **Outbound ports to internal network**                                                                               | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
+| 1.8     | **Outbound ports to internal network**                                                                               | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
 | &nbsp;  | TCP 80, 443, *other*                                                                                                 | Producer information system endpoints                                                                                                                                                                                                                                                      |
 | &nbsp;  | TCP 2080                                                                                                             | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
-| 1.8     |                                                                                                                      | Security Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
-| 1.9     |                                                                                                                      | Security Server public IP address, NAT address                                                                                                                                                                                                                                             |
-| 1.10    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
-| 1.11    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate                                                                                                                                                                                                                                             |
+| 1.9     |                                                                                                                      | Security Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
+| 1.10     |                                                                                                                      | Security Server public IP address, NAT address                                                                                                                                                                                                                                             |
+| 1.11    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
+| 1.12    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate                                                                                                                                                                                                                                             |
 
 #### 2.2.1 Network Diagram
 
@@ -169,12 +169,12 @@ Minimum recommended hardware parameters:
 Requirements to software and settings:
 
 * an installed and configured 24.04 LTS x86-64 operating system;
-* if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
-* if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
+* if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.5; 1.6; 1.7; 1.8**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
+* if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.10**).
 
 ### 2.4 Preparing OS
 
-* Add an X-Road system administrator user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
+* Add an X-Road system administrator user (**reference data: 1.4**) whom all roles in the user interface are granted to. Add a new user with the command
 
         sudo adduser <username>
 
@@ -200,10 +200,15 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
 curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
 ```
 
-Add X-Road package and external dependencies repositories (**reference data: 1.1, 1.1.1**)
+Add X-Road package repository (**reference data: 1.1**):
 ```bash
 echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad8-snapshot-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-dependencies-deb xroad external" | sudo tee -a /etc/apt/sources.list.d/xroad.list > /dev/null
+```
+
+Add OpenBao package repository (**reference data: 1.3**):
+```bash
+curl -fsSL https://openbao.org/assets/openbao-gpg-pub-20240618.asc | sudo tee /usr/share/keyrings/openbao-keyring.asc > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/openbao-keyring.asc] https://pkgs.openbao.org/deb/ stable main" | sudo tee /etc/apt/sources.list.d/openbao.list > /dev/null
 ```
 
 Update package repository metadata:
@@ -220,7 +225,7 @@ sudo apt install xroad-securityserver
 
 Upon the first installation of the packages, the system asks for the following information.
 
-* Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.3**).
+* Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.4**).
 * Database server URL. Locally installed database is suggested as default.
 * The memory allocation configuration for the Java Virtual Machine (JVM) used by the proxy service.
   Allowed values are:
@@ -232,7 +237,7 @@ Upon the first installation of the packages, the system asks for the following i
   
   Note that in all cases `/etc/xroad/services/local.properties` file is updated so that `XROAD_PROXY_PARAMS` property contains new memory configs in the end of any other already present options there.
 
-* The Common Name of the owner of the **user interface's and management REST API's** self-signed TLS certificate (*Subject Common Name*) and its alternative names (*subjectAltName*) (**reference data: 1.8; 1.10**). The certificate is used for securing connections to the user interface and to the management REST API.
+* The Common Name of the owner of the **user interface's and management REST API's** self-signed TLS certificate (*Subject Common Name*) and its alternative names (*subjectAltName*) (**reference data: 1.9; 1.11**). The certificate is used for securing connections to the user interface and to the management REST API.
   The name and IP addresses detected from the operating system are suggested as default values.
 
     * The *Subject Common Name* must be entered in the format:
@@ -243,7 +248,7 @@ Upon the first installation of the packages, the system asks for the following i
 
               IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
-* The Common Name of the owner of the TLS certificate that is used for securing the HTTPS access point of information systems (**reference data: 1.8; 1.11**).
+* The Common Name of the owner of the TLS certificate that is used for securing the HTTPS access point of information systems (**reference data: 1.9; 1.12**).
   The name and IP addresses detected from the system are suggested as default values.
 
     * The *Subject Common Name* must be entered in the format:
@@ -267,7 +272,7 @@ The installation is successful if system services are started and the user inter
   sudo systemctl list-units "xroad-*"
 
   UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
-  xroad-backup-manager.service     loaded active running X-Road backup manager
+  xroad-auxiliary-service.service   loaded active running X-Road auxiliary service
   xroad-base.service               loaded active exited  X-Road initialization
   xroad-confclient.service         loaded active running X-Road confclient
   xroad-monitor.service            loaded active running X-Road Monitor
@@ -276,7 +281,7 @@ The installation is successful if system services are started and the user inter
   xroad-secret-store-local.service loaded active exited  X-Road OpenBao Auto Init Service
   xroad-signer.service             loaded active running X-Road signer
   ```
-* Ensure that the Security Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
+* Ensure that the Security Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.9; 1.7**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.4**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 ### 2.8 Installing the Support for Environmental Monitoring
 

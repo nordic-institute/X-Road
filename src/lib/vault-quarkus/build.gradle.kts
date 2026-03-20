@@ -5,8 +5,6 @@ plugins {
 
 dependencies {
   api(project(":lib:vault-core"))
-  api(project(":lib:rpc-core"))
   api(libs.quarkus.arc)
   api(libs.quarkus.extension.vault)
-  api(libs.quarkus.health)
 }

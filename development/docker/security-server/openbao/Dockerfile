@@ -1,4 +1,4 @@
-FROM openbao/openbao:2.4.1
+FROM openbao/openbao:2.5.1
 
 RUN apk add --no-progress jq bash curl > /dev/null 2>&1
 # creating xroad user and folder to reuse the secret-store-init.sh script

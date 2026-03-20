@@ -43,6 +43,7 @@ public class ConsoleSystemTestRunner extends BaseConsoleTestRunner {
         return new String[]{
                 "compose.main.yaml",
                 "compose.systemtest.yaml",
+                "compose.systemtest.ds.yaml",
                 ".env",
                 "container-files/",
                 "nginx-container-files/",

@@ -62,7 +62,7 @@ jobs:
           label: 'Build environment setup'
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -160,6 +160,13 @@ jobs:
         with:
           name: signer-int-test-jar
           path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
+          compression-level: '0'
+
+      - name: Upload confproxy-int-test
+        uses: actions/upload-artifact@v7
+        with:
+          name: confproxy-int-test-jar
+          path: src/service/configuration-proxy/configuration-proxy-int-test/build/libs/confproxy-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload softtoken-signer-int-test

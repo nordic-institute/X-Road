@@ -32,8 +32,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.confclient.core.ConfigurationClient;
-import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
+import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
+import org.niis.xroad.confclient.common.service.ConfigurationClient;
+import org.niis.xroad.confclient.common.service.ConfigurationClientService;
 import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
 import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
 import org.niis.xroad.confclient.proto.VerificationResult;
@@ -42,8 +43,9 @@ import org.niis.xroad.rpc.common.Empty;
 
 import java.io.FileNotFoundException;
 
-import static org.niis.xroad.confclient.core.ReturnCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
-import static org.niis.xroad.confclient.core.ReturnCodes.RETURN_SUCCESS;
+
+import static org.niis.xroad.confclient.common.domain.ReturnCode.ERROR_CODE_MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.confclient.common.domain.ReturnCode.RETURN_SUCCESS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 
 @RequiredArgsConstructor
@@ -51,7 +53,7 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_
 @ApplicationScoped
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClient configurationClient;
-    private final ConfigurationClientActionExecutor configurationClientActionExecutor;
+    private final ConfigurationClientService configurationClientService;
     private final GlobalConfRpcCache globalConfRpcCache;
     private final ConfigurationAnchorProvider configurationAnchorProvider;
 
@@ -68,9 +70,9 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     @ArchUnitSuppressed("NoVanillaExceptions")
     private VerificationResult verifyAndSaveConfigurationAnchor(byte[] anchorBytes) throws Exception {
         var configurationAnchor = new ConfigurationAnchor(anchorBytes);
-        var paramsValidator = new ConfigurationClientActionExecutor
+        var paramsValidator = new ConfigurationClientService
                 .ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
-        var result = configurationClientActionExecutor.validate(configurationAnchor, paramsValidator);
+        var result = configurationClientService.validate(configurationAnchor, paramsValidator);
         if (result == RETURN_SUCCESS) {
             configurationAnchorProvider.save(anchorBytes);
 
@@ -78,7 +80,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
             globalConfRpcCache.refreshCache();
         }
         return VerificationResult.newBuilder()
-                .setReturnCode(result)
+                .setReturnCode(result.getCode())
                 .build();
     }
 

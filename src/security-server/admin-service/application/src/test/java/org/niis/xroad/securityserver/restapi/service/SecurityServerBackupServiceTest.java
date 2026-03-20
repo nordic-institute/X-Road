@@ -52,7 +52,7 @@ public class SecurityServerBackupServiceTest extends AbstractServiceTestContext 
 
     @Test
     public void addBackupFails() {
-        when(backupManagerRpcClient.createBackup(any(String.class)))
+        when(auxiliaryServiceRpcClient.createBackup(any(String.class)))
                 .thenThrow(new InternalServerErrorException(""));
 
         assertThatThrownBy(() -> backupService.generateBackup())
@@ -62,13 +62,13 @@ public class SecurityServerBackupServiceTest extends AbstractServiceTestContext 
     @Test
     public void restoreFromBackup() {
         backupService.restoreFromBackup(tempBackupFilename);
-        verify(backupManagerRpcClient).restoreFromBackup(eq(tempBackupFilename), anyString());
+        verify(auxiliaryServiceRpcClient).restoreFromBackup(eq(tempBackupFilename), anyString());
     }
 
     @Test
     public void restoreFromNonExistingBackup() {
         doThrow(new NotFoundException(BACKUP_FILE_NOT_FOUND.build("no-backups-here.tar")))
-                .when(backupManagerRpcClient).restoreFromBackup(anyString(), anyString());
+                .when(auxiliaryServiceRpcClient).restoreFromBackup(anyString(), anyString());
         try {
             backupService.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
@@ -80,7 +80,7 @@ public class SecurityServerBackupServiceTest extends AbstractServiceTestContext 
     @Test
     public void restoreFromBackupFail() throws Exception {
         doThrow(new InternalServerErrorException(BACKUP_RESTORATION_FAILED.build()))
-                .when(backupManagerRpcClient).restoreFromBackup(anyString(), anyString());
+                .when(auxiliaryServiceRpcClient).restoreFromBackup(anyString(), anyString());
         try {
             backupService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
@@ -92,7 +92,7 @@ public class SecurityServerBackupServiceTest extends AbstractServiceTestContext 
     @Test
     public void restoreFromBackupNotExecutable() throws Exception {
         doThrow(new InternalServerErrorException(BACKUP_RESTORATION_FAILED.build()))
-                .when(backupManagerRpcClient).restoreFromBackup(anyString(), anyString());
+                .when(auxiliaryServiceRpcClient).restoreFromBackup(anyString(), anyString());
         try {
             backupService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");

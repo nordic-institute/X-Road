@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.util.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;

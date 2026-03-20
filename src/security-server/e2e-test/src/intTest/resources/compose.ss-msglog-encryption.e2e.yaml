@@ -5,6 +5,7 @@ services:
   openbao:
     volumes:
       - ./gpg_keys:/gpg-keys
-  ui:
+  message-log-cli:
     volumes:
       - ./gpg_keys:/gpg-keys
+      - ./msglog_encryption_config:/opt/app/config

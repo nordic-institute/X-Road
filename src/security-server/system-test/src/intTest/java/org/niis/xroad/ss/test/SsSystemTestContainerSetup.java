@@ -53,7 +53,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String CONFIGURATION_CLIENT = "configuration-client";
     public static final String PROXY = "proxy";
     public static final String MONITOR = "monitor";
-    public static final String BACKUP_MANAGER = "backup-manager";
+    public static final String AUXILIARY_SERVICE = "auxiliary-service";
     public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
     public static final String DB_MESSAGELOG = "db-messagelog";
@@ -61,9 +61,12 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String NGINX = "nginx";
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
     public static final String OPENBAO = "openbao";
+    public static final String DS_CONTROL_PLANE = "ds-control-plane";
+    public static final String DS_DATA_PLANE = "ds-data-plane";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
+    private static final String COMPOSE_SYSTEMTEST_DS_FILE = "compose.systemtest.ds.yaml";
 
     private final ObjectMapper objectMapper;
 
@@ -76,29 +79,33 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public ComposeContainer initEnv() {
         return new ComposeContainer("ss-",
                 new File(coreProperties.resourceDir() + COMPOSE_SS_FILE),
-                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_FILE))
+                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_FILE),
+                new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_DS_FILE))
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(PROXY, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(SIGNER, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(CONFIGURATION_CLIENT, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(OP_MONITOR, Port.QUARKUS_HEALTH, forListeningPort())
-                .withExposedService(BACKUP_MANAGER, Port.QUARKUS_HEALTH, forListeningPort())
+                .withExposedService(AUXILIARY_SERVICE, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
                 .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(CONFIGURATION_CLIENT))
                 .withLogConsumer(MONITOR, createLogConsumer(MONITOR))
-                .withLogConsumer(BACKUP_MANAGER, createLogConsumer(BACKUP_MANAGER))
+                .withLogConsumer(AUXILIARY_SERVICE, createLogConsumer(AUXILIARY_SERVICE))
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
                 .withLogConsumer(NGINX, createLogConsumer(NGINX))
-                .withLogConsumer(TESTCA, createLogConsumer(TESTCA));
+                .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
+                .withLogConsumer(DS_DATA_PLANE, createLogConsumer(DS_DATA_PLANE));
     }
 
     @Override
@@ -106,7 +113,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
         //copy nginx files to container to prevent changing local files
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
-        execInContainer(BACKUP_MANAGER, "/etc/xroad/backup-keys/init_backup_encryption.sh");
+        execInContainer(AUXILIARY_SERVICE, "/etc/xroad/backup-keys/init_backup_encryption.sh");
 
         initSelenideRemoteWebDriver();
     }

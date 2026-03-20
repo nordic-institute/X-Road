@@ -29,9 +29,34 @@ package org.niis.xroad.confclient.core.config;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
+import org.niis.xroad.confclient.common.config.ConfigurationClientConfig;
 
 @ConfigMapping(prefix = "xroad.configuration-client")
-public interface ConfigurationClientProperties {
+public interface ConfigurationClientProperties extends ConfigurationClientConfig {
+
+    @WithName(ConfigurationClientConfig.ALLOWED_FEDERATIONS)
+    @WithDefault(ConfigurationClientConfig.ALLOWED_FEDERATIONS_DEFAULT)
+    String allowedFederations();
+
+    @WithName(ConfigurationClientConfig.GLOBAL_CONF_HOSTNAME_VERIFICATION)
+    @WithDefault(ConfigurationClientConfig.GLOBAL_CONF_HOSTNAME_VERIFICATION_DEFAULT)
+    boolean globalConfHostnameVerification();
+
+    @WithName(ConfigurationClientConfig.GLOBAL_CONF_TLS_CERT_VERIFICATION)
+    @WithDefault(ConfigurationClientConfig.GLOBAL_CONF_TLS_CERT_VERIFICATION_DEFAULT)
+    boolean globalConfTlsCertVerification();
+
+    @WithName(ConfigurationClientConfig.DOWNLOADER_CONNECT_TIMEOUT)
+    @WithDefault(ConfigurationClientConfig.DOWNLOADER_CONNECT_TIMEOUT_DEFAULT)
+    int downloaderConnectTimeout();
+
+    @WithName(ConfigurationClientConfig.DOWNLOADER_READ_TIMEOUT)
+    @WithDefault(ConfigurationClientConfig.DOWNLOADER_READ_TIMEOUT_DEFAULT)
+    int downloaderReadTimeout();
+
+    @WithName(ConfigurationClientConfig.GLOBAL_CONF_DIR)
+    @WithDefault(ConfigurationClientConfig.GLOBAL_CONF_DIR_DEFAULT)
+    String globalConfDir();
 
     @WithName("update-interval")
     @WithDefault("60")
@@ -41,44 +66,13 @@ public interface ConfigurationClientProperties {
     @WithDefault("/etc/xroad/configuration-anchor.xml")
     String configurationAnchorFile();
 
-    @WithName("global-conf-dir")
-    @WithDefault("/etc/xroad/globalconf")
-    String globalConfDir();
-
-    @WithName("global-conf-hostname-verification")
-    @WithDefault("true")
-    boolean globalConfHostnameVerification();
-
-    @WithName("global-conf-tls-cert-verification")
-    @WithDefault("true")
-    boolean globalConfTlsCertVerification();
-
     @WithName("configuration-anchor-storage")
     @WithDefault("DB")
     ConfigurationAnchorStorage configurationAnchorStorage();
-
-    @WithName("downloader-connect-timeout")
-    @WithDefault("10000")
-    int downloaderConnectTimeout();
-
-    @WithName("downloader-read-timeout")
-    @WithDefault("30000")
-    int downloaderReadTimeout();
-
-    @WithName("allowed-federations")
-    @WithDefault("NONE")
-    String allowedFederations();
 
     enum ConfigurationAnchorStorage {
         FILE,
         DB
     }
 
-    /**
-     * A constant to describe the X-Road instances this security server federates with.
-     * {@link #CUSTOM} means a list of named, comma-separated X-Road instances to allow.
-     * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
-     * The configurations for those instances won't be downloaded.
-     */
-    enum AllowedFederationMode { ALL, NONE, CUSTOM }
 }

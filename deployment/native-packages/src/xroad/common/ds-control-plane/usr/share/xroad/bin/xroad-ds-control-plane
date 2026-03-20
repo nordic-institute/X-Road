@@ -1,0 +1,4 @@
+#!/bin/bash
+. /etc/xroad/services/ds-control-plane.conf
+
+exec java ${XROAD_PARAMS} ${XROAD_DS_CONTROL_PLANE_PARAMS} -jar /usr/share/xroad/jlib/ds-control-plane/quarkus-run.jar

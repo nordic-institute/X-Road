@@ -58,7 +58,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-auxiliary-service (=${binary:Version}), xroad-message-log-archiver (=${binary:Version}), xroad-ds-control-plane (=${binary:Version}), xroad-ds-data-plane (=${binary:Version}), xroad-ds-identity-hub (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
@@ -74,8 +74,8 @@ Description: X-Road security server
 Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
-Pre-Depends: xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
@@ -160,7 +160,7 @@ Package: xroad-secret-store-local
 Architecture: all
 Conflicts: xroad-secret-store-remote
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
-Depends: jq, gpg, bao (>= 2.0.0), xroad-base (=${binary:Version})
+Depends: jq, gpg, openbao (<< 2.6.0), xroad-base (=${binary:Version})
 Description: Meta-package for X-Road local secret store dependencies
  
 Package: xroad-secret-store-remote
@@ -168,10 +168,31 @@ Architecture: all
 Conflicts: xroad-secret-store-local
 Description: Meta-package for X-Road remote secret store dependencies
 
-Package: xroad-backup-manager
+Package: xroad-auxiliary-service
 Architecture: all
 Replaces: xroad-proxy (<< 7.9.0)
 Breaks: xroad-proxy (<< 7.9.0)
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
-Description: X-Road backup manager
- X-Road backup manager
+Description: X-Road auxiliary service
+ X-Road auxiliary service
+
+Package: xroad-message-log-archiver
+Architecture: all
+Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Description: X-Road message log archiver
+ X-Road message log archiver and cleanup CLI application
+
+Package: xroad-ds-control-plane
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
+Description: X-Road DS Control Plane
+
+Package: xroad-ds-data-plane
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
+Description: X-Road DS Data Plane
+
+Package: xroad-ds-identity-hub
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
+Description: X-Road DS Identity Hub
