@@ -20,16 +20,9 @@ ARGS=(
 )
 
 # Optional changelog properties (PROP_* env vars → --prop-* executor args)
-declare -A PROP_MAP=(
-  [PROP_DB_USER]=db-user
-  [PROP_PROXY_UI_SUPERUSER]=proxy-ui-superuser
-  [PROP_PROXY_UI_SUPERUSER_PASSWORD]=proxy-ui-superuser-password
-)
-for env_var in "${!PROP_MAP[@]}"; do
-  if [[ -n "${!env_var:-}" ]]; then
-    ARGS+=("--prop-${PROP_MAP[$env_var]}=${!env_var}")
-  fi
-done
+[[ -n "${PROP_DB_USER:-}" ]] && ARGS+=("--prop-db-user=$PROP_DB_USER")
+[[ -n "${PROP_PROXY_UI_SUPERUSER:-}" ]] && ARGS+=("--prop-proxy-ui-superuser=$PROP_PROXY_UI_SUPERUSER")
+[[ -n "${PROP_PROXY_UI_SUPERUSER_PASSWORD:-}" ]] && ARGS+=("--prop-proxy-ui-superuser-password=$PROP_PROXY_UI_SUPERUSER_PASSWORD")
 
 # Optional Liquibase contexts
 if [[ -n "${LIQUIBASE_CONTEXTS:-}" ]]; then
