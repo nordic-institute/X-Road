@@ -34,7 +34,6 @@ RUN --mount=type=secret,id=mirror_token \
     fi && \
     curl -fsSL $CURL_AUTH -o /opt/jmx_prometheus_javaagent.jar \
       "${GITHUB_URL}prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_javaagent-1.5.0.jar" && \
-    apt-get -qq purge -y curl && \
     apt-get -qq autoremove -y && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
