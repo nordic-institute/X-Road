@@ -63,7 +63,10 @@ public class ApiSecurityCheckStepDefs extends BaseUiStepDefs {
             "FeignXRoadRestRequestsApi", Set.of("s3c2", "s4c2", "testOas31"),
             "FeignHealthcheckApi", Set.of("getHealthcheck"),
             "FeignInitializationApi", Set.of("initWithHeader", "initSecurityServer"),
-            "FeignBackupsApi", Set.of("uploadBackup"));
+            "FeignBackupsApi", Set.of("uploadBackup"),
+            "feignControlPlaneManagementApi",
+            Set.of("createParticipantContext", "getParticipantContext", "createParticipantContextConfig",
+                    "createAsset", "createPolicyDefinition", "createContractDefinition", "requestCatalog"));
 
     @Autowired
     private ApplicationContext applicationContext;
