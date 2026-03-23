@@ -223,6 +223,7 @@ opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrum
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
 edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc" }
+edc-virtual-controlplane-feature-dcp-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-dcp-bom", version.ref = "edc" }
 
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
