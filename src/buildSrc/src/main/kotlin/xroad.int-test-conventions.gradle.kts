@@ -187,11 +187,6 @@ tasks.jar {
   enabled = false
 }
 
-// Connect build to shadowJar
-tasks.build {
-  dependsOn(tasks.named("shadowJar"))
-}
-
 // Configure shadowJar with common settings
 afterEvaluate {
   if (intTestShadowJar.archiveBaseName.isNotEmpty() && intTestShadowJar.mainClass.isNotEmpty()) {
@@ -208,11 +203,10 @@ afterEvaluate {
       from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
         into("")
       }
-      from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
+      // Let Shadow bundle all intTest dependencies (jars + project class dirs)
+      configurations = listOf(project.configurations["intTestRuntimeClasspath"])
 
       mergeServiceFiles()
-      exclude("**/module-info.class")
-
       manifest {
         attributes(
           "Main-Class" to intTestShadowJar.mainClass.first()

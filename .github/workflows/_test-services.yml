@@ -42,7 +42,7 @@ jobs:
           name: signer-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -79,7 +79,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: signer-int-test
@@ -125,7 +125,7 @@ jobs:
           name: softtoken-signer-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -162,7 +162,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: softtoken-signer-int-test
@@ -208,7 +208,7 @@ jobs:
           name: confproxy-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -245,7 +245,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: confproxy-int-test
@@ -290,7 +290,7 @@ jobs:
           name: opmonitor-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -327,7 +327,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: opmonitor-int-test
@@ -373,7 +373,7 @@ jobs:
           name: cs-admin-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -403,7 +403,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: cs-admin-int-test
@@ -449,7 +449,7 @@ jobs:
           name: cs-management-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -479,7 +479,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: cs-management-int-test

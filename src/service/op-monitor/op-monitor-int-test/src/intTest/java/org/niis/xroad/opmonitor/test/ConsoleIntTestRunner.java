@@ -42,6 +42,7 @@ public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
     protected String[] getResourcesToExtract() {
         return new String[]{
                 "compose.intTest.yaml",
+                "db-init.dockerfile",
                 ".env",
                 "container-container-files/",
                 "test-data/"

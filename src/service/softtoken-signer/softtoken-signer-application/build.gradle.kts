@@ -16,3 +16,7 @@ dependencies {
   implementation(libs.smallrye.config.core)
   implementation(libs.bundles.quarkus.containerized)
 }
+
+tasks.jar {
+  enabled = true
+}

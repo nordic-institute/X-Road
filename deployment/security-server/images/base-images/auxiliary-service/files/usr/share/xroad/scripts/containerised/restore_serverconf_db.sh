@@ -108,26 +108,28 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
           - name: serverconf-liquibase-runner
             image: "${SERVERCONF_INIT_IMAGE}"
             env:
-              - name: LIQUIBASE_COMMAND_URL
+              - name: JDBC_URL
                 value: "jdbc:postgresql://${db_addr}:${db_port}/${db_database}"
-              - name: LIQUIBASE_COMMAND_USERNAME
+              - name: JDBC_USER
                 value: "${db_admin_user}"
-              - name: LIQUIBASE_COMMAND_PASSWORD
+              - name: JDBC_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: db-serverconf
                     key: postgres-password
-              - name: db_schema
+              - name: CHANGELOG
+                value: "serverconf"
+              - name: DEFAULT_SCHEMA_NAME
                 value: "${db_schema}"
-              - name: db_user
+              - name: PROP_DB_USER
                 value: "${db_user}"
 EOF
 
   if [[ "$SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER" == "true" ]]; then
     cat <<EOF
-              - name: PROXY_UI_SUPERUSER
+              - name: PROP_PROXY_UI_SUPERUSER
                 value: "${PROXY_UI_SUPERUSER}"
-              - name: PROXY_UI_SUPERUSER_PASSWORD
+              - name: PROP_PROXY_UI_SUPERUSER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: serverconf-db-init-secret

@@ -18,7 +18,7 @@ intTestComposeEnv {
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",
     "POSTGRES_DEV_IMG" to "postgres-dev",
-    "CONFPROXY_DB_INIT_IMG" to "configuration-proxy-db-init",
+    "DB_INIT_IMG" to "ss-db-init",
     "SIGNER_IMG" to "ss-signer",
     "NGINX_CP_IMG" to "nginx-cp",
     "CONFIGURATION_PROXY_IMG" to "configuration-proxy"

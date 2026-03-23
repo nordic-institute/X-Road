@@ -1,24 +1,3 @@
 plugins {
   java
 }
-
-sourceSets {
-  named("main") {
-    resources {
-      srcDir("../../../service/signer/signer-jpa/src/main/resources/")
-    }
-  }
-}
-
-configurations {
-  create("changelogJar")
-}
-
-tasks.register<Jar>("changelogJar") {
-  archiveClassifier.set("resources")
-  from(sourceSets.main.get().resources)
-}
-
-artifacts {
-  add("changelogJar", tasks.named("changelogJar"))
-}

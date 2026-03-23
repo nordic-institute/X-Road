@@ -184,8 +184,6 @@ EOF
     log "$db_properties is not writable, not updating database properties"
   fi
 
-  cd /usr/share/xroad/db/ || die "Running database migrations failed, please check that directory /usr/share/xroad/db exists"
-
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
     context="--contexts=admin"
@@ -193,13 +191,13 @@ EOF
 
   url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
-  LIQUIBASE_HOME="$(pwd)" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
-    --classpath=/usr/share/xroad/jlib/postgresql.jar \
+  /usr/share/xroad/db/liquibase.sh \
+    --changelog=${db_name} \
     --url="${db_url}${url_concat_string}currentSchema=${db_schema},public" \
-    --changeLogFile=${db_name}-changelog.xml \
     --password="${db_admin_password}" \
     --username="${db_admin_conn_user}" \
     --defaultSchemaName="${db_schema}" \
+    --prop-db-user="${db_user}" \
     $context \
     update ||
     die "Running database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"

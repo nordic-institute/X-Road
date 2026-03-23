@@ -12,9 +12,6 @@ configurations {
     isCanBeConsumed = false
     isCanBeResolved = true
   }
-  create("liquibaseLibs") {
-    apply(plugin = "base")
-  }
 }
 
 dependencies {
@@ -75,15 +72,3 @@ tasks.bootJar {
   }
 }
 
-tasks.register<Copy>("moveLiquibaseLibs") {
-  doFirst {
-    mkdir(layout.buildDirectory.dir("libs"))
-  }
-
-  from(configurations["liquibaseLibs"])
-  into(layout.buildDirectory.dir("libs"))
-}
-
-tasks.build {
-  dependsOn(tasks.named("moveLiquibaseLibs"))
-}

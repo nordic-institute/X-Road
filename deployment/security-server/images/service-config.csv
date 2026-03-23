@@ -14,9 +14,6 @@ ds-control-plane,quarkus/Dockerfile,service/ds-control-plane/ds-control-plane-ap
 ds-data-plane,quarkus/Dockerfile,service/ds-data-plane/ds-data-plane-application,ds-data-plane,build/quarkus-app,base-images/ss-baseline-runtime,-
 ds-identity-hub,quarkus/Dockerfile,service/ds-identity-hub/ds-identity-hub-application,ds-identity-hub,build/quarkus-app,base-images/ss-baseline-runtime,-
 admin-service,admin-service/Dockerfile,security-server/admin-service/application,ss-proxy-ui-api,build/libs,base-images/ss-baseline-runtime,-
+db-init,init-db/Dockerfile,tool/liquibase-executor,ss-db-init,build/libs/,-,-
 configuration-proxy-base,configuration-proxy/Dockerfile,service/configuration-proxy/configuration-proxy-cli,base-images/baseline-configuration-proxy,build/quarkus-app,base-images/ss-baseline-runtime,-
 configuration-proxy,quarkus/Dockerfile,service/configuration-proxy/configuration-proxy-application,configuration-proxy,build/quarkus-app,base-images/baseline-configuration-proxy,-
-db-messagelog-init,init-db/Dockerfile,lib/messagelog-core,ss-db-messagelog-init,build/resources/main/liquibase,-,CHANGELOG_FILE=messagelog-changelog.xml
-db-opmonitor-init,init-db/Dockerfile,service/op-monitor/op-monitor-db,ss-db-opmonitor-init,build/resources/main/liquibase,-,CHANGELOG_FILE=op-monitor-changelog.xml
-db-serverconf-init,init-db/Dockerfile,security-server/admin-service/infra-jpa,ss-db-serverconf-init,build/resources/main/liquibase,-,CHANGELOG_FILE=serverconf-changelog.xml
-db-configuration-proxy-init,init-db/Dockerfile,service/configuration-proxy/configuration-proxy-jpa,configuration-proxy-db-init,build/resources/main/liquibase,-,CHANGELOG_FILE=confproxy-changelog.xml

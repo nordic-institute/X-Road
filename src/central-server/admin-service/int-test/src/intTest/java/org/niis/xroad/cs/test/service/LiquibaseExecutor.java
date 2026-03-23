@@ -34,13 +34,12 @@ import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
-import liquibase.logging.core.AbstractLogService;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
-import liquibase.ui.LoggerUIService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
+import org.niis.xroad.liquibase.LiquibaseSlf4jLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -68,7 +67,7 @@ public class LiquibaseExecutor {
 
     public LiquibaseExecutor(ContainerDatabaseProvider containerDatabaseProvider) {
         this.containerDatabaseProvider = containerDatabaseProvider;
-        this.liquibaseScope = createLiquibaseLoggableScope();
+        this.liquibaseScope = LiquibaseSlf4jLogger.createLoggableScope(LIQUIBASE_LOGGER);
     }
 
     /**
@@ -166,22 +165,5 @@ public class LiquibaseExecutor {
         }
     }
 
-    private Map<String, Object> createLiquibaseLoggableScope() {
-        final Map<String, Object> scopeValues = new HashMap<>();
-        scopeValues.put(Scope.Attr.ui.name(), new LoggerUIService());
-        scopeValues.put(Scope.Attr.logService.name(), new AbstractLogService() {
-            private final LiquibaseSlf4jLogger logger = new LiquibaseSlf4jLogger(LIQUIBASE_LOGGER);
-
-            @Override
-            public int getPriority() {
-                return 1;
-            }
-
-            @Override
-            public liquibase.logging.Logger getLog(Class clazz) {
-                return logger;
-            }
-        });
-        return scopeValues;
-    }
 }
+
