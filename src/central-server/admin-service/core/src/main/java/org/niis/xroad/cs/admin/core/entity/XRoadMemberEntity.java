@@ -84,6 +84,11 @@ public class XRoadMemberEntity extends SecurityServerClientEntity {
     @Setter
     private String administrativeContact;
 
+    @Column(name = "member_did")
+    @Getter
+    @Setter
+    private String memberDid;
+
     @OneToMany(fetch = LAZY, mappedBy = "owner")
     @Access(AccessType.FIELD)
     @Getter
