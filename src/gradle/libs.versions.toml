@@ -40,7 +40,8 @@ testContainers = "2.0.3"
 testAllure = "2.33.0"
 testSelenide = "7.14.0"
 shadowPlugin = "9.3.2"
-edc = "0.17.0-SNAPSHOT"
+edc = "0.16.0"
+edc-v = "0.16.0-20260323-1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -224,7 +225,7 @@ opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrum
 
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
-edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc" }
+edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc-v" }
 
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
@@ -244,7 +245,7 @@ edc-edr-cache-api = { module = "org.eclipse.edc:edr-cache-api", version.ref = "e
 
 edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 
-edcv-tasks-store-poll-executor = { module = "org.eclipse.edc.virtualized:tasks-store-poll-executor", version.ref = "edc" }
+edcv-tasks-store-poll-executor = { module = "org.eclipse.edc.virtualized:tasks-store-poll-executor", version.ref = "edc-v" }
 
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
@@ -297,7 +298,7 @@ edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
-edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc" }
+edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc-v" }
 edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", version.ref = "edc" }
 edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
 edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }

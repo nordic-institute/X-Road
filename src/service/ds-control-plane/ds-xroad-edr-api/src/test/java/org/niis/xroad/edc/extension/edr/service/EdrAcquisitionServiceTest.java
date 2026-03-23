@@ -158,7 +158,7 @@ class EdrAcquisitionServiceTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
-        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(negotiation);
 
         // Stub transfer
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
@@ -261,7 +261,7 @@ class EdrAcquisitionServiceTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
-        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(negotiation);
 
         var future = service.acquireEdr(participantContext, edrRequest);
 
@@ -301,7 +301,7 @@ class EdrAcquisitionServiceTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
-        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(negotiation);
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.unexpected("transfer failed"));
 
@@ -354,7 +354,7 @@ class EdrAcquisitionServiceTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
-        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(negotiation);
 
         // Stub transfer
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
@@ -419,7 +419,7 @@ class EdrAcquisitionServiceTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
-        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(negotiation);
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess));
@@ -482,7 +482,7 @@ class EdrAcquisitionServiceTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
-        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(negotiation);
 
         // Call acquireEdr twice with identical args before any listener fires
         var future1 = service.acquireEdr(participantContext, edrRequest);
@@ -545,7 +545,7 @@ class EdrAcquisitionServiceTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
-        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(negotiation);
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess));

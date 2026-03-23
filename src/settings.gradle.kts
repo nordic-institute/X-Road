@@ -29,19 +29,19 @@ dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     fun getConfig(name: String): String? =
-        System.getenv(name) ?: providers.gradleProperty(name).orNull
+      System.getenv(name) ?: providers.gradleProperty(name).orNull
 
     val mavenUrl = getConfig("XROAD_MIRROR_MAVEN_URL")
-    val username = getConfig("XROAD_MIRROR_USERNAME")
-    val token = getConfig("XROAD_MIRROR_TOKEN")
+    val mirrorUsername = getConfig("XROAD_MIRROR_USERNAME")
+    val mirrorToken = getConfig("XROAD_MIRROR_TOKEN")
 
-    if (!mavenUrl.isNullOrBlank() && !username.isNullOrBlank() && !token.isNullOrBlank()) {
+    if (!mavenUrl.isNullOrBlank() && !mirrorUsername.isNullOrBlank() && !mirrorToken.isNullOrBlank()) {
       maven {
         name = "Mirror"
         url = uri(mavenUrl)
         credentials {
-          this.username = username
-          password = token
+          username = mirrorUsername
+          password = mirrorToken
         }
       }
     } else {
@@ -49,8 +49,18 @@ dependencyResolutionManagement {
     }
     mavenLocal()
     maven {
-      //TODO Remove once EDC-V artifacts are in Maven Central
+      //TODO Remove once org.eclipse.dataplane-core:dataplane-sdk artifacts are in Maven Central
       url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+    }
+    maven {
+      //TODO Remove once EDC-V artifacts are in Maven Central
+      url = uri("https://maven.pkg.github.com/nordic-institute/edc-virtual-connector")
+      credentials {
+        username = providers.gradleProperty("gpr.user").orNull
+          ?: System.getenv("GITHUB_ACTOR")
+        password = providers.gradleProperty("gpr.key").orNull
+          ?: System.getenv("GITHUB_TOKEN")
+      }
     }
   }
 }
