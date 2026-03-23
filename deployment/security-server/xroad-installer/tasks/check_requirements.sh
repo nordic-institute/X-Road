@@ -132,13 +132,13 @@ check_requirements_rhel() {
   if command -v java >/dev/null 2>&1; then
     local java_version
     java_version=$(java -version 2>&1 | head -n 1)
-    if [[ "$java_version" == *"\"21."* ]]; then
-      log_info "Java 21 is the default version."
+    if [[ "$java_version" == *"\"25."* ]]; then
+      log_info "Java 25 is the default version."
     else
-      log_die "Java 21 is NOT the default version (Found: $java_version). Please use 'alternatives --config java' to set it."
+      log_die "Java 25 is NOT the default version (Found: $java_version). Please use 'alternatives --config java' to set it."
     fi
   else
-    log_die "Java is not installed. Java 21 is required (can be installed using 'sudo yum install java-21-openjdk-headless')."
+    log_die "Java is not installed. Java 25 is required (can be installed using 'sudo yum install java-25-openjdk-headless')."
   fi
 }
 

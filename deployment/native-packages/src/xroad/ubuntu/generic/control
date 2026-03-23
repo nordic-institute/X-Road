@@ -30,7 +30,7 @@ Description: X-Road central server
 Package: xroad-base
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
-Depends: ${misc:Depends}, openjdk-21-jre-headless | java21-runtime-headless | java21-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent, bc, python3, python3-yaml
+Depends: ${misc:Depends}, openjdk-25-jre-headless | java25-runtime-headless | java25-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent, bc, python3, python3-yaml
 Description: X-Road base components
  X-Road base components and utilities
 
@@ -65,7 +65,7 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy, xroad-addon-messagelog, xroad-addon-metaservices, xroad-addon-proxymonitor, xroad-addon-wsdlvalidator, xroad-addon-opmonitoring
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
+Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-25-jre-headless | java25-runtime-headless | java25-runtime
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Replaces: xroad-addon-messagelog, xroad-addon-metaservices, xroad-addon-proxymonitor, xroad-addon-wsdlvalidator, xroad-addon-opmonitoring
 Description: X-Road security server

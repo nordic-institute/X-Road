@@ -1,7 +1,8 @@
 ARG DOCKER_REGISTRY=""
-FROM ${DOCKER_REGISTRY}eclipse-temurin:25-jre-noble
+FROM ${DOCKER_REGISTRY}eclipse-temurin:25-jre-alpine
 
-RUN groupadd -g 1001 liquibase && useradd -u 1001 -g liquibase -m -s /bin/bash liquibase \
+RUN apk add --no-cache bash \
+    && addgroup -g 1001 liquibase && adduser -u 1001 -G liquibase -h /home/liquibase -s /bin/bash -D liquibase \
     && mkdir -p /var/log/xroad && chown liquibase:liquibase /var/log/xroad
 
 COPY --from=build-artifacts /liquibase-executor.jar /app/liquibase-executor.jar

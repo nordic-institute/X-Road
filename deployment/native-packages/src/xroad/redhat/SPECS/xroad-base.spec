@@ -17,7 +17,7 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-Requires:  jre-21-headless, tzdata-java
+Requires:  jre-25-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl, bc, python3, python3-pyyaml
 
 %define src %{_topdir}/..
@@ -109,16 +109,16 @@ fi
 
 %define set_default_java_version()                                                                                         \
   if [ $1 -ge 1 ] ; then                                                                                                \
-    `# Check that the default java version is at least 21`                                                       \
+    `# Check that the default java version is at least 25`                                                       \
     java_version_supported() {                                                                                          \
       local java_exec=$1                                                                                                \
       local java_version=$("$java_exec" -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)                 \
-      [[ $java_version -ge 21 ]]                                                                                        \
+      [[ $java_version -ge 25 ]]                                                                                        \
     }                                                                                                                   \
     if ! java_version_supported /etc/alternatives/java; then                                                            \
-      if [ -x /etc/alternatives/jre_21/bin/java ] && java_version_supported /etc/alternatives/jre_21/bin/java; then     \
-        echo "Configuring Java 21 as the default version..."                                                            \
-        alternatives --set java $(readlink -f /etc/alternatives/jre_21)/bin/java                                        \
+      if [ -x /etc/alternatives/jre_25/bin/java ] && java_version_supported /etc/alternatives/jre_25/bin/java; then     \
+        echo "Configuring Java 25 as the default version..."                                                            \
+        alternatives --set java $(readlink -f /etc/alternatives/jre_25)/bin/java                                        \
       else                                                                                                              \
         echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2   \
       fi                                                                                                                 \
