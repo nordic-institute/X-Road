@@ -57,7 +57,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/edr")
+@Path("/v4alpha/participants/{participantContextId}/edr")
 @RequiredArgsConstructor
 public class XRoadEdrApiController {
 

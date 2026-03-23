@@ -49,7 +49,7 @@ import static org.niis.xroad.e2e.EnvSetup.DS_CONTROL_PLANE;
 
 public class DsStepDefs extends BaseE2EStepDefs {
 
-    private static final String BASE_URL = "http://%s:%d/api/mgmt/v5alpha/participants";
+    private static final String BASE_URL = "http://%s:%d/api/mgmt/v4alpha/participants";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
 
