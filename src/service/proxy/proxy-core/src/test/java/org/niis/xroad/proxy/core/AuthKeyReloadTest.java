@@ -93,8 +93,10 @@ public class AuthKeyReloadTest extends AbstractProxyIntegrationTest {
         assertThat(serverCertificates.stream().distinct().count()).isEqualTo(2);
     }
 
+    // Since JDK-8357033 (Java 25), TLS session tickets no longer cache local certificates,
+    // so the server's AuthKeyManager picks up the new key material without an explicit reload.
     @Test
-    public void serverProxyReplaceAuthKeyWithoutServerProxyReload() {
+    public void serverProxyAuthKeyChangeIsPickedUpWithoutReload() {
         doRequestAndExpect(SUCCESSFUL_RESPONSE);
 
         replaceAuthKey(serverKeyConf);
@@ -103,8 +105,7 @@ public class AuthKeyReloadTest extends AbstractProxyIntegrationTest {
 
         var serverCertificates = clientAuthTrustVerifier.getVerifiedCertificates();
         assertThat(serverCertificates).hasSize(2);
-        assertThat(serverCertificates.stream().distinct().count()).isEqualTo(1);
-
+        assertThat(serverCertificates.stream().distinct().count()).isEqualTo(2);
     }
 
     @AfterEach

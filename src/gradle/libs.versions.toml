@@ -30,9 +30,9 @@ protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.14"
 resilience4j = "2.3.0"
-quarkus = "3.32.1"
-quarkus-vault = "4.5.0"
-smallryeConfig = "3.15.1"
+quarkus = "3.32.4"
+quarkus-vault = "4.6.0"
+smallryeConfig = "3.16.0"
 microprofile = "3.1"
 feign = "13.9.2"
 testCucumber = "7.34.2"
@@ -296,7 +296,7 @@ edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sq
 edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version = "0.0.6-SNAPSHOT" }
 
 #Gradle plugins
-archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "4.0.0" }
+archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "5.0.1" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version = "4.0.0" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
