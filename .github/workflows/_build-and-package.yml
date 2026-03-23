@@ -140,6 +140,7 @@ jobs:
       - name: Build and test source
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: ./src
         run: |
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -Pfrontend-npm-audit --parallel -Dorg.gradle.workers.max=6 \
