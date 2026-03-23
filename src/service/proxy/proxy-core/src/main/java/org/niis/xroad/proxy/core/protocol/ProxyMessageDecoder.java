@@ -30,10 +30,10 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
@@ -199,7 +199,7 @@ public class ProxyMessageDecoder {
     }
 
     private void parseFault(InputStream is) throws IOException {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxEventSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
             throw XrdRuntimeException.systemException(INVALID_MESSAGE,
                     "Expected fault message, but got reqular SOAP message");
@@ -360,7 +360,7 @@ public class ProxyMessageDecoder {
                             "Invalid content type for SOAP message: %s".formatted(bd.getMimeType()));
             }
 
-            Soap soap = new SaxSoapParserImpl().parse(partContentType, is);
+            Soap soap = new StaxEventSoapParserImpl().parse(partContentType, is);
             if (soap instanceof SoapFault) {
                 callback.fault((SoapFault) soap);
             } else {
@@ -525,7 +525,7 @@ public class ProxyMessageDecoder {
                     // party sent SOAP fault instead of signature.
 
                     // Parse the fault message.
-                    Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
+                    Soap soap = new StaxEventSoapParserImpl().parse(bd.getMimeType(), is);
                     if (soap instanceof SoapFault) {
                         callback.fault((SoapFault) soap);
                         return; // The nextPart will be set to NONE
