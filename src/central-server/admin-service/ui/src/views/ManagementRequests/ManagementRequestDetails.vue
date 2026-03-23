@@ -49,15 +49,15 @@
 
     <MrInformation :management-request="managementRequest" :loading />
     <v-container fluid class="management-request-additional-details pa-0 mt-6">
-      <v-row justify="start">
+      <v-row class="justify-start">
         <v-col class="pa-2">
-          <MrSecurityServerInformation class="fill-height" :management-request="managementRequest" :loading />
+          <MrSecurityServerInformation class="h-100" :management-request="managementRequest" :loading />
         </v-col>
         <v-col v-if="hasClientInfo" class="pa-2">
-          <MrClientInformation class="fill-height" :management-request="managementRequest" :loading />
+          <MrClientInformation class="h-100" :management-request="managementRequest" :loading />
         </v-col>
         <v-col v-if="hasCertificateInfo" class="pa-2">
-          <MrCertificateInformation class="fill-height" :management-request="managementRequest" :loading />
+          <MrCertificateInformation class="h-100" :management-request="managementRequest" :loading />
         </v-col>
         <v-spacer v-if="onlyServerInfo" />
       </v-row>

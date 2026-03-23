@@ -41,13 +41,13 @@
             {{ $t('globalConf.trustedAnchor.dialog.upload.info') }}
           </v-col>
         </v-row>
-        <v-row no-gutters>
+        <v-row gap="0">
           <v-col class="font-weight-bold" cols="12" sm="3">
             {{ $t('globalConf.trustedAnchor.dialog.upload.field.hash') }}
           </v-col>
           <v-col cols="12" sm="9">{{ preview.hash }}</v-col>
         </v-row>
-        <v-row no-gutters>
+        <v-row gap="0">
           <v-col class="font-weight-bold" cols="12" sm="3">
             {{ $t('globalConf.trustedAnchor.dialog.upload.field.generated') }}
           </v-col>
