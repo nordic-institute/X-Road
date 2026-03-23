@@ -15,7 +15,6 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
 
   runtimeOnly(libs.edc.bom.identityhub)
-  runtimeOnly(libs.edc.bom.issuerservice)
   runtimeOnly(libs.edc.core.participantcontext.config)
 
 }
