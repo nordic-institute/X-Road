@@ -30,12 +30,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RequestHash;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -461,7 +461,7 @@ public class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(jRequest.getContentType(),
-                    handler, new SaxSoapParserImpl());
+                    handler, new StaxEventSoapParserImpl());
             try {
                 originalSoapAction = SoapUtils.validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
                 soapMessageDecoder.parse(jRequest.getInputStream());
