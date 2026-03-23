@@ -155,6 +155,8 @@ include("service:ds-data-plane:ds-xroad-data-plane")
 include("service:ds-identity-hub")
 include("service:ds-identity-hub:ds-identity-hub-application")
 include("service:ds-identity-hub:ds-identity-hub-db")
+include("service:ds-issuance-service")
+include("service:ds-issuance-service:ds-issuance-service-application")
 
 // Tool projects
 include("tool")
