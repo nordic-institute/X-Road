@@ -56,8 +56,8 @@ public class IdentityHubParticipantContextInitExtension implements ServiceExtens
     }
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-        this.context = context;
+    public void initialize(ServiceExtensionContext ctx) {
+        this.context = ctx;
     }
 
     @Override

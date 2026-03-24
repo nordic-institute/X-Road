@@ -33,10 +33,17 @@ web:
     path: /api
     statuslist:
       port: "9998" # default 9999 conflicts with debug port
+    did:
+      port: "10100"
+      path: /
 
 
 edc:
   hostname: ${HOSTNAME}
+  ih:
+    did:
+      public:
+        hostname: ${EDC_IH_DID_PUBLIC_HOSTNAME:${HOSTNAME:localhost}}
   datasource:
     default:
       url: ${xroad.db.ds-identity-hub.hibernate.connection.url}
