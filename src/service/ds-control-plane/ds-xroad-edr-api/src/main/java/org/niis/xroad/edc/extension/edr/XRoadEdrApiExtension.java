@@ -58,10 +58,10 @@ import org.niis.xroad.edc.extension.edr.transform.JsonObjectToDistributionTransf
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
-@Extension(value = XRoadEdrApiExtension.NAME)
+@Extension(value = XRoadEdrApiExtension.EXTENSION_NAME)
 public class XRoadEdrApiExtension implements ServiceExtension {
 
-    public static final String NAME = "X-Road EDR Api Extension";
+    public static final String EXTENSION_NAME = "X-Road EDR Api Extension";
 
     @Inject
     private WebService webService;
@@ -110,18 +110,17 @@ public class XRoadEdrApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return NAME;
+        return EXTENSION_NAME;
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor.info("Initializing extension: " + NAME);
+        monitor.info("Initializing extension: " + EXTENSION_NAME);
         var edrTransformerRegistry = transformerRegistry.forContext("xrd-edr-api");
         edrTransformerRegistry.register(new JsonObjectToCatalogTransformer());
         edrTransformerRegistry.register(new JsonObjectToDatasetTransformer());
         edrTransformerRegistry.register(new JsonObjectToDataServiceTransformer());
         edrTransformerRegistry.register(new JsonObjectToDistributionTransformer());
-//        new JsonValueToGenericTypeTransformer();
         OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(edrTransformerRegistry::register);
 
         var negotiationCompletionListener = new NegotiationCompletionListener();
@@ -145,8 +144,5 @@ public class XRoadEdrApiExtension implements ServiceExtension {
 
         var controller = new XRoadEdrApiController(service, authorizationService, participantContextService);
         webService.registerResource(ApiContext.MANAGEMENT, controller);
-//        webService.registerDynamicResource(ApiContext.MANAGEMENT, XRoadEdrApiController.class,
-//                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4,
-//                validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 }

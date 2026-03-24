@@ -45,12 +45,12 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.niis.xroad.edc.extension.policy.controlplane.XRoadControlPlanePolicyExtension.NAME;
+import static org.niis.xroad.edc.extension.policy.controlplane.XRoadControlPlanePolicyExtension.EXTENSION_NAME;
 
-@Extension(value = NAME)
+@Extension(value = EXTENSION_NAME)
 public class XRoadControlPlanePolicyExtension implements ServiceExtension {
 
-    public static final String NAME = "X-Road Control Plane Policy extension";
+    public static final String EXTENSION_NAME = "X-Road Control Plane Policy extension";
 
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
@@ -72,7 +72,7 @@ public class XRoadControlPlanePolicyExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return NAME;
+        return EXTENSION_NAME;
     }
 
     @Override

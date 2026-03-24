@@ -58,14 +58,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
-import static org.niis.xroad.edc.extension.policy.dataplane.XRoadDataPlanePolicyExtension.NAME;
+import static org.niis.xroad.edc.extension.policy.dataplane.XRoadDataPlanePolicyExtension.EXTENSION_NAME;
 import static org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext.XROAD_DATAPLANE_TRANSFER_SCOPE;
 
-@Extension(value = NAME)
+@Extension(value = EXTENSION_NAME)
 @Provides({IdentityService.class, DataPlaneAccessControlService.class})
 public class XRoadDataPlanePolicyExtension implements ServiceExtension {
 
-    public static final String NAME = "X-Road Data Plane Policy extension";
+    public static final String EXTENSION_NAME = "X-Road Data Plane Policy extension";
 
     @Setting(value = "DataPlane selector api URL", required = true)
     static final String CONTROL_PLANE_MANAGEMENT_URL_SETTING = "edc.controlplane.management.url";
@@ -99,7 +99,7 @@ public class XRoadDataPlanePolicyExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return NAME;
+        return EXTENSION_NAME;
     }
 
     @Override

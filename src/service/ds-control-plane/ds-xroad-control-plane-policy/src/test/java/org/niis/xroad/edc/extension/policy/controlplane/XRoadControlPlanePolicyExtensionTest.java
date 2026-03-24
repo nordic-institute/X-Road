@@ -73,7 +73,7 @@ class XRoadControlPlanePolicyExtensionTest {
 
     @Test
     void nameReturnsExpectedValue() {
-        assertThat(extension.name()).isEqualTo(XRoadControlPlanePolicyExtension.NAME);
+        assertThat(extension.name()).isEqualTo(XRoadControlPlanePolicyExtension.EXTENSION_NAME);
     }
 
     @Test
