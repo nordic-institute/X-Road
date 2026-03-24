@@ -34,4 +34,5 @@ dependencies {
 
   runtimeOnly(libs.edc.core.sql.bootstrapper)  //TODO runs DML on startup. move to different module?
   runtimeOnly(libs.bundles.edc.dcp)
+  runtimeOnly(libs.edc.virtual.controlplane.feature.dcp.bom)
 }
