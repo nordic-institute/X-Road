@@ -49,11 +49,7 @@ dependencyResolutionManagement {
     }
     mavenLocal()
     maven {
-      //TODO Remove once org.eclipse.dataplane-core:dataplane-sdk artifacts are in Maven Central
-      url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-    }
-    maven {
-      //TODO Remove once EDC-V artifacts are in Maven Central
+      //TODO Remove once EDC-V and org.eclipse.dataplane-core:dataplane-sdk artifacts are in Maven Central
       url = uri("https://artifactory.niis.org/artifactory/xroad-external-snapshots/")
     }
   }
