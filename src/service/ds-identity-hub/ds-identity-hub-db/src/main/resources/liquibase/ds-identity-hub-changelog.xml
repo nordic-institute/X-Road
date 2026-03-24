@@ -5,4 +5,199 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
+    <changeSet id="1" author="xroad">
+        <sql splitStatements="false">
+-- only intended for and tested with Postgres!
+CREATE TABLE IF NOT EXISTS participant_context
+(
+    participant_context_id VARCHAR PRIMARY KEY NOT NULL, -- ID of the ParticipantContext
+    identity               VARCHAR UNIQUE NOT NULL,      -- identity of the Participant
+    created_date           BIGINT              NOT NULL, -- POSIX timestamp of the creation of the PC
+    last_modified_date     BIGINT,                       -- POSIX timestamp of the last modified date
+    state                  INTEGER             NOT NULL, -- 0 = CREATED, 1 = ACTIVE, 2 = DEACTIVATED
+    properties             JSON DEFAULT '{}'             -- JSON object containing additional information, such as OAuth2 client secret aliases
+);
+CREATE UNIQUE INDEX IF NOT EXISTS participant_context_participant_context_id_uindex ON participant_context USING btree (participant_context_id);
+        </sql>
+    </changeSet>
+
+    <changeSet id="2" author="xroad">
+        <sql splitStatements="false">
+-- only intended for and tested with Postgres!
+CREATE TABLE IF NOT EXISTS edc_participant_context_config
+(
+    participant_context_id VARCHAR PRIMARY KEY NOT NULL, -- ID of the ParticipantContext
+    created_date           BIGINT              NOT NULL, -- POSIX creation timestamp of the PC
+    last_modified_date     BIGINT,                       -- POSIX timestamp of the last modified date
+    entries                JSON DEFAULT '{}',            -- JSON object containing the configuration data
+    private_entries        JSON DEFAULT '{}'             -- JSON object containing sensitive configuration data
+);
+        </sql>
+    </changeSet>
+
+    <changeSet id="3" author="xroad">
+        <sql splitStatements="false">
+-- only intended for and tested with Postgres!
+CREATE TABLE IF NOT EXISTS keypair_resource
+(
+    id                     VARCHAR PRIMARY KEY NOT NULL,               -- primary key
+    participant_context_id VARCHAR,                                    -- ID of the owning ParticipantContext. this is a loose business key, not a FK!
+    timestamp              BIGINT              NOT NULL,               -- creation timestamp
+    key_id                 VARCHAR             NOT NULL,               -- name/key-id of this key pair. for use in JWTs etc.
+    group_name             VARCHAR,
+    is_default_pair        BOOLEAN                      DEFAULT FALSE, -- whether this keypair is the default one for a participant context
+    use_duration           BIGINT,                                     -- maximum time this keypair can be active before it gets rotated
+    rotation_duration      BIGINT,                                     -- duration during which this keypair is in a transitional state (rotated, not yet deactivated)
+    serialized_public_key  VARCHAR             NOT NULL,               -- serialized public key (PEM, JWK,...)
+    private_key_alias      VARCHAR             NOT NULL,               -- alias under which the private key is stored in the HSM/Vault
+    state                  INT                 NOT NULL DEFAULT 100,   -- KeyPairState
+    key_context            VARCHAR,                                    -- the key context, will end up in the VerificationMethod of the DID Document
+    usage                  VARCHAR             NOT NULL                -- array of usages for this key pair
+);
+        </sql>
+    </changeSet>
+
+    <changeSet id="4" author="xroad">
+        <sql splitStatements="false">
+-- only intended for and tested with Postgres!
+CREATE TABLE IF NOT EXISTS did_resources
+(
+    did              VARCHAR NOT NULL,
+    create_timestamp BIGINT  NOT NULL,
+    state_timestamp  BIGINT  NOT NULL,
+    state            INT     NOT NULL,
+    did_document     JSON    NOT NULL,
+    participant_context_id   VARCHAR,
+    PRIMARY KEY (did)
+);
+        </sql>
+    </changeSet>
+
+    <changeSet id="5" author="xroad">
+        <sql splitStatements="false">
+-- only intended for and tested with Postgres!
+CREATE TABLE IF NOT EXISTS credential_resource
+(
+    id                     VARCHAR PRIMARY KEY NOT NULL, -- ID of the VC, duplicated here for indexing purposes
+    create_timestamp       BIGINT              NOT NULL, -- POSIX timestamp of the creation of the VC
+    issuer_id              VARCHAR             NOT NULL,
+    holder_id              VARCHAR             NOT NULL,
+    vc_state               INTEGER             NOT NULL,
+    metadata               JSON DEFAULT '{}',
+    issuance_policy        JSON,
+    reissuance_policy      JSON,
+    raw_vc                 VARCHAR,                      -- Representation of the VC exactly as it was received by the issuer. Can be JWT or JSON(-LD)
+    vc_format              INTEGER             NOT NULL, -- 0 = JSON-LD, 1 = JWT
+    verifiable_credential  JSON                NOT NULL, -- JSON-representation of the verifiable credential
+    participant_context_id VARCHAR,                      -- ID of the ParticipantContext that owns this credentials
+    usage                  VARCHAR             NOT NULL  -- 'holder', 'statuslist' or 'issuancetracking'
+);
+CREATE UNIQUE INDEX IF NOT EXISTS credential_resource_credential_id_uindex ON credential_resource USING btree (id);
+COMMENT ON COLUMN credential_resource.id IS 'ID of the VC, duplicated here for indexing purposes';
+COMMENT ON COLUMN credential_resource.raw_vc IS 'Representation of the VC exactly as it was received by the issuer. Can be JWT or JSON(-LD) ';
+COMMENT ON COLUMN credential_resource.vc_format IS '0 = JSON-LD, 1 = JWT';
+COMMENT ON COLUMN credential_resource.verifiable_credential IS 'JSON-representation of the VerifiableCredential';
+        </sql>
+    </changeSet>
+
+    <changeSet id="6" author="xroad">
+        <sql splitStatements="false">
+-- only intended for and tested with Postgres!
+CREATE TABLE IF NOT EXISTS edc_lease
+(
+    leased_by         VARCHAR NOT NULL,
+    leased_at         BIGINT,
+    lease_duration    INTEGER NOT NULL,
+    resource_id       VARCHAR NOT NULL,
+    resource_kind     VARCHAR NOT NULL,
+    PRIMARY KEY(resource_id, resource_kind)
+);
+
+COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
+COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
+
+
+CREATE TABLE IF NOT EXISTS edc_holder_credentialrequest
+(
+    id                     VARCHAR           NOT NULL PRIMARY KEY, -- this is also the holderPid
+    state                  INTEGER           NOT NULL,
+    state_count            INTEGER DEFAULT 0 NOT NULL,
+    state_time_stamp       BIGINT,
+    created_at             BIGINT            NOT NULL,
+    updated_at             BIGINT            NOT NULL,
+    trace_context          JSON,
+    error_detail           VARCHAR,
+    pending                BOOLEAN DEFAULT FALSE,
+    participant_context_id VARCHAR           NOT NULL,
+    issuer_did             VARCHAR           NOT NULL,
+    ids_and_formats        JSON              NOT NULL,
+    issuer_pid             VARCHAR
+);
+
+
+-- This will help to identify states that need to be transitioned without a table scan when the entries grow
+CREATE INDEX IF NOT EXISTS issuance_process_state ON edc_holder_credentialrequest (state, state_time_stamp);
+        </sql>
+    </changeSet>
+
+    <changeSet id="7" author="xroad">
+        <sql splitStatements="false">
+-- only intended for and tested with Postgres!
+CREATE TABLE IF NOT EXISTS edc_lease
+(
+    leased_by         VARCHAR NOT NULL,
+    leased_at         BIGINT,
+    lease_duration    INTEGER NOT NULL,
+    resource_id       VARCHAR NOT NULL,
+    resource_kind     VARCHAR NOT NULL,
+    PRIMARY KEY(resource_id, resource_kind)
+);
+
+COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
+COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
+
+
+CREATE TABLE IF NOT EXISTS edc_credential_offers
+(
+    id                     VARCHAR NOT NULL PRIMARY KEY, -- this is also the holderPid
+    state                  INTEGER NOT NULL,
+    state_count            INTEGER          DEFAULT 0 NOT NULL,
+    state_time_stamp       BIGINT,
+    created_at             BIGINT  NOT NULL,
+    updated_at             BIGINT  NOT NULL,
+    trace_context          JSON,
+    error_detail           VARCHAR,
+    participant_context_id VARCHAR NOT NULL,
+    issuer_did             VARCHAR NOT NULL,
+    credentials            JSON    NOT NULL DEFAULT '{}'
+);
+
+
+-- This will help to identify states that need to be transitioned without a table scan when the entries grow
+CREATE INDEX IF NOT EXISTS credential_offer_state ON edc_credential_offers (state, state_time_stamp);
+        </sql>
+    </changeSet>
+
+    <changeSet id="8" author="xroad">
+        <sql splitStatements="false">
+-- THIS SCHEMA HAS BEEN WRITTEN AND TESTED ONLY FOR POSTGRES
+
+-- table: edc_sts_client
+
+CREATE TABLE IF NOT EXISTS edc_sts_client
+(
+    id                     VARCHAR NOT NULL PRIMARY KEY,
+    client_id              VARCHAR NOT NULL,
+    did                    VARCHAR NOT NULL,
+    name                   VARCHAR NOT NULL,
+    secret_alias           VARCHAR NOT NULL,
+    created_at             BIGINT  NOT NULL,
+    participant_context_id VARCHAR NOT NULL
+);
+
+
+CREATE UNIQUE INDEX IF NOT EXISTS sts_client_client_id_index ON edc_sts_client (client_id);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
