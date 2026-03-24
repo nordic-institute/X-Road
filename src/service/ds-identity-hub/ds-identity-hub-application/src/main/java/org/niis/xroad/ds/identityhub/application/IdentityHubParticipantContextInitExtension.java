@@ -27,6 +27,7 @@
 
 package org.niis.xroad.ds.identityhub.application;
 
+import org.eclipse.edc.iam.decentralizedclaims.sts.spi.service.StsAccountService;
 import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
@@ -45,8 +46,13 @@ public class IdentityHubParticipantContextInitExtension implements ServiceExtens
 
     public static final String NAME = "Identity Hub Participant Context Init Extension";
 
+    private static final String STS_CLIENT_SECRET_ALIAS = "ds-cp-sts-client-secret";
+
     @Inject
     private IdentityHubParticipantContextService participantContextService;
+
+    @Inject
+    private StsAccountService stsAccountService;
 
     private ServiceExtensionContext context;
 
@@ -65,12 +71,6 @@ public class IdentityHubParticipantContextInitExtension implements ServiceExtens
         var publicHostname = context.getSetting("edc.ih.did.public.hostname",
                 context.getSetting("edc.hostname", "localhost"));
         var participantId = "did:web:" + publicHostname;
-
-        var existing = participantContextService.getParticipantContext(participantId);
-        if (existing.succeeded()) {
-            context.getMonitor().info("Participant context already exists for '%s', skipping creation.".formatted(participantId));
-            return;
-        }
 
         var credentialServiceUrl = "https://" + publicHostname + "/api/credentials/v1/participants/"
                 + URLEncoder.encode(participantId, StandardCharsets.UTF_8);
@@ -91,12 +91,40 @@ public class IdentityHubParticipantContextInitExtension implements ServiceExtens
                         .build())
                 .build();
 
-        var result = participantContextService.createParticipantContext(manifest);
-        if (result.failed()) {
-            context.getMonitor().warning("Failed to create participant context for '%s': %s"
-                    .formatted(participantId, result.getFailureDetail()));
+        var existing = participantContextService.getParticipantContext(participantId);
+        if (existing.succeeded()) {
+            context.getMonitor().info("Participant context already exists for '%s', skipping creation."
+                    .formatted(participantId));
         } else {
-            context.getMonitor().info("Participant context created successfully for '%s'.".formatted(participantId));
+            var result = participantContextService.createParticipantContext(manifest);
+            if (result.failed()) {
+                context.getMonitor().warning("Failed to create participant context for '%s': %s"
+                        .formatted(participantId, result.getFailureDetail()));
+                return;
+            }
+            context.getMonitor().info("Participant context created successfully for '%s'."
+                    .formatted(participantId));
+        }
+
+        // Register STS client account (idempotent)
+        registerStsClient(participantId, manifest);
+    }
+
+    private void registerStsClient(String participantId, ParticipantManifest manifest) {
+        var existingAccount = stsAccountService.findByClientId(participantId);
+        if (existingAccount.succeeded()) {
+            context.getMonitor().info("STS client account already exists for '%s', skipping."
+                    .formatted(participantId));
+            return;
+        }
+
+        var accountResult = stsAccountService.createAccount(manifest, STS_CLIENT_SECRET_ALIAS);
+        if (accountResult.failed()) {
+            context.getMonitor().warning("Failed to register STS client for '%s': %s"
+                    .formatted(participantId, accountResult.getFailureDetail()));
+        } else {
+            context.getMonitor().info("STS client account registered for '%s' with secret alias '%s'."
+                    .formatted(participantId, STS_CLIENT_SECRET_ALIAS));
         }
     }
 }

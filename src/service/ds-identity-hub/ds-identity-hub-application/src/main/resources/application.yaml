@@ -36,6 +36,9 @@ web:
     did:
       port: "10100"
       path: /
+    sts:
+      port: "9292"
+      path: /api/sts
 
 
 edc:

@@ -17,6 +17,7 @@ dependencies {
   implementation(libs.edc.spi.identityhub.participantcontext)
   implementation(libs.edc.spi.identity.did)
   implementation(libs.edc.spi.core)
+  implementation(libs.edc.spi.sts)
 
   runtimeOnly(libs.edc.bom.identityhub)
   runtimeOnly(libs.edc.core.participantcontext.config)
