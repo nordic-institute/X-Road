@@ -35,10 +35,10 @@ web:
 
 edc:
   participant:
-    id: participantContextId
+    id: "did:web:${HOSTNAME}"
   dsp:
     callback:
-      address: http://${HOSTNAME}:8282/api/dsp
+      address: "http://${HOSTNAME}:8282/api/dsp"
   hostname: ${HOSTNAME}
   component:
     id: DSP-compatibility-test
@@ -60,7 +60,14 @@ edc:
     schema:
       autocreate: true
   iam:
-    oauth2:
-      jwks:
-        url: https://example.com/jwks
-      issuer: test-issuer
+    sts:
+      oauth:
+        token:
+          url: "http://ds-identity-hub:9292/api/sts/token"
+        client:
+          id: "did:web:${HOSTNAME}"
+          secret:
+            alias: ds-cp-sts-client-secret
+    trustedissuer:
+      xroad-cs:
+        id: "${EDC_TRUSTED_ISSUER_DID:}"
