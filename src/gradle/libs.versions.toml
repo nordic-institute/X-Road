@@ -227,6 +227,7 @@ edc-virtual-controlplane-feature-dcp-bom = { module = "org.eclipse.edc.virtualiz
 
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
+edc-crypto-verifiablecredentials = { module = "org.eclipse.edc:verifiable-credentials", version.ref = "edc" }
 edc-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
 edc-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
@@ -271,6 +272,7 @@ edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "e
 edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
 edc-spi-identityhub-participantcontext = { module = "org.eclipse.edc:participant-context-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
+edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
@@ -278,6 +280,7 @@ edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
+edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-iam-dcp-trustedissuers = { module = "org.eclipse.edc:decentralized-claims-issuers-configuration", version.ref = "edc" }
@@ -309,13 +312,14 @@ metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 edc-dcp = [
-#  "edc-crypto-verifiablecredentials-jwt",
-#  "edc-crypto-verifiablecredentials-ldp",
-#  "edc-iam-dcp-core",
+  "edc-crypto-verifiablecredentials-jwt",
+  "edc-crypto-verifiablecredentials-ldp",
+  "edc-crypto-verifiablecredentials",
+  "edc-iam-dcp-core",
   "edc-oauth2-client",
-#  "edc-iam-decentralized",
-#  "edc-iam-dcp-trustedissuers",
-  "edc-iam-mock"
+  "edc-iam-decentralized",
+  "edc-iam-dcp-trustedissuers",
+  "edc-iam-dcp-cel"
 ]
 edc-connector = [
   "edc-boot",
