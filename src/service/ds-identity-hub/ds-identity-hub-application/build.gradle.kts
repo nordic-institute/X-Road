@@ -14,6 +14,10 @@ dependencies {
 
   implementation(libs.bundles.quarkus.containerized)
 
+  implementation(libs.edc.spi.identityhub.participantcontext)
+  implementation(libs.edc.spi.identity.did)
+  implementation(libs.edc.spi.core)
+
   runtimeOnly(libs.edc.bom.identityhub)
   runtimeOnly(libs.edc.core.participantcontext.config)
 
