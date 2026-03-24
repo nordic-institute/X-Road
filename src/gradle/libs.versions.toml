@@ -41,7 +41,7 @@ testAllure = "2.33.0"
 testSelenide = "7.14.0"
 shadowPlugin = "9.3.2"
 edc = "0.16.0"
-edc-v = "0.16.0-20260323-1"
+edc-v = "0.16.0-20260323-1-SNAPSHOT"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }

@@ -58,8 +58,8 @@ tasks.openApiGenerate {
 
 apiValidationParameters {
   apiDefinitionPaths = listOf(
-    "$projectDir/src/main/resources/META-INF/openapi-definition.yaml".toString(),
-    "$projectDir/src/main/resources/META-INF/openapi-authentication.yaml".toString()
+    "$projectDir/src/main/resources/META-INF/openapi-definition.yaml",
+    "$projectDir/src/main/resources/META-INF/openapi-authentication.yaml"
   )
 }
 

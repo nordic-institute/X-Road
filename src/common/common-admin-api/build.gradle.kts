@@ -80,14 +80,13 @@ tasks.named<org.openapitools.generator.gradle.plugin.tasks.GenerateTask>("openAp
     outputs.dir(outputDir)
 }
 
-
 tasks.compileJava {
     dependsOn(tasks.named("openApiGenerate"))
 }
 
 apiValidationParameters {
     apiDefinitionPaths = listOf(
-        "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
+        "$projectDir/src/main/resources/common-openapi-definition.yaml"
     )
 }
 

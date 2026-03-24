@@ -54,13 +54,7 @@ dependencyResolutionManagement {
     }
     maven {
       //TODO Remove once EDC-V artifacts are in Maven Central
-      url = uri("https://maven.pkg.github.com/nordic-institute/edc-virtual-connector")
-      credentials {
-        username = providers.gradleProperty("gpr.user").orNull
-          ?: System.getenv("GITHUB_ACTOR")
-        password = providers.gradleProperty("gpr.key").orNull
-          ?: System.getenv("GITHUB_TOKEN")
-      }
+      url = uri("https://artifactory.niis.org/artifactory/xroad-external-snapshots/")
     }
   }
 }
