@@ -239,6 +239,98 @@ services:
       openbao:
         condition: service_healthy
 
+  db-ds-control-plane:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-control-plane
+    networks:
+      - xrd-ss-network
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+    command: >
+      bash -c "
+        docker-entrypoint.sh postgres &
+        until pg_isready -U postgres -h localhost; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done;
+
+        psql -U postgres -d ds-control-plane -c \"
+          DO \\\$\$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ds-control-plane'
+            ) THEN
+              CREATE ROLE \\\"ds-control-plane\\\" LOGIN PASSWORD 'secret';
+            END IF;
+          END
+          \\\$\$;
+        \"
+        wait
+      "
+  db-ds-control-plane-init:
+    image: ${DS_CONTROL_PLANE_INIT_IMG}
+    pull_policy: always
+    environment:
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=admin_secret
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane
+      - db_user=ds-control-plane
+      - db_schema=public
+    depends_on:
+      db-ds-control-plane:
+        condition: service_healthy
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  ds-control-plane:
+    image: ${DS_CONTROL_PLANE_IMG}
+    pull_policy: always
+    environment:
+      - HOSTNAME=ds-identity-hub
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME=ds-control-plane
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD=secret
+      - EDC_TRUSTED_ISSUER_DID=${EDC_TRUSTED_ISSUER_DID:-}
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: ["CMD", "curl", "-f", "-k", "http://localhost:8181/q/health"]
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+    depends_on:
+      db-ds-control-plane-init:
+        condition: service_completed_successfully
+      openbao:
+        condition: service_healthy
+
   configuration-client:
     image: ${CONFIGURATION_CLIENT_IMG}
     pull_policy: always
