@@ -1,6 +1,7 @@
 [Unit]
 Description=X-Road DS Identity Hub
-After=network.target xroad-secret-store-local.service xroad-secret-store-remote.service
+After=network.target xroad-base.service xroad-secret-store-local.service xroad-secret-store-remote.service
+Requires=xroad-base.service
 Wants=postgresql.service
 Wants=xroad-signer.service
 Wants=xroad-secret-store-local.service xroad-secret-store-remote.service
@@ -8,7 +9,8 @@ Wants=xroad-secret-store-local.service xroad-secret-store-remote.service
 [Service]
 User=xroad
 Group=xroad
-Type=simple
+Type=notify
+NotifyAccess=all
 ExecStart=/usr/share/xroad/bin/xroad-ds-identity-hub
 Restart=on-failure
 SuccessExitStatus=143
