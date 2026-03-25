@@ -16,7 +16,7 @@
     "/postgresql" --exclude "/nginx" --exclude "/backup.d" --exclude "/gpghome" "{{ xroad_slave_ssh_user }}@{{ master_host }}":/etc/xroad/ /etc/xroad/
 
 - name: install configuration sync
-  include_tasks: "{{ ansible_distribution | lower }}.yml"
+  include_tasks: "{{ ansible_facts['distribution'] | lower }}.yml"
 
 - name: setup sync log rotation
   copy:

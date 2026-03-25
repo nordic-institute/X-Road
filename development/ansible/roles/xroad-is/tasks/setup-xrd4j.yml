@@ -1,7 +1,7 @@
 ---
 - name: Set architecture-specific variables
   set_fact:
-    java_arch_path: "{{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}"
+    java_arch_path: "{{ ansible_facts['architecture'] | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}"
 
 - name: Set Java home path
   set_fact:
