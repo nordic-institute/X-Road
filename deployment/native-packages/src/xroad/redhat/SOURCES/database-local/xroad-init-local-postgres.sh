@@ -37,6 +37,19 @@ init_local_postgres() {
 
     # ensure that PostgreSQL is running
     systemctl start $SERVICE_NAME || return 1
+
+    # Verify PostgreSQL version meets minimum requirement
+    local MIN_PG_VERSION=15
+    local pg_version_num
+    pg_version_num=$(su -l -c "psql -tAc 'SHOW server_version_num'" postgres 2>/dev/null | tr -d '[:space:]')
+    if [ -n "$pg_version_num" ]; then
+        local pg_major_version=$((pg_version_num / 10000))
+        if [ "$pg_major_version" -lt "$MIN_PG_VERSION" ]; then
+            echo "ERROR: PostgreSQL version $pg_major_version is not supported. Minimum required version is $MIN_PG_VERSION."
+            echo "Please enable PostgreSQL $MIN_PG_VERSION module stream: dnf module enable postgresql:$MIN_PG_VERSION"
+            return 1
+        fi
+    fi
 }
 
 init_local_postgres

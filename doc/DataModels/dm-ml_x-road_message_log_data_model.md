@@ -68,7 +68,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.4 Database Version
 
-This database assumes PostgreSQL version 9.2 or later.
+This database assumes PostgreSQL version 15 or later.
 
 ### 1.5 Creating, Backing Up and Restoring the Database
 

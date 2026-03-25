@@ -100,7 +100,7 @@ This document describes database model of X-Road security server.
 
 ### 1.2 Database Version
 
-This database assumes PostgreSQL version 9.2 or later.
+This database assumes PostgreSQL version 15 or later.
 
 ### 1.3 Creating, Backing Up and Restoring the Database
 

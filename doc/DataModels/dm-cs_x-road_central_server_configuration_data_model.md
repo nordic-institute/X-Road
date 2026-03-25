@@ -137,7 +137,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.4 Database Version
 
-This database assumes PostgreSQL version 12 or later. Default settings are used in simple setup, while a custom configuration is used in HA setup.
+This database assumes PostgreSQL version 15 or later. Default settings are used in simple setup, while a custom configuration is used in HA setup.
 
 ### 1.5 Creating, Backing Up and Restoring the Database
 
