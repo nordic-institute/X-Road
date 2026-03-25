@@ -35,19 +35,22 @@ import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 @Import({GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class})
 @Configuration
 public class BootstrapConfiguration {
 
-    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
+    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3; //tmp
 
     @Bean
     @Profile("!int-test")
@@ -66,14 +69,28 @@ public class BootstrapConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(
-            value = "xroad.admin-service.rate-limit-enabled",
-            havingValue = "true", matchIfMissing = true)
+    @Conditional(RateLimitEnabledCondition.class)
     public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(AdminServiceProperties properties) {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
         return bean;
     }
-}
 
+    static class RateLimitEnabledCondition implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            var env = context.getEnvironment();
+            var enabled = env.getProperty("xroad.admin-service.rate-limit-enabled", Boolean.class, true);
+            if (!enabled) {
+                return false;
+            }
+            var perSecond = env.getProperty(
+                    "xroad.admin-service.rate-limit-requests-per-second", Integer.class, 0);
+            var perMinute = env.getProperty(
+                    "xroad.admin-service.rate-limit-requests-per-minute", Integer.class, 0);
+            return perSecond > 0 || perMinute > 0;
+        }
+    }
+}
