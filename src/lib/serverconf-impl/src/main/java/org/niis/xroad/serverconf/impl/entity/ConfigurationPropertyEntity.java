@@ -35,8 +35,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.Instant;
+import org.niis.xroad.common.jpa.entity.AuditableEntity;
 
 import static jakarta.persistence.AccessType.FIELD;
 
@@ -45,7 +44,7 @@ import static jakarta.persistence.AccessType.FIELD;
 @Entity
 @Table(name = ConfigurationPropertyEntity.TABLE_NAME)
 @Access(FIELD)
-public class ConfigurationPropertyEntity {
+public class ConfigurationPropertyEntity extends AuditableEntity {
 
     public static final String TABLE_NAME = "configuration_properties";
 
@@ -63,9 +62,4 @@ public class ConfigurationPropertyEntity {
     @Column(name = "scope")
     private String scope;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
 }

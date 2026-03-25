@@ -28,8 +28,6 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurableProperties;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurableProperties.ConfigurableProperty;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
@@ -39,8 +37,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,11 +50,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConfigurablePropertiesService {
 
+    private static final String COMMON_SCOPE = "common";
+
     private final ConfigurableProperties configurableProperties;
     private final ConfigurationPropertyRepository repository;
-    private final AuditDataHelper auditDataHelper;
-
-    private static final String PARAMETER_DESCRIPTION_KEY = "systemParameterDescription.";
 
     /**
      * Returns all configurable system parameter defined in the configuration.
@@ -89,17 +84,14 @@ public class ConfigurablePropertiesService {
      *
      * @param propertyKey   unique key of the system property
      * @param propertyValue new value for the system property
-     * @param scope         scope of the property (service name or "common")
+     * @param scope         scope of the property (service name or null)
      */
     public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
-        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PARAMETER, Map.of(propertyKey, propertyValue));
-        repository.findConfigurationPropertyByPropertyKey(propertyKey)
+        repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope)
                 .ifPresentOrElse(entity -> {
-                    log.debug("system parameter with propertyKey {} found and updated to {}.", propertyKey, propertyValue);
                     entity.setPropertyValue(propertyValue);
                     repository.saveOrUpdate(entity);
                 }, () -> {
-                    log.debug("system parameter with propertyKey {} not found.", propertyKey);
                     repository.saveOrUpdate(createConfigurationProperty(propertyKey, propertyValue, scope));
                 });
     }
@@ -108,16 +100,13 @@ public class ConfigurablePropertiesService {
                                                                                ConfigurableProperty parameter) {
         var systemPropertyDto = new SecurityServerConfigurablePropertyDto();
         systemPropertyDto.setPropertyName(parameter.getPropertyName());
-        systemPropertyDto.setDescriptionKey(PARAMETER_DESCRIPTION_KEY + parameter.getPropertyName());
         systemPropertyDto.setDefaultValue(parameter.getDefaultValue());
-        repository.findConfigurationPropertyByPropertyKey(parameter.getPropertyName())
-                .ifPresentOrElse(
-                        e -> {
-                            systemPropertyDto.setCurrentValue(e.getPropertyValue());
-                            systemPropertyDto.setScope(e.getScope());
-                        },
-                        () -> systemPropertyDto.setScope(serviceName)
-                );
+        String scope = serviceName.equals(COMMON_SCOPE) ? null : serviceName;
+        systemPropertyDto.setScope(scope);
+        repository.findConfigurationPropertyByPropertyKeyAndScope(parameter.getPropertyName(), scope)
+                .ifPresent(e -> {
+                    systemPropertyDto.setCurrentValue(e.getPropertyValue());
+                });
         return systemPropertyDto;
     }
 
@@ -125,8 +114,7 @@ public class ConfigurablePropertiesService {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(propertyKey);
         entity.setPropertyValue(propertyValue);
-        entity.setScope(!scope.equals("common") ? scope : null);
-        entity.setCreatedAt(Instant.now());
+        entity.setScope(scope);
         return entity;
     }
 }

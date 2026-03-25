@@ -36,7 +36,6 @@ import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -51,16 +50,19 @@ public class ConfigurationPropertyRepository extends AbstractRepository<Configur
     @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
 
+    private final ConfigurationPropertyDAOImpl configurationPropertyDAO = new ConfigurationPropertyDAOImpl();
+
     /**
      *
-     * Find a configuration property by its key.
+     * Find a configuration property by its key and scope.
      *
      * @param propertyKey the property key
+     * @param scope the property scope
      * @return Optional containing the property if found
      */
-    public Optional<ConfigurationPropertyEntity> findConfigurationPropertyByPropertyKey(String propertyKey) {
-        ConfigurationPropertyDAOImpl serviceDescriptionDAO = new ConfigurationPropertyDAOImpl();
-        return Optional.ofNullable(serviceDescriptionDAO.getConfigurationProperty(persistenceUtils.getCurrentSession(), propertyKey));
+    public Optional<ConfigurationPropertyEntity> findConfigurationPropertyByPropertyKeyAndScope(String propertyKey, String scope) {
+        return Optional.ofNullable(configurationPropertyDAO.getConfigurationProperty(
+                persistenceUtils.getCurrentSession(), propertyKey, scope));
     }
 
     /**
@@ -69,7 +71,6 @@ public class ConfigurationPropertyRepository extends AbstractRepository<Configur
      * @param entity the entity to save or update
      */
     public void saveOrUpdate(ConfigurationPropertyEntity entity) {
-        entity.setUpdatedAt(Instant.now());
         persistenceUtils.getCurrentSession().merge(entity);
     }
 

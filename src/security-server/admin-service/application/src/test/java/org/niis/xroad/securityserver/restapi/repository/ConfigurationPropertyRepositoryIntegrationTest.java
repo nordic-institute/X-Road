@@ -31,7 +31,6 @@ import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestCon
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -50,7 +49,7 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
     @Test
     public void saveAndFindByPropertyKey() {
         Optional<ConfigurationPropertyEntity> found =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME);
+                configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, null);
 
         assertTrue(found.isPresent());
         assertEquals(PROPERTY_VALUE, found.get().getPropertyValue());
@@ -59,7 +58,7 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
     @Test
     public void updateExistingPropertyValue() {
         Optional<ConfigurationPropertyEntity> initial =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME);
+                configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, null);
 
         assertTrue(initial.isPresent());
         assertEquals(PROPERTY_VALUE, initial.get().getPropertyValue());
@@ -68,7 +67,7 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
         configurationPropertyRepository.saveOrUpdate(initial.get());
 
         Optional<ConfigurationPropertyEntity> found =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME);
+                configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, null);
 
         assertTrue(found.isPresent());
         assertEquals(PROPERTY_VALUE_2, found.get().getPropertyValue());
@@ -77,25 +76,23 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
     @Test
     public void updatePropertyValueThatDoesNotExist() {
         Optional<ConfigurationPropertyEntity> initial =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME_2);
+                configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME_2, null);
 
         assertTrue(initial.isEmpty());
 
-        configurationPropertyRepository.saveOrUpdate(getConfigurationPropertyEntity(PROPERTY_NAME_2));
+        configurationPropertyRepository.saveOrUpdate(getConfigurationPropertyEntity());
 
         Optional<ConfigurationPropertyEntity> found =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME_2);
+                configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME_2, null);
 
         assertTrue(found.isPresent());
         assertEquals(PROPERTY_VALUE_2, found.get().getPropertyValue());
     }
 
-    private static ConfigurationPropertyEntity getConfigurationPropertyEntity(String propertyKey) {
+    private static ConfigurationPropertyEntity getConfigurationPropertyEntity() {
         var entity = new ConfigurationPropertyEntity();
-        entity.setPropertyKey(propertyKey);
+        entity.setPropertyKey(PROPERTY_NAME_2);
         entity.setPropertyValue(PROPERTY_VALUE_2);
-        entity.setCreatedAt(Instant.now());
-        entity.setUpdatedAt(Instant.now());
         return entity;
     }
 }

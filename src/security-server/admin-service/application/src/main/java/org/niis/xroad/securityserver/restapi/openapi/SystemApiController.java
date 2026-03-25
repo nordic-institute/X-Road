@@ -145,7 +145,6 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
-    @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CONFIGURATION_PROPERTY)
     public ResponseEntity<Void> updateConfigurableProperty(
             SecurityServerPropertyUpdateDto securityServerSystemParameterUpdateDto
     ) {

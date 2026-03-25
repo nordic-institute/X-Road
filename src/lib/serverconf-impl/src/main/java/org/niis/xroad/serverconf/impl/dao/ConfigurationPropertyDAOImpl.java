@@ -40,11 +40,14 @@ public class ConfigurationPropertyDAOImpl {
      * @param propertyKey the property key
      * @return Entity object containing the property if found
      */
-    public ConfigurationPropertyEntity getConfigurationProperty(Session session, String propertyKey) {
+    public ConfigurationPropertyEntity getConfigurationProperty(Session session, String propertyKey, String scope) {
         return session.createQuery(
-                        "FROM ConfigurationPropertyEntity WHERE propertyKey = :propertyKey",
+                        "FROM ConfigurationPropertyEntity "
+                                + "WHERE propertyKey = :propertyKey "
+                                + "AND ((:scope IS NULL AND scope IS NULL) OR scope = :scope)",
                         ConfigurationPropertyEntity.class)
                 .setParameter("propertyKey", propertyKey)
+                .setParameter("scope", scope, String.class)
                 .uniqueResult();
     }
 }

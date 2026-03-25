@@ -7827,11 +7827,6 @@ components:
           minLength: 1
           maxLength: 1024
           example: xroad.proxy-ui-api.rate-limit-requests-per-second
-        description_key:
-          type: string
-          format: text
-          description: description key of the property
-          minLength: 1
         current_value:
           type: string
           format: text
@@ -7852,7 +7847,6 @@ components:
       required:
        - property_name
        - property_value
-       - scope
       properties:
         property_name:
           type: string
