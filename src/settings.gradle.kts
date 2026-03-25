@@ -29,19 +29,19 @@ dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     fun getConfig(name: String): String? =
-        System.getenv(name) ?: providers.gradleProperty(name).orNull
+      System.getenv(name) ?: providers.gradleProperty(name).orNull
 
     val mavenUrl = getConfig("XROAD_MIRROR_MAVEN_URL")
-    val username = getConfig("XROAD_MIRROR_USERNAME")
-    val token = getConfig("XROAD_MIRROR_TOKEN")
+    val mirrorUsername = getConfig("XROAD_MIRROR_USERNAME")
+    val mirrorToken = getConfig("XROAD_MIRROR_TOKEN")
 
-    if (!mavenUrl.isNullOrBlank() && !username.isNullOrBlank() && !token.isNullOrBlank()) {
+    if (!mavenUrl.isNullOrBlank() && !mirrorUsername.isNullOrBlank() && !mirrorToken.isNullOrBlank()) {
       maven {
         name = "Mirror"
         url = uri(mavenUrl)
         credentials {
-          this.username = username
-          password = token
+          username = mirrorUsername
+          password = mirrorToken
         }
       }
     } else {
@@ -49,8 +49,8 @@ dependencyResolutionManagement {
     }
     mavenLocal()
     maven {
-      //TODO Remove once EDC-V artifacts are in Maven Central
-      url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+      //TODO Remove once EDC-V and org.eclipse.dataplane-core:dataplane-sdk artifacts are in Maven Central
+      url = uri("https://artifactory.niis.org/artifactory/xroad-external-snapshots/")
     }
   }
 }
@@ -154,10 +154,13 @@ include("service:ds-control-plane")
 include("service:ds-control-plane:ds-control-plane-application")
 include("service:ds-control-plane:ds-control-plane-db")
 include("service:ds-control-plane:ds-ext-sample")
+include("service:ds-control-plane:ds-xroad-edr-api")
+include("service:ds-control-plane:ds-xroad-control-plane-policy")
 include("service:ds-data-plane")
 include("service:ds-data-plane:ds-data-plane-application")
 include("service:ds-data-plane:ds-data-plane-db")
 include("service:ds-data-plane:ds-xroad-data-plane")
+include("service:ds-data-plane:ds-xroad-data-plane-policy")
 include("service:ds-identity-hub")
 include("service:ds-identity-hub:ds-identity-hub-application")
 include("service:ds-identity-hub:ds-identity-hub-db")

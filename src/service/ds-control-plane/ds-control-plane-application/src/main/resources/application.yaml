@@ -29,17 +29,24 @@ quarkus:
 
 web:
   http:
+    port: 8181
+    management:
+      port: 8182
     protocol:
-      port: 8282
+      port: 8183
       path: /api/dsp
+    control:
+      port: 8184
 
 edc:
-  participant:
-    id: participantContextId
-  dsp:
-    callback:
-      address: http://${HOSTNAME}:8282/api/dsp
-  hostname: ${HOSTNAME}
+  hostname: ${HOSTNAME:localhost}
+  vault:
+    hashicorp:
+      url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+      token: "${XROAD_SECRET_STORE_TOKEN}"
+      api:
+        secret:
+          path: /v1/xrd-secret/ds
   component:
     id: DSP-compatibility-test
   transfer:

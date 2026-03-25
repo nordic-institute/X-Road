@@ -27,12 +27,22 @@
 
 package org.niis.xroad.ss.test.ds.glue;
 
+import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.glue.BaseStepDefs;
+import org.niis.xroad.ss.test.ds.api.FeignControlPlaneManagementApi;
+import org.niis.xroad.test.framework.core.asserts.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 
-//@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.OK;
+
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ControlPlaneStepDefs extends BaseStepDefs {
-/*
-        @Autowired
+
+    @Autowired
     private FeignControlPlaneManagementApi controlPlaneManagementApi;
 
     @Step("Participant context {string} is created")
@@ -168,8 +178,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "CatalogRequest",
-                    "counterPartyId": "test-participant-context-id",
-                    "counterPartyAddress": "http://localhost:8282/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyId": "test-part-ctx",
+                    "counterPartyAddress": "http://localhost:8183/api/dsp/test-part-ctx/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
                 """;
@@ -205,6 +215,6 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 + "jfdiVEyRAB-thKDTqODHksijPQFVMQnb5FppbUHdYiO_G2JYBwFYk36fWhpBveRKRMBaurKZZS5tXAV7bsGr9z1jcEUM45tF__kZLCV9VZ0IRp"
                 + "ni4B4_AP7vc0YUqLyJ7WZXQfP-N2bBYPf8loi3No_AFEFI7mcknuxOp_oZnD6jRmwjeCdih_Nu-9rNsCpa3BM6L_EozzK3Y61X7D7cWXU7xCtG"
                 + "YDcYoRka8AtBTlihXPah3lbTRKwGP1IBDZzfKqSOZDDZK2g8Em3GjuOp6_sOsVL0UwAqlZZiMfyGnPaIkACtszimIjw";
-    }*/
+    }
 }
 

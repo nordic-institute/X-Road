@@ -33,7 +33,10 @@ intTestComposeEnv {
     "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
     "OP_MONITOR_IMG" to "ss-op-monitor",
     "CA_IMG" to "testca-dev",
-    "MESSAGE_LOG_ARCHIVER_IMG" to "ss-message-log-archiver"
+    "MESSAGE_LOG_ARCHIVER_IMG" to "ss-message-log-archiver",
+    "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
+    "DS_DATA_PLANE_IMG" to "ds-data-plane",
+//    "DS_IDENTITY_HUB_IMG" to "ds-identity-hub"
   )
 }
 
