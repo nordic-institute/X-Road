@@ -13,7 +13,7 @@
   environment:
     XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
   delegate_to: "{{ item }}"
-  when: hostvars[item].ansible_os_family == "Debian"
+  when: hostvars[item]['ansible_facts']['os_family'] == "Debian"
 
 - name: Configure package mirror for YUM (RedHat-based)
   script:
@@ -24,4 +24,4 @@
   environment:
     XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
   delegate_to: "{{ item }}"
-  when: hostvars[item].ansible_os_family == "RedHat"
+  when: hostvars[item]['ansible_facts']['os_family'] == "RedHat"

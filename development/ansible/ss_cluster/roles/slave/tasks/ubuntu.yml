@@ -14,4 +14,4 @@
       loop:
         - xroad-sync.service
         - xroad-sync.timer
-  when: ansible_distribution_release == "jammy"
+  when: ansible_facts['distribution_release'] == "jammy"
