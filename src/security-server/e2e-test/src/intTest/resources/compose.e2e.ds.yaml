@@ -83,8 +83,6 @@ services:
         condition: service_healthy
       configuration-client:
         condition: service_healthy
-#      mock-jwks-server:
-#        condition: service_healthy
 
   ds-data-plane:
     image: ${DS_DATA_PLANE_IMG}
@@ -123,6 +121,3 @@ services:
         condition: service_healthy
       ds-control-plane:
         condition: service_healthy
-#      mock-jwks-server:
-#        condition: service_healthy
-
