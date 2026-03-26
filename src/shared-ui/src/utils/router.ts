@@ -24,18 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {
-  createRouter,
-  createWebHashHistory,
-  NavigationGuardNext,
-  RouteLocationNormalized,
-  RouteLocationNormalizedLoaded,
-  Router,
-} from 'vue-router';
+import {createRouter, createWebHashHistory, RouteLocationNormalized, RouteLocationNormalizedLoaded, Router,} from 'vue-router';
 
-import { useNotifications } from '../composables';
-import { useHistory } from '../stores';
-import { XrdLocation, XrdRoute } from '../types';
+import {useNotifications} from '../composables';
+import {useHistory} from '../stores';
+import {XrdLocation, XrdRoute} from '../types';
 
 interface Config {
   loginRouteName: string;
@@ -56,15 +49,14 @@ export function createXrdRouter(config: Config): Router {
   });
 
   router.afterEach((to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded) => {
-    const { push } = useHistory();
+    const {push} = useHistory();
 
     push(to);
   });
 
-  router.beforeEach(async (to: XrdLocation, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+  router.beforeEach(async (to: XrdLocation, from: RouteLocationNormalized) => {
     // Going to login
     if (to.name === config.loginRouteName) {
-      next();
       return;
     }
 
@@ -77,9 +69,9 @@ export function createXrdRouter(config: Config): Router {
     if (config.isSessionAlive() && config.isAuthenticated()) {
       // Server is not initialized
       if (!config.isServerInitialized() && to.name != config.initialisationRouteName && from.name != config.initialisationRouteName) {
-        next({
+        return {
           name: config.initialisationRouteName,
-        });
+        };
       } else {
         // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
         if (from.name !== config.initialisationRouteName) {
@@ -89,22 +81,19 @@ export function createXrdRouter(config: Config): Router {
       Check permissions here
       */
 
-        if (!to?.meta?.permissions) {
-          next();
-        } else if (config.hasAnyOfPermissions(to.meta.permissions)) {
-          // This route is allowed
-          next();
+        if (!to?.meta?.permissions || config.hasAnyOfPermissions(to.meta.permissions)) {
+          return;
         } else {
           // This route is not allowed
-          next({
+          return {
             name: config.forbiddenRouteName,
-          });
+          };
         }
       }
     } else {
-      next({
+      return {
         name: config.loginRouteName,
-      });
+      };
     }
   });
 
