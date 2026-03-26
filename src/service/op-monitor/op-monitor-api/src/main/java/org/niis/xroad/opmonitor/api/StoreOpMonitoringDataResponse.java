@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,7 +33,6 @@ import lombok.ToString;
 /**
  * Store operational monitoring data response.
  */
-@Setter
 @Getter
 @ToString
 public class StoreOpMonitoringDataResponse {
@@ -42,18 +40,22 @@ public class StoreOpMonitoringDataResponse {
     public static final String STATUS_ERROR = "Error";
 
     @JsonProperty("status")
+    @Setter
     private String status;
     @JsonProperty("errorMessage")
     private String errorMessage;
 
-    @JsonCreator
     public StoreOpMonitoringDataResponse() {
         this.status = STATUS_OK;
     }
 
-    @JsonCreator
-    public StoreOpMonitoringDataResponse(@JsonProperty("errorMessage") String errorMessage) {
+    public StoreOpMonitoringDataResponse(String errorMessage) {
         this.status = STATUS_ERROR;
         this.errorMessage = errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+        this.status = errorMessage != null ? STATUS_ERROR : STATUS_OK;
     }
 }

@@ -62,7 +62,7 @@ jobs:
           label: 'Build environment setup'
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -162,6 +162,13 @@ jobs:
           path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
           compression-level: '0'
 
+      - name: Upload confproxy-int-test
+        uses: actions/upload-artifact@v7
+        with:
+          name: confproxy-int-test-jar
+          path: src/service/configuration-proxy/configuration-proxy-int-test/build/libs/confproxy-int-test-1.0.jar
+          compression-level: '0'
+
       - name: Upload softtoken-signer-int-test
         uses: actions/upload-artifact@v7
         with:
@@ -221,7 +228,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: Unit and integration tests

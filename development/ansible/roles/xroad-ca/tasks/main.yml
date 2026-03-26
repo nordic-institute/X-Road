@@ -2,14 +2,14 @@
 - name: check that OS is supported
   fail:
     msg: "This playbook only supports Ubuntu"
-  when: ansible_os_family != "Debian"
+  when: ansible_facts['os_family'] != "Debian"
 
 - name: install required packages
   apt:
-      name: "{{ items }}"
-      state: present
-      update_cache: yes
-      install_recommends: no
+    name: "{{ items }}"
+    state: present
+    update_cache: true
+    install_recommends: false
   vars:
     items:
       - "python3"
@@ -24,12 +24,13 @@
   get_url:
     url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
     dest: /tmp/
-  when: ansible_distribution_release == "jammy"
+  when: ansible_facts['distribution_release'] == "jammy"
 
 # get_url option is not yet supported for noble, in python 3.12 is this fixed
 - name: download acme2certifier (noble only)
-  shell: "curl -L -o /tmp/acme2certifier_{{ a2c_ver }}-1_all.deb https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
-  when: ansible_distribution_release == "noble"
+  shell: "curl -L -o /tmp/acme2certifier_{{ a2c_ver }}-1_all.deb https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver
+    }}-1_all.deb"
+  when: ansible_facts['distribution_release'] == "noble"
 
 - name: group ca
   group:
@@ -46,7 +47,7 @@
 
 - name: Ensure nginx has access to ca user's home directory
   file:
-    mode: 0755
+    mode: "0755"
     path: /home/ca
 
 - name: ocsp user
@@ -63,7 +64,7 @@
     dest: /
     group: "root"
     owner: "root"
-  with_items:
+  loop:
     - "etc"
     - "usr"
     - "lib"
@@ -74,14 +75,14 @@
     dest: /home
     group: "ca"
     owner: "ca"
-  with_items:
+  loop:
     - "home/ca"
 
 - name: set file permissions
   file:
-    mode: 0755
+    mode: "0755"
     path: "/usr/local/bin/{{ item }}"
-  with_items:
+  loop:
     - "sign"
     - "sign-auth"
     - "sign-sign"
@@ -89,9 +90,9 @@
 
 - name: set file permissions for CA
   file:
-    mode: 0740
+    mode: "0740"
     path: "/home/ca/CA/{{ item }}"
-  with_items:
+  loop:
     - "ocsp.sh"
     - "revoke.sh"
     - "sign.sh"
@@ -102,9 +103,9 @@
 
 - name: set file permissions for TSA
   file:
-    mode: 0664
+    mode: "0664"
     path: "/home/ca/TSA/{{ item }}"
-  with_items:
+  loop:
     - "TSA.cnf"
     - "tsa_server.py"
 
@@ -114,7 +115,7 @@
     dest: "/home/ca/CA/init.sh"
     owner: "ca"
     group: "ca"
-    mode: 0700
+    mode: "0700"
 
 - name: check if ocsp.log exists
   stat:
@@ -127,7 +128,7 @@
     state: touch
     group: "ca"
     owner: "ca"
-    mode: 0664
+    mode: "0664"
   when: stat_result.stat.exists == False
 
 - name: check if .init exists
@@ -149,7 +150,7 @@
     dest: "/home/ca/CA/init_acme.sh"
     owner: "ca"
     group: "ca"
-    mode: 0700
+    mode: "0700"
 
 - name: check if .init_acme exists
   stat:
@@ -164,7 +165,7 @@
   become_user: root
   when:
     - stat_result.stat.exists == False
-    - (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+    - (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: copy acme2certifier conf
   copy:
@@ -172,9 +173,9 @@
     dest: /var/www/acme2certifier/acme_srv/acme_srv.cfg
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "acme_srv.cfg"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when: (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: copy acme2certifier external account binding conf
   copy:
@@ -182,9 +183,9 @@
     dest: /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "kid_profiles.json"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when: (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: copy acme2certifier openssl handler
   copy:
@@ -192,9 +193,9 @@
     dest: /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "openssl_ca_handler.py"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when: (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
 
 - name: remove obsolete files
   file:
@@ -203,7 +204,7 @@
 
 - name: refresh systemd
   systemd:
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: restart nginx
   service:
@@ -214,22 +215,22 @@
   service:
     name: ocsp
     state: restarted
-    enabled: yes
+    enabled: true
 
 - name: restart ca
   service:
     name: ca
     state: restarted
-    enabled: yes
+    enabled: true
 
 - name: restart tsa
   service:
     name: tsa
     state: restarted
-    enabled: yes
+    enabled: true
 
 - name: start acme2certifier (acme server)
   service:
     name: acme2certifier
     state: started
-    enabled: yes
+    enabled: true

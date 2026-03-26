@@ -6,7 +6,7 @@
 - name: configure ssh password authentication
   replace:
     path: /etc/ssh/sshd_config
-    regexp: '^PasswordAuthentication\s+(.*)$'
+    regexp: "^PasswordAuthentication\\s+(.*)$"
     replace: "PasswordAuthentication {{ ssh_password_authentication | ternary('yes', 'no') }}"
     validate: /usr/sbin/sshd -T -f %s
   notify: restart ssh
@@ -25,7 +25,7 @@
     shell: "/bin/bash"
     group: "xroad"
     system: true
-    password: '*'
+    password: "*"
     createhome: "yes"
 
 - name: xroad ui user
@@ -38,10 +38,10 @@
     createhome: "no"
 
 - include_tasks: ubuntu.yml
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - include_tasks: rhel.yml
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: clean xroad logs at boot
   cron:
@@ -62,7 +62,7 @@
     cron_file: package_cache_cleanup
     user: root
     state: present
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
   tags:
     - cron
 
@@ -74,6 +74,6 @@
     cron_file: package_cache_cleanup
     user: root
     state: present
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
   tags:
     - cron

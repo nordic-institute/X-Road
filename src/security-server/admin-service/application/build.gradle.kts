@@ -117,15 +117,6 @@ tasks.bootJar {
   }
 }
 
-tasks.register<Copy>("copyDeps") {
-  into(layout.buildDirectory.dir("unpacked-libs"))
-  from(configurations.runtimeClasspath.get().find { it.name.startsWith("postgresql") })
-}
-
-tasks.assemble {
-  dependsOn(tasks.named("copyDeps"))
-}
-
 tasks.test {
   useJUnitPlatform()
   maxHeapSize = "1g"

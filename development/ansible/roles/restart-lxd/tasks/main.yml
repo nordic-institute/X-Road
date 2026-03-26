@@ -1,3 +1,4 @@
+---
 - name: Restart container
   with_inventory_hostnames: ss_servers, cs_servers, cp_servers
   lxd_container:

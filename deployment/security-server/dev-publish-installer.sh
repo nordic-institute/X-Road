@@ -18,6 +18,8 @@ cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/base/usr/share/xroa
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/proxy/usr/share/xroad/scripts/proxy_memory_helper.sh" "${PACKAGE_DIR}/lib/"
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/helper-scripts/yaml_helper.sh" "${PACKAGE_DIR}/lib/"
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/helper-scripts/yaml_helper.py" "${PACKAGE_DIR}/lib/"
+cp "${REPO_ROOT}/deployment/.scripts/configure-mirror-openbao-deb.sh" "${PACKAGE_DIR}/lib/"
+cp "${REPO_ROOT}/deployment/.scripts/configure-mirror-openbao-rpm.sh" "${PACKAGE_DIR}/lib/"
 
 # Exclude get-xroad.sh, macOS metadata (._ files), and extended attributes
 COPYFILE_DISABLE=1 tar -czf "$PACKAGE_NAME" --no-xattrs --exclude="get-xroad.sh" --exclude="._*" "$PACKAGE_DIR/"

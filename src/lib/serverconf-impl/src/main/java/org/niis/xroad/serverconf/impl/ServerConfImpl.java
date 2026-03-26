@@ -278,6 +278,18 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return tx(session -> {
+            ClientEntity clientEntity = clientDao.getClient(session, clientId);
+            if (clientEntity == null) {
+                return false;
+            }
+            return clientEntity.getLocalGroups().stream()
+                    .anyMatch(g -> Objects.equals(localGroupId.getGroupCode(), g.getGroupCode()));
+        });
+    }
+
+    @Override
     public List<ClientId.Conf> getMembers() {
         return tx(session -> getConf(session).getClients().stream()
                 .map(Client::getIdentifier)

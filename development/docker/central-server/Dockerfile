@@ -15,7 +15,7 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 RUN apt-get -qq update \
-  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
+  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-25-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -33,10 +33,10 @@ ARG REPO=https://artifactory.niis.org/xroad-snapshot-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
 
-# Add X-Road dependencies repo
-ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
-RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
-  && apt-key add '/tmp/deps-repokey.gpg'
+# Add OpenBao repo
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
@@ -57,10 +57,10 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 #Xroad CS from internal packages
 FROM base AS centralserver-internal
 
-# Add X-Road dependencies repo
-ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
-RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
-  && apt-key add '/tmp/deps-repokey.gpg'
+# Add OpenBao repo
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
 RUN --mount=type=bind,from=packages,target=/tmp/packages \
    cp -r /tmp/packages /tmp/repo \
@@ -81,8 +81,11 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
 # Build final image
 FROM centralserver-${PACKAGE_SOURCE} AS final
 
+# Cleanup mirror configuration
 RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
-    /bin/bash /tmp/cleanup-mirror-apt.sh
+    --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-openbao-deb.sh,target=/tmp/cleanup-mirror-openbao-deb.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh && \
+    /bin/bash /tmp/cleanup-mirror-openbao-deb.sh
 
 RUN { nginx -s stop ||:; } \
   && rm -f /var/run/nginx.pid \

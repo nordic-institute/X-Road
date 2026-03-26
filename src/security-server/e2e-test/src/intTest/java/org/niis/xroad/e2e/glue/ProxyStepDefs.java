@@ -69,8 +69,6 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     private static final String HEADER_CLIENT_ID = "x-road-client";
 
     @Autowired
-    private EnvSetup envSetup;
-    @Autowired
     private TestDatabaseService testDatabaseService;
     @Autowired
     private TestFrameworkCoreProperties coreProperties;

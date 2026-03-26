@@ -1,0 +1,395 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.confproxy.common.service;
+
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MultipartEncoder;
+import ee.ria.xroad.common.util.TimeUtils;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.TeeInputStream;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.eclipse.jetty.util.MultiPartWriter;
+import org.niis.xroad.confproxy.common.domain.ConfProxyInstance;
+import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
+import org.niis.xroad.globalconf.model.ParametersProviderFactory;
+import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
+import org.niis.xroad.globalconf.util.FileUtils;
+import org.niis.xroad.globalconf.util.HashCalculator;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.cert.CertificateEncodingException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
+
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERIFICATION_CERT_HASH;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
+import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
+import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
+import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+
+/**
+ * Utility class that encapsulates the process of signing the downloaded
+ * global configuration and moving it to the target location.
+ */
+@Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class OutputBuilder implements AutoCloseable {
+
+    public static final String SIGNED_DIRECTORY_NAME = "conf";
+    public static final String TARGET_CONF_TPL = "%s-v%d";
+    private static final DateTimeFormatter DATETIME_FORMAT =
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"));
+
+    private final VersionedConfigurationDirectory confDir;
+    private final int version;
+    private final ConfProxyInstance proxyInstance;
+    private final String address;
+
+    private final DigestAlgorithm signatureDigestAlgorithmId;
+    private final HashCalculator hashCalculator;
+
+    private final Path tempConfPath;
+    private final Path tempDirPath;
+
+    private final String dataBoundary = randomBoundary();
+    private final String envelopeBoundary = randomBoundary();
+    private final String envelopeHeader = HEADER_CONTENT_TYPE + ": " + mpRelatedContentType(envelopeBoundary,
+            MultiPartWriter.MULTIPART_MIXED) + "\n\n";
+
+    private final String timestamp;
+
+    /**
+     * Setup reference data and temporary directory for the output builder.
+     * @throws IOException if temporary directory could not be created
+     */
+    public static OutputBuilder build(
+            VersionedConfigurationDirectory confDirectory,
+            int version,
+            ConfProxyInstance proxyInstance,
+            String address,
+            DigestAlgorithm hashAlgURI,
+            DigestAlgorithm signatureDigestAlgorithmId,
+            String tempFilesPath) throws IOException {
+
+        String tempDir = Paths.get(tempFilesPath, proxyInstance.getInstance()).toString();
+
+        var hashCalculator = new HashCalculator(hashAlgURI);
+        var timestamp = Long.toString(new Date().getTime());
+        var tempDirPath = Paths.get(tempDir, timestamp);
+
+        log.debug("Creating directories {}", tempDirPath);
+
+        FileUtils.createDirectories(tempDirPath);
+
+        log.debug("Clean directory {}", tempDirPath);
+
+        org.apache.commons.io.FileUtils.cleanDirectory(tempDirPath.toFile());
+
+        return new OutputBuilder(
+                confDirectory,
+                version,
+                proxyInstance,
+                address,
+                signatureDigestAlgorithmId,
+                hashCalculator,
+                Paths.get(tempDir, TARGET_CONF_TPL.formatted(SIGNED_DIRECTORY_NAME, version)),
+                tempDirPath,
+                timestamp);
+    }
+
+
+    /**
+     * Generates a signed directory MIME for the global configuration and
+     * writes the directory contents to a temporary location.
+     */
+    public final void buildSignedDirectory(final SignerRpcClient signerRpcClient, final SignerSignClient signerSignClient)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
+        try (ByteArrayOutputStream mimeContent = new ByteArrayOutputStream()) {
+            build(mimeContent);
+
+            log.debug("Generated directory content:\n{}\n", mimeContent);
+
+            byte[] contentBytes = mimeContent.toByteArray();
+            mimeContent.reset();
+            sign(signerRpcClient, signerSignClient, contentBytes, mimeContent);
+            FileUtils.write(tempConfPath, mimeContent.toByteArray());
+
+            log.debug("Written signed directory to '{}'", tempConfPath);
+        }
+    }
+
+    /**
+     * Moves the signed global configuration to the location where it is
+     * accessible to clients.
+     * @throws IOException in case of unsuccessful file operations
+     */
+    public final void move() throws IOException {
+        String path = proxyInstance.getConfigurationTargetPath();
+        Path targetPath = Paths.get(path, timestamp);
+        Path targetConf = Paths.get(path, TARGET_CONF_TPL.formatted(SIGNED_DIRECTORY_NAME, version));
+        FileUtils.createDirectories(targetPath.getParent());
+
+        log.debug("Moving files '{}' to '{}'", tempDirPath, targetPath);
+
+        FileUtils.atomicMoveIfPossible(tempDirPath, targetPath);
+
+        log.debug("Moving conf '{}' to '{}'", tempConfPath, targetConf);
+        Files.deleteIfExists(targetConf);
+        FileUtils.atomicMoveIfPossible(tempConfPath, targetConf);
+    }
+
+    /**
+     * Cleans up any remaining temporary files.
+     * @throws IOException in case of unsuccessful file operations
+     */
+    @Override
+    public final void close() throws IOException {
+        log.debug("Cleaning up '{}'", tempDirPath);
+        FileUtils.delete(tempDirPath);
+    }
+
+    /**
+     * Generates global configuration directory content MIME.
+     * @param mimeContent output stream to write to
+     */
+    private void build(final ByteArrayOutputStream mimeContent) throws IOException {
+        try (MultipartEncoder encoder = new MultipartEncoder(mimeContent, dataBoundary)) {
+            OffsetDateTime expireDate = TimeUtils.offsetDateTimeNow().plusSeconds(proxyInstance.getValidityIntervalSeconds());
+            encoder.startPart(null, new String[]{
+                    HEADER_EXPIRE_DATE + ": " + DATETIME_FORMAT.format(expireDate.truncatedTo(ChronoUnit.MILLIS)),
+                    HEADER_VERSION + ": " + String.format("%d", version)
+            });
+
+            String instance = proxyInstance.getInstance();
+
+            confDir.eachFile((metadata, inputStream) -> {
+                try (FileOutputStream fos = createFileOutputStream(tempDirPath, metadata)) {
+                    if (shouldOverrideConfigurationSources(metadata)) {
+                        inputStream = toInputStreamWithOverriddenConfigurationSources(inputStream, metadata.getConfigurationVersion());
+                    }
+                    TeeInputStream tis = new TeeInputStream(inputStream, fos);
+                    appendFileContent(encoder, instance, metadata, tis);
+                }
+            });
+        }
+    }
+
+    private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
+        boolean isVersionGt2 = metadata.getConfigurationVersion() != null
+                && Integer.parseInt(metadata.getConfigurationVersion()) > 2;
+        boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
+        boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
+        return isVersionGt2 && isSharedParams && isMainInstance;
+    }
+
+    private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream, String configurationVersion)
+            throws IOException {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try (sharedParamsInputStream) {
+            var sharedParametersProvider = ParametersProviderFactory.forGlobalConfVersion(configurationVersion)
+                    .sharedParametersProvider(sharedParamsInputStream.readAllBytes());
+            var sp = sharedParametersProvider
+                    .getSharedParameters().toBuilder()
+                    .sources(List.of(buildConfProxyConfigurationSource()))
+                    .build();
+            sharedParametersProvider.getMarshaller().marshall(sp, os);
+            return new ByteArrayInputStream(os.toByteArray());
+        }
+    }
+
+    private SharedParameters.ConfigurationSource buildConfProxyConfigurationSource() {
+        SharedParameters.ConfigurationSource confProxySource = new SharedParameters.ConfigurationSource();
+        confProxySource.setAddress(address);
+        // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
+        // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.
+        // If 7.4.0 is no longer supported we can decide the configuration type from whether private-params
+        // configuration part is present & then add the verification certs just to the matching type.
+        confProxySource.setExternalVerificationCerts(proxyInstance.getVerificationCerts());
+        confProxySource.setInternalVerificationCerts(proxyInstance.getVerificationCerts());
+        return confProxySource;
+    }
+
+    /**
+     * Signs the global configuration directory content.
+     * @param contentBytes configuration directory content bytes
+     * @param mimeContent  output stream to write to
+     */
+    private void sign(
+            final SignerRpcClient signerRpcClient,
+            final SignerSignClient signerSignClient,
+            final byte[] contentBytes,
+            final ByteArrayOutputStream mimeContent)
+            throws IOException, CertificateEncodingException, OperatorCreationException {
+        String keyId = proxyInstance.getActiveSigningKey();
+        SignAlgorithm signAlgoId = getSignatureAlgorithmId(signerRpcClient, keyId, signatureDigestAlgorithmId);
+        byte[] digest = calculateDigest(signatureDigestAlgorithmId, contentBytes);
+
+        log.debug("Signing directory with signing key '{}' and signing algorithm '{}'", keyId, signAlgoId);
+
+        String signature = getSignature(signerSignClient, keyId, signAlgoId, digest);
+
+        mimeContent.write(envelopeHeader.getBytes());
+
+        try (MultipartEncoder encoder = new MultipartEncoder(mimeContent, envelopeBoundary)) {
+            encoder.startPart(mpMixedContentType(dataBoundary));
+            encoder.write(contentBytes);
+            DigestAlgorithm hashURI = hashCalculator.getAlgoURI();
+            Path verificationCertPath = proxyInstance.getCertPath(keyId);
+
+            encoder.startPart(MimeTypes.BINARY, new String[]{
+                    HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
+                    HEADER_SIG_ALGO_ID + ": " + signAlgoId.uri(),
+                    HEADER_VERIFICATION_CERT_HASH + ": " + getVerificationCertHash(verificationCertPath) + "; "
+                            + HEADER_HASH_ALGORITHM_ID + "=" + hashURI.uri()});
+            encoder.write(signature.getBytes());
+        }
+
+        log.debug("Generated signed directory:\n{}\n", mimeContent);
+
+        FileUtils.write(tempConfPath, mimeContent.toByteArray());
+
+        log.debug("Written signed directory to '{}'", tempConfPath);
+    }
+
+    /**
+     * Computes the verification hash of the certificate at the given path.
+     * @param certPath path to the certificate file
+     * @return verification hash for the certificate
+     */
+    private String getVerificationCertHash(final Path certPath)
+            throws IOException, OperatorCreationException, CertificateEncodingException {
+        try (InputStream is = new FileInputStream(certPath.toFile())) {
+            byte[] certBytes = CryptoUtils.readCertificate(is).getEncoded();
+
+            return hashCalculator.calculateFromBytes(certBytes);
+        }
+    }
+
+    /**
+     * Opens a stream for writing the configuration file describes by the metadata to the target location.
+     * @param targetPath location to write the file to
+     * @param metadata   describes the configuration file
+     * @return output stream for writing the file
+     * @throws IOException if errors during file operations occur
+     */
+    private FileOutputStream createFileOutputStream(final Path targetPath, final ConfigurationPartMetadata metadata)
+            throws IOException {
+        Path filepath = targetPath.resolve(Paths.get(metadata.getInstanceIdentifier(), metadata.getContentLocation()));
+        FileUtils.createDirectories(filepath.getParent());
+        Path newFile = FileUtils.createFile(filepath);
+
+        log.debug("Copying file '{}' to directory '{}'", newFile.toAbsolutePath(), targetPath);
+
+        return new FileOutputStream(newFile.toAbsolutePath().toFile());
+    }
+
+    /**
+     * Appends the metadata and hash of a configuration file to the content inside the encoder.
+     * @param encoder     generates the configuration directory mime from the given file content
+     * @param instance    configuration proxy instance name
+     * @param metadata    describes the configuration file
+     * @param inputStream contents of the configuration file to compute the hash
+     */
+    private void appendFileContent(final MultipartEncoder encoder, final String instance,
+                                   final ConfigurationPartMetadata metadata, final InputStream inputStream)
+            throws IOException, OperatorCreationException {
+        try {
+            Path contentLocation = Paths.get(instance, timestamp, metadata.getInstanceIdentifier(),
+                    metadata.getContentLocation());
+
+            encoder.startPart(MimeTypes.BINARY,
+                    new String[]{
+                            HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
+                            HEADER_CONTENT_IDENTIFIER + ": "
+                                    + metadata.getContentIdentifier()
+                                    + "; instance=\""
+                                    + metadata.getInstanceIdentifier() + "\"",
+                            HEADER_CONTENT_LOCATION + ": /" + contentLocation,
+                            HEADER_HASH_ALGORITHM_ID + ": " + hashCalculator.getAlgoURI().uri()
+                    });
+
+            encoder.write(hashCalculator.calculateFromStream(inputStream).getBytes());
+        } catch (Exception e) {
+            log.error("Failed to append '{}' content to directory data", metadata.getContentFileName());
+
+            throw e;
+        }
+    }
+
+    private SignAlgorithm getSignatureAlgorithmId(final SignerRpcClient signerRpcClient, String keyId, DigestAlgorithm digestAlgoId) {
+        var signMechanismName = signerRpcClient.getSignMechanism(keyId);
+
+        return SignAlgorithm.ofDigestAndMechanism(digestAlgoId, signMechanismName);
+    }
+
+    /**
+     * Generates the signature of the configuration directory data.
+     * @param keyId                id of the key used for signing
+     * @param signatureAlgorithmId if of the algorithm used for signing
+     * @param digest               digest bytes of the directory content
+     * @return the configuration directory signature string (base64)
+     */
+    private String getSignature(
+            final SignerSignClient signerSignClient,
+            final String keyId,
+            final SignAlgorithm signatureAlgorithmId,
+            final byte[] digest) {
+        byte[] signature = signerSignClient.sign(keyId, signatureAlgorithmId, digest);
+
+        return encodeBase64(signature);
+    }
+}

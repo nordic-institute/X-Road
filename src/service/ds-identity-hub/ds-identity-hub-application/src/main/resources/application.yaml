@@ -29,14 +29,13 @@ quarkus:
 
 web:
   http:
-    port: 8181
+    port: 7181
     path: /api
     statuslist:
-      port: "9998" # default 9999 conflicts with debug port
-
+      port: "7998" # default 9999 conflicts with debug port
 
 edc:
-  hostname: ${HOSTNAME}
+  hostname: ${HOSTNAME:localhost}
   datasource:
     default:
       url: ${xroad.db.ds-identity-hub.hibernate.connection.url}

@@ -16,7 +16,7 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=
 
 # Install backup/restore dependencies
 RUN apt-get -qq update && \
-    apt-get -qq install --no-install-recommends curl postgresql-client && \
+    apt-get -qq install --no-install-recommends curl gnupg postgresql-client && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
 

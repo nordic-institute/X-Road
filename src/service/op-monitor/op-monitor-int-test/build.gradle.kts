@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-  intTestImplementation(project(path = ":service:op-monitor:op-monitor-db", configuration = "changelogJar"))
+  intTestImplementation(project(":tool:liquibase-executor"))
   intTestImplementation(project(":service:op-monitor:op-monitor-client"))
   intTestImplementation(project(":tool:test-framework-core"))
   intTestImplementation(libs.liquibase.core)
@@ -18,7 +18,7 @@ intTestComposeEnv {
 
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",
-    "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
+    "DB_INIT_IMG" to "ss-db-init",
     "OP_MONITOR_IMG" to "ss-op-monitor"
   )
 }

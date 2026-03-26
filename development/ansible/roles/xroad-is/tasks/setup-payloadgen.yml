@@ -5,20 +5,20 @@
       file:
         path: /opt/payloadgen
         state: directory
-        mode: '0755'
+        mode: "0755"
     - name: Download example-adapter
       get_url:
-        url: "https://artifactory.niis.org/artifactory/xroad-generic-utils/payloadgen-{{ ansible_architecture }}"
+        url: "https://artifactory.niis.org/artifactory/xroad-generic-utils/payloadgen-{{ ansible_facts['architecture'] }}"
         dest: /opt/payloadgen/payloadgen
-        mode: '0744'
+        mode: "0744"
     - name: Create payloadgen systemd service
       template:
         src: templates/payloadgen.service.j2
         dest: /etc/systemd/system/payloadgen.service
-        mode: '0644'
+        mode: "0644"
     - name: Start and enable payloadgen service
       systemd:
         name: payloadgen
         state: started
-        enabled: yes
-        daemon_reload: yes
+        enabled: true
+        daemon_reload: true

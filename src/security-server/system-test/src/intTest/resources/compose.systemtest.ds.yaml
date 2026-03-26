@@ -22,29 +22,6 @@ services:
         limits:
           memory: 256M
 
-  db-ds-data-plane:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    environment:
-      - POSTGRES_PASSWORD=ds_data_plane_admin_secret
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=ds-data-plane
-    networks:
-      - xrd-ss-network
-    ports:
-      - "0:5432"
-    healthcheck:
-      start_period: 5s
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 256M
-
   ds-control-plane:
     image: ${DS_CONTROL_PLANE_IMG}
     pull_policy: always
@@ -66,10 +43,10 @@ services:
     networks:
       - xrd-ss-network
     ports:
-        - "0:8081" # management, /api/mgmt
         - "0:8181"
-        - "0:8282" # protocol, /api/dsp
-        - "0:9191" # control, /api/control
+        - "0:8182" # management, /api/mgmt
+        - "0:8183" # protocol, /api/dsp
+        - "0:8184" # control, /api/control
         - "0:9999" # debug port
     deploy:
       resources:
@@ -81,47 +58,6 @@ services:
       db-ds-control-plane:
         condition: service_healthy
       configuration-client:
-        condition: service_healthy
-      mock-jwks-server:
-        condition: service_healthy
-
-  ds-data-plane:
-    image: ${DS_DATA_PLANE_IMG}
-    pull_policy: always
-    environment:
-      - DEBUG=true
-#      - DEBUG_SUSPEND=y
-      - HOSTNAME=ds-data-plane
-      - XROAD_SECRET_STORE_HOST=openbao
-      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
-      - XROAD_SECRET_STORE_SCHEME=http
-      # admin permissions required to create schema on startup
-      - XROAD_DB_DS_DATA_PLANE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-data-plane:5432/ds-data-plane
-      - XROAD_DB_DS_DATA_PLANE_HIBERNATE_CONNECTION_USERNAME=postgres
-      - XROAD_DB_DS_DATA_PLANE_HIBERNATE_CONNECTION_PASSWORD=ds_data_plane_admin_secret
-#      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-#      - EDC_DPF_SELECTOR_URL=http://ds-control-plane:9191/api/control/v1/dataplanes
-    healthcheck:
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
-    networks:
-      - xrd-ss-network
-    ports:
-      - "0:8181" # default /api
-      - "0:8191"
-      - "0:9191" # control, /api/control
-      - "0:9999" # debug port
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 320M
-    depends_on:
-      db-ds-data-plane:
-        condition: service_healthy
-      ds-control-plane:
         condition: service_healthy
       mock-jwks-server:
         condition: service_healthy
@@ -144,7 +80,3 @@ services:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
     volumes:
       - ./container-files/jwks/:/jwks
-
-#networks:
-#  xrd-ss-network:
-#    driver: bridge

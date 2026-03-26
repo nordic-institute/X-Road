@@ -25,7 +25,7 @@ metadata:
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   backoffLimit: 3
   template:
@@ -40,7 +40,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ $name }}-db-init
-          image: {{ .root.Values.global.image.registry }}/{{ .config.imageName }}:{{ .root.Values.global.image.tag }}
+          image: {{ .root.Values.global.image.registry }}/{{ .root.Values.init.imageName }}:{{ .root.Values.global.image.tag }}
           imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
           securityContext:
             {{- toYaml .root.Values.init.securityContext | nindent 12 }}
@@ -50,24 +50,25 @@ spec:
             limits:
               memory: "512Mi"
           env:
-            - name: LIQUIBASE_COMMAND_USERNAME
+            - name: JDBC_URL
+              value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
+            - name: JDBC_USER
               value: "postgres"
-            - name: LIQUIBASE_COMMAND_PASSWORD
+            - name: JDBC_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-{{ $name }}
                   key: postgres-password
-            - name: LIQUIBASE_COMMAND_URL
-              value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
-              {{ $config.url | quote }}
-            - name: db_schema
+            - name: CHANGELOG
+              value: {{ ($config.changelogName | default $name) | quote }}
+            - name: DEFAULT_SCHEMA_NAME
               value: {{ $config.schema | quote }}
-            - name: db_user
+            - name: PROP_DB_USER
               value: {{ $config.username | quote }}
             {{- if and (eq $name "serverconf") (hasKey $config "proxyUiSuperuserPassword") }}
-            - name: PROXY_UI_SUPERUSER
+            - name: PROP_PROXY_UI_SUPERUSER
               value: {{ $config.proxyUiSuperuser | quote }}
-            - name: PROXY_UI_SUPERUSER_PASSWORD
+            - name: PROP_PROXY_UI_SUPERUSER_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ $name }}-db-init-secret

@@ -1,6 +1,6 @@
 ARG REGISTRY=localhost:5555
 ARG DOCKER_REGISTRY=""
-FROM ${DOCKER_REGISTRY}eclipse-temurin:21-jre
+FROM ${DOCKER_REGISTRY}eclipse-temurin:25-jre
 
 RUN groupadd --system --gid 999 xroad && \
     useradd --system  \
@@ -21,15 +21,22 @@ RUN mkdir /var/log/xroad && \
     chown -R xroad:xroad /var/cache/xroad && \
     chown -R xroad:xroad /etc/xroad
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 ARG GITHUB_URL=https://github.com/
 ARG XROAD_MIRROR_USER
 RUN --mount=type=secret,id=mirror_token \
+    apt-get -qq update && \
+    apt-get -qq install --no-install-recommends -y curl && \
     CURL_AUTH="" && \
     if [ -n "$XROAD_MIRROR_USER" ] && [ -f /run/secrets/mirror_token ]; then \
       CURL_AUTH="-u ${XROAD_MIRROR_USER}:$(cat /run/secrets/mirror_token)"; \
     fi && \
     curl -fsSL $CURL_AUTH -o /opt/jmx_prometheus_javaagent.jar \
-      "${GITHUB_URL}prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_javaagent-1.5.0.jar"
+      "${GITHUB_URL}prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_javaagent-1.5.0.jar" && \
+    apt-get -qq autoremove -y && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy license files from build context
 COPY --from=build /LICENSE.txt /opt/app/LICENSE.txt

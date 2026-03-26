@@ -8,40 +8,41 @@
 metrics = "4.2.37"
 jetty = "12.0.31"
 jaxb = "4.0.5"
-hibernate = "7.2.4.Final"
+hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.4"
 mockito = "5.21.0"
-springBoot = "3.5.6"
-springFramework = "7.0.1"
+springBoot = "3.5.9"
+springFramework = "7.0.4"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
 bouncyCastle = "1.83"
 slf4j = "2.0.17"
-protoc = "4.33.5"
+protoc = "4.34.0"
 grpc = "1.79.0"
-swaggerParser = "2.1.37"
-logback = "1.5.27"
+swaggerParser = "2.1.38"
+logback = "1.5.32"
 logbackAccess = "2.0.9"
-apacheCxf = "4.1.4"
-liquibase = "5.0.1"
-archUnitPlugin = "4.0.0"
+apacheCxf = "4.1.5"
+liquibase = "5.0.2"
 protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
-jacoco = "0.8.12"
+jacoco = "0.8.14"
 resilience4j = "2.3.0"
-quarkus = "3.31.4"
-quarkus-vault = "4.5.0"
-smallryeConfig = "3.15.1"
+quarkus = "3.32.4"
+quarkus-vault = "4.6.0"
+smallryeConfig = "3.16.0"
 microprofile = "3.1"
-feign = "13.6"
-testCucumber = "7.32.0"
-testContainers = "2.0.2"
-testAllure = "2.31.0"
-testSelenide = "7.12.3"
-shadowPlugin = "8.3.9"
-edc = "0.17.0-SNAPSHOT"
+feign = "13.9.2"
+testCucumber = "7.34.2"
+testContainers = "2.0.3"
+testAllure = "2.33.0"
+testSelenide = "7.14.0"
+shadowPlugin = "9.3.2"
+edc = "0.16.0"
+edc-v = "0.16.0-20260323-1-SNAPSHOT"
+dataplane-sdk = "0.0.7-SNAPSHOT"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -68,6 +69,9 @@ quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quark
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
 quarkus-arc = { group = "io.quarkus", name = "quarkus-arc", version.ref = "quarkus" }
 quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "quarkus" }
+quarkus-rest-jackson = { group = "io.quarkus", name = "quarkus-rest-jackson", version.ref = "quarkus" }
+quarkus-security = { group = "io.quarkus", name = "quarkus-security", version.ref = "quarkus" }
+quarkus-smallrye-openapi = { group = "io.quarkus", name = "quarkus-smallrye-openapi", version.ref = "quarkus" }
 quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
 quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-config", version.ref = "quarkus" }
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
@@ -161,7 +165,7 @@ apache-commonsCompress = { module = "org.apache.commons:commons-compress", versi
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.15.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.13.0" }
-apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.12.1" }
+apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.13.1" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
@@ -169,11 +173,11 @@ apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.3" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.4" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.5.1" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.6" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.11.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.20.0" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.21.0" }
 commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1" }
 commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
@@ -193,13 +197,13 @@ logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", versi
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.7" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
+picocli = { module = "info.picocli:picocli", version = "4.7.7" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.10" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 h2database = { module = "com.h2database:h2", version = "2.2.224" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
-xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.41" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.44" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -218,11 +222,11 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.20.1" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.25.0" }
 
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
-edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc" }
+edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc-v" }
 
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
@@ -236,8 +240,13 @@ edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 edc-core-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
+edc-core-edrstore = { module = "org.eclipse.edc:edr-store-core", version.ref = "edc" }
+edc-edrstore-receiver = { module = "org.eclipse.edc:edr-store-receiver", version.ref = "edc" }
+edc-edr-cache-api = { module = "org.eclipse.edc:edr-cache-api", version.ref = "edc" }
 
 edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
+
+edcv-tasks-store-poll-executor = { module = "org.eclipse.edc.virtualized:tasks-store-poll-executor", version.ref = "edc-v" }
 
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
@@ -268,10 +277,15 @@ edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.r
 edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
+edc-spi-edr = { module = "org.eclipse.edc:edr-store-spi", version.ref = "edc" }
+edc-spi-auth = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
 edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
+edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
+edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
+edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
@@ -285,18 +299,18 @@ edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
-edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc" }
+edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc-v" }
 edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", version.ref = "edc" }
 edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
 edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }
 edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
 
-edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version = "0.0.6-SNAPSHOT" }
+edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version.ref = "dataplane-sdk" }
 
 #Gradle plugins
-archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
+archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "5.0.1" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
-archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
+archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version = "4.0.0" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
 shadowGradlePlugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadowPlugin" }
@@ -306,12 +320,12 @@ metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 edc-dcp = [
-#  "edc-crypto-verifiablecredentials-jwt",
-#  "edc-crypto-verifiablecredentials-ldp",
-#  "edc-iam-dcp-core",
+  #  "edc-crypto-verifiablecredentials-jwt",
+  #  "edc-crypto-verifiablecredentials-ldp",
+  #  "edc-iam-dcp-core",
   "edc-oauth2-client",
-#  "edc-iam-decentralized",
-#  "edc-iam-dcp-trustedissuers",
+  #  "edc-iam-decentralized",
+  #  "edc-iam-dcp-trustedissuers",
   "edc-iam-mock"
 ]
 edc-connector = [
@@ -334,11 +348,10 @@ quarkus-containerized = [
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.18.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.20.0" }
 sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadowPlugin" }
-archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
