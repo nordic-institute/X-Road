@@ -146,7 +146,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { useNotifications, XrdBtn, XrdCard, XrdFormLabel } from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdCard, XrdFormLabel, XrdEmptyPlaceholder } from '@niis/shared-ui';
 import { useGeneral } from '@/store/modules/general';
 import { useClients } from '@/store/modules/clients';
 import { useClient } from '@/store/modules/client';
@@ -174,6 +174,7 @@ export default defineComponent({
     StatusAvatar,
     XrdBtn,
     XrdCard,
+    XrdEmptyPlaceholder
   },
   setup() {
     const { addError } = useNotifications();

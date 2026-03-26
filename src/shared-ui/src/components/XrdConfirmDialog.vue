@@ -35,7 +35,7 @@
     <v-card data-test="dialog-simple" class="xrd-rounded-12 bg-surface-container-lowest">
       <template #title>
         <slot name="title">
-          <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
+          <span class=".title-container font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
         </slot>
       </template>
       <div class="alert-slot pl-6 pr-6">

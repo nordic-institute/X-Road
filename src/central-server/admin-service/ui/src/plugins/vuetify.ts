@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
+import { Color, createXrdVuetify } from '@niis/shared-ui';//Keep at the top
 import '@/assets/styles.css';
-import { Color, createXrdVuetify } from '@niis/shared-ui';
 
 export default createXrdVuetify(Color.M_900, Color.D_100, Color.M_100, Color.D_800);

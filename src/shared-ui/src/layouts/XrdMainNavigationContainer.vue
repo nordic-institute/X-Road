@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-navigation-drawer class="xrd-rail-nav px-1" width="96" permanent>
+  <v-navigation-drawer class="xrd-rail-nav px-1 py-6" width="96" permanent disable-resize-watcher>
     <v-list-item class="xrd xrd-rail-item-logo mx-1 opacity-100" density="compact" variant="plain" to="/" rounded>
       <v-img class="ma-auto mb-3" width="48px" :src="logo" />
     </v-list-item>
@@ -53,8 +53,9 @@ const logo = computed(() => (isDark.value ? _logoDark : _logoLight));
 </script>
 <style lang="scss" scoped>
 .xrd-rail-nav {
-  padding: 24px 8px;
   border-right-width: 0;
+min-height: 700px;
+
 
   //eslint-disable-next-line vue-scoped-css/no-unused-selector
   .v-list-item {

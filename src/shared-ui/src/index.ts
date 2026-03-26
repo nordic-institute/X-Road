@@ -25,6 +25,8 @@
  * THE SOFTWARE.
  */
 
+export * from './plugins/vuetify';//Keep at the top
+
 //resources&assets
 export * from './components';
 export * from './components/admin-users';
@@ -35,10 +37,9 @@ export * from './views/BackupsAndRestore';
 export * from './views/ApiKeys';
 export * from './views/TlsCertificates';
 export * from './views/admin-users';
-export * from './openapi-types';
 
+export * from './openapi-types';
 export * from './plugins/i18n';
-export * from './plugins/vuetify';
 export * from './utils';
 export * from './stores';
 export * from './composables';

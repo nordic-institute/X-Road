@@ -234,14 +234,14 @@
                 {{ $t('systemParameters.approvedCertificateAuthorities.table.notAvailable') }}
               </td>
               <td>
-                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url" class="py-2">
+                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url">
                   <p>
                     {{ ocspResponder.url }}
                   </p>
                 </div>
               </td>
               <td>
-                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url" class="py-2">
+                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url">
                   <p>
                     {{ $t('systemParameters.costType.' + ocspResponder.cost_type) }}
                   </p>
@@ -278,35 +278,35 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import {defineComponent} from 'vue';
 import {
-  XrdBtn,
-  XrdDateTime,
-  XrdDate,
-  XrdHashValue,
-  XrdView,
-  XrdCard,
-  XrdSubView,
-  XrdStatusChip,
-  useNotifications,
-  XrdEmptyPlaceholderRow,
-  XrdStatusIcon,
   saveResponseAsFile,
+  useNotifications,
+  XrdBtn,
+  XrdCard,
+  XrdDate,
+  XrdDateTime,
+  XrdEmptyPlaceholderRow,
+  XrdHashValue,
+  XrdStatusChip,
+  XrdStatusIcon,
+  XrdSubView,
+  XrdView,
 } from '@niis/shared-ui';
-import { Anchor, CertificateAuthority, TimestampingService, ServicePrioritizationStrategy } from '@/openapi-types';
-import { Permissions } from '@/global';
+import {Anchor, CertificateAuthority, ServicePrioritizationStrategy, TimestampingService} from '@/openapi-types';
+import {Permissions} from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
+import {mapState} from 'pinia';
+import {useUser} from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
-import { useSystem } from '@/store/modules/system';
-import { useDiagnostics } from '@/store/modules/diagnostics';
-import { useTimestampingServices } from '@/store/modules/timestamping-services';
-import { useCsr } from '@/store/modules/certificateSignRequest';
+import {useSystem} from '@/store/modules/system';
+import {useDiagnostics} from '@/store/modules/diagnostics';
+import {useTimestampingServices} from '@/store/modules/timestamping-services';
+import {useCsr} from '@/store/modules/certificateSignRequest';
 
 export default defineComponent({
   components: {
@@ -328,16 +328,16 @@ export default defineComponent({
     XrdEmptyPlaceholderRow,
   },
   setup() {
-    const { addError } = useNotifications();
+    const {addError} = useNotifications();
     const {
       fetchConfigurationAnchor: apiFetchConfigurationAnchor,
       downloadAnchor: apiDownloadAnchor,
       fetchSecurityServerAddress,
     } = useSystem();
-    const { fetchAddonStatus } = useDiagnostics();
-    const { fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy } =
+    const {fetchAddonStatus} = useDiagnostics();
+    const {fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy} =
       useTimestampingServices();
-    const { searchCertificateAuthorities, fetchCertificateAuthoritiesPrioritizationStrategy } = useCsr();
+    const {searchCertificateAuthorities, fetchCertificateAuthoritiesPrioritizationStrategy} = useCsr();
     return {
       addError,
       apiFetchConfigurationAnchor,
