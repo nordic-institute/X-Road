@@ -50,7 +50,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 @Configuration
 public class BootstrapConfiguration {
 
-    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3; //tmp
+    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
 
     @Bean
     @Profile("!int-test")
@@ -82,13 +82,13 @@ public class BootstrapConfiguration {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var env = context.getEnvironment();
-            var enabled = env.getProperty("xroad.admin-service.rate-limit-enabled", Boolean.class, true);
+            boolean enabled = env.getProperty("xroad.admin-service.rate-limit-enabled", Boolean.class, true);
             if (!enabled) {
                 return false;
             }
-            var perSecond = env.getProperty(
+            int perSecond = env.getProperty(
                     "xroad.admin-service.rate-limit-requests-per-second", Integer.class, 0);
-            var perMinute = env.getProperty(
+            int perMinute = env.getProperty(
                     "xroad.admin-service.rate-limit-requests-per-minute", Integer.class, 0);
             return perSecond > 0 || perMinute > 0;
         }

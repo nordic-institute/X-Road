@@ -82,12 +82,12 @@ public class SecurityServerConfiguration {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var env = context.getEnvironment();
-            var enabled = env.getProperty("xroad.proxy-ui-api.rate-limit-enabled", Boolean.class, true);
+            boolean enabled = env.getProperty("xroad.proxy-ui-api.rate-limit-enabled", Boolean.class, true);
             if (!enabled) {
                 return false;
             }
-            var perSecond = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-second", Integer.class, 0);
-            var perMinute = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-minute", Integer.class, 0);
+            int perSecond = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-second", Integer.class, 0);
+            int perMinute = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-minute", Integer.class, 0);
             return perSecond > 0 || perMinute > 0;
         }
     }

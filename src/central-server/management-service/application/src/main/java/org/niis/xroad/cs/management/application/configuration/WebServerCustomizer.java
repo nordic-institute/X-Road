@@ -72,13 +72,13 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var env = context.getEnvironment();
-            var enabled = env.getProperty("xroad.management-service.rate-limit-enabled", Boolean.class, true);
+            boolean enabled = env.getProperty("xroad.management-service.rate-limit-enabled", Boolean.class, true);
             if (!enabled) {
                 return false;
             }
-            var perSecond = env.getProperty(
+            int perSecond = env.getProperty(
                     "xroad.management-service.rate-limit-requests-per-second", Integer.class, 0);
-            var perMinute = env.getProperty(
+            int perMinute = env.getProperty(
                     "xroad.management-service.rate-limit-requests-per-minute", Integer.class, 0);
             return perSecond > 0 || perMinute > 0;
         }
