@@ -68,6 +68,12 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         UserRoleConfig,
         KeyAlgorithmConfig {
 
+
+    /**
+     * Controls whether the built-in rate limiting is enabled.
+     */
+    private boolean rateLimitEnabled;
+
     /**
      * Controls how many requests from an IP address are allowed per minute.
      * Normally security servers should have a unique address and send second

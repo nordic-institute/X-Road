@@ -30,13 +30,16 @@ import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 @Configuration
 class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebServerFactory> {
@@ -46,9 +49,7 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
         factory.addServerCustomizers(server -> {
             var errorHandler = new ErrorHandler();
             errorHandler.setShowStacks(false);
-
             server.setErrorHandler(errorHandler);
-
             var requestLogWriter = new Slf4jRequestLogWriter();
             requestLogWriter.setLoggerName("org.niis.xroad.cs.registrationservice.RequestLog");
             server.setRequestLog(new CustomRequestLog(requestLogWriter, CustomRequestLog.EXTENDED_NCSA_FORMAT));
@@ -56,14 +57,29 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
     }
 
     @Bean
-    @ConditionalOnProperty(
-            value = "xroad.registration-service.rate-limit-enabled",
-            havingValue = "true", matchIfMissing = true)
+    @Conditional(RateLimitEnabledCondition.class)
     public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(RegistrationServiceProperties properties) {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
         bean.addUrlPatterns("/managementservice", "/managementservice/");
         return bean;
+    }
+
+    static class RateLimitEnabledCondition implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            var env = context.getEnvironment();
+            boolean enabled = env.getProperty("xroad.registration-service.rate-limit-enabled", Boolean.class, true);
+            if (!enabled) {
+                return false;
+            }
+            int perSecond = env.getProperty(
+                    "xroad.registration-service.rate-limit-requests-per-second", Integer.class, 0);
+            int perMinute = env.getProperty(
+                    "xroad.registration-service.rate-limit-requests-per-minute", Integer.class, 0);
+            return perSecond > 0 || perMinute > 0;
+        }
     }
 }
