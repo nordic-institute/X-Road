@@ -283,7 +283,7 @@ public final class VuetifyHelper {
         }
 
         public Select hasValueSelected(final String val) {
-            controlElement.$x(".//span[@class='v-select__selection-text']").shouldHave(text(val));
+            controlElement.$x(".//div[@class='v-list-item' and .//div[@class='v-list-item-title']]").shouldHave(text(val));
             return this;
         }
     }

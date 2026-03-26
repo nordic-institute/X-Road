@@ -37,7 +37,7 @@
           :color="color(notification.asWarning)"
           :border="color(notification.asWarning)"
         >
-          <v-banner-text>
+          <v-banner-text class="body-regular font-weight-regular">
             <p v-if="notification.message">
               {{ notification.message }}
             </p>
@@ -158,5 +158,9 @@ function copyId(errorId?: string): void {
 <style lang="scss" scoped>
 .alert:not(:last-child) {
   margin-bottom: 16px;
+}
+p, ul {
+  padding: 0;
+  margin: 0;
 }
 </style>
