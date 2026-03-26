@@ -15,7 +15,8 @@
       "minimatch": "^10.2.3",
       "rollup": "^4.59.0",
       "flatted": "^3.4.2",
-      "immutable": "^5.1.5"
+      "immutable": "^5.1.5",
+      "picomatch": "^4.0.4"
     }
   },
   "devDependencies": {
