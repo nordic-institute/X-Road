@@ -2,6 +2,12 @@
 set -e
 . /usr/share/debconf/confmodule
 
+log () { echo >&2 "$@"; }
+
+get_prop() {
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+}
+
 handle_error() {
   ERR=$1
   db_reset xroad-common/cert-generation-retry
@@ -19,6 +25,27 @@ handle_error() {
   fi
 
   echo "Retrying certificate generation"
+}
+
+prepare_tls_settings() {
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
+
+  if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.configuration-proxy.tls.certificate-provisioning.common-name') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.configuration-proxy.tls.certificate-provisioning.alt-names') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.configuration-proxy.tls.certificate-provisioning.ip-subject-alt-names') ]]; then
+      log "Preparing configuration-proxy TLS settings"
+
+      db_get xroad-common/confproxy-subject
+      cn="${RET#/CN=}"
+      db_get xroad-common/confproxy-altsubject
+      altn="$RET"
+
+      # Use the shared write_tls_config.sh script
+      . /usr/share/xroad/scripts/write_tls_config.sh
+      write_tls_settings "$CONFIG_FILE" "configuration-proxy" "$cn" "$altn"
+  else
+    log "configuration-proxy TLS settings exists, skipping"
+  fi
 }
 
 create_conf_proxy_certificate() {
@@ -73,9 +100,19 @@ create_conf_proxy_certificate() {
   fi
 }
 
+configure_db() {
+  RET=
+  db_get xroad-common/database-host || RET=""
+  db_stop
+
+  /usr/share/xroad/scripts/setup_confproxy_db.sh "$RET"
+}
+
 case "$1" in
   configure | reconfigure)
     create_conf_proxy_certificate
+    prepare_tls_settings
+
     mkdir -p /var/lib/xroad/public
     chmod 755 /var/lib/xroad/public
     chown xroad:xroad /var/lib/xroad/public
@@ -97,11 +134,11 @@ case "$1" in
       esac
     fi
 
+    configure_db
+
+    invoke-rc.d --quiet rsyslog try-restart || true
     invoke-rc.d --quiet nginx try-restart || true
     invoke-rc.d --quiet xroad-signer try-restart || true
-
-    deb-systemd-invoke stop xroad-confclient
-    deb-systemd-invoke disable xroad-confclient
     ;;
 
   abort-upgrade | abort-remove | abort-deconfigure) ;;

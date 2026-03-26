@@ -80,6 +80,6 @@ public class ServerProxyConnectionAborted3 extends MessageTestCase implements Us
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-         assertErrorCode(SERVER_CLIENTPROXY_X, SERVICE_FAILED.code(), IO_ERROR.code());
+        assertErrorCode(SERVER_CLIENTPROXY_X, SERVICE_FAILED.code(), IO_ERROR.code());
     }
 }

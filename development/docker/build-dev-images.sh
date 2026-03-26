@@ -323,6 +323,50 @@ else
 fi
 
 # =============================================================================
+# Build Nginx Configuration-proxy Image
+# =============================================================================
+echo
+echo "================================================================================"
+log_info ">>> STARTING BUILD: nginx-cp"
+echo "================================================================================"
+build_start=$(date +%s)
+
+NGINX_CP_IMAGE="${REGISTRY}/nginx-cp:${IMAGE_TAG}"
+NGINX_CP_DOCKERFILE="${SCRIPT_DIR}/configuration-proxy/nginx/Dockerfile"
+NGINX_CP_CONTEXT="${SCRIPT_DIR}/configuration-proxy/nginx"
+
+build_cmd=(
+  docker buildx build --progress=plain
+  "${CACHE_FLAG[@]}"
+  --file "$NGINX_CP_DOCKERFILE"
+  --tag "$NGINX_CP_IMAGE"
+  "${MIRROR_BUILD_ARGS[@]}"
+)
+
+if [[ "$PUSH" == "true" ]]; then
+  build_cmd+=(--push)
+else
+  build_cmd+=(--load)
+fi
+
+build_cmd+=("$NGINX_CP_CONTEXT")
+
+log_info "Dockerfile: $NGINX_CP_DOCKERFILE"
+log_info "Context: $NGINX_CP_CONTEXT"
+log_info "Command: ${build_cmd[*]}"
+echo "--------------------------------------------------------------------------------"
+
+if "${build_cmd[@]}"; then
+  echo "--------------------------------------------------------------------------------"
+  build_end=$(date +%s)
+  build_duration=$((build_end - build_start))
+  log_success "<<< FINISHED BUILD: nginx-cp in $(format_duration $build_duration)"
+else
+  log_error "<<< FAILED BUILD: nginx-cp"
+  exit 1
+fi
+
+# =============================================================================
 # Summary
 # =============================================================================
 BUILD_END_TIME=$(date +%s)
@@ -335,4 +379,5 @@ log_info "Images built:"
 echo "  - $OPENBAO_IMAGE"
 echo "  - $TESTCA_IMAGE"
 echo "  - $POSTGRES_DEV_IMAGE"
+echo "  - $NGINX_CP_IMAGE"
 echo

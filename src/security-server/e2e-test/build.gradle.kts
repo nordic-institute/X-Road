@@ -23,9 +23,7 @@ intTestComposeEnv {
     "CS_IMG" to "central-server-dev",
     "POSTGRES_DEV_IMG" to "postgres-dev",
     "OPENBAO_DEV_IMG" to "openbao-dev",
-    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
-    "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",
-    "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
+    "DB_INIT_IMG" to "ss-db-init",
     "CONFIGURATION_CLIENT_IMG" to "ss-configuration-client",
     "MONITOR_IMG" to "ss-monitor",
     "SIGNER_IMG" to "ss-signer",
@@ -35,7 +33,10 @@ intTestComposeEnv {
     "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
     "OP_MONITOR_IMG" to "ss-op-monitor",
     "CA_IMG" to "testca-dev",
-    "MESSAGE_LOG_ARCHIVER_IMG" to "ss-message-log-archiver"
+    "MESSAGE_LOG_ARCHIVER_IMG" to "ss-message-log-archiver",
+    "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
+    "DS_DATA_PLANE_IMG" to "ds-data-plane",
+//    "DS_IDENTITY_HUB_IMG" to "ds-identity-hub"
   )
 }
 

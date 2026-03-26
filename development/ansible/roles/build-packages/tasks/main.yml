@@ -16,10 +16,10 @@
         state: started
         restart: true
         detach: false
-        cleanup: yes
+        cleanup: true
         user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
         env:
-            HOME: "/workspace/deployment/native-packages"
+          HOME: "/workspace/deployment/native-packages"
         volumes:
           - ..:/workspace
           - /etc/passwd:/etc/passwd:ro
@@ -45,10 +45,10 @@
         state: started
         restart: true
         detach: false
-        cleanup: yes
+        cleanup: true
         user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
         env:
-            HOME: "/workspace/deployment/native-packages"
+          HOME: "/workspace/deployment/native-packages"
         volumes:
           - ..:/workspace
           - /etc/passwd:/etc/passwd:ro

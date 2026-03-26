@@ -178,8 +178,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "CatalogRequest",
-                    "counterPartyId": "test-participant-context-id",
-                    "counterPartyAddress": "http://localhost:8282/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyId": "test-part-ctx",
+                    "counterPartyAddress": "http://localhost:8183/api/dsp/test-part-ctx/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
                 """;

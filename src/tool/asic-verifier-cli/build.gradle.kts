@@ -22,9 +22,5 @@ tasks.shadowJar {
   archiveBaseName.set("asicverifier")
   archiveClassifier.set("")
   archiveVersion.set("")
-  exclude("**/module-info.class")
-}
 
-tasks.build {
-  finalizedBy(tasks.shadowJar)
 }

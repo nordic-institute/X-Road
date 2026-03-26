@@ -21,7 +21,7 @@ dependencies {
   // FIXME: move required classes to common
   testImplementation(project(":central-server:admin-service:core-api"))
   testImplementation(project(":central-server:admin-service:globalconf-generator"))
-  testImplementation(project(":service:configuration-client:configuration-client-core"))
+  testImplementation(project(":service:configuration-client:configuration-client-common"))
 }
 
 intTestComposeEnv {
@@ -32,9 +32,7 @@ intTestComposeEnv {
     "OPENBAO_DEV_IMG" to "openbao-dev",
     "POSTGRES_DEV_IMG" to "postgres-dev",
     "CA_IMG" to "testca-dev",
-    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
-    "MESSAGELOG_INIT_IMG" to "ss-db-messagelog-init",
-    "OP_MONITOR_INIT_IMG" to "ss-db-opmonitor-init",
+    "DB_INIT_IMG" to "ss-db-init",
     "CONFIGURATION_CLIENT_IMG" to "ss-configuration-client",
     "MONITOR_IMG" to "ss-monitor",
     "SIGNER_IMG" to "ss-signer",
@@ -43,7 +41,6 @@ intTestComposeEnv {
     "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
     "OP_MONITOR_IMG" to "ss-op-monitor",
     "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
-    "DS_DATA_PLANE_IMG" to "ds-data-plane",
     "DS_IDENTITY_HUB_IMG" to "ds-identity-hub"
   )
 }

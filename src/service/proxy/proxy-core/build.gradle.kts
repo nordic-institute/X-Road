@@ -28,7 +28,6 @@ dependencies {
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jetty.xml)
-//  implementation(libs.xerces.impl)
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))

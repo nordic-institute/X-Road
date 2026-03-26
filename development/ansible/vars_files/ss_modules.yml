@@ -36,7 +36,7 @@ ss_modules:
     target: /usr/share/xroad/jlib/ds-control-plane
     service: xroad-ds-control-plane
   ds-data-plane:
-    dir: service/ds-control-plane/ds-data-plane-application
+    dir: service/ds-data-plane/ds-data-plane-application
     build: build
     target: /usr/share/xroad/jlib/ds-data-plane
     service: xroad-ds-data-plane

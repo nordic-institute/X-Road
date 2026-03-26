@@ -1,17 +1,16 @@
 ---
-
 - name: Install Nginx
   apt:
     name: nginx
     state: present
-    update_cache: yes
-    install_recommends: no
+    update_cache: true
+    install_recommends: false
 
 - name: Configure Nginx for mock service
   template:
     src: templates/nginx-mock.conf.j2
     dest: /etc/nginx/sites-available/mock-service
-    mode: '0644'
+    mode: "0644"
 
 - name: Enable mock service site
   file:
@@ -28,4 +27,4 @@
   service:
     name: nginx
     state: restarted
-    enabled: yes
+    enabled: true

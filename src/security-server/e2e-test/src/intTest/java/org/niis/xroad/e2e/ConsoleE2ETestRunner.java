@@ -44,6 +44,7 @@ public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
                 "compose.aux.yaml",
                 "compose.main.yaml",
                 "compose.e2e.yaml",
+                "compose.e2e.ds.yaml",
                 "compose.ss-hsm.e2e.yaml",
                 "compose.ss-batch-signature-enabled.e2e.yaml",
                 "compose.ss-softtoken-signer-enabled.e2e.yaml",
@@ -54,6 +55,7 @@ public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
                 "signer-with-hsm/",
                 "hurl/",
                 "gpg_keys/",
+                "jwks/",
                 "msglog_encryption_config/"
         };
     }

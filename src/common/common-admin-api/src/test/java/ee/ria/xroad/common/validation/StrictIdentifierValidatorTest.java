@@ -27,15 +27,15 @@
 package ee.ria.xroad.common.validation;
 
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class StrictIdentifierValidatorTest {
+class StrictIdentifierValidatorTest {
     private StrictIdentifierValidator validator = new StrictIdentifierValidator();
 
     @Test
-    public void valid() {
+    void valid() {
         validator = new StrictIdentifierValidator();
         assertValid(null);
         assertValid("abcdefghijklmnopqrstuvwxyz");
@@ -45,7 +45,7 @@ public class StrictIdentifierValidatorTest {
     }
 
     @Test
-    public void inValid() {
+    void inValid() {
         assertInvalid(":");
         assertInvalid("/");
         assertInvalid("ä");

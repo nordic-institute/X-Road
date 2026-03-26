@@ -1,4 +1,15 @@
 ---
+- name: copy CP container configuration files
+  copy:
+    src: "files/cp/"
+    dest: "/"
+    group: "root"
+    owner: "root"
+    mode: "0644"
+    directory_mode: "0755"
+  when: inventory_hostname in groups['cp_servers']
+  tags: dev-configuration
+
 - name: copy CS container configuration files
   copy:
     src: "files/cs/"
@@ -33,13 +44,13 @@
       file:
         path: /etc/mailpit
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: Create auth file
       copy:
         dest: /etc/mailpit/auth.txt
         content: "testusername:testpassword"
-        mode: '0644'
+        mode: "0644"
 
     - name: Generate TLS certificates
       shell: |
@@ -55,7 +66,7 @@
     - name: Set TLS cert permissions
       file:
         path: "{{ item }}"
-        mode: '0644'
+        mode: "0644"
       loop:
         - /etc/mailpit/cert.pem
         - /etc/mailpit/key.pem
@@ -81,17 +92,17 @@
 
           [Install]
           WantedBy=multi-user.target
-        mode: '0644'
+        mode: "0644"
 
     - name: Reload systemd daemon
       systemd:
-        daemon_reload: yes
+        daemon_reload: true
 
     - name: Enable and start Mailpit service
       systemd:
         name: mailpit
         state: started
-        enabled: yes
+        enabled: true
   tags:
     - dev-configuration
     - mailpit

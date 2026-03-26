@@ -1,3 +1,4 @@
+---
 xroad:
   common-global-conf:
     source: REMOTE
@@ -19,7 +20,7 @@ xroad:
               sign-mac-key: 96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde
     account-keystore-password: testPassword1234
 
-  mail-notification: |
+  mail-notification: |-
     host: xrd-cs # This is hardcoded to lxd dev env host.
     port: 1025
     username: testusername

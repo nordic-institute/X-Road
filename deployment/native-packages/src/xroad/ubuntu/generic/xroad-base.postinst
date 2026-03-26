@@ -62,6 +62,15 @@ if [ "$1" = configure ]; then
     test -d /etc/xroad/backup.d || mkdir -p /etc/xroad/backup.d
     chmod 0750 /etc/xroad/backup.d
     chown -R xroad:xroad /etc/xroad/backup.d
+
+    # Run versioned migration scripts on upgrade
+    if [ -n "$2" ]; then
+        NEW_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-base | grep -oP '^\d+\.\d+\.\d+')
+        OLD_VERSION=$(echo "$2" | grep -oP '^\d+\.\d+\.\d+')
+        if [ -n "$OLD_VERSION" ] && [ -n "$NEW_VERSION" ]; then
+            /usr/share/xroad/scripts/run_migrations.sh base "$OLD_VERSION" "$NEW_VERSION" || true
+        fi
+    fi
 fi
 
 if [ "$1" = triggered ]; then

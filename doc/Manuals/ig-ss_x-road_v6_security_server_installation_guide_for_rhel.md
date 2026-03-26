@@ -10,46 +10,47 @@ Doc. ID: IG-SS-RHEL
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                                                                                                                                                                          | Author               |
-|------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
-| 25.10.2018 | 1.0     | Initial version                                                                                                                                                                                                      | Petteri Kivimäki     |
-| 16.11.2018 | 1.1     | Update link to Ubuntu installation guide                                                                                                                                                                             | Jarkko Hyöty         |
-| 28.01.2018 | 1.2     | Update port 2080 documentation                                                                                                                                                                                       | Petteri Kivimäki     |
-| 11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                                                                                                                                                                         | Jarkko Hyöty         |
-| 12.09.2019 | 1.4     | Add instruction for remote database usage                                                                                                                                                                            | Ilkka Seppälä        |
-| 10.10.2019 | 1.5     | Add instructions for binding xroad-proxy to ports 80,443                                                                                                                                                             | Jarkko Hyöty         |
-| 30.04.2020 | 1.6     | Add instructions how to use remote database located in Microsoft Azure                                                                                                                                               | Ilkka Seppälä        |
-| 12.06.2020 | 1.7     | Update reference data regarding JMX listening ports                                                                                                                                                                  | Petteri Kivimäki     |
-| 24.06.2020 | 1.8     | Add repository sign key details in section [2.2 Reference data](#22-reference-data)                                                                                                                                  | Petteri Kivimäki     |
-| 24.06.2020 | 1.9     | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data)                                                                                     | Petteri Kivimäki     |
-| 09.08.2020 | 1.10    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram)                                                                              | Petteri Kivimäki     |
-| 17.08.2020 | 1.11    | Update for RHEL 8. Document id and name changed.                                                                                                                                                                     | Jarkko Hyöty         |
-| 16.09.2020 | 1.12    | Describe deployment options and database customization options.                                                                                                                                                      | Ilkka Seppälä        |
-| 29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually.                                                                                                                                                 | Ilkka Seppälä        |
-| 16.04.2021 | 1.14    | Update remote database installation instructions                                                                                                                                                                     | Jarkko Hyöty         |
-| 18.05.2021 | 1.15    | Add error handling section                                                                                                                                                                                           | Ilkka Seppälä        |
-| 01.07.2021 | 1.16    | Update 3rd party key server                                                                                                                                                                                          | Petteri Kivimäki     |
-| 11.08.2021 | 1.17    | Add backup encryption information                                                                                                                                                                                    | Petteri Kivimäki     |
-| 18.08.2021 | 1.18    | Minor updates to Annex D                                                                                                                                                                                             | Ilkka Seppälä        |
-| 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7                                                                                                                                                                         | Caro Hautamäki       |
-| 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki       |
-| 03.09.2021 | 1.21    | Minor fixes                                                                                                                                                                                                          | Ilkka Seppälä        |
-| 06.09.2021 | 1.22    | Update list of running services                                                                                                                                                                                      | Jarkko Hyöty         |
-| 23.05.2023 | 1.23    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets        |
-| 09.10.2023 | 1.24    | Java 17 installation instructions for RHEL 7                                                                                                                                                                         | Justas Samuolis      |
-| 13.12.2023 | 1.25    | Remove Java 17 manual installation instructions for RHEL 8                                                                                                                                                           | Justas Samuolis      |
-| 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis      |
-| 02.01.2024 | 1.27    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis      |
-| 12.06.2024 | 1.28    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki     |
-| 25.06.2024 | 1.29    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
-| 17.07.2024 | 1.30    | Java 21 installation instructions for RHEL 7                                                                                                                                                                         | Ovidijus Narkevičius |
-| 16.12.2024 | 1.31    | Instructions to install PostgreSQL packages                                                                                                                                                                          | Justas Samuolis      |
-| 14.01.2025 | 1.32    | Adding extra check for remote database setup                                                                                                                                                                         | Eneli Reimets        |
-| 06.02.2025 | 1.33    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets        |
-| 18.02.2025 | 1.34    | Configuring memory allocation fo proxy service                                                                                                                                                                       | Ovidijus Narkevičius |
-| 10.03.2025 | 1.35    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
-| 21.03.2025 | 1.36    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
-| 25.02.2026 | 1.37    | Update PostgreSQL to version 15 on RHEL                                                                                                                                                                               | Ričardas Bučiūnas    |
+| Date       | Version | Description                                                                                                                                                                                                          | Author                   |
+|------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| 25.10.2018 | 1.0     | Initial version                                                                                                                                                                                                      | Petteri Kivimäki         |
+| 16.11.2018 | 1.1     | Update link to Ubuntu installation guide                                                                                                                                                                             | Jarkko Hyöty             |
+| 28.01.2018 | 1.2     | Update port 2080 documentation                                                                                                                                                                                       | Petteri Kivimäki         |
+| 11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                                                                                                                                                                         | Jarkko Hyöty             |
+| 12.09.2019 | 1.4     | Add instruction for remote database usage                                                                                                                                                                            | Ilkka Seppälä            |
+| 10.10.2019 | 1.5     | Add instructions for binding xroad-proxy to ports 80,443                                                                                                                                                             | Jarkko Hyöty             |
+| 30.04.2020 | 1.6     | Add instructions how to use remote database located in Microsoft Azure                                                                                                                                               | Ilkka Seppälä            |
+| 12.06.2020 | 1.7     | Update reference data regarding JMX listening ports                                                                                                                                                                  | Petteri Kivimäki         |
+| 24.06.2020 | 1.8     | Add repository sign key details in section [2.2 Reference data](#22-reference-data)                                                                                                                                  | Petteri Kivimäki         |
+| 24.06.2020 | 1.9     | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data)                                                                                     | Petteri Kivimäki         |
+| 09.08.2020 | 1.10    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram)                                                                              | Petteri Kivimäki         |
+| 17.08.2020 | 1.11    | Update for RHEL 8. Document id and name changed.                                                                                                                                                                     | Jarkko Hyöty             |
+| 16.09.2020 | 1.12    | Describe deployment options and database customization options.                                                                                                                                                      | Ilkka Seppälä            |
+| 29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually.                                                                                                                                                 | Ilkka Seppälä            |
+| 16.04.2021 | 1.14    | Update remote database installation instructions                                                                                                                                                                     | Jarkko Hyöty             |
+| 18.05.2021 | 1.15    | Add error handling section                                                                                                                                                                                           | Ilkka Seppälä            |
+| 01.07.2021 | 1.16    | Update 3rd party key server                                                                                                                                                                                          | Petteri Kivimäki         |
+| 11.08.2021 | 1.17    | Add backup encryption information                                                                                                                                                                                    | Petteri Kivimäki         |
+| 18.08.2021 | 1.18    | Minor updates to Annex D                                                                                                                                                                                             | Ilkka Seppälä            |
+| 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7                                                                                                                                                                         | Caro Hautamäki           |
+| 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki           |
+| 03.09.2021 | 1.21    | Minor fixes                                                                                                                                                                                                          | Ilkka Seppälä            |
+| 06.09.2021 | 1.22    | Update list of running services                                                                                                                                                                                      | Jarkko Hyöty             |
+| 23.05.2023 | 1.23    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets            |
+| 09.10.2023 | 1.24    | Java 17 installation instructions for RHEL 7                                                                                                                                                                         | Justas Samuolis          |
+| 13.12.2023 | 1.25    | Remove Java 17 manual installation instructions for RHEL 8                                                                                                                                                           | Justas Samuolis          |
+| 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis          |
+| 02.01.2024 | 1.27    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis          |
+| 12.06.2024 | 1.28    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki         |
+| 25.06.2024 | 1.29    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki         |
+| 17.07.2024 | 1.30    | Java 21 installation instructions for RHEL 7                                                                                                                                                                         | Ovidijus Narkevičius     |
+| 16.12.2024 | 1.31    | Instructions to install PostgreSQL packages                                                                                                                                                                          | Justas Samuolis          |
+| 14.01.2025 | 1.32    | Adding extra check for remote database setup                                                                                                                                                                         | Eneli Reimets            |
+| 06.02.2025 | 1.33    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets            |
+| 18.02.2025 | 1.34    | Configuring memory allocation fo proxy service                                                                                                                                                                       | Ovidijus Narkevičius     |
+| 10.03.2025 | 1.35    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki         |
+| 21.03.2025 | 1.36    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek           |
+| 25.02.2026 | 1.37    | Update PostgreSQL to version 15 on RHEL                                                                                                                                                                              | Ričardas Bučiūnas        |
+| 23.03.2026 | 1.38    | Update java 21 references to java 25                                                                                                                                                                                 | Ričardas Bučiūnas        |
 
 ## License
 
@@ -236,9 +237,9 @@ Requirements to software and settings:
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
-#### 2.3.1 Installing Java 21
+#### 2.3.1 Installing Java 25
 
-Java 21 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server, however it is not included in default repositories for RHEL 7.
+Java 25 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server.
 Sample installation steps are provided below.
 
 * Check the current java version:
@@ -247,10 +248,10 @@ Sample installation steps are provided below.
   java -version
   ```
 
-If the current Java version is 21, following steps should be skipped. If not, install Java 21 (OpenJDK):
+If the current Java version is 25, following steps should be skipped. If not, install Java 25 (OpenJDK):
 
 ```bash
-sudo yum install openjdk-21-jre-headless
+sudo yum install openjdk-25-jre-headless
 ```
 
 After the installation, verify the current java version:
@@ -259,7 +260,7 @@ After the installation, verify the current java version:
 java -version
 ```
 
-The output should contain Java version 21. If it does not, set the default Java version to 21 using *alternatives*:
+The output should contain Java version 25. If it does not, set the default Java version to 25 using *alternatives*:
 
 ```bash
 sudo alternatives --config java
