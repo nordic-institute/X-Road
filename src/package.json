@@ -35,7 +35,7 @@
     "eslint-plugin-vue": "^10.8.0",
     "eslint-plugin-vuetify": "^2.7.2",
     "globals": "^17.4.0",
-    "happy-dom": "^20.8.4",
+    "happy-dom": "^20.8.8",
     "license-check-and-add": "~4.0.5",
     "mkdirp": "^3.0.1",
     "openapi-typescript-codegen": "^0.30.0",
