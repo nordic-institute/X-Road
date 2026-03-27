@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
@@ -49,7 +50,11 @@ public interface ClientIdMapper extends GenericUniDirectionalMapper<ClientIdEnti
         };
     }
 
+    @Mapping(target = "serviceCode", ignore = true)
+    @Mapping(target = "serviceVersion", ignore = true)
     MemberId toMemberId(MemberIdEntity source);
 
+    @Mapping(target = "serviceCode", ignore = true)
+    @Mapping(target = "serviceVersion", ignore = true)
     SubsystemId toSubsystemId(SubsystemIdEntity source);
 }

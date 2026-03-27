@@ -42,11 +42,9 @@ import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
-import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.JAKARTA_CDI)
@@ -89,7 +87,6 @@ public interface XRoadIdMapper extends GenericUniDirectionalMapper<XRoadIdEntity
             case GlobalGroupIdEntity entity -> toTarget(entity);
             case LocalGroupIdEntity entity -> toTarget(entity);
             case SecurityServerIdEntity entity -> toTarget(entity);
-            case ServiceIdEntity entity -> toTarget(entity);
             default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
         };
     }
@@ -136,18 +133,6 @@ public interface XRoadIdMapper extends GenericUniDirectionalMapper<XRoadIdEntity
                 source.getMemberClass(),
                 source.getMemberCode(),
                 source.getServerCode());
-    }
-
-    default ServiceId.Conf toTarget(ServiceIdEntity source) {
-        if (source == null) {
-            return null;
-        }
-        return ServiceId.Conf.create(source.getXRoadInstance(),
-                source.getMemberClass(),
-                source.getMemberCode(),
-                source.getSubsystemCode(),
-                source.getServiceCode(),
-                source.getServiceVersion());
     }
 
     default ClientIdEntity toEntity(ClientId.Conf domain) {
@@ -206,23 +191,7 @@ public interface XRoadIdMapper extends GenericUniDirectionalMapper<XRoadIdEntity
         return SecurityServerIdEntity.create(domain);
     }
 
-    default ServiceIdEntity toEntity(ServiceId.Conf domain) {
-        if (domain == null) {
-            return null;
-        }
-        return ServiceIdEntity.create(domain);
-    }
-
-    default ServiceIdEntity toEntity(ServiceId domain) {
-        if (domain == null) {
-            return null;
-        }
-        return ServiceIdEntity.create(domain);
-    }
-
     Collection<XRoadId.Conf> toTargets(Collection<XRoadIdEntity> entities);
-
-    List<ServiceId.Conf> toServices(List<ServiceIdEntity> entities);
 
     Set<XRoadIdEntity> toEntities(Set<? extends XRoadId> domains);
 
