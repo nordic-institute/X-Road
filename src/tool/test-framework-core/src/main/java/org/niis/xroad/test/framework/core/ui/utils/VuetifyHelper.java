@@ -74,7 +74,8 @@ public final class VuetifyHelper {
 
 
     public static SelenideElement selectorOptionOf(String value) {
-        var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item') and contains(./descendant-or-self::*/text(),'%s')]";
+        var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item') "
+                + "and ./div[contains(@class, 'v-list-item-title') and text()='%s']]";
         return $x(format(xpath, value));
     }
 
@@ -283,7 +284,7 @@ public final class VuetifyHelper {
         }
 
         public Select hasValueSelected(final String val) {
-            controlElement.$x(".//div[@class='v-list-item' and .//div[@class='v-list-item-title']]").shouldHave(text(val));
+            controlElement.$x(".//span[@class='v-select__selection-text']").shouldHave(text(val));
             return this;
         }
     }
