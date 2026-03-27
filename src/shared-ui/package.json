@@ -29,7 +29,7 @@
     "vue": "^3.5.30",
     "vue-i18n": "^11.3.0",
     "vue-router": "^5.0.4",
-    "vuetify": "4.0.3"
+    "vuetify": "4.0.4"
   },
   "engines": {
     "npm": "use-pnpm",
