@@ -13,7 +13,7 @@
     "test": "vitest run",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --fix",
-    "generate-types": "rm -rf src/openapi-types && openapi --input ../../openapi-model/src/main/resources/META-INF/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
+    "generate-types": "rm -rf src/openapi-types && openapi-ts",
     "license-check": "license-check-and-add check -f ../../../shared-ui/license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f ../../../shared-ui/license-check-and-add-config.json"
   },
