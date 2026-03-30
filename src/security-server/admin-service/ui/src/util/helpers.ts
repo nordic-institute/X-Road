@@ -66,10 +66,7 @@ export function isValidRestURL(str: string): boolean {
 }
 
 // Save response data as a file
-export function saveResponseAsFile(
-  response: AxiosResponse,
-  defaultFileName = 'certs.tar.gz',
-): void {
+export function saveResponseAsFile(response: AxiosResponse, defaultFileName = 'certs.tar.gz'): void {
   let suggestedFileName;
   const disposition = response.headers['content-disposition'];
 
@@ -80,8 +77,7 @@ export function saveResponseAsFile(
       suggestedFileName = matches[1].replace(/['"]/g, '');
     }
   }
-  const effectiveFileName =
-    suggestedFileName === undefined ? defaultFileName : suggestedFileName;
+  const effectiveFileName = suggestedFileName === undefined ? defaultFileName : suggestedFileName;
   const blob = new Blob([response.data], {
     type: response.headers['content-type'],
   });
@@ -98,7 +94,6 @@ export function saveResponseAsFile(
   document.body.removeChild(link);
   URL.revokeObjectURL(link.href);
 }
-
 
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
 export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string | undefined): boolean {

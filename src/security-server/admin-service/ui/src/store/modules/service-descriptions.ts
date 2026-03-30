@@ -26,11 +26,10 @@
  */
 
 import { defineStore } from 'pinia';
-import { ServiceDescription, ServiceDescriptionUpdate } from '@/openapi-types';
+import { ServiceDescription, ServiceDescriptionUpdate, ServiceType } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { sortServiceDescriptionServices } from '@/util/sorting';
-import { ServiceTypeEnum } from '@/domain';
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
@@ -100,11 +99,11 @@ export const useServiceDescriptions = defineStore('service-descriptions', {
       const encodedId = encodePathParameter(clientId);
       return api.post(`/clients/${encodedId}/service-descriptions`, {
         url,
-        type: ServiceTypeEnum.WSDL,
+        type: ServiceType.WSDL,
         ignore_warnings: ignoreWarnings,
       });
     },
-    async saveRest(clientId: string, url: string, serviceCode: string, type: ServiceTypeEnum, ignoreWarnings = false) {
+    async saveRest(clientId: string, url: string, serviceCode: string, type: ServiceType, ignoreWarnings = false) {
       const encodedId = encodePathParameter(clientId);
       return api.post(`/clients/${encodedId}/service-descriptions`, {
         url,

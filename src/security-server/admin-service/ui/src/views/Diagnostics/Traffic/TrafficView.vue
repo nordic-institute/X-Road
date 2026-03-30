@@ -292,14 +292,14 @@ function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]): 
   if (filter.status ?? true) {
     value.push({
       name: t('diagnostics.traffic.successfulRequests'),
-      color: colorSuccess.value,
+      color: colorSuccess.value as string,
       data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.success_count ?? 0]),
     });
   }
   if (!(filter.status ?? false)) {
     value.push({
       name: t('diagnostics.traffic.failedRequests'),
-      color: colorError.value,
+      color: colorError.value as string,
       data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.failure_count ?? 0]),
     });
   }

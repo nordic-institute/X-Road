@@ -174,7 +174,7 @@ export default defineComponent({
     StatusAvatar,
     XrdBtn,
     XrdCard,
-    XrdEmptyPlaceholder
+    XrdEmptyPlaceholder,
   },
   setup() {
     const { addError } = useNotifications();
