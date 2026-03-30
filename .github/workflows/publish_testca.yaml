@@ -11,37 +11,35 @@ env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
 jobs:
-  PublishCS:
+  PublishCA:
     name: Publish test CA image
     runs-on: ubuntu-22.04
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Initialize docker setup
         working-directory: ./development/docker/testca
         run: ./init_context.sh
       - name: Log in to the Container registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
         with:
           context: ${{ github.workspace }}/development/docker/testca
           push: true
           tags: ghcr.io/nordic-institute/xrddev-testca:latest
       - name: Clean old CA images
-        uses: snok/container-retention-policy@v2
+        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb # v3.0.1
         with:
           image-names: xrddev-testca
-          cut-off: 1 week ago UTC
+          cut-off: 1w
           timestamp-to-use: created_at
-          account-type: org
-          org-name: nordic-institute
-          keep-at-least: 1
-          token-type: github-token
+          account: nordic-institute
+          keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}
