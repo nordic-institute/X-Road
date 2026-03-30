@@ -26,7 +26,7 @@
  -->
 <template>
   <v-row class="align-center">
-    <v-col :class="{ 'xrd-adjust-against-content': adjustAgainstContent, 'align-self-end': adjustAgainstContent}">
+    <v-col :class="{ 'xrd-adjust-against-content': adjustAgainstContent, 'align-self-end': adjustAgainstContent }">
       <slot />
     </v-col>
     <v-col v-if="!fullLength">

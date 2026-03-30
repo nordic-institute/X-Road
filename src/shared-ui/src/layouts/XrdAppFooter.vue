@@ -33,7 +33,6 @@
             <img :src="xroad8LogoUrl" height="40" width="150" alt="Logo" />
           </v-col>
         </v-row>
-
       </v-col>
       <v-col class="footer-col pt-5">
         <v-row density="compact">
@@ -98,8 +97,8 @@
 <script lang="ts" setup>
 import logoLight from '../assets/Logo-horizontal-light.svg';
 import logoDark from '../assets/Logo-horizontal-dark.svg';
-import {computed} from 'vue';
-import {useThemeHelper} from '../composables';
+import { computed } from 'vue';
+import { useThemeHelper } from '../composables';
 
 defineProps({
   appVersion: {
@@ -108,7 +107,7 @@ defineProps({
   },
 });
 
-const {isDark} = useThemeHelper();
+const { isDark } = useThemeHelper();
 
 const xroad8LogoUrl = computed(() => (isDark.value ? logoDark : logoLight));
 </script>

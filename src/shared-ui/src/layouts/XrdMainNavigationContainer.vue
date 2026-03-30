@@ -47,9 +47,9 @@ import { computed } from 'vue';
 import { useThemeHelper } from '../composables';
 import { XrdThemeSwitcher } from '../components';
 
-const props = defineProps({minHeight: {type: [Number, String], default: 700}});
+const props = defineProps({ minHeight: { type: [Number, String], default: 700 } });
 
-const {isDark} = useThemeHelper();
+const { isDark } = useThemeHelper();
 
 const logo = computed(() => (isDark.value ? _logoDark : _logoLight));
 const style = computed(() => `min-height: ${props.minHeight}px`);

@@ -24,11 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {createRouter, createWebHashHistory, RouteLocationNormalized, RouteLocationNormalizedLoaded, Router,} from 'vue-router';
+import { createRouter, createWebHashHistory, RouteLocationNormalized, RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
-import {useNotifications} from '../composables';
-import {useHistory} from '../stores';
-import {XrdLocation, XrdRoute} from '../types';
+import { useNotifications } from '../composables';
+import { useHistory } from '../stores';
+import { XrdLocation, XrdRoute } from '../types';
 
 interface Config {
   loginRouteName: string;
@@ -49,7 +49,7 @@ export function createXrdRouter(config: Config): Router {
   });
 
   router.afterEach((to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded) => {
-    const {push} = useHistory();
+    const { push } = useHistory();
 
     push(to);
   });

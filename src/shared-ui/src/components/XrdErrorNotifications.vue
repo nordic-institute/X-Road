@@ -159,7 +159,8 @@ function copyId(errorId?: string): void {
 .alert:not(:last-child) {
   margin-bottom: 16px;
 }
-p, ul {
+p,
+ul {
   padding: 0;
   margin: 0;
 }

@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-export * from './plugins/vuetify';//Keep at the top
+export * from './plugins/vuetify'; //Keep at the top
 
 //resources&assets
 export * from './components';
