@@ -85,7 +85,7 @@ export const useConfigurationSource = defineStore('configurationSource', {
       return axios.get<ConfigurationPart[]>(baseUrl(configurationType, 'configuration-parts')).then((resp) => {
         this.getSource(configurationType).parts = resp.data.map((item) => ({
           ...item,
-          key: item.content_identifier + item.version,
+          key: item.content_identifier + '_V' + item.version,
         }));
       });
     },
