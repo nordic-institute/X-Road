@@ -94,9 +94,20 @@ import { XrdView, XrdBtn, useNotifications } from '@niis/shared-ui';
 import { managementTypeToIconTextColor } from '@/util/helpers';
 import { RouteName } from '@/global';
 
-/**
- * Wrapper component for a certification service view
- */
+const WITH_CLIENT_INFO = [
+  ManagementRequestType.CLIENT_DELETION_REQUEST,
+  ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
+  ManagementRequestType.CLIENT_DISABLE_REQUEST,
+  ManagementRequestType.CLIENT_ENABLE_REQUEST,
+  ManagementRequestType.OWNER_CHANGE_REQUEST,
+  ManagementRequestType.CLIENT_RENAME_REQUEST,
+] as ManagementRequestType[];
+
+const WITH_CERT_INFO = [
+  ManagementRequestType.AUTH_CERT_DELETION_REQUEST,
+  ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
+] as ManagementRequestType[];
+
 const props = defineProps({
   requestId: {
     type: Number,
@@ -127,9 +138,7 @@ const hasCertificateInfo = computed(() => {
     return false;
   }
 
-  return [ManagementRequestType.AUTH_CERT_DELETION_REQUEST, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST].includes(
-    managementRequest.value.type,
-  );
+  return WITH_CERT_INFO.includes(managementRequest.value.type);
 });
 
 const hasClientInfo = computed(() => {
@@ -137,14 +146,7 @@ const hasClientInfo = computed(() => {
     return false;
   }
 
-  return [
-    ManagementRequestType.CLIENT_DELETION_REQUEST,
-    ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
-    ManagementRequestType.CLIENT_DISABLE_REQUEST,
-    ManagementRequestType.CLIENT_ENABLE_REQUEST,
-    ManagementRequestType.OWNER_CHANGE_REQUEST,
-    ManagementRequestType.CLIENT_RENAME_REQUEST,
-  ].includes(managementRequest.value.type);
+  return WITH_CLIENT_INFO.includes(managementRequest.value.type);
 });
 
 const newClientOwner = computed(() => {
