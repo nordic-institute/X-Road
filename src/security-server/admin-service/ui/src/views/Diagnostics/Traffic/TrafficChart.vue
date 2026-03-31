@@ -26,43 +26,18 @@
  -->
 <template>
   <v-progress-linear v-if="loading" height="2" indeterminate />
-  <VChart
-    ref="chartRef" :option="chartOptions"
-    height="100%"
-    width="100%"
-  ></VChart>
+  <VChart ref="chartRef" :option="chartOptions" height="100%" width="100%"></VChart>
 </template>
 
 <script lang="ts" setup>
-import {
-  computed,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import VChart from 'vue-echarts';
 import { use } from 'echarts/core';
-import {
-  DataZoomComponent,
-  GridComponent,
-  LegendComponent,
-  TitleComponent,
-  ToolboxComponent,
-  TooltipComponent,
-} from 'echarts/components';
+import { DataZoomComponent, GridComponent, LegendComponent, TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { LineChart } from 'echarts/charts';
 
-use([
-  CanvasRenderer,
-  LineChart,
-  TitleComponent,
-  TooltipComponent,
-  ToolboxComponent,
-  DataZoomComponent,
-  LegendComponent,
-  GridComponent,
-]);
+use([CanvasRenderer, LineChart, TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, LegendComponent, GridComponent]);
 
 type XaType = 'datetime';
 
