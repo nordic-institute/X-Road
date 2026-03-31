@@ -48,7 +48,7 @@ public record HardwareTokenData(
         if (this == o) return true;
 
         if (o == null || getClass() != o.getClass()) return false;
-        var that = (HardwareTokenData) o;
+        HardwareTokenData that = (HardwareTokenData) o;
 
         return new EqualsBuilder()
                 .append(id, that.id)
