@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.signer.core.model;
 
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.StringJoiner;

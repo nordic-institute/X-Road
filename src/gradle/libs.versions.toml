@@ -10,7 +10,8 @@ jetty = "12.1.7"
 jaxb = "4.0.7"
 hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
-jackson = "2.21"
+jackson = "2.21.2"
+jacksonAnnotations = "2.21"
 mockito = "5.23.0"
 springBoot = "3.5.9"
 springFramework = "7.0.6"
@@ -156,7 +157,7 @@ hibernate-jpamodelgen = { module = "org.hibernate:hibernate-jpamodelgen", versio
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }

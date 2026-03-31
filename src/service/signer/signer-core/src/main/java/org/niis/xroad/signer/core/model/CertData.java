@@ -28,7 +28,7 @@ package org.niis.xroad.signer.core.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
