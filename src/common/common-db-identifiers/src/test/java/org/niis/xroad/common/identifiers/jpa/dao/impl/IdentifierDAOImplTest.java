@@ -39,7 +39,6 @@ import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
-import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 
 import static org.junit.Assert.assertEquals;
@@ -93,24 +92,6 @@ public class IdentifierDAOImplTest {
                 id -> (MemberIdEntity) identifierDAO.findClientId(session, id));
         assertCreateRead(() -> SubsystemIdEntity.create("EE", "class", "code2", "subsystem1"),
                 id -> (SubsystemIdEntity) identifierDAO.findClientId(session, id));
-    }
-
-    /**
-     * ServiceId.
-     */
-    @Test
-    public void serviceId() {
-        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service1"),
-                id -> identifierDAO.findServiceId(session, id));
-
-        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service2"),
-                id -> identifierDAO.findServiceId(session, id));
-
-        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service3", "1.0"),
-                id -> identifierDAO.findServiceId(session, id));
-
-        assertCreateRead(() -> ServiceIdEntity.create("EE", "cls", "code", null, "service3", "2.0"),
-                id -> identifierDAO.findServiceId(session, id));
     }
 
     /**
