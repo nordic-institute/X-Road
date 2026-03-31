@@ -29,7 +29,7 @@
 Startpoint of the Vue application.
 Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
-Initialises the app root component.
+Initializes the app root component.
 */
 import { createApp } from 'vue';
 

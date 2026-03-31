@@ -24,8 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import {defineConfig} from '@hey-api/openapi-ts';
 
-import { Color, createXrdVuetify } from '@niis/shared-ui'; //Keep at the top
-import '@/assets/styles.css';
-
-export default createXrdVuetify(Color.M_900, Color.D_100, Color.M_100, Color.D_800);
+export default defineConfig({
+  input: '../../openapi-model/src/main/resources/META-INF/openapi-definition.yaml',
+  output: './src/openapi-types',
+  plugins: [
+    {
+      enums: true,
+      name: '@hey-api/typescript',
+    },
+  ],
+});
