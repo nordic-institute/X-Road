@@ -2,21 +2,21 @@
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
     logicalFilePath="centerui/202603301200-identifier-unique-constraint-and-column-fixes.xml">
 
     <!-- object_type CHECK -->
     <changeSet author="niis" id="202603301200-identifier-unique-constraint-and-column-fixes-001">
-        <sql><![CDATA[
+        <sql>
             ALTER TABLE identifier
                 ADD CONSTRAINT identifier_object_type_check
                     CHECK (object_type IN ('MEMBER', 'SUBSYSTEM', 'SERVER'));
-            ]]></sql>
+        </sql>
     </changeSet>
 
     <!-- UNIQUE constraint -->
     <changeSet author="niis" id="202603301200-identifier-unique-constraint-and-column-fixes-002">
-        <sql><![CDATA[
+        <sql>
             ALTER TABLE identifier
                 ADD CONSTRAINT identifier_unique_object_key
                     UNIQUE NULLS NOT DISTINCT (
@@ -28,7 +28,7 @@
                 server_code,
                 group_code
                 );
-            ]]></sql>
+        </sql>
     </changeSet>
 
     <!-- NOT NULL constraints -->

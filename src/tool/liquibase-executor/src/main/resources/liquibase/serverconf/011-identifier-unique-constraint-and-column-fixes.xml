@@ -2,21 +2,21 @@
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
     logicalFilePath="serverconf/011-identifier-unique-constraint-and-column-cleanup.xml">
 
     <!-- object_type CHECK -->
     <changeSet author="niis" id="011-identifier-unique-constraint-and-column-fixes-001">
-        <sql><![CDATA[
+        <sql>
             ALTER TABLE identifier
                 ADD CONSTRAINT identifier_object_type_check
                     CHECK (object_type IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP', 'LOCALGROUP'));
-            ]]></sql>
+        </sql>
     </changeSet>
 
     <!-- Partial UNIQUE index -->
     <changeSet author="niis" id="011-identifier-unique-constraint-and-column-fixes-002">
-        <sql><![CDATA[
+        <sql>
             CREATE UNIQUE INDEX identifier_unique_object_index
                 ON identifier (
                                xroad_instance,
@@ -28,7 +28,7 @@
                     )
                 NULLS NOT DISTINCT
                 WHERE object_type IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP');
-            ]]></sql>
+        </sql>
     </changeSet>
 
     <!-- NOT NULL constraint -->
