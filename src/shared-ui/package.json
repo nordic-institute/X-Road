@@ -16,10 +16,10 @@
   "main": "./src/index.ts",
   "dependencies": {
     "@fontsource-variable/open-sans": "^5.2.7",
-    "@fontsource-variable/material-symbols-rounded": "^5.2.38",
+    "@fontsource-variable/material-symbols-rounded": "^5.2.39",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
-    "axios": "~1.13.6",
+    "axios": "~1.14.0",
     "dayjs": "^1.11.20",
     "deepmerge": "^4.3.1",
     "pinia": "^3.0.4",
