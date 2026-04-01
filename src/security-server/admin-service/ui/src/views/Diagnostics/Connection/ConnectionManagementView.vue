@@ -28,7 +28,7 @@
   <XrdCard title="diagnostics.connection.management.title" class="overview-card">
     <v-card-text class="xrd-card-text">
       <v-row class="my-2"></v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="2">
           <XrdFormLabel :label-text="$t('diagnostics.connection.securityServer.sourceClient')" />
         </v-col>
@@ -60,7 +60,7 @@
           />
         </v-col>
       </v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="2">
           <XrdFormLabel :label-text="$t('diagnostics.connection.securityServer.target')" />
         </v-col>
@@ -98,7 +98,7 @@
           />
         </v-col>
       </v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="1">
           <XrdFormLabel :label-text="$t('diagnostics.status')" />
         </v-col>

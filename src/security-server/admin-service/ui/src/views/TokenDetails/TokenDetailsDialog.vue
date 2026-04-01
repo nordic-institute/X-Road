@@ -89,7 +89,7 @@
               </p>
               <p class="">{{ $t('token.tokenPinPolicy') }}</p>
             </v-alert>
-            <v-row no-gutters>
+            <v-row gap="0">
               <v-col>
                 <v-text-field
                   v-model="oldPin"
@@ -108,7 +108,7 @@
               </v-col>
               <v-spacer class="ml-8" />
             </v-row>
-            <v-row no-gutters>
+            <v-row gap="0">
               <v-col>
                 <v-text-field
                   v-model="newPin"
@@ -127,7 +127,7 @@
               </v-col>
               <v-spacer class="ml-8" />
             </v-row>
-            <v-row no-gutters>
+            <v-row gap="0">
               <v-col>
                 <v-text-field
                   v-model="newPinConfirm"

@@ -38,6 +38,9 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
+import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @Service
@@ -70,8 +73,48 @@ public class SoftTokenSignerIntTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(SIGNER, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(SOFTTOKEN_SIGNER, Port.SOFTTOKEN_SIGNER_GRPC,
                         Wait.forHealthcheck().withStartupTimeout(SOFTTOKEN_SIGNER_STARTUP_TIMEOUT))
+                .withExposedService(SOFTTOKEN_SIGNER, Port.HEALTH_PORT)
                 .withExposedService(DB_SERVERCONF, Port.DB, Wait.forListeningPort())
                 .withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(SOFTTOKEN_SIGNER));
+    }
+
+    /**
+     * Stop a container by service name.
+     * @param service the Docker Compose service name
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void stopContainer(String service) {
+        var containerState = env.getContainerByServiceName(service).orElseThrow();
+        var dockerClient = containerState.getDockerClient();
+        dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> !containerState.isRunning());
+    }
+
+    /**
+     * Start a container by service name.
+     * @param service the Docker Compose service name
+     * @param waitForHealthy whether to wait for the container health check to pass
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void startContainer(String service, boolean waitForHealthy) {
+        var containerState = env.getContainerByServiceName(service).orElseThrow();
+        var dockerClient = containerState.getDockerClient();
+        dockerClient.startContainerCmd(containerState.getContainerId()).exec();
+        if (waitForHealthy) {
+            await().atMost(45, TimeUnit.SECONDS).until(containerState::isHealthy);
+        }
+    }
+
+    /**
+     * Restart a container by service name and wait for it to become healthy.
+     * @param service the Docker Compose service name
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void restartContainer(String service) {
+        var containerState = env.getContainerByServiceName(service).orElseThrow();
+        var dockerClient = containerState.getDockerClient();
+        dockerClient.restartContainerCmd(containerState.getContainerId()).exec();
+        await().atMost(45, TimeUnit.SECONDS).until(containerState::isHealthy);
     }
 
     /**
@@ -81,5 +124,6 @@ public class SoftTokenSignerIntTestContainerSetup extends BaseComposeSetup {
     public final class Port {
         public static final int DB = 5432;
         public static final int SOFTTOKEN_SIGNER_GRPC = 5561;
+        public static final int HEALTH_PORT = 4099;
     }
 }

@@ -11,6 +11,7 @@ dependencies {
   intTestImplementation(project(":common:common-core"))
   intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:properties-core"))
+  intTestImplementation(libs.test.restassured)
 }
 
 intTestComposeEnv {

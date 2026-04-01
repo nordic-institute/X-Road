@@ -1,38 +1,39 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.19
+Version: 1.20
 Doc. ID: DM-CS
 
-| Date       | Version | Description                                                                                    | Author               |
-|------------|---------|------------------------------------------------------------------------------------------------|----------------------|
-| 15.06.2015 | 0.1     | Initial version                                                                                | Martin Lind          |
-| 30.06.2015 | 0.2     | Comments and revisions                                                                         | Margus Freudenthal   |
-| 09.07.2015 | 0.3     | Rearrangements for consistency                                                                 | Martin Lind          |
-| 28.08.2015 | 0.4     | Corrections according to feedback to first 7 tables                                            | Martin Lind          |
-| 01.09.2015 | 0.5     | Better explanations for modifications to all tables                                            | Martin Lind          |
-| 09.09.2015 | 0.6     | Made minor editorial changes                                                                   | Margus Freudenthal   |
-| 16.09.2015 | 0.7     | Added the descriptions of the fields and procedures related to high availability               | Marju Ignatjeva      |
-| 21.09.2015 | 1.0     | Editorial changes made                                                                         | Imbi Nõgisto         |
-| 16.10.2015 | 1.1     | Field cert_profile_info for approved CA-s table and one missing index                          | Martin Lind          |
-| 17.10.2015 | 1.2     | Clarified description of the cert_profile_info field                                           | Margus Freudenthal   |
-| 11.12.2015 | 1.3     | Subsystems can only be clients of security servers                                             | Siim Annuk           |
-| 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format                                        | Ilkka Seppälä        |
-| 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId*                         | Kristo Heero         |
-| 02.03.2018 | 1.6     | Added uniform terms and conditions reference                                                   | Tatu Repo            |
-| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                                    | Jarkko Hyöty         |
-| 11.08.2021 | 1.8     | Update chapter 1.7 about high availability support                                             | Ilkka Seppälä        |
-| 26.09.2022 | 1.9     | Remove Ubuntu 18.04 support                                                                    | Andres Rosenthal     |
-| 17.04.2023 | 1.9     | Remove security server category support                                                        | Ričardas Bučiūnas    |
-| 17.04.2023 | 1.10    | Remove central services support                                                                | Justas Samuolis      | 
-| 30.05.2023 | 1.11    | Remove security_server_client_names table                                                      | Ovidijus Narkevičius | 
-| 14.06.2023 | 1.12    | New Central Server updates                                                                     | Eneli Reimets        |
-| 08.12.2023 | 1.13    | Added enabled field to server_clients table                                                    | Madis Loitmaa        |
-| 09.01.2025 | 1.14    | Restructure heading levels to work better with the documentation platform                      | Raido Kaju           |
-| 21.03.2025 | 1.15    | Syntax dand styling fixes                                                                      | Pauline Dimmek       |
-| 30.04.2025 | 1.16    | Added maintenance mode related fields to security_servers table                                | Ovidijus Narkevičius |
-| 28.10.2025 | 1.17    | Added cost type columns to ocsp_infos and approved_tsas                                        | Mikk-Erik Bachmann   |
-| 05.11.2025 | 1.18    | Added default csr format column to approved_cas                                                | Mikk-Erik Bachmann   |
-| 28.11.2025 | 1.19    | Updated default csr format column to be nullable for approved_cas, reformatted markdown tables | Marc David           |
+| Date       | Version | Description                                                                                                    | Author               |
+|------------|---------|----------------------------------------------------------------------------------------------------------------|----------------------|
+| 15.06.2015 | 0.1     | Initial version                                                                                                | Martin Lind          |
+| 30.06.2015 | 0.2     | Comments and revisions                                                                                         | Margus Freudenthal   |
+| 09.07.2015 | 0.3     | Rearrangements for consistency                                                                                 | Martin Lind          |
+| 28.08.2015 | 0.4     | Corrections according to feedback to first 7 tables                                                            | Martin Lind          |
+| 01.09.2015 | 0.5     | Better explanations for modifications to all tables                                                            | Martin Lind          |
+| 09.09.2015 | 0.6     | Made minor editorial changes                                                                                   | Margus Freudenthal   |
+| 16.09.2015 | 0.7     | Added the descriptions of the fields and procedures related to high availability                               | Marju Ignatjeva      |
+| 21.09.2015 | 1.0     | Editorial changes made                                                                                         | Imbi Nõgisto         |
+| 16.10.2015 | 1.1     | Field cert_profile_info for approved CA-s table and one missing index                                          | Martin Lind          |
+| 17.10.2015 | 1.2     | Clarified description of the cert_profile_info field                                                           | Margus Freudenthal   |
+| 11.12.2015 | 1.3     | Subsystems can only be clients of security servers                                                             | Siim Annuk           |
+| 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format                                                        | Ilkka Seppälä        |
+| 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId*                                         | Kristo Heero         |
+| 02.03.2018 | 1.6     | Added uniform terms and conditions reference                                                                   | Tatu Repo            |
+| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                                                    | Jarkko Hyöty         |
+| 11.08.2021 | 1.8     | Update chapter 1.7 about high availability support                                                             | Ilkka Seppälä        |
+| 26.09.2022 | 1.9     | Remove Ubuntu 18.04 support                                                                                    | Andres Rosenthal     |
+| 17.04.2023 | 1.9     | Remove security server category support                                                                        | Ričardas Bučiūnas    |
+| 17.04.2023 | 1.10    | Remove central services support                                                                                | Justas Samuolis      | 
+| 30.05.2023 | 1.11    | Remove security_server_client_names table                                                                      | Ovidijus Narkevičius | 
+| 14.06.2023 | 1.12    | New Central Server updates                                                                                     | Eneli Reimets        |
+| 08.12.2023 | 1.13    | Added enabled field to server_clients table                                                                    | Madis Loitmaa        |
+| 09.01.2025 | 1.14    | Restructure heading levels to work better with the documentation platform                                      | Raido Kaju           |
+| 21.03.2025 | 1.15    | Syntax dand styling fixes                                                                                      | Pauline Dimmek       |
+| 30.04.2025 | 1.16    | Added maintenance mode related fields to security_servers table                                                | Ovidijus Narkevičius |
+| 28.10.2025 | 1.17    | Added cost type columns to ocsp_infos and approved_tsas                                                        | Mikk-Erik Bachmann   |
+| 05.11.2025 | 1.18    | Added default csr format column to approved_cas                                                                | Mikk-Erik Bachmann   |
+| 28.11.2025 | 1.19    | Updated default csr format column to be nullable for approved_cas, reformatted markdown tables                 | Marc David           |
+| 30.03.2026 | 1.20    | Added unique constraints to identifier tables and removed unnnecessary columns (service_code, service_version) | Eneli Reimets        |
 
 
 ## Table of Contents
@@ -90,7 +91,8 @@ Doc. ID: DM-CS
 	- [2.14 HISTORY](#214-history)
 		- [2.14.1 Attributes](#2141-attributes)
 	- [2.15 IDENTIFIERS](#215-identifiers)
-		- [2.15.1 Attributes](#2151-attributes)
+        - [2.15.1 Indexes and Constraints](#2151-indexes-and-constraints)
+		- [2.15.2 Attributes](#2151-attributes)
 	- [2.16 MEMBER_CLASSES](#216-member_classes)
 		- [2.16.1 Attributes](#2161-attributes)
 	- [2.17 OCSP_INFOS](#217-ocspinfos)
@@ -497,25 +499,32 @@ The record is created in the manner described above in this document. The record
 | timestamp    | timestamp without time zone | NOT NULL  |                                            Date and time of the operation.                                            |
 | ha_node_name |   character varying(255)    |           |     Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup.      |
 
-### 2.15 IDENTIFIERS
+### 2.15 IDENTIFIER
 
-Identifier that can be used to identify various objects on X-Road. An identifier record is only created together with records of other entities. There is no check of duplicates when new identifier record is added. The record is deleted when any record associated with the identifier is deleted. For example, when an entity of global_group_members is deleted, respective identifier is deleted as well. The record is never modified.
+Identifier that can be used to identify various objects on X-Road. An identifier record is only created together with records of other entities. The record is deleted when any record associated with the identifier is deleted. For example, when an entity of `global_group_members` is deleted, the respective identifier is deleted as well.
 
-#### 2.15.1 Attributes
+#### 2.15.1 Indexes and Constraints
 
-| Name            |            Type             | Modifiers |                                                                                                     Description                                                                                                     |
-|:----------------|:---------------------------:|:----------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| id [PK]         |           integer           | NOT NULL  |                                                                                                     Primary key                                                                                                     |
-| object_type     |   character varying(255)    |           | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVICE', 'CENTRALSERVICE', 'SERVER'. |
-| xroad_instance  |   character varying(255)    |           |                                                                  X-Road instance identifier. Present (otherwise NULL) in identifiers of all types.                                                                  |
-| member_class    |   character varying(255)    |           |                                                             Member class. Present in identifiers of 'MEMBER', 'SUBSYSTEM', 'SERVER' and 'SERVICE' type.                                                             |
-| member_code     |   character varying(255)    |           |                                                              Member code. Present in identifiers of 'MEMBER', 'SUBSYSTEM, SERVER' and 'SERVICE' type.                                                               |
-| subsystem_code  |   character varying(255)    |           |                                                                      Subsystem code. Present in identifiers of 'SUBSYSTEM' and 'SERVICE' type.                                                                      |
-| service_code    |   character varying(255)    |           |                                                                               Service code. Present in identifiers of 'SERVICE' type.                                                                               |
-| server_code     |   character varying(255)    |           |                                                                           Security Server code. Present in identifiers of 'SERVER' type.                                                                            |
-| created_at      | timestamp without time zone | NOT NULL  |                                                                                    Record creation time, managed automatically.                                                                                     |
-| updated_at      | timestamp without time zone | NOT NULL  |                                                                                  Record last modified time, managed automatically.                                                                                  |
-| service_version |   character varying(255)    |           |                                                                      X-Road service version. May be present in identifiers of 'SERVICE' type.                                                                       |
+| Name                         | Columns                                                                                         |
+|:-----------------------------|:------------------------------------------------------------------------------------------------|
+| identifier_pkey              | id                                                                                              |
+| identifier_object_type_check | object_type ∈ ('MEMBER', 'SUBSYSTEM', 'SERVER')                                                 |
+| identifier_unique_object_key | object_type, xroad_instance, member_class, member_code, subsystem_code, server_code, group_code |
+
+#### 2.15.2 Attributes
+
+| Name           |            Type             | Modifiers |                                                                                      Description                                                                                       |
+|:---------------|:---------------------------:|:----------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK]        |           integer           | NOT NULL  |                                                                                      Primary key                                                                                       |
+| object_type    |   character varying(255)    | NOT NULL  | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVER'. |
+| xroad_instance |   character varying(255)    | NOT NULL  |                                                                              X-Road instance identifier.                                                                               |
+| member_class   |   character varying(255)    | NOT NULL  |                                                                                     Member class.                                                                                      |
+| member_code    |   character varying(255)    | NOT NULL  |                                                                                      Member code.                                                                                      |
+| subsystem_code |   character varying(255)    |           |                                                              Subsystem code. Present in identifiers of 'SUBSYSTEM' type.                                                               |
+| server_code    |   character varying(255)    |           |                                                             Security Server code. Present in identifiers of 'SERVER' type.                                                             |
+| group_code     |   character varying(255)    |           |                                                     Empty, used to keep the same identifier table structure as in Security Server.                                                     |
+| created_at     | timestamp without time zone | NOT NULL  |                                                                      Record creation time, managed automatically.                                                                      |
+| updated_at     | timestamp without time zone | NOT NULL  |                                                                   Record last modified time, managed automatically.                                                                    |
 
 ### 2.16 MEMBER_CLASSES
 

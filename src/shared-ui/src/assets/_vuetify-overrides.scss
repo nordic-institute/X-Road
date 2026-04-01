@@ -126,7 +126,7 @@ i.v-icon {
   }
 
   &.v-data-table {
-    background-color: rgb(var(--v-theme-surface-container)) !important;
+    background-color: rgb(var(--v-theme-surface-container));
 
     .v-data-table__th:focus-visible {
       border-bottom: 1px solid rgb(var(--v-theme-accent));
@@ -140,10 +140,10 @@ i.v-icon {
 
     thead {
       .v-data-table__th {
-        color: rgb(var(--v-theme-on-surface-variant)) !important;
+        color: rgb(var(--v-theme-on-surface-variant));
 
         &.v-data-table__th--sorted {
-          color: rgb(var(--v-theme-on-surface)) !important;
+          color: rgb(var(--v-theme-on-surface));
         }
 
         .v-data-table-header__sort-icon {
@@ -155,7 +155,7 @@ i.v-icon {
         @extend .v-data-table__th;
 
         .v-data-table-header__sort-icon {
-          opacity: 1 !important;
+          opacity: 1;
         }
       }
     }
@@ -170,7 +170,7 @@ i.v-icon {
 
     tbody {
       .v-data-table__td {
-        color: rgb(var(--v-theme-on-surface)) !important;
+        color: rgb(var(--v-theme-on-surface));
 
         &.v-data-table__td--select-row i {
           color: rgb(var(--v-theme-on-surface-variant));
@@ -328,7 +328,7 @@ i.v-icon {
 
 .v-overlay__content {
   .xrd-select-list {
-    background: rgb(var(--v-theme-background)) !important;
-    color: rgb(var(--v-theme-on-surface)) !important;
+    background: rgb(var(--v-theme-background));
+    color: rgb(var(--v-theme-on-surface));
   }
 }

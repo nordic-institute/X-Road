@@ -30,6 +30,7 @@
     :tabs="tabs"
     :admin-users-handler="handler"
     :database-based-authentication="dbBasedAuth"
+    min-height="550"
     @logout="logout"
   />
 </template>

@@ -290,7 +290,7 @@ export default defineComponent({
       this.saving = true;
       this.updateEndpoint({
         ...this.endpoint,
-        method: this.values.method as Endpoint.method,
+        method: this.values.method as Endpoint['method'],
         path: this.values.path,
       })
         .then(async () => {

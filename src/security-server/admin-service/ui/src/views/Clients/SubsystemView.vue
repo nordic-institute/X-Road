@@ -81,6 +81,16 @@ import { useSystem } from '@/store/modules/system';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
 
+const CAN_UNREGISTER_FROM: ClientStatus[] = [ClientStatus.REGISTERED, ClientStatus.REGISTRATION_IN_PROGRESS, ClientStatus.DISABLED];
+const CAN_RENAME_FROM: ClientStatus[] = [ClientStatus.SAVED, ClientStatus.REGISTERED];
+const CAN_DELETE_FROM: ClientStatus[] = [
+  ClientStatus.REGISTERED,
+  ClientStatus.REGISTRATION_IN_PROGRESS,
+  ClientStatus.ENABLING_IN_PROGRESS,
+  ClientStatus.DISABLING_IN_PROGRESS,
+  ClientStatus.DISABLED,
+];
+
 export default defineComponent({
   components: {
     SubsystemTabs,
@@ -132,10 +142,7 @@ export default defineComponent({
     },
     showUnregister(): boolean {
       if (!this.client?.status) return false;
-      return (
-        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-        [ClientStatus.REGISTERED, ClientStatus.REGISTRATION_IN_PROGRESS, ClientStatus.DISABLED].includes(this.client.status)
-      );
+      return this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && CAN_UNREGISTER_FROM.includes(this.client.status);
     },
     showRename(): boolean {
       if (!this.client?.status) return false;
@@ -143,22 +150,12 @@ export default defineComponent({
         this.doesSupportSubsystemNames &&
         this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
         RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
-        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(this.client.status)
+        CAN_RENAME_FROM.includes(this.client.status)
       );
     },
 
     showDelete(): boolean {
-      if (
-        !this.client?.status ||
-        (this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-          [
-            ClientStatus.REGISTERED,
-            ClientStatus.REGISTRATION_IN_PROGRESS,
-            ClientStatus.ENABLING_IN_PROGRESS,
-            ClientStatus.DISABLING_IN_PROGRESS,
-            ClientStatus.DISABLED,
-          ].includes(this.client.status))
-      ) {
+      if (!this.client?.status || (this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && CAN_DELETE_FROM.includes(this.client.status))) {
         return false;
       }
 

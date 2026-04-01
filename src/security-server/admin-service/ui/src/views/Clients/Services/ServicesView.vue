@@ -177,7 +177,6 @@ import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 import ServiceStatusChip from './ServiceStatusChip.vue';
 
 import { CodeWithDetails, Service, ServiceDescription, ServiceType } from '@/openapi-types';
-import { ServiceTypeEnum } from '@/domain';
 import { deepClone } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -226,13 +225,12 @@ export default defineComponent({
       warningInfo: [] as CodeWithDetails[],
       refreshWarningDialog: false as boolean,
       url: '' as string,
-      serviceType: undefined as ServiceTypeEnum | undefined,
+      serviceType: undefined as ServiceType | undefined,
       serviceCode: '' as string,
       refreshId: '' as string,
       refreshBusy: {} as { [key: string]: boolean },
       enabling: {} as { [key: string]: boolean },
       refreshButtonComponentKey: 0 as number,
-      serviceTypeEnum: ServiceTypeEnum,
       refreshLoading: false as boolean,
     };
   },
@@ -330,9 +328,9 @@ export default defineComponent({
     ]),
 
     showRefreshButton(serviceDescriptionType: string): boolean {
-      if (serviceDescriptionType === this.serviceTypeEnum.WSDL) {
+      if (serviceDescriptionType === ServiceType.WSDL) {
         return this.hasPermission(Permissions.REFRESH_WSDL);
-      } else if (serviceDescriptionType === this.serviceTypeEnum.OPENAPI3) {
+      } else if (serviceDescriptionType === ServiceType.OPENAPI3) {
         return this.hasPermission(Permissions.REFRESH_OPENAPI3);
       }
       return false;

@@ -28,7 +28,7 @@
   <XrdCard title="diagnostics.connection.securityServer.title" class="overview-card">
     <v-card-text class="xrd-card-text">
       <v-row class="my-2"></v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="2">
           <XrdFormLabel :label-text="$t('diagnostics.connection.securityServer.sourceClient')" />
         </v-col>
@@ -70,7 +70,7 @@
           />
         </v-col>
       </v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="2">
           <XrdFormLabel :label-text="$t('diagnostics.connection.securityServer.target')" />
         </v-col>
@@ -109,7 +109,7 @@
           />
         </v-col>
       </v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="1">
           <XrdFormLabel :label-text="$t('diagnostics.status')" />
         </v-col>
@@ -146,7 +146,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { useNotifications, XrdBtn, XrdCard, XrdFormLabel } from '@niis/shared-ui';
+import { useNotifications, XrdBtn, XrdCard, XrdFormLabel, XrdEmptyPlaceholder } from '@niis/shared-ui';
 import { useGeneral } from '@/store/modules/general';
 import { useClients } from '@/store/modules/clients';
 import { useClient } from '@/store/modules/client';
@@ -174,6 +174,7 @@ export default defineComponent({
     StatusAvatar,
     XrdBtn,
     XrdCard,
+    XrdEmptyPlaceholder,
   },
   setup() {
     const { addError } = useNotifications();
