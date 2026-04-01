@@ -437,7 +437,7 @@ The installation is successful if the system services are started and the user i
     xroad-signer.service                      loaded active running X-Road signer
     ```
 
--   Ensure that the Central Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
+-   Ensure that the Central Server user interface at https://CENTRALSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
 ## 3 Initial Configuration
 
