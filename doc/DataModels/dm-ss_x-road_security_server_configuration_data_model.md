@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.14
+Version: 1.15
 Doc. ID: DM-SS
 
 ## Version history
@@ -25,6 +25,7 @@ Doc. ID: DM-SS
 | 21.03.2025 | 1.12    | Syntax and styling                                                                                             | Pauline Dimmek                  |
 | 07.04.2025 | 1.13    | Table "configuration_client" added, "service_securitycategories" removed from diagram                          | Justas Samuolis                 |
 | 30.03.2026 | 1.14    | Added unique constraints to identifier tables and removed unnnecessary columns (service_code, service_version) | Eneli Reimets                   |
+| 01.04.2026 | 1.15    | Update minimum PostgreSQL version to 15                                                                        | Egidijus M                      |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -102,7 +103,7 @@ This document describes database model of X-Road security server.
 
 ### 1.2 Database Version
 
-This database assumes PostgreSQL version 9.2 or later.
+This database assumes PostgreSQL version 15 or later.
 
 ### 1.3 Creating, Backing Up and Restoring the Database
 
