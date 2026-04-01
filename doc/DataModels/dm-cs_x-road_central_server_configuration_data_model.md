@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.20
+Version: 1.21
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                                                                                    | Author               |
@@ -34,6 +34,7 @@ Doc. ID: DM-CS
 | 05.11.2025 | 1.18    | Added default csr format column to approved_cas                                                                | Mikk-Erik Bachmann   |
 | 28.11.2025 | 1.19    | Updated default csr format column to be nullable for approved_cas, reformatted markdown tables                 | Marc David           |
 | 30.03.2026 | 1.20    | Added unique constraints to identifier tables and removed unnnecessary columns (service_code, service_version) | Eneli Reimets        |
+| 01.04.2026 | 1.21    | Update minimum PostgreSQL version to 15                                                                        | Egidijus M           |
 
 
 ## Table of Contents
