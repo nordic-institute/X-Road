@@ -9,17 +9,8 @@
     state: present
     key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ansible_facts['distribution_major_version']}}
 
-- name: Install EPEL repository (RHEL8)
-  raw: |
-    yum -y install "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
-  when:
-    - not epel.stat.exists
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int == 8
-  changed_when: true
-
 - name: Install EPEL repository (RHEL9+)
-  yum:
+  dnf:
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_facts['distribution_major_version']}}.noarch.rpm"
   when:
     - not epel.stat.exists
@@ -45,7 +36,7 @@
     state: present
     enabled: true
 
-- name: Configure OpenBao YUM/DNF repository
+- name: Configure OpenBao DNF repository
   script:
     cmd: "{{ playbook_dir }}/../../deployment/.scripts/configure-mirror-openbao-rpm.sh"
 
@@ -53,13 +44,6 @@
   file:
     path: "/etc/yum.repos.d/xroad.repo"
     modification_time: now
-
-- name: Install required packages (RHEL8)
-  become: true
-  command: dnf -y install curl cronie tar acl tzdata-java
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int == 8
 
 - name: Install required packages (RHEL9+)
   become: true

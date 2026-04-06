@@ -55,7 +55,7 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
-# Configure OpenBao YUM/DNF repository if not already configured
+# Configure OpenBao DNF repository if not already configured
 CONFIGURE_OPENBAO_REPO="/usr/share/xroad/scripts/configure-mirror-openbao.sh"
 if [ ! -f /etc/yum.repos.d/openbao.repo ] && [ -x "$CONFIGURE_OPENBAO_REPO" ]; then
     "$CONFIGURE_OPENBAO_REPO"

@@ -1,23 +1,23 @@
 #!/bin/bash
 
-# Mirror YUM/DNF Configuration (Container Side)
+# Mirror DNF Configuration (Container Side)
 #
-# Configures YUM/DNF to use a package mirror as a HIGH-PRIORITY OVERLAY.
+# Configures DNF to use a package mirror as a HIGH-PRIORITY OVERLAY.
 # Original repos are preserved - mirror is added with priority=1.
 # Handles authentication and dynamic version detection. TLS verification is disabled
 # (GPG signature verification still protects package integrity).
 #
 # Usage:
-#   ./configure-mirror-yum.sh <BASE_URL> <USER>
+# ./configure-mirror-dnf.sh <BASE_URL> <USER>
 #
 # Arguments:
-#   BASE_URL - Mirror base URL (e.g., https://artifactory.niis.org/artifactory)
-#   USER     - Username for authentication
+# BASE_URL - Mirror base URL (e.g., https://artifactory.niis.org/artifactory)
+# USER - Username for authentication
 #
 # Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible)
 
 setup_mirror() {
-    echo "Starting Mirror YUM/DNF Configuration..."
+    echo "Starting Mirror DNF Configuration..."
 
     # 1. Resolve Arguments and Credentials
     # -------------------------------------------------------------------------
@@ -50,7 +50,7 @@ setup_mirror() {
             echo "Unsupported distribution: $ID. Only Rocky Linux is supported. Skipping mirror setup."
             return 0
         fi
-        VERSION="${VERSION_ID%%.*}"  # Major version only (8 or 9)
+        VERSION="${VERSION_ID%%.*}"  # Major version only (9 or 10)
     else
         echo "/etc/os-release not found. Cannot detect distribution."
         return 1
@@ -61,9 +61,10 @@ setup_mirror() {
     # 3. Build Repository URLs
     # -------------------------------------------------------------------------
     MIRROR_HOST=$(echo "$MIRROR_BASE_URL" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+
     # Mirrors the full upstream path structure:
-    #   mirror-rocky -> https://dl.rockylinux.org/pub/rocky/
-    #   mirror-epel  -> https://dl.fedoraproject.org/pub/epel/
+    # mirror-rocky -> https://dl.rockylinux.org/pub/rocky/
+    # mirror-epel -> https://dl.fedoraproject.org/pub/epel/
     BASEOS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/BaseOS/${ARCH}/os/"
     APPSTREAM_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/AppStream/${ARCH}/os/"
     EXTRAS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/extras/${ARCH}/os/"
@@ -110,12 +111,6 @@ EOF
     # 6. Create mirror repos as OVERLAY (Keep original repos)
     # -------------------------------------------------------------------------
     echo "Adding mirror repository overlay (priority=1)..."
-
-    if command -v dnf >/dev/null 2>&1; then
-        PKG_MGR="dnf"
-    else
-        PKG_MGR="yum"
-    fi
 
     # Create mirror repo configuration with highest priority (priority=1)
     # Use "00-" prefix so it sorts first alphabetically
@@ -171,12 +166,12 @@ username=$MIRROR_USER
 password=$MIRROR_TOKEN
 EOF
 
-    echo "Mirror YUM/DNF configuration complete (overlay mode - original repos preserved)."
+    echo "Mirror DNF configuration complete (overlay mode - original repos preserved)."
 
     # 7. Verify configuration
     # -------------------------------------------------------------------------
     echo "Testing repository access..."
-    $PKG_MGR repolist || echo "Warning: Repository list failed. Check credentials and URLs."
+    dnf repolist || echo "Warning: Repository list failed. Check credentials and URLs."
 }
 
 # EXECUTION GUARD

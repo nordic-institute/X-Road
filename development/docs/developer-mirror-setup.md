@@ -1,6 +1,6 @@
 # Developer Setup Guide: Artifactory Mirrors
 
-The X-Road build system supports optional Artifactory mirrors for all external dependencies (Maven, Gradle plugins, npm, Docker Hub, APT/YUM, GitHub releases, kubectl). Mirrors are opt-in — when configured, builds use Artifactory; otherwise they use public registries directly.
+The X-Road build system supports optional Artifactory mirrors for all external dependencies (Maven, Gradle plugins, npm, Docker Hub, APT/DNF, GitHub releases, kubectl). Mirrors are opt-in — when configured, builds use Artifactory; otherwise they use public registries directly.
 
 ## Prerequisites
 

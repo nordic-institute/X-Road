@@ -96,7 +96,7 @@ install_security_server_rhel() {
 
   # Install the security server package
   log_message "Installing $XROAD_SS_PACKAGE..."
-  if yum install -y "$XROAD_SS_PACKAGE"; then
+  if dnf install -y "$XROAD_SS_PACKAGE"; then
     log_info "Package $XROAD_SS_PACKAGE installed successfully"
   else
     log_die "Failed to install $XROAD_SS_PACKAGE"
