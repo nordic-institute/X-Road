@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
   implementation(libs.edc.bom.identityhub.sql)
-  implementation(libs.edc.bom.issuerservice.sql)
   implementation(libs.edc.store.participantcontext.config.sql)
 }
 

@@ -30,6 +30,7 @@ package org.niis.xroad.ss.test.ds.glue;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.glue.BaseStepDefs;
 import org.niis.xroad.ss.test.ds.api.FeignControlPlaneManagementApi;
+import org.niis.xroad.ss.test.ds.api.FeignControlPlaneSecretsApi;
 import org.niis.xroad.test.framework.core.asserts.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,6 +45,26 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
 
     @Autowired
     private FeignControlPlaneManagementApi controlPlaneManagementApi;
+
+    @Autowired
+    private FeignControlPlaneSecretsApi feignControlPlaneSecretsApi;
+
+    @Step("Secret is created with key {string} and value {string}")
+    public void participantSecretIsCreated(String key, String value) {
+        String request = """
+                {
+                  "@context" : {
+                    "edc" : "https://w3id.org/edc/v0.0.1/ns/"
+                  },
+                  "@type" : "https://w3id.org/edc/v0.0.1/ns/Secret",
+                  "@id" : "%s",
+                  "https://w3id.org/edc/v0.0.1/ns/value": "%s"
+                }
+                """.formatted(key, value);
+        var response = feignControlPlaneSecretsApi.createSecret(AuthTokens.PROVISIONER, request);
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK));
+    }
 
     @Step("Participant context {string} is created")
     public void participantContextIsCreated(String contextName) {
@@ -70,8 +91,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 .assertion(Assertions.equalsAssertion(participantContextId, "@id"));
     }
 
-    @Step("Participant context {string} config is created")
-    public void participantContextConfigIsCreated(String participantContextId) {
+    @Step("Participant context {string} config with DID {string} is created")
+    public void participantContextConfigIsCreated(String participantContextId, String did) {
         String request = """
                 {
                      "@context": [
@@ -79,11 +100,15 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                      ],
                      "@type": "ParticipantContextConfig",
                      "entries": {
-                         "edc.participant.id": "test-participant-id"
+                         "edc.participant.id": "%s",
+                         "edc.iam.issuer.id": "%s",
+                         "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:9292/api/sts/token",
+                         "edc.iam.sts.oauth.client.id": "%s",
+                         "edc.iam.sts.oauth.client.secret.alias": "%s-sts-client-secret"
                      },
                      "privateEntries": {}
                  }
-                """;
+                """.formatted(did, did, did, participantContextId);
         var response = controlPlaneManagementApi.createParticipantContextConfig(AuthTokens.PROVISIONER, participantContextId, request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK));
@@ -170,26 +195,25 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK));
     }
 
-    @Step("Catalog can be retrieved from participant context {string}")
-    public void catalogCanBeRetrievedFromParticipantContext(String participantContextId) {
+    @Step("Catalog can be retrieved from participant context {string} with DID {string}")
+    public void catalogCanBeRetrievedFromParticipantContext(String participantContextId, String participantDid) {
         String request = """
                 {
                     "@context": [
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "CatalogRequest",
-                    "counterPartyId": "test-part-ctx",
+                    "counterPartyId": "%s",
                     "counterPartyAddress": "http://localhost:8183/api/dsp/test-part-ctx/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
-                """;
+                """.formatted(participantDid);
 
         var response = controlPlaneManagementApi.requestCatalog(AuthTokens.PARTICIPANT, participantContextId, request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK));
         assertEquals("assetId-1", ((LinkedHashMap) ((ArrayList) response.getBody().get("dataset")).getFirst()).get("id"));
     }
-
 
     static class AuthTokens {
         static final String PROVISIONER = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYz"

@@ -24,21 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui.container;
 
-public final class Port {
-    public static final int
-            UI = 4000,
-            PROXY_HTTP = 8080,
-            DB = 5432,
-            PROXY_HEALTHCHECK = 5558,
-            TEST_CA = 8888,
-            // Quarkus health endpoint port for services
-            QUARKUS_HEALTH = 4099,
-            DS_CONTROL_PLANE_MANAGEMENT = 8182,
-            DS_IDENTITY_HUB_IDENTITY = 8182;
+package org.niis.xroad.ss.test.ds.api;
 
-    private Port() {
-    }
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import java.util.Map;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
+@FeignClient(name = "identityHubManagementApi")
+public interface FeignIdentityHubManagementApi {
+
+    @PostMapping(value = "",
+            produces = {"application/json"}, consumes = {"application/json"})
+    ResponseEntity<Map<String, Object>> createParticipant(@RequestHeader(AUTHORIZATION) String authorization,
+                                                          @RequestBody String body);
 
 }

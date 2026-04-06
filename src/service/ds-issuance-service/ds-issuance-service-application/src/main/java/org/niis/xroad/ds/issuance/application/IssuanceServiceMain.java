@@ -24,21 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui.container;
 
-public final class Port {
-    public static final int
-            UI = 4000,
-            PROXY_HTTP = 8080,
-            DB = 5432,
-            PROXY_HEALTHCHECK = 5558,
-            TEST_CA = 8888,
-            // Quarkus health endpoint port for services
-            QUARKUS_HEALTH = 4099,
-            DS_CONTROL_PLANE_MANAGEMENT = 8182,
-            DS_IDENTITY_HUB_IDENTITY = 8182;
+package org.niis.xroad.ds.issuance.application;
 
-    private Port() {
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import lombok.NoArgsConstructor;
+
+@QuarkusMain
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+public class IssuanceServiceMain {
+
+    public static void main(String[] args) {
+        Quarkus.run(args);
     }
 
 }

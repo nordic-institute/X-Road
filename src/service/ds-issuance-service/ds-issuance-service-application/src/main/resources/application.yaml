@@ -1,0 +1,44 @@
+quarkus:
+  application:
+    name: ds-issuance-service
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  log:
+    level: INFO
+    category:
+      "EDC":
+        level: DEBUG
+
+"%native":
+  quarkus:
+    config:
+      locations:
+        - xroad-common.yaml
+        - xroad-logging.yaml
+        - /etc/xroad/conf.d/local-tls.yaml
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/db.properties
+    log:
+      console:
+        enabled: false
+      file:
+        enabled: true
+        path: /var/log/xroad/ds-issuance-service.log
+
+web:
+  http:
+    port: 8383
+    path: /api
+
+edc:
+  hostname: ${HOSTNAME}
+  datasource:
+    default:
+      url: ${xroad.db.ds-issuance-service.hibernate.connection.url}
+      user: ${xroad.db.ds-issuance-service.hibernate.connection.username}
+      password: ${xroad.db.ds-issuance-service.hibernate.connection.password}
+  sql:
+    schema:
+      autocreate: true
