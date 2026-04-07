@@ -425,7 +425,6 @@ org.jboss.forge.roaster:roaster-jdt:2.30.3.Final=archUnitExtraLib
 org.jboss.logging:jboss-logging:3.6.1.Final=intTestCompileClasspath
 org.jboss.logging:jboss-logging:3.6.2.Final=intTestRuntimeClasspath
 org.jboss.logmanager:jboss-logmanager:3.2.1.Final=intTestRuntimeClasspath
-org.jboss.slf4j:slf4j-jboss-logmanager:2.0.2.Final=intTestRuntimeClasspath
 org.jboss.threads:jboss-threads:3.9.2=intTestRuntimeClasspath
 org.jctools:jctools-core:4.0.5=intTestRuntimeClasspath
 org.jetbrains:annotations:17.0.0=intTestCompileClasspath
