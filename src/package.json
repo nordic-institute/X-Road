@@ -12,6 +12,8 @@
   },
   "pnpm": {
     "overrides": {
+      "defu": "^6.1.5",
+      "lodash": "^4.18.0",
       "picomatch": "^4.0.4",
       "minimatch": "^10.2.3",
       "rollup": "^4.59.0",
