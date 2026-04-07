@@ -9,7 +9,6 @@
              group="org.eclipse.edc.virtualized"
              version="0.16.0-20260323-1-SNAPSHOT"
              reason="Temporary SNAPSHOT; remove after switching to immutable release versions."/>
-
          <trust
              group="org.eclipse.dataplane-core"
              name="dataplane-sdk"
@@ -21,6 +20,16 @@
              name="github-dependency-graph-gradle-plugin"
              version="1.4.1"
              reason="Loaded by GitHub Actions init script for dependency graph generation."/>
+         <trust
+             group="com.gradle"
+             name="develocity-gradle-plugin"
+             version="4.3.2"
+             reason="Loaded by GitHub Actions init script for Develocity build scanning."/>
+         <trust
+             group="com.gradle"
+             name="common-custom-user-data-gradle-plugin"
+             version="2.1"
+             reason="Loaded by GitHub Actions init script for Develocity CCUD collection."/>
       </trusted-artifacts>
    </configuration>
    <components>
