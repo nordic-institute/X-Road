@@ -47,23 +47,18 @@
     - ansible_facts['os_family'] == 'RedHat'
     - not ((database_admin_password is defined) and (database_admin_password != ""))
 
-- name: install xroad packages and dependencies from set up repository (RHEL9+)
+- name: install xroad packages and dependencies from set up repository
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
   tags:
     - install-xroad-ss-packages
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int >= 9
 
-- name: install opmonitoring (RHEL9+)
+- name: install opmonitoring
   yum:
     name: xroad-opmonitor
     state: latest
   when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int >= 9
     - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
     - install-xroad-ss-packages
