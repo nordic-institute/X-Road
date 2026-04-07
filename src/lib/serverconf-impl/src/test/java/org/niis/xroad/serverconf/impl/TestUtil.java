@@ -36,7 +36,7 @@ import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
-import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
@@ -247,10 +247,9 @@ public final class TestUtil {
             session.persist(cl);
             client.getAccessRights().add(createAccessRight(endpoint, cl));
 
-            ServiceIdEntity se = ServiceIdEntity.create("XX", "memberClass",
-                    "memberCode" + i, "subsystemCode", "serviceCode" + i);
-            session.persist(se);
-            client.getAccessRights().add(createAccessRight(endpoint, se));
+            SubsystemIdEntity sub = SubsystemIdEntity.create("XX", "memberClass", "memberCode" + i, "subsystemCode");
+            session.persist(sub);
+            client.getAccessRights().add(createAccessRight(endpoint, sub));
 
             LocalGroupIdEntity lg = LocalGroupIdEntity.create("testGroup" + i);
             session.persist(lg);
@@ -317,11 +316,6 @@ public final class TestUtil {
 
     static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode, String serviceVerison) {
         return ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
-                serviceCode, serviceVerison);
-    }
-
-    static ServiceIdEntity createTestServiceIdEntity(String memberCode, String serviceCode, String serviceVerison) {
-        return ServiceIdEntity.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode, serviceVerison);
     }
 

@@ -57,7 +57,7 @@
             {{ $t('systemParameters.configurationAnchor.action.upload.dialog.info') }}
           </v-col>
         </v-row>
-        <v-row class="mt-5" no-gutters>
+        <v-row class="mt-5" gap="0">
           <v-col class="font-weight-bold" cols="auto" sm="3">
             {{ $t('systemParameters.configurationAnchor.action.upload.dialog.field.hash') }}
           </v-col>
@@ -65,7 +65,7 @@
             <XrdHashValue :value="anchorPreview.hash" />
           </v-col>
         </v-row>
-        <v-row class="mt-2" no-gutters>
+        <v-row class="mt-2" gap="0">
           <v-col class="font-weight-bold" cols="auto" sm="3">
             {{ $t('systemParameters.configurationAnchor.action.upload.dialog.field.generated') }}
           </v-col>

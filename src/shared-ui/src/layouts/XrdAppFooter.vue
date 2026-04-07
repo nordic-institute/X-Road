@@ -25,27 +25,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-footer class="footer pt-6 pb-6" height="auto">
-    <v-row>
-      <v-col class="pt-4 text-start">
-        <img :src="xroad8LogoUrl" height="40" width="150" alt="Logo" />
+  <v-footer class="footer pt-6 mt-0" height="auto">
+    <v-row density="compact">
+      <v-col class="pt-2">
+        <v-row density="compact">
+          <v-col>
+            <img :src="xroad8LogoUrl" height="40" width="150" alt="Logo" />
+          </v-col>
+        </v-row>
       </v-col>
       <v-col class="footer-col pt-5">
-        <v-row>
+        <v-row density="compact">
           <v-col>
             <span class="body-regular font-weight-bold">
               {{ $t('footer.software.title') }}
             </span>
           </v-col>
         </v-row>
-        <v-row>
+        <v-row density="compact">
           <v-col class="py-0">
             <span data-test="app-footer-server-version" class="body-regular font-weight-regular">
               {{ $t('footer.software.versionPrefix') }}&nbsp;{{ appVersion }}
             </span>
           </v-col>
         </v-row>
-        <v-row>
+        <v-row density="compact">
           <v-col>
             <a
               rel="noopener"
@@ -59,21 +63,21 @@
         </v-row>
       </v-col>
       <v-col class="footer-col pt-5">
-        <v-row>
+        <v-row density="compact">
           <v-col>
             <span class="body-regular font-weight-bold">
               {{ $t('footer.copyright.title') }}
             </span>
           </v-col>
         </v-row>
-        <v-row>
+        <v-row density="compact">
           <v-col class="py-0">
             <span data-test="app-footer-server-version" class="body-regular font-weight-regular">
               {{ $t('footer.copyright.company') }}
             </span>
           </v-col>
         </v-row>
-        <v-row>
+        <v-row density="compact">
           <v-col>
             <a
               rel="noopener"
