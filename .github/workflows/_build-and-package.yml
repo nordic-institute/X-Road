@@ -243,16 +243,6 @@ jobs:
           task: get-measurement
           label: 'Build, unit tests and packaging'
 
-      - name: Build RHEL8 packages
-        working-directory: ./src
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: |
-          ./build_packages.sh -d -r rpm-el8 --package-only
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/8
-
       - name: Build RHEL9 packages
         working-directory: ./src
         env:
@@ -262,6 +252,16 @@ jobs:
           ./build_packages.sh -d -r rpm-el9 --package-only
           echo "Packages built successfully, removing packages.."
           rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
+
+      - name: Build RHEL10 packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: |
+          ./build_packages.sh -d -r rpm-el10 --package-only
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/10
 
       - name: Build Ubuntu 22.04 (Jammy) packages
         working-directory: ./src
