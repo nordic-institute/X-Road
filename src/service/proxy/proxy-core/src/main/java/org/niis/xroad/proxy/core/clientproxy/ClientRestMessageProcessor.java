@@ -54,6 +54,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -106,6 +107,7 @@ public class ClientRestMessageProcessor {
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties proxyProperties;
     private final CommonProperties commonProperties;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
 
     /**
@@ -216,7 +218,7 @@ public class ClientRestMessageProcessor {
         var response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
                 commonProperties.tempFilesPath());
         var decoder = new ProxyMessageDecoder(globalConfProvider,
-                messageSigningService.getOcspVerifierFactory(), response,
+                ocspVerifierFactory, response,
                 httpSender.getResponseContentType(),
                 ProxyMessageUtils.getHashAlgoId(httpSender));
         try {

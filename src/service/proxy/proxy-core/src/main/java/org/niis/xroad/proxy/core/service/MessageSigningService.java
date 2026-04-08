@@ -32,7 +32,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
@@ -54,7 +53,6 @@ public class MessageSigningService {
 
     private final KeyConfProvider keyConfProvider;
     private final SigningCtxProvider signingCtxProvider;
-    private final OcspVerifierFactory ocspVerifierFactory;
 
     public AuthKey getAuthKey() {
         return keyConfProvider.getAuthKey();
@@ -66,15 +64,6 @@ public class MessageSigningService {
 
     public SigningCtx createSigningCtx(ClientId clientId) {
         return signingCtxProvider.createSigningCtx(clientId);
-    }
-
-    /**
-     * Returns the OCSP verifier factory (needed by ProxyMessageDecoder constructor).
-     *
-     * @return OCSP verifier factory
-     */
-    public OcspVerifierFactory getOcspVerifierFactory() {
-        return ocspVerifierFactory;
     }
 
 }

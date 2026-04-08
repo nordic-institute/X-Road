@@ -45,6 +45,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -97,6 +98,7 @@ public class ClientSoapMessageProcessor {
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties proxyProperties;
     private final CommonProperties commonProperties;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
@@ -256,7 +258,7 @@ public class ClientSoapMessageProcessor {
                 commonProperties.tempFilesPath());
 
         ProxyMessageDecoder responseDecoder = new ProxyMessageDecoder(globalConfProvider,
-                messageSigningService.getOcspVerifierFactory(), response,
+                ocspVerifierFactory, response,
                 httpSender.getResponseContentType(),
                 ProxyMessageUtils.getHashAlgoId(httpSender));
         try {

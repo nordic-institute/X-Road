@@ -49,6 +49,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -111,6 +112,7 @@ public class ServerSoapMessageProcessor {
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties proxyProperties;
     private final CommonProperties commonProperties;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
 
     /**
@@ -192,7 +194,7 @@ public class ServerSoapMessageProcessor {
         var requestMessage = new VerifyingProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
                 commonProperties.tempFilesPath(), clientSslCerts, opMonitoringData, originalSoapAction);
 
-        var decoder = new ProxyMessageDecoder(globalConfProvider, messageSigningService.getOcspVerifierFactory(),
+        var decoder = new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory,
                 requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {

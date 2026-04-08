@@ -69,6 +69,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -122,6 +123,7 @@ public class ServerRestMessageProcessor {
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties proxyProperties;
     private final CommonProperties commonProperties;
+    private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
 
     private List<RestServiceHandler> handlers;
@@ -134,6 +136,7 @@ public class ServerRestMessageProcessor {
                                       ServerConfProvider serverConfProvider,
                                       ProxyProperties proxyProperties,
                                       CommonProperties commonProperties,
+                                      OcspVerifierFactory ocspVerifierFactory,
                                       ServiceHandlerLoader serviceHandlerLoader) {
         this.messageSigningService = messageSigningService;
         this.serverHttpClient = serverHttpClient;
@@ -143,6 +146,7 @@ public class ServerRestMessageProcessor {
         this.serverConfProvider = serverConfProvider;
         this.proxyProperties = proxyProperties;
         this.commonProperties = commonProperties;
+        this.ocspVerifierFactory = ocspVerifierFactory;
         this.serviceHandlerLoader = serviceHandlerLoader;
     }
 
@@ -234,7 +238,7 @@ public class ServerRestMessageProcessor {
                 commonProperties.tempFilesPath(),
                 clientVerificationService, messageSigningService, proxyProperties, clientSslCerts);
 
-        var decoder = new ProxyMessageDecoder(globalConfProvider, messageSigningService.getOcspVerifierFactory(),
+        var decoder = new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory,
                 requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {
