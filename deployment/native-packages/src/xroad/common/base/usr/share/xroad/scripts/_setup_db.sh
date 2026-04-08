@@ -6,6 +6,20 @@ die() {
   exit 1
 }
 
+MIN_PG_VERSION=15
+
+check_pg_version() {
+  local pg_version_num="$1"
+  if [ -n "$pg_version_num" ]; then
+    local pg_major_version=$((pg_version_num / 10000))
+    if [ "$pg_major_version" -lt "$MIN_PG_VERSION" ]; then
+      die "PostgreSQL version $pg_major_version is not supported. Minimum required version is $MIN_PG_VERSION."
+    fi
+  else
+    log "WARNING: Unable to determine PostgreSQL version. Minimum required version is $MIN_PG_VERSION."
+  fi
+}
+
 get_prop() {
   crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }
@@ -94,6 +108,11 @@ setup_database() {
   else
     function psql_master() { local_psql "$@"; }
   fi
+
+  # Verify PostgreSQL version meets minimum requirement
+  local pg_version_num
+  pg_version_num=$(PGCONNECT_TIMEOUT=5 psql_master -c "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]')
+  check_pg_version "$pg_version_num"
 
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."

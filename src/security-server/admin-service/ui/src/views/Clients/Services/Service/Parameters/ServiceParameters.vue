@@ -196,7 +196,7 @@ import { defineComponent } from 'vue';
 import AccessRightsDialog from '../AccessRightsDialog.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { Permissions } from '@/global';
-import {CodeWithDetails, ServiceClient, ServiceUpdate, ServiceType, ServiceClientType} from '@/openapi-types';
+import { CodeWithDetails, ServiceClient, ServiceUpdate, ServiceType, ServiceClientType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useServices } from '@/store/modules/services';
@@ -278,7 +278,7 @@ export default defineComponent({
   },
   computed: {
     ServiceClientType() {
-      return ServiceClientType
+      return ServiceClientType;
     },
     ...mapState(useServices, ['service', 'serviceClients']),
     ...mapState(useServiceDescriptions, ['serviceDescription']),

@@ -27,8 +27,8 @@
 <template>
   <XrdCard class="mb-4">
     <v-container fluid>
-      <v-row dense>
-        <v-col cols="2" align-self="end">
+      <v-row density="compact">
+        <v-col cols="2" class="align-self-end">
           <v-date-input
             v-model="filters.startDate"
             class="xrd date-input"
@@ -39,7 +39,7 @@
             :label="$t('diagnostics.traffic.date')"
           />
         </v-col>
-        <v-col cols="1" align-self="end">
+        <v-col cols="1" class="align-self-end">
           <v-text-field
             v-model="filters.startTime"
             v-maska="'##:##'"
@@ -50,7 +50,7 @@
           />
         </v-col>
         <v-col cols="2"><span class="range-separator"></span></v-col>
-        <v-col cols="2" align-self="end">
+        <v-col cols="2" class="align-self-end">
           <v-date-input
             v-model="filters.endDate"
             class="xrd date-input"
@@ -61,7 +61,7 @@
             data-test="period-end-date"
           />
         </v-col>
-        <v-col cols="1" align-self="end">
+        <v-col cols="1" class="align-self-end">
           <v-text-field
             v-model="filters.endTime"
             v-maska="'##:##'"
@@ -77,8 +77,8 @@
           </v-sheet>
         </v-col>
       </v-row>
-      <v-row dense>
-        <v-col cols="4" align-self="end">
+      <v-row density="compact">
+        <v-col cols="4" class="align-self-end">
           <v-select
             v-model="filters.client"
             data-test="select-client"
@@ -92,11 +92,11 @@
             :loading="clientsLoading"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item v-bind="itemProps" :subtitle="item.raw.member_name"></v-list-item>
+              <v-list-item v-bind="itemProps" :subtitle="item.member_name"></v-list-item>
             </template>
           </v-select>
         </v-col>
-        <v-col cols="4" align-self="end">
+        <v-col cols="4" class="align-self-end">
           <v-select
             v-model="filters.service"
             data-test="select-service"
@@ -111,7 +111,7 @@
             :loading="servicesLoading"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item v-bind="itemProps" :subtitle="item.raw.title"></v-list-item>
+              <v-list-item v-bind="itemProps" :subtitle="item.title"></v-list-item>
             </template>
           </v-select>
         </v-col>
@@ -121,8 +121,8 @@
           </v-sheet>
         </v-col>
       </v-row>
-      <v-row dense>
-        <v-col align-self="end">
+      <v-row density="compact">
+        <v-col class="align-self-end">
           <v-select
             v-model="filters.exchangeRole"
             data-test="select-exchangeRole"
@@ -140,8 +140,8 @@
           </v-sheet>
         </v-col>
       </v-row>
-      <v-row dense>
-        <v-col align-self="end">
+      <v-row density="compact">
+        <v-col class="align-self-end">
           <v-select
             v-model="filters.status"
             data-test="select-status"
@@ -292,14 +292,14 @@ function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]): 
   if (filter.status ?? true) {
     value.push({
       name: t('diagnostics.traffic.successfulRequests'),
-      color: colorSuccess.value,
+      color: colorSuccess.value as string,
       data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.success_count ?? 0]),
     });
   }
   if (!(filter.status ?? false)) {
     value.push({
       name: t('diagnostics.traffic.failedRequests'),
-      color: colorError.value,
+      color: colorError.value as string,
       data: data.map((item) => [new Date(item.interval_start_time as string).getTime(), item.failure_count ?? 0]),
     });
   }

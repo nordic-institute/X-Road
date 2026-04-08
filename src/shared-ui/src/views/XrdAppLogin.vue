@@ -25,8 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="fill-height w-100 pa-0 overflow-hidden" fluid>
-    <v-row class="fill-height" no-gutters align-content-md="stretch" align-content="start">
+  <v-container class="h-100 w-100 pa-0 overflow-hidden" fluid>
+    <v-row class="h-100 align-content-md-stretch align-content-start" no-gutters>
       <v-col
         cols="12"
         md="5"
@@ -43,7 +43,7 @@
         <img :src="trail2" class="trail2" alt="X-Road 8 Trail" />
       </v-col>
       <v-col cols="12" md="7">
-        <v-row justify="end" align="center" no-gutters>
+        <v-row class="justify-end align-center" no-gutters>
           <v-col cols="auto">
             <v-select
               :model-value="currentLanguage"
@@ -62,18 +62,16 @@
             <XrdThemeSwitcher class="mr-16 ml-3 my-3" size="x-small" />
           </v-col>
         </v-row>
-        <v-row v-if="notifications.hasContextErrors.value" justify="center">
+        <v-row v-if="notifications.hasContextErrors.value" class="justify-center">
           <v-col cols="11">
             <XrdErrorNotifications :manager="notifications" />
           </v-col>
         </v-row>
         <v-row
+          class="justify-center align-center align-content-center"
           no-gutters
-          justify="center"
-          align="center"
-          align-content="center"
           :class="{
-            'fill-height': $vuetify.display.mdAndUp,
+            'h-100': $vuetify.display.mdAndUp,
           }"
         >
           <v-col cols="11" sm="8" md="7" lg="6" xl="5">

@@ -234,14 +234,14 @@
                 {{ $t('systemParameters.approvedCertificateAuthorities.table.notAvailable') }}
               </td>
               <td>
-                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url" class="py-2">
+                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url">
                   <p>
                     {{ ocspResponder.url }}
                   </p>
                 </div>
               </td>
               <td>
-                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url" class="py-2">
+                <div v-for="ocspResponder in approvedCA.ocsp_responders" :key="ocspResponder.url">
                   <p>
                     {{ $t('systemParameters.costType.' + ocspResponder.cost_type) }}
                   </p>
@@ -280,20 +280,20 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import {
-  XrdBtn,
-  XrdDateTime,
-  XrdDate,
-  XrdHashValue,
-  XrdView,
-  XrdCard,
-  XrdSubView,
-  XrdStatusChip,
-  useNotifications,
-  XrdEmptyPlaceholderRow,
-  XrdStatusIcon,
   saveResponseAsFile,
+  useNotifications,
+  XrdBtn,
+  XrdCard,
+  XrdDate,
+  XrdDateTime,
+  XrdEmptyPlaceholderRow,
+  XrdHashValue,
+  XrdStatusChip,
+  XrdStatusIcon,
+  XrdSubView,
+  XrdView,
 } from '@niis/shared-ui';
-import { Anchor, CertificateAuthority, TimestampingService, ServicePrioritizationStrategy } from '@/openapi-types';
+import { Anchor, CertificateAuthority, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
@@ -466,7 +466,7 @@ export default defineComponent({
 .ts-disabled {
   :deep(.v-card-title),
   :deep(.v-table__wrapper) {
-    background-color: rgba(var(--v-theme-on-surface-variant), 0.08) !important;
+    background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface-variant)) 8%, transparent) !important;
   }
 
   :deep(.component-title-text) {

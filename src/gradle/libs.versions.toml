@@ -5,15 +5,16 @@
 # In some cases referincing library directly like 'libs.protobuf.protoc' may not work, possible workaround could be:
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
-metrics = "4.2.37"
-jetty = "12.0.31"
-jaxb = "4.0.5"
+metrics = "4.2.38"
+jetty = "12.0.33"
+jaxb = "4.0.7"
 hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
-jackson = "2.19.4"
-mockito = "5.21.0"
+jackson = "2.21.2"
+jacksonAnnotations = "2.21"
+mockito = "5.23.0"
 springBoot = "3.5.9"
-springFramework = "7.0.4"
+springFramework = "7.0.6"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
@@ -21,25 +22,25 @@ bouncyCastle = "1.83"
 slf4j = "2.0.17"
 protoc = "4.34.0"
 grpc = "1.79.0"
-swaggerParser = "2.1.38"
+swaggerParser = "2.1.39"
 logback = "1.5.32"
-logbackAccess = "2.0.9"
-apacheCxf = "4.1.5"
+logbackAccess = "2.0.12"
+apacheCxf = "4.2.0"
 liquibase = "5.0.2"
 protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.14"
-resilience4j = "2.3.0"
+resilience4j = "2.4.0"
 quarkus = "3.32.4"
-quarkus-vault = "4.6.0"
+quarkus-vault = "4.7.0"
 smallryeConfig = "3.16.0"
 microprofile = "3.1"
-feign = "13.9.2"
-testCucumber = "7.34.2"
-testContainers = "2.0.3"
+feign = "13.11"
+testCucumber = "7.34.3"
+testContainers = "2.0.4"
 testAllure = "2.33.0"
-testSelenide = "7.14.0"
-shadowPlugin = "9.3.2"
+testSelenide = "7.15.0"
+shadowPlugin = "9.4.1"
 edc = "0.16.0"
 edc-v = "0.16.0-20260323-1-SNAPSHOT"
 dataplane-sdk = "0.0.7-SNAPSHOT"
@@ -156,7 +157,7 @@ hibernate-jpamodelgen = { module = "org.hibernate:hibernate-jpamodelgen", versio
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
@@ -169,7 +170,7 @@ apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
-apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.2.3" }
+apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.3.0" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.4" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
@@ -189,7 +190,7 @@ openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
 openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
 openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
 
-lombok = { module = "org.projectlombok:lombok", version = "1.18.42" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.44" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -200,10 +201,10 @@ wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "
 picocli = { module = "info.picocli:picocli", version = "4.7.7" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.10" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
-h2database = { module = "com.h2database:h2", version = "2.2.224" }
+h2database = { module = "com.h2database:h2", version = "2.4.240" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.44" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.45" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -348,7 +349,7 @@ quarkus-containerized = [
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.20.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.21.0" }
 sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }

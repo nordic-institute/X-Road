@@ -94,10 +94,9 @@
  */
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { CodeWithDetails, Key, KeyUsageType, PossibleAction, Token } from '@/openapi-types';
+import { CodeWithDetails, Key, KeyUsageType, PossibleAction, Token, PossibleActions } from '@/openapi-types';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 
-import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 import { isEmpty } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useTokens } from '@/store/modules/tokens';

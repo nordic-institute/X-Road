@@ -24,8 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-export enum ServiceTypeEnum {
-  WSDL = 'WSDL',
-  OPENAPI3 = 'OPENAPI3',
-  REST = 'REST',
-}
+import {defineConfig} from '@hey-api/openapi-ts';
+
+export default defineConfig({
+  input: '../common/common-admin-api/src/main/resources/common-openapi-definition.yaml',
+  output: './src/openapi-types',
+  plugins: [
+    {
+      enums: true,
+      name: '@hey-api/typescript',
+    },
+  ],
+});

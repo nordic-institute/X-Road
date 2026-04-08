@@ -21,6 +21,7 @@ dependencies {
   implementation(libs.apache.commonsPool2)
   implementation(libs.resilience4j.retry)
   implementation(libs.resilience4j.timelimiter)
+  implementation(libs.jakarta.validationApi)
 
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 

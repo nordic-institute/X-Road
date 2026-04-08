@@ -15,6 +15,8 @@ dependencies {
 
   implementation(libs.smallrye.config.core)
   implementation(libs.bundles.quarkus.containerized)
+
+  testImplementation(libs.assertj.core)
 }
 
 tasks.jar {
