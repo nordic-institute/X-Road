@@ -229,10 +229,10 @@ public class SoapMessageDecoder {
                     log.trace("Read SOAP from multipart: {}", partContentType);
                     try {
                         Soap soap = parser.parse(partContentType, is);
-                        if (soap instanceof SoapMessage) {
-                            callback.soap((SoapMessage) soap, headers);
-                        } else if (soap instanceof SoapFault) {
-                            callback.fault((SoapFault) soap);
+                        if (soap instanceof SoapMessage soapMessage) {
+                            callback.soap(soapMessage, headers);
+                        } else if (soap instanceof SoapFault soapFault) {
+                            callback.fault(soapFault);
                         } else {
                             throw XrdRuntimeException.systemInternalError("Unexpected SOAP message");
                         }
