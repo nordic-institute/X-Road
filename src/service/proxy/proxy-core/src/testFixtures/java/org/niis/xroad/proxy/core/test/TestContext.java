@@ -114,7 +114,7 @@ public class TestContext {
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
             var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
             var httpSenderProvider = new HttpSenderProvider(httpClient, httpClientCreator.getHttpClient(), proxyProperties);
-            var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider, ocspVerifierFactory);
+            var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
             var serviceAddressResolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties);
             var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
                     globalConfProvider, proxyProperties, certHelper);
@@ -129,7 +129,7 @@ public class TestContext {
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
-                    clientRequestPreparationService);
+                    ocspVerifierFactory, clientRequestPreparationService);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);
@@ -145,14 +145,14 @@ public class TestContext {
                         messageSigningService, httpClientCreator.getHttpClient(),
                         clientVerificationService, opMonitoringDataHelper,
                         globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
-                        serviceHandlerLoader);
+                        ocspVerifierFactory, serviceHandlerLoader);
                 serverRestMessageProcessor.init();
 
                 var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                         messageSigningService, httpSenderProvider,
                         clientVerificationService, opMonitoringDataHelper,
                         globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
-                        serviceHandlerLoader);
+                        ocspVerifierFactory, serviceHandlerLoader);
 
 
                 ServerProxyHandler proxyHandler = new ServerProxyHandler(serverRestMessageProcessor,

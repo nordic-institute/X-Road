@@ -41,6 +41,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
@@ -104,6 +105,7 @@ class ClientRestMessageProcessorTest {
                 globalConfProvider,
                 proxyProperties,
                 commonProperties,
+                mock(OcspVerifierFactory.class),
                 clientRequestPreparationService
         );
     }

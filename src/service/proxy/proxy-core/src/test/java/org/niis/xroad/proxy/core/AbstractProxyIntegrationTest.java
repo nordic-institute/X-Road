@@ -171,7 +171,7 @@ public abstract class AbstractProxyIntegrationTest {
                 .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory);
         var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
         var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
-        var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider, OCSP_VERIFIER_FACTORY);
+        var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
         var serviceAddressResolverClient = new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties);
         var clientVerificationServiceClient = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
@@ -183,7 +183,7 @@ public abstract class AbstractProxyIntegrationTest {
                 messageSigningServiceClient, httpSenderProviderClient,
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
-                clientRequestPreparationServiceClient);
+                OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),
@@ -207,7 +207,7 @@ public abstract class AbstractProxyIntegrationTest {
         var opMonitoringDataHelperServer = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
         var httpSenderProviderServer = new HttpSenderProvider(httpClientCreator.getHttpClient(), httpClientCreator.getHttpClient(),
                 proxyProperties);
-        var messageSigningServiceServer = new MessageSigningService(serverKeyConf, signingCtxProvider, OCSP_VERIFIER_FACTORY);
+        var messageSigningServiceServer = new MessageSigningService(serverKeyConf, signingCtxProvider);
         var clientVerificationServiceServer = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
@@ -215,14 +215,14 @@ public abstract class AbstractProxyIntegrationTest {
                 messageSigningServiceServer, httpClientCreator.getHttpClient(),
                 clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                serviceHandlerLoader);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
         serverRestMessageProcessor.init();
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                 messageSigningServiceServer, httpSenderProviderServer,
                 clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                serviceHandlerLoader);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
                 serverSoapMessageProcessor, proxyProperties.server(),

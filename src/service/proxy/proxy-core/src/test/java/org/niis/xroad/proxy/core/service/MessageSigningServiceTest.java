@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
@@ -51,15 +50,13 @@ class MessageSigningServiceTest {
 
     private KeyConfProvider keyConfProvider;
     private SigningCtxProvider signingCtxProvider;
-    private OcspVerifierFactory ocspVerifierFactory;
     private MessageSigningService messageSigningService;
 
     @BeforeEach
     void setUp() {
         keyConfProvider = mock(KeyConfProvider.class);
         signingCtxProvider = mock(SigningCtxProvider.class);
-        ocspVerifierFactory = mock(OcspVerifierFactory.class);
-        messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider, ocspVerifierFactory);
+        messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
     }
 
     @Test
@@ -96,12 +93,5 @@ class MessageSigningServiceTest {
 
         assertThat(result).isSameAs(signingCtx);
         verify(signingCtxProvider).createSigningCtx(clientId);
-    }
-
-    @Test
-    void getOcspVerifierFactoryReturnsInjectedFactory() {
-        var result = messageSigningService.getOcspVerifierFactory();
-
-        assertThat(result).isSameAs(ocspVerifierFactory);
     }
 }
