@@ -155,35 +155,38 @@ public class ServerSoapMessageProcessor {
         opMonitoringDataHelper.updateOpMonitoringServiceSecurityServerAddress(opMonitoringData);
 
         ProxyMessage requestMessage = null;
-        // Encoder holder — gets set inside parseResponse(), before any post-response exception can be thrown.
-        // Remains null if the exception occurs before parseResponse() is entered (request decode, access check, etc.),
-        // in which case handleException() rethrows and ServerProxyHandler sends a clean text/xml fault.
-        var encoderHolder = new ProxyMessageEncoder[1];
+        // Declared before try so handleException() in the catch block can use it.
+        // Remains null until parseResponse() creates the encoder after the backend responds.
+        ProxyMessageEncoder encoder = null;
         boolean succeeded = false;
 
         try {
             requestMessage = readMessage(jRequest, clientSslCerts, opMonitoringData);
 
-            var handleResult = handleRequest(requestMessage, jRequest, jResponse, opMonitoringData, xRequestId,
-                    encoderHolder);
+            var handler = prepareHandler(requestMessage, jRequest, opMonitoringData, xRequestId);
+            try {
+                // Encoder is created before decoding begins — available to the catch block
+                // if decodeResponse() throws partway through (e.g. invalid attachment content).
+                encoder = createEncoder(handler, jResponse);
+                var responseDecoder = decodeResponse(handler, encoder, requestMessage, opMonitoringData);
 
-            sign(encoderHolder[0], requestMessage.getSoap().getService().getClientId());
-            logResponseMessage(handleResult.responseDecoder(), encoderHolder[0], xRequestId);
-            writeSignature(encoderHolder[0]);
-            close(encoderHolder[0]);
+                sign(encoder, requestMessage.getSoap().getService().getClientId());
+                logResponseMessage(responseDecoder, encoder, xRequestId);
+                writeSignature(encoder);
+                close(encoder);
+            } finally {
+                handler.finishHandling();
+            }
 
             succeeded = true;
         } catch (Exception ex) {
-            handleException(ex, encoderHolder[0], opMonitoringData);
+            handleException(ex, encoder, opMonitoringData);
         } finally {
             if (requestMessage != null) {
                 requestMessage.consume();
             }
         }
         return succeeded;
-    }
-
-    private record HandleResult(ServerSoapRequestDecoder responseDecoder) {
     }
 
     private ProxyMessage readMessage(RequestWrapper jRequest, X509Certificate[] clientSslCerts,
@@ -235,9 +238,8 @@ public class ServerSoapMessageProcessor {
         IdentifierValidator.checkIdentifier(requestMessage.getSoap().getSecurityServer());
     }
 
-    private HandleResult handleRequest(ProxyMessage requestMessage, RequestWrapper jRequest, ResponseWrapper jResponse,
-                                       OpMonitoringData opMonitoringData, String xRequestId,
-                                       ProxyMessageEncoder[] encoderHolder)
+    private ServiceHandler prepareHandler(ProxyMessage requestMessage, RequestWrapper jRequest,
+                                          OpMonitoringData opMonitoringData, String xRequestId)
             throws SOAPException, JAXBException, IOException, URISyntaxException,
             ParserConfigurationException, HttpClientCreator.HttpClientCreatorException, SAXException {
         var requestServiceId = requestMessage.getSoap().getService();
@@ -259,13 +261,8 @@ public class ServerSoapMessageProcessor {
             logRequestMessage(requestMessage, xRequestId);
         }
 
-        try {
-            handler.startHandling(jRequest, requestMessage, opMonitoringData);
-            var responseDecoder = parseResponse(handler, jResponse, requestMessage, opMonitoringData, encoderHolder);
-            return new HandleResult(responseDecoder);
-        } finally {
-            handler.finishHandling();
-        }
+        handler.startHandling(jRequest, requestMessage, opMonitoringData);
+        return handler;
     }
 
     private Optional<ServiceHandler> getServiceHandler(ProxyMessage request, List<ServiceHandler> handlers) {
@@ -356,26 +353,24 @@ public class ServerSoapMessageProcessor {
         }
     }
 
-    private ServerSoapRequestDecoder parseResponse(ServiceHandler handler, ResponseWrapper jResponse,
-                                                   ProxyMessage requestMessage, OpMonitoringData opMonitoringData,
-                                                   ProxyMessageEncoder[] encoderHolder) {
-        log.trace("parseResponse()");
-
-        // Preserve the original content type of the service response
-        var responseContentType = handler.getResponseContentType();
-
-        // Create the encoder here, mirroring the original preprocess() call timing.
-        // Encoder is created only after the backend service has responded, so errors
-        // before this point (request validation, access check, send-request failures)
-        // will rethrow and be handled by ServerProxyHandler as clean text/xml faults.
+    /**
+     * Creates and configures the response encoder. Called before {@link #decodeResponse} so that
+     * the encoder is available to the catch block even if decoding throws partway through.
+     * Encoder creation cannot fail — it only allocates the encoder and writes response headers.
+     */
+    private ProxyMessageEncoder createEncoder(ServiceHandler handler, ResponseWrapper jResponse) {
         var encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), SoapUtils.getHashAlgoId());
         jResponse.setContentType(encoder.getContentType());
         jResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
-        jResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, responseContentType);
+        jResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType());
+        return encoder;
+    }
 
-        // Store encoder in holder so that handleException() can use it even if this method throws.
-        encoderHolder[0] = encoder;
+    private ServerSoapRequestDecoder decodeResponse(ServiceHandler handler, ProxyMessageEncoder encoder,
+                                                    ProxyMessage requestMessage, OpMonitoringData opMonitoringData) {
+        log.trace("decodeResponse()");
 
+        var responseContentType = handler.getResponseContentType();
         var responseDecoder = new ServerSoapRequestDecoder(opMonitoringData,
                 commonProperties.tempFilesPath(), encoder);
         try {
