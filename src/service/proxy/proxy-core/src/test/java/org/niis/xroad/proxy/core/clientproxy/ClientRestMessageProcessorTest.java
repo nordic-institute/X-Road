@@ -77,7 +77,7 @@ class ClientRestMessageProcessorTest {
 
         RequestWrapper request = RequestWrapper.of(getMockedRequest());
         var respWrapper = mock(ResponseWrapper.class);
-        var ctx = new RestRequestContext(request, respWrapper, opMonitoringData, null);
+        var ctx = new RestRequestContext(request, respWrapper, opMonitoringData);
 
         assertThrows(XrdRuntimeException.class, () -> processor.process(ctx));
 

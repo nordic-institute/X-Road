@@ -44,7 +44,7 @@ class ProxyRequestContextTest {
     void restRequestContextImplementsProxyRequestContext() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
-        var ctx = new RestRequestContext(request, response, mock(OpMonitoringData.class), null);
+        var ctx = new RestRequestContext(request, response, mock(OpMonitoringData.class));
 
         assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
     }
@@ -75,14 +75,12 @@ class ProxyRequestContextTest {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
         var opMonitoringData = mock(OpMonitoringData.class);
-        var targetAddress = "https://example.com";
 
-        var ctx = new RestRequestContext(request, response, opMonitoringData, targetAddress);
+        var ctx = new RestRequestContext(request, response, opMonitoringData);
 
         assertThat(ctx.request()).isSameAs(request);
         assertThat(ctx.response()).isSameAs(response);
         assertThat(ctx.opMonitoringData()).isSameAs(opMonitoringData);
-        assertThat(ctx.targetAddress()).isEqualTo(targetAddress);
     }
 
     @Test
@@ -104,21 +102,12 @@ class ProxyRequestContextTest {
     }
 
     @Test
-    void restRequestContextWithNullTargetAddressReturnsNull() {
-        var request = mock(RequestWrapper.class);
-        var response = mock(ResponseWrapper.class);
-        var ctx = new RestRequestContext(request, response, mock(OpMonitoringData.class), null);
-
-        assertThat(ctx.targetAddress()).isNull();
-    }
-
-    @Test
     void patternMatchingSwitchOverProxyRequestContextIsExhaustive() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
         var opMonitoringData = mock(OpMonitoringData.class);
 
-        ProxyRequestContext restCtx = new RestRequestContext(request, response, opMonitoringData, null);
+        ProxyRequestContext restCtx = new RestRequestContext(request, response, opMonitoringData);
         ProxyRequestContext clientSoapCtx = new ClientSoapRequestContext(request, response, opMonitoringData,
                 new java.util.concurrent.CountDownLatch(1),
                 new java.util.concurrent.CountDownLatch(1),

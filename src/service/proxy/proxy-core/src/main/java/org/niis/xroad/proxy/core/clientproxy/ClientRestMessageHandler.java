@@ -106,7 +106,7 @@ public class ClientRestMessageHandler extends HandlerBase {
             if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
                 verifyCanProcess();
                 var ctx = new RestRequestContext(
-                        RequestWrapper.of(request), ResponseWrapper.of(response), opMonitoringData, null);
+                        RequestWrapper.of(request), ResponseWrapper.of(response), opMonitoringData);
                 handled = true;
                 boolean success = clientRestMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);

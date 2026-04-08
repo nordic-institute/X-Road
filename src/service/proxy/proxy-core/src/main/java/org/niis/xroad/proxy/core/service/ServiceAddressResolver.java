@@ -30,15 +30,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.niis.xroad.proxy.core.util.ProxyRequestContext;
-import org.niis.xroad.proxy.core.util.RestRequestContext;
-
 import java.net.URI;
 import java.util.List;
 
 /**
  * Resolves the list of target server proxy addresses for a given service request.
- * For REST contexts with a non-null {@link RestRequestContext#targetAddress()}, that address is used directly
- * without querying GlobalConf. For standard requests, resolves via GlobalConf with maintenance mode filtering.
+ * Queries GlobalConf and applies maintenance mode filtering.
  */
 public interface ServiceAddressResolver {
 

@@ -79,27 +79,13 @@ class DefaultServiceAddressResolverTest {
     }
 
     @Test
-    void resolveWithNonNullTargetAddressReturnsThatAddressWithoutCallingGlobalConf() {
-        var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
-                mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                mock(OpMonitoringData.class),
-                "http://override-address:5500/");
-
-        var result = resolver.resolve(serviceProvider, null, ctx);
-
-        assertThat(result).containsExactly(URI.create("http://override-address:5500/"));
-        verify(globalConfProvider, never()).getProviderAddress(any());
-    }
-
-    @Test
-    void resolveWithNullTargetAddressCallsGlobalConfAndReturnsURIs() {
+    void resolveCallsGlobalConfAndReturnsURIs() {
         var clientId = serviceProvider.getClientId();
         when(globalConfProvider.getProviderAddress(clientId)).thenReturn(Set.of(HOST));
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                mock(OpMonitoringData.class),
-                null);
+                mock(OpMonitoringData.class));
 
         var result = resolver.resolve(serviceProvider, null, ctx);
 
@@ -118,8 +104,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                mock(OpMonitoringData.class),
-                null);
+                mock(OpMonitoringData.class));
 
         assertThatThrownBy(() -> resolver.resolve(serviceProvider, null, ctx))
                 .isInstanceOf(XrdRuntimeException.class)
@@ -136,8 +121,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                mock(OpMonitoringData.class),
-                null);
+                mock(OpMonitoringData.class));
 
         assertThatThrownBy(() -> resolver.resolve(serviceProvider, null, ctx))
                 .isInstanceOf(XrdRuntimeException.class)
@@ -150,8 +134,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                mock(OpMonitoringData.class),
-                null);
+                mock(OpMonitoringData.class));
 
         assertThatThrownBy(() -> resolver.resolve(serviceProvider, null, ctx))
                 .isInstanceOf(XrdRuntimeException.class)
@@ -168,8 +151,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                mock(OpMonitoringData.class),
-                null);
+                mock(OpMonitoringData.class));
 
         var result = resolver.resolve(serviceProvider, securityServerId, ctx);
 

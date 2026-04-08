@@ -92,7 +92,7 @@ public class ServerProxyHandler extends HandlerBase {
             var jResponse = ResponseWrapper.of(response);
 
             if (VALUE_MESSAGE_TYPE_REST.equals(jRequest.getHeaders().get(HEADER_MESSAGE_TYPE))) {
-                var ctx = new RestRequestContext(jRequest, jResponse, opMonitoringData, null);
+                var ctx = new RestRequestContext(jRequest, jResponse, opMonitoringData);
                 boolean success = serverRestMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);
             } else {

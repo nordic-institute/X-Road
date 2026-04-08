@@ -29,17 +29,15 @@ package org.niis.xroad.proxy.core.util;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import jakarta.annotation.Nullable;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 /**
- * ProxyRequestContext for REST and DSP request paths. No threading state -- REST processors run on the Jetty handler
+ * ProxyRequestContext for REST request paths. No threading state -- REST processors run on the Jetty handler
  * thread directly.
  */
 public record RestRequestContext(
         RequestWrapper request,
         ResponseWrapper response,
-        OpMonitoringData opMonitoringData,
-        @Nullable String targetAddress
+        OpMonitoringData opMonitoringData
 ) implements ProxyRequestContext {
 }
