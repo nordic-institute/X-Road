@@ -49,6 +49,8 @@ import java.util.Optional;
 @Slf4j
 public abstract class AddonHandlerBase extends HandlerBase {
 
+    private static final String REQUEST_PROCESSING_ERROR = "Request processing error";
+
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws IOException {
         var ctxOpt = createRequestContext(RequestWrapper.of(request), ResponseWrapper.of(response));
@@ -60,13 +62,13 @@ public abstract class AddonHandlerBase extends HandlerBase {
             processRequest(ctx);
             callback.succeeded();
         } catch (XrdRuntimeHttpException e) {
-            log.error("Request processing error", e);
+            log.error(REQUEST_PROCESSING_ERROR, e);
             sendPlainTextErrorResponse(response, callback, e.getHttpStatus().get().getCode(), e.getDetails());
         } catch (XrdRuntimeException e) {
-            log.error("Request processing error", e);
+            log.error(REQUEST_PROCESSING_ERROR, e);
             sendErrorResponse(request, response, callback, e);
         } catch (Exception e) {
-            log.error("Request processing error", e);
+            log.error(REQUEST_PROCESSING_ERROR, e);
             XrdRuntimeException cex = XrdRuntimeException.systemException(e);
             sendErrorResponse(request, response, callback, cex);
         }

@@ -34,13 +34,8 @@ import org.junit.jupiter.api.Timeout;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.concurrent.CountDownLatch;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Verifies that concurrent SOAP requests to the same CDI singleton
@@ -51,53 +46,35 @@ class ConcurrentSoapTest {
 
     /**
      * Verifies that two concurrent ClientSoapRequestContext instances are fully independent.
-     *
-     * <p>Two ClientSoapRequestContext records are constructed with distinct parameters. After construction,
-     * each context's fields must reflect exactly what was passed — no shared mutable state between them.
+     * Each context creates its own latches and piped streams internally — no shared mutable state.
      */
     @Test
     @Timeout(10)
-    void soapRequestContextsAreIndependentRecords() throws Exception {
-        var reqIns1 = new PipedInputStream();
-        var reqOuts1 = new PipedOutputStream(reqIns1);
-        var latch1a = new CountDownLatch(1);
-        var latch1b = new CountDownLatch(1);
+    void soapRequestContextsAreIndependent() throws Exception {
         var request1 = mock(RequestWrapper.class);
         var response1 = mock(ResponseWrapper.class);
-
-        var reqIns2 = new PipedInputStream();
-        var reqOuts2 = new PipedOutputStream(reqIns2);
-        var latch2a = new CountDownLatch(1);
-        var latch2b = new CountDownLatch(1);
         var request2 = mock(RequestWrapper.class);
         var response2 = mock(ResponseWrapper.class);
 
-        when(request1.getMethod()).thenReturn("POST");
-        when(request2.getMethod()).thenReturn("POST");
+        try (var ctx1 = new ClientSoapRequestContext(request1, response1, mock(OpMonitoringData.class));
+             var ctx2 = new ClientSoapRequestContext(request2, response2, mock(OpMonitoringData.class))) {
 
-        var ctx1 = new ClientSoapRequestContext(request1, response1, mock(OpMonitoringData.class), latch1a, latch1b, reqIns1, reqOuts1);
-        var ctx2 = new ClientSoapRequestContext(request2, response2, mock(OpMonitoringData.class), latch2a, latch2b, reqIns2, reqOuts2);
+            assertThat(ctx1.request()).isSameAs(request1);
+            assertThat(ctx2.request()).isSameAs(request2);
+            assertThat(ctx1.request()).isNotSameAs(ctx2.request());
 
-        // Assert: each context holds references to its own distinct objects
-        assertThat(ctx1.request()).isSameAs(request1);
-        assertThat(ctx2.request()).isSameAs(request2);
-        assertThat(ctx1.request()).isNotSameAs(ctx2.request());
+            assertThat(ctx1.response()).isSameAs(response1);
+            assertThat(ctx2.response()).isSameAs(response2);
+            assertThat(ctx1.response()).isNotSameAs(ctx2.response());
 
-        assertThat(ctx1.response()).isSameAs(response1);
-        assertThat(ctx2.response()).isSameAs(response2);
-        assertThat(ctx1.response()).isNotSameAs(ctx2.response());
+            assertThat(ctx1.requestHandlerGate()).isNotSameAs(ctx2.requestHandlerGate());
+            assertThat(ctx1.httpSenderGate()).isNotSameAs(ctx2.httpSenderGate());
+            assertThat(ctx1.reqIns()).isNotSameAs(ctx2.reqIns());
+            assertThat(ctx1.reqOuts()).isNotSameAs(ctx2.reqOuts());
 
-        assertThat(ctx1.requestHandlerGate()).isSameAs(latch1a);
-        assertThat(ctx2.requestHandlerGate()).isSameAs(latch2a);
-        assertThat(ctx1.requestHandlerGate()).isNotSameAs(ctx2.requestHandlerGate());
-
-        assertThat(ctx1.reqIns()).isSameAs(reqIns1);
-        assertThat(ctx2.reqIns()).isSameAs(reqIns2);
-        assertThat(ctx1.reqIns()).isNotSameAs(ctx2.reqIns());
-
-        // Cleanup piped streams
-        reqOuts1.close();
-        reqOuts2.close();
+            assertThat(ctx1.requestHandlerGate().getCount()).isEqualTo(1L);
+            assertThat(ctx2.requestHandlerGate().getCount()).isEqualTo(1L);
+        }
     }
 
 }

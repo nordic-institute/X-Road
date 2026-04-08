@@ -32,8 +32,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -42,30 +41,24 @@ class ProxyRequestContextTest {
 
     @Test
     void restRequestContextImplementsProxyRequestContext() {
-        var request = mock(RequestWrapper.class);
-        var response = mock(ResponseWrapper.class);
-        var ctx = new RestRequestContext(request, response, mock(OpMonitoringData.class));
+        var ctx = new RestRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class),
+                mock(OpMonitoringData.class));
 
         assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
     }
 
     @Test
-    void clientSoapRequestContextImplementsProxyRequestContext() {
-        var request = mock(RequestWrapper.class);
-        var response = mock(ResponseWrapper.class);
-        var ctx = new ClientSoapRequestContext(request, response, mock(OpMonitoringData.class),
-                new java.util.concurrent.CountDownLatch(1),
-                new java.util.concurrent.CountDownLatch(1),
-                new PipedInputStream(), new PipedOutputStream());
-
-        assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
+    void clientSoapRequestContextImplementsProxyRequestContext() throws IOException {
+        try (var ctx = new ClientSoapRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class),
+                mock(OpMonitoringData.class))) {
+            assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
+        }
     }
 
     @Test
     void serverSoapRequestContextImplementsProxyRequestContext() {
-        var request = mock(RequestWrapper.class);
-        var response = mock(ResponseWrapper.class);
-        var ctx = new ServerSoapRequestContext(request, response, mock(OpMonitoringData.class));
+        var ctx = new ServerSoapRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class),
+                mock(OpMonitoringData.class));
 
         assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
     }
@@ -84,43 +77,32 @@ class ProxyRequestContextTest {
     }
 
     @Test
-    void clientSoapRequestContextCarriesDistinctCountDownLatchesWithCountOne() {
-        var request = mock(RequestWrapper.class);
-        var response = mock(ResponseWrapper.class);
-        var requestHandlerGate = new java.util.concurrent.CountDownLatch(1);
-        var httpSenderGate = new java.util.concurrent.CountDownLatch(1);
-
-        var ctx = new ClientSoapRequestContext(request, response, mock(OpMonitoringData.class),
-                requestHandlerGate, httpSenderGate,
-                new PipedInputStream(), new PipedOutputStream());
-
-        assertThat(ctx.requestHandlerGate()).isSameAs(requestHandlerGate);
-        assertThat(ctx.httpSenderGate()).isSameAs(httpSenderGate);
-        assertThat(ctx.requestHandlerGate().getCount()).isEqualTo(1L);
-        assertThat(ctx.httpSenderGate().getCount()).isEqualTo(1L);
-        assertThat(ctx.requestHandlerGate()).isNotSameAs(ctx.httpSenderGate());
+    void clientSoapRequestContextCreatesDistinctLatchesAndStreams() throws IOException {
+        try (var ctx = new ClientSoapRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class),
+                mock(OpMonitoringData.class))) {
+            assertThat(ctx.requestHandlerGate().getCount()).isEqualTo(1L);
+            assertThat(ctx.httpSenderGate().getCount()).isEqualTo(1L);
+            assertThat(ctx.requestHandlerGate()).isNotSameAs(ctx.httpSenderGate());
+            assertThat(ctx.reqIns()).isNotNull();
+            assertThat(ctx.reqOuts()).isNotNull();
+        }
     }
 
     @Test
-    void patternMatchingSwitchOverProxyRequestContextIsExhaustive() {
-        var request = mock(RequestWrapper.class);
-        var response = mock(ResponseWrapper.class);
+    void patternMatchingSwitchOverProxyRequestContextIsExhaustive() throws IOException {
         var opMonitoringData = mock(OpMonitoringData.class);
 
-        ProxyRequestContext restCtx = new RestRequestContext(request, response, opMonitoringData);
-        ProxyRequestContext clientSoapCtx = new ClientSoapRequestContext(request, response, opMonitoringData,
-                new java.util.concurrent.CountDownLatch(1),
-                new java.util.concurrent.CountDownLatch(1),
-                new PipedInputStream(), new PipedOutputStream());
-        ProxyRequestContext serverSoapCtx = new ServerSoapRequestContext(request, response, opMonitoringData);
+        ProxyRequestContext restCtx = new RestRequestContext(mock(RequestWrapper.class),
+                mock(ResponseWrapper.class), opMonitoringData);
+        try (var clientSoapCtx = new ClientSoapRequestContext(mock(RequestWrapper.class),
+                mock(ResponseWrapper.class), opMonitoringData)) {
+            ProxyRequestContext serverSoapCtx = new ServerSoapRequestContext(mock(RequestWrapper.class),
+                    mock(ResponseWrapper.class), opMonitoringData);
 
-        var restResult = describeContext(restCtx);
-        var clientSoapResult = describeContext(clientSoapCtx);
-        var serverSoapResult = describeContext(serverSoapCtx);
-
-        assertThat(restResult).isEqualTo("rest");
-        assertThat(clientSoapResult).isEqualTo("client-soap");
-        assertThat(serverSoapResult).isEqualTo("server-soap");
+            assertThat(describeContext(restCtx)).isEqualTo("rest");
+            assertThat(describeContext(clientSoapCtx)).isEqualTo("client-soap");
+            assertThat(describeContext(serverSoapCtx)).isEqualTo("server-soap");
+        }
     }
 
     private String describeContext(ProxyRequestContext ctx) {

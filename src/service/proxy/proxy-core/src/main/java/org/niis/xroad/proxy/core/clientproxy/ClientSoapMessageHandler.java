@@ -49,9 +49,6 @@ import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
 
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.concurrent.CountDownLatch;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
@@ -94,15 +91,9 @@ public class ClientSoapMessageHandler extends HandlerBase {
         long start = ProxyMessageUtils.logPerformanceBegin(request);
         OpMonitoringData opMonitoringData = new OpMonitoringData(CLIENT, start);
 
-        try {
-            var requestWrapper = RequestWrapper.of(request);
-            verifyCanProcess(requestWrapper);
-
-            var reqIns = new PipedInputStream();
-            var reqOuts = new PipedOutputStream(reqIns);
-            var ctx = new ClientSoapRequestContext(
-                    requestWrapper, ResponseWrapper.of(response), opMonitoringData,
-                    new CountDownLatch(1), new CountDownLatch(1), reqIns, reqOuts);
+        try (var ctx = new ClientSoapRequestContext(
+                RequestWrapper.of(request), ResponseWrapper.of(response), opMonitoringData)) {
+            verifyCanProcess(ctx.request());
 
             handled = true;
             boolean success = clientSoapMessageProcessor.process(ctx);

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
+import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.CountDownLatch;
@@ -40,16 +41,74 @@ import java.util.concurrent.CountDownLatch;
  * the main thread and the SOAP handler thread during message processing, as well as piped streams for streaming
  * the SOAP request body.
  *
- * <p>Both latches are initialized with count=1 and used once per request. All fields are non-null --
- * this type is only constructed by {@code ClientSoapMessageHandler} where all arguments are always provided.
+ * <p>Latches are initialized with count=1 and used once per request. Piped streams are created internally.
+ * Implements {@link AutoCloseable} to ensure piped streams are released even on exceptional paths.
  */
-public record ClientSoapRequestContext(
-        RequestWrapper request,
-        ResponseWrapper response,
-        OpMonitoringData opMonitoringData,
-        CountDownLatch requestHandlerGate,
-        CountDownLatch httpSenderGate,
-        PipedInputStream reqIns,
-        PipedOutputStream reqOuts
-) implements ProxyRequestContext {
+public final class ClientSoapRequestContext implements ProxyRequestContext, AutoCloseable {
+
+    private final RequestWrapper request;
+    private final ResponseWrapper response;
+    private final OpMonitoringData opMonitoringData;
+    private final CountDownLatch requestHandlerGate;
+    private final CountDownLatch httpSenderGate;
+    private final PipedInputStream reqIns;
+    private final PipedOutputStream reqOuts;
+
+    /**
+     * Creates a context with internally constructed piped streams and latches.
+     * Handles partial-construction failure: if {@link PipedOutputStream} creation fails,
+     * the already-opened {@link PipedInputStream} is closed before rethrowing.
+     */
+    public ClientSoapRequestContext(RequestWrapper request, ResponseWrapper response,
+                                    OpMonitoringData opMonitoringData) throws IOException {
+        this.request = request;
+        this.response = response;
+        this.opMonitoringData = opMonitoringData;
+        this.requestHandlerGate = new CountDownLatch(1);
+        this.httpSenderGate = new CountDownLatch(1);
+        this.reqIns = new PipedInputStream();
+        try {
+            this.reqOuts = new PipedOutputStream(this.reqIns);
+        } catch (IOException e) {
+            this.reqIns.close();
+            throw e;
+        }
+    }
+
+    @Override
+    public RequestWrapper request() {
+        return request;
+    }
+
+    @Override
+    public ResponseWrapper response() {
+        return response;
+    }
+
+    @Override
+    public OpMonitoringData opMonitoringData() {
+        return opMonitoringData;
+    }
+
+    public CountDownLatch requestHandlerGate() {
+        return requestHandlerGate;
+    }
+
+    public CountDownLatch httpSenderGate() {
+        return httpSenderGate;
+    }
+
+    public PipedInputStream reqIns() {
+        return reqIns;
+    }
+
+    public PipedOutputStream reqOuts() {
+        return reqOuts;
+    }
+
+    @Override
+    public void close() throws IOException {
+        reqOuts.close();
+        reqIns.close();
+    }
 }
