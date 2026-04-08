@@ -60,7 +60,7 @@ import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
-import org.niis.xroad.proxy.core.util.SoapRequestContext;
+import org.niis.xroad.proxy.core.util.ServerSoapRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.xml.sax.SAXException;
@@ -136,7 +136,7 @@ public class ServerSoapMessageProcessor {
      * @throws Exception in case of any errors
      */
     @WithSpan
-    public boolean process(SoapRequestContext ctx) throws Exception {
+    public boolean process(ServerSoapRequestContext ctx) throws Exception {
         globalConfProvider.verifyValidity();
 
         var jRequest = ctx.request();

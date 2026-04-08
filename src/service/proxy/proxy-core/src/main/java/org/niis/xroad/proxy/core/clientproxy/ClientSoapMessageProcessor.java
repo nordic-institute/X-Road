@@ -56,7 +56,7 @@ import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
-import org.niis.xroad.proxy.core.util.SoapRequestContext;
+import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
 import java.net.URI;
 import java.util.UUID;
@@ -121,7 +121,7 @@ public class ClientSoapMessageProcessor {
      * @throws Exception if processing fails
      */
     @WithSpan
-    public boolean process(SoapRequestContext ctx) throws Exception {
+    public boolean process(ClientSoapRequestContext ctx) throws Exception {
         log.trace("process()");
 
         globalConfProvider.verifyValidity();
@@ -177,7 +177,7 @@ public class ClientSoapMessageProcessor {
     }
 
     @WithSpan
-    void handleSoap(SoapRequestContext ctx, SoapRequestDecoder decoder) {
+    void handleSoap(ClientSoapRequestContext ctx, SoapRequestDecoder decoder) {
         try (decoder) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(ctx.request().getContentType(), decoder,
                     new StaxEventSoapParserImpl());
@@ -201,7 +201,7 @@ public class ClientSoapMessageProcessor {
         IdentifierValidator.checkIdentifier(decoder.getRequestSoap().getSecurityServer());
     }
 
-    private ProxyMessage processRequest(SoapRequestContext ctx, SoapRequestDecoder decoder,
+    private ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                                         String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("processRequest()");
 
@@ -223,7 +223,7 @@ public class ClientSoapMessageProcessor {
         return response;
     }
 
-    private void sendRequest(HttpSender httpSender, SoapRequestContext ctx, SoapRequestDecoder decoder,
+    private void sendRequest(HttpSender httpSender, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                              String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("sendRequest()");
 
@@ -349,7 +349,7 @@ public class ClientSoapMessageProcessor {
         MessageLog.log(response.getSoap(), response.getSignature(), response.getAttachments(), true, xRequestId);
     }
 
-    private static void sendResponse(ProxyMessage response, SoapRequestContext ctx) throws Exception {
+    private static void sendResponse(ProxyMessage response, ClientSoapRequestContext ctx) throws Exception {
         log.trace("sendResponse()");
 
         if (ctx.opMonitoringData() != null) {
@@ -364,7 +364,7 @@ public class ClientSoapMessageProcessor {
         }
     }
 
-    private void waitForSoapMessage(SoapRequestContext ctx) {
+    private void waitForSoapMessage(ClientSoapRequestContext ctx) {
         log.trace("waitForSoapMessage()");
 
         try {
@@ -378,7 +378,7 @@ public class ClientSoapMessageProcessor {
         }
     }
 
-    private static void waitForRequestSent(SoapRequestContext ctx) {
+    private static void waitForRequestSent(ClientSoapRequestContext ctx) {
         log.trace("waitForRequestSent()");
 
         try {

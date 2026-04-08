@@ -31,7 +31,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.niis.xroad.proxy.core.util.SoapRequestContext;
+import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -49,9 +49,9 @@ import static org.mockito.Mockito.when;
 class ConcurrentSoapTest {
 
     /**
-     * Verifies that two concurrent SoapRequestContext instances are fully independent.
+     * Verifies that two concurrent ClientSoapRequestContext instances are fully independent.
      *
-     * <p>Two SoapRequestContext records are constructed with distinct parameters. After construction,
+     * <p>Two ClientSoapRequestContext records are constructed with distinct parameters. After construction,
      * each context's fields must reflect exactly what was passed — no shared mutable state between them.
      */
     @Test
@@ -74,8 +74,8 @@ class ConcurrentSoapTest {
         when(request1.getMethod()).thenReturn("POST");
         when(request2.getMethod()).thenReturn("POST");
 
-        var ctx1 = new SoapRequestContext(request1, response1, null, null, latch1a, latch1b, reqIns1, reqOuts1);
-        var ctx2 = new SoapRequestContext(request2, response2, null, null, latch2a, latch2b, reqIns2, reqOuts2);
+        var ctx1 = new ClientSoapRequestContext(request1, response1, null, null, latch1a, latch1b, reqIns1, reqOuts1);
+        var ctx2 = new ClientSoapRequestContext(request2, response2, null, null, latch2a, latch2b, reqIns2, reqOuts2);
 
         // Assert: each context holds references to its own distinct objects
         assertThat(ctx1.request()).isSameAs(request1);

@@ -48,7 +48,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
-import org.niis.xroad.proxy.core.util.SoapRequestContext;
+import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +69,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
 @Slf4j
 public final class SoapRequestDecoder implements SoapMessageDecoder.Callback {
 
-    private final SoapRequestContext ctx;
+    private final ClientSoapRequestContext ctx;
     private final MessageSigningService messageSigningService;
     private final String tempFilesPath;
     private final String xRequestId;
@@ -86,7 +86,7 @@ public final class SoapRequestDecoder implements SoapMessageDecoder.Callback {
     private ProxyMessageEncoder encoder;
 
     /** Creates a new decoder for the given per-request SOAP context. */
-    public SoapRequestDecoder(SoapRequestContext ctx, MessageSigningService messageSigningService,
+    public SoapRequestDecoder(ClientSoapRequestContext ctx, MessageSigningService messageSigningService,
                               String tempFilesPath, String xRequestId,
                               ProxyProperties proxyProperties, OpMonitoringDataHelper opMonitoringDataHelper) {
         this.ctx = ctx;

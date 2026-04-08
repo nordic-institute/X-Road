@@ -43,7 +43,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
-import org.niis.xroad.proxy.core.util.SoapRequestContext;
+import org.niis.xroad.proxy.core.util.ServerSoapRequestContext;
 
 import java.io.IOException;
 
@@ -96,7 +96,7 @@ public class ServerProxyHandler extends HandlerBase {
                 boolean success = serverRestMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);
             } else {
-                var ctx = new SoapRequestContext(jRequest, jResponse, opMonitoringData, null, null, null, null, null);
+                var ctx = new ServerSoapRequestContext(jRequest, jResponse, opMonitoringData, null);
                 boolean success = serverSoapMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);
             }

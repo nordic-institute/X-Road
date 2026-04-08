@@ -46,7 +46,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
-import org.niis.xroad.proxy.core.util.SoapRequestContext;
+import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -100,7 +100,7 @@ public class ClientSoapMessageHandler extends HandlerBase {
 
             var reqIns = new PipedInputStream();
             var reqOuts = new PipedOutputStream(reqIns);
-            var ctx = new SoapRequestContext(
+            var ctx = new ClientSoapRequestContext(
                     requestWrapper, ResponseWrapper.of(response), opMonitoringData, null,
                     new CountDownLatch(1), new CountDownLatch(1), reqIns, reqOuts);
 

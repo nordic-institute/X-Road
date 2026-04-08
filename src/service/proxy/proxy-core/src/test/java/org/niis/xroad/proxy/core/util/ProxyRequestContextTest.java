@@ -50,13 +50,22 @@ class ProxyRequestContextTest {
     }
 
     @Test
-    void soapRequestContextImplementsProxyRequestContext() {
+    void clientSoapRequestContextImplementsProxyRequestContext() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
-        var ctx = new SoapRequestContext(request, response, null, null,
+        var ctx = new ClientSoapRequestContext(request, response, null, null,
                 new java.util.concurrent.CountDownLatch(1),
                 new java.util.concurrent.CountDownLatch(1),
                 new PipedInputStream(), new PipedOutputStream());
+
+        assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
+    }
+
+    @Test
+    void serverSoapRequestContextImplementsProxyRequestContext() {
+        var request = mock(RequestWrapper.class);
+        var response = mock(ResponseWrapper.class);
+        var ctx = new ServerSoapRequestContext(request, response, null, null);
 
         assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
     }
@@ -77,13 +86,13 @@ class ProxyRequestContextTest {
     }
 
     @Test
-    void soapRequestContextCarriesDistinctCountDownLatchesWithCountOne() {
+    void clientSoapRequestContextCarriesDistinctCountDownLatchesWithCountOne() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
         var requestHandlerGate = new java.util.concurrent.CountDownLatch(1);
         var httpSenderGate = new java.util.concurrent.CountDownLatch(1);
 
-        var ctx = new SoapRequestContext(request, response, null, null,
+        var ctx = new ClientSoapRequestContext(request, response, null, null,
                 requestHandlerGate, httpSenderGate,
                 new PipedInputStream(), new PipedOutputStream());
 
@@ -109,22 +118,26 @@ class ProxyRequestContextTest {
         var response = mock(ResponseWrapper.class);
 
         ProxyRequestContext restCtx = new RestRequestContext(request, response, null, null);
-        ProxyRequestContext soapCtx = new SoapRequestContext(request, response, null, null,
+        ProxyRequestContext clientSoapCtx = new ClientSoapRequestContext(request, response, null, null,
                 new java.util.concurrent.CountDownLatch(1),
                 new java.util.concurrent.CountDownLatch(1),
                 new PipedInputStream(), new PipedOutputStream());
+        ProxyRequestContext serverSoapCtx = new ServerSoapRequestContext(request, response, null, null);
 
         var restResult = describeContext(restCtx);
-        var soapResult = describeContext(soapCtx);
+        var clientSoapResult = describeContext(clientSoapCtx);
+        var serverSoapResult = describeContext(serverSoapCtx);
 
         assertThat(restResult).isEqualTo("rest");
-        assertThat(soapResult).isEqualTo("soap");
+        assertThat(clientSoapResult).isEqualTo("client-soap");
+        assertThat(serverSoapResult).isEqualTo("server-soap");
     }
 
     private String describeContext(ProxyRequestContext ctx) {
         return switch (ctx) {
             case RestRequestContext ignored -> "rest";
-            case SoapRequestContext ignored -> "soap";
+            case ClientSoapRequestContext ignored -> "client-soap";
+            case ServerSoapRequestContext ignored -> "server-soap";
         };
     }
 }
