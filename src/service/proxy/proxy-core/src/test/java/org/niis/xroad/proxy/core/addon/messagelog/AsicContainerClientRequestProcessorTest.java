@@ -48,6 +48,7 @@ import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.MessageLogEncryptionConfig;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
+import org.niis.xroad.proxy.core.util.AddonRequestContext;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 
 import java.io.ByteArrayInputStream;
@@ -89,17 +90,17 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc =
-                new AsicContainerClientRequestProcessor(confClientRpcClient, mock(EncryptionConfigProvider.class),
-                        proxyProperties, globalConfProvider, serverConfProvider, logRecordManager,
-                        commonProperties.tempFilesPath(), messageRecordEncryption, "/verificationconf", request, response,
-                        mock(ClientAuthenticationService.class));
+                new AsicContainerClientRequestProcessor(proxyProperties, globalConfProvider,
+                        mock(ClientAuthenticationService.class),
+                        encryptionConfigProvider, confClientRpcClient, messageRecordEncryption,
+                        logRecordManager, commonProperties);
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
 
         when(confClientRpcClient.getVerificationConfZip()).thenReturn(mockZipResponse);
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
-        proc.process();
+        proc.process(new AddonRequestContext("/verificationconf", request, response));
 
         verify(response).setContentType(MimeTypes.ZIP);
         verify(response).putHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
@@ -133,15 +134,14 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
+
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
-                        proxyProperties, globalConfProvider, serverConfProvider,
-                        logRecordManager, commonProperties.tempFilesPath(), messageRecordEncryption,
-                        "/asic", request, response, mock(ClientAuthenticationService.class));
+                new AsicContainerClientRequestProcessor(proxyProperties, globalConfProvider,
+                        mock(ClientAuthenticationService.class),
+                        encryptionConfigProvider, confClientRpcClient, messageRecordEncryption,
+                        logRecordManager, commonProperties);
 
-
-        processor.process();
-
+        processor.process(new AddonRequestContext("/asic", request, response));
 
         if (encrypted) {
             // sanity check, we are excepting a gpg encrypted archive
@@ -193,13 +193,12 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(confClientRpcClient, encryptionConfigProvider,
-                        proxyProperties, globalConfProvider, serverConfProvider,
-                        logRecordManager, commonProperties.tempFilesPath(), messageRecordEncryption,
-                        "/asic", request, response, mock(ClientAuthenticationService.class));
+                new AsicContainerClientRequestProcessor(proxyProperties, globalConfProvider,
+                        mock(ClientAuthenticationService.class),
+                        encryptionConfigProvider, confClientRpcClient, messageRecordEncryption,
+                        logRecordManager, commonProperties);
 
-
-        processor.process();
+        processor.process(new AddonRequestContext("/asic", request, response));
 
         if (encrypted) {
             // sanity check, we are excepting a gpg encrypted archive
@@ -291,11 +290,6 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
                 messageLogProperties);
     }
 
-    /**
-     * Cleanup test environment for other tests.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
     @AfterEach
     void tearDown() throws Exception {
         testTearDown();

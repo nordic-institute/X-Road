@@ -52,7 +52,6 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.RestServiceHandler;
@@ -131,8 +130,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     @Override
     public void startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
-                              ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
-                              HttpClient restClient, OpMonitoringData opMonitoringData)
+                              ProxyMessageEncoder messageEncoder,
+                              OpMonitoringData opMonitoringData)
             throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException {
         restResponse = new RestResponse(requestProxyMessage.getRest().getClientId(),
                 requestProxyMessage.getRest().getQueryId(),

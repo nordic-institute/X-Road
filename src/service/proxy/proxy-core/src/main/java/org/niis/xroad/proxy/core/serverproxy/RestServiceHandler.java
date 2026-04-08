@@ -29,10 +29,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.util.RequestWrapper;
 
-import org.apache.http.client.HttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.CachingStream;
 
@@ -53,9 +51,7 @@ public interface RestServiceHandler {
 
     void startHandling(RequestWrapper request,
                        ProxyMessage requestMessage,
-                       ProxyMessageDecoder messageDecoder,
                        ProxyMessageEncoder messageEncoder,
-                       HttpClient restClient,
                        OpMonitoringData opMonitoringData)
             throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException;
 

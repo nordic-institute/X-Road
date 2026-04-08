@@ -37,32 +37,38 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.Header;
-import org.apache.http.client.HttpClient;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
+import org.apache.james.mime4j.MimeException;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
+import org.niis.xroad.proxy.core.service.ClientVerificationService;
+import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
-import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.IdentifierValidator;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
+import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
+import org.niis.xroad.proxy.core.util.ProxyRequestContext;
+import org.niis.xroad.proxy.core.util.RestRequestContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,48 +94,44 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 
 @Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor
 @ArchUnitSuppressed("NoVanillaExceptions")
-public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
+public class ClientRestMessageProcessor {
 
-    private ServiceId requestServiceId;
+    private final MessageSigningService messageSigningService;
+    private final HttpSenderProvider httpSenderProvider;
+    private final ClientVerificationService clientVerificationService;
+    private final OpMonitoringDataHelper opMonitoringDataHelper;
+    private final GlobalConfProvider globalConfProvider;
+    private final ProxyProperties proxyProperties;
+    private final CommonProperties commonProperties;
+    private final ClientRequestPreparationService clientRequestPreparationService;
+
     /**
-     * Holds the response from server proxy.
+     * Processes a REST message exchange described by the given request context.
+     *
+     * @param ctx the per-request context carrying request, response, and monitoring data
+     * @return {@code true} if the response was present and not an error response
+     * @throws Exception if processing fails
      */
-    private ProxyMessage response;
-
-    private ClientId senderId;
-    private RestRequest restRequest;
-    private final String xRequestId;
-    private byte[] restBodyDigest;
-
-    private final KeyConfProvider keyConfProvider;
-    private final SigningCtxProvider signingCtxProvider;
-    private final OcspVerifierFactory ocspVerifierFactory;
-    private final String tempFilesPath;
-
-    public ClientRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
-                                      ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                      ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
-                                      KeyConfProvider keyConfProvider, SigningCtxProvider signingCtxProvider,
-                                      OcspVerifierFactory ocspVerifierFactory, String tempFilesPath,
-                                      HttpClient httpClient, OpMonitoringData opMonitoringData) {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider,
-                clientAuthenticationService, httpClient, opMonitoringData);
-        this.xRequestId = UUID.randomUUID().toString();
-        this.keyConfProvider = keyConfProvider;
-        this.signingCtxProvider = signingCtxProvider;
-        this.ocspVerifierFactory = ocspVerifierFactory;
-        this.tempFilesPath = tempFilesPath;
-    }
-
-    @Override
     @WithSpan
-    public void process() throws Exception {
-        opMonitoringData.setXRequestId(xRequestId);
+    public boolean process(RestRequestContext ctx) throws Exception {
+        globalConfProvider.verifyValidity();
+
+        var jRequest = ctx.request();
+        var jResponse = ctx.response();
+        var opMonitoringData = ctx.opMonitoringData();
+
+        final String xRequestId = UUID.randomUUID().toString();
+        if (opMonitoringData != null) {
+            opMonitoringData.setXRequestId(xRequestId);
+        }
         opMonitoringDataHelper.updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
 
+        ProxyMessage response = null;
         try {
-            restRequest = new RestRequest(
+            var restRequest = new RestRequest(
                     jRequest.getMethod(),
                     jRequest.getHttpURI().getPath(),
                     jRequest.getHttpURI().getQuery(),
@@ -137,94 +139,110 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     xRequestId
             );
 
-            // Check that incoming identifiers do not contain illegal characters
-            checkRequestIdentifiers();
+            checkRequestIdentifiers(restRequest);
 
-            senderId = restRequest.getClientId();
-            requestServiceId = restRequest.getServiceId();
+            var senderId = restRequest.getClientId();
+            var requestServiceId = restRequest.getServiceId();
 
-            verifyClientStatus(senderId);
-            verifyClientAuthentication(senderId);
+            clientVerificationService.verifyClientStatus(senderId);
+            clientVerificationService.verifyClientAuthentication(senderId, jRequest);
 
-            processRequest();
+            response = processRequest(jRequest, opMonitoringData, restRequest, senderId, requestServiceId, xRequestId, ctx);
             if (response != null) {
-                sendResponse();
+                sendResponse(response, jResponse);
             }
         } finally {
             if (response != null) {
                 response.consume();
             }
         }
+        return response != null
+                && response.getRestResponse() != null
+                && !response.getRestResponse().isErrorResponse();
     }
 
-    private void checkRequestIdentifiers() {
+    private void checkRequestIdentifiers(RestRequest restRequest) {
         IdentifierValidator.checkIdentifier(restRequest.getClientId());
         IdentifierValidator.checkIdentifier(restRequest.getServiceId());
         IdentifierValidator.checkIdentifier(restRequest.getTargetSecurityServer());
     }
 
-    private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
-        if (response.getRestResponse() != null) {
+    private ProxyMessage processRequest(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
+                                        RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
+                                        String xRequestId, ProxyRequestContext ctx) throws Exception {
+        if (restRequest.getQueryId() == null) {
+            restRequest.setQueryId(globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
+        }
+        opMonitoringDataHelper.updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
+
+        ProxyMessage response;
+        try (var httpSender = httpSenderProvider.createClientHttpSender()) {
+            var restBodyDigestHolder = new byte[1][];
+            sendRequest(httpSender, jRequest, opMonitoringData, restRequest, senderId, requestServiceId, xRequestId, ctx,
+                    restBodyDigestHolder);
+            var hashAlgoId = ProxyMessageUtils.getHashAlgoId(httpSender);
+            response = parseResponse(httpSender, opMonitoringData, requestServiceId);
+            checkConsistency(hashAlgoId, restRequest, restBodyDigestHolder[0], response);
+        }
+        logResponseMessage(restRequest, response, xRequestId);
+        return response;
+    }
+
+    private void sendRequest(HttpSender httpSender, RequestWrapper jRequest, OpMonitoringData opMonitoringData,
+                             RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
+                             String xRequestId, ProxyRequestContext ctx, byte[][] restBodyDigestOut) throws Exception {
+        log.trace("sendRequest()");
+
+        final URI[] addresses = clientRequestPreparationService.prepareRequest(
+                httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
+        httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
+        httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
+
+        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.secure().nextAlphabetic(30));
+        if (opMonitoringData != null) {
+            opMonitoringData.setRequestOutTs(getEpochMillisecond());
+        }
+        var entity = new SigningProxyMessageEntity(contentType, messageSigningService, restRequest, senderId,
+                jRequest, commonProperties.tempFilesPath(), opMonitoringData, xRequestId);
+        httpSender.doPost(getServiceAddress(addresses), entity);
+        restBodyDigestOut[0] = entity.getRestBodyDigest();
+        if (opMonitoringData != null) {
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
+        }
+    }
+
+    private ProxyMessage parseResponse(HttpSender httpSender, OpMonitoringData opMonitoringData,
+                                       ServiceId requestServiceId) throws IOException, MimeException {
+        var response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
+                commonProperties.tempFilesPath());
+        var decoder = new ProxyMessageDecoder(globalConfProvider,
+                messageSigningService.getOcspVerifierFactory(), response,
+                httpSender.getResponseContentType(),
+                ProxyMessageUtils.getHashAlgoId(httpSender));
+        try {
+            decoder.parse(httpSender.getResponseContent());
+        } catch (XrdRuntimeException ex) {
+            throw ex.withPrefix(X_SERVICE_FAILED_X);
+        }
+        updateOpMonitoringDataByResponse(opMonitoringData, decoder, response);
+        checkResponse(response);
+        if (opMonitoringData != null) {
+            opMonitoringData.setRestResponseStatusCode(response.getRestResponse().getResponseCode());
+        }
+        decoder.verify(requestServiceId.getClientId(), response.getSignature());
+        return response;
+    }
+
+    private static void updateOpMonitoringDataByResponse(OpMonitoringData opMonitoringData,
+                                                         ProxyMessageDecoder decoder, ProxyMessage response) {
+        if (opMonitoringData != null && response.getRestResponse() != null) {
             opMonitoringData.setResponseAttachmentCount(0);
             opMonitoringData.setResponseSize(response.getRestResponse().getMessageBytes().length
                     + decoder.getAttachmentsByteCount());
         }
     }
 
-    private void processRequest() throws Exception {
-        if (restRequest.getQueryId() == null) {
-            restRequest.setQueryId(globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
-        }
-        opMonitoringDataHelper.updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
-        try (HttpSender httpSender = createHttpSender()) {
-            sendRequest(httpSender);
-            parseResponse(httpSender);
-            checkConsistency(getHashAlgoId(httpSender));
-        }
-        logResponseMessage();
-    }
-
-    private void sendRequest(HttpSender httpSender) throws Exception {
-        log.trace("sendRequest()");
-
-        final URI[] addresses = prepareRequest(httpSender, requestServiceId, restRequest.getTargetSecurityServer());
-        httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
-
-        // Add unique id to distinguish request/response pairs
-        httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
-
-        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.secure().nextAlphabetic(30));
-        opMonitoringData.setRequestOutTs(getEpochMillisecond());
-        httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
-        opMonitoringData.setResponseInTs(getEpochMillisecond());
-    }
-
-    private void parseResponse(HttpSender httpSender) throws Exception {
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE), tempFilesPath);
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider,
-                ocspVerifierFactory, response,
-                httpSender.getResponseContentType(),
-                getHashAlgoId(httpSender));
-        try {
-            decoder.parse(httpSender.getResponseContent());
-        } catch (XrdRuntimeException ex) {
-            throw ex.withPrefix(X_SERVICE_FAILED_X);
-        }
-        updateOpMonitoringDataByResponse(decoder);
-        // Ensure we have the required parts.
-        checkResponse();
-        opMonitoringData.setRestResponseStatusCode(response.getRestResponse().getResponseCode());
-        decoder.verify(requestServiceId.getClientId(), response.getSignature());
-    }
-
-    @Override
-    public boolean verifyMessageExchangeSucceeded() {
-        return response != null
-                && response.getRestResponse() != null
-                && !response.getRestResponse().isErrorResponse();
-    }
-
-    private void checkResponse() {
+    private static void checkResponse(ProxyMessage response) {
         if (response.getFault() != null) {
             throw response.getFault().toXrdRuntimeException();
         }
@@ -236,7 +254,8 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency(DigestAlgorithm hashAlgoId) throws IOException {
+    private static void checkConsistency(DigestAlgorithm hashAlgoId, RestRequest restRequest,
+                                         byte[] restBodyDigest, ProxyMessage response) throws IOException {
         if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
             throw XrdRuntimeException.systemException(INCONSISTENT_RESPONSE, "Response client id does not match request message");
         }
@@ -251,7 +270,6 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     "Response message request id does not match request message");
         }
 
-        //calculate request hash
         byte[] requestDigest;
         if (restBodyDigest != null) {
             final DigestCalculator dc = Digests.createDigestCalculator(hashAlgoId);
@@ -269,14 +287,14 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void logResponseMessage() {
+    private static void logResponseMessage(RestRequest restRequest, ProxyMessage response, String xRequestId) {
         MessageLog.log(restRequest,
                 response.getRestResponse(),
                 response.getSignature(),
                 response.getRestBody(), true, xRequestId);
     }
 
-    private void sendResponse() throws Exception {
+    private static void sendResponse(ProxyMessage response, ResponseWrapper jResponse) throws IOException {
         final RestResponse rest = response.getRestResponse();
         jResponse.setStatus(rest.getResponseCode());
 
@@ -294,11 +312,49 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    class ProxyMessageEntity extends AbstractHttpEntity {
+    private URI getServiceAddress(URI[] addresses) {
+        if (addresses.length == 1 || !proxyProperties.sslEnabled()) {
+            return addresses[0];
+        }
+        return clientRequestPreparationService.getDummyServiceAddress();
+    }
 
-        ProxyMessageEntity(String contentType) {
+    private static List<Header> headers(RequestWrapper req) {
+        return req.getHeaders().stream()
+                .map(f -> new BasicHeader(f.getName(), f.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
+     * Named static entity that streams the signed REST request body to the server proxy.
+     * The {@code restBodyDigest} field is populated during {@link #writeTo(OutputStream)} and
+     * can be retrieved afterwards via {@link #getRestBodyDigest()}.
+     */
+    static class SigningProxyMessageEntity extends AbstractHttpEntity {
+
+        private final MessageSigningService messageSigningService;
+        private final RestRequest restRequest;
+        private final ClientId senderId;
+        private final RequestWrapper jRequest;
+        private final String tempFilesPath;
+        private final OpMonitoringData opMonitoringData;
+        private final String xRequestId;
+
+        @Getter
+        private byte[] restBodyDigest;
+
+        SigningProxyMessageEntity(String contentType, MessageSigningService messageSigningService,
+                                  RestRequest restRequest, ClientId senderId, RequestWrapper jRequest,
+                                  String tempFilesPath, OpMonitoringData opMonitoringData, String xRequestId) {
             super();
             setContentType(contentType);
+            this.messageSigningService = messageSigningService;
+            this.restRequest = restRequest;
+            this.senderId = senderId;
+            this.jRequest = jRequest;
+            this.tempFilesPath = tempFilesPath;
+            this.opMonitoringData = opMonitoringData;
+            this.xRequestId = xRequestId;
         }
 
         @Override
@@ -322,14 +378,12 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
                         Digests.DEFAULT_DIGEST_ALGORITHM, getBoundary(contentType.getValue()));
 
-                final CertChain chain = keyConfProvider.getAuthKey().certChain();
-                keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
+                final CertChain chain = messageSigningService.getAuthKey().certChain();
+                messageSigningService.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
                         .forEach(enc::ocspResponse);
 
                 enc.restRequest(restRequest);
 
-                //Optimize the case without request body (e.g. simple get requests)
-                //TBD: Optimize the case without body logging
                 try (InputStream in = jRequest.getInputStream()) {
                     @SuppressWarnings("checkstyle:magicnumber")
                     byte[] buf = new byte[4096];
@@ -339,21 +393,23 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(signingCtxProvider.createSigningCtx(senderId));
+                            enc.sign(messageSigningService.createSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
                                     xRequestId);
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(signingCtxProvider.createSigningCtx(senderId));
+                        enc.sign(messageSigningService.createSigningCtx(senderId));
                         MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
                     }
                 }
 
-                opMonitoringData.setRequestAttachmentCount(0);
-                opMonitoringData.setRequestSize(restRequest.getMessageBytes().length
-                        + enc.getAttachmentsByteCount());
+                if (opMonitoringData != null) {
+                    opMonitoringData.setRequestAttachmentCount(0);
+                    opMonitoringData.setRequestSize(restRequest.getMessageBytes().length
+                            + enc.getAttachmentsByteCount());
+                }
 
                 restBodyDigest = enc.getRestBodyDigest();
                 enc.writeSignature();
@@ -368,12 +424,6 @@ public class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         public boolean isStreaming() {
             return true;
         }
-    }
 
-    private List<Header> headers(RequestWrapper req) {
-        return req.getHeaders().stream()
-                .map(f -> new BasicHeader(f.getName(), f.getValue()))
-                .collect(Collectors.toCollection(ArrayList::new));
     }
-
 }

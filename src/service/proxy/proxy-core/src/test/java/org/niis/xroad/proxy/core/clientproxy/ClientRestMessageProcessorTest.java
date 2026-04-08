@@ -27,11 +27,11 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.SneakyThrows;
-import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
@@ -41,11 +41,13 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.service.ClientVerificationService;
+import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
+import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URI;
@@ -59,9 +61,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
-import static org.niis.xroad.serverconf.IsAuthentication.NOSSL;
-import static org.niis.xroad.serverconf.model.Client.STATUS_REGISTERED;
 
 class ClientRestMessageProcessorTest {
 
@@ -69,32 +70,42 @@ class ClientRestMessageProcessorTest {
     @Test
     void processShouldAddOpMonitoringData() {
         var opMonitoringData = new OpMonitoringData(CLIENT, 100);
-        var clientRestMessageProcessor = createMockedClientRestMessageProcessor(opMonitoringData);
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        var serverConfProvider = mock(ServerConfProvider.class);
+        var processor = createProcessor(globalConfProvider, serverConfProvider);
 
-        assertThrows(XrdRuntimeException.class, clientRestMessageProcessor::process);
+        RequestWrapper request = RequestWrapper.of(getMockedRequest());
+        var respWrapper = mock(ResponseWrapper.class);
+        var ctx = new RestRequestContext(request, respWrapper, opMonitoringData, null);
+
+        assertThrows(XrdRuntimeException.class, () -> processor.process(ctx));
 
         verifyOpMonitoringData(opMonitoringData.getData());
     }
 
-    private ClientRestMessageProcessor createMockedClientRestMessageProcessor(OpMonitoringData opMonitoringData) {
-        var globalConfProvider = mock(GlobalConfProvider.class);
-        var keyConfProvider = mock(KeyConfProvider.class);
-        var serverConfProvider = mock(ServerConfProvider.class);
-        RequestWrapper request = RequestWrapper.of(getMockedRequest());
-        var respWrapper = mock(ResponseWrapper.class);
-        var httpClient = mock(HttpClient.class);
+    private ClientRestMessageProcessor createProcessor(GlobalConfProvider globalConfProvider,
+                                                       ServerConfProvider serverConfProvider) {
         var proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
         var commonProperties = ConfigUtils.defaultConfiguration(CommonProperties.class);
-        var clientRestMessageProcessor = new ClientRestMessageProcessor(request, respWrapper,
-                proxyProperties, globalConfProvider, serverConfProvider, mock(ClientAuthenticationService.class),
-                keyConfProvider, null,
-                new OcspVerifierFactory(), commonProperties.tempFilesPath(),
-                httpClient, opMonitoringData);
+        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+        var httpSenderProvider = mock(HttpSenderProvider.class);
+        var messageSigningService = mock(MessageSigningService.class);
+        var clientVerificationService = mock(ClientVerificationService.class);
+        var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
+        when(httpSenderProvider.createClientHttpSender()).thenReturn(mock(HttpSender.class));
+        when(clientRequestPreparationService.prepareRequest(any(), any(), any(), any(), any(), any()))
+                .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
 
-        when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
-        when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
-        when(serverConfProvider.getMaintenanceMode()).thenReturn(new ServerConfProvider.MaintenanceMode(false, null));
-        return clientRestMessageProcessor;
+        return new ClientRestMessageProcessor(
+                messageSigningService,
+                httpSenderProvider,
+                clientVerificationService,
+                opMonitoringDataHelper,
+                globalConfProvider,
+                proxyProperties,
+                commonProperties,
+                clientRequestPreparationService
+        );
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {

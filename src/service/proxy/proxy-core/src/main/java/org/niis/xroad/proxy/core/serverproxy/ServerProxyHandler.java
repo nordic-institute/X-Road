@@ -41,9 +41,9 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
+import org.niis.xroad.proxy.core.util.RestRequestContext;
+import org.niis.xroad.proxy.core.util.SoapRequestContext;
 
 import java.io.IOException;
 
@@ -58,7 +58,8 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.P
 @Slf4j
 @RequiredArgsConstructor
 public class ServerProxyHandler extends HandlerBase {
-    private final MessageProcessorFactory messageProcessorFactory;
+    private final ServerRestMessageProcessor serverRestMessageProcessor;
+    private final ServerSoapMessageProcessor serverSoapMessageProcessor;
     private final ProxyProperties.ServerProperties serverProperties;
     private final ClientProxyVersionVerifier clientProxyVersionVerifier;
     private final GlobalConfProvider globalConfProvider;
@@ -86,9 +87,19 @@ public class ServerProxyHandler extends HandlerBase {
             globalConfProvider.verifyValidity();
 
             clientProxyVersionVerifier.check(request);
-            final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),
-                    ResponseWrapper.of(response), opMonitoringData);
-            processor.process();
+
+            var jRequest = RequestWrapper.of(request);
+            var jResponse = ResponseWrapper.of(response);
+
+            if (VALUE_MESSAGE_TYPE_REST.equals(jRequest.getHeaders().get(HEADER_MESSAGE_TYPE))) {
+                var ctx = new RestRequestContext(jRequest, jResponse, opMonitoringData, null);
+                boolean success = serverRestMessageProcessor.process(ctx);
+                opMonitoringData.setSucceeded(success);
+            } else {
+                var ctx = new SoapRequestContext(jRequest, jResponse, opMonitoringData, null, null, null, null, null);
+                boolean success = serverSoapMessageProcessor.process(ctx);
+                opMonitoringData.setSucceeded(success);
+            }
         } catch (Throwable e) { // We want to catch serious errors as well
             XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_SERVERPROXY_X);
 
@@ -107,16 +118,6 @@ public class ServerProxyHandler extends HandlerBase {
             PerformanceLogger.log(log, start, "Request handled");
         }
         return true;
-    }
-
-    private MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                        OpMonitoringData opMonitoringData) {
-
-        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeaders().get(HEADER_MESSAGE_TYPE))) {
-            return messageProcessorFactory.createServerRestMessageProcessor(request, response, opMonitoringData);
-        } else {
-            return messageProcessorFactory.createServerSoapMessageProcessor(request, response, opMonitoringData);
-        }
     }
 
     @Override

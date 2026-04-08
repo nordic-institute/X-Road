@@ -49,16 +49,19 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerHandler;
+import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataClientRequestProcessor;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
-import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
 @Slf4j
 public class ProxyClientConfig {
@@ -68,36 +71,38 @@ public class ProxyClientConfig {
     @ApplicationScoped
     @Priority(1)
         // must be the last handler
-    AbstractClientProxyHandler clientSoapMessageHandler(ProxyProperties proxyProperties,
-                                                        MessageProcessorFactory messageProcessorFactory,
-                                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                        OpMonitoringBuffer opMonitoringBuffer) {
-        return new ClientSoapMessageHandler(messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
-                opMonitoringBuffer);
+    ClientSoapMessageHandler clientSoapMessageHandler(ClientSoapMessageProcessor clientSoapMessageProcessor,
+                                                      ProxyProperties proxyProperties,
+                                                      GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                      OpMonitoringBuffer opMonitoringBuffer,
+                                                      OpMonitoringDataHelper opMonitoringDataHelper) {
+        return new ClientSoapMessageHandler(clientSoapMessageProcessor, proxyProperties,
+                globalConfProvider, keyConfProvider, opMonitoringBuffer, opMonitoringDataHelper);
     }
 
     @ApplicationScoped
     @Priority(100)
     @LookupIfProperty(name = "xroad.proxy.addon.meta-services.enabled", stringValue = "true")
-    AbstractClientProxyHandler metadataHandler(MessageProcessorFactory messageProcessorFactory) {
-        return new MetadataHandler(messageProcessorFactory);
+    MetadataHandler metadataHandler(MetadataClientRequestProcessor metadataProcessor) {
+        return new MetadataHandler(metadataProcessor);
     }
 
     @ApplicationScoped
     @Priority(200)
     @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
-    AbstractClientProxyHandler asicContainerHandler(MessageProcessorFactory messageProcessorFactory) {
-        return new AsicContainerHandler(messageProcessorFactory);
+    AsicContainerHandler asicContainerHandler(AsicContainerClientRequestProcessor asicProcessor) {
+        return new AsicContainerHandler(asicProcessor);
     }
 
     @ApplicationScoped
     @Priority(1000)
-    AbstractClientProxyHandler clientRestMessageHandler(ProxyProperties proxyProperties,
-                                                        MessageProcessorFactory messageProcessorFactory,
-                                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                        OpMonitoringBuffer opMonitoringBuffer) {
-        return new ClientRestMessageHandler(messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
-                opMonitoringBuffer);
+    ClientRestMessageHandler clientRestMessageHandler(ClientRestMessageProcessor clientRestMessageProcessor,
+                                                      ProxyProperties proxyProperties,
+                                                      GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                      OpMonitoringBuffer opMonitoringBuffer,
+                                                      OpMonitoringDataHelper opMonitoringDataHelper) {
+        return new ClientRestMessageHandler(clientRestMessageProcessor, proxyProperties,
+                globalConfProvider, keyConfProvider, opMonitoringBuffer, opMonitoringDataHelper);
     }
 
     @ApplicationScoped

@@ -30,20 +30,29 @@ package org.niis.xroad.proxy.core.util;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.UriUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
+import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
+/**
+ * Operational monitoring helper providing security server address and request metadata.
+ */
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor
 public class OpMonitoringDataHelper {
 
@@ -77,9 +86,6 @@ public class OpMonitoringDataHelper {
         }
     }
 
-    /**
-     * Update operational monitoring data with REST message header data
-     */
     public void updateOpMonitoringDataByRestRequest(OpMonitoringData opMonitoringData, RestRequest request) {
         if (opMonitoringData != null && request != null) {
             opMonitoringData.setClientId(request.getSender());
@@ -119,6 +125,39 @@ public class OpMonitoringDataHelper {
             opMonitoringData.setServiceType(DescriptionType.WSDL.name());
             opMonitoringData.setRequestSize(soapMessage.getBytes().length);
             opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
+        }
+    }
+
+    /**
+     * Sets the service security server address from resolved addresses.
+     * When multiple addresses exist, stores the monitoring data in the sender attribute
+     * for later resolution after SSL connection selection.
+     *
+     * @param addresses resolved service addresses
+     * @param httpSender the HTTP sender for multi-address attribute storage
+     * @param opMonitoringData the monitoring data to update (null-safe)
+     */
+    public void updateOpMonitoringServiceSecurityServerAddress(URI[] addresses, HttpSender httpSender,
+                                                               OpMonitoringData opMonitoringData) {
+        if (opMonitoringData == null) {
+            return;
+        }
+        if (addresses.length == 1) {
+            opMonitoringData.setServiceSecurityServerAddress(addresses[0].getHost());
+        } else {
+            httpSender.setAttribute(OpMonitoringData.class.getName(), opMonitoringData);
+        }
+    }
+
+    public void updateOpMonitoringResponseOutTs(OpMonitoringData opMonitoringData) {
+        if (opMonitoringData != null) {
+            opMonitoringData.setResponseOutTs(TimeUtils.getEpochMillisecond(), false);
+        }
+    }
+
+    public void updateOpMonitoringSoapFault(OpMonitoringData opMonitoringData, XrdRuntimeException e) {
+        if (opMonitoringData != null) {
+            opMonitoringData.setFaultCodeAndString(e);
         }
     }
 
