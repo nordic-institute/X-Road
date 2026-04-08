@@ -12,7 +12,7 @@ ubuntu_apt_option: "signed-by={{ubuntu_apt_key_file}}"
 ubuntu_apt_repo_with_option: "deb [{{ubuntu_apt_option}}] {{ubuntu_repo_url}} {{ansible_facts['distribution_release']}}-current main"
 
 rhel_repo_baseurl: "{{xroad_repo_baseurl}}/xroad-release-rpm/rhel/{{ansible_facts['distribution_major_version']}}/current"
-rhel_repo_gpgcheck: "yes"
+rhel_repo_gpgcheck: "no"
 rhel_repo_gpgkey: "{{xroad_repo_key}}"
 rhel_repo_repogpgcheck: "yes"
 rhel_repo_metadataexpire: "21600"
