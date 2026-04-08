@@ -179,20 +179,19 @@ public class ClientRestMessageProcessor {
 
         ProxyMessage response;
         try (var httpSender = httpSenderProvider.createClientHttpSender()) {
-            var restBodyDigestHolder = new byte[1][];
-            sendRequest(httpSender, jRequest, opMonitoringData, restRequest, senderId, requestServiceId, xRequestId, ctx,
-                    restBodyDigestHolder);
+            var restBodyDigest = sendRequest(httpSender, jRequest, opMonitoringData, restRequest,
+                    senderId, requestServiceId, xRequestId, ctx);
             var hashAlgoId = ProxyMessageUtils.getHashAlgoId(httpSender);
             response = parseResponse(httpSender, opMonitoringData, requestServiceId);
-            checkConsistency(hashAlgoId, restRequest, restBodyDigestHolder[0], response);
+            checkConsistency(hashAlgoId, restRequest, restBodyDigest, response);
         }
         logResponseMessage(restRequest, response, xRequestId);
         return response;
     }
 
-    private void sendRequest(HttpSender httpSender, RequestWrapper jRequest, OpMonitoringData opMonitoringData,
-                             RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
-                             String xRequestId, ProxyRequestContext ctx, byte[][] restBodyDigestOut) throws Exception {
+    private byte[] sendRequest(HttpSender httpSender, RequestWrapper jRequest, OpMonitoringData opMonitoringData,
+                               RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
+                               String xRequestId, ProxyRequestContext ctx) throws Exception {
         log.trace("sendRequest()");
 
         final URI[] addresses = clientRequestPreparationService.prepareRequest(
@@ -207,10 +206,11 @@ public class ClientRestMessageProcessor {
         var entity = new SigningProxyMessageEntity(contentType, messageSigningService, restRequest, senderId,
                 jRequest, commonProperties.tempFilesPath(), opMonitoringData, xRequestId);
         httpSender.doPost(getServiceAddress(addresses), entity);
-        restBodyDigestOut[0] = entity.getRestBodyDigest();
+        var restBodyDigest = entity.getRestBodyDigest();
         if (opMonitoringData != null) {
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         }
+        return restBodyDigest;
     }
 
     private ProxyMessage parseResponse(HttpSender httpSender, OpMonitoringData opMonitoringData,
