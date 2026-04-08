@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.service;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.util.RequestWrapper;
 
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
-import org.niis.xroad.proxy.core.util.CachingStream;
+import org.niis.xroad.proxy.core.util.ProxyRequestContext;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
+import java.net.URI;
+import java.util.List;
 
 /**
- * Rest service handler interface
+ * Resolves the list of target server proxy addresses for a given service request.
+ * Queries GlobalConf and applies maintenance mode filtering.
  */
-public interface RestServiceHandler {
-    boolean shouldVerifyAccess();
+public interface ServiceAddressResolver {
 
-    boolean shouldVerifySignature();
-
-    boolean shouldLogSignature();
-
-    boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
-
-    void startHandling(RequestWrapper request,
-                       ProxyMessage requestMessage,
-                       ProxyMessageEncoder messageEncoder,
-                       OpMonitoringData opMonitoringData)
-            throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException;
-
-    RestResponse getRestResponse();
-
-    CachingStream getRestResponseBody();
-
-    void finishHandling();
+    /**
+     * Resolves the list of URIs to which the request should be sent.
+     *
+     * @param serviceProvider  the service provider identifier
+     * @param securityServerId the target security server, or null if not specified
+     * @param ctx              the per-request context
+     * @return non-empty list of resolved URIs
+     * @throws org.niis.xroad.common.core.exception.XrdRuntimeException if no addresses can be resolved
+     */
+    List<URI> resolve(ServiceId serviceProvider, SecurityServerId securityServerId, ProxyRequestContext ctx);
 }

@@ -24,51 +24,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon.metaservice.clientproxy;
+package org.niis.xroad.proxy.core.service;
 
-import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.proxy.core.addon.AddonHandlerBase;
-import org.niis.xroad.proxy.core.util.AddonRequestContext;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.proxy.core.conf.SigningCtx;
+import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.List;
 
-import static ee.ria.xroad.common.util.JettyUtils.getTarget;
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
-
+/**
+ * Groups signing-related provider operations into a single service bean.
+ * Reduces the number of provider dependencies that processor classes and factory must receive.
+ */
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor
-public class MetadataHandler extends AddonHandlerBase {
+public class MessageSigningService {
 
-    private final MetadataClientRequestProcessor processor;
+    private final KeyConfProvider keyConfProvider;
+    private final SigningCtxProvider signingCtxProvider;
 
-    @Override
-    protected Optional<AddonRequestContext> createRequestContext(RequestWrapper request, ResponseWrapper response) {
-        var target = getTarget(request);
-        log.trace("createRequestContext({})", target);
-
-        if (!isGetRequest(request)) {
-            return Optional.empty();
-        }
-
-        if (target == null) {
-            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Target must not be null");
-        }
-
-        return processor.canProcess(target)
-                ? Optional.of(new AddonRequestContext(target, request, response))
-                : Optional.empty();
+    public AuthKey getAuthKey() {
+        return keyConfProvider.getAuthKey();
     }
 
-    @Override
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    protected void processRequest(AddonRequestContext ctx) throws Exception {
-        processor.process(ctx);
+    public List<OCSPResp> getAllOcspResponses(List<X509Certificate> certChain) throws CertificateEncodingException, IOException {
+        return keyConfProvider.getAllOcspResponses(certChain);
+    }
+
+    public SigningCtx createSigningCtx(ClientId clientId) {
+        return signingCtxProvider.createSigningCtx(clientId);
     }
 
 }

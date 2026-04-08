@@ -40,19 +40,18 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Streams;
 import com.google.common.net.MediaType;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
-import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.proxy.core.util.AddonRequestContext;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -62,11 +61,11 @@ import java.util.Enumeration;
 
 import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_CLIENTS;
 
-/**
- * Soap metadata client request processor
- */
 @Slf4j
-public class MetadataClientRequestProcessor extends MessageProcessorBase {
+@ApplicationScoped
+@RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions")
+public class MetadataClientRequestProcessor {
 
     static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
 
@@ -82,42 +81,33 @@ public class MetadataClientRequestProcessor extends MessageProcessorBase {
         MAPPER = mapper;
     }
 
-    private final String target;
+    private final GlobalConfProvider globalConfProvider;
 
-    public MetadataClientRequestProcessor(ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                          ServerConfProvider serverConfProvider, ClientAuthenticationService clientAuthenticationService,
-                                          String target, RequestWrapper request, ResponseWrapper response) {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
-        this.target = target;
-    }
-
-    public boolean canProcess() {
+    public boolean canProcess(String target) {
         return target.equals(LIST_CLIENTS);
     }
 
-    @Override
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    public void process() throws Exception {
-        if (target.equals(LIST_CLIENTS)) {
-            handleListClients();
+    public void process(AddonRequestContext ctx) throws Exception {
+        globalConfProvider.verifyValidity();
+        if (ctx.target().equals(LIST_CLIENTS)) {
+            handleListClients(ctx);
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    private void handleListClients() throws Exception {
+    private void handleListClients(AddonRequestContext ctx) throws Exception {
         log.trace("handleListClients()");
 
-        String instanceIdentifier = getInstanceIdentifierFromRequest();
+        String instanceIdentifier = getInstanceIdentifierFromRequest(ctx.request());
 
         ClientListType list = OBJECT_FACTORY.createClientListType();
         globalConfProvider.getMembers(instanceIdentifier).stream()
                 .map(this::toDto)
                 .forEach(list.getMember()::add);
 
-        if (acceptsJson()) {
-            writeResponseJson(list);
+        if (acceptsJson(ctx.request())) {
+            writeResponseJson(ctx.response(), list);
         } else {
-            writeResponseXml(OBJECT_FACTORY.createClientList(list));
+            writeResponseXml(ctx.response(), OBJECT_FACTORY.createClientList(list));
         }
     }
 
@@ -129,24 +119,23 @@ public class MetadataClientRequestProcessor extends MessageProcessorBase {
         return client;
     }
 
-    private boolean acceptsJson() {
-        return acceptsJson(jRequest.getHeaders().getValues("Accept"));
+    private boolean acceptsJson(RequestWrapper request) {
+        return acceptsJson(request.getHeaders().getValues("Accept"));
     }
 
-    private void writeResponseXml(Object object) throws JAXBException {
-        jResponse.setContentType(MimeTypes.TEXT_XML_UTF8);
-        marshal(object, jResponse.getOutputStream());
+    private void writeResponseXml(ResponseWrapper response, Object object) throws JAXBException {
+        response.setContentType(MimeTypes.TEXT_XML_UTF8);
+        marshal(object, response.getOutputStream());
     }
 
-    private void writeResponseJson(Object object) throws IOException {
-        jResponse.setContentType(MimeUtils.contentTypeWithCharset(MimeTypes.JSON,
+    private void writeResponseJson(ResponseWrapper response, Object object) throws IOException {
+        response.setContentType(MimeUtils.contentTypeWithCharset(MimeTypes.JSON,
                 StandardCharsets.UTF_8.name().toLowerCase()));
-        MAPPER.writeValue(jResponse.getOutputStream(), object);
+        MAPPER.writeValue(response.getOutputStream(), object);
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    private String getInstanceIdentifierFromRequest() throws Exception {
-        String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
+    private String getInstanceIdentifierFromRequest(RequestWrapper request) throws Exception {
+        String instanceIdentifier = request.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
             instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         }

@@ -31,51 +31,44 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
-import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
+import org.niis.xroad.proxy.core.addon.AddonHandlerBase;
+import org.niis.xroad.proxy.core.util.AddonRequestContext;
+
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
-/**
- * AsicContainerHandler
- */
 @Slf4j
-public class AsicContainerHandler extends AbstractClientProxyHandler {
+public class AsicContainerHandler extends AddonHandlerBase {
 
-    /**
-     * Constructor
-     */
-    public AsicContainerHandler(MessageProcessorFactory messageProcessorFactory) {
-        super(messageProcessorFactory, false, null);
+    private final AsicContainerClientRequestProcessor processor;
+
+    public AsicContainerHandler(AsicContainerClientRequestProcessor processor) {
+        this.processor = processor;
     }
 
     @Override
-    protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                          OpMonitoringData opMonitoringData) {
+    protected Optional<AddonRequestContext> createRequestContext(RequestWrapper request, ResponseWrapper response) {
         var target = getTarget(request);
-        log.trace("createRequestProcessor({})", target);
-
-        // opMonitoringData is null, do not use it.
+        log.trace("createRequestContext({})", target);
 
         if (!isGetRequest(request)) {
-            return null;
+            return Optional.empty();
         }
 
         if (target == null) {
             throw XrdRuntimeException.systemException(INVALID_REQUEST, "Target must not be null");
         }
 
-        AsicContainerClientRequestProcessor processor = messageProcessorFactory
-                .createAsicContainerClientRequestProcessor(request, response, target);
-
-        if (processor.canProcess()) {
-            log.trace("Processing with AsicContainerRequestProcessor");
-            return processor;
-        }
-
-        return null;
+        return processor.canProcess(target)
+                ? Optional.of(new AddonRequestContext(target, request, response))
+                : Optional.empty();
     }
+
+    @Override
+    protected void processRequest(AddonRequestContext ctx) {
+        processor.process(ctx);
+    }
+
 }

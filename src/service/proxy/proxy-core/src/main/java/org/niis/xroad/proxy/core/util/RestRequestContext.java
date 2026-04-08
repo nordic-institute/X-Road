@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,51 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon.metaservice.clientproxy;
+
+package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.proxy.core.addon.AddonHandlerBase;
-import org.niis.xroad.proxy.core.util.AddonRequestContext;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
-import java.util.Optional;
-
-import static ee.ria.xroad.common.util.JettyUtils.getTarget;
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
-
-@Slf4j
-@RequiredArgsConstructor
-public class MetadataHandler extends AddonHandlerBase {
-
-    private final MetadataClientRequestProcessor processor;
-
-    @Override
-    protected Optional<AddonRequestContext> createRequestContext(RequestWrapper request, ResponseWrapper response) {
-        var target = getTarget(request);
-        log.trace("createRequestContext({})", target);
-
-        if (!isGetRequest(request)) {
-            return Optional.empty();
-        }
-
-        if (target == null) {
-            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Target must not be null");
-        }
-
-        return processor.canProcess(target)
-                ? Optional.of(new AddonRequestContext(target, request, response))
-                : Optional.empty();
-    }
-
-    @Override
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    protected void processRequest(AddonRequestContext ctx) throws Exception {
-        processor.process(ctx);
-    }
-
+/**
+ * ProxyRequestContext for REST request paths. No threading state -- REST processors run on the Jetty handler
+ * thread directly.
+ */
+public record RestRequestContext(
+        RequestWrapper request,
+        ResponseWrapper response,
+        OpMonitoringData opMonitoringData
+) implements ProxyRequestContext {
 }

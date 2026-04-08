@@ -51,6 +51,8 @@ import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 /**
@@ -169,7 +171,7 @@ public class ServerProxy {
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
 
-    private ServerConnector createClientProxySslConnector() throws Exception {
+    private ServerConnector createClientProxySslConnector() throws NoSuchAlgorithmException, KeyManagementException {
         sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setNeedClientAuth(true);
         sslContextFactory.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
