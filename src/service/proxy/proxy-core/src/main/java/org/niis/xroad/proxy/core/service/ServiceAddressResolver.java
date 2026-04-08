@@ -30,28 +30,24 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.niis.xroad.proxy.core.util.ProxyRequestContext;
+import org.niis.xroad.proxy.core.util.RestRequestContext;
 
 import java.net.URI;
 import java.util.List;
 
 /**
  * Resolves the list of target server proxy addresses for a given service request.
- * Implements the DSP override pattern (D-01): when {@link ProxyRequestContext#targetAddress()} is non-null,
- * that address is used directly without querying GlobalConf. This allows DspClientMessageProcessor to
- * inject a pre-negotiated EDR address that bypasses the normal global configuration lookup.
- *
- * <p>For standard requests (non-DSP), the resolver queries GlobalConf and applies maintenance mode filtering.
+ * For REST contexts with a non-null {@link RestRequestContext#targetAddress()}, that address is used directly
+ * without querying GlobalConf. For standard requests, resolves via GlobalConf with maintenance mode filtering.
  */
 public interface ServiceAddressResolver {
 
     /**
      * Resolves the list of URIs to which the request should be sent.
-     * If {@code ctx.targetAddress()} is non-null, returns a singleton list with that URI.
-     * Otherwise, resolves via GlobalConf filtered by maintenance mode.
      *
      * @param serviceProvider  the service provider identifier
      * @param securityServerId the target security server, or null if not specified
-     * @param ctx              the per-request context (carries targetAddress for DSP override)
+     * @param ctx              the per-request context
      * @return non-empty list of resolved URIs
      * @throws org.niis.xroad.common.core.exception.XrdRuntimeException if no addresses can be resolved
      */

@@ -118,7 +118,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                null,
+                mock(OpMonitoringData.class),
                 null);
 
         assertThatThrownBy(() -> resolver.resolve(serviceProvider, null, ctx))
@@ -136,7 +136,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                null,
+                mock(OpMonitoringData.class),
                 null);
 
         assertThatThrownBy(() -> resolver.resolve(serviceProvider, null, ctx))
@@ -150,7 +150,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                null,
+                mock(OpMonitoringData.class),
                 null);
 
         assertThatThrownBy(() -> resolver.resolve(serviceProvider, null, ctx))
@@ -168,7 +168,7 @@ class DefaultServiceAddressResolverTest {
 
         var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
                 mock(ee.ria.xroad.common.util.ResponseWrapper.class),
-                null,
+                mock(OpMonitoringData.class),
                 null);
 
         var result = resolver.resolve(serviceProvider, securityServerId, ctx);

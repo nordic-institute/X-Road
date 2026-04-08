@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.core.util;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import jakarta.annotation.Nullable;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 import java.io.PipedInputStream;
@@ -41,14 +40,13 @@ import java.util.concurrent.CountDownLatch;
  * the main thread and the SOAP handler thread during message processing, as well as piped streams for streaming
  * the SOAP request body.
  *
- * <p>Both latches are initialized with count=1 and used once per request. All threading fields are non-null --
- * this type is only constructed by {@code ClientSoapMessageHandler} where latches and streams are always created.
+ * <p>Both latches are initialized with count=1 and used once per request. All fields are non-null --
+ * this type is only constructed by {@code ClientSoapMessageHandler} where all arguments are always provided.
  */
 public record ClientSoapRequestContext(
         RequestWrapper request,
         ResponseWrapper response,
-        @Nullable OpMonitoringData opMonitoringData,
-        @Nullable String targetAddress,
+        OpMonitoringData opMonitoringData,
         CountDownLatch requestHandlerGate,
         CountDownLatch httpSenderGate,
         PipedInputStream reqIns,

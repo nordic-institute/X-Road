@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
 import java.io.PipedInputStream;
@@ -74,8 +75,8 @@ class ConcurrentSoapTest {
         when(request1.getMethod()).thenReturn("POST");
         when(request2.getMethod()).thenReturn("POST");
 
-        var ctx1 = new ClientSoapRequestContext(request1, response1, null, null, latch1a, latch1b, reqIns1, reqOuts1);
-        var ctx2 = new ClientSoapRequestContext(request2, response2, null, null, latch2a, latch2b, reqIns2, reqOuts2);
+        var ctx1 = new ClientSoapRequestContext(request1, response1, mock(OpMonitoringData.class), latch1a, latch1b, reqIns1, reqOuts1);
+        var ctx2 = new ClientSoapRequestContext(request2, response2, mock(OpMonitoringData.class), latch2a, latch2b, reqIns2, reqOuts2);
 
         // Assert: each context holds references to its own distinct objects
         assertThat(ctx1.request()).isSameAs(request1);

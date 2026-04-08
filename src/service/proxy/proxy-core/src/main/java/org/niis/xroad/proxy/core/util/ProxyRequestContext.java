@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.core.util;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import jakarta.annotation.Nullable;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 /**
@@ -42,17 +41,5 @@ public sealed interface ProxyRequestContext permits RestRequestContext, ClientSo
 
     ResponseWrapper response();
 
-    /**
-     * Operational monitoring data for this request. May be null when op-monitoring is disabled.
-     */
-    @Nullable
     OpMonitoringData opMonitoringData();
-
-    /**
-     * DSP target address override. When non-null, processors use this URI instead of resolving the address from
-     * GlobalConf. Set by DspClientMessageProcessor before delegating to ClientRestMessageProcessor.
-     * Null for all standard (non-DSP) requests.
-     */
-    @Nullable
-    String targetAddress();
 }

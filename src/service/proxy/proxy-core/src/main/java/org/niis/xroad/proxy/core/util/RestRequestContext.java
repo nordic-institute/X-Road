@@ -39,7 +39,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 public record RestRequestContext(
         RequestWrapper request,
         ResponseWrapper response,
-        @Nullable OpMonitoringData opMonitoringData,
+        OpMonitoringData opMonitoringData,
         @Nullable String targetAddress
 ) implements ProxyRequestContext {
 }

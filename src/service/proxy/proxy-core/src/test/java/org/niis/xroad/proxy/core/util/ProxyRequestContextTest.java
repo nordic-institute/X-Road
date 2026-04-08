@@ -44,7 +44,7 @@ class ProxyRequestContextTest {
     void restRequestContextImplementsProxyRequestContext() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
-        var ctx = new RestRequestContext(request, response, null, null);
+        var ctx = new RestRequestContext(request, response, mock(OpMonitoringData.class), null);
 
         assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
     }
@@ -53,7 +53,7 @@ class ProxyRequestContextTest {
     void clientSoapRequestContextImplementsProxyRequestContext() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
-        var ctx = new ClientSoapRequestContext(request, response, null, null,
+        var ctx = new ClientSoapRequestContext(request, response, mock(OpMonitoringData.class),
                 new java.util.concurrent.CountDownLatch(1),
                 new java.util.concurrent.CountDownLatch(1),
                 new PipedInputStream(), new PipedOutputStream());
@@ -65,7 +65,7 @@ class ProxyRequestContextTest {
     void serverSoapRequestContextImplementsProxyRequestContext() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
-        var ctx = new ServerSoapRequestContext(request, response, null, null);
+        var ctx = new ServerSoapRequestContext(request, response, mock(OpMonitoringData.class));
 
         assertThat(ctx).isInstanceOf(ProxyRequestContext.class);
     }
@@ -92,7 +92,7 @@ class ProxyRequestContextTest {
         var requestHandlerGate = new java.util.concurrent.CountDownLatch(1);
         var httpSenderGate = new java.util.concurrent.CountDownLatch(1);
 
-        var ctx = new ClientSoapRequestContext(request, response, null, null,
+        var ctx = new ClientSoapRequestContext(request, response, mock(OpMonitoringData.class),
                 requestHandlerGate, httpSenderGate,
                 new PipedInputStream(), new PipedOutputStream());
 
@@ -107,7 +107,7 @@ class ProxyRequestContextTest {
     void restRequestContextWithNullTargetAddressReturnsNull() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
-        var ctx = new RestRequestContext(request, response, null, null);
+        var ctx = new RestRequestContext(request, response, mock(OpMonitoringData.class), null);
 
         assertThat(ctx.targetAddress()).isNull();
     }
@@ -116,13 +116,14 @@ class ProxyRequestContextTest {
     void patternMatchingSwitchOverProxyRequestContextIsExhaustive() {
         var request = mock(RequestWrapper.class);
         var response = mock(ResponseWrapper.class);
+        var opMonitoringData = mock(OpMonitoringData.class);
 
-        ProxyRequestContext restCtx = new RestRequestContext(request, response, null, null);
-        ProxyRequestContext clientSoapCtx = new ClientSoapRequestContext(request, response, null, null,
+        ProxyRequestContext restCtx = new RestRequestContext(request, response, opMonitoringData, null);
+        ProxyRequestContext clientSoapCtx = new ClientSoapRequestContext(request, response, opMonitoringData,
                 new java.util.concurrent.CountDownLatch(1),
                 new java.util.concurrent.CountDownLatch(1),
                 new PipedInputStream(), new PipedOutputStream());
-        ProxyRequestContext serverSoapCtx = new ServerSoapRequestContext(request, response, null, null);
+        ProxyRequestContext serverSoapCtx = new ServerSoapRequestContext(request, response, opMonitoringData);
 
         var restResult = describeContext(restCtx);
         var clientSoapResult = describeContext(clientSoapCtx);

@@ -38,6 +38,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.util.ProxyRequestContext;
+import org.niis.xroad.proxy.core.util.RestRequestContext;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -53,10 +54,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 /**
- * Default address resolver checking DSP override first, then GlobalConf with maintenance mode filtering.
+ * Default address resolver checking target address override first, then GlobalConf with maintenance mode filtering.
  *
- * <p>When {@link ProxyRequestContext#targetAddress()} is non-null (set by DspClientMessageProcessor),
- * the address is used directly without querying GlobalConf. For standard requests, resolves addresses
+ * <p>When a {@link RestRequestContext} has a non-null {@link RestRequestContext#targetAddress()},
+ * the address is used directly without querying GlobalConf. For all other requests, resolves addresses
  * via GlobalConf, filters out addresses in maintenance mode, and throws on empty results.
  */
 @Slf4j
@@ -69,9 +70,9 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
 
     @Override
     public List<URI> resolve(ServiceId serviceProvider, SecurityServerId securityServerId, ProxyRequestContext ctx) {
-        // DSP override: use pre-negotiated EDR address directly
-        if (ctx.targetAddress() != null) {
-            return List.of(URI.create(ctx.targetAddress()));
+        // DSP override: use pre-negotiated EDR address directly (only applicable to REST contexts)
+        if (ctx instanceof RestRequestContext rest && rest.targetAddress() != null) {
+            return List.of(URI.create(rest.targetAddress()));
         }
 
         return resolveFromGlobalConf(serviceProvider, securityServerId);

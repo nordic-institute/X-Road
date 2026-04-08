@@ -101,7 +101,7 @@ public class ClientSoapMessageHandler extends HandlerBase {
             var reqIns = new PipedInputStream();
             var reqOuts = new PipedOutputStream(reqIns);
             var ctx = new ClientSoapRequestContext(
-                    requestWrapper, ResponseWrapper.of(response), opMonitoringData, null,
+                    requestWrapper, ResponseWrapper.of(response), opMonitoringData,
                     new CountDownLatch(1), new CountDownLatch(1), reqIns, reqOuts);
 
             handled = true;

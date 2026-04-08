@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.core.util;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import jakarta.annotation.Nullable;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 /**
@@ -39,7 +38,6 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 public record ServerSoapRequestContext(
         RequestWrapper request,
         ResponseWrapper response,
-        @Nullable OpMonitoringData opMonitoringData,
-        @Nullable String targetAddress
+        OpMonitoringData opMonitoringData
 ) implements ProxyRequestContext {
 }

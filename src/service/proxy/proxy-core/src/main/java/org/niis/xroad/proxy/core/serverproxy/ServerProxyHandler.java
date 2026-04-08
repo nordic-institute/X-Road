@@ -96,7 +96,7 @@ public class ServerProxyHandler extends HandlerBase {
                 boolean success = serverRestMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);
             } else {
-                var ctx = new ServerSoapRequestContext(jRequest, jResponse, opMonitoringData, null);
+                var ctx = new ServerSoapRequestContext(jRequest, jResponse, opMonitoringData);
                 boolean success = serverSoapMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);
             }
