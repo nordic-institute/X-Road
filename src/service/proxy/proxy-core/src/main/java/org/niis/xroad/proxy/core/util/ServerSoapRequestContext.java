@@ -33,26 +33,13 @@ import jakarta.annotation.Nullable;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 /**
- * Immutable per-request carrier passed from handlers through factory methods to message processors.
- * The sealed hierarchy enforces protocol-specific fields without polluting REST context with SOAP latch state.
+ * ProxyRequestContext for server-side SOAP request paths. No threading state -- the server-side SOAP processor
+ * runs on the Jetty handler thread directly without latch coordination or piped streams.
  */
-public sealed interface ProxyRequestContext permits RestRequestContext, ClientSoapRequestContext, ServerSoapRequestContext {
-
-    RequestWrapper request();
-
-    ResponseWrapper response();
-
-    /**
-     * Operational monitoring data for this request. May be null when op-monitoring is disabled.
-     */
-    @Nullable
-    OpMonitoringData opMonitoringData();
-
-    /**
-     * DSP target address override. When non-null, processors use this URI instead of resolving the address from
-     * GlobalConf. Set by DspClientMessageProcessor before delegating to ClientRestMessageProcessor.
-     * Null for all standard (non-DSP) requests.
-     */
-    @Nullable
-    String targetAddress();
+public record ServerSoapRequestContext(
+        RequestWrapper request,
+        ResponseWrapper response,
+        @Nullable OpMonitoringData opMonitoringData,
+        @Nullable String targetAddress
+) implements ProxyRequestContext {
 }

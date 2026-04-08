@@ -37,39 +37,21 @@ import java.io.PipedOutputStream;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * ProxyRequestContext for SOAP request paths. Carries the two CountDownLatches used to coordinate the main thread and
- * the SOAP handler thread during message processing, as well as piped streams for streaming the SOAP request body.
+ * ProxyRequestContext for client-side SOAP request paths. Carries the two CountDownLatches used to coordinate
+ * the main thread and the SOAP handler thread during message processing, as well as piped streams for streaming
+ * the SOAP request body.
  *
- * <p>Both latches are initialized with count=1 and used once per request.
+ * <p>Both latches are initialized with count=1 and used once per request. All threading fields are non-null --
+ * this type is only constructed by {@code ClientSoapMessageHandler} where latches and streams are always created.
  */
-public record SoapRequestContext(
+public record ClientSoapRequestContext(
         RequestWrapper request,
         ResponseWrapper response,
         @Nullable OpMonitoringData opMonitoringData,
         @Nullable String targetAddress,
-        /**
-         * The main thread waits on this latch until the SOAP handler thread has parsed the request SOAP message and
-         * set requestServiceId. The handler thread calls countDown() once parsing is complete (success or failure).
-         * Null for server-side SOAP processing where no latch coordination is needed.
-         */
-        @Nullable CountDownLatch requestHandlerGate,
-        /**
-         * The main thread waits on this latch after sending the HTTP request to ensure the handler thread has finished
-         * writing to the piped output stream before the response is read. The handler thread calls countDown() when
-         * writing is complete (success or failure).
-         * Null for server-side SOAP processing where no latch coordination is needed.
-         */
-        @Nullable CountDownLatch httpSenderGate,
-        /**
-         * PipedInputStream connected to reqOuts — the main thread reads from this to stream the SOAP request body
-         * to the HTTP sender.
-         * Null for server-side SOAP processing where piped streams are not needed.
-         */
-        @Nullable PipedInputStream reqIns,
-        /**
-         * PipedOutputStream connected to reqIns — the handler thread writes decoded SOAP body to this stream.
-         * Null for server-side SOAP processing where piped streams are not needed.
-         */
-        @Nullable PipedOutputStream reqOuts
+        CountDownLatch requestHandlerGate,
+        CountDownLatch httpSenderGate,
+        PipedInputStream reqIns,
+        PipedOutputStream reqOuts
 ) implements ProxyRequestContext {
 }
