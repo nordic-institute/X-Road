@@ -1,0 +1,64 @@
+name: Update Gradle Lockfiles and Verification Metadata
+
+on:
+  push:
+    branches:
+      - 'dependabot/gradle/**'
+
+permissions:
+  contents: write
+
+jobs:
+  update-gradle-metadata:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-home-cache-cleanup: true
+
+      - name: Update buildSrc lockfiles and verification metadata
+        working-directory: src
+        run: |
+          ./gradlew -p buildSrc \
+            --write-locks \
+            --write-verification-metadata sha256 \
+            --dependency-verification=off \
+            --no-daemon \
+            -q dependencies
+
+      - name: Update main lockfiles and verification metadata
+        working-directory: src
+        run: |
+          ./gradlew \
+            --write-locks \
+            --write-verification-metadata sha256 \
+            --dependency-verification=off \
+            --no-daemon \
+            -q dependencies
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add src/gradle/verification-metadata.xml
+          git add src/buildSrc/gradle/verification-metadata.xml
+          find src -name "*.lockfile" -exec git add {} +
+
+          if git diff --staged --quiet; then
+            echo "No changes - lockfiles and verification metadata are already up to date."
+          else
+            git commit -m "chore: update Gradle lockfiles and verification metadata [skip ci]"
+            git push
+          fi
+
