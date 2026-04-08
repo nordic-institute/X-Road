@@ -11,6 +11,7 @@
     "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/audit-ci.txt"
   },
   "pnpm": {
+    "minimumReleaseAge": 4320,
     "overrides": {
       "minimatch": "^10.2.3",
       "rollup": "^4.59.0",
