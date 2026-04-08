@@ -70,7 +70,9 @@ public class ClientSoapMessageHandler extends HandlerBase {
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final OpMonitoringDataHelper opMonitoringDataHelper;
 
-    /** Creates a new client SOAP message handler. */
+    /**
+     * Creates a new client SOAP message handler.
+     */
     public ClientSoapMessageHandler(ClientSoapMessageProcessor clientSoapMessageProcessor,
                                     ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
                                     KeyConfProvider keyConfProvider, OpMonitoringBuffer opMonitoringBuffer,
@@ -101,8 +103,6 @@ public class ClientSoapMessageHandler extends HandlerBase {
             callback.succeeded();
             if (log.isTraceEnabled()) {
                 log.info("Request successfully handled ({} ms)", System.currentTimeMillis() - start);
-            } else {
-                log.info("Request successfully handled");
             }
         } catch (XrdRuntimeHttpException e) {
             handled = true;

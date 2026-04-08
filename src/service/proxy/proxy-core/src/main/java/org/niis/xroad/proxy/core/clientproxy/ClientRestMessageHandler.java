@@ -113,8 +113,6 @@ public class ClientRestMessageHandler extends HandlerBase {
                 callback.succeeded();
                 if (log.isTraceEnabled()) {
                     log.info("Request successfully handled ({} ms)", System.currentTimeMillis() - start);
-                } else {
-                    log.info("Request successfully handled");
                 }
             }
         } catch (XrdRuntimeHttpException e) {
