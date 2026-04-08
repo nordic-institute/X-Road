@@ -54,10 +54,10 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
-import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
 import java.net.URI;
 import java.util.UUID;

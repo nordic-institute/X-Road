@@ -44,9 +44,9 @@ import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
-import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 
 import java.io.IOException;
 import java.io.PipedInputStream;

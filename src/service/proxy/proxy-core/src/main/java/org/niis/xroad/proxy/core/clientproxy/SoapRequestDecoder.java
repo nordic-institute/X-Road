@@ -47,8 +47,8 @@ import org.niis.xroad.proxy.core.protocol.Attachment;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
-import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
