@@ -149,6 +149,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 servletRequest.getHeaders().get(HEADER_REQUEST_ID)
         );
 
+        @SuppressWarnings("squid:S2095") // stream is closed later.
         CachingStream restResponseBody = new CachingStream(commonProperties.tempFilesPath());
         try {
             if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(LIST_METHODS)) {

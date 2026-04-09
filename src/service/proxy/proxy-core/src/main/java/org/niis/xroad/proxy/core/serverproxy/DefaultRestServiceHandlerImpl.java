@@ -112,6 +112,7 @@ public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
+    @SuppressWarnings("squid:S2095")
     @ArchUnitSuppressed("NoVanillaExceptions")
     public RestServiceHandlerResult startHandling(RequestWrapper request, ProxyMessage requestProxyMessage,
                                                   ProxyMessageEncoder messageEncoder,
