@@ -128,7 +128,10 @@
         "confirmation": "Kas soovite kindlasti {file} taastada?",
         "title": "Kas olete kindel?"
       },
-      "success": "Konfiguratsioon {file} taastatud"
+      "success": "Konfiguratsioon {file} taastatud",
+      "restarting": {
+        "message": "Konfiguratsioon on taastatud. Teenus taaskäivitub. Teid suunatakse sisselogimise lehele, kui teenus on saadaval."
+      }
     },
     "uploadBackup": {
       "button": "Lae varukoopia üles",
@@ -157,6 +160,9 @@
     },
     "rsaExp": "RSA avaliku võtme eksponent",
     "rsaModulus": "RSA avaliku võtme moodul"
+  },
+  "common": {
+    "restartingService": "Teenus taaskäivitub"
   },
   "error_code": {
     "api_key_not_found": "API võtit ei leitud",

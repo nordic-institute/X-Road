@@ -36,6 +36,12 @@ import viteBasicSslPlugin from '@vitejs/plugin-basic-ssl';
 export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
   const env = loadEnv(mode, process.cwd(), '');
   const lang = /\/locales?\/([a-z]{2}([-_][A-Z]+))\.(js|json)$/;
+
+  const proxyCfg = {
+    secure: false,
+    target: env.PROXY_ADDRESS || 'https://127.0.0.1:4100',
+  }
+
   return {
     plugins: [
       vue(),
@@ -108,14 +114,9 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
       port: 8080,
       host: 'localhost',
       proxy: {
-        '/api': {
-          secure: false,
-          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4100',
-        },
-        '/login': {
-          secure: false,
-          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4100',
-        },
+        '/api': proxyCfg,
+        '/login': proxyCfg,
+        '/logout': proxyCfg,
       },
     },
   };

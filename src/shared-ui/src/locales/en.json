@@ -190,7 +190,10 @@
         "confirmation": "Are you sure you want to restore from {file}?",
         "title": "Are you sure?"
       },
-      "success": "Configuration restored from {file}"
+      "success": "Configuration restored from {file}",
+      "restarting": {
+        "message": "Configuration has been restored. The service is restarting. You will be redirected to the login page when the service is available."
+      }
     },
     "uploadBackup": {
       "button": "Upload backup",
@@ -235,6 +238,7 @@
     "false": "False",
     "inParenthesis": "({0})",
     "no": "No",
+    "restartingService": "Service is restarting",
     "true": "True",
     "yes": "Yes"
   },

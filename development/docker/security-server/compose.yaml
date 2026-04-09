@@ -290,6 +290,7 @@ services:
   ui:
     image: ${PROXY_UI_IMG}
     pull_policy: always
+    restart: on-failure
     environment:
       - DEBUG=false
       - XROAD_HOST=ui

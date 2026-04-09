@@ -34,12 +34,9 @@ Initialises the app root component.
 import vuetify from './plugins/vuetify'; //!!!Keep it before any component imports!!!
 import { createApp } from 'vue';
 
-import { createPinia } from 'pinia';
-
 import axios from 'axios';
-import { createPersistedState } from 'pinia-plugin-persistedstate';
 
-import { setupAddErrorNavigation } from '@niis/shared-ui';
+import { pinia, setupAddErrorNavigation } from '@niis/shared-ui';
 
 import { createFilters } from '@/filters';
 import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
@@ -51,13 +48,6 @@ import App from './App.vue';
 
 import './filters';
 import { RouteName } from '@/global';
-
-const pinia = createPinia();
-pinia.use(
-  createPersistedState({
-    storage: sessionStorage,
-  }),
-);
 
 axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';

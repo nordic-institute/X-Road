@@ -104,7 +104,7 @@ services:
         name: op-monitor-openbao-tls-certificate
   auxiliary-service:
     env:
-      SERVERCONF_INIT_IMAGE: localhost:5555/ss-db-serverconf-init:latest
+      SERVERCONF_INIT_IMAGE: localhost:5555/ss-db-init:latest
 #      XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_ARCHIVE_CRON: "0 */2 * * * ?"
 #      XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_CLEAN_CRON: "0 */3 * * * ?"
       SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"

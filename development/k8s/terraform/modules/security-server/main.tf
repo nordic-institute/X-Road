@@ -38,7 +38,10 @@ resource "helm_release" "security_server" {
   name      = "security-server"
   namespace = var.namespace
   timeout = 90 # TODO make it configurable
-  wait = true
+  # wait=false because message-log-archives-pvc is consumed only by a scheduled
+  # Job (not a Deployment), so with WaitForFirstConsumer storage it remains
+  # Pending at install time — which would block `helm --wait` indefinitely.
+  wait = false
 
   repository = var.security_server_chart_repo
   chart = var.security_server_chart

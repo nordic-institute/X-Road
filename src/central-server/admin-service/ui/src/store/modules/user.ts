@@ -28,7 +28,7 @@
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { defineStore } from 'pinia';
-import { Tab } from '@niis/shared-ui';
+import { Tab, useAppState } from '@niis/shared-ui';
 import { User } from '@/openapi-types';
 import { get } from '@/util/api';
 
@@ -36,7 +36,6 @@ export const useUser = defineStore('user', {
   state: () => {
     return {
       authenticated: false,
-      isSessionAlive: false,
       username: '' as string,
       permissions: [] as string[],
       roles: [] as string[],
@@ -93,7 +92,7 @@ export const useUser = defineStore('user', {
       }).then(() => {
         sessionStorage.clear();
         this.authenticated = true;
-        this.isSessionAlive = true;
+        useAppState().setSessionAlive()
       });
     },
 
@@ -101,10 +100,10 @@ export const useUser = defineStore('user', {
       return axios
         .get('/notifications/session-status')
         .then((res) => {
-          this.isSessionAlive = res?.data?.valid ?? false;
+          useAppState().setSessionAlive(res?.data?.valid ?? false);
         })
         .catch(() => {
-          this.isSessionAlive = false;
+          useAppState().setSessionAlive(false)
         });
     },
 
@@ -146,10 +145,6 @@ export const useUser = defineStore('user', {
     clearAuth() {
       // Clear auth by resetting the state
       this.$reset();
-    },
-
-    setSessionAlive(value: boolean) {
-      this.isSessionAlive = value;
     },
   },
 });

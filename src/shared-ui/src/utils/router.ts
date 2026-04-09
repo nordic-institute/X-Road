@@ -27,7 +27,7 @@
 import { createRouter, createWebHashHistory, RouteLocationNormalized, RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
 import { useNotifications } from '../composables';
-import { useHistory } from '../stores';
+import { useAppState, useHistory } from '../stores';
 import { XrdLocation, XrdRoute } from '../types';
 
 interface Config {
@@ -35,7 +35,6 @@ interface Config {
   initialisationRouteName: string;
   forbiddenRouteName: string;
   isAuthenticated: () => boolean;
-  isSessionAlive: () => boolean;
   isServerInitialized: () => boolean;
   hasAnyOfPermissions: (permissions: string[]) => boolean;
   routes: XrdRoute[];
@@ -62,11 +61,12 @@ export function createXrdRouter(config: Config): Router {
 
     // Pinia stores
     const notifications = useNotifications();
+    const appState = useAppState();
 
     // User is allowed to access any other view than login only after authenticated information has been fetched
     // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
     // user to be redirected to a view that contains api calls (s)he is not allowed.
-    if (config.isSessionAlive() && config.isAuthenticated()) {
+    if (appState.isSessionAlive() && config.isAuthenticated()) {
       // Server is not initialized
       if (!config.isServerInitialized() && to.name != config.initialisationRouteName && from.name != config.initialisationRouteName) {
         return {
