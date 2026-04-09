@@ -36,7 +36,6 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import jakarta.inject.Singleton;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
@@ -75,7 +74,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
  * Service handler for proxy monitoring.
  */
 @Slf4j
-@Singleton
 public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     public static final String SERVICE_CODE = "getSecurityServerMetrics";

@@ -52,4 +52,7 @@ interface ServiceHandler {
     ServiceHandlerResult startHandling(RequestWrapper request, ProxyMessage requestMessage, OpMonitoringData opMonitoringData)
             throws SOAPException, JAXBException, IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException,
             ParserConfigurationException, SAXException;
+
+    default void destroy() {
+    }
 }

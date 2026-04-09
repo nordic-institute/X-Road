@@ -30,8 +30,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.http.Header;
@@ -70,13 +68,11 @@ import java.util.Arrays;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL;
-import static org.niis.xroad.proxy.core.configuration.ServerProxyConfig.SERVER_PROXY_HTTP_CLIENT;
 
 /**
  * Default REST service handler that forwards the request to the configured service address.
  */
 @Slf4j
-@Singleton
 public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
 
     private final ServerConfProvider serverConfProvider;
@@ -84,7 +80,7 @@ public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
     private final CommonProperties commonProperties;
 
     public DefaultRestServiceHandlerImpl(ServerConfProvider serverConfProvider,
-                                         @Named(SERVER_PROXY_HTTP_CLIENT) HttpClient serverHttpClient,
+                                         HttpClient serverHttpClient,
                                          CommonProperties commonProperties) {
         this.serverConfProvider = serverConfProvider;
         this.serverHttpClient = serverHttpClient;

@@ -31,19 +31,16 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
@@ -63,14 +60,11 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
  * Service handler for operational monitoring.
  */
 @Slf4j
-@Singleton
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private final ProxyProperties proxyProperties;
     private final String opMonitorAddress;
-    private final VaultClient vaultClient;
-
-    private CloseableHttpClient opMonitorHttpClient;
+    private final CloseableHttpClient opMonitorHttpClient;
 
     public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider,
                                           GlobalConfProvider globalConfProvider,
@@ -78,28 +72,19 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
                                           ProxyProperties proxyProperties) {
         super(serverConfProvider, globalConfProvider);
         this.proxyProperties = proxyProperties;
-        this.vaultClient = vaultClient;
         this.opMonitorAddress = getOpMonitorAddress();
-    }
-
-    @PostConstruct
-    public void init() {
         try {
-            if (proxyProperties.addon().opMonitor().enabled()) {
-                opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
-                        proxyProperties.addon().opMonitor().connection(), vaultClient,
-                        serverConfProvider.getSSLKey());
-            }
+            this.opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                    proxyProperties.addon().opMonitor().connection(), vaultClient,
+                    serverConfProvider.getSSLKey());
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(e);
         }
     }
 
-    @PreDestroy
+    @Override
     public void destroy() {
-        if (opMonitorHttpClient != null) {
-            IOUtils.closeQuietly(opMonitorHttpClient);
-        }
+        IOUtils.closeQuietly(opMonitorHttpClient);
     }
 
     @Override

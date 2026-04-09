@@ -50,11 +50,7 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
-import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
-import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
-import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
-import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
@@ -68,8 +64,6 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
-import org.niis.xroad.proxy.core.serverproxy.DefaultRestServiceHandlerImpl;
-import org.niis.xroad.proxy.core.serverproxy.DefaultServiceHandlerImpl;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
@@ -216,20 +210,10 @@ public abstract class AbstractProxyIntegrationTest {
         var clientVerificationServiceServer = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
-        // Construct handler singletons manually (outside CDI container)
-        var metadataServiceHandler = new MetadataServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties);
-        var opMonServiceHandler =
-                new OpMonitoringServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF, new NoopVaultClient(), proxyProperties);
-        var proxyMonitorServiceHandler = new ProxyMonitorServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                mock(MonitorRpcClient.class));
-        var defaultServiceHandler = new DefaultServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF, httpSenderProviderServer);
-        var restMetadataServiceHandler = new RestMetadataServiceHandlerImpl(TEST_SERVER_CONF, proxyProperties, commonProperties);
-        var defaultRestServiceHandler = new DefaultRestServiceHandlerImpl(TEST_SERVER_CONF,
-                httpClientCreator.getHttpClient(), commonProperties);
-
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
-                proxyProperties, metadataServiceHandler, opMonServiceHandler, proxyMonitorServiceHandler,
-                defaultServiceHandler, restMetadataServiceHandler, defaultRestServiceHandler);
+                TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties, commonProperties,
+                new NoopVaultClient(), mock(MonitorRpcClient.class),
+                httpSenderProviderServer, httpClientCreator.getHttpClient());
         serviceHandlerLoader.init();
 
         var serverRestMessageProcessor = new ServerRestMessageProcessor(

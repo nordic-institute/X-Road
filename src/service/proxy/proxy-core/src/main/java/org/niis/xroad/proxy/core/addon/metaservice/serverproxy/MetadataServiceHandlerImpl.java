@@ -39,7 +39,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import jakarta.inject.Singleton;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -105,7 +104,6 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
  * Service handler for SOAP metadata services (listMethods, allowedMethods, getWsdl).
  */
 @Slf4j
-@Singleton
 public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     static final JAXBContext JAXB_CTX = initJaxbCtx();

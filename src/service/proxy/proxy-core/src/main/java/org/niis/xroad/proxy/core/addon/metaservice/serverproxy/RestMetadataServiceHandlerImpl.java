@@ -36,7 +36,6 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -81,7 +80,6 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
  * Handler for REST metadata services (listMethods, allowedMethods, getOpenAPI).
  */
 @Slf4j
-@Singleton
 public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private static final String QUERY_PARAM_SERVICECODE = "serviceCode";
