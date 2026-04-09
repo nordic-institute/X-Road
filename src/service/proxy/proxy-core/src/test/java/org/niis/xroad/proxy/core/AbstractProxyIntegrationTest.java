@@ -103,7 +103,8 @@ import java.util.Set;
 import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
 
-/** Base class for proxy integration tests. */
+/** Base class for proxy integration tests.
+ */
 public abstract class AbstractProxyIntegrationTest {
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
     private static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
@@ -198,8 +199,6 @@ public abstract class AbstractProxyIntegrationTest {
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
 
-        ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                mock(MonitorRpcClient.class), commonProperties, proxyProperties, new NoopVaultClient());
         HttpClientCreator httpClientCreator = new HttpClientCreator(TEST_SERVER_CONF,
                 proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
         ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
@@ -211,16 +210,19 @@ public abstract class AbstractProxyIntegrationTest {
         var clientVerificationServiceServer = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
+        ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
+                TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties, commonProperties,
+                new NoopVaultClient(), mock(MonitorRpcClient.class),
+                httpSenderProviderServer, httpClientCreator.getHttpClient());
+        serviceHandlerLoader.init();
+
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
-                messageSigningServiceServer, httpClientCreator.getHttpClient(),
-                clientVerificationServiceServer, opMonitoringDataHelperServer,
+                messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
-        serverRestMessageProcessor.init();
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
-                messageSigningServiceServer, httpSenderProviderServer,
-                clientVerificationServiceServer, opMonitoringDataHelperServer,
+                messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
 

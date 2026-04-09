@@ -34,10 +34,8 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.common.util.TimeUtils;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -57,7 +55,6 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
-import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidator;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
@@ -69,14 +66,9 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
@@ -84,7 +76,6 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
@@ -94,8 +85,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYP
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_DISABLED;
-import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MALFORMED_URL;
-import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 
 @Slf4j
@@ -105,7 +94,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 public class ServerSoapMessageProcessor {
 
     private final MessageSigningService messageSigningService;
-    private final HttpSenderProvider httpSenderProvider;
     private final ClientVerificationService clientVerificationService;
     private final OpMonitoringDataHelper opMonitoringDataHelper;
     private final GlobalConfProvider globalConfProvider;
@@ -114,21 +102,6 @@ public class ServerSoapMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
-
-    /**
-     * Creates a fresh set of service handlers for one request.
-     * Service handlers (e.g. MetadataServiceHandlerImpl) carry per-request mutable state
-     * (responseOut, requestMessage, responseEncoder) and therefore must NOT be shared across requests.
-     */
-    private List<ServiceHandler> createServiceHandlers() {
-        var handlers = new ArrayList<ServiceHandler>();
-        serviceHandlerLoader.loadSoapServiceHandlers().forEach(handler -> {
-            handlers.add(handler);
-            log.trace("Using service handler: {}", handler.getClass().getName());
-        });
-        handlers.add(new DefaultServiceHandlerImpl(serverConfProvider, globalConfProvider));
-        return handlers;
-    }
 
     /**
      * Processes a server-side SOAP request.
@@ -163,19 +136,16 @@ public class ServerSoapMessageProcessor {
         try {
             requestMessage = readMessage(jRequest, clientSslCerts, opMonitoringData);
 
-            var handler = prepareHandler(requestMessage, jRequest, opMonitoringData, xRequestId);
-            try {
+            try (var handlerResult = prepareHandler(requestMessage, jRequest, opMonitoringData, xRequestId)) {
                 // Encoder is created before decoding begins — available to the catch block
                 // if decodeResponse() throws partway through (e.g. invalid attachment content).
-                encoder = createEncoder(handler, jResponse);
-                var responseDecoder = decodeResponse(handler, encoder, requestMessage, opMonitoringData);
+                encoder = createEncoder(handlerResult, jResponse);
+                var responseDecoder = decodeResponse(handlerResult, encoder, requestMessage, opMonitoringData);
 
                 sign(encoder, requestMessage.getSoap().getService().getClientId());
                 logResponseMessage(responseDecoder, encoder, xRequestId);
                 writeSignature(encoder);
                 close(encoder);
-            } finally {
-                handler.finishHandling();
             }
 
             succeeded = true;
@@ -193,9 +163,8 @@ public class ServerSoapMessageProcessor {
                                      OpMonitoringData opMonitoringData) throws Exception {
         log.trace("readMessage()");
 
-        var originalSoapAction = SoapUtils.validateSoapActionHeader(jRequest.getHeaders().get(HEADER_ORIGINAL_SOAP_ACTION));
         var requestMessage = new VerifyingProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
-                commonProperties.tempFilesPath(), clientSslCerts, opMonitoringData, originalSoapAction);
+                commonProperties.tempFilesPath(), clientSslCerts, opMonitoringData);
 
         var decoder = new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory,
                 requestMessage, jRequest.getContentType(), false,
@@ -238,18 +207,20 @@ public class ServerSoapMessageProcessor {
         IdentifierValidator.checkIdentifier(requestMessage.getSoap().getSecurityServer());
     }
 
-    private ServiceHandler prepareHandler(ProxyMessage requestMessage, RequestWrapper jRequest,
-                                          OpMonitoringData opMonitoringData, String xRequestId)
+    private ServiceHandlerResult prepareHandler(ProxyMessage requestMessage, RequestWrapper jRequest,
+                                                OpMonitoringData opMonitoringData, String xRequestId)
             throws SOAPException, JAXBException, IOException, URISyntaxException,
             ParserConfigurationException, HttpClientCreator.HttpClientCreatorException, SAXException {
         var requestServiceId = requestMessage.getSoap().getService();
 
-        // Create fresh handler instances per request — service handlers carry mutable per-request state.
-        var requestHandlers = createServiceHandlers();
-        ServiceHandler handler = getServiceHandler(requestMessage, requestHandlers)
-                .orElseGet(() -> new DefaultServiceHandlerImpl(serverConfProvider, globalConfProvider));
+        ServiceHandler handler = serviceHandlerLoader.getSoapHandlers().stream()
+                .filter(h -> h.canHandle(requestServiceId, requestMessage))
+                .findFirst()
+                .orElseThrow(() -> XrdRuntimeException.systemInternalError(
+                        "No handler found for service: " + requestServiceId));
+        // orElseThrow is safe — DefaultServiceHandlerImpl always returns true from canHandle()
 
-        if (handler.shouldVerifyAccess()) {
+        if (handler.shouldVerifyAccess(requestMessage)) {
             verifyAccess(requestMessage, requestServiceId);
         }
 
@@ -261,28 +232,7 @@ public class ServerSoapMessageProcessor {
             logRequestMessage(requestMessage, xRequestId);
         }
 
-        handler.startHandling(jRequest, requestMessage, opMonitoringData);
-        return handler;
-    }
-
-    private Optional<ServiceHandler> getServiceHandler(ProxyMessage request, List<ServiceHandler> handlers) {
-        var requestServiceId = request.getSoap().getService();
-        return handlers.stream()
-                .filter(h -> h.canHandle(requestServiceId, request))
-                .findFirst();
-    }
-
-    private void verifySecurityServer(ProxyMessage requestMessage) {
-        final SecurityServerId requestServerId = requestMessage.getSoap().getSecurityServer();
-
-        if (requestServerId != null) {
-            final SecurityServerId serverId = serverConfProvider.getIdentifier();
-
-            if (!requestServerId.equals(serverId)) {
-                throw XrdRuntimeException.systemException(INVALID_SECURITY_SERVER,
-                        "Invalid security server identifier '%s' expected '%s'".formatted(requestServerId, serverId));
-            }
-        }
+        return handler.startHandling(jRequest, requestMessage, opMonitoringData);
     }
 
     private void verifyAccess(ProxyMessage requestMessage, ServiceId requestServiceId) {
@@ -328,55 +278,30 @@ public class ServerSoapMessageProcessor {
         }
     }
 
-    private void sendRequest(String serviceAddress, HttpSender httpSender, ProxyMessage requestMessage,
-                             OpMonitoringData opMonitoringData) {
-        log.trace("sendRequest({})", serviceAddress);
-
-        URI uri;
-        try {
-            uri = new URI(serviceAddress);
-        } catch (URISyntaxException e) {
-            throw XrdRuntimeException.systemException(SERVICE_MALFORMED_URL, "Malformed service address '%s': %s".formatted(serviceAddress,
-                    e.getMessage()));
-        }
-
-        log.info("Sending request to {}", uri);
-        try {
-            opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(uri, new ProxyMessageSoapEntity(requestMessage));
-            opMonitoringData.setResponseInTs(getEpochMillisecond());
-        } catch (Exception ex) {
-            if (ex instanceof XrdRuntimeException) {
-                opMonitoringData.setResponseInTs(getEpochMillisecond());
-            }
-            throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
-        }
-    }
-
     /**
      * Creates and configures the response encoder. Called before {@link #decodeResponse} so that
      * the encoder is available to the catch block even if decoding throws partway through.
      * Encoder creation cannot fail — it only allocates the encoder and writes response headers.
      */
-    private ProxyMessageEncoder createEncoder(ServiceHandler handler, ResponseWrapper jResponse) {
+    private ProxyMessageEncoder createEncoder(ServiceHandlerResult handlerResult, ResponseWrapper jResponse) {
         var encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), SoapUtils.getHashAlgoId());
         jResponse.setContentType(encoder.getContentType());
         jResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
-        jResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType());
+        jResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, handlerResult.responseContentType());
         return encoder;
     }
 
-    private ServerSoapRequestDecoder decodeResponse(ServiceHandler handler, ProxyMessageEncoder encoder,
+    private ServerSoapRequestDecoder decodeResponse(ServiceHandlerResult handlerResult, ProxyMessageEncoder encoder,
                                                     ProxyMessage requestMessage, OpMonitoringData opMonitoringData) {
         log.trace("decodeResponse()");
 
-        var responseContentType = handler.getResponseContentType();
+        var responseContentType = handlerResult.responseContentType();
         var responseDecoder = new ServerSoapRequestDecoder(opMonitoringData,
                 commonProperties.tempFilesPath(), encoder);
         try {
             var soapMessageDecoder = new SoapMessageDecoder(responseContentType, responseDecoder,
                     new ResponseStaxSoapParserImpl(requestMessage));
-            soapMessageDecoder.parse(handler.getResponseContent());
+            soapMessageDecoder.parse(handlerResult.responseContent());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
@@ -454,17 +379,14 @@ public class ServerSoapMessageProcessor {
     private final class VerifyingProxyMessage extends ProxyMessage {
         private final X509Certificate[] clientSslCerts;
         private final OpMonitoringData opMonitoringData;
-        private final String originalSoapAction;
 
         private ProxyMessageDecoder decoder;
 
         VerifyingProxyMessage(String originalContentType, String tempFilesPath,
-                              X509Certificate[] clientSslCerts, OpMonitoringData opMonitoringData,
-                              String originalSoapAction) {
+                              X509Certificate[] clientSslCerts, OpMonitoringData opMonitoringData) {
             super(originalContentType, tempFilesPath);
             this.clientSslCerts = clientSslCerts;
             this.opMonitoringData = opMonitoringData;
-            this.originalSoapAction = originalSoapAction;
         }
 
         @Override
@@ -476,7 +398,7 @@ public class ServerSoapMessageProcessor {
 
             var requestServiceId = soapMessage.getService();
 
-            verifySecurityServer(this);
+            verifySecurityServer();
             clientVerificationService.verifyClientStatus(requestServiceId.getClientId());
 
             if (proxyProperties.sslEnabled()) {
@@ -495,79 +417,18 @@ public class ServerSoapMessageProcessor {
             this.decoder = decoder;
         }
 
-        String getOriginalSoapAction() {
-            return originalSoapAction;
-        }
-    }
+        private void verifySecurityServer() {
+            final SecurityServerId requestServerId = getSoap().getSecurityServer();
 
-    private final class DefaultServiceHandlerImpl extends AbstractServiceHandler {
+            if (requestServerId != null) {
+                final SecurityServerId serverId = serverConfProvider.getIdentifier();
 
-        private HttpSender sender;
-
-        DefaultServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-            super(serverConfProvider, globalConfProvider);
-        }
-
-        @Override
-        public boolean shouldVerifyAccess() {
-            return true;
-        }
-
-        @Override
-        public boolean shouldVerifySignature() {
-            return true;
-        }
-
-        @Override
-        public boolean shouldLogSignature() {
-            return true;
-        }
-
-        @Override
-        public boolean canHandle(ServiceId requestSrvcId, ProxyMessage requestProxyMessage) {
-            return true;
-        }
-
-        @Override
-        public void startHandling(RequestWrapper request, ProxyMessage proxyRequestMessage,
-                                  OpMonitoringData monitoringData) {
-            sender = httpSenderProvider.createServerHttpSender();
-
-            var requestServiceId = proxyRequestMessage.getSoap().getService();
-            log.trace("processRequest({})", requestServiceId);
-
-            String address = serverConfProvider.getServiceAddress(requestServiceId);
-
-            if (address == null || address.isEmpty()) {
-                throw XrdRuntimeException.systemException(SERVICE_MISSING_URL, "Service address not specified for '%s'".formatted(
-                        requestServiceId));
+                if (!requestServerId.equals(serverId)) {
+                    throw XrdRuntimeException.systemException(INVALID_SECURITY_SERVER,
+                            "Invalid security server identifier '%s' expected '%s'".formatted(requestServerId, serverId));
+                }
             }
-
-            int timeout = TimeUtils.secondsToMillis(serverConfProvider.getServiceTimeout(requestServiceId));
-
-            sender.setConnectionTimeout(timeout);
-            sender.setSocketTimeout(timeout);
-            sender.setAttribute(ServiceId.class.getName(), requestServiceId);
-
-            sender.addHeader("accept-encoding", "");
-            sender.addHeader("SOAPAction", ((VerifyingProxyMessage) proxyRequestMessage).getOriginalSoapAction());
-            sendRequest(address, sender, proxyRequestMessage, monitoringData);
-        }
-
-        @Override
-        public void finishHandling() {
-            sender.close();
-            sender = null;
-        }
-
-        @Override
-        public String getResponseContentType() {
-            return sender.getResponseContentType();
-        }
-
-        @Override
-        public InputStream getResponseContent() {
-            return sender.getResponseContent();
         }
     }
+
 }

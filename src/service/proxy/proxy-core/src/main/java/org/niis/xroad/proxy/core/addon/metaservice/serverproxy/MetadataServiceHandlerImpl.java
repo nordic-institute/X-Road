@@ -32,7 +32,6 @@ import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
 import ee.ria.xroad.common.message.SimpleSoapEncoder;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
@@ -46,6 +45,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -60,9 +60,11 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.metaservice.common.WsdlRequestData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
+import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerResult;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.w3c.dom.Node;
@@ -84,8 +86,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -100,6 +100,9 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.ALLOWED_METHODS;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.GET_WSDL;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
 
+/**
+ * Service handler for SOAP metadata services (listMethods, allowedMethods, getWsdl).
+ */
 @Slf4j
 public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
@@ -108,21 +111,17 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     public static final String WSDL_ENDPOINT_ADDRESS = "http://example.org/xroad-endpoint";
 
-    private final ByteArrayOutputStream responseOut =
-            new ByteArrayOutputStream();
-
-
-    private SoapMessageImpl requestMessage;
-    private SoapMessageEncoder responseEncoder;
-
     private final HttpClientCreator wsdlHttpClientCreator;
 
     private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
 
-    public MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
-                                      String[] tlsProtocols, String[] tlsCipherSuites) {
+    public MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider,
+                                      GlobalConfProvider globalConfProvider,
+                                      ProxyProperties proxyProperties) {
         super(serverConfProvider, globalConfProvider);
-        wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider, tlsProtocols, tlsCipherSuites);
+        this.wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider,
+                proxyProperties.clientProxy().clientTlsProtocols(),
+                proxyProperties.clientProxy().clientTlsCiphers());
     }
 
     private static SAXTransformerFactory createSaxTransformerFactory() {
@@ -136,7 +135,7 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public boolean shouldVerifyAccess() {
+    public boolean shouldVerifyAccess(ProxyMessage requestMessage) {
         return false;
     }
 
@@ -151,42 +150,24 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public boolean canHandle(ServiceId requestServiceId,
-                             ProxyMessage requestProxyMessage) {
-
-        requestMessage = requestProxyMessage.getSoap();
-
+    public boolean canHandle(ServiceId requestServiceId, ProxyMessage requestProxyMessage) {
         return switch (requestServiceId.getServiceCode()) {
-            case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
-                try (var in = new PipedInputStream()) {
-                    @SuppressWarnings("java:S2095")// out is closed in try-with-resources
-                    var out = new PipedOutputStream(in);
-                    Thread.startVirtualThread(() -> {
-                        try (out) {
-                            requestProxyMessage.writeSoapContent(out);
-                        } catch (IOException e) {
-                            throw XrdRuntimeException.systemInternalError("Failed to write soap content", e);
-                        }
-                    });
-                    requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(requestProxyMessage.getSoapContentType(), in);
-                } catch (IOException e) {
-                    throw XrdRuntimeException.systemInternalError("Failed to parse request message", e);
-                }
-                yield true;
-            }
+            case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> true;
             default -> false;
         };
     }
 
     @Override
-    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              OpMonitoringData opMonitoringData)
-            throws SOAPException, JAXBException, IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException {
+    public ServiceHandlerResult startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                                              OpMonitoringData opMonitoringData)
+            throws SOAPException, JAXBException, IOException, URISyntaxException,
+            HttpClientCreator.HttpClientCreatorException, ParserConfigurationException, SAXException {
 
+        var requestMessage = proxyRequestMessage.getSoap();
+        var responseOut = new ByteArrayOutputStream();
         final String serviceCode = requestMessage.getService().getServiceCode();
 
-        // Only get wsdl needs to be a multipart message
-        responseEncoder = GET_WSDL.equals(serviceCode)
+        SoapMessageEncoder responseEncoder = GET_WSDL.equals(serviceCode)
                 ? new MultipartSoapMessageEncoder(responseOut)
                 : new SimpleSoapEncoder(responseOut);
 
@@ -198,32 +179,21 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         opMonitoringData.setServiceType(DescriptionType.WSDL.name());
 
         switch (serviceCode) {
-            case LIST_METHODS -> handleListMethods(requestMessage);
-            case ALLOWED_METHODS -> handleAllowedMethods(requestMessage);
-            case GET_WSDL -> handleGetWsdl(requestMessage);
+            case LIST_METHODS -> handleListMethods(requestMessage, responseEncoder);
+            case ALLOWED_METHODS -> handleAllowedMethods(requestMessage, responseEncoder);
+            case GET_WSDL -> handleGetWsdl(requestMessage, responseEncoder);
             default -> {
             }
         }
-    }
 
-    @Override
-    public void finishHandling() {
-        // nothing to do
-    }
-
-    @Override
-    public String getResponseContentType() {
-        return responseEncoder.getContentType();
-    }
-
-    @Override
-    public InputStream getResponseContent() {
-        return new ByteArrayInputStream(responseOut.toByteArray());
+        return new ServiceHandlerResult(responseEncoder.getContentType(),
+                new ByteArrayInputStream(responseOut.toByteArray()));
     }
 
 // ------------------------------------------------------------------------
 
-    private void handleListMethods(SoapMessageImpl request) throws SOAPException, JAXBException, IOException {
+    private void handleListMethods(SoapMessageImpl request, SoapMessageEncoder responseEncoder)
+            throws SOAPException, JAXBException, IOException {
         log.trace("handleListMethods()");
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
@@ -235,7 +205,7 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         responseEncoder.soap(result, new HashMap<>());
     }
 
-    private void handleAllowedMethods(SoapMessageImpl request)
+    private void handleAllowedMethods(SoapMessageImpl request, SoapMessageEncoder responseEncoder)
             throws SOAPException, JAXBException, IOException {
         log.trace("handleAllowedMethods()");
 
@@ -250,14 +220,15 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         responseEncoder.soap(result, new HashMap<>());
     }
 
-    private void handleGetWsdl(SoapMessageImpl request)
-            throws JAXBException, SOAPException, URISyntaxException, IOException, HttpClientCreator.HttpClientCreatorException {
+    private void handleGetWsdl(SoapMessageImpl request, SoapMessageEncoder responseEncoder)
+            throws JAXBException, SOAPException, URISyntaxException, IOException,
+            HttpClientCreator.HttpClientCreatorException {
         log.trace("handleGetWsdl()");
 
         Unmarshaller um = JaxbUtils.createUnmarshaller(WsdlRequestData.class);
 
         WsdlRequestData requestData = um.unmarshal(
-                SoapUtils.getFirstChild(request.getSoap().getSOAPBody()),
+                SoapUtils.getFirstChild(resolveSoapMessage(request).getSOAPBody()),
                 WsdlRequestData.class).getValue();
 
         if (StringUtils.isBlank(requestData.getServiceCode())) {
@@ -282,7 +253,18 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         }
     }
 
-// ------------------------------------------------------------------------
+    /**
+     * Returns the underlying {@link SOAPMessage} for the given {@link SoapMessageImpl}.
+     * When parsed by {@link ee.ria.xroad.common.message.StaxEventSoapParserImpl} (used by the
+     * server-side request decoder), the SAAJ {@code SOAPMessage} is not constructed — it is null.
+     * This method re-parses from the raw bytes in that case so that callers can access the SOAP body DOM.
+     */
+    private SOAPMessage resolveSoapMessage(SoapMessageImpl request) throws SOAPException, IOException {
+        if (request.getSoap() != null) {
+            return request.getSoap();
+        }
+        return SoapUtils.createSOAPMessage(new ByteArrayInputStream(request.getBytes()), request.getCharset());
+    }
 
     private String getWsdlUrl(ServiceId service) {
         DescriptionType type = serverConfProvider.getDescriptionType(service);
