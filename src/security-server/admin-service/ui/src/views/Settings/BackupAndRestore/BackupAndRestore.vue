@@ -35,7 +35,7 @@
       :can-backup="canBackup"
       :backups="backups"
       :loading="loadingBackups"
-      :backup-handler="backupHandler()"
+      :backup-handler="backupHandler"
       @delete="fetchData"
       @create-backup="fetchData"
       @upload-backup="fetchData"
@@ -43,70 +43,47 @@
   </XrdView>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 /**
  * View for 'backup and restore' tab
  */
-import { defineComponent } from 'vue';
+import { computed, ref } from 'vue';
 import { Permissions } from '@/global';
 import { Backup } from '@/openapi-types';
-import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { XrdView, useNotifications, BackupHandler, XrdBackupsDataTable } from '@niis/shared-ui';
+import { BackupHandler, useNotifications, XrdBackupsDataTable, XrdView } from '@niis/shared-ui';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 import { useBackups } from '@/store/modules/backups';
 
-export default defineComponent({
-  components: {
-    SettingsTabs,
-    XrdView,
-    XrdBackupsDataTable,
-  },
-  setup() {
-    const { addError } = useNotifications();
-    const backupStore = useBackups();
-    return { addError, backupStore };
-  },
-  data() {
-    return {
-      search: '' as string,
-      creatingBackup: false,
-      uploadingBackup: false,
-      needsConfirmation: false,
-      uploadedFile: null as File | null,
-      backups: [] as Backup[],
-      loadingBackups: false,
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['hasPermission']),
-    canBackup(): boolean {
-      return this.hasPermission(Permissions.BACKUP_CONFIGURATION);
-    },
-  },
-  created(): void {
-    this.fetchData();
-  },
-  methods: {
-    backupHandler(): BackupHandler {
-      return {
-        create: this.backupStore.createBackup,
-        upload: this.backupStore.uploadBackup,
-        delete: this.backupStore.deleteBackup,
-        download: this.backupStore.downloadBackup,
-        restore: this.backupStore.restoreBackup,
-      };
-    },
-    async fetchData() {
-      this.loadingBackups = true;
-      return this.backupStore
-        .fetchData()
-        .then((data) => (this.backups = data))
-        .catch((error) => this.addError(error))
-        .finally(() => (this.loadingBackups = false));
-    },
-  },
-});
+
+const { addError } = useNotifications();
+const backupStore = useBackups();
+const { hasPermission } = useUser();
+
+const backups = ref([] as Backup[]);
+const loadingBackups = ref(false);
+
+const canBackup = computed(() => hasPermission(Permissions.BACKUP_CONFIGURATION));
+
+const backupHandler: BackupHandler = {
+  create: backupStore.createBackup,
+  upload: backupStore.uploadBackup,
+  delete: backupStore.deleteBackup,
+  download: backupStore.downloadBackup,
+  restore: backupStore.restoreBackup,
+};
+
+
+async function fetchData() {
+  loadingBackups.value = true;
+  return backupStore
+    .fetchData()
+    .then((data) => (backups.value = data))
+    .catch((error) => addError(error))
+    .finally(() => (loadingBackups.value = false));
+}
+
+fetchData();
 </script>
 
 <style lang="scss" scoped></style>

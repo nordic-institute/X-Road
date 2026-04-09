@@ -25,14 +25,14 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
+import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.time.Duration;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
@@ -44,7 +44,9 @@ import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextFie
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
+    public static final int WAIT_FOR_RESTART = 30;
     private final BackupAndRestorePageObj backupAndRestorePageObj = new BackupAndRestorePageObj();
+    private final LoginPageObj loginPageObj = new LoginPageObj();
 
     private File downloadedBackup;
     private String createdBackupName;
@@ -64,19 +66,27 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Configuration can be successfully restored from backup")
-    @SuppressWarnings("checkstyle:MagicNumber")
     public void configurationIsSuccessfullyRestoredFromBackup() {
         backupAndRestorePageObj.btnRestoreConfigurationFromBackup().click();
         commonPageObj.dialog.btnCancel().shouldBe(enabled);
         commonPageObj.dialog.btnSave().shouldBe(enabled).click();
 
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
+    }
 
-        //rerun serverconf-inidb container
+    @Step("Service restarting dialog is displayed")
+    public void serviceRestartingDialogIsDisplayed() {
+        backupAndRestorePageObj.restartingDialog().shouldBe(visible, Duration.ofSeconds(WAIT_FOR_RESTART));
+    }
+
+    @Step("Login page is displayed after service restart")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void loginPageIsDisplayedAfterServiceRestart() {
+        // rerun serverconf-init db container after restore
         systemTestContainerSetup.start(DB_SERVERCONF_INIT, false);
 
-        Selenide.sleep(4000); // wait for the global conf reload (every 3s)
+        loginPageObj.inputUsername().shouldBe(visible, Duration.ofSeconds(120));
     }
 
     @Step("Configuration backup is downloaded")
@@ -95,7 +105,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
 
         backupAndRestorePageObj.inputConfigurationBackupBackupFile().uploadFile(downloadedBackup);
 
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
 
@@ -108,7 +118,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().shouldBe(enabled);
         commonPageObj.dialog.btnSave().shouldBe(enabled).click();
 
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
 
@@ -118,7 +128,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().shouldBe(enabled);
         commonPageObj.dialog.btnSave().shouldBe(enabled).click();
 
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
 

@@ -39,19 +39,20 @@
 </template>
 
 <script lang="ts" setup>
-import { Timeouts } from '@/global';
 import { useAlerts } from '@/store/modules/alerts';
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
 
 import AlertsContainer from '@/components/AlertsContainer.vue';
 import AppToolbar from '@/layouts/AppToolbar.vue';
+import { POLL_SESSION_TIMEOUT, useAppState } from "@niis/shared-ui";
 
 const userStore = useUser();
 const { checkAlerts } = useAlerts();
 const systemStore = useSystem();
+const appStateStore = useAppState();
 
-const sessionPollInterval = setInterval(() => pollSessionStatus(), Timeouts.POLL_SESSION_TIMEOUT);
+pollSessionStatus();
 systemStore.fetchSystemStatus();
 
 async function pollSessionStatus() {
@@ -63,8 +64,8 @@ async function pollSessionStatus() {
       checkAlerts();
     })
     .finally(() => {
-      if (!userStore.isSessionAlive) {
-        clearInterval(sessionPollInterval);
+      if (appStateStore.isSessionAlive()) {
+        window.setTimeout(pollSessionStatus, POLL_SESSION_TIMEOUT)
       }
     });
 }

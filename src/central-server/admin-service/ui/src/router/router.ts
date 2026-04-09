@@ -45,8 +45,5 @@ export default createXrdRouter({
   isServerInitialized(): boolean {
     return useSystem().isServerInitialized;
   },
-  isSessionAlive(): boolean {
-    return useUser().isSessionAlive;
-  },
   routes,
 });

@@ -28,3 +28,4 @@
 export * from './notifications-container';
 export * from './history';
 export * from './data';
+export * from './app-state';

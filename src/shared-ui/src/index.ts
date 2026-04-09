@@ -26,6 +26,7 @@
  */
 
 export * from './plugins/vuetify'; //Keep at the top
+export * from './plugins/pinia';
 
 //resources&assets
 export * from './components';

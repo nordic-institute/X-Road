@@ -47,6 +47,11 @@ Feature: 0600 - SS: Backup and Restore
     And Backup and Restore sub-tab is selected
     And Configuration backup count is equal to 1
     Then Configuration can be successfully restored from backup
+    And Service restarting dialog is displayed
+    And Login page is displayed after service restart
+    When User xrd logs in to SecurityServer with password secret
+    And Settings tab is selected
+    And Backup and Restore sub-tab is selected
     When Configuration backup is created
     Then Configuration backup count is equal to 2
     When Clients tab is selected
