@@ -103,8 +103,6 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
 
 /**
  * Service handler for SOAP metadata services (listMethods, allowedMethods, getWsdl).
- * This is a top-level {@link Singleton} CDI singleton — all per-request state is
- * kept in method-local variables and returned via {@link ServiceHandlerResult}.
  */
 @Slf4j
 @Singleton

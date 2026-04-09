@@ -58,8 +58,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL
 
 /**
  * Default SOAP service handler that forwards the request to the configured service address.
- * This is a top-level {@link Singleton} CDI singleton — all per-request state is
- * kept in method-local variables and returned via {@link ServiceHandlerResult}.
  */
 @Slf4j
 @Singleton

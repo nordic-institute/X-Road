@@ -79,8 +79,6 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
 
 /**
  * Handler for REST metadata services (listMethods, allowedMethods, getOpenAPI).
- * This is a top-level {@link Singleton} CDI singleton — all per-request state is
- * kept in method-local variables and returned via {@link RestServiceHandlerResult}.
  */
 @Slf4j
 @Singleton

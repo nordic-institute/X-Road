@@ -73,8 +73,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 
 /**
  * Service handler for proxy monitoring.
- * This is a top-level {@link Singleton} CDI singleton — all per-request state is
- * kept in method-local variables and returned via {@link ServiceHandlerResult}.
  */
 @Slf4j
 @Singleton

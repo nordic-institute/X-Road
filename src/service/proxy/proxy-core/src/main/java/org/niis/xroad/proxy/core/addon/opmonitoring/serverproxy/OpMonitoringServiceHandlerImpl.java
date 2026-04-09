@@ -61,11 +61,6 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
 
 /**
  * Service handler for operational monitoring.
- * This is a top-level {@link Singleton} CDI singleton — all per-request state is
- * kept in method-local variables and returned via {@link ServiceHandlerResult}.
- * The {@code opMonitorHttpClient} field is set after construction via
- * {@link #setOpMonitorHttpClient(HttpClient)} because it requires SSL keys
- * from {@link ServerConfProvider} which are only available after startup.
  */
 @Slf4j
 @Singleton
