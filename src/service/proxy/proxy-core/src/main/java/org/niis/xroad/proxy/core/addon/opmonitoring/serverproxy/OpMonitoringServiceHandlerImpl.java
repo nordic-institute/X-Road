@@ -31,19 +31,26 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxy.core.serverproxy.ProxyMessageSoapEntity;
+import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerResult;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -54,32 +61,54 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
 
 /**
  * Service handler for operational monitoring.
+ * This is a top-level {@link ApplicationScoped} CDI singleton — all per-request state is
+ * kept in method-local variables and returned via {@link ServiceHandlerResult}.
+ * The {@code opMonitorHttpClient} field is set after construction via
+ * {@link #setOpMonitorHttpClient(HttpClient)} because it requires SSL keys
+ * from {@link ServerConfProvider} which are only available after startup.
  */
 @Slf4j
+@ApplicationScoped
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
-    private final ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties;
-
+    private final ProxyProperties proxyProperties;
     private final String opMonitorAddress;
+    private final VaultClient vaultClient;
 
-    private final boolean isEnabledPooledConnectionReuse;
-    private final HttpClient opMonitorHttpClient;
+    private CloseableHttpClient opMonitorHttpClient;
 
-
-    private HttpSender sender;
-
-    public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
-                                          ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
-                                          HttpClient opMonitorHttpClient, boolean isEnabledPooledConnectionReuse) {
+    public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider,
+                                          GlobalConfProvider globalConfProvider,
+                                          VaultClient vaultClient,
+                                          ProxyProperties proxyProperties) {
         super(serverConfProvider, globalConfProvider);
-        this.opMonitorProperties = opMonitorProperties;
+        this.proxyProperties = proxyProperties;
+        this.vaultClient = vaultClient;
         this.opMonitorAddress = getOpMonitorAddress();
-        this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
-        this.opMonitorHttpClient = opMonitorHttpClient;
+    }
+
+    @PostConstruct
+    public void init() {
+        try {
+            if (proxyProperties.addon().opMonitor().enabled()) {
+                opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                        proxyProperties.addon().opMonitor().connection(), vaultClient,
+                        serverConfProvider.getSSLKey());
+            }
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (opMonitorHttpClient != null) {
+            IOUtils.closeQuietly(opMonitorHttpClient);
+        }
     }
 
     @Override
-    public boolean shouldVerifyAccess() {
+    public boolean shouldVerifyAccess(ProxyMessage requestMessage) {
         return false;
     }
 
@@ -94,8 +123,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public boolean canHandle(ServiceId requestServiceId,
-                             ProxyMessage proxyRequestMessage) {
+    public boolean canHandle(ServiceId requestServiceId, ProxyMessage proxyRequestMessage) {
         return switch (requestServiceId.getServiceCode()) {
             case GET_SECURITY_SERVER_HEALTH_DATA, GET_SECURITY_SERVER_OPERATIONAL_DATA ->
                     requestServiceId.getClientId().equals(serverConfProvider.getIdentifier().getOwner());
@@ -104,39 +132,26 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              OpMonitoringData opMonitoringData) {
+    public ServiceHandlerResult startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                                              OpMonitoringData opMonitoringData) {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
-        sender = createHttpSender(opMonitorHttpClient);
-        sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().connectionTimeoutSeconds()));
-        sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorProperties.connection().socketTimeoutSeconds()));
+        var sender = createHttpSender(opMonitorHttpClient);
+        var connectionProps = proxyProperties.addon().opMonitor().connection();
+        sender.setConnectionTimeout(TimeUtils.secondsToMillis(connectionProps.connectionTimeoutSeconds()));
+        sender.setSocketTimeout(TimeUtils.secondsToMillis(connectionProps.socketTimeoutSeconds()));
         sender.addHeader("accept-encoding", "");
 
-        sendRequest(proxyRequestMessage, opMonitoringData);
-    }
+        sendRequest(sender, proxyRequestMessage, opMonitoringData);
 
-    @Override
-    public void finishHandling() {
-        sender.close();
-        sender = null;
-    }
-
-    @Override
-    public String getResponseContentType() {
-        return sender.getResponseContentType();
-    }
-
-    @Override
-    public InputStream getResponseContent() {
-        return sender.getResponseContent();
+        return new ServiceHandlerResult(sender.getResponseContentType(), sender.getResponseContent(), sender);
     }
 
     private HttpSender createHttpSender(HttpClient opMonitorClient) {
-        return new HttpSender(opMonitorClient, isEnabledPooledConnectionReuse);
+        return new HttpSender(opMonitorClient, proxyProperties.clientProxy().poolEnableConnectionReuse());
     }
 
-    private void sendRequest(ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData) {
+    private void sendRequest(HttpSender sender, ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData) {
         log.trace("sendRequest {}", opMonitorAddress);
 
         URI opMonitorUri;
@@ -168,9 +183,9 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private String getOpMonitorAddress() {
         return String.format("%s://%s:%s%s",
-                opMonitorProperties.connection().scheme(),
-                opMonitorProperties.connection().host(),
-                opMonitorProperties.connection().port(),
+                proxyProperties.addon().opMonitor().connection().scheme(),
+                proxyProperties.addon().opMonitor().connection().host(),
+                proxyProperties.addon().opMonitor().connection().port(),
                 OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
     }
 

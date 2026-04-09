@@ -50,7 +50,11 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
@@ -64,6 +68,8 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
+import org.niis.xroad.proxy.core.serverproxy.DefaultRestServiceHandlerImpl;
+import org.niis.xroad.proxy.core.serverproxy.DefaultServiceHandlerImpl;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
@@ -103,7 +109,8 @@ import java.util.Set;
 import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
 
-/** Base class for proxy integration tests. */
+/** Base class for proxy integration tests.
+ */
 public abstract class AbstractProxyIntegrationTest {
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
     private static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
@@ -198,8 +205,6 @@ public abstract class AbstractProxyIntegrationTest {
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
 
-        ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                mock(MonitorRpcClient.class), commonProperties, proxyProperties, new NoopVaultClient());
         HttpClientCreator httpClientCreator = new HttpClientCreator(TEST_SERVER_CONF,
                 proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
         ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
@@ -211,16 +216,29 @@ public abstract class AbstractProxyIntegrationTest {
         var clientVerificationServiceServer = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
+        // Construct handler singletons manually (outside CDI container)
+        var metadataServiceHandler = new MetadataServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties);
+        var opMonServiceHandler =
+                new OpMonitoringServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF, new NoopVaultClient(), proxyProperties);
+        var proxyMonitorServiceHandler = new ProxyMonitorServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
+                mock(MonitorRpcClient.class));
+        var defaultServiceHandler = new DefaultServiceHandlerImpl(TEST_SERVER_CONF, TEST_GLOBAL_CONF, httpSenderProviderServer);
+        var restMetadataServiceHandler = new RestMetadataServiceHandlerImpl(TEST_SERVER_CONF, proxyProperties, commonProperties);
+        var defaultRestServiceHandler = new DefaultRestServiceHandlerImpl(TEST_SERVER_CONF,
+                httpClientCreator.getHttpClient(), commonProperties);
+
+        ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
+                proxyProperties, metadataServiceHandler, opMonServiceHandler, proxyMonitorServiceHandler,
+                defaultServiceHandler, restMetadataServiceHandler, defaultRestServiceHandler);
+        serviceHandlerLoader.init();
+
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
-                messageSigningServiceServer, httpClientCreator.getHttpClient(),
-                clientVerificationServiceServer, opMonitoringDataHelperServer,
+                messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
-        serverRestMessageProcessor.init();
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
-                messageSigningServiceServer, httpSenderProviderServer,
-                clientVerificationServiceServer, opMonitoringDataHelperServer,
+                messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
 

@@ -26,80 +26,85 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
-import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
+/**
+ * Registry/router that holds pre-built ordered lists of CDI singleton service handlers.
+ * Handler lists are built once at {@link PostConstruct} startup and returned as immutable lists.
+ * No handler instances are created per-request.
+ */
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ServiceHandlerLoader {
-    private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
-    private final MonitorRpcClient monitorRpcClient;
-    private final CommonProperties commonProperties;
-    private final ProxyProperties proxyProperties;
-    private final VaultClient vaultClient;
 
-    private CloseableHttpClient opMonitorHttpClient = null;
+    // Feature-flag deps for handler filtering and opMonitorHttpClient lifecycle:
+    private final ProxyProperties proxyProperties;
+
+    // CDI-injected handler singletons:
+    private final MetadataServiceHandlerImpl metadataServiceHandler;
+    private final OpMonitoringServiceHandlerImpl opMonitoringServiceHandler;
+    private final ProxyMonitorServiceHandlerImpl proxyMonitorServiceHandler;
+    private final DefaultServiceHandlerImpl defaultServiceHandler;
+    private final RestMetadataServiceHandlerImpl restMetadataServiceHandler;
+    private final DefaultRestServiceHandlerImpl defaultRestServiceHandler;
+
+    // Pre-built ordered handler lists (immutable after init):
+    private List<ServiceHandler> soapHandlers;
+    private List<RestServiceHandler> restHandlers;
 
     @PostConstruct
     public void init() {
-        try {
-            if (proxyProperties.addon().opMonitor().enabled()) {
-                opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
-                        proxyProperties.addon().opMonitor().connection(), vaultClient,
-                        serverConfProvider.getSSLKey());
-            }
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemException(e);
-        }
+        buildSoapHandlerList();
+        buildRestHandlerList();
     }
 
-    @PreDestroy
-    public void destroy() {
-        IOUtils.closeQuietly(opMonitorHttpClient);
-    }
-
-    Collection<ServiceHandler> loadSoapServiceHandlers() {
-        Collection<ServiceHandler> handlers = new ArrayList<>();
+    private void buildSoapHandlerList() {
+        var handlers = new ArrayList<ServiceHandler>();
         if (proxyProperties.addon().metaservices().enabled()) {
-            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                    proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers()));
+            handlers.add(metadataServiceHandler);
         }
         if (proxyProperties.addon().opMonitor().enabled()) {
-            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, proxyProperties.addon().opMonitor(),
-                    opMonitorHttpClient, proxyProperties.clientProxy().poolEnableConnectionReuse()));
+            handlers.add(opMonitoringServiceHandler);
         }
         if (proxyProperties.addon().proxyMonitor().enabled()) {
-            handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
+            handlers.add(proxyMonitorServiceHandler);
         }
-        return handlers;
+        handlers.add(defaultServiceHandler);  // always last — canHandle() always returns true
+        soapHandlers = List.copyOf(handlers);
     }
 
-    Collection<RestServiceHandler> loadRestServiceHandlers() {
-        Collection<RestServiceHandler> handlers = new ArrayList<>();
+    private void buildRestHandlerList() {
+        var handlers = new ArrayList<RestServiceHandler>();
         if (proxyProperties.addon().metaservices().enabled()) {
-            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),
-                    proxyProperties.clientProxy().clientTlsCiphers(), commonProperties.tempFilesPath()));
+            handlers.add(restMetadataServiceHandler);
         }
-        return handlers;
+        handlers.add(defaultRestServiceHandler);  // always last — canHandle() always returns true
+        restHandlers = List.copyOf(handlers);
+    }
+
+    /**
+     * Returns the pre-built ordered list of SOAP service handlers.
+     * The default handler is always last.
+     */
+    List<ServiceHandler> getSoapHandlers() {
+        return soapHandlers;
+    }
+
+    /**
+     * Returns the pre-built ordered list of REST service handlers.
+     * The default handler is always last.
+     */
+    List<RestServiceHandler> getRestHandlers() {
+        return restHandlers;
     }
 
 }

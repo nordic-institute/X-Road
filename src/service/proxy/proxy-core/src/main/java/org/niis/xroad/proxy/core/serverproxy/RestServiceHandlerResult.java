@@ -25,31 +25,16 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.message.RestResponse;
 
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
+import org.niis.xroad.proxy.core.util.CachingStream;
 
 /**
- * Rest service handler interface
+ * Per-request result returned by {@link RestServiceHandler#startHandling}.
+ * Carries the REST response and body that the processor needs after handler execution.
  */
-public interface RestServiceHandler {
-    boolean shouldVerifyAccess();
-
-    boolean shouldVerifySignature();
-
-    boolean shouldLogSignature();
-
-    boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
-
-    RestServiceHandlerResult startHandling(RequestWrapper request,
-                                           ProxyMessage requestMessage,
-                                           ProxyMessageEncoder messageEncoder,
-                                           OpMonitoringData opMonitoringData)
-            throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException;
+public record RestServiceHandlerResult(
+        RestResponse restResponse,
+        CachingStream restResponseBody
+) {
 }

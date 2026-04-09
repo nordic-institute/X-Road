@@ -34,37 +34,13 @@ import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.TimeUtils;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.input.TeeInputStream;
-import org.apache.http.Header;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
-import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
@@ -87,12 +63,8 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
@@ -100,23 +72,20 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
-import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_DISABLED;
-import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
-import static org.niis.xroad.proxy.core.configuration.ServerProxyConfig.SERVER_PROXY_HTTP_CLIENT;
 
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor
 @ArchUnitSuppressed("NoVanillaExceptions")
 public class ServerRestMessageProcessor {
 
     private final MessageSigningService messageSigningService;
-    private final HttpClient serverHttpClient;
     private final ClientVerificationService clientVerificationService;
     private final OpMonitoringDataHelper opMonitoringDataHelper;
     private final GlobalConfProvider globalConfProvider;
@@ -125,42 +94,6 @@ public class ServerRestMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
-
-    private List<RestServiceHandler> handlers;
-
-    public ServerRestMessageProcessor(MessageSigningService messageSigningService,
-                                      @Named(SERVER_PROXY_HTTP_CLIENT) HttpClient serverHttpClient,
-                                      ClientVerificationService clientVerificationService,
-                                      OpMonitoringDataHelper opMonitoringDataHelper,
-                                      GlobalConfProvider globalConfProvider,
-                                      ServerConfProvider serverConfProvider,
-                                      ProxyProperties proxyProperties,
-                                      CommonProperties commonProperties,
-                                      OcspVerifierFactory ocspVerifierFactory,
-                                      ServiceHandlerLoader serviceHandlerLoader) {
-        this.messageSigningService = messageSigningService;
-        this.serverHttpClient = serverHttpClient;
-        this.clientVerificationService = clientVerificationService;
-        this.opMonitoringDataHelper = opMonitoringDataHelper;
-        this.globalConfProvider = globalConfProvider;
-        this.serverConfProvider = serverConfProvider;
-        this.proxyProperties = proxyProperties;
-        this.commonProperties = commonProperties;
-        this.ocspVerifierFactory = ocspVerifierFactory;
-        this.serviceHandlerLoader = serviceHandlerLoader;
-    }
-
-    /**
-     * Initialises the REST service handler list once at startup.
-     */
-    @PostConstruct
-    public void init() {
-        handlers = new ArrayList<>();
-        serviceHandlerLoader.loadRestServiceHandlers().forEach(handler -> {
-            handlers.add(handler);
-            log.trace("Loaded rest service handler: {}", handler.getClass().getName());
-        });
-    }
 
     /**
      * Processes a server-side REST request.
@@ -286,12 +219,9 @@ public class ServerRestMessageProcessor {
         if (handler.shouldLogSignature()) {
             logRequestMessage(requestMessage, jRequest.getHeaders().get(HEADER_REQUEST_ID));
         }
-        try {
-            handler.startHandling(jRequest, requestMessage, encoder, opMonitoringData);
-        } finally {
-            handler.finishHandling();
-        }
-        return new HandleResult(handler.getRestResponse(), handler.getRestResponseBody());
+        var result = handler.startHandling(jRequest, requestMessage, encoder, opMonitoringData);
+        // No finishHandling() needed — REST handlers have no closeable resources
+        return new HandleResult(result.restResponse(), result.restResponseBody());
     }
 
     private void verifyAccess(ServiceId requestServiceId, VerifyingProxyMessage requestMessage) {
@@ -373,13 +303,13 @@ public class ServerRestMessageProcessor {
         return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
-    private RestServiceHandler getServiceHandler(VerifyingProxyMessage request, ServiceId requestServiceId) {
-        for (RestServiceHandler handler : handlers) {
-            if (handler.canHandle(requestServiceId, request)) {
-                return handler;
-            }
-        }
-        return new DefaultRestServiceHandlerImpl(serverConfProvider, serverHttpClient, commonProperties.tempFilesPath(), request);
+    private RestServiceHandler getServiceHandler(ProxyMessage request, ServiceId requestServiceId) {
+        return serviceHandlerLoader.getRestHandlers().stream()
+                .filter(h -> h.canHandle(requestServiceId, request))
+                .findFirst()
+                .orElseThrow(() -> XrdRuntimeException.systemInternalError(
+                        "No REST handler found for service: " + requestServiceId));
+        // orElseThrow is safe — DefaultRestServiceHandlerImpl always returns true from canHandle()
     }
 
     private static DigestAlgorithm getHashAlgoId(RequestWrapper request) {
@@ -436,151 +366,13 @@ public class ServerRestMessageProcessor {
             }
         }
 
+        /**
+         * Verifies the request signature against the client identity and signature from the decoded message.
+         */
         public void verifySignature() {
             log.trace("verifySignature()");
             getDecoder().verify(getRest().getClientId(), getSignature());
         }
     }
 
-    @RequiredArgsConstructor
-    private static final class DefaultRestServiceHandlerImpl implements RestServiceHandler {
-        private final ServerConfProvider serverConfProvider;
-        private final HttpClient serverHttpClient;
-        private final String tempFilesPath;
-        private final VerifyingProxyMessage proxyMessage;
-
-        private RestResponse restResponse;
-        private CachingStream restResponseBody;
-
-        private String concatPath(String address, String path) {
-            if (path == null || path.isEmpty()) return address;
-            if (address.endsWith("/") && path.startsWith("/")) {
-                return address.concat(path.substring(1));
-            }
-            return address.concat(path);
-        }
-
-        @Override
-        public boolean shouldVerifyAccess() {
-            return true;
-        }
-
-        @Override
-        public boolean shouldVerifySignature() {
-            return true;
-        }
-
-        @Override
-        public boolean shouldLogSignature() {
-            return true;
-        }
-
-        @Override
-        public boolean canHandle(ServiceId requestSrvcId, ProxyMessage requestProxyMessage) {
-            return true;
-        }
-
-        @Override
-        @ArchUnitSuppressed("NoVanillaExceptions")
-        public void startHandling(RequestWrapper request, ProxyMessage requestProxyMessage,
-                                  ProxyMessageEncoder messageEncoder,
-                                  OpMonitoringData monitoringData) throws IOException {
-            String address = serverConfProvider.getServiceAddress(requestProxyMessage.getRest().getServiceId());
-            if (address == null || address.isEmpty()) {
-                throw XrdRuntimeException.systemException(SERVICE_MISSING_URL, "Service address not specified for '%s'".formatted(
-                        requestProxyMessage.getRest().getServiceId()));
-            }
-
-            address = concatPath(address, requestProxyMessage.getRest().getServicePath());
-            final String query = requestProxyMessage.getRest().getQuery();
-            if (query != null) {
-                address += "?" + query;
-            }
-
-            HttpRequestBase req = switch (requestProxyMessage.getRest().getVerb()) {
-                case GET -> new HttpGet(address);
-                case POST -> new HttpPost(address);
-                case PUT -> new HttpPut(address);
-                case DELETE -> new HttpDelete(address);
-                case PATCH -> new HttpPatch(address);
-                case OPTIONS -> new HttpOptions(address);
-                case HEAD -> new HttpHead(address);
-                case TRACE -> new HttpTrace(address);
-            };
-
-            int timeout = TimeUtils.secondsToMillis(serverConfProvider
-                    .getServiceTimeout(requestProxyMessage.getRest().getServiceId()));
-            req.setConfig(RequestConfig
-                    .custom()
-                    .setSocketTimeout(timeout)
-                    .build());
-
-            for (Header header : requestProxyMessage.getRest().getHeaders()) {
-                req.addHeader(header);
-            }
-
-            if (req instanceof HttpEntityEnclosingRequest httpEntityEnclosingRequest && requestProxyMessage.hasRestBody()) {
-                httpEntityEnclosingRequest.setEntity(new InputStreamEntity(requestProxyMessage.getRestBody(),
-                        requestProxyMessage.getRestBody().size()));
-            }
-
-            final HttpContext ctx = new BasicHttpContext();
-            ctx.setAttribute(ServiceId.class.getName(), requestProxyMessage.getRest().getServiceId());
-            monitoringData.setRequestOutTs(getEpochMillisecond());
-            final HttpResponse response = serverHttpClient.execute(req, ctx);
-            monitoringData.setResponseInTs(getEpochMillisecond());
-            final StatusLine statusLine = response.getStatusLine();
-
-            //calculate request hash
-            byte[] requestDigest;
-            var messageDecoder = proxyMessage.getDecoder();
-            if (messageDecoder.getRestBodyDigest() != null) {
-                final DigestCalculator dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
-                try (OutputStream out = dc.getOutputStream()) {
-                    out.write(requestProxyMessage.getRest().getHash());
-                    out.write(messageDecoder.getRestBodyDigest());
-                }
-                requestDigest = dc.getDigest();
-            } else {
-                requestDigest = requestProxyMessage.getRest().getHash();
-            }
-
-            restResponse = new RestResponse(requestProxyMessage.getRest().getClientId(),
-                    requestProxyMessage.getRest().getQueryId(),
-                    requestDigest,
-                    requestProxyMessage.getRest().getServiceId(),
-                    statusLine.getStatusCode(),
-                    statusLine.getReasonPhrase(),
-                    Arrays.asList(response.getAllHeaders()),
-                    request.getHeaders().get(HEADER_REQUEST_ID)
-            );
-            messageEncoder.restResponse(restResponse);
-
-            if (response.getEntity() != null) {
-                restResponseBody = new CachingStream(tempFilesPath);
-                TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
-                messageEncoder.restBody(tee);
-                EntityUtils.consume(response.getEntity());
-            }
-
-            monitoringData.setResponseAttachmentCount(0);
-            monitoringData.setResponseSize(restResponse.getMessageBytes().length
-                    + messageEncoder.getAttachmentsByteCount());
-        }
-
-        @Override
-        public RestResponse getRestResponse() {
-            return restResponse;
-        }
-
-        @Override
-        public CachingStream getRestResponseBody() {
-            return restResponseBody;
-        }
-
-        @Override
-        public void finishHandling() {
-            // NOP
-        }
-    }
 }

@@ -47,7 +47,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -110,6 +112,8 @@ public class RestMetadataServiceHandlerTest {
     private WireMockServer mockServer;
 
     private ServerConfProvider serverConfProvider;
+    private ProxyProperties proxyProperties;
+    private CommonProperties commonProperties;
 
     /**
      * Init data for tests
@@ -133,6 +137,18 @@ public class RestMetadataServiceHandlerTest {
                 }
             }
         };
+
+        // Build a ProxyProperties mock that supplies the TLS settings
+        proxyProperties = mock(ProxyProperties.class);
+        ProxyProperties.ClientProxyProperties clientProxy = mock(ProxyProperties.ClientProxyProperties.class);
+        when(proxyProperties.clientProxy()).thenReturn(clientProxy);
+        when(clientProxy.clientTlsProtocols()).thenReturn(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS);
+        when(clientProxy.clientTlsCiphers()).thenReturn(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+
+        // Build a CommonProperties mock that supplies the temp files path
+        commonProperties = mock(CommonProperties.class);
+        when(commonProperties.tempFilesPath()).thenReturn(TMP_DIR);
+
         var mockHeaders = mock(HttpFields.class);
         mockRequest = mock(RequestWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
@@ -158,7 +174,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldBeAbleToHandleListMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -169,7 +185,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldBeAbleToHandleAllowedMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -182,7 +198,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleListMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -193,13 +209,13 @@ public class RestMetadataServiceHandlerTest {
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
 
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
                 mock(OpMonitoringData.class));
 
-        RestResponse restResponse = handlerToTest.getRestResponse();
+        RestResponse restResponse = result.restResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
         assertEquals("OK", restResponse.getReason());
-        CachingStream restResponseBody = handlerToTest.getRestResponseBody();
+        CachingStream restResponseBody = result.restResponseBody();
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
@@ -211,7 +227,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleAllowedMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -222,13 +238,13 @@ public class RestMetadataServiceHandlerTest {
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
 
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
                 mock(OpMonitoringData.class));
 
-        RestResponse restResponse = handlerToTest.getRestResponse();
+        RestResponse restResponse = result.restResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
         assertEquals("OK", restResponse.getReason());
-        CachingStream restResponseBody = handlerToTest.getRestResponseBody();
+        CachingStream restResponseBody = result.restResponseBody();
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
@@ -240,7 +256,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleGetOpenApi() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -252,20 +268,20 @@ public class RestMetadataServiceHandlerTest {
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
 
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
                 mock(OpMonitoringData.class));
 
-        RestResponse restResponse = handlerToTest.getRestResponse();
+        RestResponse restResponse = result.restResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
         assertEquals("OK", restResponse.getReason());
-        CachingStream restResponseBody = handlerToTest.getRestResponseBody();
+        CachingStream restResponseBody = result.restResponseBody();
         assertTrue(restResponseBody.getCachedContents().size() > 0);
     }
 
     @Test
     public void shouldOverrideServerUrlsForYaml() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test for petstore.yaml parsing
@@ -279,11 +295,10 @@ public class RestMetadataServiceHandlerTest {
         when(mockRestRequest.getHash()).thenReturn(REQUEST_HASH);
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
 
-
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
                 mock(OpMonitoringData.class));
 
-        CachingStream yamlFileResponseBody = handlerToTest.getRestResponseBody();
+        CachingStream yamlFileResponseBody = result.restResponseBody();
         String yaml = new BufferedReader(
                 new InputStreamReader(yamlFileResponseBody.getCachedContents(), StandardCharsets.UTF_8))
                 .lines()
@@ -304,7 +319,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldOverrideServerUrlsForJson() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test petstore.json parsing
@@ -318,10 +333,10 @@ public class RestMetadataServiceHandlerTest {
         when(secondaryMockRestRequest.getHash()).thenReturn(REQUEST_HASH);
         when(mockProxyMessage.getRest()).thenReturn(secondaryMockRestRequest);
 
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
                 mock(OpMonitoringData.class));
 
-        CachingStream jsonFileResponseBody = handlerToTest.getRestResponseBody();
+        CachingStream jsonFileResponseBody = result.restResponseBody();
         String json = new BufferedReader(
                 new InputStreamReader(jsonFileResponseBody.getCachedContents(), StandardCharsets.UTF_8))
                 .lines()
@@ -335,7 +350,7 @@ public class RestMetadataServiceHandlerTest {
     @Test(expected = XrdRuntimeException.class)
     public void shouldDetectUnsupportedOpenapiVersion() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES, TMP_DIR);
+                proxyProperties, commonProperties);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test for petstore.yaml parsing

@@ -25,31 +25,30 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.RequestWrapper;
-
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
-
+import java.io.Closeable;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 
 /**
- * Rest service handler interface
+ * Per-request result returned by {@link ServiceHandler#startHandling}.
+ * Carries the response data that the processor needs after handler execution,
+ * and any per-request resources that must be closed after use.
  */
-public interface RestServiceHandler {
-    boolean shouldVerifyAccess();
+public record ServiceHandlerResult(
+        String responseContentType,
+        InputStream responseContent,
+        Closeable resourceToClose
+) implements Closeable {
 
-    boolean shouldVerifySignature();
+    /** Convenience constructor for handlers with no closeable resource. */
+    public ServiceHandlerResult(String responseContentType, InputStream responseContent) {
+        this(responseContentType, responseContent, null);
+    }
 
-    boolean shouldLogSignature();
-
-    boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
-
-    RestServiceHandlerResult startHandling(RequestWrapper request,
-                                           ProxyMessage requestMessage,
-                                           ProxyMessageEncoder messageEncoder,
-                                           OpMonitoringData opMonitoringData)
-            throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException;
+    @Override
+    public void close() throws IOException {
+        if (resourceToClose != null) {
+            resourceToClose.close();
+        }
+    }
 }

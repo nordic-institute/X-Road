@@ -174,12 +174,12 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(resp.getMetrics());
 
         // execution
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         //verification
-        assertThat("Wrong content type", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
+        assertThat("Wrong content type", result.responseContentType(), is(TEXT_XML_UTF8));
 
-        final SOAPMessage message = messageFactory.createMessage(null, handlerToTest.getResponseContent());
+        final SOAPMessage message = messageFactory.createMessage(null, result.responseContent());
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
@@ -211,8 +211,6 @@ public class ProxyMonitorServiceHandlerMetricsTest {
 
     /**
      * As above but only environmental parameters defined in outputSpec.
-     *
-     * @throws Exception
      */
     @Test
     public void startHandingShouldProduceRequestedMetrics() throws Exception {
@@ -252,12 +250,12 @@ public class ProxyMonitorServiceHandlerMetricsTest {
                 anyBoolean())).thenReturn(resp.getMetrics());
 
         // execution
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         //verification
-        assertThat("Wrong content type", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
+        assertThat("Wrong content type", result.responseContentType(), is(TEXT_XML_UTF8));
 
-        final SOAPMessage message = messageFactory.createMessage(null, handlerToTest.getResponseContent());
+        final SOAPMessage message = messageFactory.createMessage(null, result.responseContent());
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
