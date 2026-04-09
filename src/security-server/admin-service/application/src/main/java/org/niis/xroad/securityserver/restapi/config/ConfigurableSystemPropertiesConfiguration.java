@@ -50,18 +50,18 @@ public class ConfigurableSystemPropertiesConfiguration {
     private final AdminServiceProperties adminServiceProperties;
 
     @Bean
-    public ConfigurableProperties configurableProperties() throws IOException {
+    public ConfigurablePropertiesDefinition configurableProperties() throws IOException {
         String configurableParametersPath = adminServiceProperties.getConfigurablePropertiesPath();
         log.debug("Loading configurable system parameters from {}", configurableParametersPath);
         Resource resource = resourceLoader.getResource(configurableParametersPath);
 
         var mapper = new ObjectMapper(new YAMLFactory());
-        return mapper.readValue(resource.getInputStream(), ConfigurableProperties.class);
+        return mapper.readValue(resource.getInputStream(), ConfigurablePropertiesDefinition.class);
     }
 
     @Getter
     @Setter
-    public static class ConfigurableProperties {
+    public static class ConfigurablePropertiesDefinition {
 
         private Map<String, List<ConfigurableProperty>> configurableProperties = new HashMap<>();
 
