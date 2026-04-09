@@ -150,26 +150,30 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         );
 
         CachingStream restResponseBody = new CachingStream(commonProperties.tempFilesPath());
+        try {
+            if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(LIST_METHODS)) {
+                handleListMethods(requestProxyMessage, restResponse, restResponseBody);
+            } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(ALLOWED_METHODS)) {
+                handleAllowedMethods(requestProxyMessage, restResponse, restResponseBody);
+            } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(GET_OPENAPI)) {
+                handleGetOpenApi(requestProxyMessage, restResponse, restResponseBody);
+            }
 
-        if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(LIST_METHODS)) {
-            handleListMethods(requestProxyMessage, restResponse, restResponseBody);
-        } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(ALLOWED_METHODS)) {
-            handleAllowedMethods(requestProxyMessage, restResponse, restResponseBody);
-        } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(GET_OPENAPI)) {
-            handleGetOpenApi(requestProxyMessage, restResponse, restResponseBody);
+            messageEncoder.restResponse(restResponse);
+            messageEncoder.restBody(restResponseBody.getCachedContents());
+
+            // It's required that in case of metadata service (where message is
+            // not forwarded) the requestOutTs must be equal with the requestInTs
+            // and the responseInTs must be equal with the responseOutTs.
+            opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
+            opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
+            opMonitoringData.setServiceType(DescriptionType.REST.name());
+
+            return new RestServiceHandlerResult(restResponse, restResponseBody);
+        } catch (Exception e) {
+            restResponseBody.consume();
+            throw e;
         }
-
-        messageEncoder.restResponse(restResponse);
-        messageEncoder.restBody(restResponseBody.getCachedContents());
-
-        // It's required that in case of metadata service (where message is
-        // not forwarded) the requestOutTs must be equal with the requestInTs
-        // and the responseInTs must be equal with the responseOutTs.
-        opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
-        opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
-        opMonitoringData.setServiceType(DescriptionType.REST.name());
-
-        return new RestServiceHandlerResult(restResponse, restResponseBody);
     }
 
     private void handleListMethods(ProxyMessage requestProxyMessage, RestResponse restResponse,

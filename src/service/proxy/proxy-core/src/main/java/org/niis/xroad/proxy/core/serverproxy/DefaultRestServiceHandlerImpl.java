@@ -178,18 +178,25 @@ public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
         messageEncoder.restResponse(restResponse);
 
         CachingStream restResponseBody = null;
-        if (response.getEntity() != null) {
-            restResponseBody = new CachingStream(commonProperties.tempFilesPath());
-            TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
-            messageEncoder.restBody(tee);
-            EntityUtils.consume(response.getEntity());
+        try {
+            if (response.getEntity() != null) {
+                restResponseBody = new CachingStream(commonProperties.tempFilesPath());
+                TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
+                messageEncoder.restBody(tee);
+                EntityUtils.consume(response.getEntity());
+            }
+
+            monitoringData.setResponseAttachmentCount(0);
+            monitoringData.setResponseSize(restResponse.getMessageBytes().length
+                    + messageEncoder.getAttachmentsByteCount());
+
+            return new RestServiceHandlerResult(restResponse, restResponseBody);
+        } catch (Exception e) {
+            if (restResponseBody != null) {
+                restResponseBody.consume();
+            }
+            throw e;
         }
-
-        monitoringData.setResponseAttachmentCount(0);
-        monitoringData.setResponseSize(restResponse.getMessageBytes().length
-                + messageEncoder.getAttachmentsByteCount());
-
-        return new RestServiceHandlerResult(restResponse, restResponseBody);
     }
 
     private byte[] calculateRequestDigest(ProxyMessage requestProxyMessage) throws IOException {
