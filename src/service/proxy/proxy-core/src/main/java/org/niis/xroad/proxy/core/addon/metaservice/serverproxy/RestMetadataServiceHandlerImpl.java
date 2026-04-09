@@ -36,7 +36,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -79,11 +79,11 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
 
 /**
  * Handler for REST metadata services (listMethods, allowedMethods, getOpenAPI).
- * This is a top-level {@link ApplicationScoped} CDI singleton — all per-request state is
+ * This is a top-level {@link Singleton} CDI singleton — all per-request state is
  * kept in method-local variables and returned via {@link RestServiceHandlerResult}.
  */
 @Slf4j
-@ApplicationScoped
+@Singleton
 public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private static final String QUERY_PARAM_SERVICECODE = "serviceCode";

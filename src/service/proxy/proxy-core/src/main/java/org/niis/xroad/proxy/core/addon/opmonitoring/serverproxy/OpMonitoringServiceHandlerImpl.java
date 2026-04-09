@@ -33,7 +33,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
@@ -61,14 +61,14 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
 
 /**
  * Service handler for operational monitoring.
- * This is a top-level {@link ApplicationScoped} CDI singleton — all per-request state is
+ * This is a top-level {@link Singleton} CDI singleton — all per-request state is
  * kept in method-local variables and returned via {@link ServiceHandlerResult}.
  * The {@code opMonitorHttpClient} field is set after construction via
  * {@link #setOpMonitorHttpClient(HttpClient)} because it requires SSL keys
  * from {@link ServerConfProvider} which are only available after startup.
  */
 @Slf4j
-@ApplicationScoped
+@Singleton
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private final ProxyProperties proxyProperties;

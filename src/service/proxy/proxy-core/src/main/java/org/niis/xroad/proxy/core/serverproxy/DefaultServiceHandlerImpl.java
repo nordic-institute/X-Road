@@ -31,7 +31,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
@@ -58,11 +58,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL
 
 /**
  * Default SOAP service handler that forwards the request to the configured service address.
- * This is a top-level {@link ApplicationScoped} CDI singleton — all per-request state is
+ * This is a top-level {@link Singleton} CDI singleton — all per-request state is
  * kept in method-local variables and returned via {@link ServiceHandlerResult}.
  */
 @Slf4j
-@ApplicationScoped
+@Singleton
 public class DefaultServiceHandlerImpl extends AbstractServiceHandler {
 
     private final HttpSenderProvider httpSenderProvider;

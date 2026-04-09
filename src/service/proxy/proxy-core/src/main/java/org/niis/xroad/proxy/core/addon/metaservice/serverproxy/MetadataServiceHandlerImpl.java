@@ -39,7 +39,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -103,11 +103,11 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
 
 /**
  * Service handler for SOAP metadata services (listMethods, allowedMethods, getWsdl).
- * This is a top-level {@link ApplicationScoped} CDI singleton — all per-request state is
+ * This is a top-level {@link Singleton} CDI singleton — all per-request state is
  * kept in method-local variables and returned via {@link ServiceHandlerResult}.
  */
 @Slf4j
-@ApplicationScoped
+@Singleton
 public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     static final JAXBContext JAXB_CTX = initJaxbCtx();
@@ -257,8 +257,6 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         }
     }
 
-// ------------------------------------------------------------------------
-
     /**
      * Returns the underlying {@link SOAPMessage} for the given {@link SoapMessageImpl}.
      * When parsed by {@link ee.ria.xroad.common.message.StaxEventSoapParserImpl} (used by the
@@ -271,8 +269,6 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         }
         return SoapUtils.createSOAPMessage(new ByteArrayInputStream(request.getBytes()), request.getCharset());
     }
-
-// ------------------------------------------------------------------------
 
     private String getWsdlUrl(ServiceId service) {
         DescriptionType type = serverConfProvider.getDescriptionType(service);

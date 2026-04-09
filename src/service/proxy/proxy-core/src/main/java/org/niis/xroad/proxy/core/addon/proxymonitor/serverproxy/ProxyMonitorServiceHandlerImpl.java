@@ -36,7 +36,7 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
@@ -73,11 +73,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 
 /**
  * Service handler for proxy monitoring.
- * This is a top-level {@link ApplicationScoped} CDI singleton — all per-request state is
+ * This is a top-level {@link Singleton} CDI singleton — all per-request state is
  * kept in method-local variables and returned via {@link ServiceHandlerResult}.
  */
 @Slf4j
-@ApplicationScoped
+@Singleton
 public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     public static final String SERVICE_CODE = "getSecurityServerMetrics";

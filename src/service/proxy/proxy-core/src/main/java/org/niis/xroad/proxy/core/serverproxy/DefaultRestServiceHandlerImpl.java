@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
@@ -74,11 +74,11 @@ import static org.niis.xroad.proxy.core.configuration.ServerProxyConfig.SERVER_P
 
 /**
  * Default REST service handler that forwards the request to the configured service address.
- * This is a top-level {@link ApplicationScoped} CDI singleton — all per-request state is
+ * This is a top-level {@link Singleton} CDI singleton — all per-request state is
  * kept in method-local variables and returned via {@link RestServiceHandlerResult}.
  */
 @Slf4j
-@ApplicationScoped
+@Singleton
 public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
 
     private final ServerConfProvider serverConfProvider;
