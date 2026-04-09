@@ -102,5 +102,5 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false

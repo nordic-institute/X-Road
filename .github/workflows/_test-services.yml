@@ -101,8 +101,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-softtoken-signer:
     name: softtoken-signer-int-test
@@ -184,8 +184,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-confproxy:
     name: confproxy-int-test
@@ -267,7 +267,7 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
+          display-table: true
 
   test-opmonitor:
     name: opmonitor-int-test
@@ -349,8 +349,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-cs-admin:
     name: cs-admin-int-test
@@ -425,8 +425,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-cs-management:
     name: cs-management-int-test
@@ -501,5 +501,5 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
