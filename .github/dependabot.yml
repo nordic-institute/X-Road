@@ -4,6 +4,8 @@ updates:
     directory: "/src"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
     groups:
       java-minor-patch:
         applies-to: version-updates
@@ -16,6 +18,8 @@ updates:
     directory: "/src"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
     groups:
       javascript-minor-patch:
         applies-to: version-updates
@@ -28,6 +32,8 @@ updates:
     directory: "/.github/workflows"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
     groups:
       actions-minor-patch:
         applies-to: version-updates
