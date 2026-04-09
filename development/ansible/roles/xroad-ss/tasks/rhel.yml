@@ -37,15 +37,26 @@
   tags:
     - install-xroad-ss-packages
 
+- name: Enable PostgreSQL 15 module (RHEL 9)
+  become: true
+  command: dnf module enable postgresql:15 -y
+  when:
+    - ansible_facts['distribution_major_version'] | int == 9
+    - not ((database_admin_password is defined) and (database_admin_password != ""))
+  tags:
+    - install-xroad-ss-packages
+
 - name: Install PostgreSQL packages (RHEL)
   become: true
-  shell: |
-    set -euo pipefail
-    dnf module enable postgresql:15 -y
-    dnf -y install postgresql-server postgresql-contrib
+  dnf:
+    name:
+      - postgresql-server
+      - postgresql-contrib
+    state: present
   when:
-    - ansible_facts['os_family'] == 'RedHat'
     - not ((database_admin_password is defined) and (database_admin_password != ""))
+  tags:
+    - install-xroad-ss-packages
 
 - name: install xroad packages and dependencies from set up repository
   yum:
