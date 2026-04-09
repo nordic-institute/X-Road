@@ -41,16 +41,17 @@
       <div class="alert-slot pl-6 pr-6">
         <XrdErrorNotifications :manager="errorManager" />
       </div>
-      <v-card-text class="pt-0 pr-6 pl-6 pb-2">
+      <v-card-text class="pt-0 pr-6 pl-6 pb-2" :class="{'pb-4':hideActions}">
         <slot name="text">
           <span class="font-weight-regular body-regular">
             {{ $t(text, data) }}
           </span>
         </slot>
       </v-card-text>
-      <v-card-actions class="pa-4">
+      <v-card-actions v-if="!hideActions" class="pa-4">
         <XrdBtn v-if="!hideCancelButton" data-test="dialog-cancel-button" variant="text" :text="cancelButtonText" @click="emit('cancel')" />
         <XrdBtn
+          v-if="!hideAcceptButton"
           ref="acceptButton"
           data-test="dialog-save-button"
           class="ml-2"
@@ -70,12 +71,12 @@
  * A dialog for simple "accept or cancel" functions
  */
 
-import { PropType, onMounted, onBeforeMount, useTemplateRef } from 'vue';
+import { computed, onBeforeMount, onMounted, PropType, useTemplateRef } from 'vue';
 
 import XrdBtn from './XrdBtn.vue';
 import XrdErrorNotifications from './XrdErrorNotifications.vue';
 import { useLocalErrorManager } from '../composables';
-import { AddError, DialogSaveHandler } from '../types';
+import { DialogSaveHandler } from '../types';
 
 const props = defineProps({
   title: {
@@ -125,6 +126,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  hideAcceptButton: {
+    type: Boolean,
+    default: false,
+  },
   persistent: {
     type: Boolean,
     default: true,
@@ -136,10 +141,12 @@ const emit = defineEmits<{
   accept: [handler: DialogSaveHandler];
 }>();
 
+const hideActions = computed(() => props.hideCancelButton && props.hideAcceptButton);
+
 const acceptButton = useTemplateRef<{ focus: () => void }>('acceptButton');
 
 const errorManager = useLocalErrorManager();
-const handler = { addError: errorManager.addError } as DialogSaveHandler;
+const handler = {addError: errorManager.addError} as DialogSaveHandler;
 
 function blur() {
   const activeElement = document.activeElement as HTMLElement | undefined;

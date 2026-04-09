@@ -28,7 +28,7 @@
 import { RouteRecordName } from 'vue-router';
 import { defineStore } from 'pinia';
 
-import { i18n, Tab } from '@niis/shared-ui';
+import { i18n, Tab, useAppState } from '@niis/shared-ui';
 
 import { InitializationStatus, SecurityServer, TokenInitStatus, User } from '@/openapi-types';
 import { routePermissions } from '@/routePermissions';
@@ -41,7 +41,6 @@ import { useSystem } from './system';
 
 interface State {
   authenticated: boolean;
-  sessionAlive: boolean;
   permissions: string[];
   roles: string[];
   username?: string;
@@ -57,7 +56,6 @@ export const useUser = defineStore('user', {
       currentSecurityServer: undefined,
       initializationStatus: undefined,
       authenticated: false,
-      sessionAlive: false,
       permissions: [] as string[],
       roles: [] as string[],
       bannedRoutes: [] as RouteRecordName[], // Array for routes the user doesn't have permission to access.
@@ -137,7 +135,7 @@ export const useUser = defineStore('user', {
         .then(() => {
           sessionStorage.clear();
           this.authenticated = true;
-          this.sessionAlive = true;
+          useAppState().setSessionAlive();
         })
         .catch((error) => {
           throw error;
@@ -148,10 +146,12 @@ export const useUser = defineStore('user', {
       return api
         .get<SessionStatus>('/notifications/session-status')
         .then((res) => {
-          this.sessionAlive = res?.data?.valid ?? false;
+          useAppState().setSessionAlive(res?.data?.valid ?? false);
+          return res;
         })
-        .catch(() => {
-          this.sessionAlive = false;
+        .catch((err) => {
+          useAppState().setSessionAlive(false);
+          throw err;
         });
     },
 
@@ -219,7 +219,7 @@ export const useUser = defineStore('user', {
 
       // Call backend for logout
       return axiosAuth
-        .post('/logout')
+        .delete('/logout')
         .catch(() => {
           // Nothing to do
         })
@@ -256,10 +256,6 @@ export const useUser = defineStore('user', {
     // This action is currently needed only for unit testing
     storeInitStatus(status: InitializationStatus) {
       this.initializationStatus = status;
-    },
-
-    setSessionAlive(value: boolean) {
-      this.sessionAlive = value;
     },
 
     authUser() {

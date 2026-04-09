@@ -153,8 +153,4 @@ export enum Permissions {
 // A single source of truth for roles
 export const Roles = ['XROAD_REGISTRATION_OFFICER', 'XROAD_SECURITY_OFFICER', 'XROAD_SYSTEM_ADMINISTRATOR', 'XROAD_MANAGEMENT_SERVICE'];
 
-export const Timeouts = {
-  POLL_SESSION_TIMEOUT: 30000,
-} as const;
-
 export const KEY_CONTINUE_INIT = 'KEY_CONTINUE_INIT';
