@@ -44,7 +44,8 @@ public class IdentityHubStepDefs extends BaseStepDefs {
     @Autowired
     private FeignIdentityHubManagementApi feignIdentityHubManagementApi;
 
-    @Step("Identity Hub participant context {string} with DID {string} is initialized and keypair is generated with private key alias {string}")
+    @Step("Identity Hub participant context {string} with DID {string} is initialized "
+            + "and keypair is generated with private key alias {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias) {
         var credentialServiceUrl = "http://ds-identity-hub:10001/api/credentials/v1/participants/"
                 + Base64.getEncoder().encodeToString(participantId.getBytes());
@@ -76,7 +77,8 @@ public class IdentityHubStepDefs extends BaseStepDefs {
         validate(ihResponse).assertion(equalsStatusCodeAssertion(OK));
     }
 
-    @Step("Identity Hub participant context {string} with DID {string} is initialized with existing private private key in vault with alias {string} and public key {string}")
+    @Step("Identity Hub participant context {string} with DID {string} is initialized "
+            + "with existing private private key in vault with alias {string} and public key {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias, String publicKey) {
         var credentialServiceUrl = "http://ds-identity-hub:10001/api/credentials/v1/participants/"
                 + Base64.getEncoder().encodeToString(participantId.getBytes());
@@ -124,16 +126,25 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                 }
                 """.formatted(issuerDid, holderPid, credentialType, credentialDefId);
 
-        var response = feignIdentityHubManagementApi.requestCredential(AuthTokens.ADMIN, Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()), request); // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+        var response = feignIdentityHubManagementApi.requestCredential(
+                AuthTokens.ADMIN,
+                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+                Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()),
+                request);
         validate(response).assertion(equalsStatusCodeAssertion(CREATED));
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("Credential request {string} for participant {string} reaches status {string}")
-    public void credentialRequestReachesStatus(String holderPid, String participantContextId, String expectedStatus) throws InterruptedException {
+    public void credentialRequestReachesStatus(String holderPid, String participantContextId, String expectedStatus) {
         var maxRetries = 5;
         var retryInterval = 3000L;
         for (int i = 0; i < maxRetries; i++) {
-            var response = feignIdentityHubManagementApi.getCredentialRequestStatus(AuthTokens.ADMIN, Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()), holderPid); // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+            var response = feignIdentityHubManagementApi.getCredentialRequestStatus(
+                    AuthTokens.ADMIN,
+                    // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+                    Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()),
+                    holderPid);
             validate(response).assertion(equalsStatusCodeAssertion(OK));
             var status = response.getBody().get("status");
             if (expectedStatus.equals(status)) {
@@ -148,13 +159,13 @@ public class IdentityHubStepDefs extends BaseStepDefs {
     }
 
     static class AuthTokens {
-        static final String PROVISIONER = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhl" +
-                "N2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOi" +
-                "I3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoiaWRlbnRpdHktYXBpOndya" +
-                "XRlIGlkZW50aXR5LWFwaTpyZWFkIn0.nujdj1AdxrI4CqPKruY48nx9itkh_Uf_vB4xCgEssOHdtlwGim_l5KFFxCAFYOllBmj4A91Qdhs0" +
-                "04jcQ1pF3Ag7wSoVpYszbWDyJv2zamS72862fuhx0h3BCxQxS4CAsOogxR_kQEqMBnhgAKK5ndTf66kbAS83OpvtaA3DKKuVmByYZAvncLl" +
-                "AAgbBf0ATGI3pG1sbHhTJ58AVBi300sp-7-B9uIijw4S-Pd-ww1ah-xc8ep3kr4YpEgODaUKnNOCXPA_vnZa-9BwYOi94kWM_DCzfZTNV2O" +
-                "lb3WQojrhZbPiUCALmSmSUFJMvfMp18Z15bDQM0iTLUsVRFZMLTA";
+        static final String PROVISIONER = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhl"
+                + "N2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOi"
+                + "I3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoiaWRlbnRpdHktYXBpOndya"
+                + "XRlIGlkZW50aXR5LWFwaTpyZWFkIn0.nujdj1AdxrI4CqPKruY48nx9itkh_Uf_vB4xCgEssOHdtlwGim_l5KFFxCAFYOllBmj4A91Qdhs0"
+                + "04jcQ1pF3Ag7wSoVpYszbWDyJv2zamS72862fuhx0h3BCxQxS4CAsOogxR_kQEqMBnhgAKK5ndTf66kbAS83OpvtaA3DKKuVmByYZAvncLl"
+                + "AAgbBf0ATGI3pG1sbHhTJ58AVBi300sp-7-B9uIijw4S-Pd-ww1ah-xc8ep3kr4YpEgODaUKnNOCXPA_vnZa-9BwYOi94kWM_DCzfZTNV2O"
+                + "lb3WQojrhZbPiUCALmSmSUFJMvfMp18Z15bDQM0iTLUsVRFZMLTA";
 
         static final String ADMIN = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1Y"
                 + "Tc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTU"

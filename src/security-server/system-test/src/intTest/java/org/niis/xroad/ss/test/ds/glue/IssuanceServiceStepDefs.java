@@ -70,7 +70,8 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                         }
                     }
                 }
-                """.formatted(Base64.getUrlEncoder().encodeToString(participantId.getBytes()), did, participantId, did, did, privateKeyAlias);
+                """.formatted(
+                        Base64.getUrlEncoder().encodeToString(participantId.getBytes()), did, participantId, did, did, privateKeyAlias);
 
         var response = issuanceServiceIdentityApi.createParticipant(AuthTokens.PROVISIONER, request);
         validate(response).assertion(equalsStatusCodeAssertion(OK));
@@ -89,7 +90,11 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 }
                 """.formatted(holderDid, holderId);
 
-        var response = issuanceServiceAdminApi.createHolder(AuthTokens.PARTICIPANT, Base64.getUrlEncoder().encodeToString(participantId.getBytes()), request); // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+        var response = issuanceServiceAdminApi.createHolder(
+                AuthTokens.PARTICIPANT,
+                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+                Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
+                request);
         validate(response).assertion(equalsStatusCodeAssertion(OK));
     }
 
@@ -103,7 +108,11 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 }
                 """.formatted(attestationType, attestationId);
 
-        var response = issuanceServiceAdminApi.createAttestationDefinition(AuthTokens.PARTICIPANT, Base64.getUrlEncoder().encodeToString(participantId.getBytes()), request); // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+        var response = issuanceServiceAdminApi.createAttestationDefinition(
+                AuthTokens.PARTICIPANT,
+                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+                Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
+                request);
         validate(response).assertion(equalsStatusCodeAssertion(OK));
     }
 
@@ -131,7 +140,11 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 }
                 """.formatted(attestationId, credType, credDefId, credType, format);
 
-        var response = issuanceServiceAdminApi.createCredentialDefinition(AuthTokens.PARTICIPANT, Base64.getUrlEncoder().encodeToString(participantId.getBytes()), request); // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+        var response = issuanceServiceAdminApi.createCredentialDefinition(
+                AuthTokens.PARTICIPANT,
+                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
+                Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
+                request);
         validate(response).assertion(equalsStatusCodeAssertion(OK));
     }
 

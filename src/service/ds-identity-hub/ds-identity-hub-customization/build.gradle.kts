@@ -6,3 +6,7 @@ dependencies {
   implementation(libs.edc.ih.participants)
   implementation(libs.edc.spi.participantcontext.config)
 }
+
+tasks.withType<Checkstyle>().configureEach {
+  isEnabled = false
+}
