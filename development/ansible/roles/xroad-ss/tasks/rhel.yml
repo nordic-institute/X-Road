@@ -44,7 +44,7 @@
     dnf module enable postgresql:15 -y
     dnf -y install postgresql-server postgresql-contrib
   when:
-    - ansible_os_family == 'RedHat'
+    - ansible_facts['os_family'] == 'RedHat'
     - not ((database_admin_password is defined) and (database_admin_password != ""))
 
 - name: install xroad packages and dependencies from set up repository (RHEL8)
@@ -56,8 +56,8 @@
   tags:
     - install-xroad-ss-packages
   when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int == 8
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] | int == 8
 
 - name: install xroad packages and dependencies from set up repository (RHEL9+)
   yum:
@@ -66,16 +66,16 @@
   tags:
     - install-xroad-ss-packages
   when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int >= 9
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] | int >= 9
 
 - name: install opmonitoring (RHEL8)
   shell: |
     set -euo pipefail
     dnf -y install xroad-addon-opmonitoring
   when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int == 8
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] | int == 8
     - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
     - install-xroad-ss-packages
@@ -85,8 +85,8 @@
     name: xroad-opmonitor
     state: latest
   when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int >= 9
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] | int >= 9
     - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
     - install-xroad-ss-packages

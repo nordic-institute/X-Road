@@ -29,6 +29,8 @@ package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -57,11 +59,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.stubbing.Answer;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.metaservice.common.WsdlRequestData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
@@ -83,7 +85,6 @@ import javax.wsdl.xml.WSDLReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -105,8 +106,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
@@ -156,6 +155,7 @@ public class MetadataServiceHandlerTest {
     private TestServerConfWrapper serverConfProvider;
     private GlobalConfProvider globalConfProvider;
     private DescriptionType serverConfReturnDescriptionType;
+    private ProxyProperties proxyProperties;
 
     /**
      * Init class-wide test instances
@@ -202,6 +202,13 @@ public class MetadataServiceHandlerTest {
         when(mockProxyMessage.getSoapContentType()).thenReturn(MimeTypes.TEXT_XML_UTF8);
 
         this.mockServer = new WireMockServer(options().port(WSDL_SERVER_PORT));
+
+        // Build a ProxyProperties mock that supplies the TLS settings
+        proxyProperties = mock(ProxyProperties.class);
+        ProxyProperties.ClientProxyProperties clientProxy = mock(ProxyProperties.ClientProxyProperties.class);
+        when(proxyProperties.clientProxy()).thenReturn(clientProxy);
+        when(clientProxy.clientTlsProtocols()).thenReturn(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS);
+        when(clientProxy.clientTlsCiphers()).thenReturn(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
     }
 
     @After
@@ -215,18 +222,9 @@ public class MetadataServiceHandlerTest {
         // setup
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
-
-        InputStream soapContentInputStream = new TestSoapBuilder()
-                .withClient(DEFAULT_CLIENT)
-                .withService(serviceId)
-                .withModifiedBody(
-                        soapBody -> soapBody.addChildElement(LIST_METHODS_REQUEST).addChildElement(REQUEST))
-                .buildAsInputStream();
-
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
 
         // execution & verification
 
@@ -239,18 +237,9 @@ public class MetadataServiceHandlerTest {
         // setup
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
-
-        InputStream soapContentInputStream = new TestSoapBuilder()
-                .withClient(DEFAULT_CLIENT)
-                .withService(serviceId)
-                .withModifiedBody(
-                        soapBody -> soapBody.addChildElement(ALLOWED_METHODS_REQUEST).addChildElement(REQUEST))
-                .buildAsInputStream();
-
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
 
         // execution & verification
 
@@ -264,18 +253,9 @@ public class MetadataServiceHandlerTest {
         // setup
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
-
-        InputStream soapContentInputStream = new TestSoapBuilder()
-                .withClient(DEFAULT_CLIENT)
-                .withService(serviceId)
-                .withModifiedBody(
-                        soapBody -> soapBody.addChildElement(GET_WSDL_REQUEST).addChildElement(REQUEST))
-                .buildAsInputStream();
-
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
 
         // execution & verification
         assertTrue("Wasn't able to handle get wsdl",
@@ -303,27 +283,27 @@ public class MetadataServiceHandlerTest {
         });
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
-        InputStream soapContentInputStream = new TestSoapBuilder()
+        String soapXml = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
                 .withService(serviceId)
                 .withModifiedBody(
                         soapBody -> soapBody.addChildElement(LIST_METHODS_REQUEST).addChildElement(REQUEST))
-                .buildAsInputStream();
+                .buildAsString();
 
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
+        when(mockProxyMessage.getSoap()).thenReturn(parseSoapMessage(soapXml));
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
 
         // execution
 
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         // verification
-        assertThat("Content type does not match", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
+        assertThat("Content type does not match", result.responseContentType(), is(TEXT_XML_UTF8));
 
-        final SOAPMessage message = messageFactory.createMessage(null, handlerToTest.getResponseContent());
+        final SOAPMessage message = messageFactory.createMessage(null, result.responseContent());
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
@@ -366,27 +346,27 @@ public class MetadataServiceHandlerTest {
         });
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
-        InputStream soapContentInputStream = new TestSoapBuilder()
+        String soapXml = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
                 .withService(serviceId)
                 .withModifiedBody(
                         soapBody -> soapBody.addChildElement(ALLOWED_METHODS_REQUEST).addChildElement(REQUEST))
-                .buildAsInputStream();
+                .buildAsString();
 
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
+        when(mockProxyMessage.getSoap()).thenReturn(parseSoapMessage(soapXml));
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
 
         // execution
 
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(OpMonitoringData.class));
 
         // verification
-        assertThat("Content type does not match", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
+        assertThat("Content type does not match", result.responseContentType(), is(TEXT_XML_UTF8));
 
-        final SOAPMessage message = messageFactory.createMessage(null, handlerToTest.getResponseContent());
+        final SOAPMessage message = messageFactory.createMessage(null, result.responseContent());
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
@@ -408,16 +388,17 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
         var handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
-        var soapContentInputStream = new TestSoapBuilder()
+        // Build a GET_WSDL SOAP message without a serviceCode in the WsdlRequestData body
+        String soapXml = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
                 .withService(serviceId)
                 .withModifiedBody(
                         soapBody -> soapBody.addChildElement(GET_WSDL_REQUEST).addChildElement(REQUEST))
-                .buildAsInputStream();
+                .buildAsString();
 
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
+        when(mockProxyMessage.getSoap()).thenReturn(parseSoapMessage(soapXml));
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
 
@@ -437,19 +418,19 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithoutWsdl");
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
 
-        InputStream soapContentInputStream = new TestSoapBuilder()
+        String soapXml = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
                 .withService(serviceId)
                 .withModifiedBody(
                         soapBody -> marshaller.marshal(wsdlRequestData, soapBody))
-                .buildAsInputStream();
+                .buildAsString();
 
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
+        when(mockProxyMessage.getSoap()).thenReturn(parseSoapMessage(soapXml));
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
 
@@ -469,19 +450,19 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+                proxyProperties);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
 
-        InputStream soapContentInputStream = new TestSoapBuilder()
+        String soapXml = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
                 .withService(serviceId)
                 .withModifiedBody(
                         soapBody -> marshaller.marshal(wsdlRequestData, soapBody))
-                .buildAsInputStream();
+                .buildAsString();
 
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
+        when(mockProxyMessage.getSoap()).thenReturn(parseSoapMessage(soapXml));
 
         serverConfReturnDescriptionType = DescriptionType.WSDL;
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
@@ -501,8 +482,9 @@ public class MetadataServiceHandlerTest {
     private static final class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
         private OverwriteAttributeFilter filter;
 
-        TestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-            super(serverConfProvider, globalConfProvider, DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
+        TestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
+                                       ProxyProperties proxyProperties) {
+            super(serverConfProvider, globalConfProvider, proxyProperties);
         }
 
         @Override
@@ -525,13 +507,12 @@ public class MetadataServiceHandlerTest {
                 "https://172.28.128.2:8084/mocktestServiceBinding"));
 
         // execution
-        handlerToTest.startHandling(mockRequest, mockProxyMessage,
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage,
                 mock(OpMonitoringData.class));
 
         // verification
-        TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
-                // this response content type and the headless parsing is some super funky business
-                handlerToTest.getResponseContentType());
+        TestMimeContentHandler handler = parseWsdlResponse(result.responseContent(),
+                result.responseContentType());
 
         String expectedXml = readFile("__files/wsdl.wsdl");
         String resultXml = handler.getContentAsString();
@@ -570,7 +551,7 @@ public class MetadataServiceHandlerTest {
 
         // execution
 
-        handlerToTest.startHandling(mockRequest, mockProxyMessage,
+        var result = handlerToTest.startHandling(mockRequest, mockProxyMessage,
                 mock(OpMonitoringData.class));
 
         // verification
@@ -580,12 +561,11 @@ public class MetadataServiceHandlerTest {
         final List<String> expectedEndpointUrls =
                 List.of("expected-location");
 
-        assertThat("Content type does not match", handlerToTest.getResponseContentType(),
+        assertThat("Content type does not match", result.responseContentType(),
                 containsString("multipart/related; type=\"text/xml\"; charset=UTF-8;"));
 
-        TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
-                // this response content type and the headless parsing is some super funky business
-                handlerToTest.getResponseContentType());
+        TestMimeContentHandler handler = parseWsdlResponse(result.responseContent(),
+                result.responseContentType());
 
         SoapHeader xrHeader = handler.getXrHeader();
         assertThat("Response client does not match", xrHeader.getService(), is(serviceId));
@@ -617,25 +597,28 @@ public class MetadataServiceHandlerTest {
     }
 
     /**
-     * Prepare TestMetadataServiceHandlerImpl, wiremock, et al for get WSDL tests
+     * Prepare TestMetadataServiceHandlerImpl, wiremock, et al for get WSDL tests.
+     * The SOAP message (including the WsdlRequestData body) is parsed and mocked on
+     * mockProxyMessage.getSoap() so that startHandling() can access it directly.
      */
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId, boolean isRest) throws
             Exception {
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
-        TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl(serverConfProvider,
+                globalConfProvider, proxyProperties);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
 
-        InputStream soapContentInputStream = new TestSoapBuilder()
+        String soapXml = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
                 .withService(serviceId)
                 .withModifiedBody(
                         soapBody -> marshaller.marshal(wsdlRequestData, soapBody))
-                .buildAsInputStream();
+                .buildAsString();
 
-        doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
+        when(mockProxyMessage.getSoap()).thenReturn(parseSoapMessage(soapXml));
 
         serverConfReturnDescriptionType = isRest ? DescriptionType.REST : DescriptionType.WSDL;
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
@@ -649,6 +632,14 @@ public class MetadataServiceHandlerTest {
 
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId) throws Exception {
         return prepareTestConstructsForWsdl(serviceId, false);
+    }
+
+    /**
+     * Parse the given SOAP XML string into a {@link SoapMessageImpl} for use in mock setup.
+     */
+    private SoapMessageImpl parseSoapMessage(String soapXml) {
+        return (SoapMessageImpl) new SoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF8, new ByteArrayInputStream(soapXml.getBytes(UTF_8)));
     }
 
     private String readFile(String filename) throws IOException, URISyntaxException {
@@ -666,16 +657,6 @@ public class MetadataServiceHandlerTest {
         parser.setContentHandler(contentHandler);
         parser.parse(inputStream);
         return contentHandler;
-    }
-
-    private Answer<Object> copyStream(InputStream source) {
-        return args -> {
-            OutputStream out = args.getArgument(0);
-            try (out; source) {
-                IOUtils.copy(source, out);
-            }
-            return null;
-        };
     }
 
     private static final class TestMimeContentHandler extends AbstractContentHandler {

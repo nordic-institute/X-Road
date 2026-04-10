@@ -34,7 +34,7 @@
     class="xrd-snackbar success-snackbar"
     variant="flat"
     color="inverse-surface"
-    multi-line
+    min-height="68"
     :transition="transitionName"
     :timeout="snackbarTimeout(notification.timeout)"
     :close-on-back="false"

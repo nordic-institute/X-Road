@@ -37,7 +37,7 @@ body {
   background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
 }
 
-.bg-special {
+.xrd.bg-special {
   @extend %special-bh-gradient;
   //TODO XRD8 special hover/focus/pressed layers are a bit weird
   &.v-btn--disabled .v-btn__overlay {
@@ -46,11 +46,11 @@ body {
 }
 
 .xrd-rounded-16 {
-  border-radius: 16px !important;
+  border-radius: 16px;
 }
 
 .xrd-rounded-12 {
-  border-radius: 12px !important;
+  border-radius: 12px;
 }
 
 .xrd-elevation-1 {
@@ -59,19 +59,19 @@ body {
 
 .xrd {
   &.bg-success-container {
-    background-color: rgba(var(--v-theme-success-container), var(--v-success-container-opacity)) !important;
+    background-color: color-mix(in srgb, rgb(var(--v-theme-success-container)) var(--v-success-container-opacity), transparent);
   }
 
   &.bg-info-container {
-    background-color: rgba(var(--v-theme-info-container), var(--v-info-container-opacity)) !important;
+    background-color: color-mix(in srgb, rgb(var(--v-theme-info-container)) var(--v-info-container-opacity), transparent);
   }
 
   &.bg-warning-container {
-    background-color: rgba(var(--v-theme-warning-container), var(--v-warning-container-opacity)) !important;
+    background-color: color-mix(in srgb, rgb(var(--v-theme-warning-container)) var(--v-warning-container-opacity), transparent);
   }
 
   &.bg-error-container {
-    background-color: rgba(var(--v-theme-error-container), var(--v-error-container-opacity)) !important;
+    background-color: color-mix(in srgb, rgb(var(--v-theme-error-container)) var(--v-error-container-opacity), transparent);
   }
 }
 

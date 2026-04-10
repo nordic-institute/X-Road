@@ -91,7 +91,7 @@ Table 1. Technology matrix of the X-Road
 | Ubuntu 22.04                       |          X          |         X          |            X            |                 X                 |
 | Red Hat Enterprise Linux 8 (RHEL8) |          X          |                    |                         |                 X                 |
 | Red Hat Enterprise Linux 9 (RHEL9) |          X          |                    |                         |                 X                 |
-| PostgreSQL 12+\[[5](#Ref_5)\]      |          X          |         X          |                         |                 X                 |
+| PostgreSQL 15+\[[5](#Ref_5)\]      |          X          |         X          |                         |                 X                 |
 | nginx                              |                     |         X          |            X            |                                   |
 | PAM                                |          X          |         X          |                         |                                   |
 | Liquibase 4                        |          X          |         X          |                         |                 X                 |
@@ -119,7 +119,7 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 \[4\] Central Server uses embedded Jetty for management service and registration service.
 
 <a id="Ref_5" class="anchor"></a>
-\[5\] PostgreSQL version varies depending on operating system. By default, RHEL8 uses version 15, RHEL9 - 15, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[5\] Minimum supported PostgreSQL version is 15. By default, RHEL8 and RHEL9 use version 15, Ubuntu 22.04 - 14 (must be upgraded to 15+). User may also use external PostgreSQL server.
 
 ## 3 Central Server technologies
 
@@ -142,7 +142,7 @@ Table 2. Technology matrix of the Central Server
 | Node 18                       |            |                    |                                     |              |         X          |              |                     |                          |
 | Typescript                    |            |                    |                                     |              |         X          |              |                     |                          |
 | OpenAPI 3                     |            |                    |                  X                  |              |         X          |      X       |                     |                          |
-| PostgreSQL 12+\[[3](#Ref_3)\] |            |                    |                                     |      X       |                    |      X       |          X          |                          |
+| PostgreSQL 15+\[[3](#Ref_3)\] |            |                    |                                     |      X       |                    |      X       |          X          |                          |
 | nginx                         |            |                    |                  X                  |              |                    |              |                     |                          |
 | PAM                           |            |                    |                                     |              |                    |      X       |                     |                          |
 | Liquibase 4                   |            |                    |                                     |      X       |                    |              |                     |                          |
@@ -154,7 +154,7 @@ Table 2. Technology matrix of the Central Server
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 <a id="Ref_3" class="anchor"></a>
-\[3\] PostgreSQL version varies depending on operating system. By default, Ubuntu 22.04 uses version 14. User may also use external PostgreSQL server.
+\[3\] Minimum supported PostgreSQL version is 15. By default, Ubuntu 22.04 ships version 14 (must be upgraded to 15+). User may also use external PostgreSQL server.
 
 See [[ARC-CS]](#ARC-CS) for the Central Server details.
 
@@ -194,7 +194,7 @@ Table 4. Technology matrix of the Security Server
 | gRPC                          |     X      |     X     |                    |        X        |                       |              |                          |                             |      X       |      X      |                  X                   |                 X                 |                                     |
 | Embedded Jetty 9              |            |     X     |                    |                 |                       |              |                          |                             |              |             |                                      |                                   |                                     |
 | Javascript                    |            |           |                    |                 |                       |              |                          |              X              |              |             |                                      |                                   |                                     |
-| PostgreSQL 12+\[[3](#Ref_3)\] |            |           |                    |                 |                       |      X       |                          |                             |      X       |             |                                      |                                   |                                     |
+| PostgreSQL 15+\[[3](#Ref_3)\] |            |           |                    |                 |                       |      X       |                          |                             |      X       |             |                                      |                                   |                                     |
 | PAM                           |            |           |                    |                 |                       |              |                          |                             |      X       |             |                                      |                                   |                                     |
 | Liquibase 4                   |            |           |                    |                 |                       |      X       |                          |                             |              |             |                                      |                                   |                                     |
 | systemd                       |     X      |     X     |                    |                 |                       |              |            X             |                             |      X       |             |                                      |                                   |                                     |
@@ -213,7 +213,7 @@ Table 4. Technology matrix of the Security Server
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 <a id="Ref_3" class="anchor"></a>
-\[3\] PostgreSQL version varies depending on operating system. By default, RHEL8 uses version 15, RHEL9 - 15, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[3\] Minimum supported PostgreSQL version is 15. By default, RHEL8 and RHEL9 use version 15, Ubuntu 22.04 - 14 (must be upgraded to 15+). User may also use external PostgreSQL server.
 
 See [[ARC-SS]](#ARC-SS) for the Security Server details.
 
@@ -230,13 +230,13 @@ Table 5. Technology matrix of the operational monitoring daemon
 | Java 21                       |            X             |           X           |          X           |            X             |
 | Logback                       |            X             |           X           |          X           |            X             |
 | gRPC                          |            X             |           X           |                      |                          |
-| PostgreSQL 12+\[[1](#Ref_1)\] |            X             |           X           |                      |                          |
+| PostgreSQL 15+\[[1](#Ref_1)\] |            X             |           X           |                      |                          |
 | Liquibase 4                   |            X             |           X           |                      |                          |
 | Dropwizard Metrics 4          |            X             |           X           |                      |                          |
 | systemd                       |            X             |                       |                      |            X             |
 
 <a id="Ref_1" class="anchor"></a>
-\[1\] PostgreSQL version varies depending on operating system. By default, RHEL8 uses version 15, RHEL9 - 15, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[1\] Minimum supported PostgreSQL version is 15. By default, RHEL8 and RHEL9 use version 15, Ubuntu 22.04 - 14 (must be upgraded to 15+). User may also use external PostgreSQL server.
 
 
 See [[ARC-OPMOND]](#ARC-OPMOND) for the operational monitoring daemon details.

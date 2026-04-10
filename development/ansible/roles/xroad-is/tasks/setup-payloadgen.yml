@@ -8,7 +8,7 @@
         mode: "0755"
     - name: Download example-adapter
       get_url:
-        url: "https://artifactory.niis.org/artifactory/xroad-generic-utils/payloadgen-{{ ansible_architecture }}"
+        url: "https://artifactory.niis.org/artifactory/xroad-generic-utils/payloadgen-{{ ansible_facts['architecture'] }}"
         dest: /opt/payloadgen/payloadgen
         mode: "0744"
     - name: Create payloadgen systemd service

@@ -49,7 +49,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.hibernate.Session;
@@ -228,21 +227,18 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllServices(ClientId serviceProviderId) {
-        return tx(session -> XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProviderId)));
+        return tx(session -> serviceDao.getServices(session, serviceProviderId));
     }
 
     @Override
     public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProviderId, DescriptionType descriptionType) {
-        return tx(session -> XRoadIdMapper.get().toServices(
-                serviceDao.getServicesByDescriptionType(session, serviceProviderId, descriptionType)
-        ));
+        return tx(session -> serviceDao.getServicesByDescriptionType(session, serviceProviderId, descriptionType));
     }
 
     @Override
     public List<ServiceId.Conf> getAllowedServices(ClientId serviceProviderId, ClientId clientId) {
         return tx(session -> {
-            List<ServiceId.Conf> allServices =
-                    XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProviderId));
+            List<ServiceId.Conf> allServices = serviceDao.getServices(session, serviceProviderId);
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, clientId, s).isEmpty())
                     .collect(Collectors.toList());
@@ -253,10 +249,7 @@ public class ServerConfImpl implements ServerConfProvider {
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
                                                                     DescriptionType descriptionType) {
         return tx(session -> {
-            List<ServiceId.Conf> allServices =
-                    XRoadIdMapper.get().toServices(
-                            serviceDao.getServicesByDescriptionType(session, serviceProviderId, descriptionType)
-                    );
+            List<ServiceId.Conf> allServices = serviceDao.getServicesByDescriptionType(session, serviceProviderId, descriptionType);
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, clientId, s).isEmpty())
                     .collect(Collectors.toList());
@@ -268,7 +261,7 @@ public class ServerConfImpl implements ServerConfProvider {
         return tx(session -> {
             Service service = getService(session, serviceId);
             if (service != null) {
-                return ObjectUtils.defaultIfNull(
+                return Objects.requireNonNullElse(
                         service.getSslAuthentication(), true);
             }
 

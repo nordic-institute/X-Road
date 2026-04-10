@@ -49,9 +49,16 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 /**
  * Service responsible for synchronizing software token keys from the signer service.
  * <p>
- * This service periodically fetches all software token private keys
- * from the signer service and updates the local cache. The synchronization happens on startup
- * and then periodically based on the configured interval.
+ * This service periodically fetches all software token private keys from the signer service
+ * and updates the local cache. The synchronization happens on startup and then periodically
+ * based on the configured interval.
+ * <p>
+ * Resilience behavior:
+ * <ul>
+ *   <li>Initial sync failure on startup: exception propagates, service fails to start (startup probe)</li>
+ *   <li>Periodic sync failure: exception is caught, logged at warn level, and recorded in
+ *       {@link SyncHealthState} for health probe consumption. The scheduler continues running.</li>
+ * </ul>
  */
 @Slf4j
 @ApplicationScoped
@@ -61,11 +68,20 @@ public class KeysSynchronizationJob {
     private final SignerRpcClient signerRpcClient;
     private final SoftwareTokenKeyCache keyCache;
     private final SoftTokenSignerKeysProperties properties;
+    private final SyncHealthState syncHealthState;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
 
+    private volatile boolean initialSyncDone = false;
+
+    /**
+     * Performs initial key synchronization on startup and schedules periodic sync.
+     *
+     * @param init CDI startup event
+     */
     public void startJob(@Observes Startup init) {
         log.info("Performing initial keys' synchronization on startup");
         synchronizeKeys();
+        initialSyncDone = true;
 
         log.info("Scheduling keys' synchronization at fixed rate: {} seconds", properties.syncRate().toSeconds());
         scheduler.scheduleAtFixedRate(this::synchronizeKeys, properties.syncRate().toSeconds(), properties.syncRate().toSeconds(), SECONDS);
@@ -76,8 +92,15 @@ public class KeysSynchronizationJob {
         scheduler.shutdown();
     }
 
+    /**
+     * Synchronizes software token keys from the signer service into the local cache.
+     * <p>
+     * On initial startup (before {@code initialSyncDone} is set), failures throw
+     * {@link XrdRuntimeException} to prevent the service from starting with stale keys.
+     * After startup, failures are caught and recorded in {@link SyncHealthState}.
+     */
     public void synchronizeKeys() {
-        log.info("Starting software token key synchronization");
+        log.debug("Starting software token key synchronization");
 
         try {
             final var softwareTokenKeys = signerRpcClient.listSoftwareTokenKeys();
@@ -96,11 +119,18 @@ public class KeysSynchronizationJob {
             }
 
             keyCache.updateKeys(newKeys);
+            syncHealthState.recordSuccess();
             log.info("Successfully synchronized {} software token keys", newKeys.size());
 
         } catch (Exception e) {
-            log.error("Software token key synchronization failed: {}", e.getMessage(), e);
-            throw XrdRuntimeException.systemInternalError("Key synchronization failed", e);
+            if (!initialSyncDone) {
+                log.error("Initial software token key synchronization failed: {}", e.getMessage(), e);
+                throw XrdRuntimeException.systemInternalError("Key synchronization failed", e);
+            }
+            syncHealthState.recordFailure(e.getMessage());
+            log.warn("Software token key synchronization failed (consecutive failures: {}): {}",
+                    syncHealthState.getConsecutiveFailures(), e.getMessage());
+            log.debug("Sync failure details", e);
         }
     }
 }

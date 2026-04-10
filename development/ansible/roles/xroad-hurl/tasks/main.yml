@@ -3,7 +3,7 @@
   block:
     - name: Set package name
       set_fact:
-        hurl_dirname: "hurl-{{ hurl_version }}-{{ ansible_architecture }}-unknown-linux-gnu"
+        hurl_dirname: "hurl-{{ hurl_version }}-{{ ansible_facts['architecture'] }}-unknown-linux-gnu"
 
     - name: Create install directory
       file:

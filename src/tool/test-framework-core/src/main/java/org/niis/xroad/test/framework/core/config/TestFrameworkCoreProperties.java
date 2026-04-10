@@ -194,7 +194,7 @@ public interface TestFrameworkCoreProperties {
         @WithName("headless")
         boolean headless();
 
-        @WithDefault("selenium/standalone-chromium:142.0")
+        @WithDefault("selenium/standalone-chromium:145.0")
         @WithName("remote-selenium-image")
         String remoteSeleniumImage();
     }

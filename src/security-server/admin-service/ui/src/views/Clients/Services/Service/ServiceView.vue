@@ -36,7 +36,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
-import { ServiceTypeEnum } from '@/domain';
 import { Tab, XrdElevatedViewFixedWidth, XrdViewNavigation, useNotifications } from '@niis/shared-ui';
 import { mapActions, mapState } from 'pinia';
 import { useServices } from '@/store/modules/services';
@@ -57,11 +56,6 @@ export default defineComponent({
   setup() {
     const { addError } = useNotifications();
     return { addError };
-  },
-  data() {
-    return {
-      serviceTypeEnum: ServiceTypeEnum,
-    };
   },
   computed: {
     ...mapState(useServices, ['service']),
@@ -97,7 +91,7 @@ export default defineComponent({
       return this.serviceDescription?.type;
     },
     nonWsdl() {
-      return this.serviceType && [ServiceType.REST, ServiceType.OPENAPI3].includes(this.serviceType);
+      return this.serviceType === ServiceType.REST || this.serviceType === ServiceType.OPENAPI3;
     },
     breadcrumbs() {
       const breadcrumbs = [

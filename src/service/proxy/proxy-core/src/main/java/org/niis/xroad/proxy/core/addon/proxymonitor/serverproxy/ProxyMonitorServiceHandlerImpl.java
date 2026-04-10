@@ -48,6 +48,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.proxymonitor.util.MetricTypes;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
+import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerResult;
 import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 import org.niis.xroad.proxymonitor.message.MetricSetType;
 import org.niis.xroad.proxymonitor.message.ObjectFactory;
@@ -63,7 +64,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +71,7 @@ import java.util.List;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 
 /**
- * Service handler for proxy monitoring
+ * Service handler for proxy monitoring.
  */
 @Slf4j
 public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
@@ -80,13 +80,8 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     public static final String MONITOR_REQ_PARAM_NODE_NAME = "outputField";
     public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring";
 
-    private ProxyMessage requestMessage;
     private static final JAXBContext JAXB_CTX;
 
-    private final ByteArrayOutputStream responseOut =
-            new ByteArrayOutputStream();
-
-    private SoapMessageEncoder responseEncoder;
     private final MonitorRpcClient monitorRpcClient;
 
     public ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
@@ -96,9 +91,9 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public boolean shouldVerifyAccess() {
+    public boolean shouldVerifyAccess(ProxyMessage requestMessage) {
         //override default access check
-        verifyAccess();
+        verifyAccess(requestMessage);
         return false;
     }
 
@@ -115,19 +110,15 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     @Override
     public boolean canHandle(ServiceId requestServiceId, ProxyMessage requestProxyMessage) {
         final ServiceId.Conf serviceId = ServiceId.Conf.create(serverConfProvider.getIdentifier().getOwner(), SERVICE_CODE);
-
-        if (serviceId.equals(requestServiceId)) {
-            requestMessage = requestProxyMessage;
-            return true;
-        }
-
-        return false;
+        return serviceId.equals(requestServiceId);
     }
 
     @Override
-    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                              OpMonitoringData opMonitoringData)
+    public ServiceHandlerResult startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                                              OpMonitoringData opMonitoringData)
             throws ParserConfigurationException, IOException, SAXException, SOAPException, JAXBException {
+
+        var responseOut = new ByteArrayOutputStream();
 
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
@@ -136,8 +127,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
 
-        //mock implementation
-        responseEncoder = new SimpleSoapEncoder(responseOut);
+        SoapMessageEncoder responseEncoder = new SimpleSoapEncoder(responseOut);
 
         final GetSecurityServerMetricsResponse metricsResponse = new GetSecurityServerMetricsResponse();
         final MetricSetType root = new MetricSetType();
@@ -149,17 +139,21 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
         version.setValue(Version.XROAD_VERSION);
         root.getMetrics().add(version);
 
-        root.getMetrics().add(MetricTypes.of(monitorRpcClient.getMetrics(getMetricNames(proxyRequestMessage), isOwner())));
+        root.getMetrics().add(MetricTypes.of(monitorRpcClient.getMetrics(
+                getMetricNames(proxyRequestMessage), isOwner(proxyRequestMessage))));
 
-        SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
+        SoapMessageImpl result = createResponse(proxyRequestMessage.getSoap(), metricsResponse);
         responseEncoder.soap(result, Collections.emptyMap());
+
+        return new ServiceHandlerResult(responseEncoder.getContentType(),
+                new ByteArrayInputStream(responseOut.toByteArray()));
     }
 
     /**
      * Read requested monitoring parameter names from SOAP body. Returns empty list if no explicit metric names defined.
-     *
      */
-    private List<String> getMetricNames(ProxyMessage proxyRequestMessage) throws ParserConfigurationException, IOException, SAXException {
+    private List<String> getMetricNames(ProxyMessage proxyRequestMessage)
+            throws ParserConfigurationException, IOException, SAXException {
         List<String> metricNames = new ArrayList<>();
 
         Document doc = parse(proxyRequestMessage);
@@ -173,35 +167,19 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     /**
      * Create XML DOM representation from input stream.
-     *
      */
     private Document parse(ProxyMessage proxyRequestMessage) throws ParserConfigurationException, IOException, SAXException {
         byte[] bytes = proxyRequestMessage.getSoap().getBytes();
         return XmlUtils.parseDocument(new ByteArrayInputStream(bytes), true);
     }
 
-    @Override
-    public void finishHandling() {
-        // nothing to do
-    }
-
-    @Override
-    public String getResponseContentType() {
-        return responseEncoder.getContentType();
-    }
-
-    @Override
-    public InputStream getResponseContent() {
-        return new ByteArrayInputStream(responseOut.toByteArray());
-    }
-
-    private boolean isOwner() {
+    private boolean isOwner(ProxyMessage requestMessage) {
         final ClientId owner = serverConfProvider.getIdentifier().getOwner();
         final ClientId client = requestMessage.getSoap().getClient();
         return owner.equals(client);
     }
 
-    private void verifyAccess() {
+    private void verifyAccess(ProxyMessage requestMessage) {
         final ClientId owner = serverConfProvider.getIdentifier().getOwner();
         final ClientId client = requestMessage.getSoap().getClient();
 

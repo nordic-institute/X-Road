@@ -21,7 +21,7 @@
         msg: "Variant '{{ variant }}' does not support RHEL-servers"
       when:
         - (variant is defined and variant == "ee")
-        - ansible_os_family == "RedHat"
+        - ansible_facts['os_family'] == "RedHat"
 
 - name: Run compilation tasks
   hosts: compile_servers
