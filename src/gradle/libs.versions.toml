@@ -8,12 +8,12 @@
 metrics = "4.2.38"
 jetty = "12.0.33"
 jaxb = "4.0.7"
-hibernate = "7.2.6.Final"
+hibernate = "7.3.0.Final"
 mapstruct = "1.6.3"
 jackson = "2.21.2"
 jacksonAnnotations = "2.21"
 mockito = "5.23.0"
-springBoot = "3.5.9"
+springBoot = "4.0.5"
 springFramework = "7.0.6"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
@@ -64,7 +64,7 @@ springFramework-web = { module = "org.springframework:spring-web", version.ref =
 springFramework-test = { module = "org.springframework:spring-test", version.ref = "springFramework" }
 springFramework-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "springFramework" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.0.0" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.1.1" }
 
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
@@ -223,7 +223,7 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.25.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.26.1" }
 
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
