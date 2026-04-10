@@ -31,18 +31,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,7 +70,7 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void getConfigurationPropertiesNotConfigured() {
-        when(configurableProperties.getConfigurableProperties()).thenReturn(Map.of());
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of());
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
         assertEquals(0, systemParameters.size());
@@ -80,7 +81,8 @@ class ConfigurablePropertiesServiceTest {
         var systemParameter = new ConfigurablePropertiesDefinition.ConfigurableProperty();
         systemParameter.setPropertyName(PROPERTY_NAME);
         systemParameter.setDefaultValue(DEFAULT_VALUE);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(Map.of(SCOPE, List.of(systemParameter)));
+        systemParameter.setScope(SCOPE);
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
         when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
@@ -96,9 +98,10 @@ class ConfigurablePropertiesServiceTest {
         var systemParameter = new ConfigurablePropertiesDefinition.ConfigurableProperty();
         systemParameter.setPropertyName(PROPERTY_NAME);
         systemParameter.setDefaultValue(DEFAULT_VALUE);
+        systemParameter.setScope(SCOPE);
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyValue(PROPERTY_VALUE_2);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(Map.of(SCOPE, List.of(systemParameter)));
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
         when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
@@ -113,6 +116,7 @@ class ConfigurablePropertiesServiceTest {
     void updateConfigurablePropertyFoundInDatabase() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyValue(PROPERTY_VALUE);
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
         when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE);
@@ -128,6 +132,7 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabase() {
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
         when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE);
@@ -145,6 +150,7 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabaseScopeIsNull() {
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedProperty()));
         when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, null)).thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, null);
@@ -160,9 +166,38 @@ class ConfigurablePropertiesServiceTest {
         assertNull(capturedEntity.getScope());
     }
 
+    @Test
+    void updateConfigurablePropertyThrowsWhenScopeNotInDefinition() {
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope("other-scope")));
+
+        assertThrows(NotFoundException.class,
+                () -> service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE));
+    }
+
+    @Test
+    void updateConfigurablePropertyThrowsWhenKeyNotInDefinition() {
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
+
+        assertThrows(NotFoundException.class,
+                () -> service.updateConfigurableProperty("unknown.property.key", PROPERTY_VALUE, SCOPE));
+    }
+
     private static void assertCommonConfigurablePropertyDtoFields(SecurityServerConfigurablePropertyDto parameter) {
         assertEquals(PROPERTY_NAME, parameter.getPropertyName());
         assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
+    }
+
+    private static ConfigurablePropertiesDefinition.ConfigurableProperty definedProperty() {
+        var property = new ConfigurablePropertiesDefinition.ConfigurableProperty();
+        property.setPropertyName(PROPERTY_NAME);
+        property.setDefaultValue(DEFAULT_VALUE);
+        return property;
+    }
+
+    private static ConfigurablePropertiesDefinition.ConfigurableProperty definedPropertyWithScope(String scope) {
+        var property = definedProperty();
+        property.setScope(scope);
+        return property;
     }
 
 }
