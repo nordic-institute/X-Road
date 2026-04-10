@@ -6,7 +6,7 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.38"
-jetty = "12.0.33"
+jetty = "12.1.8"
 jaxb = "4.0.7"
 hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
@@ -39,7 +39,7 @@ feign = "13.11"
 testCucumber = "7.34.3"
 testContainers = "2.0.4"
 testAllure = "2.33.0"
-testSelenide = "7.15.0"
+testSelenide = "7.15.1"
 shadowPlugin = "9.4.1"
 edc = "0.16.0"
 edc-v = "0.16.0-20260323-1-SNAPSHOT"
@@ -204,7 +204,7 @@ hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 h2database = { module = "com.h2database:h2", version = "2.4.240" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.45" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.46" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -350,7 +350,7 @@ quarkus-containerized = [
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.21.0" }
-sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
+sonarqube = { id = "org.sonarqube", version = "7.2.3.7755" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
