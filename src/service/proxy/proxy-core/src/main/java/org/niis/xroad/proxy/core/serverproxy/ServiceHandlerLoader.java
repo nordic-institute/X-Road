@@ -28,78 +28,92 @@ package org.niis.xroad.proxy.core.serverproxy;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
-import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
+import static org.niis.xroad.proxy.core.configuration.ServerProxyConfig.SERVER_PROXY_HTTP_CLIENT;
+
+/**
+ * Constructs service handlers at startup based on feature flags and exposes immutable ordered handler lists.
+ */
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ServiceHandlerLoader {
+
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
-    private final MonitorRpcClient monitorRpcClient;
-    private final CommonProperties commonProperties;
     private final ProxyProperties proxyProperties;
+    private final CommonProperties commonProperties;
     private final VaultClient vaultClient;
+    private final MonitorRpcClient monitorRpcClient;
+    private final HttpSenderProvider httpSenderProvider;
+    @Named(SERVER_PROXY_HTTP_CLIENT)
+    private final HttpClient serverProxyHttpClient;
 
-    private CloseableHttpClient opMonitorHttpClient = null;
+    private List<ServiceHandler> soapHandlers;
+    private List<RestServiceHandler> restHandlers;
 
     @PostConstruct
     public void init() {
-        try {
-            if (proxyProperties.addon().opMonitor().enabled()) {
-                opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
-                        proxyProperties.addon().opMonitor().connection(), vaultClient,
-                        serverConfProvider.getSSLKey());
-            }
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemException(e);
-        }
+        soapHandlers = buildSoapHandlers();
+        restHandlers = buildRestHandlers();
     }
 
     @PreDestroy
     public void destroy() {
-        IOUtils.closeQuietly(opMonitorHttpClient);
+        if (soapHandlers != null) {
+            soapHandlers.forEach(ServiceHandler::destroy);
+        }
     }
 
-    Collection<ServiceHandler> loadSoapServiceHandlers() {
-        Collection<ServiceHandler> handlers = new ArrayList<>();
-        if (proxyProperties.addon().metaservices().enabled()) {
-            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                    proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers()));
+    private List<ServiceHandler> buildSoapHandlers() {
+        var addons = proxyProperties.addon();
+        var handlers = new ArrayList<ServiceHandler>();
+
+        if (addons.metaservices().enabled()) {
+            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider, proxyProperties));
         }
-        if (proxyProperties.addon().opMonitor().enabled()) {
-            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, proxyProperties.addon().opMonitor(),
-                    opMonitorHttpClient, proxyProperties.clientProxy().poolEnableConnectionReuse()));
+        if (addons.opMonitor().enabled()) {
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                    vaultClient, proxyProperties));
         }
-        if (proxyProperties.addon().proxyMonitor().enabled()) {
+        if (addons.proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
         }
-        return handlers;
+        handlers.add(new DefaultServiceHandlerImpl(serverConfProvider, globalConfProvider, httpSenderProvider));
+        return List.copyOf(handlers);
     }
 
-    Collection<RestServiceHandler> loadRestServiceHandlers() {
-        Collection<RestServiceHandler> handlers = new ArrayList<>();
+    private List<RestServiceHandler> buildRestHandlers() {
+        var handlers = new ArrayList<RestServiceHandler>();
         if (proxyProperties.addon().metaservices().enabled()) {
-            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties.clientProxy().clientTlsProtocols(),
-                    proxyProperties.clientProxy().clientTlsCiphers(), commonProperties.tempFilesPath()));
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties, commonProperties));
         }
-        return handlers;
+        handlers.add(new DefaultRestServiceHandlerImpl(serverConfProvider, serverProxyHttpClient, commonProperties));
+        return List.copyOf(handlers);
+    }
+
+    List<ServiceHandler> getSoapHandlers() {
+        return soapHandlers;
+    }
+
+    List<RestServiceHandler> getRestHandlers() {
+        return restHandlers;
     }
 
 }

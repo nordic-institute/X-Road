@@ -48,7 +48,7 @@ jobs:
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -100,8 +100,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
       - name: Upload GMT jsons
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7

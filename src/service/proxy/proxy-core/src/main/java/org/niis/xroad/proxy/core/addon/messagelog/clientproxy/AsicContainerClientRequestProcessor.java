@@ -36,11 +36,14 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageRecord;
@@ -50,9 +53,8 @@ import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.util.AddonRequestContext;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
-import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -75,8 +77,10 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.ASIC;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.VERIFICATIONCONF;
 
 @Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor
 @ArchUnitSuppressed("NoVanillaExceptions")
-public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
+public class AsicContainerClientRequestProcessor {
 
     static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
     static final String PARAM_MEMBER_CLASS = "memberClass";
@@ -104,43 +108,28 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private static final String CONTENT_DISPOSITION_FILENAME_PREFIX = "attachment; filename=\"";
 
-
-    private final String target;
+    private final ProxyProperties proxyProperties;
+    private final GlobalConfProvider globalConfProvider;
+    private final ClientAuthenticationService clientAuthenticationService;
     private final EncryptionConfigProvider encryptionConfigProvider;
     private final ConfClientRpcClient confClientRpcClient;
     private final MessageRecordEncryption messageRecordEncryption;
     private final LogRecordManager logRecordManager;
-    private final String tempFilesPath;
+    private final CommonProperties commonProperties;
 
-    public AsicContainerClientRequestProcessor(ConfClientRpcClient confClientRpcClient, EncryptionConfigProvider encryptionConfigProvider,
-                                               ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                               ServerConfProvider serverConfProvider,
-                                               LogRecordManager logRecordManager, String tempFilesPath,
-                                               MessageRecordEncryption messageRecordEncryption,
-                                               String target, RequestWrapper request, ResponseWrapper response,
-                                               ClientAuthenticationService clientAuthenticationService) {
-        super(request, response, proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, null);
-        this.target = target;
-        this.encryptionConfigProvider = encryptionConfigProvider;
-        this.confClientRpcClient = confClientRpcClient;
-        this.messageRecordEncryption = messageRecordEncryption;
-        this.logRecordManager = logRecordManager;
-        this.tempFilesPath = tempFilesPath;
-    }
-
-    public boolean canProcess() {
+    public boolean canProcess(String target) {
         return switch (target) {
             case ASIC, VERIFICATIONCONF -> true;
             default -> false;
         };
     }
 
-    @Override
-    public void process() {
+    public void process(AddonRequestContext ctx) {
+        globalConfProvider.verifyValidity();
         try {
-            switch (target) {
-                case ASIC -> handleAsicRequest();
-                case VERIFICATIONCONF -> handleVerificationConfRequest();
+            switch (ctx.target()) {
+                case ASIC -> handleAsicRequest(ctx);
+                case VERIFICATIONCONF -> handleVerificationConfRequest(ctx);
                 default -> {
                 }
             }
@@ -160,27 +149,27 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private void handleVerificationConfRequest() throws IOException {
-        jResponse.setContentType(MimeTypes.ZIP);
-        jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
-        try (OutputStream out = jResponse.getOutputStream()) {
+    private void handleVerificationConfRequest(AddonRequestContext ctx) throws IOException {
+        ctx.response().setContentType(MimeTypes.ZIP);
+        ctx.response().putHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
+        try (OutputStream out = ctx.response().getOutputStream()) {
             out.write(confClientRpcClient.getVerificationConfZip());
         }
     }
 
-    private void handleAsicRequest() throws Exception {
-        ClientId clientId = getClientIdFromRequest();
+    private void handleAsicRequest(AddonRequestContext ctx) throws Exception {
+        ClientId clientId = getClientIdFromRequest(ctx.request());
 
-        verifyClientAuthentication(clientId);
+        verifyClientAuthentication(ctx.request(), clientId);
 
-        handleAsicRequest(clientId);
+        handleAsicRequest(ctx, clientId);
     }
 
-    private void verifyClientAuthentication(ClientId clientId) {
+    private void verifyClientAuthentication(RequestWrapper request, ClientId clientId) {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
             clientAuthenticationService.verifyClientAuthentication(clientId,
-                    clientAuthenticationService.getIsAuthenticationData(jRequest, proxyProperties.logClientCert()));
+                    clientAuthenticationService.getIsAuthenticationData(request, proxyProperties.logClientCert()));
         } catch (XrdRuntimeException ex) {
             throw XrdRuntimeHttpException.from(ex)
                     .httpStatus(HttpStatus.UNAUTHORIZED)
@@ -188,11 +177,11 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private void handleAsicRequest(ClientId clientId) throws Exception {
-        String queryId = getParameter(PARAM_QUERY_ID, false);
+    private void handleAsicRequest(AddonRequestContext ctx, ClientId clientId) throws Exception {
+        String queryId = getParameter(ctx.request(), PARAM_QUERY_ID, false);
         AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator();
-        boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
-        boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
+        boolean requestOnly = hasParameter(ctx.request(), PARAM_REQUEST_ONLY);
+        boolean responseOnly = hasParameter(ctx.request(), PARAM_RESPONSE_ONLY);
         if (requestOnly && responseOnly) {
             throw XrdRuntimeHttpException.builder(BAD_REQUEST)
                     .httpStatus(HttpStatus.BAD_REQUEST)
@@ -201,14 +190,14 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
 
         Boolean response = responseOnly ? Boolean.TRUE : (requestOnly ? Boolean.FALSE : null);
-        boolean unique = hasParameter(PARAM_UNIQUE);
+        boolean unique = hasParameter(ctx.request(), PARAM_UNIQUE);
 
-        ensureTimestamped(clientId, queryId, response, hasParameter(PARAM_FORCE));
+        ensureTimestamped(clientId, queryId, response, hasParameter(ctx.request(), PARAM_FORCE));
 
         if (unique && response != null) {
-            writeAsicContainer(clientId, queryId, nameGen, response);
+            writeAsicContainer(ctx.response(), clientId, queryId, nameGen, response);
         } else if (!unique) {
-            writeContainers(clientId, queryId, nameGen, response);
+            writeContainers(ctx.response(), clientId, queryId, nameGen, response);
         } else {
             throw XrdRuntimeHttpException.builder(BAD_REQUEST)
                     .httpStatus(HttpStatus.BAD_REQUEST)
@@ -217,7 +206,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private void ensureTimestamped(ClientId id, String queryId, Boolean response, boolean force) throws Exception {
+    private void ensureTimestamped(ClientId id, String queryId, Boolean response, boolean force) {
         final List<MessageRecord> records = logRecordManager.getByQueryId(queryId, id, response, Function.identity());
 
         if (records.isEmpty()) {
@@ -231,35 +220,41 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             if (record.getTimestampRecord() == null) {
                 if (force) {
                     if (MessageLog.timestamp(record) == null) {
-                        throw new Exception(TIMESTAMPING_FAILED_FAULT_MESSAGE);
+                        throw XrdRuntimeHttpException.builder(INTERNAL_ERROR)
+                                .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .details(TIMESTAMPING_FAILED_FAULT_MESSAGE)
+                                .build();
                     }
                 } else {
-                    throw new Exception(MISSING_TIMESTAMP_FAULT_MESSAGE);
+                    throw XrdRuntimeHttpException.builder(INTERNAL_ERROR)
+                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .details(MISSING_TIMESTAMP_FAULT_MESSAGE)
+                            .build();
                 }
             }
         }
     }
 
-    private boolean hasParameter(String param) throws Exception {
-        return jRequest.getParametersMap().containsKey(param);
+    private boolean hasParameter(RequestWrapper request, String param) throws Exception {
+        return request.getParametersMap().containsKey(param);
     }
 
-    private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                 Boolean response) throws IOException {
+    private void writeContainers(ResponseWrapper response, ClientId clientId, String queryId,
+                                 AsicContainerNameGenerator nameGen, Boolean isResponse) throws IOException {
 
         if (encryptionConfigProvider.isEncryptionEnabled()) {
-            writeEncryptedContainers(clientId, queryId, nameGen, response);
+            writeEncryptedContainers(response, clientId, queryId, nameGen, isResponse);
         } else {
             final String filename = AsicUtils.escapeString(queryId)
-                    + (response == null ? "" : (response ? "-response" : "-request")) + ".zip";
+                    + (isResponse == null ? "" : (isResponse ? "-response" : "-request")) + ".zip";
             final CheckedSupplier<OutputStream> supplier = () -> {
-                jResponse.setContentType(MimeTypes.ZIP);
-                jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
+                response.setContentType(MimeTypes.ZIP);
+                response.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
-                return jResponse.getOutputStream();
+                return response.getOutputStream();
             };
 
-            writeContainers(clientId, queryId, nameGen, response, supplier);
+            writeContainers(clientId, queryId, nameGen, isResponse, supplier);
         }
     }
 
@@ -269,26 +264,26 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     @SuppressWarnings("squid:S2095")
-    private void writeEncryptedContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                          Boolean response) throws IOException {
+    private void writeEncryptedContainers(ResponseWrapper response, ClientId clientId, String queryId,
+                                          AsicContainerNameGenerator nameGen, Boolean isResponse) throws IOException {
 
         final String filename = AsicUtils.escapeString(queryId)
-                + (response == null ? "" : (response ? "-response" : "-request")) + ".zip.gpg";
+                + (isResponse == null ? "" : (isResponse ? "-response" : "-request")) + ".zip.gpg";
 
-        final Path tempFile = Files.createTempFile(Paths.get(tempFilesPath), "asic", null);
+        final Path tempFile = Files.createTempFile(Paths.get(commonProperties.tempFilesPath()), "asic", null);
 
         try {
             final EncryptionConfig encryptionConfig = encryptionConfigProvider.forClientId(clientId);
             final CheckedSupplier<OutputStream> supplier = () -> {
-                jResponse.setContentType(MimeTypes.BINARY);
-                jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
+                response.setContentType(MimeTypes.BINARY);
+                response.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
                 return encryptionConfig.createEncryptionStream(tempFile);
             };
 
-            writeContainers(clientId, queryId, nameGen, response, supplier);
+            writeContainers(clientId, queryId, nameGen, isResponse, supplier);
 
-            try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {
+            try (InputStream is = Files.newInputStream(tempFile); var out = response.getOutputStream()) {
                 IOUtils.copyLarge(is, out);
             }
 
@@ -356,10 +351,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-                                    boolean response) {
+    private void writeAsicContainer(ResponseWrapper response, ClientId clientId, String queryId,
+                                    AsicContainerNameGenerator nameGen, boolean isResponse) {
 
-        logRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
+        logRecordManager.getByQueryIdUnique(queryId, clientId, isResponse, record -> {
             try {
                 if (record == null) {
                     throw XrdRuntimeHttpException.builder(NOT_FOUND)
@@ -373,21 +368,21 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 messageRecordEncryption.prepareDecryption(record);
                 final AsicContainer asicContainer = record.toAsicContainer();
 
-                String filename = nameGen.getArchiveFilename(queryId, response, record.getId());
+                String filename = nameGen.getArchiveFilename(queryId, isResponse, record.getId());
                 if (encryptionConfigProvider.isEncryptionEnabled()) {
                     filename += ".gpg";
-                    jResponse.setContentType(MimeTypes.BINARY);
+                    response.setContentType(MimeTypes.BINARY);
                 } else {
-                    jResponse.setContentType(MimeTypes.ASIC_ZIP);
+                    response.setContentType(MimeTypes.ASIC_ZIP);
                 }
-                jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
+                response.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
 
                 if (encryptionConfigProvider.isEncryptionEnabled()) {
                     final var encryptionConfig = encryptionConfigProvider.forClientId(clientId);
-                    encryptContainer(encryptionConfig, asicContainer);
+                    encryptContainer(response, encryptionConfig, asicContainer);
                 } else {
-                    asicContainer.write(jResponse.getOutputStream());
+                    asicContainer.write(response.getOutputStream());
                 }
 
             } catch (XrdRuntimeException ce) {
@@ -399,14 +394,15 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         });
     }
 
-    private void encryptContainer(EncryptionConfig encryptionConfig, AsicContainer asicContainer) throws IOException {
+    private void encryptContainer(ResponseWrapper response, EncryptionConfig encryptionConfig,
+                                  AsicContainer asicContainer) throws IOException {
         final Path tempFile = Files.createTempFile(
-                Paths.get(tempFilesPath), "asic", null);
+                Paths.get(commonProperties.tempFilesPath()), "asic", null);
         try {
             try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile)) {
                 asicContainer.write(os);
             }
-            try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {
+            try (InputStream is = Files.newInputStream(tempFile); var out = response.getOutputStream()) {
                 IOUtils.copyLarge(is, out);
             }
         } finally {
@@ -414,18 +410,17 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    private ClientId.Conf getClientIdFromRequest() throws Exception {
-        String instanceIdentifier = getParameter(PARAM_INSTANCE_IDENTIFIER, false);
-        String memberClass = getParameter(PARAM_MEMBER_CLASS, false);
-        String memberCode = getParameter(PARAM_MEMBER_CODE, false);
-        String subsystemCode = getParameter(PARAM_SUBSYSTEM_CODE, true);
+    private ClientId.Conf getClientIdFromRequest(RequestWrapper request) throws Exception {
+        String instanceIdentifier = getParameter(request, PARAM_INSTANCE_IDENTIFIER, false);
+        String memberClass = getParameter(request, PARAM_MEMBER_CLASS, false);
+        String memberCode = getParameter(request, PARAM_MEMBER_CODE, false);
+        String subsystemCode = getParameter(request, PARAM_SUBSYSTEM_CODE, true);
 
         return ClientId.Conf.create(instanceIdentifier, memberClass, memberCode, subsystemCode);
     }
 
-    private String getParameter(String param, boolean optional) throws Exception {
-        String paramValue = jRequest.getParameter(param);
+    private String getParameter(RequestWrapper request, String param, boolean optional) throws Exception {
+        String paramValue = request.getParameter(param);
 
         if (paramValue == null && !optional) {
             throw XrdRuntimeHttpException.builder(BAD_REQUEST)

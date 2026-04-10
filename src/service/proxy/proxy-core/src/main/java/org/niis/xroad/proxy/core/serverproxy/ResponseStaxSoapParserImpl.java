@@ -154,7 +154,7 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
      * For keeping track of few last events for handling some edge cases.
      */
     @RequiredArgsConstructor
-    private final class DelayedEventWriter {
+    private static final class DelayedEventWriter {
         private static final int MAX_LENGTH = 3;
 
         private final Deque<XMLEvent> queue = new LinkedList<>();

@@ -41,16 +41,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
-import org.niis.xroad.messagelog.MessageRecordEncryption;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
-import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.proxy.core.util.AddonRequestContext;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,27 +85,16 @@ class MetadataClientRequestProcessorTest {
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
 
     private GlobalConfProvider globalConfProvider;
-    private ServerConfProvider serverConfProvider;
-    private ClientAuthenticationService clientAuthenticationService;
-    private final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
     private final ProxyTestSuiteHelper proxyTestSuiteHelper = new ProxyTestSuiteHelper();
 
-    /**
-     * Init class-wide test instances
-     */
     @BeforeAll
     public static void initCommon() throws JAXBException {
         unmarshaller = JAXBContext.newInstance(ObjectFactory.class).createUnmarshaller();
     }
 
-    /**
-     * Init data for tests
-     */
     @BeforeEach
     void init() {
         globalConfProvider = new TestSuiteGlobalConf(proxyTestSuiteHelper);
-        serverConfProvider = mock(ServerConfProvider.class);
-        clientAuthenticationService = mock(ClientAuthenticationService.class);
 
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
@@ -126,19 +111,17 @@ class MetadataClientRequestProcessorTest {
     @Test
     void shouldBeAbleToProcessListClients() {
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
-                        LIST_CLIENTS, mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider);
 
-        assertTrue(processorToTest.canProcess(), "Wasn't able to process list clients");
+        assertTrue(processorToTest.canProcess(LIST_CLIENTS), "Wasn't able to process list clients");
     }
 
     @Test
     void shouldNotBeAbleToProcessRandomRequest() {
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
-                        "getRandom", mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider);
 
-        assertFalse(processorToTest.canProcess(), "Was able to process a random target");
+        assertFalse(processorToTest.canProcess("getRandom"), "Was able to process a random target");
     }
 
     @Test
@@ -158,20 +141,17 @@ class MetadataClientRequestProcessorTest {
             }
         };
 
-        var messageRecordEncryption = mock(MessageRecordEncryption.class);
-
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
         when(mockRequest.getHeaders()).thenReturn(mockHeaders);
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
-                        LIST_CLIENTS, mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider);
 
         when(mockRequest.getParametersMap()).thenReturn(Map.of());
         when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
-        processorToTest.process();
+        processorToTest.process(new AddonRequestContext(LIST_CLIENTS, mockRequest, mockResponse));
 
         assertContentTypeIsIn(xmlUtf8ContentTypes());
 
@@ -204,13 +184,12 @@ class MetadataClientRequestProcessorTest {
         };
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService,
-                        LIST_CLIENTS, mockJsonRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider);
 
         when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());
         when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
 
-        processorToTest.process();
+        processorToTest.process(new AddonRequestContext(LIST_CLIENTS, mockJsonRequest, mockResponse));
 
         assertContentTypeIsIn(List.of("application/json; charset=utf-8"));
 

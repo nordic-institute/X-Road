@@ -48,7 +48,7 @@ jobs:
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -101,8 +101,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-softtoken-signer:
     name: softtoken-signer-int-test
@@ -131,7 +131,7 @@ jobs:
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -184,8 +184,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-confproxy:
     name: confproxy-int-test
@@ -214,7 +214,7 @@ jobs:
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -267,7 +267,7 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
+          display-table: true
 
   test-opmonitor:
     name: opmonitor-int-test
@@ -296,7 +296,7 @@ jobs:
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -349,8 +349,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-cs-admin:
     name: cs-admin-int-test
@@ -379,7 +379,7 @@ jobs:
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -425,8 +425,8 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
   test-cs-management:
     name: cs-management-int-test
@@ -455,7 +455,7 @@ jobs:
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -501,5 +501,5 @@ jobs:
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
