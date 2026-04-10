@@ -27,22 +27,20 @@
 
 package org.niis.xroad.proxy.core.test;
 
-import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.messagelog.MessageRecordEncryption;
-import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
-import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
+import org.niis.xroad.proxy.core.clientproxy.ClientRequestPreparationService;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -52,11 +50,17 @@ import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxyHandler;
+import org.niis.xroad.proxy.core.serverproxy.ServerRestMessageProcessor;
+import org.niis.xroad.proxy.core.serverproxy.ServerSoapMessageProcessor;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
+import org.niis.xroad.proxy.core.service.ClientVerificationService;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
+import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 
@@ -98,31 +102,35 @@ public class TestContext {
             CertHelper certHelper = new CertHelper(globalConfProvider, ocspVerifierFactory);
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                     globalConfProvider, keyConfProvider, certHelper);
-            LogRecordManager logRecordManager = mock(LogRecordManager.class);
             ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
                     serverConfProvider, mock(NoopVaultKeyProvider.class), proxyProperties);
 
-            EncryptionConfigProvider encryptionConfigProvider = mock(EncryptionConfigProvider.class);
-            MessageRecordEncryption messageRecordEncryption = mock(MessageRecordEncryption.class);
-
-
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
-            HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
+            var httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                     .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory);
-            ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
-                    monitorRpcClient, commonProperties, proxyProperties, new NoopVaultClient());
             HttpClientCreator httpClientCreator = new HttpClientCreator(serverConfProvider,
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
-            MessageProcessorFactory messageProcessorFactory =
-                    new MessageProcessorFactory(httpClient, httpClientCreator.getHttpClient(),
-                            proxyProperties, globalConfProvider, serverConfProvider, clientAuthenticationService, keyConfProvider,
-                            signingCtxProvider, ocspVerifierFactory, commonProperties, logRecordManager, null,
-                            serviceHandlerLoader, certHelper, encryptionConfigProvider, messageRecordEncryption);
+            var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+            var httpSenderProvider = new HttpSenderProvider(httpClient, httpClientCreator.getHttpClient(), proxyProperties);
+            var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
+            var serviceAddressResolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties);
+            var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
+                    globalConfProvider, proxyProperties, certHelper);
 
-            MetadataHandler metadataHandler = new MetadataHandler(messageProcessorFactory);
+            var metadataProcessor = new org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataClientRequestProcessor(
+                    globalConfProvider);
+            MetadataHandler metadataHandler = new MetadataHandler(metadataProcessor);
+            var clientRequestPreparationService = new ClientRequestPreparationService(
+                    serviceAddressResolver, proxyProperties, opMonitoringDataHelper);
+            clientRequestPreparationService.init();
+            var clientSoapMessageProcessor = new ClientSoapMessageProcessor(
+                    messageSigningService, httpSenderProvider,
+                    clientVerificationService, opMonitoringDataHelper,
+                    globalConfProvider, proxyProperties, commonProperties,
+                    ocspVerifierFactory, clientRequestPreparationService);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
-                    messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
-                    new NoOpMonitoringBuffer());
+                    clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
+                    new NoOpMonitoringBuffer(), opMonitoringDataHelper);
 
             clientProxy = new ClientProxy(serverConfProvider, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
                     new ListInstanceWrapper<>(List.of(metadataHandler, soapMessageHandler)));
@@ -131,7 +139,25 @@ public class TestContext {
             if (startServerProxy) {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
 
-                ServerProxyHandler proxyHandler = new ServerProxyHandler(messageProcessorFactory, proxyProperties.server(),
+                ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
+                        serverConfProvider, globalConfProvider, proxyProperties, commonProperties,
+                        new NoopVaultClient(), monitorRpcClient,
+                        httpSenderProvider, httpClientCreator.getHttpClient());
+                serviceHandlerLoader.init();
+
+                var serverRestMessageProcessor = new ServerRestMessageProcessor(
+                        messageSigningService, clientVerificationService, opMonitoringDataHelper,
+                        globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
+                        ocspVerifierFactory, serviceHandlerLoader);
+
+                var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
+                        messageSigningService, clientVerificationService, opMonitoringDataHelper,
+                        globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
+                        ocspVerifierFactory, serviceHandlerLoader);
+
+
+                ServerProxyHandler proxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
+                        serverSoapMessageProcessor, proxyProperties.server(),
                         mock(ClientProxyVersionVerifier.class),
                         globalConfProvider,
                         new NoOpMonitoringBuffer());

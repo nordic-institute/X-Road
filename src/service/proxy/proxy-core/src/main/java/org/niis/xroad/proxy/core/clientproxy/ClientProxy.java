@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JettyUtils;
 
 import io.quarkus.runtime.Startup;
@@ -54,13 +55,12 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
-/**
- * Client proxy that handles requests of service clients.
- */
 @Slf4j
 @Startup
 @Singleton
@@ -78,7 +78,7 @@ public class ClientProxy {
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties.ClientProxyProperties clientProxyProperties;
     private final ReloadingSSLSocketFactory reloadingSSLSocketFactory;
-    private final Instance<AbstractClientProxyHandler> clientHandlers;
+    private final Instance<HandlerBase> clientHandlers;
 
     private final Server server = new Server();
 
@@ -97,7 +97,7 @@ public class ClientProxy {
         server.setRequestLog(reqLog);
     }
 
-    private void createConnectors() throws Exception {
+    private void createConnectors() throws NoSuchAlgorithmException, KeyManagementException {
         log.trace("createConnectors()");
 
         createClientHttpConnector(clientProxyProperties.connectorHost(), clientProxyProperties.clientHttpPort());
@@ -120,7 +120,7 @@ public class ClientProxy {
         log.info("Client HTTP connector created ({}:{})", hostname, port);
     }
 
-    private void createClientHttpsConnector(String hostname, int port) throws Exception {
+    private void createClientHttpsConnector(String hostname, int port) throws NoSuchAlgorithmException, KeyManagementException {
         log.trace("createClientHttpsConnector({}, {})", hostname, port);
 
         SslContextFactory.Server cf = new SslContextFactory.Server();
@@ -170,7 +170,6 @@ public class ClientProxy {
 
         var handlers = new Handler.Sequence();
 
-        //getClientHandlers().forEach(handlers::addHandler);
         clientHandlers.forEach(handler -> {
             log.debug("Loading client handler: {}", handler.getClass().getName());
             handlers.addHandler(handler);
