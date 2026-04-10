@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.ds.identityhub.application;
+package org.niis.xroad.ds.identityhub.participantcontext;
 
 import org.eclipse.edc.identityhub.spi.did.store.DidResourceStore;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
@@ -40,11 +40,11 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import static org.niis.xroad.ds.identityhub.application.XRoadParticipantContextExtension.NAME;
+import static org.niis.xroad.ds.identityhub.participantcontext.CustomParticipantContextExtension.NAME;
 
 /**
  * Overrides the default {@link IdentityHubParticipantContextService} provider from
- * {@code ParticipantContextExtension} with {@link XRoadIdentityHubParticipantContextService},
+ * {@code ParticipantContextExtension} with {@link CustomIdentityHubParticipantContextService},
  * which correctly activates participant contexts when {@code active = true} is requested.
  *
  * <p>Because this extension injects {@link ParticipantContextObservable} (which is provided
@@ -53,7 +53,7 @@ import static org.niis.xroad.ds.identityhub.application.XRoadParticipantContextE
  * and therefore overwrites it in the service registry.
  */
 @Extension(NAME)
-public class XRoadParticipantContextExtension implements ServiceExtension {
+public class CustomParticipantContextExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Participant Context Extension";
 
@@ -85,7 +85,7 @@ public class XRoadParticipantContextExtension implements ServiceExtension {
 
     @Provider
     public IdentityHubParticipantContextService createParticipantService() {
-        return new XRoadIdentityHubParticipantContextService(
+        return new CustomIdentityHubParticipantContextService(
                 participantContextStore, didResourceStore, vault, transactionContext,
                 participantContextObservable, stsAccountProvisioner, configService);
     }

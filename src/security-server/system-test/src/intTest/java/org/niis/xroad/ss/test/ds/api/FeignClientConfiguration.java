@@ -43,6 +43,7 @@ import java.util.Collections;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_CONTROL_PLANE;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_IDENTITY_HUB;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_ISSUANCE_SERVICE;
 
 @Configuration
 @RequiredArgsConstructor
@@ -85,6 +86,30 @@ public class FeignClientConfiguration {
     FeignIdentityHubManagementApi feignIdentityHubManagementApi(Encoder defaultEncoder) {
         var rawStringEncoder = new RawStringEncoder(defaultEncoder);
         return feignFactory.createClient(FeignIdentityHubManagementApi.class, getIdentityHubManagementBaseUrl(),
+                rawStringEncoder, Collections.emptyList());
+    }
+
+    private String getIssuanceServiceAdminBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUANCE_SERVICE, Port.DS_ISSUANCE_SERVICE_ADMIN);
+        return "http://%s:%d/api/admin/v1alpha".formatted(container.host(), container.port());
+    }
+
+    @Bean
+    FeignIssuanceServiceAdminApi feignIssuanceServiceAdminApi(Encoder defaultEncoder) {
+        var rawStringEncoder = new RawStringEncoder(defaultEncoder);
+        return feignFactory.createClient(FeignIssuanceServiceAdminApi.class, getIssuanceServiceAdminBaseUrl(),
+                rawStringEncoder, Collections.emptyList());
+    }
+
+    private String getIssuanceServiceIdentityBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUANCE_SERVICE, Port.DS_ISSUANCE_SERVICE_IDENTITY);
+        return "http://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
+    }
+
+    @Bean
+    FeignIssuanceServiceIdentityApi feignIssuanceServiceIdentityApi(Encoder defaultEncoder) {
+        var rawStringEncoder = new RawStringEncoder(defaultEncoder);
+        return feignFactory.createClient(FeignIssuanceServiceIdentityApi.class, getIssuanceServiceIdentityBaseUrl(),
                 rawStringEncoder, Collections.emptyList());
     }
 

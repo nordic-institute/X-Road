@@ -25,11 +25,10 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.ds.identityhub.application;
+package org.niis.xroad.ds.identityhub.participantcontext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.identityhub.participantcontext.ApiTokenGenerator;
 import org.eclipse.edc.identityhub.participantcontext.IdentityHubParticipantContextServiceImpl;
 import org.eclipse.edc.identityhub.spi.did.store.DidResourceStore;
@@ -71,7 +70,7 @@ import static org.eclipse.edc.spi.result.ServiceResult.success;
  * {@link #createParticipantContext(ParticipantManifest)} to immediately activate the
  * context when {@code active = true}, which allows DID document publishing to proceed.
  */
-class XRoadIdentityHubParticipantContextService extends IdentityHubParticipantContextServiceImpl {
+class CustomIdentityHubParticipantContextService extends IdentityHubParticipantContextServiceImpl {
 
     private static final String API_KEY_ALIAS_SUFFIX = "apikey";
     private final ParticipantContextStore participantContextStore;
@@ -84,13 +83,13 @@ class XRoadIdentityHubParticipantContextService extends IdentityHubParticipantCo
     private final ParticipantContextConfigService configService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    XRoadIdentityHubParticipantContextService(ParticipantContextStore participantContextStore,
-                                                    DidResourceStore didResourceStore,
-                                                    Vault vault,
-                                                    TransactionContext transactionContext,
-                                                    ParticipantContextObservable observable,
-                                                    StsAccountProvisioner stsAccountProvisioner,
-                                                    ParticipantContextConfigService configService) {
+    CustomIdentityHubParticipantContextService(ParticipantContextStore participantContextStore,
+                                               DidResourceStore didResourceStore,
+                                               Vault vault,
+                                               TransactionContext transactionContext,
+                                               ParticipantContextObservable observable,
+                                               StsAccountProvisioner stsAccountProvisioner,
+                                               ParticipantContextConfigService configService) {
         super(participantContextStore, didResourceStore, vault, transactionContext, observable, stsAccountProvisioner, configService);
         this.participantContextStore = participantContextStore;
         this.didResourceStore = didResourceStore;
@@ -137,8 +136,6 @@ class XRoadIdentityHubParticipantContextService extends IdentityHubParticipantCo
             if (participantContext == null) {
                 return ServiceResult.notFound("A ParticipantContext with ID '%s' does not exist.");
             }
-            // deactivating the PC must be the first step, because unpublishing DIDs requires the PC to be in the DEACTIVATED state.
-            // Unpublishing DIDs happens in callback of the "-Deleting" Event
             return updateParticipant(participantContextId, IdentityHubParticipantContext::deactivate)
                     .compose(v -> {
                         observable.invokeForEach(l -> l.deleting(participantContext));
@@ -177,7 +174,6 @@ class XRoadIdentityHubParticipantContextService extends IdentityHubParticipantCo
                     .onSuccess(u -> observable.invokeForEach(l -> l.updated(participant)));
             return res.succeeded() ? success() : fromFailure(res);
         });
-
     }
 
     @Override
@@ -194,7 +190,6 @@ class XRoadIdentityHubParticipantContextService extends IdentityHubParticipantCo
                 .map(unused -> success(newToken))
                 .orElse(f -> conflict("Could not store new API token: %s.".formatted(f.getFailureDetail())));
     }
-
 
     private ServiceResult<IdentityHubParticipantContext> createParticipantContext(IdentityHubParticipantContext context) {
         var result = participantContextStore.create(context);
@@ -225,7 +220,6 @@ class XRoadIdentityHubParticipantContextService extends IdentityHubParticipantCo
         return resultStream.orElse(f -> null);
     }
 
-
     private IdentityHubParticipantContext convert(ParticipantManifest manifest) {
         var apiKeyAlias = ofNullable(manifest.getApiKeyAlias()).orElse("%s-%s".formatted(manifest.getParticipantContextId(), API_KEY_ALIAS_SUFFIX));
         var context = IdentityHubParticipantContext.Builder.newInstance()
@@ -233,7 +227,7 @@ class XRoadIdentityHubParticipantContextService extends IdentityHubParticipantCo
                 .roles(manifest.getRoles())
                 .did(manifest.getDid())
                 .apiTokenAlias(apiKeyAlias)
-                 // This whole class is just to edit this single line
+                // This whole class is just to edit this single line
                 .state(manifest.isActive() ? ParticipantContextState.ACTIVATED : ParticipantContextState.CREATED)
                 .properties(manifest.getAdditionalProperties());
         if (manifest.getRoles().isEmpty()) {

@@ -31,6 +31,24 @@ web:
   http:
     port: 8383
     path: /api
+    sts:
+      port: 9292
+      path: /api/sts
+    issuance:
+      port: 10012
+      path: /api/issuance
+    issueradmin:
+      port: 10013
+      path: /api/admin
+    identity:
+      port: 8182
+      path: /api/identity
+    did:
+      port: 10100
+      path: /
+    statuslist:
+      port: 10001
+      path: /statuslist
 
 edc:
   hostname: ${HOSTNAME}

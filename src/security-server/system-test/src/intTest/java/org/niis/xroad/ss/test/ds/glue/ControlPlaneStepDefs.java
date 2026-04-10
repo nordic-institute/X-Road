@@ -204,10 +204,10 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "http://localhost:8183/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "http://localhost:8183/api/dsp/%s/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
-                """.formatted(participantDid);
+                """.formatted(participantDid, participantContextId);
 
         var response = controlPlaneManagementApi.requestCatalog(AuthTokens.PARTICIPANT, participantContextId, request);
         validate(response)

@@ -29,8 +29,6 @@ package org.niis.xroad.ss.test.ds.api;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -39,24 +37,12 @@ import java.util.Map;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-@FeignClient(name = "identityHubManagementApi")
-public interface FeignIdentityHubManagementApi {
+@FeignClient(name = "issuanceServiceIdentityApi")
+public interface FeignIssuanceServiceIdentityApi {
 
     @PostMapping(value = "",
             produces = {"application/json"}, consumes = {"application/json"})
     ResponseEntity<Map<String, Object>> createParticipant(@RequestHeader(AUTHORIZATION) String authorization,
                                                           @RequestBody String body);
-
-    @PostMapping(value = "/{participantContextId}/credentials/request",
-            produces = {"application/json"}, consumes = {"application/json"})
-    ResponseEntity<Map<String, Object>> requestCredential(@RequestHeader(AUTHORIZATION) String authorization,
-                                                          @PathVariable("participantContextId") String participantContextId,
-                                                          @RequestBody String body);
-
-    @GetMapping(value = "/{participantContextId}/credentials/request/{holderPid}",
-            produces = {"application/json"})
-    ResponseEntity<Map<String, Object>> getCredentialRequestStatus(@RequestHeader(AUTHORIZATION) String authorization,
-                                                                   @PathVariable("participantContextId") String participantContextId,
-                                                                   @PathVariable("holderPid") String holderPid);
 
 }

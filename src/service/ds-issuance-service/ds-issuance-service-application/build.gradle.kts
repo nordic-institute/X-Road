@@ -16,4 +16,6 @@ dependencies {
   runtimeOnly(libs.edc.bom.issuerservice.sql)
 
   runtimeOnly(libs.edc.core.sql.bootstrapper)
+
+  runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
 }

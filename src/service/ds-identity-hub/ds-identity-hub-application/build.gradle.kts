@@ -19,7 +19,5 @@ dependencies {
 
   runtimeOnly(libs.edc.vault.hashicorp)
 
-  // Following dependencies are needed to introduce XRoadIdentityHubParticipantContextService
-  implementation(libs.edc.ih.participants)
-  implementation(libs.edc.spi.participantcontext.config)
+  runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
 }

@@ -29,7 +29,6 @@ package org.niis.xroad.ss.test.ds.api;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,24 +38,24 @@ import java.util.Map;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-@FeignClient(name = "identityHubManagementApi")
-public interface FeignIdentityHubManagementApi {
+@FeignClient(name = "issuanceServiceAdminApi")
+public interface FeignIssuanceServiceAdminApi {
 
-    @PostMapping(value = "",
+    @PostMapping(value = "/participants/{participantId}/holders",
             produces = {"application/json"}, consumes = {"application/json"})
-    ResponseEntity<Map<String, Object>> createParticipant(@RequestHeader(AUTHORIZATION) String authorization,
-                                                          @RequestBody String body);
+    ResponseEntity<Map<String, Object>> createHolder(@RequestHeader(AUTHORIZATION) String authorization,
+                                                     @PathVariable("participantId") String participantId,
+                                                     @RequestBody String body);
 
-    @PostMapping(value = "/{participantContextId}/credentials/request",
+    @PostMapping(value = "/participants/{participantId}/attestations",
             produces = {"application/json"}, consumes = {"application/json"})
-    ResponseEntity<Map<String, Object>> requestCredential(@RequestHeader(AUTHORIZATION) String authorization,
-                                                          @PathVariable("participantContextId") String participantContextId,
-                                                          @RequestBody String body);
+    ResponseEntity<Map<String, Object>> createAttestationDefinition(@RequestHeader(AUTHORIZATION) String authorization,
+                                                                    @PathVariable("participantId") String participantId,
+                                                                    @RequestBody String body);
 
-    @GetMapping(value = "/{participantContextId}/credentials/request/{holderPid}",
-            produces = {"application/json"})
-    ResponseEntity<Map<String, Object>> getCredentialRequestStatus(@RequestHeader(AUTHORIZATION) String authorization,
-                                                                   @PathVariable("participantContextId") String participantContextId,
-                                                                   @PathVariable("holderPid") String holderPid);
-
+    @PostMapping(value = "/participants/{participantId}/credentialdefinitions",
+            produces = {"application/json"}, consumes = {"application/json"})
+    ResponseEntity<Map<String, Object>> createCredentialDefinition(@RequestHeader(AUTHORIZATION) String authorization,
+                                                                   @PathVariable("participantId") String participantId,
+                                                                   @RequestBody String body);
 }
