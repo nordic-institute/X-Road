@@ -37,9 +37,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -50,26 +49,27 @@ public class ConfigurableSystemPropertiesConfiguration {
     private final AdminServiceProperties adminServiceProperties;
 
     @Bean
-    public ConfigurableProperties configurableProperties() throws IOException {
+    public ConfigurablePropertiesDefinition configurableProperties() throws IOException {
         String configurableParametersPath = adminServiceProperties.getConfigurablePropertiesPath();
         log.debug("Loading configurable system parameters from {}", configurableParametersPath);
         Resource resource = resourceLoader.getResource(configurableParametersPath);
 
         var mapper = new ObjectMapper(new YAMLFactory());
-        return mapper.readValue(resource.getInputStream(), ConfigurableProperties.class);
+        return mapper.readValue(resource.getInputStream(), ConfigurablePropertiesDefinition.class);
     }
 
     @Getter
     @Setter
-    public static class ConfigurableProperties {
+    public static class ConfigurablePropertiesDefinition {
 
-        private Map<String, List<ConfigurableProperty>> configurableProperties = new HashMap<>();
+        private List<ConfigurableProperty> configurableProperties = new ArrayList<>();
 
         @Getter
         @Setter
         public static class ConfigurableProperty {
             private String propertyName;
             private String defaultValue;
+            private String scope;
         }
     }
 }

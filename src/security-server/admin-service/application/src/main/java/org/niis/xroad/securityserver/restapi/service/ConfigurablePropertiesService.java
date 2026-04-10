@@ -28,8 +28,9 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurableProperties;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurableProperties.ConfigurableProperty;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
+import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition.ConfigurableProperty;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -37,8 +38,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
 
 /**
  * Service that handles configurable system parameters
@@ -50,9 +54,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConfigurablePropertiesService {
 
-    private static final String COMMON_SCOPE = "common";
-
-    private final ConfigurableProperties configurableProperties;
+    private final ConfigurablePropertiesDefinition configurableProperties;
     private final ConfigurationPropertyRepository repository;
 
     /**
@@ -66,12 +68,9 @@ public class ConfigurablePropertiesService {
      * @return set of system properties with their metadata and current values
      */
     public Set<SecurityServerConfigurablePropertyDto> getConfigurationProperties() {
-        return configurableProperties.getConfigurableProperties().entrySet()
+        return configurableProperties.getConfigurableProperties()
                 .stream()
-                .flatMap(e ->
-                        e.getValue()
-                                .stream()
-                                .map(v -> toSecurityServerSystemParameterDto(e.getKey(), v)))
+                .map(this::toSecurityServerSystemParameterDto)
                 .collect(Collectors.toSet());
     }
 
@@ -87,27 +86,31 @@ public class ConfigurablePropertiesService {
      * @param scope         scope of the property (service name or null)
      */
     public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
+        if (!isPropertyConfigurable(propertyKey, scope)) {
+            throw new NotFoundException(
+                    "Configurable property '%s' with scope '%s' is not defined".formatted(propertyKey, scope),
+                    NOT_FOUND.build());
+        }
         repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope)
                 .ifPresentOrElse(entity -> {
                     entity.setPropertyValue(propertyValue);
                     repository.saveOrUpdate(entity);
-                }, () -> {
-                    repository.saveOrUpdate(createConfigurationProperty(propertyKey, propertyValue, scope));
-                });
+                }, () -> repository.saveOrUpdate(createConfigurationProperty(propertyKey, propertyValue, scope)));
     }
 
-    private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(String serviceName,
-                                                                               ConfigurableProperty parameter) {
+    private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(ConfigurableProperty parameter) {
         var systemPropertyDto = new SecurityServerConfigurablePropertyDto();
         systemPropertyDto.setPropertyName(parameter.getPropertyName());
         systemPropertyDto.setDefaultValue(parameter.getDefaultValue());
-        String scope = serviceName.equals(COMMON_SCOPE) ? null : serviceName;
-        systemPropertyDto.setScope(scope);
-        repository.findConfigurationPropertyByPropertyKeyAndScope(parameter.getPropertyName(), scope)
-                .ifPresent(e -> {
-                    systemPropertyDto.setCurrentValue(e.getPropertyValue());
-                });
+        systemPropertyDto.setScope(parameter.getScope());
+        repository.findConfigurationPropertyByPropertyKeyAndScope(parameter.getPropertyName(), parameter.getScope())
+                .ifPresent(e -> systemPropertyDto.setCurrentValue(e.getPropertyValue()));
         return systemPropertyDto;
+    }
+
+    private boolean isPropertyConfigurable(String propertyKey, String scope) {
+        return configurableProperties.getConfigurableProperties().stream()
+                .anyMatch(p -> p.getPropertyName().equals(propertyKey) && Objects.equals(p.getScope(), scope));
     }
 
     private static ConfigurationPropertyEntity createConfigurationProperty(String propertyKey, String propertyValue, String scope) {
