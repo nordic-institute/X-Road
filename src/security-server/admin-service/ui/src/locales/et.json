@@ -787,7 +787,8 @@
     "noClientData": "Kliendi andmed puuduvad",
     "noLocalGroups": "Lokaalsed grupid puuduvad",
     "noServiceClients": "Teenuse kliendid puuduvad",
-    "noTimestampingServices": "Ajatempli teenused puuduvad"
+    "noTimestampingServices": "Ajatempli teenused puuduvad",
+    "noConfigurableProperties": "Konfigureeritavad omadused puuduvad"
   },
   "serviceClientType": {
     "globalGroup": "GLOBAALNE RÜHM",
@@ -1049,6 +1050,357 @@
       "PRIMARY": "Primaarne õlg",
       "SECONDARY": "Sekundaarne õlg",
       "undefined": ""
+    },
+    "configurableProperties": {
+      "title": "Konfigureeritavad süsteemi omadused",
+      "search": "Otsi omadusi...",
+      "restartWarning": "Muudatuste jõustumiseks tuleb järgmised teenused taaskäivitada: {scopes}.",
+      "propertyRestartWarning": "Muudatuste jõustumiseks on vajalik taaskäivitamine.",
+      "updateSuccess": "Omadus edukalt uuendatud",
+      "editDialog": {
+        "title": "Muuda omaduse väärtust"
+      },
+      "table": {
+        "header": {
+          "propertyName": "Omaduse nimi",
+          "currentValue": "Praegune väärtus",
+          "defaultValue": "Vaikeväärtus",
+          "description": "Kirjeldus"
+        }
+      },
+      "descriptions": {
+        "xroad": {
+          "proxy-ui-api": {
+            "rate-limit-requests-per-second": "Halduse REST API päringu sageduse piirang sekundis. Sageduse piirangud kehtivad iga päringu esitava IP-aadressi kohta.",
+            "rate-limit-requests-per-minute": "Halduse REST API päringu sageduse piirang minutis. Sageduse piirangud kehtivad iga päringu esitava IP-aadressi kohta.",
+            "rate-limit-cache-size": "Määrab, kui palju IP-aadresse saab sageduse piirangu vahemälus meeles pidada. Kompromiss mälukasutuse ja kaitse vahel suure ründe korral.",
+            "rate-limit-expire-after-access-minutes": "Määrab, kui kaua sageduse piirangu vahemälu kirjed kehtivad.",
+            "cache-default-ttl": "Seadistab vahemälu vaikimisi aegumise sekundites. Vahemälu kasutatakse autentimispäringute ajal. Väärtuse -1 seadistamine keelab vahemälu.",
+            "cache-api-key-ttl": "Seadistab API võtme vahemälu aegumise sekundites. Seda saavad kasutada erinevad API teenused. Väärtuse -1 seadistamine keelab vahemälu.",
+            "strict-identifier-checks": "Seadistab identifikaatori sisendi valideerimise (liikme kood, alasüsteemi kood jne). Väärtused: true – identifikaatorid peavad vastama mustrile ^[a-zA-Z0-9'()+,-.=?]*. false – identifikaatorid ei tohi sisaldada koolonit (:), semikoolonit (;), kaldkriipse (/\\), protsenti (%) ega juhtmärke.",
+            "request-size-limit-regular": "Halduse REST API päringute maksimaalne suurus.",
+            "request-size-limit-binary-upload": "Halduse REST API failide üleslaadimispäringute maksimaalne suurus.",
+            "authentication-key-algorithm": "Võtmealgoritm, mida kasutatakse autentimissertifikaadi taotluse loomisel. Võimalikud väärtused on RSA ja EC. (alates versioonist 7.6)",
+            "signing-key-algorithm": "Võtmealgoritm, mida kasutatakse allkirjastamissertifikaadi taotluse loomisel. Võimalikud väärtused on RSA ja EC. (alates versioonist 7.6)",
+            "authentication-provider": "Kasutajaliidese sisselogimiseks kasutatav autentimisteenuse pakkuja. Võimalikud väärtused on PAM või DATABASE.",
+            "enforce-user-password-policy": "Kui lubatud, peavad kasutaja paroolid vastama seadistatud paroolipoliitikale.",
+            "auto-update-timestamp-service-url": "Kui lubatud, uuendab turvaserver ajatempli teenuse URL-e automaatselt, kui need muutuvad kesksemas serveris. Juhul kui sama nimega ajatempli teenuseid on mitu, uuendamist ei toimu ja selle asemel logitakse hoiatus.",
+            "automatic-activate-auth-certificate": "Kui lubatud, aktiveeritakse autentimissertifikaadid automaatselt pärast nende registreerimist Kesksemas Serveris.",
+            "acme-renewal-success-notification-enabled": "Kui lubatud, saadetakse liikmele e-posti teel teatis, kui automaatne sertifikaadi uuendamine on edukalt lõpule viidud.",
+            "acme-renewal-failure-notification-enabled": "Kui lubatud, saadetakse liikmele e-posti teel teatis, kui automaatne sertifikaadi uuendamine on ebaõnnestunud.",
+            "auth-cert-registered-notification-enabled": "Kui lubatud, saadetakse liikmele e-posti teel teatis, kui autentimissertifikaat on registreeritud globaalses konfiguratsioonis.",
+            "cert-auto-activation-notification-enabled": "Kui lubatud, saadetakse liikmele e-posti teel teatis, kui sertifikaadi automaatne aktiveerimine õnnestus.",
+            "cert-auto-activation-failure-notification-enabled": "Kui lubatud, saadetakse liikmele e-posti teel teatis, kui sertifikaadi automaatne aktiveerimine on ebaõnnestunud.",
+            "mail-notification-locale": "Meiliteadete lokaat, mis määrab teadete keele.",
+            "acme-renewal-active": "Kui lubatud, käivitatakse ACME automaatse sertifikaadi uuendamise töö perioodiliselt.",
+            "acme-renewal-retry-delay": "Sekundite arv automaatsete ACME sertifikaadi uuendamiskatsete vahel, kui viimane katse ebaõnnestus.",
+            "acme-renewal-internal": "Sekundid ACME uuendamise kontrolltsüklite vahel.",
+            "acme-renewal-time-before-expiration-date": "Millal käivitada järgmine automaatne uuendamine. Lahutatakse päevades sertifikaadi aegumiskuupäevast. Kasutatakse juhul, kui ACME serverist ei ole võimalik ACME uuendamisteavet saada.",
+            "acme-keypair-renewal-time-before-expiration-date": "Millal käivitada automaatne ACME konto võtmepaari uuendamine, lahutatakse päevades sertifikaadi aegumiskuupäevast.",
+            "automatic-activate-acme-sign-certificate": "Kui lubatud, aktiveeritakse allkirjastamissertifikaadid automaatselt, kui need on ACME kaudu tellitud (uus või uuendamine).",
+            "acme-authorization-wait-attempts": "Katsete arv, et kontrollida, kas ACME autoriseeringud on lõpetatud, enne loobumist.",
+            "acme-authorization-wait-interval": "Ooteaeg millisekundites ACME autoriseeringu lõpuleviimise kontrollkatsete vahel.",
+            "acme-certification-wait-attempts": "Katsete arv ACME sertifikaadi väljastamise küsitlemiseks.",
+            "acme-certification-wait-interval": "Sekundid ACME sertifikaadi väljastamise küsitlemiskatsete vahel.",
+            "acme-certificate-account-key-pair-expiration": "Päevade arv, mille jooksul ACME serveri konto iseallkirjastatud sertifikaat kehtib.",
+            "acme-challenge-port-enabled": "Kui lubatud, kuulab API ACME väljakutse pordil (vaikimisi 80) sissetulevaid ACME väljakutse päringuid.",
+            "acme-challenge-port": "Kohandatud pordi number ACME väljakutsetele. Kui seadistatud, peab turvaserveri hosti port 80 suunama sellele pordile, kuna ACME serverid kasutavad alati port 80 väljakutse jaoks.",
+            "acme-key-length": "RSA võtme pikkus bittides, mida kasutatakse ACME sertifikaadi taotlustes.",
+            "acme-account-keystore-path": "Faili süsteemi tee võtmehoidlasse, mis hoiab ACME konto võtmepaari.",
+            "acme-challenge-path": "Faili süsteemi tee, kust ACME HTTP-01 väljakutse tokeneid teenindatakse.",
+            "allow-csr-for-key-with-certificate": "Määrab, kas uue CSR genereerimine on lubatud võtme jaoks, millel on olemasolev sertifikaat.",
+            "auth-cert-reg-signature-digest-algorithm-id": "Allkirja räsialgoritm, mida kasutatakse autentimissertifikaadi registreerimistaotluse genereerimisel. Võimalikud väärtused on – SHA-256, SHA-384, SHA-512.",
+            "proxy-server-url": "Admin API poolt kasutatava turvaserveri puhverserveri URL.",
+            "proxy-server-connect-timeout": "Millisekundid ootamiseks puhverserveriga ühenduse loomisel.",
+            "proxy-server-socket-timeout": "Millisekundid puhverserveri soklist andmete ootamiseks (0 = aegumine puudub).",
+            "proxy-server-enable-connection-reuse": "Kui lubatud, kasutatakse HTTP ühendusi puhverserveriga päringute vahel uuesti.",
+            "proxy-tls-protocols": "TLS protokollid, mida aktsepteeritakse Admin API puhverserveri ühendusel.",
+            "proxy-tls-cipher-suites": "TLS šifreeringupaketid, mida aktsepteeritakse Admin API puhverserveri ühendusel.",
+            "key-management-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda võtmehalduse lõpp-punkte põhiautentimisega.",
+            "regular-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda tavalisi lõpp-punkte API võtme autentimisega.",
+            "configurable-properties-path": "Klassirada või failitee konfigureeritavate omaduste YAML-failini.",
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Vault PKI rolli nimi, mida kasutatakse Admin API TLS sertifikaadi ettevalmistamisel.",
+                "common-name": "Ettevalmistatud Admin API TLS sertifikaadile seatud üldnimi.",
+                "alt-names": "DNS-i teema alternatiivsed nimed, mis on lisatud ettevalmistatud Admin API TLS sertifikaati.",
+                "ip-subject-alt-names": "IP teema alternatiivsed nimed, mis on lisatud ettevalmistatud Admin API TLS sertifikaati.",
+                "ttl": "Ettevalmistatud Admin API TLS sertifikaadi eluiga (nt 3650D).",
+                "secret-store-pki-path": "Vault PKI saladuste mootori ühenduspunkt Admin API TLS sertifikaadi ettevalmistamiseks."
+              }
+            }
+          },
+          "proxy": {
+            "admin-port": "Port, millel puhverserver paljastab oma administreerimisliidese.",
+            "ssl-enabled": "Kui tõene, kasutatakse TLS-i teenuse kliendi ja teenusepakkuja turvaserverite vaheliste ühenduste jaoks.",
+            "health-check-port": "TCP port, kus tervisekontrolli teenus kuulab päringuid. Pordi seadistamine väärtusele 0 keelab tervisekontrolli teenuse täielikult.",
+            "health-check-interface": "Võrguliides, kus tervisekontrolli teenus kuulab päringuid. Vaikimisi kõik saadaolevad liidesed.",
+            "hsm-health-check-enabled": "Kui lubatud, kontrollib tervisekontrolli lõpp-punkt ka HSM kättesaadavust.",
+            "message-sign-digest-name": "Räsialgoritm, mida kasutatakse X-Road sõnumite allkirjastamiseks.",
+            "verify-client-cert": "Kui lubatud, kontrollib serveri puhverserver kliendi puhverserveri TLS sertifikaati.",
+            "log-client-cert": "Kas logida kliendi sertifikaadi teema teavet.",
+            "enforce-client-is-cert-validity-period-check": "Kas lükata päring tagasi, kui kliendi infosüsteemi sertifikaat on aegunud või veel mitte kehtiv.",
+            "server-port": "Sihtkoha TCP port väljuvatele päringutele teenuse kliendi turvaserveris.",
+            "xroad-tls-ciphers": "TLS šifrid (komaga eraldatud loend eelistatud järjekorras), mida aktsepteeritakse turvaserverite vahelistel päringustel ning operatsiooni jälgimise deemoni ja kliendi vahel. (alates versioonist 6.20)",
+            "batch-signing-enabled": "Kui lubatud, allkirjastatakse mitu sõnumit ühe pakettoperatsiooniga.",
+            "client-proxy": {
+              "connector-host": "IP-aadress, millel teenuse kliendi turvaserver kuulab klientrakenduste ühendusi. Väärtus 0.0.0.0 lubab kuulata kõigil IPv4 liidestel. Väärtus 127.0.0.1 lubab kuulata ainult kohalikul masinal. NB! Selle väärtuse muutmine võib muuta teie turvaserveri väliselt ligipääsetavaks, mistõttu tuleks esmalt rakendada tulemüüri reeglid, et piirata juurdepääsu usaldusväärsetele hostidele.",
+              "client-http-port": "TCP port, millel teenuse kliendi turvaserver kuulab klientrakenduste HTTP päringuid.",
+              "client-https-port": "TCP port, millel teenuse kliendi turvaserver kuulab klientrakenduste HTTPS päringuid.",
+              "jetty-configuration-file": "Jetty konfiguratsioonifaili absoluutne failinimi teenuse kliendi turvaserveri jaoks. Lisateavet Jetty serveri konfigureerimise kohta vaadake aadressilt https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
+              "client-connector-initial-idle-time": "Esialgne jõudeaeg (millisekundites), mille jooksul klientühendused võivad olla jõude, enne kui turvaserver hakkab neid sulgema. Väärtus 0 tähendab, et lõputu jõudeaeg on lubatud.",
+              "client-timeout": "Allkirjastamise aegumine millisekundites.",
+              "client-httpclient-so-linger": "SO_LINGER aeg (sekundites) teenust tarbiva turvaserveri poolel turvaserverite vahelistele ühendustele. Väärtus, mis on suurem kui 0, tähendab, et ühenduse sulgemisel lubab süsteem SO_LINGER sekundit kõigi vastaspoolele kirjutatud andmete edastamiseks ja kinnitamiseks, misjärel suletakse sokett graatsiliselt. Kui lingeruse aegumine saabub, suletakse sokett sunniviisiliselt TCP RST-iga. Valiku lubamine aegumisväärtusega null teostab kohe sunniviisilise sulgemise. Väärtus -1 keelab sunniviisilise sulgemise.",
+              "client-httpclient-timeout": "Maksimaalne aeg (SO_TIMEOUT, millisekundites), mille jooksul teenust tarbiva turvaserveri ühendused teenust pakkuva turvaserveriga võivad oodata vastust, enne kui tarbijapoolne HTTP klient loobub. Väärtus 0 tähendab, et lõputu ooteaeg on lubatud. See ei mõjuta jõudeolekus ühendusi.",
+              "pool-total-max-connections": "Kogu maksimaalne ühenduste arv, mis on basseinis lubatud.",
+              "pool-total-default-max-connections-per-route": "Vaikimisi marsruudipõhine maksimaalne ühenduste arv, mis seatakse, kui marsruudipõhist ühenduse piirangut ei ole seadistatud. Praeguse teostuse tõttu on see tegelikult ühenduste kogu maksimaalne piir, sõltumata ülaltoodud seadistusest.",
+              "pool-validate-connections-after-inactivity-of-millis": "Teenust pakkuva turvaserveriga basseinitud ühendust taaskasutades kontrollitakse, kas ühendus (sokett) ei ole poolsuletud, kui see on olnud jõude vähemalt selle arvu millisekundi jooksul. See meetod ei suuda tuvastada pool-avatud ühendusi. Väärtus -1 keelab kontrolli.",
+              "client-idle-connection-monitor-interval": "Kui tihti (millisekundites) peaks ühendusmonitor basseinitud ühendusi läbi vaatama, et näha, kas ta saab puhastada jõudeolekus või aegunud ühendusi. See valik nõuab ühendusmonitori lubamist, et sellel oleks mõju.",
+              "client-idle-connection-monitor-timeout": "Minimaalne aeg (millisekundites), mille jooksul basseinitud ühendus peab olema kasutamata (jõude), enne kui see saab basseinst eemaldada. Pange tähele, et basseinst eemaldamine sõltub ka sellest, kui tihti ühendusmonitor töötab. See valik nõuab ühendusmonitori lubamist, et sellel oleks mõju.",
+              "client-use-idle-connection-monitor": "Kas kasutada jõudeühenduste monitori jõude- ja aegunud ühenduste puhastamiseks ühenduste basseinst.",
+              "fastest-connecting-ssl-uri-cache-period": "Kui teenuse tarbija turvaserver leiab kõige kiiremini vastava teenusepakkuja turvaserveri, kui kaua peaks tulemust TLS-seansi vahemälus hoidma? 0 keelab.",
+              "use-fastest-connecting-ssl-socket-autoclose": "TLS-ühendustel turvaserverite vahel, kas peaks aluseks olev TCP-kihiline ühendus (sokett) sulgema teenuse tarbijapoolel, kui TLS-kihiline ühendus lõpetatakse.",
+              "client-tls-protocols": "TLS protokollid (komaga eraldatud loend), mis on lubatud kliendipoolsetel liidestel (nii sissetulevate kui ka väljaminevate päringute jaoks). Tagasiühilduvuse jaoks toetatakse TLSv1.1 kliendipoolsetel liidestel väljuvatele päringutele endiselt (alates versioonist 6.7).",
+              "client-tls-ciphers": "TLS šifrid (komaga eraldatud loend), mis on lubatud kliendipoolsetel liidestel (nii sissetulevate kui ka väljaminevate päringute jaoks). (alates versioonist 6.7)",
+              "pool-enable-connection-reuse": "Luba basseinitud ühenduste korduvkasutamist turvaserverite vahel kliendipoolel rohkem kui üks kord. Teenusepakkuja ühenduse pool peab omama seadistust server-support-clients-pooled-connections=true, et basseinid töötaks pakkuja ja tarbija turvaserverite vahel."
+            },
+            "server": {
+              "listen-address": "IP-aadress, millel teenusepakkuja turvaserver kuulab teenuse kliendi turvaserverite ühendusi. Väärtus 0.0.0.0 lubab kuulata kõigil IPv4 liidestel.",
+              "listen-port": "TCP port, millel teenusepakkuja turvaserver kuulab teenuse kliendi turvaserveri ühendusi.",
+              "connector-initial-idle-time": "Esialgne jõudeaeg (millisekundites), mille jooksul autentimata ühendused võivad olla jõude, enne kui pakkujapoolne turvaserver hakkab neid sulgema. Väärtus 0 tähendab, et lõputu jõudeaeg on lubatud.",
+              "jetty-configuration-file": "Jetty konfiguratsioonifaili absoluutne failinimi teenusepakkuja turvaserveri jaoks. Lisateavet Jetty serveri konfigureerimise kohta vaadake aadressilt https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
+              "support-clients-pooled-connections": "Kas see teenust pakkuv turvaserver toetab basseinitud ühendusi teenuse tarbijapoolelt. Kui seadistatud väärtusele false, suletakse ühendused kohe pärast iga sõnumit. See võib olla soovitud lähenemine koormuse tasakaalustajate taga asuvatele turvaserveritele."
+            },
+            "ocsp-responder": {
+              "listen-address": "IP-aadress, millel teenusepakkuja turvaserver kuulab OCSP vastuste päringuid teenuse kliendi turvaserverilt. Teenuse kliendi turvaserver laadib OCSP vastused alla teenusepakkuja turvaserverilt, luues turvaserverite vahelist turvalist ühendust. Väärtus 0.0.0.0 lubab kuulata kõigil IPv4 liidestel. Peab ühtima väärtusega proxy.server-listen-address.",
+              "port": "TCP port, millel teenusepakkuja turvaserver kuulab OCSP vastuste päringuid teenuse kliendi turvaserverilt. Teenuse kliendi turvaserver laadib OCSP vastused alla teenusepakkuja turvaserverilt, luues turvaserverite vahelist turvalist ühendust.",
+              "client-connect-timeout": "OCSP vastaja kliendi ühenduse aegumine (millisekundites). Teenuse kliendi turvaserver laadib OCSP vastused alla teenusepakkuja turvaserverilt, luues turvaserverite vahelist turvalist ühendust.",
+              "client-read-timeout": "OCSP vastaja kliendi lugemise aegumine (millisekundites). Teenuse kliendi turvaserver laadib OCSP vastused alla teenusepakkuja turvaserverilt, luues turvaserverite vahelist turvalist ühendust.",
+              "jetty-configuration-file": "Jetty konfiguratsioonifaili absoluutne failinimi teenusepakkuja turvaserveri OCSP vastaja jaoks. Lisateavet Jetty serveri konfigureerimise kohta vaadake aadressilt https://www.eclipse.org/jetty/documentation/jetty-9/index.html."
+            },
+            "addon": {
+              "proxy-monitor": { "enabled": "Luba puhverserveri monitooringu lisandmoodul." },
+              "meta-services": { "enabled": "Luba metateenuste lisandmoodul." },
+              "op-monitor": {
+                "enabled": "Luba operatsioonide monitooringu lisandmoodul.",
+                "buffer": {
+                  "size": "Maksimaalne kirjete arv puhvris enne operatsioonide monitorile saatmist.",
+                  "max-records-in-message": "Maksimaalne operatsiooniandmete kirjete arv sõnumis, mille operatsioonide monitooringu puhver saadab operatsioonide monitooringu deemonile.",
+                  "sending-interval-seconds": "Intervall sekundites, millega operatsioonide monitooringu puhver (taas)proovib kirjeid operatsioonide monitooringu deemonile saata. Tavaliselt käivitab puhver saatmismehhanismi kohe, kui saab uue kirje. Suure koormuse või saatmise ebaõnnestumise korral kogunevad kirjed puhvrisse ja vajavad perioodilist tähelepanu.",
+                  "socket-timeout-seconds": "Soketi aegumine (SO_TIMEOUT) operatsioonide monitooringu kirjete saatmisel operatsioonide monitooringu puhvrist operatsioonide monitooringu deemonile sekundites.",
+                  "connection-timeout-seconds": "HTTP kliendi ühenduse aegumine sekundites."
+                },
+                "connection": {
+                  "host": "Hosti aadress, millel operatsioonide monitooringu deemon kuulab.",
+                  "port": "TCP port, millel operatsioonide monitooringu deemon kuulab.",
+                  "scheme": "Operatsioonide monitooringu deemoni URI skeemi nimi. Võimalikud väärtused on http ja https.",
+                  "socket-timeout-seconds": "HTTP kliendi ühenduse aegumine sekundites.",
+                  "connection-timeout-seconds": "Soketi aegumine (SO_TIMEOUT) operatsiooniandmete päringu saatmisel operatsioonide monitooringu deemonile sekundites.",
+                  "xroad-tls-ciphers": "TLS šifrid (komaga eraldatud loend eelistatud järjekorras), mida aktsepteeritakse turvaserverite vahelistel päringustel ning operatsiooni jälgimise deemoni ja kliendi vahel. (alates versioonist 6.20)"
+                }
+              }
+            },
+            "message-log": {
+              "enabled": "Luba sõnumite logimine.",
+              "message-body-logging": "Kas sõnumi keha peaks logima või mitte. Kui tõene, logitakse sõnumid nende algsel kujul. Kui väär, puhastatakse sõnumi keha sisust (SOAP kehal on sees tühi alameelement; REST sõnumi keha, teenuse tee ja päringuparameetrid jäetakse välja). Lisaks logitakse SOAP päisest ja REST HTTP päistest ainult teatud elementide komplekt, vt märkust logitud X-Road sõnumi päiste kohta. Kõrvalefektina võivad xml-sõnumi vorming ja nimeruumi sildid muutuda ning SOAP päise vaikeväärtustele võivad lisanduda uued elemendid. Sõnumi keha eemaldamine toimub tavaliselt konfidentsiaalsuse põhjustel (keha sisaldab andmeid, mida ei soovita logidesse salvestada). Pange tähele, et sõnumi sellisel viisil muutmine takistab selle allkirja kontrollimist asicverifier tööriistaga.",
+              "max-loggable-message-body-size": "REST sõnumi keha maksimaalne logimisvõimeline suurus.",
+              "truncated-body-allowed": "Kui REST sõnumi keha ületab maksimaalse logimisvõimelise keha suuruse, lühendatakse keha logis (true) või lükatakse sõnum tagasi (false).",
+              "hash-algo-id": "Räsialgoritmi identifikaator, mida kasutatakse sõnumilogi räsimisel. Võimalikud väärtused on – SHA-224, SHA-256, SHA-384, SHA-512.",
+              "timestamping-prioritization-strategy": "Ajatemplimise prioritiseerimise strateegia, mis määrab, milliseid ajatempli teenuseid ja mis järjekorras kasutatakse ajatemplimiseks. Võimalikud väärtused on: ONLY_FREE – kasutatakse ainult tasuta ajatempli teenuseid. ONLY_PAID – kasutatakse ainult tasulisi ajatempli teenuseid. FREE_FIRST – esmalt kasutatakse tasuta ajatempli teenuseid, seejärel, kui edukaid vastuseid pole, kasutatakse tasulisi teenuseid, lõpuks kasutatakse ajatempli teenuseid, mille kulutuüp on määramata. PAID_FIRST – esmalt kasutatakse tasulisi ajatempli teenuseid, seejärel, kui edukaid vastuseid pole, kasutatakse tasuta teenuseid, lõpuks kasutatakse ajatempli teenuseid, mille kulutüüp on määramata. NONE – uut järjestust ega filtreerimist ei lisata (sama mis enne kulutüübi lisamist ajatempli teenustele).",
+              "enabled-body-logging-local-producer-subsystems": "Alasüsteemipõhised ülekihtimised sõnumi keha logimiseks, kui message-body-logging = false. See parameeter määratleb logimise kohalike tootja alasüsteemide jaoks, st meie alasüsteemid, mis pakuvad teenuseid välisklientidele. Komaga eraldatud loend kliendi identifikaatoritest, mille jaoks sõnumi keha logimine on lubatud. Näiteks FI/ORG/1710128-9/SUBSYSTEM_A1, FI/ORG/1710128-9/SUBSYSTEM_A2, kus – FI = X-Road instants, ORG = liikme klass, 1710128-9 = liikme kood, SUBSYSTEM_A1 = alasüsteemi kood. Seda parameetrit saab kasutada ainult alasüsteemi tasemel, sõnumi keha logimist ei ole võimalik konfigureerida liikme kohta. Kui alasüsteemil on kaldkriipsud \"/\" näiteks alasüsteemi koodis, ei saa neid alasüsteeme selle parameetriga konfigureerida.",
+              "enabled-body-logging-remote-producer-subsystems": "Alasüsteemipõhised ülekihtimised kaugete tootja alasüsteemide jaoks, st kauged alasüsteemid, mis pakuvad teenuseid, mida me kasutame. Parameetrit kasutatakse, kui message-body-logging = false.",
+              "disabled-body-logging-local-producer-subsystems": "Sama mis enabled-body-logging-local-producer-subsystems, kuid seda parameetrit kasutatakse, kui message-body-logging = true.",
+              "disabled-body-logging-remote-producer-subsystems": "Sama mis enabled-body-logging-remote-producer-subsystems, kuid seda parameetrit kasutatakse, kui message-body-logging = true.",
+              "timestamper": {
+                "client-connect-timeout": "Ajatemplija kliendi ühenduse aegumine millisekundites. Aegumine nulliga tõlgendatakse lõputu aegumisena.",
+                "client-read-timeout": "Ajatemplija kliendi lugemise aegumine millisekundites. Aegumine nulliga tõlgendatakse lõputu aegumisena.",
+                "timestamp-immediately": "Kui tõene, luuakse ajatempel sünkroonselt iga päringusõnumi jaoks. See on turvapoliitika nõue, et tagada ajatempel sõnumi logimise ajal.",
+                "records-limit": "Maksimaalne sõnumikirjete arv, mida ühe paketiga ajatempliga varustada. Kui ühe paketi sõnumikirjete arv ületab 70% timestamp-records-limit väärtusest, logitakse hoiatus proxy.log failis.",
+                "retry-delay": "Ajatempli korduskatse viivitus sekundites, kui pakettajatemplimine ebaõnnestub. Pärast pakettajatemplimise ebaõnnestumist ootab ajatemplija \"timestamp-retry-delay\" aja, enne kui uuesti proovib. Seda korratakse, kuni ajatempel edukalt saadakse. Pärast ajatempli edukat saamist naaseb ajatemplija tavalisele ajatemplimise ajakavale. Kui \"timestamp-retry-delay\" väärtus on suurem kui keskserveri süsteemiparameetri \"timeStampingIntervalSeconds\" väärtus, kasutatakse \"timeStampingIntervalSeconds\" väärtust. Kui \"timestamp-retry-delay\" väärtus on null, kasutatakse \"timeStampingIntervalSeconds\" väärtust.",
+                "acceptable-timestamp-failure-period": "Määrab ajavahemiku (sekundites), kui kaua on ajatemplimine lubatud ebaõnnestuda (mis tahes põhjustel), enne kui sõnumilogi lõpetab uute sõnumite vastuvõtu (ja järelikult lõpetab turvaserver päringute vastuvõtu). Seadke väärtusele 0, et see kontroll keelata. Selle parameetri väärtus ei tohiks olla väiksem kui keskserveri süsteemiparameetri timeStampingIntervalSeconds väärtus."
+              }
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Vault PKI rolli nimi, mida kasutatakse puhverserveri TLS sertifikaadi ettevalmistamisel.",
+                "common-name": "Ettevalmistatud puhverserveri TLS sertifikaadile seatud üldnimi.",
+                "alt-names": "DNS-i teema alternatiivsed nimed, mis on lisatud ettevalmistatud puhverserveri TLS sertifikaati.",
+                "ip-subject-alt-names": "IP teema alternatiivsed nimed, mis on lisatud ettevalmistatud puhverserveri TLS sertifikaati.",
+                "ttl": "Ettevalmistatud puhverserveri TLS sertifikaadi eluiga (nt 3650D).",
+                "secret-store-pki-path": "Vault PKI saladuste mootori ühenduspunkt puhverserveri TLS sertifikaadi ettevalmistamiseks."
+              }
+            },
+            "rpc": {
+              "enabled": "Luba puhverserveri gRPC server.",
+              "listen-address": "IP-aadress, millel puhverserveri gRPC server kuulab.",
+              "port": "Port (localhost), millele puhverserveri gRPC server seotakse. Kasutatakse xroad-signer ja xroad-monitor'iga suhtlemiseks."
+            }
+          },
+          "signer": {
+            "selfsigned-cert-digest-algorithm": "Räsialgoritm, mida kasutatakse iseallkirjastatud sertifikaatide loomisel.",
+            "csr-signature-digest-algorithm": "Sertifikaadi allkirjastamistaotluse allkirja räsialgoritm. Võimalikud väärtused on – SHA-256, SHA-384, SHA-512.",
+            "enforce-token-pin-policy": "Juhib tokeni PIN-koodi poliitika rakendamist. Kui seadistatud väärtusele true, peab tarkvara tokeni PIN-kood olema vähemalt 10 ASCII märki vähemalt kolmest märgiklassist (väiketähed, suurtähed, numbrid, erimärgid). (alates versioonist 6.7.7)",
+            "ocsp-response-retrieval-active": "Seda omadust kasutatakse perioodilise OCSP vastuse hankimise deaktiveerimiseks komponentidele, mis ei vaja seda funktsionaalsust, kuid kasutavad siiski signerit. Väärtused: false – OCSP vastuse hankimise tööd ei ole kunagi ajastatud. true – perioodiline OCSP vastuse hankimine on aktiivne ocspFetchInterval alusel. Pange tähele, et kui kogu omadus puudub, tõlgendatakse seda kui true. See omadus edastatakse ülekihtimisena ja ainult komponentidele, kus OCSP vastuse hankimise tööd tuleb deaktiveerida. Omadus puudub komponentidel, mis nõuavad OCSP vastuse hankimise aktiveerimist.",
+            "ocsp-retry-delay": "OCSP korduskatse viivitus signerile OCSP vastuste hankimisel ebaõnnestumisel. Pärast OCSP vastuste hankimise ebaõnnestumist ootab signer \"ocsp-retry-delay\" aja, enne kui uuesti proovib. Seda korratakse, kuni OCSP vastuste hankimine õnnestub. Pärast OCSP vastuste edukat hankimist naaseb signer tavalisele OCSP värskendamise ajakavale, mis on määratud \"ocspFetchInterval\" poolt. Kui \"ocsp-retry-delay\" väärtus on suurem kui \"ocspFetchInterval\", kasutatakse \"ocspFetchInterval\" väärtust OCSP korduskatse viivitusena.",
+            "ocsp-cache-path": "Absoluutne tee kaustani, kus vahemällu salvestatud OCSP vastused on talletatud.",
+            "ocsp-prioritization-strategy": "OCSP prioritiseerimise strateegia, mis määrab, milliseid OCSP vastajaid ja mis järjekorras kasutatakse OCSP vastuste saamiseks. Võimalikud väärtused on: ONLY_FREE – kasutatakse ainult tasuta OCSP vastajaid. ONLY_PAID – kasutatakse ainult tasulisi OCSP vastajaid. FREE_FIRST – esmalt kasutatakse tasuta OCSP vastajaid, seejärel, kui edukaid vastuseid pole, kasutatakse tasulisi vastajaid, lõpuks kasutatakse OCSP vastajaid, mille kulutüüp on määramata. PAID_FIRST – esmalt kasutatakse tasulisi OCSP vastajaid, seejärel, kui edukaid vastuseid pole, kasutatakse tasuta vastajaid, lõpuks kasutatakse OCSP vastajaid, mille kulutüüp on määramata. NONE – uut järjestust ega filtreerimist ei lisata (sama mis enne kulutüübi lisamist OCSP lõpp-punktidele).",
+            "module-manager-update-interval": "HSM moodulihalduri uuendamise intervall sekundites.",
+            "soft-token-rsa-sign-mechanism": "PKCS#11 mehhanism, mida kasutatakse RSA allkirjastamiseks tarkvara tokenil.",
+            "soft-token-ec-sign-mechanism": "PKCS#11 mehhanism, mida kasutatakse EC allkirjastamiseks tarkvara tokenil.",
+            "soft-token-pin-keystore-algorithm": "Võtmealgoritm, mida kasutatakse tarkvara tokeni PIN-võtmehoidla loomiseks. Võimalikud väärtused on RSA ja EC. (alates versioonist 7.6)",
+            "key-length": "Võtme pikkus autentimis- ja allkirjastamisvõtmete genereerimiseks (alates versioonist 6.7)",
+            "key-named-curve": "Nimega kõver autentimis- ja allkirjastamisvõtmete genereerimiseks EC algoritmide kasutamise korral (alates versioonist 7.6)",
+            "autologin": {
+              "enabled": "Luba automaatne tokeni sisselogimine käivitamisel.",
+              "retry": {
+                "retry-delay": "Esialgne viivitus automaatse sisselogimise korduskatse katsete vahel (nt 3S).",
+                "retry-exponential-backoff-multiplier": "Korrutaja, mida rakendatakse korduskatse viivitusele iga järgneva automaatse sisselogimise katse korral.",
+                "retry-max-attempts": "Maksimaalne arv automaatse sisselogimise korduskatseid.",
+                "retry-timeout": "Kogu ajaline piirang kõigile automaatse sisselogimise korduskatsetele (nt 60S)."
+              }
+            },
+            "addon": {
+              "hwtoken": {
+                "enabled": "Luba riistvaralise tokeni (HSM) lisandmoodul.",
+                "session-pool-enabled": "Luba PKCS#11 seansside koondamine riistvaralise tokeni jaoks.",
+                "session-pool-max-total": "Maksimaalne PKCS#11 seansside koguarv riistvaralise tokeni seansibassenis.",
+                "session-pool-min-idle": "Minimaalne jõudeolekus PKCS#11 seansside arv, mida hoitakse riistvaralise tokeni bassenis.",
+                "session-pool-max-idle": "Maksimaalne jõudeolekus PKCS#11 seansside arv, mida hoitakse riistvaralise tokeni bassenis.",
+                "session-acquire-timeout": "Maksimaalne ooteaeg PKCS#11 seansi hankimisel basseinst (nt 15S)."
+              }
+            },
+            "rpc": {
+              "enabled": "Luba Signer gRPC server.",
+              "listen-address": "IP-aadress, millel Signer gRPC server kuulab.",
+              "port": "Port, millel Signer gRPC server kuulab."
+            },
+            "pin-hasher": {
+              "iterations": "Argon2 iteratsioonide arv, mida kasutatakse tokeni PIN-koodide räsimisel.",
+              "memory-kb": "Argon2 mälukulu kilobaitides, mida kasutatakse tokeni PIN-koodide räsimisel.",
+              "parallelism": "Argon2 paralleelsusaste, mida kasutatakse tokeni PIN-koodide räsimisel.",
+              "hash-length": "Väljund-räsi pikkus baitides, mida kasutatakse tokeni PIN-koodide räsimisel."
+            }
+          },
+          "configuration-client": {
+            "allowed-federations": "Komaga eraldatud loend tõstutundmatutest X-Road instantsitest, mille jaoks konfiguratsiooniankkurite toomine on lubatud. See võimaldab liitmist loetletud instantsidega, kui X-Road instants on juba kesksema serveri tasemel liidetud. Erilväärtus none, kui esineb, keelab kõik liitmised (vaikeväärtus), samal ajal kui all lubab kõiki liitmisi, kui none ei esine. Näide: allowed-federations=ee,sv lubab liitmist näidisinstantsidega EE ja Sv, samal ajal allowed-federations=all,none keelab liitmise. X-Road teenused xroad-confclient ja xroad-proxy tuleb seadistuse muutuse jõustumiseks taaskäivitada (selles järjekorras).",
+            "global-conf-hostname-verification": "Hostinime kontrolli on võimalik keelata. Kas URL-is määratud hostinimi ühtib Keskserveri TLS sertifikaadi üldnimes (CN) määratud hostinimega. Tootmiskeskkonnas peaks olema true.",
+            "global-conf-tls-cert-verification": "Globaalse konfiguratsiooni allalaadimise TLS sertifikaadi kontrollimise keelamine on võimalik. Tootmiskeskkonnas peaks olema true.",
+            "downloader-connect-timeout": "Maksimaalne aeg millisekundites, mille jooksul globaalse konfiguratsiooni allalaadija ootab kaugserveriga ühendumist.",
+            "downloader-read-timeout": "Maksimaalne aeg millisekundites, mille jooksul globaalse konfiguratsiooni allalaadija ootab andmete lugemist kaugserverilt pärast ühenduse loomist.",
+            "global-conf-dir": "Faili süsteemi tee, kuhu allalaaditud globaalne konfiguratsioon on talletatud.",
+            "update-interval": "Globaalse konfiguratsiooni allalaadimise intervall sekundites.",
+            "configuration-anchor-file": "Konfiguratsiooniankkuri absoluutne failinimi, mida kasutatakse globaalse konfiguratsiooni allalaadimiseks.",
+            "configuration-anchor-storage": "Konfiguratsiooniankkuri salvestustagapõhi (DB või FILE).",
+            "rpc": {
+              "enabled": "Luba konfiguratsiooni kliendi gRPC server.",
+              "listen-address": "IP-aadress, millel konfiguratsiooni kliendi gRPC server kuulab.",
+              "port": "Port, millel konfiguratsiooni kliendi gRPC server kuulab."
+            }
+          },
+          "env-monitor": {
+            "certificate-info-sensor-interval": "Sertifikaaditeabe anduri intervall sekundites. Kui tihti sertifikaaditeave kogutakse. Esimene kogumine toimub alati pärast 10-sekundilist viivitust.",
+            "disk-space-sensor-interval": "Kettaruumi anduri intervall sekundites. Kui tihti kettaruumi andmeid kogutakse.",
+            "exec-listing-sensor-interval": "Exec-loenduse anduri intervall sekundites. Kui tihti välise käsu abil anduriteave kogutakse.",
+            "system-metrics-sensor-interval": "Süsteemimõõdikute anduri intervall sekundites. Kui tihti süsteemimõõdikute andmeid kogutakse.",
+            "limit-remote-data-set": "Valikuliste monitoorimisandmete filtreerimise lüliti. Lipu seadistamisel väärtusele true saab ainult turvaserveri omanik taotleda ja saada täielikku andmekomplekti.",
+            "rpc": {
+              "enabled": "Luba env-monitor gRPC server.",
+              "listen-address": "IP-aadress, millel env-monitor gRPC server kuulab.",
+              "port": "Port, millel env-monitor gRPC server kuulab."
+            }
+          },
+          "anti-dos": {
+            "max-parallel-connections": "Maksimaalne paralleelsete ühenduste arv AntiDOS-i jaoks.",
+            "min-free-file-handles": "Minimaalne vabade failikäepidemete arv süsteemis uute ühenduste vastuvõtmiseks. Uue ühenduse vastuvõtmiseks peab olema saadaval vähemalt üks vaba failikäepide.",
+            "max-cpu-load": "Maksimaalne lubatud protsessori koormus uute ühenduste vastuvõtmiseks. Kui seadistatud > 1.0, siis protsessori koormust ei kontrollita.",
+            "max-heap-usage": "Määrab maksimaalse lubatud Java kuhja kasutuse uute ühenduste vastuvõtmisel. Kui seadistatud > 1.0, siis kuhjakasutust ei kontrollita.",
+            "enabled": "Lipp AntiDOS süsteemi lubamiseks või keelamiseks."
+          },
+          "common-rpc": {
+            "use-tls": "Kui lubatud, kasutatakse kõigi turvaserveri siseteenuste vahelises gRPC suhtluses vastastikust TLS-i.",
+            "certificate-provisioning": {
+              "refresh-interval": "Kui tihti teenused kontrollivad, kas nende gRPC TLS-sertifikaati on vaja uuendada (nt 5H).",
+              "retry-delay": "gRPC TLS-sertifikaadi proviimise taaskatsumise esialgne viivitus (nt 5S).",
+              "retry-exponential-backoff-multiplier": "Iga järgneva sertifikaadi proviimise katse puhul taaskatsumisviivitusele rakendatav kordaja.",
+              "retry-max-attempts": "gRPC TLS-sertifikaadi proviimise maksimaalne katsete arv.",
+              "retry-timeout": "Kogu ajaraam kõigi gRPC TLS-sertifikaadi proviimise katsete jaoks (nt 60S)."
+            },
+            "channel": {
+              "proxy": {
+                "host": "Hostinimi puhverserveri gRPC serveriga ühendumiseks.",
+                "port": "Port puhverserveri gRPC serveriga ühendumiseks.",
+                "deadline-after": "Millisekundid enne puhverserverile tehtava gRPC kõne aegumist."
+              },
+              "configuration-client": {
+                "host": "Hostinimi konfiguratsiooni kliendi gRPC serveriga ühendumiseks.",
+                "port": "Port konfiguratsiooni kliendi gRPC serveriga ühendumiseks.",
+                "deadline-after": "Millisekundid enne konfiguratsiooni kliendile tehtava gRPC kõne aegumist."
+              },
+              "env-monitor": {
+                "host": "Hostinimi env-monitor gRPC serveriga ühendumiseks.",
+                "port": "Port env-monitor gRPC serveriga ühendumiseks.",
+                "deadline-after": "Millisekundid enne env-monitor'ile tehtava gRPC kõne aegumist."
+              },
+              "auxiliary-service": {
+                "host": "Hostinimi abiteenuse gRPC serveriga ühendumiseks.",
+                "port": "Port abiteenuse gRPC serveriga ühendumiseks.",
+                "deadline-after": "Millisekundid enne abiteenusele tehtava gRPC kõne aegumist."
+              }
+            }
+          },
+          "common-global-conf": {
+            "source": "Globaalse konfiguratsiooni allika taustaprogramm. Võimalikud väärtused: FILESYSTEM (loe kohalikest failidest) või DB (loe andmebaasist).",
+            "refresh-rate": "Kui tihti uuendatakse jagatud globaalse konfiguratsiooni vahemälu konfigureeritud allikast (nt 60S).",
+            "configuration-path": "Failisüsteemi tee, kus globaalse konfiguratsiooni failid on salvestatud."
+          },
+          "common-server-conf": {
+            "cache-period": "Kui kaua (sekundites) serveri konfiguratsiooni kirjeid vahemälus hoitakse enne uuesti lugemist.",
+            "client-cache-size": "Maksimaalne kirjete arv serveri konfiguratsiooni kliendi vahemälus.",
+            "service-cache-size": "Maksimaalne kirjete arv serveri konfiguratsiooni teenuse vahemälus.",
+            "service-endpoints-cache-size": "Maksimaalne serveri konfiguratsiooni vahemälus hoitavate teenuse lõpp-punktide kirjete arv.",
+            "acl-cache-size": "Maksimaalne kirjete arv serveri konfiguratsiooni juurdepääsu kontrollnimekirja (ACL) vahemälus."
+          },
+          "common-ocsp-verifier": {
+            "cache-period": "Kui kaua (sekundites) OCSP kontrollimise tulemusi vahemälus hoitakse enne uuesti kontrollimist."
+          },
+          "auxiliary-service": {
+            "backup": {
+              "location": "Faili süsteemi kaust, kuhu varukoopiate arhiivid salvestatakse.",
+              "valid-filename-pattern": "Regulaaravaldis, millele peavad kehtivad varukoopia failinimed vastama.",
+              "autobackup-cron-expression": "Cron-avaldis, mis määrab, millal automaatsed varukoopiad luuakse.",
+              "autobackup-script-path": "Tee skriptile, mis käivitatakse automaatse varukoopia loomisel.",
+              "autobackup-delete-old-backups-cron": "Cron-avaldis, mis määrab, millal vanad automaatsed varukoopiad kustutatakse.",
+              "autobackup-keep-for": "Automaatsete varukoopiate säilitusperiood (nt 30d).",
+              "script-path": "Tee käsitsi varukoopia skriptile.",
+              "restore-script-path": "Tee varukoopia taastamise skriptile.",
+              "generate-gpg-keypair-path": "Tee skriptile, mis genereerib GPG võtmepaari varukoopia krüptimiseks.",
+              "gpgkeys-home": "Kaust, mida kasutatakse GNUPGHOME-na varukoopia GPG operatsioonide jaoks.",
+              "encryption-enabled": "Kui lubatud, krüpteeritakse varukoopiate arhiivid GPG-ga."
+            },
+            "encryption-keyids": "Komaga eraldatud GPG võtmete ID-d, mida kasutatakse varukoopiate arhiivide krüptimiseks.",
+            "rpc": {
+              "enabled": "Luba abiteenuse gRPC server.",
+              "listen-address": "IP-aadress, millel abiteenuse gRPC server kuulab.",
+              "port": "Port, millel abiteenuse gRPC server kuulab."
+            },
+            "readiness-check": {
+              "kubernetes": {
+                "service-host": "Kubernetes API serveri hostinimi valmisoleku kontrollimiseks (jäta tühjaks keelamiseks).",
+                "service-port": "Kubernetes API serveri port valmisoleku kontrollimiseks.",
+                "token-path": "Faili süsteemi tee Kubernetes teenusekonto tokenini, mida kasutatakse valmisoleku kontrollimiseks.",
+                "ca-cert-path": "Faili süsteemi tee Kubernetes CA sertifikaadini, mida kasutatakse valmisoleku kontrollimiseks.",
+                "connect-timeout-ms": "Millisekundid ootamiseks Kubernetes API-ga ühendamisel valmisoleku kontrollimiseks.",
+                "read-timeout-ms": "Millisekundid ootamiseks vastuse lugemisel Kubernetes API-lt valmisoleku kontrollimiseks."
+              }
+            },
+            "message-log": {
+              "archive-cron": "Cron-avaldis, mis määrab, millal sõnumilogi arhiveerimine toimub.",
+              "clean-cron": "Cron-avaldis, mis määrab, millal vanad sõnumilogi kirjed puhastatakse.",
+              "command-path": "Tee sõnumilogi arhiveerimise täidetavale failile."
+            }
+          }
+        }
+      }
     }
   },
   "validationError": {

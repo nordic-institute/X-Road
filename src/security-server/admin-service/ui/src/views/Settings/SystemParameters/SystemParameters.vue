@@ -267,12 +267,124 @@
           </tbody>
         </v-table>
       </XrdCard>
+
+      <XrdCard
+        v-if="hasPermission(permissions.CHANGE_CONFIGURATION_PROPERTY)"
+        title="systemParameters.configurableProperties.title"
+        class="settings-block"
+      >
+        <v-alert
+          v-if="modifiedScopes.length > 0"
+          class="ma-4"
+          type="warning"
+          variant="outlined"
+          border="start"
+          density="compact"
+          data-test="configurable-properties-restart-warning"
+        >
+          {{ $t('systemParameters.configurableProperties.restartWarning', { scopes: modifiedScopes.join(', ') }) }}
+        </v-alert>
+
+        <div class="px-4">
+          <XrdRoundedSearchField
+            v-model="propertySearch"
+            data-test="configurable-properties-search"
+            autofocus
+            :label="$t('systemParameters.configurableProperties.search')" />
+        </div>
+
+        <XrdEmptyPlaceholder
+          class="px-4"
+          :data="Object.keys(filteredPropertiesByScope)"
+          :filtered="propertySearch.length > 0"
+          :loading="loadingProperties"
+          :no-items-text="$t('noData.noConfigurableProperties')"
+        />
+
+        <div v-if="!loadingProperties && Object.keys(filteredPropertiesByScope).length > 0" class="mt-3 mx-4 border xrd-rounded-12 pa-0" data-test="configurable-properties-panels">
+          <div
+            v-for="(scopeProperties, scope, index) in filteredPropertiesByScope"
+            :key="scope"
+            :class="{ 'border-b': index < Object.keys(filteredPropertiesByScope).length - 1 }"
+            :data-test="`configurable-properties-panel-${scope}`"
+          >
+            <div
+              class="cursor-pointer d-flex flex-row align-center pt-2 pb-2 pl-4 pr-4"
+              :data-test="`configurable-properties-panel-title-${scope}`"
+              @click="toggleScope(String(scope))"
+            >
+              <v-btn
+                class="xrd opacity-100"
+                variant="plain"
+                color="primary"
+                :icon="isScopeOpen(String(scope)) ? 'keyboard_arrow_down' : 'chevron_right'"
+                :ripple="false"
+              />
+              <span class="font-weight-medium text-capitalize">{{ scope }}</span>
+            </div>
+            <v-slide-y-transition>
+              <v-table v-if="isScopeOpen(String(scope))" class="xrd configurable-properties-table">
+                <colgroup>
+                  <col style="width: 25%" />
+                  <col style="width: 13%" />
+                  <col style="width: 13%" />
+                  <col style="width: 39%" />
+                  <col style="width: 10%" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>{{ $t('systemParameters.configurableProperties.table.header.propertyName') }}</th>
+                    <th>{{ $t('systemParameters.configurableProperties.table.header.currentValue') }}</th>
+                    <th>{{ $t('systemParameters.configurableProperties.table.header.defaultValue') }}</th>
+                    <th>{{ $t('systemParameters.configurableProperties.table.header.description') }}</th>
+                  </tr>
+                </thead>
+                <tbody :data-test="`configurable-properties-table-body-${scope}`">
+                  <tr
+                    v-for="prop in scopeProperties"
+                    :key="prop.property_name"
+                    data-test="configurable-property-row"
+                  >
+                    <td class="property-name-cell">{{ prop.property_name }}</td>
+                    <td class="property-value-cell">{{ prop.current_value ?? '-' }}</td>
+                    <td class="property-value-cell">{{ prop.default_value || '-' }}</td>
+                    <td class="property-description-cell">{{ getPropertyDescription(prop.property_name) }}</td>
+                    <td>
+                      <div class="d-flex align-center justify-end">
+                        <v-tooltip v-if="modifiedProperties.includes(prop.property_name!)" open-delay="500">
+                          <template #activator="{ props: tooltipProps }">
+                            <v-icon v-bind="tooltipProps" icon="warning" color="warning" class="mr-2" />
+                          </template>
+                          {{ $t('systemParameters.configurableProperties.propertyRestartWarning') }}
+                        </v-tooltip>
+                        <XrdBtn
+                          data-test="edit-configurable-property-button"
+                          variant="text"
+                          text="action.edit"
+                          color="tertiary"
+                          @click="openEditDialog(prop)"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </v-slide-y-transition>
+          </div>
+        </div>
+      </XrdCard>
     </XrdSubView>
     <EditSecurityServerAddressDialog
       v-if="showEditServerAddressDialog"
       :address="serverAddress!"
       @cancel="showEditServerAddressDialog = false"
       @address-updated="addressChangeSubmitted"
+    />
+    <EditConfigurablePropertyDialog
+      v-if="editingProperty"
+      :property="editingProperty"
+      @cancel="editingProperty = undefined"
+      @saved="onPropertySaved"
     />
   </XrdView>
 </template>
@@ -286,6 +398,7 @@ import {
   XrdCard,
   XrdDate,
   XrdDateTime,
+  XrdEmptyPlaceholder,
   XrdEmptyPlaceholderRow,
   XrdHashValue,
   XrdStatusChip,
@@ -293,11 +406,12 @@ import {
   XrdSubView,
   XrdView,
 } from '@niis/shared-ui';
-import { Anchor, CertificateAuthority, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
+import { Anchor, CertificateAuthority, ServicePrioritizationStrategy, TimestampingService, SecurityServerConfigurableProperty } from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
+import EditConfigurablePropertyDialog from '@/views/Settings/SystemParameters/EditConfigurablePropertyDialog.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
@@ -311,9 +425,11 @@ import { useCsr } from '@/store/modules/certificateSignRequest';
 export default defineComponent({
   components: {
     XrdStatusIcon,
+    XrdEmptyPlaceholder,
     SettingsTabs,
     MaintenanceModeWidget,
     EditSecurityServerAddressDialog,
+    EditConfigurablePropertyDialog,
     XrdBtn,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
@@ -333,6 +449,7 @@ export default defineComponent({
       fetchConfigurationAnchor: apiFetchConfigurationAnchor,
       downloadAnchor: apiDownloadAnchor,
       fetchSecurityServerAddress,
+      fetchConfigurableProperties: apiFetchConfigurableProperties,
     } = useSystem();
     const { fetchAddonStatus } = useDiagnostics();
     const { fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy } =
@@ -348,6 +465,7 @@ export default defineComponent({
       fetchCertificateAuthoritiesPrioritizationStrategy,
       apiDownloadAnchor,
       fetchSecurityServerAddress,
+      apiFetchConfigurableProperties,
     };
   },
   data() {
@@ -368,6 +486,13 @@ export default defineComponent({
       addressChangeInProgress: false,
       serverAddress: '',
       separator: ' - ',
+      configurableProperties: [] as SecurityServerConfigurableProperty[],
+      loadingProperties: false,
+      editingProperty: undefined as SecurityServerConfigurableProperty | undefined,
+      modifiedScopes: [] as string[],
+      modifiedProperties: [] as string[],
+      openScopes: {} as Record<string, boolean>,
+      propertySearch: '',
     };
   },
   computed: {
@@ -376,6 +501,39 @@ export default defineComponent({
       const temp = this.certificateAuthorities;
 
       return temp.sort((authorityA, authorityB) => authorityA.path.localeCompare(authorityB.path));
+    },
+    propertiesByScope(): Record<string, SecurityServerConfigurableProperty[]> {
+      const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+      for (const prop of this.configurableProperties) {
+        const scope = prop.scope || 'common';
+        if (!result[scope]) result[scope] = [];
+        result[scope].push(prop);
+      }
+      for (const scope of Object.keys(result)) {
+        result[scope].sort((a, b) => (a.property_name ?? '').localeCompare(b.property_name ?? ''));
+      }
+      return result;
+    },
+    filteredPropertiesByScope(): Record<string, SecurityServerConfigurableProperty[]> {
+      const term = this.propertySearch.trim().toLowerCase();
+      if (!term) return this.propertiesByScope;
+
+      const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+      for (const [scope, props] of Object.entries(this.propertiesByScope)) {
+        const matched = props.filter((p) => p.property_name?.toLowerCase().includes(term));
+        if (matched.length > 0) {
+          result[scope] = matched;
+        }
+      }
+      return result;
+    },
+  },
+  watch: {
+    filteredPropertiesByScope(filtered: Record<string, SecurityServerConfigurableProperty[]>) {
+      if (!this.propertySearch.trim()) return;
+      for (const scope of Object.keys(filtered)) {
+        this.openScopes[scope] = true;
+      }
     },
   },
   created(): void {
@@ -395,6 +553,9 @@ export default defineComponent({
     }
     if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
       this.fetchServerAddress();
+    }
+    if (this.hasPermission(Permissions.CHANGE_CONFIGURATION_PROPERTY)) {
+      this.fetchConfigurablePropertiesList();
     }
   },
   methods: {
@@ -458,6 +619,38 @@ export default defineComponent({
       this.showEditServerAddressDialog = false;
       this.addressChangeInProgress = true;
     },
+    async fetchConfigurablePropertiesList() {
+      this.loadingProperties = true;
+      return this.apiFetchConfigurableProperties()
+        .then((data) => (this.configurableProperties = data))
+        .catch((error) => this.addError(error))
+        .finally(() => (this.loadingProperties = false));
+    },
+    getPropertyDescription(propertyName: string | undefined): string {
+      if (!propertyName) return '-';
+      const key = 'systemParameters.configurableProperties.descriptions.' + propertyName;
+      return this.$te(key) ? String(this.$t(key)) : '-';
+    },
+    openEditDialog(prop: SecurityServerConfigurableProperty): void {
+      this.editingProperty = prop;
+    },
+    isScopeOpen(scope: string): boolean {
+      return this.openScopes[scope];
+    },
+    toggleScope(scope: string): void {
+      this.openScopes[scope] = !this.isScopeOpen(scope);
+    },
+    onPropertySaved(scope: string | undefined): void {
+      const propertyName = this.editingProperty?.property_name;
+      this.editingProperty = undefined;
+      if (scope && !this.modifiedScopes.includes(scope)) {
+        this.modifiedScopes.push(scope);
+      }
+      if (propertyName && !this.modifiedProperties.includes(propertyName)) {
+        this.modifiedProperties.push(propertyName);
+      }
+      this.fetchConfigurablePropertiesList();
+    }
   },
 });
 </script>
@@ -476,5 +669,17 @@ export default defineComponent({
 
 .settings-block:not(:last-child) {
   margin-bottom: 16px;
+}
+
+:deep(.configurable-properties-table) {
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  td {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
 }
 </style>

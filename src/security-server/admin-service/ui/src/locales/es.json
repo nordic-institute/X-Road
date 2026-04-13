@@ -730,7 +730,8 @@
     "noClientData": "Sin datos del cliente",
     "noLocalGroups": "No hay grupos locales",
     "noServiceClients": "No hay clientes de servicio",
-    "noTimestampingServices": "Sin servicios de marca de tiempo"
+    "noTimestampingServices": "Sin servicios de marca de tiempo",
+    "noConfigurableProperties": "No hay propiedades configurables"
   },
   "serviceClientType": {
     "globalGroup": "Grupo global",
@@ -992,6 +993,357 @@
       "PRIMARY": "Nodo primario",
       "SECONDARY": "Nodo secundario",
       "undefined": ""
+    },
+    "configurableProperties": {
+      "title": "Propiedades del sistema configurables",
+      "search": "Buscar propiedades...",
+      "restartWarning": "Es necesario reiniciar los siguientes servicios para que los cambios surtan efecto: {scopes}.",
+      "propertyRestartWarning": "Se requiere reinicio para que los cambios surtan efecto.",
+      "updateSuccess": "Propiedad actualizada correctamente",
+      "editDialog": {
+        "title": "Editar valor de propiedad"
+      },
+      "table": {
+        "header": {
+          "propertyName": "Nombre de propiedad",
+          "currentValue": "Valor actual",
+          "defaultValue": "Valor predeterminado",
+          "description": "Descripción"
+        }
+      },
+      "descriptions": {
+        "xroad": {
+          "proxy-ui-api": {
+            "rate-limit-requests-per-second": "Límite de velocidad de solicitudes de la API REST de administración por segundo. Los límites de velocidad se aplican por cada IP solicitante.",
+            "rate-limit-requests-per-minute": "Límite de velocidad de solicitudes de la API REST de administración por minuto. Los límites de velocidad se aplican por cada IP solicitante.",
+            "rate-limit-cache-size": "Controla cuántas direcciones IP pueden recordarse en la caché de límite de velocidad. Es una compensación entre el uso de memoria y la protección frente a ataques masivos.",
+            "rate-limit-expire-after-access-minutes": "Controla durante cuánto tiempo son válidas las entradas de la caché de límite de velocidad.",
+            "cache-default-ttl": "Configura la expiración predeterminada de la caché en segundos. La caché se consulta durante las solicitudes de autenticación. Establecer el valor en -1 deshabilita la caché.",
+            "cache-api-key-ttl": "Configura la expiración de la caché de claves de API en segundos. Puede ser utilizado por varios servicios de API. Establecer el valor en -1 deshabilita la caché.",
+            "strict-identifier-checks": "Configura la validación de entrada de identificadores (código de miembro, código de subsistema, etc.). Valores: true - los identificadores deben coincidir con el patrón ^[a-zA-Z0-9'()+,-.=?]*. false - los identificadores no deben contener dos puntos (:), punto y coma (;), barras (/\\), porcentaje (%) ni caracteres de control.",
+            "request-size-limit-regular": "Tamaño máximo de las solicitudes de la API REST de administración.",
+            "request-size-limit-binary-upload": "Tamaño máximo de las solicitudes de la API REST de administración para cargas de archivos.",
+            "authentication-key-algorithm": "Algoritmo de clave utilizado para crear la solicitud de certificado de autenticación. Los valores posibles son RSA y EC. (desde la versión 7.6)",
+            "signing-key-algorithm": "Algoritmo de clave utilizado para crear la solicitud de certificado de firma. Los valores posibles son RSA y EC. (desde la versión 7.6)",
+            "authentication-provider": "Proveedor de autenticación utilizado para el inicio de sesión en la interfaz de usuario. Los valores posibles son PAM o DATABASE.",
+            "enforce-user-password-policy": "Cuando está habilitado, las contraseñas de usuario deben cumplir con la política de contraseñas configurada.",
+            "auto-update-timestamp-service-url": "Si está habilitado, hace que el servidor de seguridad actualice las URLs del servicio de sellado de tiempo cuando se cambian en el servidor central. En caso de que haya varios servicios de sellado de tiempo con el mismo nombre, la actualización no se realizará y en su lugar se registrará una advertencia.",
+            "automatic-activate-auth-certificate": "Si está habilitado, los certificados de autenticación se activan automáticamente después de haber sido registrados en el Servidor Central.",
+            "acme-renewal-success-notification-enabled": "Si está habilitado, se envía un correo electrónico de notificación al miembro cuando la renovación automática de certificados ha renovado correctamente un certificado.",
+            "acme-renewal-failure-notification-enabled": "Si está habilitado, se envía un correo electrónico de notificación al miembro cuando la renovación automática de certificados no ha podido renovar un certificado.",
+            "auth-cert-registered-notification-enabled": "Si está habilitado, se envía un correo electrónico de notificación al miembro cuando el certificado de autenticación ha sido registrado en la configuración global.",
+            "cert-auto-activation-notification-enabled": "Si está habilitado, se envía un correo electrónico de notificación al miembro cuando la activación automática del certificado fue exitosa.",
+            "cert-auto-activation-failure-notification-enabled": "Si está habilitado, se envía un correo electrónico de notificación al miembro cuando la activación automática del certificado ha fallado.",
+            "mail-notification-locale": "Configuración regional para las notificaciones por correo, que determina el idioma de las notificaciones.",
+            "acme-renewal-active": "Si está habilitado, el trabajo de renovación automática de certificados ACME se ejecutará periódicamente.",
+            "acme-renewal-retry-delay": "Cantidad de segundos entre ejecuciones de renovación automática de certificados ACME cuando la última ejecución fue un error.",
+            "acme-renewal-internal": "Segundos entre ciclos de verificación de renovación ACME.",
+            "acme-renewal-time-before-expiration-date": "Cuándo activar la próxima renovación automática. Se resta como días de la fecha de expiración del certificado. Se utiliza cuando no es posible recibir la información de renovación ACME del servidor ACME.",
+            "acme-keypair-renewal-time-before-expiration-date": "Cuándo activar la renovación automática del par de claves de cuenta ACME, restado como días de la fecha de expiración del certificado.",
+            "automatic-activate-acme-sign-certificate": "Si está habilitado, los certificados de firma se activan automáticamente cuando han sido solicitados a través de ACME (nuevos o renovados).",
+            "acme-authorization-wait-attempts": "Número de intentos para verificar si las autorizaciones ACME se han completado antes de abandonar.",
+            "acme-authorization-wait-interval": "Cantidad de tiempo en milisegundos para esperar entre intentos de verificación de completitud de autorización ACME.",
+            "acme-certification-wait-attempts": "Número de intentos para consultar la emisión de certificados ACME.",
+            "acme-certification-wait-interval": "Segundos entre intentos de consulta de emisión de certificados ACME.",
+            "acme-certificate-account-key-pair-expiration": "Cantidad de días que es válido el certificado autofirmado de la cuenta del servidor ACME.",
+            "acme-challenge-port-enabled": "Si está habilitado, la API escuchará en el puerto de desafío ACME (predeterminado 80) para las solicitudes de desafío ACME entrantes.",
+            "acme-challenge-port": "Número de puerto personalizado para los desafíos ACME. Cuando se establece, el puerto 80 del host del Servidor de Seguridad debe redirigir a este puerto, ya que los Servidores ACME siempre utilizan el puerto 80 para el desafío.",
+            "acme-key-length": "Longitud de clave RSA en bits utilizada para las solicitudes de certificados ACME.",
+            "acme-account-keystore-path": "Ruta del sistema de archivos al almacén de claves que contiene el par de claves de la cuenta ACME.",
+            "acme-challenge-path": "Ruta del sistema de archivos donde se sirven los tokens de desafío ACME HTTP-01.",
+            "allow-csr-for-key-with-certificate": "Controla si se permite generar una nueva CSR para una clave que ya tiene un certificado existente.",
+            "auth-cert-reg-signature-digest-algorithm-id": "Algoritmo de resumen de firma utilizado para generar la solicitud de registro de certificado de autenticación. Los valores posibles son - SHA-256, SHA-384, SHA-512.",
+            "proxy-server-url": "URL del proxy del Servidor de Seguridad utilizado por la API de administración.",
+            "proxy-server-connect-timeout": "Milisegundos a esperar al establecer una conexión con el servidor proxy.",
+            "proxy-server-socket-timeout": "Milisegundos a esperar datos del socket del servidor proxy (0 = sin tiempo de espera).",
+            "proxy-server-enable-connection-reuse": "Cuando está habilitado, las conexiones HTTP al servidor proxy se reutilizan entre solicitudes.",
+            "proxy-tls-protocols": "Protocolos TLS aceptados en la conexión proxy de la API de administración.",
+            "proxy-tls-cipher-suites": "Conjuntos de cifrado TLS aceptados en la conexión proxy de la API de administración.",
+            "key-management-api-whitelist": "Lista separada por comas de direcciones IP simples o rangos de direcciones en notación CIDR, que pueden llamar a los endpoints de gestión de claves mediante autenticación básica.",
+            "regular-api-whitelist": "Lista separada por comas de direcciones IP simples o rangos de direcciones en notación CIDR, que pueden llamar a los endpoints regulares mediante autenticación con clave de API.",
+            "configurable-properties-path": "Ruta de classpath o ruta de archivo al archivo YAML de propiedades configurables.",
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Nombre del rol PKI de Vault utilizado al aprovisionar el certificado TLS de la API de administración.",
+                "common-name": "Nombre común establecido en el certificado TLS de la API de administración aprovisionado.",
+                "alt-names": "Nombres alternativos de sujeto DNS incluidos en el certificado TLS de la API de administración aprovisionado.",
+                "ip-subject-alt-names": "Nombres alternativos de sujeto IP incluidos en el certificado TLS de la API de administración aprovisionado.",
+                "ttl": "Tiempo de vida del certificado TLS de la API de administración aprovisionado (p. ej. 3650D).",
+                "secret-store-pki-path": "Ruta de montaje del motor de secretos PKI de Vault para el aprovisionamiento del certificado TLS de la API de administración."
+              }
+            }
+          },
+          "proxy": {
+            "admin-port": "Puerto en el que el proxy expone su interfaz de administración.",
+            "ssl-enabled": "Si es verdadero, se usa TLS para las conexiones entre los servidores de seguridad del cliente de servicio y del proveedor de servicio.",
+            "health-check-port": "El puerto TCP donde el servicio de verificación de estado escucha solicitudes. Establecer el puerto en 0 deshabilita completamente el servicio de verificación de estado.",
+            "health-check-interface": "La interfaz de red donde el servicio de verificación de estado escucha solicitudes. El valor predeterminado es todas las interfaces disponibles.",
+            "hsm-health-check-enabled": "Cuando está habilitado, el endpoint de verificación de estado también verifica la disponibilidad del HSM.",
+            "message-sign-digest-name": "Algoritmo de resumen utilizado para firmar mensajes X-Road.",
+            "verify-client-cert": "Cuando está habilitado, el proxy del servidor verifica el certificado TLS del proxy del cliente.",
+            "log-client-cert": "Si se debe registrar la información del sujeto del certificado del cliente.",
+            "enforce-client-is-cert-validity-period-check": "Si se debe rechazar una solicitud cuando el certificado del sistema de información del cliente ha expirado o aún no es válido.",
+            "server-port": "Puerto TCP de destino para las consultas salientes en el servidor de seguridad del cliente de servicio.",
+            "xroad-tls-ciphers": "Cifrados TLS (lista separada por comas en orden de preferencia) aceptados en las solicitudes entre servidores de seguridad y entre el daemon de monitoreo operacional y el cliente. (desde la versión 6.20)",
+            "batch-signing-enabled": "Cuando está habilitado, se firman múltiples mensajes en una sola operación por lotes.",
+            "client-proxy": {
+              "connector-host": "Dirección IP en la que el servidor de seguridad del cliente de servicio escucha conexiones de las aplicaciones cliente. El valor 0.0.0.0 permite escuchar en todas las interfaces IPv4. El valor 127.0.0.1 permite escuchar solo en localhost. ¡Atención! Cambiar este valor podría hacer que su Servidor de Seguridad sea accesible externamente y, por lo tanto, primero se deben implementar reglas de cortafuegos para limitar el acceso a los hosts de confianza.",
+              "client-http-port": "Puerto TCP en el que el servidor de seguridad del cliente de servicio escucha solicitudes HTTP de las aplicaciones cliente.",
+              "client-https-port": "Puerto TCP en el que el servidor de seguridad del cliente de servicio escucha solicitudes HTTPS de las aplicaciones cliente.",
+              "jetty-configuration-file": "Nombre de archivo absoluto del archivo de configuración de Jetty para el servidor de seguridad del cliente de servicio. Para más información sobre la configuración del servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
+              "client-connector-initial-idle-time": "El tiempo de inactividad inicial (en milisegundos) que se permite que las conexiones del cliente estén inactivas antes de que el servidor de seguridad comience a cerrarlas. Un valor de 0 significa que se permite un tiempo de inactividad infinito.",
+              "client-timeout": "Tiempo de espera de firma en milisegundos.",
+              "client-httpclient-so-linger": "El tiempo SO_LINGER (en segundos) en el extremo del servidor de seguridad consumidor de servicios para las conexiones entre servidores de seguridad. Un valor mayor que 0 significa que al cerrar una conexión, el sistema permitirá SO_LINGER segundos para la transmisión y el reconocimiento de todos los datos escritos al par, tras lo cual el socket se cierra correctamente. Al alcanzar el tiempo de espera de linger, el socket se cierra forzosamente con un TCP RST. Habilitar la opción con un tiempo de espera de cero realiza un cierre forzoso inmediatamente. Un valor de -1 deshabilita el cierre forzoso.",
+              "client-httpclient-timeout": "El tiempo máximo (SO_TIMEOUT, en milisegundos) que las conexiones de un servidor de seguridad consumidor de servicios a un servidor de seguridad proveedor de servicios pueden esperar una respuesta antes de que el cliente HTTP del extremo consumidor se rinda. Un valor de 0 significa que se permite un tiempo de espera infinito. Esto no afecta a las conexiones inactivas.",
+              "pool-total-max-connections": "El número máximo total de conexiones permitidas en el pool.",
+              "pool-total-default-max-connections-per-route": "El máximo de conexiones predeterminado específico de ruta que se establece a menos que se configure un límite de conexiones específico de ruta. Debido a la implementación actual, este es en realidad el límite máximo total de conexiones, independientemente de cuál sea la configuración anterior.",
+              "pool-validate-connections-after-inactivity-of-millis": "Al reutilizar una conexión del pool a un servidor de seguridad proveedor de servicios, verificar que la conexión (el socket) no esté semiabierta si ha estado inactiva durante al menos este número de milisegundos. Este método no puede detectar conexiones semiabiertas. Un valor de -1 deshabilita la verificación.",
+              "client-idle-connection-monitor-interval": "Con qué frecuencia (en milisegundos) el monitor de conexiones debe revisar las conexiones del pool para ver si puede limpiar conexiones inactivas o expiradas. Esta opción requiere que el monitor de conexiones esté habilitado para tener algún efecto.",
+              "client-idle-connection-monitor-timeout": "El tiempo mínimo (en milisegundos) que una conexión del pool debe estar sin uso (inactiva) antes de poder ser eliminada del pool. Tenga en cuenta que la eliminación del pool también depende de la frecuencia con que se ejecuta el monitor de conexiones. Esta opción requiere que el monitor de conexiones esté habilitado para tener algún efecto.",
+              "client-use-idle-connection-monitor": "Si se debe usar el monitor de conexiones inactivas para limpiar conexiones inactivas y expiradas del pool de conexiones.",
+              "fastest-connecting-ssl-uri-cache-period": "Cuando el servidor de seguridad de un consumidor de servicios encuentra el servidor de seguridad proveedor de servicios que responde más rápido, ¿cuánto tiempo se debe mantener el resultado en la caché de sesiones TLS? 0 para deshabilitar.",
+              "use-fastest-connecting-ssl-socket-autoclose": "En las conexiones TLS entre servidores de seguridad, si la conexión de la capa TCP subyacente (socket) debe cerrarse en el extremo del consumidor de servicios cuando se termina la conexión de la capa TLS.",
+              "client-tls-protocols": "Protocolos TLS (lista separada por comas) habilitados en las interfaces del lado del cliente (tanto para solicitudes entrantes como salientes). Por compatibilidad con versiones anteriores, TLSv1.1 aún es compatible en las interfaces del lado del cliente para solicitudes salientes. (desde la versión 6.7)",
+              "client-tls-ciphers": "Cifrados TLS (lista separada por comas) habilitados en las interfaces del lado del cliente (tanto para solicitudes entrantes como salientes). (desde la versión 6.7)",
+              "pool-enable-connection-reuse": "Permitir que las conexiones del pool entre servidores de seguridad se usen más de una vez en el lado del cliente. El extremo proveedor de servicios de las conexiones debe tener la configuración server-support-clients-pooled-connections=true para que el pool funcione entre servidores de seguridad proveedor y consumidor."
+            },
+            "server": {
+              "listen-address": "Dirección IP en la que el servidor de seguridad del proveedor de servicios escucha conexiones de los servidores de seguridad del cliente de servicio. El valor 0.0.0.0 permite escuchar en todas las interfaces IPv4.",
+              "listen-port": "Puerto TCP en el que el servidor de seguridad del proveedor de servicios escucha conexiones del servidor de seguridad del cliente de servicio.",
+              "connector-initial-idle-time": "El tiempo de inactividad inicial (en milisegundos) que se permite que las conexiones no autenticadas estén inactivas antes de que el servidor de seguridad proveedor comience a cerrarlas. Un valor de 0 significa que se permite un tiempo de inactividad infinito.",
+              "jetty-configuration-file": "Nombre de archivo absoluto del archivo de configuración de Jetty para el servidor de seguridad del proveedor de servicios. Para más información sobre la configuración del servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
+              "support-clients-pooled-connections": "Si este servidor de seguridad proveedor de servicios admite conexiones en pool desde el lado del consumidor de servicios. Si se establece en false, las conexiones deben cerrarse inmediatamente después de cada mensaje. Este puede ser un enfoque deseado para servidores de seguridad detrás de balanceadores de carga."
+            },
+            "ocsp-responder": {
+              "listen-address": "Dirección IP en la que el servidor de seguridad del proveedor de servicios escucha solicitudes de respuestas OCSP del servidor de seguridad del cliente de servicio. El servidor de seguridad del cliente descarga respuestas OCSP del servidor de seguridad del proveedor mientras establece una conexión segura entre los servidores de seguridad. El valor 0.0.0.0 permite escuchar en todas las interfaces IPv4. Debe coincidir con el valor de proxy.server-listen-address.",
+              "port": "Puerto TCP en el que el servidor de seguridad del proveedor de servicios escucha solicitudes de respuestas OCSP del servidor de seguridad del cliente de servicio. El servidor de seguridad del cliente descarga respuestas OCSP del servidor de seguridad del proveedor mientras establece una conexión segura entre los servidores de seguridad.",
+              "client-connect-timeout": "Tiempo de espera de conexión (en milisegundos) del cliente del respondedor OCSP. El servidor de seguridad del cliente descarga respuestas OCSP del servidor de seguridad del proveedor mientras establece una conexión segura entre los servidores de seguridad.",
+              "client-read-timeout": "Tiempo de espera de lectura (en milisegundos) del cliente del respondedor OCSP. El servidor de seguridad del cliente descarga respuestas OCSP del servidor de seguridad del proveedor mientras establece una conexión segura entre los servidores de seguridad.",
+              "jetty-configuration-file": "Nombre de archivo absoluto del archivo de configuración de Jetty para el respondedor OCSP del servidor de seguridad del proveedor de servicios. Para más información sobre la configuración del servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html."
+            },
+            "addon": {
+              "proxy-monitor": { "enabled": "Habilitar el complemento proxy-monitor." },
+              "meta-services": { "enabled": "Habilitar el complemento de meta-servicios." },
+              "op-monitor": {
+                "enabled": "Habilitar el complemento op-monitor.",
+                "buffer": {
+                  "size": "Número máximo de registros almacenados en búfer antes de enviarlos al monitor operacional.",
+                  "max-records-in-message": "Número máximo de registros de datos operacionales en un mensaje enviado por el búfer de monitoreo operacional al daemon de monitoreo operacional.",
+                  "sending-interval-seconds": "El intervalo en segundos en el que el búfer de monitoreo operacional intenta (re)enviar registros al daemon de monitoreo operacional. Normalmente, el búfer activa el mecanismo de envío inmediatamente cuando recibe un nuevo registro. En caso de alta carga o fallos de envío, los registros se acumulan en el búfer y necesitan atención periódica.",
+                  "socket-timeout-seconds": "El tiempo de espera del socket (SO_TIMEOUT) para el envío de registros de monitoreo operacional desde el búfer al daemon de monitoreo operacional, en segundos.",
+                  "connection-timeout-seconds": "Tiempo de espera de conexión del cliente HTTP en segundos."
+                },
+                "connection": {
+                  "host": "La dirección del host en la que escucha el daemon de monitoreo operacional.",
+                  "port": "Puerto TCP en el que escucha el daemon de monitoreo operacional.",
+                  "scheme": "El nombre del esquema URI del daemon de monitoreo operacional. Los valores posibles son http y https.",
+                  "socket-timeout-seconds": "Tiempo de espera de conexión del cliente HTTP en segundos.",
+                  "connection-timeout-seconds": "El tiempo de espera del socket (SO_TIMEOUT) para el envío de la solicitud de datos operacionales al daemon de monitoreo operacional, en segundos.",
+                  "xroad-tls-ciphers": "Cifrados TLS (lista separada por comas en orden de preferencia) aceptados en las solicitudes entre servidores de seguridad y entre el daemon de monitoreo operacional y el cliente. (desde la versión 6.20)"
+                }
+              }
+            },
+            "message-log": {
+              "enabled": "Habilitar el registro de mensajes.",
+              "message-body-logging": "Si el cuerpo del mensaje debe registrarse o no. Si es true, los mensajes se registran en su forma original. Si es false, el cuerpo del mensaje se vacía de su contenido (el cuerpo SOAP tendrá un elemento hijo vacío; la ruta del servicio REST, los parámetros de consulta y el cuerpo del mensaje se omitirán). Además, el encabezado SOAP y los encabezados HTTP REST solo registrarán un conjunto específico de elementos; consulte la Nota sobre los encabezados de mensajes X-Road registrados. Como efecto secundario, detalles como el formato y las etiquetas de espacio de nombres del mensaje XML pueden cambiar y se pueden introducir nuevos elementos para los valores predeterminados en el encabezado SOAP. La eliminación del cuerpo del mensaje generalmente se realiza por razones de confidencialidad (el cuerpo contiene datos que no queremos tener en los registros). Tenga en cuenta que cambiar el mensaje de esta manera impide verificar su firma con la herramienta asicverifier.",
+              "max-loggable-message-body-size": "Tamaño máximo registrable del cuerpo del mensaje REST.",
+              "truncated-body-allowed": "Si el cuerpo del mensaje REST supera el tamaño máximo registrable, truncar el cuerpo en el registro (true) o rechazar el mensaje (false).",
+              "hash-algo-id": "El identificador de algoritmo utilizado para el hash en el registro de mensajes. Los valores posibles son - SHA-224, SHA-256, SHA-384, SHA-512.",
+              "timestamping-prioritization-strategy": "Estrategia de priorización del sellado de tiempo, que determina qué servicios de sellado de tiempo se utilizan y en qué orden. Los valores posibles son: ONLY_FREE - Solo se usan servicios de sellado de tiempo gratuitos. ONLY_PAID - Solo se usan servicios de sellado de tiempo de pago. FREE_FIRST - Se usan primero los servicios gratuitos; si no hay respuestas exitosas, se usan los de pago, y finalmente los servicios cuyo tipo de costo no está definido. PAID_FIRST - Se usan primero los servicios de pago; si no hay respuestas exitosas, se usan los gratuitos, y finalmente los servicios cuyo tipo de costo no está definido. NONE - No se agrega ningún orden ni filtro nuevo (igual que antes de agregar el tipo de costo a los servicios de sellado de tiempo.)",
+              "enabled-body-logging-local-producer-subsystems": "Anulaciones específicas de subsistema para el registro del cuerpo del mensaje cuando message-body-logging = false. Este parámetro define el registro para los subsistemas productores locales, es decir, nuestros subsistemas que producen algún servicio que usan clientes externos. Lista separada por comas de identificadores de clientes para los que el registro del cuerpo del mensaje está habilitado. Por ejemplo FI/ORG/1710128-9/SUBSYSTEM_A1, FI/ORG/1710128-9/SUBSYSTEM_A2, donde - FI = instancia x-road, ORG = clase de miembro, 1710128-9 = código de miembro, SUBSYSTEM_A1 = código de subsistema. Este parámetro solo se puede usar a nivel de subsistema, no es posible configurar el registro del cuerpo del mensaje por miembro. Si un subsistema tiene barras diagonales \"/\" en, por ejemplo, el código del subsistema, esos subsistemas no se pueden configurar con este parámetro.",
+              "enabled-body-logging-remote-producer-subsystems": "Anulaciones específicas de subsistema para los subsistemas productores remotos, es decir, subsistemas remotos que producen servicios que nosotros usamos. El parámetro se usa cuando message-body-logging = false.",
+              "disabled-body-logging-local-producer-subsystems": "Igual que enabled-body-logging-local-producer-subsystems, pero este parámetro se usa cuando message-body-logging = true.",
+              "disabled-body-logging-remote-producer-subsystems": "Igual que enabled-body-logging-remote-producer-subsystems, pero este parámetro se usa cuando message-body-logging = true.",
+              "timestamper": {
+                "client-connect-timeout": "El tiempo de espera de conexión del cliente timestamper en milisegundos. Un tiempo de espera de cero se interpreta como tiempo de espera infinito.",
+                "client-read-timeout": "El tiempo de espera de lectura del cliente timestamper en milisegundos. Un tiempo de espera de cero se interpreta como tiempo de espera infinito.",
+                "timestamp-immediately": "Si es true, el sello de tiempo se crea de forma síncrona para cada mensaje de solicitud. Este es un requisito de política de seguridad para garantizar el sello de tiempo en el momento del registro del mensaje.",
+                "records-limit": "Número máximo de registros de mensajes para sellar el tiempo en un lote. Si el número de registros de mensajes en un solo lote supera el 70% del valor de timestamp-records-limit, se registra una advertencia en proxy.log.",
+                "retry-delay": "Retardo de reintento del sello de tiempo en segundos cuando falla el sellado de tiempo por lotes. Después de fallar en el sellado de tiempo por lotes, el timestamper espera el período de tiempo definido por \"timestamp-retry-delay\" antes de volver a intentarlo. Esto se repite hasta que el sellado de tiempo tiene éxito. Después de obtener exitosamente un sello de tiempo, el timestamper vuelve al programa normal de sellado de tiempo. Si el valor de \"timestamp-retry-delay\" es mayor que el valor del parámetro del sistema del servidor central \"timeStampingIntervalSeconds\", se usa el valor de \"timeStampingIntervalSeconds\". Si el valor de \"timestamp-retry-delay\" es cero, se usa el valor de \"timeStampingIntervalSeconds\".",
+                "acceptable-timestamp-failure-period": "Define el período de tiempo (en segundos) durante el cual se permite que el sellado de tiempo falle (por cualquier razón) antes de que el registro de mensajes deje de aceptar más mensajes (y consecuentemente el servidor de seguridad deje de aceptar solicitudes). Establecer en 0 para deshabilitar esta verificación. El valor de este parámetro no debe ser inferior al valor del parámetro del sistema del servidor central timeStampingIntervalSeconds."
+              }
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Nombre del rol PKI de Vault utilizado al aprovisionar el certificado TLS del proxy.",
+                "common-name": "Nombre común establecido en el certificado TLS del proxy aprovisionado.",
+                "alt-names": "Nombres alternativos de sujeto DNS incluidos en el certificado TLS del proxy aprovisionado.",
+                "ip-subject-alt-names": "Nombres alternativos de sujeto IP incluidos en el certificado TLS del proxy aprovisionado.",
+                "ttl": "Tiempo de vida del certificado TLS del proxy aprovisionado (p. ej. 3650D).",
+                "secret-store-pki-path": "Ruta de montaje del motor de secretos PKI de Vault para el aprovisionamiento del certificado TLS del proxy."
+              }
+            },
+            "rpc": {
+              "enabled": "Habilitar el servidor gRPC del proxy.",
+              "listen-address": "Dirección IP en la que escucha el servidor gRPC del proxy.",
+              "port": "El puerto (localhost) en el que se enlaza el servidor gRPC del proxy. Se utiliza para comunicarse con xroad-signer y xroad-monitor."
+            }
+          },
+          "signer": {
+            "selfsigned-cert-digest-algorithm": "Algoritmo de resumen utilizado al crear certificados autofirmados.",
+            "csr-signature-digest-algorithm": "Algoritmo de resumen de firma de la Solicitud de Firma de Certificado. Los valores posibles son - SHA-256, SHA-384, SHA-512.",
+            "enforce-token-pin-policy": "Controla la aplicación de la política de PIN del token. Cuando se establece en true, se requiere que el PIN del token de software tenga al menos 10 caracteres ASCII de al menos tres clases de caracteres (letras minúsculas, letras mayúsculas, dígitos, caracteres especiales). (desde la versión 6.7.7)",
+            "ocsp-response-retrieval-active": "Esta propiedad se utiliza como anulación para desactivar la recuperación periódica de respuestas OCSP para componentes que no necesitan esa funcionalidad, pero que aún usan signer. Valores: false - los trabajos de recuperación de respuestas OCSP nunca se programan. true - la recuperación periódica de respuestas OCSP está activa según ocspFetchInterval. Tenga en cuenta que si falta toda la propiedad, se interpreta como true. Esta propiedad se entrega como anulación y solo para los componentes donde los trabajos de recuperación de respuestas OCSP necesitan desactivarse. La propiedad falta para los componentes que requieren que la recuperación de respuestas OCSP esté activada.",
+            "ocsp-retry-delay": "Retardo de reintento de OCSP para signer cuando falla la obtención de respuestas OCSP. Después de fallar en la obtención de respuestas OCSP, signer espera el período de tiempo definido por \"ocsp-retry-delay\" antes de volver a intentarlo. Esto se repite hasta que la obtención de respuestas OCSP tiene éxito. Después de obtener exitosamente las respuestas OCSP, signer vuelve al programa normal de actualización de OCSP definido por \"ocspFetchInterval\". Si el valor de \"ocsp-retry-delay\" es mayor que \"ocspFetchInterval\", el valor de \"ocspFetchInterval\" se usa como retardo de reintento de OCSP.",
+            "ocsp-cache-path": "Ruta absoluta al directorio donde se almacenan las respuestas OCSP en caché.",
+            "ocsp-prioritization-strategy": "Estrategia de priorización de OCSP, que determina qué respondedores OCSP se usan y en qué orden para obtener respuestas OCSP. Los valores posibles son: ONLY_FREE - Solo se usan respondedores OCSP gratuitos. ONLY_PAID - Solo se usan respondedores OCSP de pago. FREE_FIRST - Se usan primero los respondedores gratuitos; si no hay respuestas exitosas, se usan los de pago, y finalmente los respondedores OCSP cuyo tipo de costo no está definido. PAID_FIRST - Se usan primero los respondedores de pago; si no hay respuestas exitosas, se usan los gratuitos, y finalmente los respondedores OCSP cuyo tipo de costo no está definido. NONE - No se agrega ningún orden ni filtro nuevo (igual que antes de agregar el tipo de costo a los endpoints OCSP.)",
+            "module-manager-update-interval": "Intervalo de actualización del gestor de módulos HSM en segundos.",
+            "soft-token-rsa-sign-mechanism": "Mecanismo PKCS#11 utilizado para la firma RSA en el token de software.",
+            "soft-token-ec-sign-mechanism": "Mecanismo PKCS#11 utilizado para la firma EC en el token de software.",
+            "soft-token-pin-keystore-algorithm": "Algoritmo de clave utilizado para crear el almacén de claves PIN para el token de software. Los valores posibles son RSA y EC. (desde la versión 7.6)",
+            "key-length": "Longitud de clave para generar claves de autenticación y firma. (desde la versión 6.7)",
+            "key-named-curve": "Curva con nombre para generar claves de autenticación y firma en caso de que se usen algoritmos EC. (desde la versión 7.6)",
+            "autologin": {
+              "enabled": "Habilitar el inicio de sesión automático del token al arrancar.",
+              "retry": {
+                "retry-delay": "Retardo inicial entre intentos de reintento de inicio de sesión automático (p. ej. 3S).",
+                "retry-exponential-backoff-multiplier": "Multiplicador aplicado al retardo de reintento en cada intento sucesivo de inicio de sesión automático.",
+                "retry-max-attempts": "Número máximo de intentos de reintento de inicio de sesión automático.",
+                "retry-timeout": "Límite de tiempo total para todos los intentos de reintento de inicio de sesión automático (p. ej. 60S)."
+              }
+            },
+            "addon": {
+              "hwtoken": {
+                "enabled": "Habilitar el complemento de token de hardware (HSM).",
+                "session-pool-enabled": "Habilitar el pool de sesiones PKCS#11 para el token de hardware.",
+                "session-pool-max-total": "Total máximo de sesiones PKCS#11 en el pool de sesiones del token de hardware.",
+                "session-pool-min-idle": "Número mínimo de sesiones PKCS#11 inactivas mantenidas en el pool del token de hardware.",
+                "session-pool-max-idle": "Número máximo de sesiones PKCS#11 inactivas mantenidas en el pool del token de hardware.",
+                "session-acquire-timeout": "Tiempo máximo de espera al adquirir una sesión PKCS#11 del pool (p. ej. 15S)."
+              }
+            },
+            "rpc": {
+              "enabled": "Habilitar el servidor gRPC de Signer.",
+              "listen-address": "Dirección IP en la que escucha el servidor gRPC de Signer.",
+              "port": "Puerto en el que escucha el servidor gRPC de Signer."
+            },
+            "pin-hasher": {
+              "iterations": "Número de iteraciones de Argon2 utilizado al hacer hash de los PIN de los tokens.",
+              "memory-kb": "Costo de memoria de Argon2 en kilobytes utilizado al hacer hash de los PIN de los tokens.",
+              "parallelism": "Grado de paralelismo de Argon2 utilizado al hacer hash de los PIN de los tokens.",
+              "hash-length": "Longitud del hash de salida en bytes utilizado al hacer hash de los PIN de los tokens."
+            }
+          },
+          "configuration-client": {
+            "allowed-federations": "Una lista separada por comas de instancias X-Road sin distinción entre mayúsculas y minúsculas para las que se permite la obtención de anclajes de configuración. Esto habilita la federación con las instancias listadas si la instancia X-Road ya está federada en el nivel del servidor central. El valor especial none, si está presente, deshabilita toda la federación (el valor predeterminado), mientras que all permite todas las federaciones si none no está presente. Ejemplo: allowed-federations=ee,sv permite la federación con las instancias de ejemplo EE y Sv, mientras que allowed-federations=all,none deshabilita la federación. Los servicios X-Road xroad-confclient y xroad-proxy deben reiniciarse (en ese orden) para que el cambio de configuración tenga efecto.",
+            "global-conf-hostname-verification": "Es posible deshabilitar la verificación del nombre de host. Determina si el nombre de host especificado en la URL coincide con el nombre de host especificado en el Nombre Común (CN) del certificado TLS del Servidor Central. Debe ser true en el entorno de producción.",
+            "global-conf-tls-cert-verification": "Es posible deshabilitar la verificación del certificado TLS de descarga de configuración global. Debe ser true en el entorno de producción.",
+            "downloader-connect-timeout": "Tiempo máximo en milisegundos que el descargador de configuración global espera para conectarse al servidor remoto.",
+            "downloader-read-timeout": "Tiempo máximo en milisegundos que el descargador de configuración global espera para leer datos del servidor remoto después de establecer la conexión.",
+            "global-conf-dir": "Ruta del sistema de archivos donde se almacena la configuración global descargada.",
+            "update-interval": "Intervalo de descarga de configuración global en segundos.",
+            "configuration-anchor-file": "Nombre de archivo absoluto del anclaje de configuración que se utiliza para descargar la configuración global.",
+            "configuration-anchor-storage": "Backend de almacenamiento para el anclaje de configuración (DB o FILE).",
+            "rpc": {
+              "enabled": "Habilitar el servidor gRPC del cliente de configuración.",
+              "listen-address": "Dirección IP en la que escucha el servidor gRPC del cliente de configuración.",
+              "port": "Puerto en el que escucha el servidor gRPC del cliente de configuración."
+            }
+          },
+          "env-monitor": {
+            "certificate-info-sensor-interval": "Intervalo del sensor de información de certificados en segundos. Con qué frecuencia se recopilan los datos de certificados. La primera recopilación siempre se realiza después de un retardo de 10 segundos.",
+            "disk-space-sensor-interval": "Intervalo del sensor de espacio en disco en segundos. Con qué frecuencia se recopilan los datos de espacio en disco.",
+            "exec-listing-sensor-interval": "Intervalo del sensor de listado de ejecución en segundos. Con qué frecuencia se recopilan los datos del sensor mediante comandos externos.",
+            "system-metrics-sensor-interval": "Intervalo del sensor de métricas del sistema en segundos. Con qué frecuencia se recopilan los datos de métricas del sistema.",
+            "limit-remote-data-set": "Interruptor de activación/desactivación para filtrar los datos de monitoreo opcionales. Con el indicador establecido en true, solo el propietario del servidor de seguridad puede solicitar y obtener el conjunto de datos completo.",
+            "rpc": {
+              "enabled": "Habilitar el servidor gRPC de env-monitor.",
+              "listen-address": "Dirección IP en la que escucha el servidor gRPC de env-monitor.",
+              "port": "Puerto en el que escucha el servidor gRPC de env-monitor."
+            }
+          },
+          "anti-dos": {
+            "max-parallel-connections": "Número máximo de conexiones paralelas para AntiDOS.",
+            "min-free-file-handles": "Cantidad mínima de manejadores de archivos libres en el sistema para aceptar nuevas conexiones. Al menos un manejador de archivo libre debe estar disponible para aceptar una nueva conexión.",
+            "max-cpu-load": "Carga máxima de CPU permitida para aceptar nuevas conexiones. Si se establece en > 1.0, no se verifica la carga de CPU.",
+            "max-heap-usage": "Especifica el uso máximo permitido del heap de Java al aceptar nuevas conexiones. Si se establece en > 1.0, no se verifica el uso del heap.",
+            "enabled": "Indicador para habilitar o deshabilitar el sistema AntiDOS."
+          },
+          "common-rpc": {
+            "use-tls": "Cuando está habilitado, se utiliza TLS mutuo para toda la comunicación gRPC entre los servicios internos del servidor de seguridad.",
+            "certificate-provisioning": {
+              "refresh-interval": "Con qué frecuencia los servicios verifican si su certificado TLS de gRPC necesita renovarse (p. ej. 5H).",
+              "retry-delay": "Retraso inicial entre intentos de aprovisionamiento de certificados TLS de gRPC (p. ej. 5S).",
+              "retry-exponential-backoff-multiplier": "Multiplicador aplicado al retraso de reintento en cada intento de aprovisionamiento de certificado posterior.",
+              "retry-max-attempts": "Número máximo de intentos de aprovisionamiento de certificados TLS de gRPC.",
+              "retry-timeout": "Límite de tiempo total para todos los intentos de aprovisionamiento de certificados TLS de gRPC (p. ej. 60S)."
+            },
+            "channel": {
+              "proxy": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del proxy.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del proxy.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al proxy agote el tiempo de espera."
+              },
+              "configuration-client": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del cliente de configuración.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del cliente de configuración.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al cliente de configuración agote el tiempo de espera."
+              },
+              "env-monitor": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC de env-monitor.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC de env-monitor.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC a env-monitor agote el tiempo de espera."
+              },
+              "auxiliary-service": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del servicio auxiliar.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del servicio auxiliar.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al servicio auxiliar agote el tiempo de espera."
+              }
+            }
+          },
+          "common-global-conf": {
+            "source": "Backend de origen para la configuración global. Valores posibles: FILESYSTEM (leer desde archivos locales) o DB (leer desde base de datos).",
+            "refresh-rate": "Con qué frecuencia se actualiza la caché de configuración global compartida desde el origen configurado (p. ej. 60S).",
+            "configuration-path": "Ruta del sistema de archivos donde se almacenan los archivos de configuración global."
+          },
+          "common-server-conf": {
+            "cache-period": "Tiempo en segundos que las entradas de configuración del servidor se almacenan en caché antes de volver a leerse.",
+            "client-cache-size": "Número máximo de entradas en la caché del cliente de configuración del servidor.",
+            "service-cache-size": "Número máximo de entradas en la caché del servicio de configuración del servidor.",
+            "service-endpoints-cache-size": "Número máximo de entradas de puntos de acceso de servicio almacenadas en la caché de configuración del servidor.",
+            "acl-cache-size": "Número máximo de entradas en la caché de la lista de control de acceso (ACL) de configuración del servidor."
+          },
+          "common-ocsp-verifier": {
+            "cache-period": "Tiempo en segundos que los resultados de verificación OCSP se almacenan en caché antes de volver a verificarse."
+          },
+          "auxiliary-service": {
+            "backup": {
+              "location": "Directorio del sistema de archivos donde se almacenan los archivos de copia de seguridad.",
+              "valid-filename-pattern": "Expresión regular con la que deben coincidir los nombres de archivo de copia de seguridad válidos.",
+              "autobackup-cron-expression": "Expresión cron que controla cuándo se crean las copias de seguridad automáticas.",
+              "autobackup-script-path": "Ruta al script ejecutado cuando se realiza una copia de seguridad automática.",
+              "autobackup-delete-old-backups-cron": "Expresión cron que controla cuándo se eliminan las copias de seguridad automáticas antiguas.",
+              "autobackup-keep-for": "Período de retención para copias de seguridad automáticas (p. ej. 30d).",
+              "script-path": "Ruta al script de copia de seguridad manual.",
+              "restore-script-path": "Ruta al script de restauración de copia de seguridad.",
+              "generate-gpg-keypair-path": "Ruta al script que genera un par de claves GPG para el cifrado de copias de seguridad.",
+              "gpgkeys-home": "Directorio utilizado como GNUPGHOME para las operaciones GPG de copia de seguridad.",
+              "encryption-enabled": "Cuando está habilitado, los archivos de copia de seguridad se cifran con GPG."
+            },
+            "encryption-keyids": "IDs de clave GPG separados por comas utilizados para cifrar los archivos de copia de seguridad.",
+            "rpc": {
+              "enabled": "Habilitar el servidor gRPC del servicio auxiliar.",
+              "listen-address": "Dirección IP en la que escucha el servidor gRPC del servicio auxiliar.",
+              "port": "Puerto en el que escucha el servidor gRPC del servicio auxiliar."
+            },
+            "readiness-check": {
+              "kubernetes": {
+                "service-host": "Nombre de host del servidor API de Kubernetes para las verificaciones de preparación (dejar vacío para deshabilitar).",
+                "service-port": "Puerto del servidor API de Kubernetes para las verificaciones de preparación.",
+                "token-path": "Ruta del sistema de archivos al token de cuenta de servicio de Kubernetes utilizado para las verificaciones de preparación.",
+                "ca-cert-path": "Ruta del sistema de archivos al certificado CA de Kubernetes utilizado para las verificaciones de preparación.",
+                "connect-timeout-ms": "Milisegundos a esperar al conectarse a la API de Kubernetes para las verificaciones de preparación.",
+                "read-timeout-ms": "Milisegundos a esperar al leer una respuesta de la API de Kubernetes para las verificaciones de preparación."
+              }
+            },
+            "message-log": {
+              "archive-cron": "Expresión cron que controla cuándo se ejecuta el archivado del registro de mensajes.",
+              "clean-cron": "Expresión cron que controla cuándo se limpian los registros de mensajes antiguos.",
+              "command-path": "Ruta al ejecutable del archivador del registro de mensajes."
+            }
+          }
+        }
+      }
     }
   },
   "validationError": {

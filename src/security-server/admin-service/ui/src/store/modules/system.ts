@@ -36,6 +36,8 @@ import {
   AuthProviderTypeResponse,
   Anchor,
   SecurityServerAddressStatus,
+  SecurityServerConfigurableProperty,
+  SecurityServerPropertyUpdate,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
@@ -109,6 +111,12 @@ export const useSystem = defineStore('system', {
       return api.put('/system/server-address', {
         address,
       });
+    },
+    async fetchConfigurableProperties() {
+      return api.get<SecurityServerConfigurableProperty[]>('/system/property').then((resp) => resp.data);
+    },
+    async updateConfigurableProperty(update: SecurityServerPropertyUpdate) {
+      return api.patch('/system/property', update);
     },
     async uploadAnchor(initMode: boolean, anchorFile: File) {
       const apiCall = initMode ? api.post : api.put;
