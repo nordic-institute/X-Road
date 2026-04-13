@@ -16,7 +16,7 @@ Feature: 5000 - DS control plane tests
     Then Credential request "xroad-membership-credential-request" for participant "test-part-ctx" reaches status "ISSUED"
 
   Scenario: Catalog can be retrieved over DSP protocol
-    And Participant context "test-part-ctx" is created
+    And Participant context "test-part-ctx" with DID "did:web:ds-identity-hub%3A10100" is created
     And Participant context "test-part-ctx" config with DID "did:web:ds-identity-hub%3A10100" is created
     And Asset is created in participant context "test-part-ctx"
     And Policy definition is created in participant context "test-part-ctx"

@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Base64;
 
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -74,7 +75,9 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                         Base64.getUrlEncoder().encodeToString(participantId.getBytes()), did, participantId, did, did, privateKeyAlias);
 
         var response = issuanceServiceIdentityApi.createParticipant(AuthTokens.PROVISIONER, request);
-        validate(response).assertion(equalsStatusCodeAssertion(OK));
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
     @Step("Holder {string} with DID {string} is created in issuance service participant {string}")
@@ -95,7 +98,9 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                 Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
                 request);
-        validate(response).assertion(equalsStatusCodeAssertion(OK));
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .execute();
     }
 
     @Step("Attestation definition {string} of type {string} is created in issuance service participant {string}")
@@ -113,7 +118,9 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                 Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
                 request);
-        validate(response).assertion(equalsStatusCodeAssertion(OK));
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .execute();
     }
 
     @Step("Credential definition {string} of type {string} with format {string} "
@@ -145,7 +152,9 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                 Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
                 request);
-        validate(response).assertion(equalsStatusCodeAssertion(OK));
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .execute();
     }
 
     static class AuthTokens {

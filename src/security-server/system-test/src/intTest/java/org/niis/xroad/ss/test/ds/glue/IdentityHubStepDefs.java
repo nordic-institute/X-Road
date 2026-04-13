@@ -74,7 +74,9 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                 """.formatted(credentialServiceUrl, did, participantId, did, did, privateKeyAlias);
 
         var ihResponse = feignIdentityHubManagementApi.createParticipant(AuthTokens.PROVISIONER, createParticipantRequest);
-        validate(ihResponse).assertion(equalsStatusCodeAssertion(OK));
+        validate(ihResponse)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
     @Step("Identity Hub participant context {string} with DID {string} is initialized "
@@ -105,7 +107,9 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                 """.formatted(credentialServiceUrl, did, participantId, did, did, privateKeyAlias, publicKey);
 
         var ihResponse = feignIdentityHubManagementApi.createParticipant(AuthTokens.PROVISIONER, createParticipantRequest);
-        validate(ihResponse).assertion(equalsStatusCodeAssertion(OK));
+        validate(ihResponse)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
     @Step("Credential request {string} for credential definition {string} of type {string} "
@@ -131,7 +135,9 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                 // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                 Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()),
                 request);
-        validate(response).assertion(equalsStatusCodeAssertion(CREATED));
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .execute();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -145,7 +151,9 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                     // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                     Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()),
                     holderPid);
-            validate(response).assertion(equalsStatusCodeAssertion(OK));
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(OK))
+                    .execute();
             var status = response.getBody().get("status");
             if (expectedStatus.equals(status)) {
                 return;

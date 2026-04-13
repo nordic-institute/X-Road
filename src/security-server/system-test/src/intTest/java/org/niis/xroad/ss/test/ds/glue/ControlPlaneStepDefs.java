@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -63,24 +64,26 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 """.formatted(key, value);
         var response = feignControlPlaneSecretsApi.createSecret(AuthTokens.PROVISIONER, request);
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
-    @Step("Participant context {string} is created")
-    public void participantContextIsCreated(String contextName) {
+    @Step("Participant context {string} with DID {string} is created")
+    public void participantContextIsCreated(String participantContext, String did) {
         String request = """
                 {
                     "@context": [
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "ParticipantContext",
-                    "identity": "test-identity-1",
+                    "identity": "%s",
                     "@id": "%s"
                 }
-                """.formatted(contextName);
+                """.formatted(did, participantContext);
         var response = controlPlaneManagementApi.createParticipantContext(AuthTokens.PROVISIONER, request);
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
     @Step("Participant context {string} can be retrieved")
@@ -88,7 +91,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
         var response = controlPlaneManagementApi.getParticipantContext(AuthTokens.PROVISIONER, participantContextId);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(Assertions.equalsAssertion(participantContextId, "@id"));
+                .assertion(Assertions.equalsAssertion(participantContextId, "body['@id']"))
+                .execute();
     }
 
     @Step("Participant context {string} config with DID {string} is created")
@@ -111,7 +115,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 """.formatted(did, did, did, participantContextId);
         var response = controlPlaneManagementApi.createParticipantContextConfig(AuthTokens.PROVISIONER, participantContextId, request);
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK));
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
     }
 
     @Step("Asset is created in participant context {string}")
@@ -139,7 +144,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
 
         var response = controlPlaneManagementApi.createAsset(AuthTokens.PARTICIPANT, participantContextId, request);
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
     @Step("Policy definition is created in participant context {string}")
@@ -165,7 +171,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
 
         var response = controlPlaneManagementApi.createPolicyDefinition(AuthTokens.PARTICIPANT, participantContextId, request);
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
     @Step("Contract definition is created in participant context {string}")
@@ -192,7 +199,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
 
         var response = controlPlaneManagementApi.createContractDefinition(AuthTokens.PARTICIPANT, participantContextId, request);
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
     @Step("Catalog can be retrieved from participant context {string} with DID {string}")
@@ -211,7 +219,8 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
 
         var response = controlPlaneManagementApi.requestCatalog(AuthTokens.PARTICIPANT, participantContextId, request);
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
         assertEquals("assetId-1", ((LinkedHashMap) ((ArrayList) response.getBody().get("dataset")).getFirst()).get("id"));
     }
 
