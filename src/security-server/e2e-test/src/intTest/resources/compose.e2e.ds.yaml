@@ -100,10 +100,6 @@ services:
       - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD=ds_control_plane_admin_secret
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-      - EDC_PARTICIPANT_ID=did:web:ds-identity-hub%3A10100
-      - EDC_IAM_ISSUER_ID=did:web:ds-identity-hub%3A10100
-      - EDC_IAM_STS_OAUTH_CLIENT_ID=did:web:ds-identity-hub%3A10100
-      - EDC_IAM_STS_OAUTH_CLIENT_SECRET_ALIAS=did:web:ds-identity-hub%3A10100-sts-client-secret
       - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
       - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
@@ -188,7 +184,6 @@ services:
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=ds_identity_hub_admin_secret
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
-      - EDC_IAM_ACCESSTOKEN_JTI_VALIDATION=false
       - EDC_ENCRYPTION_STRICT=false # implicitly enabled - requires extra overhead of having AES key present in OpenBao
       - DEBUG=true
     healthcheck:

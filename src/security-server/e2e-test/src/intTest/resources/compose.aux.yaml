@@ -170,8 +170,7 @@ services:
       - XROAD_DB_DS_ISSUANCE_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_ISSUANCE_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuance_service_admin_secret
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-      - EDC_IAM_DID_WEB_USE_HTTPS=false
-      - EDC_IAM_ACCESSTOKEN_JTI_VALIDATION=false
+      - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
       - EDC_ENCRYPTION_STRICT=false
       - DEBUG=true
     healthcheck:

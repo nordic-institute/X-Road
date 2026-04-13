@@ -80,7 +80,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
     }
 
     @Step("Identity Hub participant context {string} with DID {string} is initialized "
-            + "with existing private private key in vault with alias {string} and public key {string}")
+            + "with existing private key in vault with alias {string} and public key {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias, String publicKey) {
         var credentialServiceUrl = "http://ds-identity-hub:10001/api/credentials/v1/participants/"
                 + Base64.getEncoder().encodeToString(participantId.getBytes());
