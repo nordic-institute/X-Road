@@ -56,13 +56,6 @@ class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
     private final ServerConfProvider serverConfProvider;
 
     CustomSSLSocketFactory(SSLContext sslContext,
-                           String[] supportedCipherSuites,
-                           HostnameVerifier hostNameVerifier, ServerConfProvider serverConfProvider) {
-        super(sslContext, null, supportedCipherSuites, hostNameVerifier);
-        this.serverConfProvider = serverConfProvider;
-    }
-
-    CustomSSLSocketFactory(SSLContext sslContext,
                            String[] supportedProtocols,
                            String[] supportedCipherSuites,
                            HostnameVerifier hostNameVerifier, ServerConfProvider serverConfProvider) {

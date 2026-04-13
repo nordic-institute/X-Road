@@ -50,12 +50,14 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.RestServiceHandler;
+import org.niis.xroad.proxy.core.serverproxy.RestServiceHandlerResult;
 import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.proxy.core.util.OpenapiDescriptionFiletype;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -75,7 +77,7 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.GET_OPENAPI;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
 
 /**
- * Handler for REST metadata services
+ * Handler for REST metadata services (listMethods, allowedMethods, getOpenAPI).
  */
 @Slf4j
 public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
@@ -94,16 +96,16 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private final ServerConfProvider serverConfProvider;
     private final HttpClientCreator httpClientCreator;
-    private final String tmpDir;
+    private final CommonProperties commonProperties;
 
-    private RestResponse restResponse;
-    private CachingStream restResponseBody;
-
-    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, String[] tlsProtocols, String[] tlsCipherSuites,
-                                          String tmpDir) {
+    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider,
+                                          ProxyProperties proxyProperties,
+                                          CommonProperties commonProperties) {
         this.serverConfProvider = serverConfProvider;
-        this.httpClientCreator = new HttpClientCreator(serverConfProvider, tlsProtocols, tlsCipherSuites);
-        this.tmpDir = tmpDir;
+        this.httpClientCreator = new HttpClientCreator(serverConfProvider,
+                proxyProperties.clientProxy().clientTlsProtocols(),
+                proxyProperties.clientProxy().clientTlsCiphers());
+        this.commonProperties = commonProperties;
     }
 
     @Override
@@ -130,11 +132,12 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
-    public void startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
-                              ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
-                              HttpClient restClient, OpMonitoringData opMonitoringData)
+    public RestServiceHandlerResult startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
+                                                   ProxyMessageEncoder messageEncoder,
+                                                   OpMonitoringData opMonitoringData)
             throws IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException {
-        restResponse = new RestResponse(requestProxyMessage.getRest().getClientId(),
+
+        RestResponse restResponse = new RestResponse(requestProxyMessage.getRest().getClientId(),
                 requestProxyMessage.getRest().getQueryId(),
                 requestProxyMessage.getRest().getHash(),
                 requestProxyMessage.getRest().getServiceId(),
@@ -144,33 +147,43 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 servletRequest.getHeaders().get(HEADER_REQUEST_ID)
         );
 
-        restResponseBody = new CachingStream(tmpDir);
-        if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(LIST_METHODS)) {
-            handleListMethods(requestProxyMessage);
-        } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(ALLOWED_METHODS)) {
-            handleAllowedMethods(requestProxyMessage);
-        } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(GET_OPENAPI)) {
-            handleGetOpenApi(requestProxyMessage);
+        @SuppressWarnings("squid:S2095") // stream is closed later.
+        CachingStream restResponseBody = new CachingStream(commonProperties.tempFilesPath());
+        try {
+            if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(LIST_METHODS)) {
+                handleListMethods(requestProxyMessage, restResponse, restResponseBody);
+            } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(ALLOWED_METHODS)) {
+                handleAllowedMethods(requestProxyMessage, restResponse, restResponseBody);
+            } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(GET_OPENAPI)) {
+                handleGetOpenApi(requestProxyMessage, restResponse, restResponseBody);
+            }
+
+            messageEncoder.restResponse(restResponse);
+            messageEncoder.restBody(restResponseBody.getCachedContents());
+
+            // It's required that in case of metadata service (where message is
+            // not forwarded) the requestOutTs must be equal with the requestInTs
+            // and the responseInTs must be equal with the responseOutTs.
+            opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
+            opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
+            opMonitoringData.setServiceType(DescriptionType.REST.name());
+
+            return new RestServiceHandlerResult(restResponse, restResponseBody);
+        } catch (Exception e) {
+            restResponseBody.consume();
+            throw e;
         }
-
-        messageEncoder.restResponse(restResponse);
-        messageEncoder.restBody(restResponseBody.getCachedContents());
-
-        // It's required that in case of metadata service (where message is
-        // not forwarded) the requestOutTs must be equal with the requestInTs
-        // and the responseInTs must be equal with the responseOutTs.
-        opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
-        opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
-        opMonitoringData.setServiceType(DescriptionType.REST.name());
     }
 
-    private void handleListMethods(ProxyMessage requestProxyMessage) throws IOException {
+    private void handleListMethods(ProxyMessage requestProxyMessage, RestResponse restResponse,
+                                   CachingStream restResponseBody) throws IOException {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         MAPPER.writeValue(restResponseBody,
                 serverConfProvider.getRestServices(requestProxyMessage.getRest().getServiceId().getClientId()));
     }
 
-    private void handleAllowedMethods(ProxyMessage requestProxyMessage) throws IOException {
+    private void handleAllowedMethods(ProxyMessage requestProxyMessage, RestResponse restResponse,
+                                      CachingStream restResponseBody) throws IOException {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         MAPPER.writeValue(restResponseBody,
                 serverConfProvider.getAllowedRestServices(requestProxyMessage.getRest().getServiceId().getClientId(),
@@ -178,7 +191,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         );
     }
 
-    private void handleGetOpenApi(ProxyMessage requestProxyMessage)
+    private void handleGetOpenApi(ProxyMessage requestProxyMessage, RestResponse restResponse,
+                                   CachingStream restResponseBody)
             throws IOException, HttpClientCreator.HttpClientCreatorException, URISyntaxException {
         List<NameValuePair> pairs = URLEncodedUtils.parse(requestProxyMessage.getRest().getQuery(),
                 StandardCharsets.UTF_8);
@@ -247,7 +261,6 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
                     DEFAULT_GETOPENAPI_CONTENT_TYPE));
         }
-
     }
 
     private OpenapiDescriptionFiletype getFileType(HttpResponse response, URI uri) {
@@ -271,20 +284,5 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
         return uri.getPath().endsWith(".json")
                 ? OpenapiDescriptionFiletype.JSON : OpenapiDescriptionFiletype.YAML;
-    }
-
-    @Override
-    public RestResponse getRestResponse() {
-        return restResponse;
-    }
-
-    @Override
-    public CachingStream getRestResponseBody() {
-        return restResponseBody;
-    }
-
-    @Override
-    public void finishHandling() {
-        // NOP
     }
 }

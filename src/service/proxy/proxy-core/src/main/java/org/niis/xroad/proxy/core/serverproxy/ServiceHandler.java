@@ -37,12 +37,11 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 
 interface ServiceHandler {
 
-    boolean shouldVerifyAccess();
+    boolean shouldVerifyAccess(ProxyMessage requestMessage);
 
     boolean shouldVerifySignature();
 
@@ -50,13 +49,10 @@ interface ServiceHandler {
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling(RequestWrapper request, ProxyMessage requestMessage, OpMonitoringData opMonitoringData)
+    ServiceHandlerResult startHandling(RequestWrapper request, ProxyMessage requestMessage, OpMonitoringData opMonitoringData)
             throws SOAPException, JAXBException, IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException,
             ParserConfigurationException, SAXException;
 
-    void finishHandling();
-
-    String getResponseContentType();
-
-    InputStream getResponseContent();
+    default void destroy() {
+    }
 }

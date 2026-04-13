@@ -28,6 +28,7 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import org.apache.commons.io.IOUtils;
@@ -38,7 +39,8 @@ import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxyHandler;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
+import org.niis.xroad.proxy.core.serverproxy.ServerRestMessageProcessor;
+import org.niis.xroad.proxy.core.serverproxy.ServerSoapMessageProcessor;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 public class ServerProxyConfig {
@@ -62,11 +64,13 @@ public class ServerProxyConfig {
         }
     }
 
-    @ApplicationScoped
-    ServerProxyHandler serverProxyHandler(MessageProcessorFactory messageProcessorFactory, ProxyProperties proxyProperties,
+    @Dependent
+    ServerProxyHandler serverProxyHandler(ServerRestMessageProcessor serverRestMessageProcessor,
+                                          ServerSoapMessageProcessor serverSoapMessageProcessor,
+                                          ProxyProperties proxyProperties,
                                           GlobalConfProvider globalConfProvider, OpMonitoringBuffer opMonitoringBuffer) {
         return new ServerProxyHandler(
-                messageProcessorFactory, proxyProperties.server(),
+                serverRestMessageProcessor, serverSoapMessageProcessor, proxyProperties.server(),
                 new ClientProxyVersionVerifier(proxyProperties.server().minSupportedClientVersion().orElse(null)),
                 globalConfProvider, opMonitoringBuffer);
     }
