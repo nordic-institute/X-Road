@@ -26,14 +26,14 @@
  */
 package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.util.CachingStream;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,9 +47,10 @@ public class Openapi3Anonymiser {
 
     public static final String SERVERS = "servers";
     public static final String URL = "url";
-    private static final ObjectMapper JSONMAPPER = new ObjectMapper(new JsonFactory());
-    private static final ObjectMapper YAMLMAPPER =
-            new ObjectMapper(new YAMLFactory()).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+    private static final ObjectMapper JSONMAPPER = JsonMapper.builder().build();
+    private static final ObjectMapper YAMLMAPPER = YAMLMapper.builder()
+            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+            .build();
 
     public void anonymiseJson(InputStream input, CachingStream output) throws IOException {
         JsonNode tree = JSONMAPPER.readTree(input);
@@ -81,7 +82,7 @@ public class Openapi3Anonymiser {
         final JsonNode servers = tree.get(SERVERS);
         if (servers != null && servers.isArray()) {
             servers.forEach(server -> {
-                final String url = server.has("url") ? server.get("url").textValue() : null;
+                final String url = server.has("url") && server.get("url").isTextual() ? server.get("url").textValue() : null;
                 if (url != null && !urlContainsVariables(url)) {
                     try {
                         URI uri = new URI(url);

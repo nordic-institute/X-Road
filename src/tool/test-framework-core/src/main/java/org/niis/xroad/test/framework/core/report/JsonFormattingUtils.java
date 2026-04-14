@@ -27,19 +27,20 @@
 
 package org.niis.xroad.test.framework.core.report;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.html.HtmlEscapers;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @UtilityClass
 public class JsonFormattingUtils {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .registerModules(new JavaTimeModule(), new ResourceSerializingModule())
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+            .addModule(new ResourceSerializingModule())
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .build();
 
     public static String prettyPrintJson(String body) {
         try {

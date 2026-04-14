@@ -27,14 +27,14 @@
 
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.file.Paths;
 
@@ -49,8 +49,7 @@ class GlobalConfGenerationStatusServiceImplTest {
     private static final String LOG_PATH = System.getProperty("java.io.tmpdir");
 
     static {
-        OBJECT_MAPPER = new ObjectMapper();
-        OBJECT_MAPPER.registerModule(new JavaTimeModule());
+        OBJECT_MAPPER = JsonMapper.builder().build();
     }
 
     private final GlobalConfGenerationStatusServiceImpl globalConfGenerationStatusService =

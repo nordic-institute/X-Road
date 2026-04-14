@@ -22,28 +22,30 @@ dependencies {
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-cache")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation(libs.springBoot.starterWeb)
+    implementation(libs.springBoot.starterSecurity)
+    implementation(libs.springBoot.starterDataJpa)
+    implementation(libs.springBoot.starterCache)
+    implementation(libs.springBoot.starterValidation)
+    implementation(libs.springBoot.starterActuator)
+    implementation(libs.springBoot.micrometerTracingBrave)
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
     implementation(libs.libpam4j)
     implementation(libs.swagger.parserV3)
     implementation(libs.swagger.annotations)
     implementation(libs.mapstruct)
 
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation(libs.jakarta.validationApi)
     implementation(libs.apache.tikaCore)
 
     api("com.github.ben-manes.caffeine:caffeine")
 
     testImplementation(project(":common:common-test"))
-    testImplementation(libs.quartz) //TODO this is somehow required for data.sql to be populated
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.security:spring-security-test")
+//    testImplementation(libs.quartz) //TODO this is somehow required for data.sql to be populated
+    testImplementation(libs.springBoot.micrometerTracingTest)
+    testImplementation(libs.springBoot.starterSecurityTest)
+    testImplementation(libs.springBoot.starterJdbcTest)
+    testImplementation(libs.springBoot.starterWebmvcTest)
     testImplementation(libs.hsqldb)
 
 }
@@ -73,6 +75,7 @@ openApiGenerate {
     configOptions.put("skipDefaultInterface", "true")
     configOptions.put("openApiNullable", "false")
     configOptions.put("containerDefaultToNull", "true")
+    additionalProperties.put("useSpringBoot4", "true")
 }
 
 tasks.named<org.openapitools.generator.gradle.plugin.tasks.GenerateTask>("openApiGenerate") {

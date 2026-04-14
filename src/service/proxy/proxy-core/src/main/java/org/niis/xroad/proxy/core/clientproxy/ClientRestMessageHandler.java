@@ -34,7 +34,6 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +55,7 @@ import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import tools.jackson.core.JsonGenerator;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -213,11 +213,11 @@ public class ClientRestMessageHandler extends HandlerBase {
             }
         } else {
             try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
-                    .getFactory().createGenerator(new PrintWriter(asOutputStream(response)))) {
+                    .createGenerator(new PrintWriter(asOutputStream(response)))) {
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("type", ex.getErrorCode());
-                jsonGenerator.writeStringField("message", ex.getDetails());
-                jsonGenerator.writeStringField("detail", ex.getIdentifier());
+                jsonGenerator.writeStringProperty("type", ex.getErrorCode());
+                jsonGenerator.writeStringProperty("message", ex.getDetails());
+                jsonGenerator.writeStringProperty("detail", ex.getIdentifier());
                 jsonGenerator.writeEndObject();
             } finally {
                 callback.succeeded();

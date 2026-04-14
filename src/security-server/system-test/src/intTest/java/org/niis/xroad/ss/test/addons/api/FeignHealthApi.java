@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.ss.test.addons.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Feign client for Health endpoints.

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import feign.Feign;
 import feign.Logger;
 import feign.codec.Decoder;
@@ -40,6 +39,7 @@ import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 import java.time.Duration;
 import java.util.HashMap;

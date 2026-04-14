@@ -32,9 +32,6 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -51,11 +48,14 @@ import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Date;
 import java.util.List;
@@ -71,7 +71,7 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     private final ObjectMapper objectMapper;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    public SignerProxyFacadeMockHttpImpl(RestTemplateBuilder builder, @Value("${signerProxyMockUri}") String signerProxyMockUri,
+    public SignerProxyFacadeMockHttpImpl(@Value("${signerProxyMockUri}") String signerProxyMockUri,
                                          ObjectMapper objectMapper) {
         log.info("Creating mocked SignerProxyFacade");
 
@@ -90,10 +90,8 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
                 .setUserAgent("X-Road SignerProxyFacade")
                 .build();
 
-        this.restTemplate = builder
-                .requestFactory(() -> new HttpComponentsClientHttpRequestFactory(client))
-                .rootUri(signerProxyMockUri)
-                .build();
+        this.restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(client));
+        this.restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory(signerProxyMockUri));
 
         this.objectMapper = objectMapper;
     }
@@ -128,12 +126,12 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
         }
     }
 
-    private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JsonProcessingException {
+    private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JacksonException {
         final JsonNode json = objectMapper.readTree(tokenListString);
         return StreamSupport.stream(json.spliterator(), true).map(this::parseTokenInfo).toList();
     }
 
-    private TokenInfo parseTokenInfo(String tokenString) throws JsonProcessingException {
+    private TokenInfo parseTokenInfo(String tokenString) throws JacksonException {
         final JsonNode json = objectMapper.readTree(tokenString);
         return parseTokenInfo(json);
     }

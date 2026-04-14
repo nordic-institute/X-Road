@@ -39,8 +39,6 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
@@ -73,6 +71,9 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -232,7 +233,7 @@ public class DiagnosticConnectionService {
 
                     try (CloseableHttpResponse response = proxyHttpClient.execute(request)) {
                         if (response.getStatusLine().getStatusCode() != HTTP_200) {
-                            ObjectMapper mapper = new ObjectMapper();
+                            ObjectMapper mapper = JsonMapper.builder().build();
                             String body = EntityUtils.toString(response.getEntity());
                             JsonNode json = mapper.readTree(body);
 

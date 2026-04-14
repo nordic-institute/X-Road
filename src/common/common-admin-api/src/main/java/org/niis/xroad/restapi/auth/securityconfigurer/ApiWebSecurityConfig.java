@@ -40,7 +40,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
-import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 
@@ -81,7 +80,7 @@ public class ApiWebSecurityConfig {
                         // we require csrf protection only if there is a session alive
                         .requireCsrfProtectionMatcher(ApiWebSecurityConfig::sessionExists)
                         // CsrfFilter always generates a new token in the repo -> prevent with lazy
-                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite)))
+                        .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite))
                 )
                 .anonymous(AbstractHttpConfigurer::disable)
                 .headers(headerPolicyDirectives("default-src 'none'"))

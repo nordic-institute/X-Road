@@ -35,8 +35,6 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Streams;
 import com.google.common.net.MediaType;
@@ -52,6 +50,9 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.proxy.core.util.AddonRequestContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -75,10 +76,11 @@ public class MetadataClientRequestProcessor {
     static final ObjectMapper MAPPER;
 
     static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        MAPPER = mapper;
+        MAPPER = JsonMapper.builder()
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(
+                        JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
+                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+                .build();
     }
 
     private final GlobalConfProvider globalConfProvider;

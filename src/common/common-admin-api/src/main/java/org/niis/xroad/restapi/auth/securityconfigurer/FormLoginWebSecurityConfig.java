@@ -152,6 +152,14 @@ public class FormLoginWebSecurityConfig {
             public void onAuthenticationSuccess(HttpServletRequest request,
                                                 HttpServletResponse response, Authentication authentication)
                     throws IOException {
+                // Resolve the deferred CSRF token to ensure the XSRF-TOKEN cookie is set.
+                // CsrfCookieFilter cannot do this because UsernamePasswordAuthenticationFilter
+                // short-circuits the filter chain after successful form login.
+                CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+                if (csrfToken != null) {
+                    csrfToken.getToken();
+                }
+
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().println("OK");
             }
@@ -165,8 +173,10 @@ public class FormLoginWebSecurityConfig {
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
                 throws ServletException, IOException {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-            // Render the token value to a cookie by causing the deferred token to be loaded
-            csrfToken.getToken();
+            if (csrfToken != null) {
+                // Render the token value to a cookie by causing the deferred token to be loaded
+                csrfToken.getToken();
+            }
 
             filterChain.doFilter(request, response);
         }

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,10 +33,12 @@ import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAddDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -49,13 +50,15 @@ import static org.junit.Assert.assertTrue;
 public class ApiValidationRestTemplateTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    TestRestTemplate restTemplate;
+    WebTestClient webTestClient;
 
-    private ObjectMapper testObjectMapper = new ObjectMapper();
+    private WebTestClient client;
+
+    private ObjectMapper testObjectMapper = JsonMapper.builder().build();
 
     @Before
     public void setup() throws Exception {
-        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        client = TestUtils.addApiKeyAuthorizationHeader(webTestClient);
     }
 
     /**
@@ -69,9 +72,15 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
         LocalGroupAddDto groupWithTooLongCode = new LocalGroupAddDto()
                 .code(RandomStringUtils.secure().nextAlphabetic(256))
                 .description("foo");
-        ResponseEntity<Object> response = restTemplate.postForEntity(
-                "/api/v1/clients/FOO:BAR:BAZ:NONEXISTENT-CLIENT/local-groups",
-                groupWithTooLongCode, Object.class);
+
+        Map responseBody = client.post()
+                .uri("/api/v1/clients/FOO:BAR:BAZ:NONEXISTENT-CLIENT/local-groups")
+                .bodyValue(groupWithTooLongCode)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(Map.class)
+                .returnResult()
+                .getResponseBody();
 
         /**
          * Expecting this response
@@ -88,8 +97,7 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
          * }
          */
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        ErrorInfo errorResponse = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
+        ErrorInfo errorResponse = testObjectMapper.convertValue(responseBody, ErrorInfo.class);
         assertNotNull(errorResponse);
         assertEquals("validation_failure", errorResponse.getError().getCode());
         assertEquals(1, errorResponse.getError().getValidationErrors().size());
@@ -109,28 +117,18 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
     public void validationWorksForAddLocalGroupWithInvalidDescription() throws Exception {
         LocalGroupAddDto groupWithInvalidDescription = new LocalGroupAddDto()
                 .code(RandomStringUtils.secure().nextAlphabetic(10))
-                .description("foo£$");
-        ResponseEntity<Object> response = restTemplate.postForEntity(
-                "/api/v1/clients/FOO:BAR:BAZ:NONEXISTENT-CLIENT/local-groups",
-                groupWithInvalidDescription, Object.class);
+                .description("foo\u00a3$");
 
-        /**
-         * Expecting this response
-         * {
-         *   "status": 400,
-         *   "error": {
-         *     "code": "validation_failure",
-         *     "validation_errors": {
-         *       "localGroupAdd.code": [
-         *         "Size"
-         *       ]
-         *     }
-         *   }
-         * }
-         */
+        Map responseBody = client.post()
+                .uri("/api/v1/clients/FOO:BAR:BAZ:NONEXISTENT-CLIENT/local-groups")
+                .bodyValue(groupWithInvalidDescription)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(Map.class)
+                .returnResult()
+                .getResponseBody();
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        ErrorInfo errorResponse = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
+        ErrorInfo errorResponse = testObjectMapper.convertValue(responseBody, ErrorInfo.class);
         assertNotNull(errorResponse);
         assertEquals("validation_failure", errorResponse.getError().getCode());
         assertEquals(1, errorResponse.getError().getValidationErrors().size());

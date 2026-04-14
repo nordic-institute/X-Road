@@ -49,7 +49,8 @@ class CertificationServiceDiagnosticsTest {
         Assertions.assertTrue(bytesOut.length > 0);
 
         CertificationServiceDiagnostics deserialized = JsonUtils.getObjectReader()
-                .readValue(bytesOut, CertificationServiceDiagnostics.class);
+                .forType(CertificationServiceDiagnostics.class)
+                .readValue(bytesOut);
 
         Assertions.assertNotNull(deserialized);
     }

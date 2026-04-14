@@ -27,9 +27,9 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
+import tools.jackson.databind.ObjectWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -100,7 +100,7 @@ public class OperationalDataRecordsTest {
     public void deserializeErrorResponse() throws IOException {
         String errorJson = "{\"errorMessage\": \"Error Message\"}";
         StoreOpMonitoringDataResponse response = OBJECT_READER
-                .readValue(errorJson, StoreOpMonitoringDataResponse.class);
+                .forType(StoreOpMonitoringDataResponse.class).readValue(errorJson);
         assertEquals("Error", response.getStatus());
         assertNotNull(response.getErrorMessage());
     }
@@ -109,7 +109,7 @@ public class OperationalDataRecordsTest {
     public void deserializeOkResponse() throws IOException {
         String okJson = "{\"status\": \"OK\"}";
         StoreOpMonitoringDataResponse response = OBJECT_READER
-                .readValue(okJson, StoreOpMonitoringDataResponse.class);
+                .forType(StoreOpMonitoringDataResponse.class).readValue(okJson);
         assertEquals("OK", response.getStatus());
         assertNull(response.getErrorMessage());
     }
@@ -120,7 +120,7 @@ public class OperationalDataRecordsTest {
      */
     @Test
     public void deserializeRecords() throws IOException {
-        OperationalDataRecords records = OBJECT_READER.readValue(RECORDS_JSON, OperationalDataRecords.class);
+        OperationalDataRecords records = OBJECT_READER.forType(OperationalDataRecords.class).readValue(RECORDS_JSON);
         OperationalDataRecord record = records.getRecords().getFirst();
 
         assertEquals("CS", record.getServiceXRoadInstance());

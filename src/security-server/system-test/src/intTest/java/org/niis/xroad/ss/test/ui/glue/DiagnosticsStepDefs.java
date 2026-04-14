@@ -29,10 +29,10 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebElementCondition;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.DiagnosticsPageObj;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.FileInputStream;

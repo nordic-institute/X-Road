@@ -34,8 +34,6 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -62,6 +60,10 @@ import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.proxy.core.util.OpenapiDescriptionFiletype;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,10 +90,11 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     static final ObjectMapper MAPPER;
 
     static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        MAPPER = mapper;
+        MAPPER = JsonMapper.builder()
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(
+                        JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
+                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+                .build();
     }
 
     private final ServerConfProvider serverConfProvider;
@@ -249,7 +252,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             } else {
                 anonymiser.anonymiseYaml(responseContent, restResponseBody);
             }
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             throw XrdRuntimeException.systemInternalError("Failed overwriting origin URL for the openapi servers for %s".formatted(
                     serviceDescriptionURL));
         }

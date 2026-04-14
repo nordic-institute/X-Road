@@ -34,7 +34,7 @@ import feign.Feign;
 import feign.Logger;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import feign.jackson.JacksonEncoder;
+import feign.jackson3.Jackson3Encoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
@@ -86,7 +86,7 @@ public class SsAddonTestConfiguration {
         return Feign.builder()
                 .logLevel(Logger.Level.FULL)
                 .client(client)
-                .encoder(new JacksonEncoder())
+                .encoder(new Jackson3Encoder())
                 .decoder(decoder)
                 .logger(feignReportLogger)
                 .requestInterceptor(requestTemplate -> {

@@ -257,9 +257,8 @@ public class QueryRequestHandlerTest {
 
         private OperationalDataRecord createRecord(ServiceId serviceId,
                                                    boolean success) throws IOException {
-            OperationalDataRecord record = OBJECT_READER.readValue(
-                    formatFullOperationalDataAsJson(),
-                    OperationalDataRecord.class);
+            OperationalDataRecord record = OBJECT_READER.forType(OperationalDataRecord.class)
+                    .readValue(formatFullOperationalDataAsJson());
             record.setServiceXRoadInstance(serviceId.getXRoadInstance());
             record.setServiceMemberClass(serviceId.getMemberClass());
             record.setServiceMemberCode(serviceId.getMemberCode());

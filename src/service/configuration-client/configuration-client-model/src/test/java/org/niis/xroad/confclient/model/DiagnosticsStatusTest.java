@@ -28,9 +28,9 @@ package org.niis.xroad.confclient.model;
 import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 
@@ -40,7 +40,7 @@ class DiagnosticsStatusTest {
     void serializeAndDeserializeDiagnosticsStatus() throws IOException {
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatus.OK, null, null, "desc");
 
-        var objectMapper = new ObjectMapper();
+        var objectMapper = JsonMapper.builder().build();
         byte[] bytesOut = objectMapper.writeValueAsBytes(diagnosticsStatus);
 
         Assertions.assertTrue(bytesOut.length > 0);
