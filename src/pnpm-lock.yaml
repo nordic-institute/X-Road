@@ -177,8 +177,8 @@ importers:
         specifier: ~4.15.1
         version: 4.15.1(vue@3.5.32(typescript@5.9.3))
       axios:
-        specifier: ~1.14.0
-        version: 1.14.0
+        specifier: ~1.15.0
+        version: 1.15.0
       dayjs:
         specifier: ^1.11.20
         version: 1.11.20
@@ -1148,8 +1148,8 @@ packages:
     engines: {node: '>= 4.5.0'}
     hasBin: true
 
-  axios@1.14.0:
-    resolution: {integrity: sha512-3Y8yrqLSwjuzpXuZ0oIYZ/XGgLwUIBU3uLvbcpb0pidD9ctpShJd43KSlEEkVQg6DS0G9NKyzOvBfUtDKEyHvQ==}
+  axios@1.15.0:
+    resolution: {integrity: sha512-wWyJDlAatxk30ZJer+GeCWS209sA42X+N5jU2jy6oHTp7ufw8uzUTVFBX9+wTfAlhiJXGS0Bq7X6efruWjuK9Q==}
 
   balanced-match@4.0.4:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
@@ -3776,7 +3776,7 @@ snapshots:
   atob@2.1.2:
     optional: true
 
-  axios@1.14.0:
+  axios@1.15.0:
     dependencies:
       follow-redirects: 1.15.11
       form-data: 4.0.5

@@ -35,7 +35,10 @@ public final class Port {
             TEST_CA = 8888,
             // Quarkus health endpoint port for services
             QUARKUS_HEALTH = 4099,
-            DS_CONTROL_PLANE_MANAGEMENT = 8182;
+            DS_CONTROL_PLANE_MANAGEMENT = 8182,
+            DS_IDENTITY_HUB_IDENTITY = 8182,
+            DS_ISSUANCE_SERVICE_ADMIN = 10013,
+            DS_ISSUANCE_SERVICE_IDENTITY = 8182;
 
     private Port() {
     }
