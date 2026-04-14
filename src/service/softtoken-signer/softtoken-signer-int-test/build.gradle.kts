@@ -7,7 +7,9 @@ dependencies {
   intTestImplementation(project(":common:common-test"))
   intTestImplementation(project(":tool:test-framework-core"))
   intTestImplementation(project(":service:signer:signer-client"))
-  intTestImplementation(project(":service:softtoken-signer:softtoken-signer-application"))
+  intTestImplementation(project(":service:softtoken-signer:softtoken-signer-application")) {
+    exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
+  }
   intTestImplementation(project(":common:common-core"))
   intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:properties-core"))

@@ -8,7 +8,9 @@ plugins {
 dependencies {
   intTestImplementation(project(":common:common-test"))
   intTestImplementation(project(":tool:test-framework-core"))
-  intTestImplementation(project(":service:configuration-proxy:configuration-proxy-core"))
+  intTestImplementation(project(":service:configuration-proxy:configuration-proxy-core")) {
+    exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
+  }
 }
 
 intTestComposeEnv {
