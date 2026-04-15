@@ -81,17 +81,19 @@ public class Openapi3Anonymiser {
 
         final JsonNode servers = tree.get(SERVERS);
         if (servers != null && servers.isArray()) {
-            servers.forEach(server -> {
-                final String url = server.has("url") && server.get("url").isTextual() ? server.get("url").textValue() : null;
-                if (url != null && !urlContainsVariables(url)) {
-                    try {
-                        URI uri = new URI(url);
-                        ((ObjectNode) server).put(URL, uri.getPath());
-                    } catch (URISyntaxException e) {
-                        throw XrdRuntimeException.systemInternalError(String.format("Can't parse url string: %s", url));
-                    }
-                }
-            });
+            servers.forEach(this::anonymiseServer);
+        }
+    }
+
+    private void anonymiseServer(JsonNode server) {
+        var url = server.has("url") && server.get("url").isString() ? server.get("url").stringValue() : null;
+        if (url != null && !urlContainsVariables(url)) {
+            try {
+                var uri = new URI(url);
+                ((ObjectNode) server).put(URL, uri.getPath());
+            } catch (URISyntaxException e) {
+                throw XrdRuntimeException.systemInternalError(String.format("Can't parse url string: %s", url));
+            }
         }
     }
 
