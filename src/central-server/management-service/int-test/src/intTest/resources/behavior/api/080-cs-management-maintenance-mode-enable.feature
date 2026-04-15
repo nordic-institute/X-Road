@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Security server maintenance mode enable
+Feature: 080 - Management requests API: Security server maintenance mode enable
 
   Scenario: Enable maintenance mode request is successful
     Given Admin api is mocked with a response with status-code 202, type MAINTENANCE_MODE_ENABLE_REQUEST and id 1122
