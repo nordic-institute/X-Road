@@ -44,6 +44,17 @@ allprojects {
   dependencyLocking {
     lockAllConfigurations()
   }
+
+  configurations.all {
+    resolutionStrategy {
+      eachDependency {
+        if (requested.group == "jakarta.xml.bind" && requested.name == "jakarta.xml.bind-api") {
+          useVersion("4.0.2")
+          because("newer version will fail decoding base64 strings with white space. https://github.com/jakartaee/jaxb-api/issues/325")
+        }
+      }
+    }
+  }
 }
 
 reporting {
