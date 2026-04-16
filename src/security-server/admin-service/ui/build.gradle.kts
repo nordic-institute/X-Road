@@ -7,10 +7,6 @@ configurations {
   create("dist")
 }
 
-dependencyLocking {
-  unlockAllConfigurations()
-}
-
 tasks.register("assembleArtifacts") {
   dependsOn(":shared-ui:build-pnpm-workspace")
 }
