@@ -65,6 +65,7 @@ tasks.register<RunPnpmTaskType>("build-pnpm-workspace") {
 tasks.register<RunPnpmTaskType>("checkFrontAudit") {
   description = "Runs npm audit on frontend pnpm workspace."
   group = "verification"
+  enabled = false // TODO: Re-enable once pnpm supports the new npm bulk advisory endpoint
 
   dependsOn(tasks.named("assembleFrontend"))
   args.set("run npx-check-audit")
