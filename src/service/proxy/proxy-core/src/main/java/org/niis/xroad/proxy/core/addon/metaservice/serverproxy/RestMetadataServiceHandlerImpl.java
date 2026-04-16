@@ -179,14 +179,14 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     private void handleListMethods(ProxyMessage requestProxyMessage, RestResponse restResponse,
-                                   CachingStream restResponseBody) throws IOException {
+                                   CachingStream restResponseBody) {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         MAPPER.writeValue(restResponseBody,
                 serverConfProvider.getRestServices(requestProxyMessage.getRest().getServiceId().getClientId()));
     }
 
     private void handleAllowedMethods(ProxyMessage requestProxyMessage, RestResponse restResponse,
-                                      CachingStream restResponseBody) throws IOException {
+                                      CachingStream restResponseBody) {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         MAPPER.writeValue(restResponseBody,
                 serverConfProvider.getAllowedRestServices(requestProxyMessage.getRest().getServiceId().getClientId(),

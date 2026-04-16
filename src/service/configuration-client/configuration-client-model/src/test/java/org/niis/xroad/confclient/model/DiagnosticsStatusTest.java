@@ -32,12 +32,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
-
 class DiagnosticsStatusTest {
 
     @Test
-    void serializeAndDeserializeDiagnosticsStatus() throws IOException {
+    void serializeAndDeserializeDiagnosticsStatus() {
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticStatus.OK, null, null, "desc");
 
         var objectMapper = JsonMapper.builder().build();

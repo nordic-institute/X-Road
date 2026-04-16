@@ -57,8 +57,7 @@ public final class IdentifierXmlNodeParser {
         return element.getValue();
     }
 
-    static void verifyObjectType(Node node, XRoadObjectType expected)
-            throws Exception {
+    static void verifyObjectType(Node node, XRoadObjectType expected) {
         XRoadObjectType type = getObjectType(node);
         if (!expected.equals(type)) {
             throw XrdRuntimeException.systemException(INVALID_XML,

@@ -54,7 +54,6 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -130,7 +129,7 @@ public class MetadataClientRequestProcessor {
         marshal(object, response.getOutputStream());
     }
 
-    private void writeResponseJson(ResponseWrapper response, Object object) throws IOException {
+    private void writeResponseJson(ResponseWrapper response, Object object) {
         response.setContentType(MimeUtils.contentTypeWithCharset(MimeTypes.JSON,
                 StandardCharsets.UTF_8.name().toLowerCase()));
         MAPPER.writeValue(response.getOutputStream(), object);

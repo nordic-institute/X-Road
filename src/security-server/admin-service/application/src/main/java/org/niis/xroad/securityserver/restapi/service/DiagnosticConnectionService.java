@@ -237,8 +237,8 @@ public class DiagnosticConnectionService {
                             String body = EntityUtils.toString(response.getEntity());
                             JsonNode json = mapper.readTree(body);
 
-                            String errorCode = json.has("type") ? json.get("type").asText() : "Error";
-                            String details = json.has("message") ? json.get("message").asText() : body;
+                            String errorCode = json.has("type") ? json.get("type").asString() : "Error";
+                            String details = json.has("message") ? json.get("message").asString() : body;
 
                             return ConnectionStatus.error(errorCode, List.of(details));
                         }

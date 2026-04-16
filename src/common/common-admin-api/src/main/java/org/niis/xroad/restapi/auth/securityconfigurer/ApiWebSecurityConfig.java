@@ -26,7 +26,6 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.Http401AuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,12 +55,10 @@ public class ApiWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain apiWebSecurityFilterChain(HttpSecurity http,
                                                          ApiKeyAuthenticationManager apiKeyAuthenticationManager,
                                                          Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,
-                                                         @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
-            throws Exception {
+                                                         @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite) {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
         filter.setAuthenticationManager(apiKeyAuthenticationManager);

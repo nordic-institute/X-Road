@@ -29,7 +29,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureNodeInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
-import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -49,9 +48,8 @@ public class IdResolver extends ResourceResolverSpi {
         return context.attr.getValue().startsWith("#");
     }
 
-
     @Override
-    public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+    public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
         Element elem = getElementById(document, context.attr.getValue().substring(1));
 
         return elem == null ? null : new XMLSignatureNodeInput(elem);

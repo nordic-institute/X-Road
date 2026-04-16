@@ -138,15 +138,15 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
 
     private TokenInfo parseTokenInfo(JsonNode json) {
         return new TokenInfo(TokenInfoProto.newBuilder()
-                .setType(json.get("type").asText())
-                .setFriendlyName(json.get("friendlyName").asText())
-                .setId(json.get("id").asText())
+                .setType(json.get("type").asString())
+                .setFriendlyName(json.get("friendlyName").asString())
+                .setId(json.get("id").asString())
                 .setReadOnly(json.get("readOnly").asBoolean())
                 .setAvailable(json.get("available").asBoolean())
                 .setActive(json.get("active").asBoolean())
-                .setSerialNumber(json.get("serialNumber").asText())
-                .setLabel(json.get("label").asText())
-                .setStatus(TokenStatusInfo.valueOf(json.get("status").asText()))
+                .setSerialNumber(json.get("serialNumber").asString())
+                .setLabel(json.get("label").asString())
+                .setStatus(TokenStatusInfo.valueOf(json.get("status").asString()))
                 .build());
     }
 

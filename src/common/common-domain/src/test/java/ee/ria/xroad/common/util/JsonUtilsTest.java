@@ -42,7 +42,7 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * Unit tests for {@link ee.ria.xroad.common.util.JsonUtils}
  */
-public class JsonUtilsTest {
+class JsonUtilsTest {
 
     private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter(true);
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();

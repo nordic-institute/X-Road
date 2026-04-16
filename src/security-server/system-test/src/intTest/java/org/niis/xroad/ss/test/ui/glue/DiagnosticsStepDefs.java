@@ -216,7 +216,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             assertThat(json.size()).isEqualTo(EXPECTED_REPORT_ITEMS.length);
             var actualItems = new HashSet<String>();
             for (var item : json) {
-                String name = item.get("name").asText();
+                String name = item.get("name").asString();
                 assertThat(name).withFailMessage("Item should have name", name).isNotEmpty();
                 assertThat(item.get("value")).withFailMessage("Item \"%s\" should have value", name).isNotNull();
                 actualItems.add(name);

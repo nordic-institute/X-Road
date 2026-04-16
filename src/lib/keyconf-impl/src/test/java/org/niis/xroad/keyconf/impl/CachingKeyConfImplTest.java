@@ -50,7 +50,6 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 import org.niis.xroad.test.serverconf.EmptyServerConf;
 
-import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -96,7 +95,7 @@ class CachingKeyConfImplTest {
     private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() {
         globalConfProvider = new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {

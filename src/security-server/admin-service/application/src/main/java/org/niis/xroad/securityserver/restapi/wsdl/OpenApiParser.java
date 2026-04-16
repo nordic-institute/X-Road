@@ -125,7 +125,7 @@ public class OpenApiParser {
     }
 
     private void verifyOpenApiVersion(JsonNode node) throws UnsupportedOpenApiVersionException {
-        final String openapiVersion = node.get("openapi").asText();
+        final String openapiVersion = node.get("openapi").asString();
         if (openapiVersion != null && !versionSupported(openapiVersion)) {
             String errorMsg = String.format("OpenAPI version %s not supported", openapiVersion);
             throw new UnsupportedOpenApiVersionException(errorMsg);

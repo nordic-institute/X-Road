@@ -181,7 +181,7 @@ public class ClientRestMessageHandler extends HandlerBase {
     public void sendErrorResponse(Request request,
                                   Response response,
                                   Callback callback,
-                                  XrdRuntimeException ex) throws IOException {
+                                  XrdRuntimeException ex) {
         if (ex.getErrorCode().startsWith("server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {

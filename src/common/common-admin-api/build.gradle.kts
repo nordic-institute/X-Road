@@ -41,7 +41,6 @@ dependencies {
     api("com.github.ben-manes.caffeine:caffeine")
 
     testImplementation(project(":common:common-test"))
-//    testImplementation(libs.quartz) //TODO this is somehow required for data.sql to be populated
     testImplementation(libs.springBoot.micrometerTracingTest)
     testImplementation(libs.springBoot.starterSecurityTest)
     testImplementation(libs.springBoot.starterJdbcTest)

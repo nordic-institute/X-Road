@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import tools.jackson.databind.ObjectWriter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,10 +82,9 @@ public class OperationalDataRecordsTest {
 
     /**
      * Test empty records payload.
-     * @throws Exception if an error occurs.
      */
     @Test
-    public void emptyRecordsPayload() throws Exception {
+    public void emptyRecordsPayload() {
         List<OperationalDataRecord> recordList = new ArrayList<>();
         OperationalDataRecords records = new OperationalDataRecords(recordList);
 
@@ -97,7 +95,7 @@ public class OperationalDataRecordsTest {
     }
 
     @Test
-    public void deserializeErrorResponse() throws IOException {
+    public void deserializeErrorResponse() {
         String errorJson = "{\"errorMessage\": \"Error Message\"}";
         StoreOpMonitoringDataResponse response = OBJECT_READER
                 .forType(StoreOpMonitoringDataResponse.class).readValue(errorJson);
@@ -106,7 +104,7 @@ public class OperationalDataRecordsTest {
     }
 
     @Test
-    public void deserializeOkResponse() throws IOException {
+    public void deserializeOkResponse() {
         String okJson = "{\"status\": \"OK\"}";
         StoreOpMonitoringDataResponse response = OBJECT_READER
                 .forType(StoreOpMonitoringDataResponse.class).readValue(okJson);
@@ -116,10 +114,9 @@ public class OperationalDataRecordsTest {
 
     /**
      * Test that Jackson deserializes the record correctly
-     * @throws IOException if deserializing fails
      */
     @Test
-    public void deserializeRecords() throws IOException {
+    public void deserializeRecords() {
         OperationalDataRecords records = OBJECT_READER.forType(OperationalDataRecords.class).readValue(RECORDS_JSON);
         OperationalDataRecord record = records.getRecords().getFirst();
 
