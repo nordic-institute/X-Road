@@ -27,14 +27,13 @@
 
 package org.niis.xroad.e2e.glue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import io.restassured.http.ContentType;
 import io.restassured.http.Method;
 import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
 import org.niis.xroad.e2e.EnvSetup;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Base64;
@@ -395,7 +394,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     @Step("Catalog can be retrieved using participant context {string} on {string} from {string} on {string}")
     public void catalogCanBeRetrievedUsingParticipantContextFrom(String consumerParticipantContext, String consumerEnv,
-                                                                 String providerDid, String providerEnv) throws JsonProcessingException {
+                                                                 String providerDid, String providerEnv) {
         String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
         String request = """
                 {
@@ -579,7 +578,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     }
 
     @SuppressWarnings("unchecked")
-    private void extractNecessaryPropertiesFromCatalog(Map<String, Object> catalogBody) throws JsonProcessingException {
+    private void extractNecessaryPropertiesFromCatalog(Map<String, Object> catalogBody) {
         Object datasetObj = catalogBody.get("dataset");
         if (datasetObj == null) {
             datasetObj = catalogBody.get("dcat:dataset");
@@ -608,7 +607,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
         if (permission == null) {
             permission = dataset.get("odrl:permission");
         }
-        permissionJson = new ObjectMapper().writeValueAsString(permission);
+
+        permissionJson = JsonMapper.builder().build().writeValueAsString(permission);
     }
 
     // --- Auth tokens (without "Bearer " prefix — REST Assured .auth().oauth2() adds it) ---
