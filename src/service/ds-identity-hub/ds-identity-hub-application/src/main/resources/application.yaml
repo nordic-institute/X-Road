@@ -29,13 +29,30 @@ quarkus:
 
 web:
   http:
-    port: 7181
+    port: 8181
     path: /api
-    statuslist:
-      port: "7998" # default 9999 conflicts with debug port
+    identity:
+      port: 8182
+      path: /api/identity
+    credentials:
+      port: 10001
+      path: /api/credentials
+    did:
+      port: 10100
+      path: /
+    sts:
+      port: 9292
+      path: /api/sts
 
 edc:
   hostname: ${HOSTNAME:localhost}
+  vault:
+    hashicorp:
+      url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+      token: "${XROAD_SECRET_STORE_TOKEN}"
+      api:
+        secret:
+          path: /v1/xrd-secret/ds
   datasource:
     default:
       url: ${xroad.db.ds-identity-hub.hibernate.connection.url}

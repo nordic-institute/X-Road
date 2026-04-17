@@ -7,7 +7,7 @@
 - name: Configure package mirror for APT (Debian-based)
   script:
     cmd: >-
-      {{ playbook_dir }}/../../deployment/.scripts/configure-mirror-apt.sh
+      {{ role_path }}/../../../../deployment/.scripts/configure-mirror-apt.sh
       '{{ package_mirror_url }}'
       '{{ package_mirror_user }}'
   environment:
@@ -18,7 +18,7 @@
 - name: Configure package mirror for YUM (RedHat-based)
   script:
     cmd: >-
-      {{ playbook_dir }}/../../deployment/.scripts/configure-mirror-yum.sh
+      {{ role_path }}/../../../../deployment/.scripts/configure-mirror-yum.sh
       '{{ package_mirror_url | regex_replace('/mirror-.*$', '') }}'
       '{{ package_mirror_user }}'
   environment:

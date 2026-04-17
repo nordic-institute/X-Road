@@ -41,9 +41,6 @@ dependencies {
 }
 
 allprojects {
-  dependencyLocking {
-    lockAllConfigurations()
-  }
 
   configurations.all {
     resolutionStrategy {
