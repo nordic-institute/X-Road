@@ -94,7 +94,7 @@ class VerifyGlobalConfTest {
         }
 
         @Override
-        public URLConnection getDownloadURLConnection(URL url) throws IOException {
+        public URLConnection getDownloadURLConnection(URL url) {
             throw new UnsupportedOperationException();
         }
     }

@@ -32,7 +32,7 @@ import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.boot.web.server.servlet.context.ServletComponentScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
 

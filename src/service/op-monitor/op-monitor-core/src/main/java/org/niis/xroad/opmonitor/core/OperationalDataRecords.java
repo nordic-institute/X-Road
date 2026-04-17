@@ -28,11 +28,11 @@ package org.niis.xroad.opmonitor.core;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectWriter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +76,7 @@ public class OperationalDataRecords {
         return records.isEmpty() ? null : records.getLast().getMonitoringDataTs();
     }
 
-    String getPayload(ObjectWriter objectWriter) throws JsonProcessingException {
+    String getPayload(ObjectWriter objectWriter) throws JacksonException {
         return objectWriter.writeValueAsString(this);
     }
 }

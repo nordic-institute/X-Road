@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Auth cert deletion
+Feature: 040 - Management requests API: Auth cert deletion
 
   Scenario: Auth cert deletion request is successful
     Given Admin api is mocked with a response with status-code 202, type AUTH_CERT_DELETION_REQUEST and id 1122

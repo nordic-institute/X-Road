@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,21 +68,20 @@ public class ConfigurationPartMetadata {
     private static final ObjectMapper MAPPER;
 
     static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(Include.NON_NULL);
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
-        MAPPER = mapper;
+        MAPPER = JsonMapper.builder()
+                .disable(DateTimeFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(
+                        JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
+                .build();
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * @return the metadata JSON as byte array
-     * @throws JsonProcessingException if an error occurs while serializing the data
+     * @throws JacksonException if an error occurs while serializing the data
      */
-    public byte[] toJson() throws JsonProcessingException {
+    public byte[] toJson() throws JacksonException {
         return MAPPER.writeValueAsBytes(this);
     }
 

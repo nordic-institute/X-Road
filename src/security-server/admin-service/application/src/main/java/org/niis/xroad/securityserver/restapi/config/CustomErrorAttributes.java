@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.boot.webmvc.error.DefaultErrorAttributes;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 

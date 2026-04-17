@@ -28,6 +28,7 @@ package ee.ria.xroad.common.identifier;
 import ee.ria.xroad.common.util.NoCoverage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -48,6 +49,7 @@ public interface XRoadId extends Serializable {
 
     XRoadObjectType getObjectType();
 
+    @JsonProperty("xroad_instance") // for backwards compatibility, Jackson 3 serializes as x_road_instance
     String getXRoadInstance();
 
     @JsonIgnore

@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Client disabling
+Feature: 060 - Management requests API: Client disabling
 
   Scenario: Client disabling request is successful
     Given Admin api is mocked with a response with status-code 202, type CLIENT_DISABLE_REQUEST and id 1122

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.client.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Client;
 import feign.Contract;
 import feign.Feign;
@@ -55,6 +54,7 @@ import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;

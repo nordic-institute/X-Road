@@ -24,9 +24,9 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * Jackson related configurations

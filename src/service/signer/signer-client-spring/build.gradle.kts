@@ -8,5 +8,5 @@ dependencies {
   api(project(":lib:rpc-spring"))
   api(project(":service:signer:signer-client"))
 
-  implementation("org.springframework.boot:spring-boot-starter")
+  implementation(libs.springBoot.starter)
 }

@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 
@@ -38,19 +38,19 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  * Security configuration follows https://spring.io/guides/gs/securing-web/
  * adapted to multiple security configs:
  * https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#multiple-httpsecurity
- *
+ * <p>
  * Users are either PAM users (linux username and login, see PamAuthenticationProvider)
  * or dummy in-memory users (user/password etc), depending on which AuthenticationProvider is
  * used.
- *
+ * <p>
  * Uses form login and session cookie based auth for rest apis with Vue frontend
- *
+ * <p>
  * Uses http basic authentication for manage api-keys api.
- *
+ * <p>
  * Uses authentication tokens for rest apis, when session cookies are not available.
- *
+ * <p>
  * Static resources such as images and javascripts are open without authentication.
- *
+ * <p>
  * Security is configured with from 4 different WebSecurityConfigurerAdapters.
  * Authentication configurations are used in the following order:
  * - ManageApiKeysWebSecurityConfigurerAdapter, @Order(1), matches /api/v1/api-keys/**
@@ -62,8 +62,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  */
 @Configuration
 @EnableWebSecurity
-//TODO #SpringBoot3 @EnableMethodSecurity(proxyTargetClass = true) https://github.com/spring-projects/spring-security/issues/13625
-@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
+@EnableMethodSecurity(proxyTargetClass = true)
 @Slf4j
 public class MultiAuthWebSecurityConfig {
     public static final int API_KEY_MANAGEMENT_SECURITY_ORDER = 1;

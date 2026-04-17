@@ -34,18 +34,15 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.eclipse.jetty.http.HttpFields;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -57,6 +54,10 @@ import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -67,9 +68,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES;
@@ -82,7 +84,7 @@ import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
  * Unit test for {@link RestMetadataServiceHandlerImpl}
  */
 @Slf4j
-public class RestMetadataServiceHandlerTest {
+class RestMetadataServiceHandlerTest {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
     private static final String SUBSYSTEM_FOR_YAML_FILE = "YAMLSUBSYSTEM";
@@ -101,10 +103,12 @@ public class RestMetadataServiceHandlerTest {
     static final ObjectMapper MAPPER;
 
     static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        MAPPER = mapper;
+        MAPPER = JsonMapper.builder()
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(
+                        JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
+                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .build();
     }
 
     private RequestWrapper mockRequest;
@@ -118,8 +122,8 @@ public class RestMetadataServiceHandlerTest {
     /**
      * Init data for tests
      */
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         serverConfProvider = new TestSuiteServerConf(new ProxyTestSuiteHelper()) {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
@@ -166,36 +170,36 @@ public class RestMetadataServiceHandlerTest {
         mockServer.start();
     }
 
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         mockServer.stop();
     }
 
     @Test
-    public void shouldBeAbleToHandleListMethods() {
+    void shouldBeAbleToHandleListMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 proxyProperties, commonProperties);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
-        assertTrue("Wasn't able to handle list methods", handlerToTest.canHandle(serviceId, mockProxyMessage));
+        assertTrue(handlerToTest.canHandle(serviceId, mockProxyMessage), "Wasn't able to handle list methods");
     }
 
     @Test
-    public void shouldBeAbleToHandleAllowedMethods() {
+    void shouldBeAbleToHandleAllowedMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 proxyProperties, commonProperties);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
-        assertTrue("Wasn't able to handle allowed methods",
-                handlerToTest.canHandle(serviceId, mockProxyMessage));
+        assertTrue(handlerToTest.canHandle(serviceId, mockProxyMessage),
+                "Wasn't able to handle allowed methods");
     }
 
     @Test
-    public void shouldHandleListMethods() throws Exception {
+    void shouldHandleListMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 proxyProperties, commonProperties);
@@ -216,7 +220,6 @@ public class RestMetadataServiceHandlerTest {
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
         assertEquals("OK", restResponse.getReason());
         CachingStream restResponseBody = result.restResponseBody();
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
         assertEquals(3, restServiceDetailsList.getService().size());
@@ -224,7 +227,7 @@ public class RestMetadataServiceHandlerTest {
     }
 
     @Test
-    public void shouldHandleAllowedMethods() throws Exception {
+    void shouldHandleAllowedMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 proxyProperties, commonProperties);
@@ -245,7 +248,6 @@ public class RestMetadataServiceHandlerTest {
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
         assertEquals("OK", restResponse.getReason());
         CachingStream restResponseBody = result.restResponseBody();
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
         assertEquals(3, restServiceDetailsList.getService().size());
@@ -253,7 +255,7 @@ public class RestMetadataServiceHandlerTest {
     }
 
     @Test
-    public void shouldHandleGetOpenApi() throws Exception {
+    void shouldHandleGetOpenApi() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 proxyProperties, commonProperties);
@@ -279,7 +281,7 @@ public class RestMetadataServiceHandlerTest {
     }
 
     @Test
-    public void shouldOverrideServerUrlsForYaml() throws Exception {
+    void shouldOverrideServerUrlsForYaml() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 proxyProperties, commonProperties);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
@@ -317,7 +319,7 @@ public class RestMetadataServiceHandlerTest {
     }
 
     @Test
-    public void shouldOverrideServerUrlsForJson() throws Exception {
+    void shouldOverrideServerUrlsForJson() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
                 proxyProperties, commonProperties);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
@@ -347,25 +349,27 @@ public class RestMetadataServiceHandlerTest {
         assertTrue(json.contains("https://{username}.petstore.swagger.io:{port}/{basePath}"));
     }
 
-    @Test(expected = XrdRuntimeException.class)
-    public void shouldDetectUnsupportedOpenapiVersion() throws Exception {
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
-        ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
+    @Test
+    public void shouldDetectUnsupportedOpenapiVersion() {
+        assertThrows(XrdRuntimeException.class, () -> {
+            RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
+                    proxyProperties, commonProperties);
+            ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
-        // Test for petstore.yaml parsing
-        ServiceId.Conf serviceId = ServiceId.Conf.create(CLIENT_WITH_UNSUPPORTED_OPENAPI, GET_OPENAPI);
+            // Test for petstore.yaml parsing
+            ServiceId.Conf serviceId = ServiceId.Conf.create(CLIENT_WITH_UNSUPPORTED_OPENAPI, GET_OPENAPI);
 
-        RestRequest mockRestRequest = mock(RestRequest.class);
-        when(mockRestRequest.getQuery()).thenReturn("serviceCode=yaml");
-        when(mockRestRequest.getServiceId()).thenReturn(serviceId);
-        when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
-        when(mockRestRequest.getClientId()).thenReturn(CLIENT_WITH_UNSUPPORTED_OPENAPI);
-        when(mockRestRequest.getHash()).thenReturn(REQUEST_HASH);
-        when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
+            RestRequest mockRestRequest = mock(RestRequest.class);
+            when(mockRestRequest.getQuery()).thenReturn("serviceCode=yaml");
+            when(mockRestRequest.getServiceId()).thenReturn(serviceId);
+            when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
+            when(mockRestRequest.getClientId()).thenReturn(CLIENT_WITH_UNSUPPORTED_OPENAPI);
+            when(mockRestRequest.getHash()).thenReturn(REQUEST_HASH);
+            when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
 
-        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
-                mock(OpMonitoringData.class));
+            handlerToTest.startHandling(mockRequest, mockProxyMessage, mockEncoder,
+                    mock(OpMonitoringData.class));
+        });
     }
 
 }

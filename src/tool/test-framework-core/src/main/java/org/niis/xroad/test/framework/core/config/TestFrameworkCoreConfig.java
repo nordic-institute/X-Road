@@ -26,9 +26,6 @@
  */
 package org.niis.xroad.test.framework.core.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import feign.Client;
 import feign.Contract;
 import feign.Logger;
@@ -36,8 +33,8 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
 import feign.hc5.ApacheHttp5Client;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
+import feign.jackson3.Jackson3Decoder;
+import feign.jackson3.Jackson3Encoder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -56,6 +53,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -78,11 +77,12 @@ public class TestFrameworkCoreConfig {
     }
 
     @Bean
-    ObjectMapper objectMapper() {
-        return new ObjectMapper()
-                .registerModules(new JavaTimeModule(), new ResourceSerializingModule())
+    JsonMapper objectMapper() {
+        return JsonMapper.builder()
+                .addModule(new ResourceSerializingModule())
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-                .enable(SerializationFeature.INDENT_OUTPUT);
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
     }
 
     @Bean
@@ -121,14 +121,14 @@ public class TestFrameworkCoreConfig {
     }
 
     @Bean
-    Encoder feignEncoder(ObjectMapper objectMapper) {
-        var jacksonEncoder = new JacksonEncoder(objectMapper);
+    Encoder feignEncoder(JsonMapper objectMapper) {
+        var jacksonEncoder = new Jackson3Encoder(objectMapper);
         return new SpringFormEncoder(jacksonEncoder);
     }
 
     @Bean
-    Decoder feignDecoder(ObjectMapper objectMapper) {
-        var jacksonDecoder = new JacksonDecoder(objectMapper);
+    Decoder feignDecoder(JsonMapper objectMapper) {
+        var jacksonDecoder = new Jackson3Decoder(objectMapper);
         var responseEntityDecoder = new ResponseEntityDecoder(jacksonDecoder);
         return new ResourceAwareDecoder(responseEntityDecoder);
     }

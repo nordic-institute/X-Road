@@ -9,7 +9,7 @@ dependencies {
   api(project(":central-server:admin-service:api-client"))
   implementation(project(":lib:globalconf-spring"))
   implementation(project(":common:common-domain"))
-  implementation("org.springframework.boot:spring-boot-starter-web") {
+  implementation(libs.springBoot.starterWeb) {
     exclude(module = "spring-webmvc")
     exclude(module = "spring-boot-starter-json")
   }
@@ -17,5 +17,5 @@ dependencies {
     exclude(module = "spring-boot-starter-tomcat")
   }
 
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
 }

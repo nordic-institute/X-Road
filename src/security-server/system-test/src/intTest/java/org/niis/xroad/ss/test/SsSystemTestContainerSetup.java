@@ -27,7 +27,6 @@
 
 package org.niis.xroad.ss.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ss.test.ui.container.Port;
@@ -36,6 +35,7 @@ import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.utility.MountableFile;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;

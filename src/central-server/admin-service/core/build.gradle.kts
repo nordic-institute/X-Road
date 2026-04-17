@@ -11,10 +11,10 @@ dependencies {
   api(project(":central-server:admin-service:core-api"))
   api(project(":common:common-api-throttling"))
 
-  api("org.springframework.boot:spring-boot-starter-web")
-  api("org.springframework.boot:spring-boot-starter-security")
-  api("org.springframework.boot:spring-boot-starter-cache")
-  api("org.springframework.boot:spring-boot-starter-validation")
+  api(libs.springBoot.starterWeb)
+  api(libs.springBoot.starterSecurity)
+  api(libs.springBoot.starterCache)
+  api(libs.springBoot.starterValidation)
   api("org.springframework.data:spring-data-commons")
   api("jakarta.transaction:jakarta.transaction-api")
   api("jakarta.persistence:jakarta.persistence-api")
@@ -24,7 +24,7 @@ dependencies {
   implementation(project(":lib:rpc-spring"))
 
   testImplementation(project(":common:common-test"))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.liquibase:liquibase-core")
   testImplementation(libs.xmlunit.core)
