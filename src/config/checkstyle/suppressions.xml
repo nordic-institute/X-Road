@@ -11,5 +11,6 @@
     <suppress checks="FileLength" files="SystemProperties.java"/>
     <suppress checks="SneakyThrowsCheck" files="[\\/]src[\\/]test[\\/]java[\\/]"/>
     <suppress checks="SneakyThrowsCheck" files="[\\/]src[\\/]intTest[\\/]java[\\/]"/>
+    <suppress checks="MethodName" files="[\\/]proxy-dsp-core[\\/]src[\\/]test[\\/]java[\\/]"/>
 
 </suppressions>

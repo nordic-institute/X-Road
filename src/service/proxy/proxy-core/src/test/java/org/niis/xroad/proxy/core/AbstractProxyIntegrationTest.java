@@ -75,6 +75,7 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
@@ -173,7 +174,8 @@ public abstract class AbstractProxyIntegrationTest {
         var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
         var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
         var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
-        var serviceAddressResolverClient = new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties);
+        var serviceAddressResolverClient = new DefaultServiceAddressResolver(
+                TEST_GLOBAL_CONF, proxyProperties, new ProviderSecurityServerResolver(TEST_GLOBAL_CONF));
         var clientVerificationServiceClient = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 

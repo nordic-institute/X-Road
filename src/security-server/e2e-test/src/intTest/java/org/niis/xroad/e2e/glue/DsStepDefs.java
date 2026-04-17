@@ -324,7 +324,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
     }
 
     @Step("asset access is acquired via xroad-asset-access-api for context {string} on {string} from {string} for asset {string}")
-    public void assetAccessIsAcquiredViaXRoadAssetAccessApi(String participantContext, String consumerEnv, String providerEnv, String assetId) {
+    public void assetAccessIsAcquiredViaXRoadAssetAccessApi(
+            String participantContext, String consumerEnv, String providerEnv, String assetId) {
         String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
         String request = """
                 {
