@@ -18,7 +18,7 @@ dependencies {
   }
   implementation("org.springframework:spring-core") {
     version {
-      strictly("[6.2,7.0)")
+      strictly("6.2.17")
     }
     because("license-gradle-plugin 0.16.1 uses mycila 3.0 which calls PropertyPlaceholderHelper(String,String,String,boolean) — a constructor removed in Spring Framework 7")
   }
