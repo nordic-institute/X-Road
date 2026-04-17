@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - 'dependabot/gradle/**'
-  workflow_dispatch:
 
 permissions:
   contents: write
