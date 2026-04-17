@@ -8,7 +8,7 @@ services:
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -c \
           "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
-           VALUES ('edc.iam.trusted-issuer.issuer.id', 'did:web:ds-issuance-service%3A10100:issuer', 'ds-control-plane', now(), now())
+           VALUES ('edc.iam.trusted-issuer.issuer.id', 'did:web:ds-issuer-service%3A10100:issuer', 'ds-control-plane', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - xrd-ss-network

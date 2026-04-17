@@ -37,7 +37,7 @@ intTestComposeEnv {
     "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
     "DS_DATA_PLANE_IMG" to "ds-data-plane",
     "DS_IDENTITY_HUB_IMG" to "ds-identity-hub",
-    "DS_ISSUANCE_SERVICE_IMG" to "ds-issuance-service"
+    "DS_ISSUER_SERVICE_IMG" to "ds-issuer-service"
   )
 }
 

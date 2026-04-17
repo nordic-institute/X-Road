@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.niis.xroad.e2e.EnvSetup.DS_CONTROL_PLANE;
 import static org.niis.xroad.e2e.EnvSetup.DS_IDENTITY_HUB;
-import static org.niis.xroad.e2e.EnvSetup.DS_ISSUANCE_SERVICE;
+import static org.niis.xroad.e2e.EnvSetup.DS_ISSUER_SERVICE;
 
 public class DsStepDefs extends BaseE2EStepDefs {
 
@@ -64,10 +64,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private String contractAgreementId;
     private String transferProcessId;
 
-    // --- Issuance Service provisioning ---
+    // --- Issuer Service provisioning ---
 
-    @Step("Issuance Service participant context {string} with DID {string} and issuance service endpoint {string} is created on {string}")
-    public void createIssuanceServiceParticipantContext(
+    @Step("Issuer Service participant context {string} with DID {string} and issuer service endpoint {string} is created on {string}")
+    public void createIssuerServiceParticipantContext(
             String participantContext, String did, String credentialServiceEndpoint, String env) {
         String request = """
                 {
@@ -92,9 +92,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(credentialServiceEndpoint, did, participantContext, did, did);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_IDENTITY);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_IDENTITY);
         String url = IS_IDENTITY_BASE_URL.formatted(mapping.host(), mapping.port());
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PROVISIONER, request, HttpStatus.SC_OK);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PROVISIONER, request, HttpStatus.SC_OK);
     }
 
     @Step("Holder for DID {string} is created for {string} on {string}")
@@ -110,10 +110,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(did, did);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_ADMIN);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/holders"
                 .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
     @Step("{string} attestation definition is created for {string} on {string}")
@@ -126,10 +126,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(attestationDefinition);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_ADMIN);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/attestations"
                 .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
     @Step("{string} credential definition is created for {string} on {string}")
@@ -154,10 +154,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(credentialDefinition, credentialDefinition);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_ADMIN);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/credentialdefinitions"
                 .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
     // --- Identity Hub provisioning ---
@@ -617,8 +617,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 + "5WGSel_8xTJD3xSVzg";
     }
 
-    // Issuance Service tokens (scope: issuer-admin-api + identity-api)
-    static class IssuanceServiceAuthTokens {
+    // Issuer Service tokens (scope: issuer-admin-api + identity-api)
+    static class IssuerServiceAuthTokens {
         static final String PROVISIONER = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhl"
                 + "N2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOi"
                 + "I3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoiaXNzdWVyLWFkbWluLWFwaT"

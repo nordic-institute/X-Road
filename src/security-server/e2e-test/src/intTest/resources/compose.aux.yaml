@@ -133,13 +133,13 @@ services:
       isrest:
         condition: service_healthy
 
-  db-ds-issuance-service:
+  db-ds-issuer-service:
     image: ${POSTGRES_DEV_IMG:-postgres-dev}
     pull_policy: always
     environment:
-      - POSTGRES_PASSWORD=ds_issuance_service_admin_secret
+      - POSTGRES_PASSWORD=ds_issuer_service_admin_secret
       - POSTGRES_USER=postgres
-      - POSTGRES_DB=ds-issuance-service
+      - POSTGRES_DB=ds-issuer-service
     networks:
       - xroad-network
     ports:
@@ -156,19 +156,19 @@ services:
         limits:
           memory: 256M
 
-  ds-issuance-service:
-    image: ${DS_ISSUANCE_SERVICE_IMG}
+  ds-issuer-service:
+    image: ${DS_ISSUER_SERVICE_IMG}
     pull_policy: always
     environment:
-      - HOSTNAME=ds-issuance-service
+      - HOSTNAME=ds-issuer-service
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
       - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       # admin permissions required to create schema on startup
-      - XROAD_DB_DS_ISSUANCE_SERVICE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-issuance-service:5432/ds-issuance-service
-      - XROAD_DB_DS_ISSUANCE_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
-      - XROAD_DB_DS_ISSUANCE_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuance_service_admin_secret
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuer_service_admin_secret
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
       - EDC_ENCRYPTION_STRICT=false
@@ -192,7 +192,7 @@ services:
         limits:
           memory: 320M
     depends_on:
-      db-ds-issuance-service:
+      db-ds-issuer-service:
         condition: service_healthy
       mock-jwks-server:
         condition: service_healthy
