@@ -22,7 +22,7 @@ Feature: 0300 - Data spaces baseline
     Given Participant context "test-part-ctx" with DID "did:web:ss1-ds-identity-hub%3A10100" is created on "ss1"
     And Participant context "test-part-ctx" config with DID "did:web:ss1-ds-identity-hub%3A10100" is created on "ss1"
     And Asset is created in participant context "test-part-ctx" on "ss1"
-    And Policy definition is created in participant context "test-part-ctx" on "ss1"
+    And Policy definition allowing only "did:web:ss0-ds-identity-hub%3A10100" is created in participant context "test-part-ctx" on "ss1"
     And Contract definition is created in participant context "test-part-ctx" on "ss1"
 
   Scenario: Consumer retrieves data through data space
