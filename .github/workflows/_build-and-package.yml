@@ -22,7 +22,7 @@ on:
 jobs:
   build-and-package:
     name: Build, test and package code
-    timeout-minutes: 75
+    timeout-minutes: 60
     runs-on:
       labels: xrd-runner-8c
     outputs:
