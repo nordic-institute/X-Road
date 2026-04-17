@@ -3,12 +3,6 @@ plugins {
     id("xroad.module-conventions")
 }
 
-// This is a pnpm frontend module with no JVM dependencies — opt out of
-// the project-wide dependency locking configured in the root build.gradle.kts.
-dependencyLocking {
-    unlockAllConfigurations()
-}
-
 configurations {
     create("dist")
 }
