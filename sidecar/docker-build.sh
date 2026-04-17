@@ -97,6 +97,8 @@ build_variant "-slim-secondary" "is"
 
 build_variant "-primary" "fi"
 build_variant "-secondary" "fi"
+build_variant "-primary" "fo"
+build_variant "-secondary" "fo"
 build_variant "-primary" "is"
 build_variant "-secondary" "is"
 build_variant "-primary" "ee"
