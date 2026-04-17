@@ -14,6 +14,7 @@ message-log-archiver,quarkus/Dockerfile,service/message-log-archiver/message-log
 ds-control-plane,quarkus/Dockerfile,service/ds-control-plane/ds-control-plane-application,ds-control-plane,build/quarkus-app,base-images/ss-baseline-runtime,-
 ds-data-plane,quarkus/Dockerfile,service/ds-data-plane/ds-data-plane-application,ds-data-plane,build/quarkus-app,base-images/ss-baseline-runtime,-
 ds-identity-hub,quarkus/Dockerfile,service/ds-identity-hub/ds-identity-hub-application,ds-identity-hub,build/quarkus-app,base-images/ss-baseline-runtime,-
+ds-issuance-service,quarkus/Dockerfile,service/ds-issuance-service/ds-issuance-service-application,ds-issuance-service,build/quarkus-app,base-images/ss-baseline-runtime,-
 admin-service,admin-service/Dockerfile,security-server/admin-service/application,ss-proxy-ui-api,build/libs,base-images/ss-baseline-runtime,-
 db-init,init-db/Dockerfile,tool/liquibase-executor,ss-db-init,build/libs/,-,-
 configuration-proxy-base,configuration-proxy/Dockerfile,service/configuration-proxy/configuration-proxy-cli,base-images/baseline-configuration-proxy,build/quarkus-app,base-images/ss-baseline-runtime,-

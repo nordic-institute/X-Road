@@ -10,10 +10,10 @@ jetty = "12.1.8"
 jaxb = "4.0.7"
 hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
-jackson = "2.21.2"
+jackson = "3.1.1"
 jacksonAnnotations = "2.21"
 mockito = "5.23.0"
-springBoot = "3.5.9"
+springBoot = "4.0.5"
 springFramework = "7.0.6"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
@@ -62,15 +62,29 @@ jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
 
 springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+springBoot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
+springBoot-starterActuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
+springBoot-starterCache = { module = "org.springframework.boot:spring-boot-starter-cache", version.ref = "springBoot" }
+springBoot-starterDataJpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
+springBoot-starterJetty = { module = "org.springframework.boot:spring-boot-starter-jetty", version.ref = "springBoot" }
+springBoot-starterMail = { module = "org.springframework.boot:spring-boot-starter-mail", version.ref = "springBoot" }
+springBoot-starterSecurity = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "springBoot" }
+springBoot-starterSecurityTest = { module = "org.springframework.boot:spring-boot-starter-security-test", version.ref = "springBoot" }
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+springBoot-starterJdbcTest = { module = "org.springframework.boot:spring-boot-starter-jdbc-test", version.ref = "springBoot" }
+springBoot-starterWebmvcTest = { module = "org.springframework.boot:spring-boot-starter-webmvc-test", version.ref = "springBoot" }
+springBoot-starterValidation = { module = "org.springframework.boot:spring-boot-starter-validation", version.ref = "springBoot" }
+springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-webmvc", version.ref = "springBoot" }
+springBoot-starterWebfluxTest = { module = "org.springframework.boot:spring-boot-starter-webflux-test", version.ref = "springBoot" }
+springBoot-micrometerTracingBrave = { module = "org.springframework.boot:spring-boot-micrometer-tracing-brave", version.ref = "springBoot" }
+springBoot-micrometerTracingTest = { module = "org.springframework.boot:spring-boot-micrometer-tracing-test", version.ref = "springBoot" }
 
 springFramework-context = { module = "org.springframework:spring-context", version.ref = "springFramework" }
 springFramework-web = { module = "org.springframework:spring-web", version.ref = "springFramework" }
 springFramework-test = { module = "org.springframework:spring-test", version.ref = "springFramework" }
 springFramework-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "springFramework" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.0.0" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.1.1" }
 
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
@@ -129,7 +143,7 @@ jclOverSlf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "slf4j" }
 julOverSlf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j" }
 
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version.ref = "feign" }
-feign-jackson = { module = "io.github.openfeign:feign-jackson", version.ref = "feign" }
+feign-jackson = { module = "io.github.openfeign:feign-jackson3", version.ref = "feign" }
 feign-slf4j = { module = "io.github.openfeign:feign-slf4j", version.ref = "feign" }
 
 # Testing libraries
@@ -159,10 +173,10 @@ mapstructProcessor = { module = "org.mapstruct:mapstruct-processor", version.ref
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 
 hibernate-hikaricp = { module = "org.hibernate:hibernate-hikaricp", version.ref = "hibernate" }
-hibernate-jpamodelgen = { module = "org.hibernate:hibernate-jpamodelgen", version.ref = "hibernate" }
+hibernate-jpamodelgen = { module = "org.hibernate.orm:hibernate-processor", version.ref = "hibernate" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
+jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
@@ -233,15 +247,18 @@ opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrum
 
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
+edc-virtual-controlplane-feature-dcp-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-dcp-bom", version.ref = "edc-v" }
 edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc-v" }
 
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
+edc-crypto-verifiablecredentials = { module = "org.eclipse.edc:verifiable-credentials", version.ref = "edc" }
 edc-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
 edc-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-contolplane-api-config = { module = "org.eclipse.edc:control-api-configuration", version.ref = "edc" }
 edc-dataplane-signaling = { module = "org.eclipse.edc:data-plane-signaling", version.ref = "edc" }
+edc-api-secrets = { module = "org.eclipse.edc:secrets-api", version.ref = "edc" }
 
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
@@ -310,6 +327,10 @@ edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "e
 edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
 edc-spi-edr = { module = "org.eclipse.edc:edr-store-spi", version.ref = "edc" }
 edc-spi-auth = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
+edc-spi-identityhub-participantcontext = { module = "org.eclipse.edc:participant-context-spi", version.ref = "edc" }
+edc-ih-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
+edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
+edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
@@ -351,13 +372,12 @@ metrics = ["metrics-core"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 edc-dcp = [
-  #  "edc-crypto-verifiablecredentials-jwt",
-  #  "edc-crypto-verifiablecredentials-ldp",
-  #  "edc-iam-dcp-core",
-  "edc-oauth2-client",
-  #  "edc-iam-decentralized",
-  #  "edc-iam-dcp-trustedissuers",
-  "edc-iam-mock"
+  "edc-crypto-verifiablecredentials-jwt",
+  "edc-crypto-verifiablecredentials-ldp",
+  "edc-crypto-verifiablecredentials",
+  "edc-iam-dcp-core",
+  "edc-iam-decentralized",
+  "edc-iam-dcp-trustedissuers"
 ]
 edc-connector = [
   "edc-boot",

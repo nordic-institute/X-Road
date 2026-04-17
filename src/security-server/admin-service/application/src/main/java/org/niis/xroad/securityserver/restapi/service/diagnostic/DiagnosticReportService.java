@@ -26,14 +26,14 @@ package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.SerializationFeature;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,11 +44,11 @@ import java.util.List;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class DiagnosticReportService {
-    private static final ObjectMapper MAPPER = JsonUtils.getObjectMapperCopy()
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectWriter MAPPER = JsonUtils.getObjectWriter()
+            .with(SerializationFeature.INDENT_OUTPUT);
     private final List<DiagnosticCollector<?>> collectors;
 
-    public byte[] collectSystemInformation() throws JsonProcessingException {
+    public byte[] collectSystemInformation() throws JacksonException {
         var data = new LinkedList<DiagnosticReportService.InfoFragment>();
 
         collectors.forEach(collector -> data.add(collectFrom(collector)));

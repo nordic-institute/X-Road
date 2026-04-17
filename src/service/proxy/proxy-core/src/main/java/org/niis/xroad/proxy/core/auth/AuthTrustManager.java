@@ -72,8 +72,7 @@ public class AuthTrustManager implements X509TrustManager {
     }
 
     @Override
-    public void checkServerTrusted(X509Certificate[] certs, String authType)
-            throws CertificateException {
+    public void checkServerTrusted(X509Certificate[] certs, String authType) {
         // Check for the certificates later in AuthTrustVerifier
     }
 

@@ -5,6 +5,8 @@
     "build/",
     "build.gradle",
     ".gradle",
+    "gradle.lockfile",
+    "settings-gradle.lockfile",
     "**/*.md",
     "**/*.svg",
     "**/*.eot",

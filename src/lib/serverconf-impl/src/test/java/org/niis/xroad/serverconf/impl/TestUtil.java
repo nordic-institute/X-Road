@@ -150,7 +150,7 @@ public final class TestUtil {
         });
     }
 
-    static void cleanDB(DatabaseCtx ctx) throws Exception {
+    static void cleanDB(DatabaseCtx ctx) {
         ctx.doInTransaction(session -> {
             var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use

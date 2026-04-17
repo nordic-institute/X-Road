@@ -5,5 +5,5 @@ plugins {
 dependencies {
     implementation(project(":common:common-message"))
     implementation(project(":central-server:management-service:core-api"))
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation(libs.springBoot.starterWeb)
 }

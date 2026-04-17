@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Client deletion
+Feature: 030 - Management requests API: Client deletion
 
   Scenario: Client deletion request is successful
     Given Admin api is mocked with a response with status-code 202, type CLIENT_DELETION_REQUEST and id 1122

@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.test.framework.core.report;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import org.springframework.core.io.Resource;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.module.SimpleSerializers;
 
 import java.io.IOException;
 
@@ -44,13 +44,17 @@ public class ResourceSerializingModule extends SimpleModule {
         context.addSerializers(serializers);
     }
 
-    public static class ResourceSerializer extends JsonSerializer<Resource> {
+    public static class ResourceSerializer extends ValueSerializer<Resource> {
         @Override
-        public void serialize(Resource value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-            gen.writeStartObject();
-            gen.writeStringField("filename", value.getFilename());
-            gen.writeStringField("contentLength", String.valueOf(value.contentLength()));
-            gen.writeEndObject();
+        public void serialize(Resource value, JsonGenerator gen, SerializationContext serializers) {
+            try {
+                gen.writeStartObject();
+                gen.writeStringProperty("filename", value.getFilename());
+                gen.writeStringProperty("contentLength", String.valueOf(value.contentLength()));
+                gen.writeEndObject();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to serialize Resource", e);
+            }
         }
     }
 }

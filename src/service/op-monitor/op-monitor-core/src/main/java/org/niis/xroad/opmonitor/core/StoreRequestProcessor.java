@@ -29,12 +29,12 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.codahale.metrics.MetricRegistry;
-import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import tools.jackson.databind.ObjectReader;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -97,7 +97,7 @@ class StoreRequestProcessor {
         OperationalDataRecords records;
 
         try {
-            records = OBJECT_READER.readValue(rawJsonData, OperationalDataRecords.class);
+            records = OBJECT_READER.forType(OperationalDataRecords.class).readValue(rawJsonData);
         } catch (Exception e) {
             throw new Exception("Received invalid request", e);
         }
