@@ -1,21 +1,27 @@
 name: Update Gradle Metadata (Dependabot)
 
 # Triggered when Dependabot pushes a Gradle dependency-update branch.
-# Regenerates lockfiles and verification-metadata.xml so that the main
+# Regenerates verification-metadata.xml so that the main
 # build workflow passes strict dependency verification.
-# Uses push (not pull_request) so the GITHUB_TOKEN always has write access.
 on:
   push:
-    branches:
-      - 'dependabot/gradle/**'
+    paths:
+      - 'src/gradle/libs.versions.toml'
 
 permissions:
   contents: write
 
 jobs:
   update-gradle-metadata:
-    name: Regenerate lockfiles & verification metadata
-    runs-on: ubuntu-24.04
+    name: Regenerate verification metadata (multi-arch)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: linux-amd64
+          - os: macos-latest
+            arch: macos-arm64
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -28,43 +34,60 @@ jobs:
           java-version: '25'
           distribution: temurin
 
-      # Minimal Gradle setup: no dependency-graph and no build-scan-publish to
-      # avoid the Develocity / dependency-graph init scripts that would themselves
-      # fail verification on a fresh runner.
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6
 
-      - name: Update buildSrc lockfiles and verification metadata
-        working-directory: src
-        run: |
-          ./gradlew -p buildSrc \
-            --write-locks \
-            --write-verification-metadata sha256 \
-            --dependency-verification=off \
-            --no-daemon \
-            -q dependencies
-
-      - name: Update main lockfiles and verification metadata
+      - name: Update verification metadata
         working-directory: src
         run: |
           ./gradlew \
-            --write-locks \
             --write-verification-metadata sha256 \
             --dependency-verification=off \
             --no-daemon \
             --parallel \
             -q dependencies
 
+      - name: Upload verification metadata artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: verification-metadata-${{ matrix.arch }}
+          path: |
+            src/gradle/verification-metadata.xml
+
+  merge-and-commit:
+    name: Merge verification metadata and commit
+    runs-on: ubuntu-24.04
+    needs: update-gradle-metadata
+    outputs:
+      committed: ${{ steps.commit.outputs.committed }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download verification metadata artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: artifacts
+
+      - name: Merge verification-metadata.xml files
+        run: |
+          python3 .github/scripts/merge-verification-metadata.py \
+            artifacts/verification-metadata-linux-amd64/verification-metadata.xml \
+            artifacts/verification-metadata-macos-arm64/verification-metadata.xml \
+            src/gradle/verification-metadata.xml
+
       - name: Commit and push if changed
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/gradle/verification-metadata.xml
-          git add src/buildSrc/gradle/verification-metadata.xml
-          find src -name "*.lockfile" -exec git add {} +
           if git diff --staged --quiet; then
-            echo "No changes - lockfiles and verification metadata are already up to date."
+            echo "No changes - verification metadata is already up to date."
+            echo "committed=false" >> $GITHUB_OUTPUT
           else
-            git commit -m "chore: update Gradle lockfiles and verification metadata [skip ci]"
+            git commit -m "chore: merge Gradle verification metadata for all architectures [skip ci]"
             git push
+            echo "committed=true" >> $GITHUB_OUTPUT
           fi
