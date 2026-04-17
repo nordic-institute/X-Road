@@ -323,8 +323,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
         assertNotNull(body.get("endpoint"), "EDR should contain an endpoint");
     }
 
-    @Step("EDR is acquired via xroad-edr-api for context {string} on {string} from {string} for asset {string}")
-    public void edrIsAcquiredViaXRoadEdrApi(String participantContext, String consumerEnv, String providerEnv, String assetId) {
+    @Step("asset access is acquired via xroad-asset-access-api for context {string} on {string} from {string} for asset {string}")
+    public void assetAccessIsAcquiredViaXRoadAssetAccessApi(String participantContext, String consumerEnv, String providerEnv, String assetId) {
         String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
         String request = """
                 {
@@ -333,11 +333,11 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1"
                 }
                 """.formatted(assetId, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
-        String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
+        String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/asset-access".formatted(participantContext);
 
         var response = sendRequest(POST, url, AuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
         Map<String, Object> body = response.extract().body().as(Map.class);
-        assertNotNull(body.get("https://w3id.org/edc/v0.0.1/ns/endpoint"), "EDR should contain an endpoint");
+        assertNotNull(body.get("https://w3id.org/edc/v0.0.1/ns/endpoint"), "Asset access response should contain an endpoint");
     }
 
     private ValidatableResponse sendGetRequest(String url, String token, int expectedStatusCode) {

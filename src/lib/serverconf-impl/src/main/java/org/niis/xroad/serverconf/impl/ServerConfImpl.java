@@ -81,6 +81,8 @@ import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServiceMapper;
 import org.niis.xroad.serverconf.model.Certificate;
 import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.impl.mapper.AccessRightMapper;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.Endpoint;
 import org.niis.xroad.serverconf.model.ServerConf;
@@ -425,6 +427,31 @@ public class ServerConfImpl implements ServerConfProvider {
                 .filter(e -> !e.isBaseEndpoint())
                 .map(e -> createEndpoint(e.getMethod(), e.getPath()))
                 .toList());
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return tx(session -> {
+            var serviceOwner = clientDao.getClient(session, serviceId.getClientId());
+            if (serviceOwner == null) {
+                return List.of();
+            }
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<AccessRightEntity> query = cb.createQuery(AccessRightEntity.class);
+            Root<ClientEntity> root = query.from(ClientEntity.class);
+            Join<ClientEntity, AccessRightEntity> acl = root.join("accessRights");
+            Join<AccessRightEntity, EndpointEntity> endpoint = acl.join("endpoint");
+            acl.fetch("endpoint");
+
+            query.select(acl).where(
+                    cb.equal(root, serviceOwner),
+                    cb.equal(endpoint.get("serviceCode"), serviceId.getServiceCode())
+            );
+
+            var accessRights = session.createQuery(query).setReadOnly(true).list();
+            return AccessRightMapper.get().toTargets(accessRights);
+        });
     }
 
     @Override

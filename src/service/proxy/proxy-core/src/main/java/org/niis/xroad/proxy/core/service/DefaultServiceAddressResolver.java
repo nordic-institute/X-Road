@@ -42,13 +42,10 @@ import org.niis.xroad.proxy.core.util.ProxyRequestContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SECURITY_SERVER;
 import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
@@ -64,6 +61,7 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
 
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties proxyProperties;
+    private final ProviderSecurityServerResolver providerSecurityServerResolver;
 
     @Override
     public List<URI> resolve(ServiceId serviceProvider, SecurityServerId securityServerId, ProxyRequestContext ctx) {
@@ -73,11 +71,24 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
     private List<URI> resolveFromGlobalConf(ServiceId serviceProvider, SecurityServerId serverId) {
         log.trace("resolveFromGlobalConf({}, {})", serviceProvider, serverId);
 
-        var hostNames = hostNamesByProvider(serviceProvider);
+        // Delegate candidate SS selection to the shared helper (D-15 / D-16).
+        var candidates = providerSecurityServerResolver.resolve(serviceProvider, serverId);
 
+        // Preserve hint-path maintenance-mode semantics — the helper is maintenance-unaware
+        // per 09-RESEARCH.md §"Open Questions (RESOLVED)" Q2. For the hint-absent path,
+        // maintenance-mode is still applied by the per-host loop below (unchanged).
         if (serverId != null) {
-            hostNames = hostNamesBySecurityServer(serverId, hostNames);
+            var hintHost = candidates.get(0).hostAddress();
+            globalConfProvider.getMaintenanceMode(serverId)
+                    .filter(SharedParameters.MaintenanceMode::enabled)
+                    .ifPresent(maintenanceMode -> {
+                        throw buildMaintenanceModeException(serverId, hintHost, maintenanceMode.message());
+                    });
         }
+
+        var hostNames = candidates.stream()
+                .map(ProviderSecurityServerResolver.ProviderAddress::hostAddress)
+                .toList();
 
         String protocol = proxyProperties.sslEnabled() ? "https" : "http";
         int port = proxyProperties.serverProxyPort();
@@ -115,39 +126,6 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
             log.warn("Invalid service provider hostname: {}", host);
             return Optional.empty();
         }
-    }
-
-    private Collection<String> hostNamesByProvider(ServiceId serviceProvider) {
-        var hostNames = globalConfProvider.getProviderAddress(serviceProvider.getClientId());
-
-        if (hostNames == null || hostNames.isEmpty()) {
-            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER,
-                    "Could not find addresses for service provider \"%s\"".formatted(serviceProvider));
-        }
-
-        return hostNames;
-    }
-
-    private Collection<String> hostNamesBySecurityServer(SecurityServerId serverId, Collection<String> hostNamesByProvider) {
-        final String securityServerAddress = globalConfProvider.getSecurityServerAddress(serverId);
-
-        if (securityServerAddress == null) {
-            throw XrdRuntimeException.systemException(INVALID_SECURITY_SERVER,
-                    "Could not find security server \"%s\"".formatted(serverId));
-        }
-
-        if (!hostNamesByProvider.contains(securityServerAddress)) {
-            throw XrdRuntimeException.systemException(INVALID_SECURITY_SERVER,
-                    "Invalid security server \"%s\"".formatted(serverId));
-        }
-
-        globalConfProvider.getMaintenanceMode(serverId)
-                .filter(SharedParameters.MaintenanceMode::enabled)
-                .ifPresent(maintenanceMode -> {
-                    throw buildMaintenanceModeException(serverId, securityServerAddress, maintenanceMode.message());
-                });
-
-        return Collections.singleton(securityServerAddress);
     }
 
     private XrdRuntimeException buildMaintenanceModeException(SecurityServerId serverId, String address,

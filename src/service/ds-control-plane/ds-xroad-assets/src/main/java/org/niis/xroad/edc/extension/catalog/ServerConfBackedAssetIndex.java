@@ -1,0 +1,194 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.edc.extension.catalog;
+
+import jakarta.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+/**
+ * ServerConf-backed {@link AssetIndex} that reads members and services live from
+ * {@link ServerConfProvider} on each call (D-02). Disabled services are excluded (D-12).
+ * Write operations return {@link StoreResult} failures (read-only store, D-15).
+ *
+ * <p>{@code AssetIndex} extends {@code DataAddressResolver} in EDC 0.16, so this class
+ * implements both interfaces via the single {@code AssetIndex} contract.
+ */
+@Slf4j
+class ServerConfBackedAssetIndex implements AssetIndex {
+
+    private final ServerConfProvider serverConfProvider;
+    private final String participantContextId;
+    private final ServerConfQueryEvaluator queryEvaluator = new ServerConfQueryEvaluator();
+
+    ServerConfBackedAssetIndex(ServerConfProvider serverConfProvider, String participantContextId) {
+        this.serverConfProvider = serverConfProvider;
+        this.participantContextId = participantContextId;
+    }
+
+    /**
+     * Returns one {@link Asset} per enabled service across all members.
+     * Disabled services (non-null {@code getDisabledNotice}) are excluded per D-12.
+     * Results are filtered and paged by {@link ServerConfQueryEvaluator} per D-05/D-06.
+     */
+    @Override
+    public Stream<Asset> queryAssets(QuerySpec querySpec) {
+        if (log.isTraceEnabled()) {
+            log.trace("queryAssets criteria={} offset={} limit={}",
+                    querySpec.getFilterExpression(), querySpec.getOffset(), querySpec.getLimit());
+        }
+        var assets = new ArrayList<Asset>();
+        for (var member : serverConfProvider.getMembers()) {
+            for (var serviceId : serverConfProvider.getAllServices(member)) {
+                if (serverConfProvider.getDisabledNotice(serviceId) != null) {
+                    continue;
+                }
+                assets.add(AssetMapper.toAsset(serviceId, participantContextId));
+            }
+        }
+        if (log.isTraceEnabled()) {
+            log.trace("queryAssets collected={} assets before filtering", assets.size());
+        }
+        return queryEvaluator.evaluate(assets.stream(), querySpec);
+    }
+
+    /**
+     * Decodes the asset ID, verifies the service exists and is enabled, returns the {@link Asset}.
+     * Returns {@code null} for malformed IDs, disabled services, or missing services per D-02/D-07/D-12.
+     */
+    @Override
+    @Nullable
+    public Asset findById(String assetId) {
+        log.trace("findById assetId={}", assetId);
+        var serviceId = AssetMapper.decodeAssetId(assetId);
+        if (serviceId == null) {
+            log.trace("findById assetId={} decode failed, returning null", assetId);
+            return null;
+        }
+        if (log.isTraceEnabled()) {
+            log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
+        }
+        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
+            log.trace("findById assetId={} service disabled, returning null", assetId);
+            return null;
+        }
+        try {
+            var address = serverConfProvider.getServiceAddress(serviceId);
+            if (address == null) {
+                log.trace("findById assetId={} no address found, returning null", assetId);
+                return null;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to verify service existence for asset '{}': {}", assetId, e.getMessage());
+            return null;
+        }
+        log.trace("findById assetId={} found", assetId);
+        return AssetMapper.toAsset(serviceId, participantContextId);
+    }
+
+    /**
+     * Builds an {@link HttpDataAddress} for the given asset with proxy flags enabled.
+     * Returns {@code null} on decode failure, disabled service, or missing address per D-11.
+     */
+    @Override
+    @Nullable
+    @SuppressWarnings("deprecation")
+    public DataAddress resolveForAsset(String assetId) {
+        log.trace("resolveForAsset assetId={}", assetId);
+        var serviceId = AssetMapper.decodeAssetId(assetId);
+        if (serviceId == null) {
+            log.trace("resolveForAsset assetId={} decode failed, returning null", assetId);
+            return null;
+        }
+        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
+            log.trace("resolveForAsset assetId={} service disabled, returning null", assetId);
+            return null;
+        }
+        String serviceAddress;
+        try {
+            serviceAddress = serverConfProvider.getServiceAddress(serviceId);
+        } catch (Exception e) {
+            log.warn("Failed to resolve service address for asset '{}': {}", assetId, e.getMessage());
+            return null;
+        }
+        if (serviceAddress == null) {
+            log.trace("resolveForAsset assetId={} no address found, returning null", assetId);
+            return null;
+        }
+        log.trace("resolveForAsset assetId={} resolved baseUrl={}", assetId, serviceAddress);
+        return HttpDataAddress.Builder.newInstance()
+                .baseUrl(serviceAddress)
+                .proxyPath("true")
+                .proxyMethod("true")
+                .proxyBody("true")
+                .proxyQueryParams("true")
+                .build();
+    }
+
+    @Override
+    public long countAssets(List<Criterion> criteria) {
+        if (log.isTraceEnabled()) {
+            log.trace("countAssets criteria count={}", criteria.size());
+        }
+        var spec = QuerySpec.Builder.newInstance()
+                .filter(criteria)
+                .limit(Integer.MAX_VALUE)
+                .build();
+        var count = queryAssets(spec).count();
+        log.trace("countAssets result={}", count);
+        return count;
+    }
+
+    @Override
+    public StoreResult<Void> create(Asset asset) {
+        log.trace("create assetId={} read-only, returning alreadyExists", asset.getId());
+        return StoreResult.alreadyExists("Read-only: managed by ServerConf");
+    }
+
+    @Override
+    public StoreResult<Asset> deleteById(String assetId) {
+        log.trace("deleteById assetId={} read-only, returning notFound", assetId);
+        return StoreResult.notFound("Read-only: managed by ServerConf");
+    }
+
+    @Override
+    public StoreResult<Asset> updateAsset(Asset asset) {
+        log.trace("updateAsset assetId={} read-only, returning notFound", asset.getId());
+        return StoreResult.notFound("Read-only: managed by ServerConf");
+    }
+}

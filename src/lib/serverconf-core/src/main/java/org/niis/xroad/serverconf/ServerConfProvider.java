@@ -36,6 +36,7 @@ import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.IOException;
@@ -224,6 +225,16 @@ public interface ServerConfProvider {
      * @return list of endpoints
      */
     List<Endpoint> getServiceEndpoints(ServiceId serviceId);
+
+    /**
+     * Returns all access rights for a given service, regardless of subject.
+     * Each {@link AccessRight} contains the subjectId (ClientId/GlobalGroupId/LocalGroupId)
+     * and the endpoint the subject has access to.
+     *
+     * @param serviceId the service identifier
+     * @return list of access rights for the service (may be empty, never null)
+     */
+    List<AccessRight> getServiceAccessRights(ServiceId serviceId);
 
     /**
      * Log serverconf statistics
