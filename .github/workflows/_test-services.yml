@@ -87,7 +87,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload signer-int-test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: signer-int-test-report-${{ github.run_number }}
@@ -170,7 +170,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload softtoken-signer-int-test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: softtoken-signer-int-test-report-${{ github.run_number }}
@@ -253,7 +253,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload confproxy-int-test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: confproxy-int-test-report-${{ github.run_number }}
@@ -335,7 +335,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload opmonitor-int-test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: opmonitor-int-test-report-${{ github.run_number }}
@@ -411,7 +411,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload cs-admin-int-test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: cs-admin-int-test-report-${{ github.run_number }}
@@ -487,7 +487,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload cs-management-int-test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: cs-management-int-test-report-${{ github.run_number }}
