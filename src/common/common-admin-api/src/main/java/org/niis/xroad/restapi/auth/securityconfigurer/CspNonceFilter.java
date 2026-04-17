@@ -26,71 +26,36 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
-import ee.ria.xroad.common.util.MimeTypes;
-
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletResponseWrapper;
-import org.springframework.http.HttpHeaders;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 
 import static org.springframework.security.web.server.header.ContentSecurityPolicyServerHttpHeadersWriter.CONTENT_SECURITY_POLICY;
 
-
-public class CspNonceFilter implements Filter {
+/**
+ * Generates a per-request CSP nonce, stores it as a request attribute ({@value #NONCE_ATTR})
+ * for downstream consumers (e.g. {@link CspNonceResourceTransformer}), and sets the
+ * Content-Security-Policy response header.
+ */
+public class CspNonceFilter extends OncePerRequestFilter {
     public static final String NONCE_ATTR = "cspNonce";
     public static final String CSP_NONCE_PLACEHOLDER = "__CSP_NONCE__";
     public static final int NONCE_BYTE_LENGTH = 32;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse httpResp, FilterChain chain)
             throws IOException, ServletException {
-
-        HttpServletRequest httpReq = (HttpServletRequest) request;
-        HttpServletResponse httpResp = (HttpServletResponse) response;
-
-        String nonce = (String) request.getAttribute(NONCE_ATTR);
-        if (nonce != null) {
-            httpResp.setHeader(CONTENT_SECURITY_POLICY, generateCsp(nonce));
-            chain.doFilter(request, response);
-            return;
-        }
-
-        nonce = generateNonce();
-
+        var nonce = generateNonce();
         request.setAttribute(NONCE_ATTR, nonce);
-
-        String csp = generateCsp(nonce);
-        String accept = httpReq.getHeader(HttpHeaders.ACCEPT);
-        boolean mayBeHtml = accept != null && accept.contains(MimeTypes.TEXT_HTML);
-        if (!mayBeHtml) {
-            httpResp.setHeader(CONTENT_SECURITY_POLICY, csp);
-            chain.doFilter(request, response);
-            return;
-        }
-
-        BufferingResponseWrapper wrapper = new BufferingResponseWrapper(httpResp);
-        chain.doFilter(request, wrapper);
-        wrapper.flushBuffer();
-
-        httpResp.setHeader(CONTENT_SECURITY_POLICY, csp);
-
-        writeFinalOutput(wrapper, nonce, httpResp);
+        httpResp.setHeader(CONTENT_SECURITY_POLICY, generateCsp(nonce));
+        chain.doFilter(request, httpResp);
     }
 
     private static String generateCsp(String nonce) {
@@ -103,80 +68,8 @@ public class CspNonceFilter implements Filter {
     }
 
     private String generateNonce() {
-        String nonce;
-        byte[] nonceBytes = new byte[NONCE_BYTE_LENGTH];
+        var nonceBytes = new byte[NONCE_BYTE_LENGTH];
         secureRandom.nextBytes(nonceBytes);
-        nonce = Base64.getEncoder().encodeToString(nonceBytes);
-        return nonce;
-    }
-
-    private static void writeFinalOutput(BufferingResponseWrapper wrapper, String nonce, HttpServletResponse httpResp)
-            throws IOException {
-        String contentType = wrapper.getContentType();
-        byte[] content = wrapper.getContent();
-
-        if (contentType != null && contentType.contains(MimeTypes.TEXT_HTML)) {
-            String html = new String(content, StandardCharsets.UTF_8);
-            String modified = html.replace(CSP_NONCE_PLACEHOLDER, nonce);
-            byte[] modifiedBytes = modified.getBytes(StandardCharsets.UTF_8);
-
-            httpResp.setContentLength(modifiedBytes.length);
-            httpResp.getOutputStream().write(modifiedBytes);
-        } else {
-            httpResp.setContentLength(content.length);
-            httpResp.getOutputStream().write(content);
-        }
-    }
-
-    private static class BufferingResponseWrapper extends HttpServletResponseWrapper {
-        private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        private ServletOutputStream outputStream;
-        private PrintWriter writer;
-
-        BufferingResponseWrapper(HttpServletResponse response) {
-            super(response);
-        }
-
-        @Override
-        public ServletOutputStream getOutputStream() {
-            if (outputStream == null) {
-                outputStream = new ServletOutputStream() {
-                    @Override
-                    public void write(int b) {
-                        buffer.write(b);
-                    }
-
-                    @Override
-                    public boolean isReady() {
-                        return true;
-
-                    }
-
-                    @Override
-                    public void setWriteListener(WriteListener listener) {
-                        // no-op
-                    }
-                };
-            }
-            return outputStream;
-        }
-
-        @Override
-        public PrintWriter getWriter() {
-            if (writer == null) {
-                writer = new PrintWriter(new OutputStreamWriter(buffer, StandardCharsets.UTF_8));
-            }
-            return writer;
-        }
-
-        @Override
-        public void flushBuffer() throws IOException {
-            if (writer != null) writer.flush();
-            if (outputStream != null) outputStream.flush();
-        }
-
-        public byte[] getContent() {
-            return buffer.toByteArray();
-        }
+        return Base64.getEncoder().encodeToString(nonceBytes);
     }
 }

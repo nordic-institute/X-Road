@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import feign.Feign;
 import feign.Logger;
 import feign.codec.Decoder;
@@ -40,6 +39,7 @@ import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -80,7 +80,7 @@ public class HealthCheckAssertions {
                     var response = endpoint.apply(client);
                     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                     JsonNode root = response.getBody();
-                    assertThat(root.get("status").asText())
+                    assertThat(root.get("status").asString())
                             .as("overall status for service '%s'", serviceName)
                             .isEqualTo("UP");
                     log.info("Service {} health check passed. Response: {}", serviceName, response.getBody());
@@ -100,10 +100,10 @@ public class HealthCheckAssertions {
                     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                     JsonNode root = response.getBody();
                     var match = StreamSupport.stream(root.get("checks").spliterator(), false)
-                            .filter(c -> checkName.equals(c.get("name").asText()))
+                            .filter(c -> checkName.equals(c.get("name").asString()))
                             .findFirst();
                     assertThat(match).as("check '%s' not found in response", checkName).isPresent();
-                    assertThat(match.get().get("status").asText())
+                    assertThat(match.get().get("status").asString())
                             .as("status of check '%s'", checkName)
                             .isEqualTo(expectedStatus);
                     log.info("Service {} check '{}' status is {}", serviceName, checkName, expectedStatus);

@@ -60,6 +60,14 @@ public class IntTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(CS, createLogConsumer(CS));
     }
 
+    @Override
+    public void destroy() {
+        // copy log files from CS container
+        copyXRoadLogsFromContainer(CS, "cs");
+
+        super.destroy();
+    }
+
     @UtilityClass
     public final class Port {
         public static final int DB = 5432;

@@ -10,8 +10,7 @@ plugins {
 dependencies {
   api(platform(libs.jackson.bom))
 
-  api("com.fasterxml.jackson.core:jackson-databind")
-  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api("tools.jackson.core:jackson-databind")
 
   api(libs.jclOverSlf4j)
   api(libs.apache.xmlsec)

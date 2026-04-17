@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Endpoint security
+Feature: 005 - Management requests API: Endpoint security
 
   Scenario Outline: verify http method <method> not allowed
     Given "<method>" request is sent to url "<url>"

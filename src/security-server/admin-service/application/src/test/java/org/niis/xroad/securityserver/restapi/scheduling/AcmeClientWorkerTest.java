@@ -39,7 +39,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.acme.AcmeServiceException;
@@ -55,6 +54,7 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.scheduling.support.NoOpTaskScheduler;
 import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import javax.security.auth.x500.X500Principal;
@@ -91,7 +91,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     private static final String DNS = "ss9";
     @MockitoSpyBean
     private AcmeClientWorker acmeClientWorker;
-    @Mock
+    @MockitoBean
     ManagementRequestSender managementRequestSenderMock;
     @MockitoSpyBean
     MailNotificationHelper mailNotificationHelper;

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,37 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.framework.core.report;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.module.SimpleModule;
-import tools.jackson.databind.module.SimpleSerializers;
+import org.springframework.web.servlet.resource.ResourceTransformer;
+import org.springframework.web.servlet.resource.ResourceTransformerChain;
+import org.springframework.web.servlet.resource.TransformedResource;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-public class ResourceSerializingModule extends SimpleModule {
+/**
+ * A {@link ResourceTransformer} that replaces
+ * {@value CspNonceFilter#CSP_NONCE_PLACEHOLDER} placeholders in static resources (typically
+ * {@code index.html}) with the per-request CSP nonce set by {@link CspNonceFilter}.
+ *
+ * <p>The nonce is read from the request attribute {@value CspNonceFilter#NONCE_ATTR}.
+ * If the attribute is absent (fail-safe), the resource is returned unchanged.
+ */
+public class CspNonceResourceTransformer implements ResourceTransformer {
 
     @Override
-    public void setupModule(SetupContext context) {
-        SimpleSerializers serializers = new SimpleSerializers();
-        serializers.addSerializer(Resource.class, new ResourceSerializer());
-        context.addSerializers(serializers);
-    }
-
-    public static class ResourceSerializer extends ValueSerializer<Resource> {
-        @Override
-        public void serialize(Resource value, JsonGenerator gen, SerializationContext serializers) {
-            try {
-                gen.writeStartObject();
-                gen.writeStringProperty("filename", value.getFilename());
-                gen.writeStringProperty("contentLength", String.valueOf(value.contentLength()));
-                gen.writeEndObject();
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to serialize Resource", e);
-            }
+    public Resource transform(HttpServletRequest request, Resource resource,
+                              ResourceTransformerChain transformerChain) throws IOException {
+        var transformed = transformerChain.transform(request, resource);
+        var nonce = (String) request.getAttribute(CspNonceFilter.NONCE_ATTR);
+        if (nonce == null) {
+            return transformed;
         }
+        var html = new String(transformed.getContentAsByteArray(), StandardCharsets.UTF_8);
+        var patched = html.replace(CspNonceFilter.CSP_NONCE_PLACEHOLDER, nonce);
+        return new TransformedResource(transformed, patched.getBytes(StandardCharsets.UTF_8));
     }
 }

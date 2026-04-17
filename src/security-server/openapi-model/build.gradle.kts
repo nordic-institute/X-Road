@@ -39,6 +39,12 @@ openApiGenerate {
     )
   )
 
+  additionalProperties.set(
+    mapOf(
+      "useSpringBoot4" to "true"
+    )
+  )
+
   configOptions.set(
     mapOf(
       "useJakartaEe" to "true",

@@ -80,7 +80,7 @@ public class BasicCertificateProfileInfoProviderTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void signProfileValidateFieldSuccessfully() throws Exception {
+    public void signProfileValidateFieldSuccessfully() {
         getSignProfile().validateSubjectField(
                 new DnFieldValueImpl("CN", "XX")
         );
@@ -92,7 +92,7 @@ public class BasicCertificateProfileInfoProviderTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
-    public void signProfileFailToValidateUnknownField() throws Exception {
+    public void signProfileFailToValidateUnknownField() {
         getSignProfile().validateSubjectField(
                 new DnFieldValueImpl("X", "foo")
         );
@@ -101,11 +101,9 @@ public class BasicCertificateProfileInfoProviderTest {
     /**
      * Tests whether validating blank subject field of sign profile fails
      * as expected.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
-    public void signProfileFailToValidateBlankField() throws Exception {
+    public void signProfileFailToValidateBlankField() {
         getSignProfile().validateSubjectField(
                 new DnFieldValueImpl("serialNumber", "")
         );
@@ -156,11 +154,9 @@ public class BasicCertificateProfileInfoProviderTest {
     /**
      * Tests whether validating correct subject field of auth profile succeeds
      * as expected.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void authProfileValidateFieldSuccessfully() throws Exception {
+    public void authProfileValidateFieldSuccessfully() {
         getAuthProfile().validateSubjectField(
                 new DnFieldValueImpl("O", "bar")
         );
@@ -169,11 +165,9 @@ public class BasicCertificateProfileInfoProviderTest {
     /**
      * Tests whether validating unknown subject field of auth profile fails
      * as expected.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
-    public void authProfileFailToValidateUnknownField() throws Exception {
+    public void authProfileFailToValidateUnknownField() {
         getAuthProfile().validateSubjectField(
                 new DnFieldValueImpl("X", "foo")
         );
@@ -182,11 +176,9 @@ public class BasicCertificateProfileInfoProviderTest {
     /**
      * Tests whether validating blank subject field of auth profile fails
      * as expected.
-     *
-     * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
-    public void authProfileFailToValidateBlankField() throws Exception {
+    public void authProfileFailToValidateBlankField() {
         getAuthProfile().validateSubjectField(
                 new DnFieldValueImpl("serialNumber", "")
         );

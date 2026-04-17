@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,15 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
 
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
+package org.niis.xroad.cs.admin.rest.api.security;
+
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 
-@EntityScan(basePackages = {
-        "org.niis.xroad.restapi.entity",
-        "org.niis.xroad.serverconf.impl.entity",
-        "org.niis.xroad.common.identifiers.jpa.entity"})
 @Configuration
-public class JpaConfiguration {
+public class MethodSecurityConfig {
+
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(AdminServicePermissionEvaluator pe) {
+        DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+        handler.setPermissionEvaluator(pe);
+        return handler;
+    }
+
 }

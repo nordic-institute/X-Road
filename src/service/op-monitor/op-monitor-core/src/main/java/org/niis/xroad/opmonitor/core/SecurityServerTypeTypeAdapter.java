@@ -25,13 +25,11 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-
-import java.io.IOException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
 
 /**
  * Type adapter for the securityServerType field used with the JsonDeserialize annotation.
@@ -43,16 +41,12 @@ import java.io.IOException;
 class SecurityServerTypeTypeAdapter extends StdDeserializer<String> {
 
     protected SecurityServerTypeTypeAdapter() {
-        this(null);
-    }
-
-    protected SecurityServerTypeTypeAdapter(Class<?> vc) {
-        super(vc);
+        super(String.class);
     }
 
     @Override
     public String deserialize(JsonParser p,
-                              DeserializationContext ctxt) throws IOException {
+                              DeserializationContext ctxt) {
         String value = p.getValueAsString();
         if (OpMonitoringData.SecurityServerType.fromString(value) == null) {
             throw XrdRuntimeException.systemInternalError("Invalid value of securityServerType");

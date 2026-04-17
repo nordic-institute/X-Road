@@ -28,12 +28,12 @@ package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectWriter;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -55,7 +55,7 @@ public class OpMonitoringDataProcessor {
     private String ipAddress;
     private Instant ipAddressLastResolutionAt;
 
-    String prepareMonitoringMessage(List<OpMonitoringData> dataToProcess) throws JsonProcessingException {
+    String prepareMonitoringMessage(List<OpMonitoringData> dataToProcess) throws JacksonException {
         StoreOpMonitoringDataRequest request = new StoreOpMonitoringDataRequest();
 
         for (OpMonitoringData data : dataToProcess) {

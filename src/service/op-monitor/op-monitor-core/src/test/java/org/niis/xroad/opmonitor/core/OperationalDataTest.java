@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import org.hibernate.PropertyValueException;
 import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
+import tools.jackson.databind.DatabindException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -104,7 +104,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
     public void convertFromOutdatedJson() {
         String jsonRec = formatInvalidOperationalDataAsJson();
 
-        var exc = assertThrows(JsonMappingException.class, () -> OBJECT_READER.readValue(jsonRec, OperationalDataRecord.class));
+        var exc = assertThrows(DatabindException.class, () -> OBJECT_READER.forType(OperationalDataRecord.class).readValue(jsonRec));
         assertTrue(exc.getOriginalMessage().contains("Invalid value of securityServerType"));
     }
 
