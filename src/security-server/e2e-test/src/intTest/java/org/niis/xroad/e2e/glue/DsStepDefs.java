@@ -27,6 +27,8 @@
 
 package org.niis.xroad.e2e.glue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import io.restassured.http.ContentType;
 import io.restassured.http.Method;
@@ -60,6 +62,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
 
     private String offerId;
+    private String targetAssetId;
+    private String permissionJson;
     private String negotiationId;
     private String contractAgreementId;
     private String transferProcessId;
@@ -309,28 +313,54 @@ public class DsStepDefs extends BaseE2EStepDefs {
         sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
     }
 
-    @Step("Policy definition is created in participant context {string} on {string}")
-    public void policyDefinitionIsCreated(String participantContext, String server) {
+    @Step("Policy definition allowing only {string} is created in participant context {string} on {string}")
+    public void policyDefinitionIsCreated(String consumerDid, String participantContext, String server) {
+        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
+
+        // Register a CEL expression that checks the consumer's DID
+        String celRequest = """
+                {
+                    "@context": [
+                        "https://w3id.org/edc/connector/management/v2"
+                    ],
+                    "@type": "CelExpression",
+                    "@id": "allowed-consumer-cel",
+                    "leftOperand": "allowed-consumer",
+                    "description": "Only allows the specified consumer participant",
+                    "scopes": ["catalog", "contract.negotiation", "transfer.process"],
+                    "actions": ["use"],
+                    "expression": "ctx.agent.id == '%s'"
+                }
+                """.formatted(consumerDid);
+        String celUrl = "http://%s:%d/api/mgmt/v4alpha/celexpressions".formatted(mapping.host(), mapping.port());
+        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
+
+        // Create policy with constraint referencing the CEL expression
         String request = """
                 {
                     "@context": [
                         "https://w3id.org/edc/connector/management/v2"
                     ],
-                    "@id": "policy-allow-all",
+                    "@id": "policy-consumer-restricted",
                     "@type": "PolicyDefinition",
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "Set",
                         "permission": [
                             {
-                                "action": "use"
+                                "action": "use",
+                                "constraint": [
+                                    {
+                                        "leftOperand": "allowed-consumer",
+                                        "operator": "eq",
+                                        "rightOperand": "true"
+                                    }
+                                ]
                             }
                         ]
                     }
                 }
                 """;
-
-        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/policydefinitions").formatted(mapping.host(), mapping.port(), participantContext);
         sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
     }
@@ -344,8 +374,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@id": "contract-def-1",
                     "@type": "ContractDefinition",
-                    "accessPolicyId": "policy-allow-all",
-                    "contractPolicyId": "policy-allow-all",
+                    "accessPolicyId": "policy-consumer-restricted",
+                    "contractPolicyId": "policy-consumer-restricted",
                     "assetsSelector": [
                         {
                             "@type": "Criterion",
@@ -365,7 +395,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     @Step("Catalog can be retrieved using participant context {string} on {string} from {string} on {string}")
     public void catalogCanBeRetrievedUsingParticipantContextFrom(String consumerParticipantContext, String consumerEnv,
-                                                                 String providerDid, String providerEnv) {
+                                                                 String providerDid, String providerEnv) throws JsonProcessingException {
         String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
         String request = """
                 {
@@ -382,13 +412,14 @@ public class DsStepDefs extends BaseE2EStepDefs {
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
-        offerId = extractOfferId(body);
+        extractNecessaryPropertiesFromCatalog(body);
         assertNotNull(offerId, "Offer ID should be present in catalog response");
     }
 
     @Step("Contract negotiation is initiated using participant context {string} on {string} with provider {string} on {string}")
     public void contractNegotiationIsInitiated(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
         String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
+
         String request = """
                 {
                     "@context": [
@@ -403,16 +434,12 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "@type": "Offer",
                         "@id": "%s",
                         "assigner": "%s",
-                        "target": "asset-1",
-                        "permission": [
-                            {
-                                "action": "use"
-                            }
-                        ]
+                        "target": "%s",
+                        "permission": %s
                     }
                 }
                 """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL,
-                providerDid, offerId, providerDid);
+                providerDid, offerId, providerDid, targetAssetId, permissionJson);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/contractnegotiations".formatted(participantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
 
@@ -552,7 +579,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     }
 
     @SuppressWarnings("unchecked")
-    private String extractOfferId(Map<String, Object> catalogBody) {
+    private void extractNecessaryPropertiesFromCatalog(Map<String, Object> catalogBody) throws JsonProcessingException {
         Object datasetObj = catalogBody.get("dataset");
         if (datasetObj == null) {
             datasetObj = catalogBody.get("dcat:dataset");
@@ -563,6 +590,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
         } else {
             dataset = (Map<String, Object>) datasetObj;
         }
+        targetAssetId = (String) dataset.get("@id");
 
         Object policyObj = dataset.get("hasPolicy");
         if (policyObj == null) {
@@ -574,7 +602,13 @@ public class DsStepDefs extends BaseE2EStepDefs {
         } else {
             policy = (Map<String, Object>) policyObj;
         }
-        return (String) policy.get("@id");
+        offerId = (String) policy.get("@id");
+
+        var permission = policy.get("permission");
+        if (permission == null) {
+            permission = dataset.get("odrl:permission");
+        }
+        permissionJson = new ObjectMapper().writeValueAsString(permission);
     }
 
     // --- Auth tokens (without "Bearer " prefix — REST Assured .auth().oauth2() adds it) ---
