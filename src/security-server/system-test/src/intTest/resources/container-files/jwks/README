@@ -35,7 +35,7 @@ eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0
 -
 
 
-Issuance Service:
+Issuer Service:
 -
 "role": "provisioner"
 "scope": "issuer-admin-api:write issuer-admin-api:read identity-api:write identity-api:read"

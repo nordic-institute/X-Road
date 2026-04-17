@@ -29,8 +29,8 @@ package org.niis.xroad.ss.test.ds.glue;
 
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.glue.BaseStepDefs;
-import org.niis.xroad.ss.test.ds.api.FeignIssuanceServiceAdminApi;
-import org.niis.xroad.ss.test.ds.api.FeignIssuanceServiceIdentityApi;
+import org.niis.xroad.ss.test.ds.api.FeignIssuerServiceAdminApi;
+import org.niis.xroad.ss.test.ds.api.FeignIssuerServiceIdentityApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Base64;
@@ -39,24 +39,24 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public class IssuanceServiceStepDefs extends BaseStepDefs {
+public class IssuerServiceStepDefs extends BaseStepDefs {
 
     @Autowired
-    private FeignIssuanceServiceAdminApi issuanceServiceAdminApi;
+    private FeignIssuerServiceAdminApi issuerServiceAdminApi;
 
     @Autowired
-    private FeignIssuanceServiceIdentityApi issuanceServiceIdentityApi;
+    private FeignIssuerServiceIdentityApi issuerServiceIdentityApi;
 
-    @Step("Issuance Service participant context {string} with DID {string} is initialized "
+    @Step("Issuer Service participant context {string} with DID {string} is initialized "
             + "and keypair is generated with private key alias {string}")
-    public void issuanceServiceParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias) {
+    public void issuerServiceParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias) {
         String request = """
                 {
                     "roles": ["admin"],
                     "serviceEndpoints": [
                         {
                             "type": "IssuerService",
-                            "serviceEndpoint": "http://ds-issuance-service:10012/api/issuance/v1alpha/participants/%s",
+                            "serviceEndpoint": "http://ds-issuer-service:10012/api/issuance/v1alpha/participants/%s",
                             "id": "%s-issuer-service"
                         }
                     ],
@@ -74,13 +74,13 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 """.formatted(
                         Base64.getUrlEncoder().encodeToString(participantId.getBytes()), did, participantId, did, did, privateKeyAlias);
 
-        var response = issuanceServiceIdentityApi.createParticipant(AuthTokens.PROVISIONER, request);
+        var response = issuerServiceIdentityApi.createParticipant(AuthTokens.PROVISIONER, request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .execute();
     }
 
-    @Step("Holder {string} with DID {string} is created in issuance service participant {string}")
+    @Step("Holder {string} with DID {string} is created in issuer service participant {string}")
     public void holderIsCreated(String holderId, String holderDid, String participantId) {
         String request = """
                 {
@@ -93,7 +93,7 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 }
                 """.formatted(holderDid, holderId);
 
-        var response = issuanceServiceAdminApi.createHolder(
+        var response = issuerServiceAdminApi.createHolder(
                 AuthTokens.PARTICIPANT,
                 // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                 Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
@@ -103,7 +103,7 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("Attestation definition {string} of type {string} is created in issuance service participant {string}")
+    @Step("Attestation definition {string} of type {string} is created in issuer service participant {string}")
     public void attestationDefinitionIsCreated(String attestationId, String attestationType, String participantId) {
         String request = """
                 {
@@ -113,7 +113,7 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 }
                 """.formatted(attestationType, attestationId);
 
-        var response = issuanceServiceAdminApi.createAttestationDefinition(
+        var response = issuerServiceAdminApi.createAttestationDefinition(
                 AuthTokens.PARTICIPANT,
                 // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                 Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
@@ -124,7 +124,7 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
     }
 
     @Step("Credential definition {string} of type {string} with format {string} "
-            + "is created in issuance service participant {string} with attestation {string}")
+            + "is created in issuer service participant {string} with attestation {string}")
     public void credentialDefinitionIsCreated(String credDefId, String credType, String format,
                                               String participantId, String attestationId) {
         String request = """
@@ -147,7 +147,7 @@ public class IssuanceServiceStepDefs extends BaseStepDefs {
                 }
                 """.formatted(attestationId, credType, credDefId, credType, format);
 
-        var response = issuanceServiceAdminApi.createCredentialDefinition(
+        var response = issuerServiceAdminApi.createCredentialDefinition(
                 AuthTokens.PARTICIPANT,
                 // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
                 Base64.getUrlEncoder().encodeToString(participantId.getBytes()),

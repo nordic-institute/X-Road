@@ -72,7 +72,7 @@ public class EnvSetup extends BaseComposeSetup {
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     private static final String DS_DATA_PLANE = "ds-data-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
-    public static final String DS_ISSUANCE_SERVICE = "ds-issuance-service";
+    public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
     private static final String XROAD_NETWORK = "xroad-network";
 
     public static final String DB_MESSAGELOG = "db-messagelog";
@@ -94,15 +94,15 @@ public class EnvSetup extends BaseComposeSetup {
 
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
-                .withExposedService(DS_ISSUANCE_SERVICE, Port.ISSUANCE_SERVICE_ADMIN, forListeningPort())
-                .withExposedService(DS_ISSUANCE_SERVICE, Port.ISSUANCE_SERVICE_IDENTITY, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_ADMIN, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
                 .withEnv("PROXY_0", getContainerName(envSs0, PROXY))
                 .withEnv("PROXY_UI_1", getContainerName(envSs1, UI))
                 .withEnv("PROXY_1", getContainerName(envSs1, PROXY))
                 .withLogConsumer(HURL, createLogConsumer("aux", HURL))
                 .withLogConsumer(CS, createLogConsumer("aux", CS))
-                .withLogConsumer(DS_ISSUANCE_SERVICE, createLogConsumer("aux", DS_ISSUANCE_SERVICE))
+                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer("aux", DS_ISSUER_SERVICE))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 
@@ -260,8 +260,8 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
         public static final int IDENTITY_HUB_IDENTITY = 8182;
-        public static final int ISSUANCE_SERVICE_ADMIN = 10013;
-        public static final int ISSUANCE_SERVICE_IDENTITY = 8182;
+        public static final int ISSUER_SERVICE_ADMIN = 10013;
+        public static final int ISSUER_SERVICE_IDENTITY = 8182;
     }
 
     enum Feature {
