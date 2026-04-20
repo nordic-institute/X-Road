@@ -38,6 +38,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,9 +69,10 @@ public class ConfigurablePropertiesService {
      * @return set of system properties with their metadata and current values
      */
     public Set<SecurityServerConfigurablePropertyDto> getConfigurationProperties() {
+        var currentPropertiesValues = repository.findAll();
         return configurableProperties.getConfigurableProperties()
                 .stream()
-                .map(this::toSecurityServerSystemParameterDto)
+                .map(param -> toSecurityServerSystemParameterDto(param, currentPropertiesValues))
                 .collect(Collectors.toSet());
     }
 
@@ -98,13 +100,19 @@ public class ConfigurablePropertiesService {
                 }, () -> repository.saveOrUpdate(createConfigurationProperty(propertyKey, propertyValue, scope)));
     }
 
-    private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(ConfigurableProperty parameter) {
+    private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(
+            ConfigurableProperty parameter, List<ConfigurationPropertyEntity> storedValues) {
         var systemPropertyDto = new SecurityServerConfigurablePropertyDto();
         systemPropertyDto.setPropertyName(parameter.getPropertyName());
         systemPropertyDto.setDefaultValue(parameter.getDefaultValue());
         systemPropertyDto.setScope(parameter.getScope());
-        repository.findConfigurationPropertyByPropertyKeyAndScope(parameter.getPropertyName(), parameter.getScope())
-                .ifPresent(e -> systemPropertyDto.setCurrentValue(e.getPropertyValue()));
+        storedValues.stream()
+                .filter(v ->
+                        v.getPropertyKey().equals(parameter.getPropertyName())
+                                && Objects.equals(v.getScope(), parameter.getScope()))
+                .map(ConfigurationPropertyEntity::getPropertyValue)
+                .findAny()
+                .ifPresent(systemPropertyDto::setCurrentValue);
         return systemPropertyDto;
     }
 
