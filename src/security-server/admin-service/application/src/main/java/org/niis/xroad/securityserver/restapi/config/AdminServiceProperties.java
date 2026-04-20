@@ -210,6 +210,9 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     /** Default whitelist for Proxy UI API's regular APIs (allow all) */
     private String regularApiWhitelist;
 
+    /** Path to configurable properties yaml file */
+    private String configurablePropertiesPath;
+
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);
