@@ -49,6 +49,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeMessag
 import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerPropertyUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
@@ -107,6 +109,12 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final String TSA_2_NAME = "TSA 2";
 
+    private static final String PROPERTY_NAME = "xroad.proxy-ui-api.client-timeout";
+
+    private static final String PROPERTY_VALUE = "10000";
+
+    private static final String SCOPE = "proxy-ui-api";
+
     private static final String ANCHOR_HASH =
             "CE2CA4FBBB67260F6CE97F9BCB73501F40432A1A2C4E5DA6F9F50DD1";
 
@@ -150,6 +158,41 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         getSystemCertificate();
     }
 
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = {"NON_CHANGE_SYSTEM_PROPERTY"})
+    public void getConfigurablePropertiesWrongPermissions() {
+        systemApiController.getConfigurableProperties();
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CHANGE_CONFIGURATION_PROPERTY"})
+    public void getConfigurableProperties() {
+        when(configurablePropertiesService.getConfigurationProperties()).thenReturn(Set.of(new SecurityServerConfigurablePropertyDto()));
+        ResponseEntity<Set<SecurityServerConfigurablePropertyDto>> systemProperties = systemApiController.getConfigurableProperties();
+
+        assertEquals(HttpStatus.OK, systemProperties.getStatusCode());
+        assertEquals(1, systemProperties.getBody().size());
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = {"NON_CHANGE_SYSTEM_PROPERTY"})
+    public void updateConfigurablePropertyWrongPermissions() {
+        systemApiController.updateConfigurableProperty(new SecurityServerPropertyUpdateDto());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CHANGE_CONFIGURATION_PROPERTY"})
+    public void updateConfigurableProperty() {
+        var dto = new SecurityServerPropertyUpdateDto();
+        dto.setPropertyValue(PROPERTY_VALUE);
+        dto.setPropertyName(PROPERTY_NAME);
+        dto.setScope(SCOPE);
+
+        ResponseEntity<Void> voidResponseEntity = systemApiController.updateConfigurableProperty(dto);
+
+        assertEquals(HttpStatus.NO_CONTENT, voidResponseEntity.getStatusCode());
+    }
+
     @Test
     @WithMockUser(authorities = {"VIEW_VERSION"})
     public void getVersionInfo() {
@@ -161,18 +204,6 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(33, (long) response.getBody().getJavaVersion());
-    }
-
-    private void getSystemCertificate() throws IOException {
-        X509Certificate x509Certificate = null;
-        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
-            x509Certificate = CryptoUtils.readCertificate(stream);
-        }
-        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
-
-        CertificateDetailsDto certificate =
-                systemApiController.getSystemCertificate().getBody();
-        assertEquals(INTERNAL_CERT_CN, certificate.getIssuerCommonName());
     }
 
     @Test
@@ -427,5 +458,17 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         var response = systemApiController.disableMaintenanceMode();
         assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
         verify(systemService).disableMaintenanceMode();
+    }
+
+    private void getSystemCertificate() throws IOException {
+        X509Certificate x509Certificate = null;
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
+            x509Certificate = CryptoUtils.readCertificate(stream);
+        }
+        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
+
+        CertificateDetailsDto certificate =
+                systemApiController.getSystemCertificate().getBody();
+        assertEquals(INTERNAL_CERT_CN, certificate.getIssuerCommonName());
     }
 }

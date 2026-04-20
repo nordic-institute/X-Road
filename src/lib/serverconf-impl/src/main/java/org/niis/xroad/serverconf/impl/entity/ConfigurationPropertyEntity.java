@@ -24,25 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.serverconf.impl.entity;
 
-package org.niis.xroad.ss.test.ds.api;
+import jakarta.persistence.Access;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import org.niis.xroad.common.jpa.entity.AuditableEntity;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import static jakarta.persistence.AccessType.FIELD;
 
-import java.util.Map;
+@Getter
+@Setter
+@Entity
+@Table(name = ConfigurationPropertyEntity.TABLE_NAME)
+@Access(FIELD)
+public class ConfigurationPropertyEntity extends AuditableEntity {
 
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+    public static final String TABLE_NAME = "configuration_properties";
 
-@FeignClient(name = "issuanceServiceIdentityApi")
-public interface FeignIssuanceServiceIdentityApi {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", unique = true, nullable = false)
+    private Integer id;
 
-    @PostMapping(value = "",
-            produces = {"application/json"}, consumes = {"application/json"})
-    ResponseEntity<Map<String, Object>> createParticipant(@RequestHeader(AUTHORIZATION) String authorization,
-                                                          @RequestBody String body);
+    @Column(name = "property_key", nullable = false, length = 1024)
+    private String propertyKey;
+
+    @Column(name = "property_value", nullable = false, length = 4096)
+    private String propertyValue;
+
+    @Column(name = "scope")
+    private String scope;
 
 }

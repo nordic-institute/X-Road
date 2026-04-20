@@ -1,8 +1,8 @@
 name: Update Gradle Metadata (Dependabot)
 
 # Triggered when Dependabot pushes a Gradle dependency-update branch.
-# Regenerates lockfiles and verification-metadata.xml so that the main
-# build workflow passes strict dependency verification.
+# Regenerates verification-metadata.xml so that the main build workflow
+# passes strict dependency verification.
 # Uses push (not pull_request) so the GITHUB_TOKEN always has write access.
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   update-gradle-metadata:
-    name: Regenerate lockfiles & verification metadata
+    name: Regenerate verification metadata
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -34,37 +34,23 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6
 
-      - name: Update buildSrc lockfiles and verification metadata
-        working-directory: src
+      - name: Regenerate verification metadata
         run: |
-          ./gradlew -p buildSrc \
-            --write-locks \
-            --write-verification-metadata sha256 \
-            --dependency-verification=off \
-            --no-daemon \
-            -q dependencies
-
-      - name: Update main lockfiles and verification metadata
-        working-directory: src
-        run: |
-          ./gradlew \
-            --write-locks \
-            --write-verification-metadata sha256 \
+          bash development/docs/regenerate-verification-metadata.sh \
+            dependencies \
             --dependency-verification=off \
             --no-daemon \
             --parallel \
-            -q dependencies
+            -q
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/gradle/verification-metadata.xml
-          git add src/buildSrc/gradle/verification-metadata.xml
-          find src -name "*.lockfile" -exec git add {} +
           if git diff --staged --quiet; then
-            echo "No changes - lockfiles and verification metadata are already up to date."
+            echo "No changes - verification metadata is already up to date."
           else
-            git commit -m "chore: update Gradle lockfiles and verification metadata [skip ci]"
+            git commit -m "chore: update Gradle verification metadata [skip ci]"
             git push
           fi

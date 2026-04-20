@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,23 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui.container;
+package org.niis.xroad.serverconf.impl.dao;
 
-public final class Port {
-    public static final int
-            UI = 4000,
-            PROXY_HTTP = 8080,
-            DB = 5432,
-            PROXY_HEALTHCHECK = 5558,
-            TEST_CA = 8888,
-            // Quarkus health endpoint port for services
-            QUARKUS_HEALTH = 4099,
-            DS_CONTROL_PLANE_MANAGEMENT = 8182,
-            DS_IDENTITY_HUB_IDENTITY = 8182,
-            DS_ISSUER_SERVICE_ADMIN = 10013,
-            DS_ISSUER_SERVICE_IDENTITY = 8182;
+import org.hibernate.Session;
+import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 
-    private Port() {
+/**
+ * Configuration property data access object implementation.
+ */
+public class ConfigurationPropertyDAOImpl extends AbstractDAOImpl<ConfigurationPropertyEntity> {
+
+    /**
+     * Find a configuration property by its property key.
+     *
+     * @param session     Hibernate session
+     * @param propertyKey the property key
+     * @return Entity object containing the property if found
+     */
+    public ConfigurationPropertyEntity getConfigurationProperty(Session session, String propertyKey, String scope) {
+        return session.createQuery(
+                        "FROM ConfigurationPropertyEntity "
+                                + "WHERE propertyKey = :propertyKey "
+                                + "AND ((:scope IS NULL AND scope IS NULL) OR scope = :scope)",
+                        ConfigurationPropertyEntity.class)
+                .setParameter("propertyKey", propertyKey)
+                .setParameter("scope", scope, String.class)
+                .uniqueResult();
     }
-
 }

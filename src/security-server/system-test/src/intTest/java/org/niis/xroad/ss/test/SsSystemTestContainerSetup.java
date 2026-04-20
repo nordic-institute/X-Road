@@ -63,7 +63,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String OPENBAO = "openbao";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
-    public static final String DS_ISSUANCE_SERVICE = "ds-issuance-service";
+    public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
@@ -96,8 +96,8 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
                 .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY, forListeningPort())
-                .withExposedService(DS_ISSUANCE_SERVICE, Port.DS_ISSUANCE_SERVICE_ADMIN, forListeningPort())
-                .withExposedService(DS_ISSUANCE_SERVICE, Port.DS_ISSUANCE_SERVICE_IDENTITY, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
@@ -110,7 +110,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
                 .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(DS_IDENTITY_HUB))
-                .withLogConsumer(DS_ISSUANCE_SERVICE, createLogConsumer(DS_ISSUANCE_SERVICE));
+                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer(DS_ISSUER_SERVICE));
     }
 
     @Override

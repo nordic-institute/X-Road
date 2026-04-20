@@ -4821,6 +4821,95 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/property:
+    get:
+      tags:
+        - system
+      operationId: getConfigurableProperties
+      summary: Get configurable system parameters.
+      description: <h3>Administrator views Security Server's configurable system parameters</h3>
+      responses:
+        '200':
+          description: List of Security Server configurable properties.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of Security Server configurable properties.
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/SecurityServerConfigurableProperty'
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+
+    patch:
+      tags:
+        - system
+      operationId: updateConfigurableProperty
+      summary: Update configurable property with new property value.
+      description: <h3>Administrator updates selected Security Server's configurable system parameter</h3>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityServerPropertyUpdate'
+      responses:
+        '204':
+          description: property updated successfully
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /system/server-address:
     get:
       tags:
@@ -7727,6 +7816,54 @@ components:
           $ref: '#/components/schemas/SecurityServerAddress'
         requested_change:
           $ref: '#/components/schemas/SecurityServerAddress'
+    SecurityServerConfigurableProperty:
+      type: object
+      description: A single configurable property, including metadata for UI rendering and current value.
+      properties:
+        property_name:
+          type: string
+          format: text
+          description: name of the property
+          minLength: 1
+          maxLength: 1024
+          example: xroad.proxy-ui-api.rate-limit-requests-per-second
+        current_value:
+          type: string
+          format: text
+          description: textual representation of property's current value
+          minLength: 1
+          maxLength: 4096
+        default_value:
+          type: string
+          format: text
+          description: textual representation of property's default value
+        scope:
+          type: string
+          description: scope of the property
+          example: proxy-ui-api
+    SecurityServerPropertyUpdate:
+      type: object
+      description: request object for updating a security server configurable property
+      required:
+       - property_name
+       - property_value
+      properties:
+        property_name:
+          type: string
+          description: name of the property to be updated
+          minLength: 1
+          maxLength: 1024
+          example: xroad.proxy-ui-api.rate-limit-requests-per-second
+        property_value:
+          type: string
+          description: new value of the property
+          minLength: 1
+          maxLength: 4096
+          example: 60
+        scope:
+          type: string
+          description: scope of the property
+          example: proxy-ui-api
     Service:
       type: object
       description: service for the service description

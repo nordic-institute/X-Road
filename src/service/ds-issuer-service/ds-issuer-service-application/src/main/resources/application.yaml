@@ -1,6 +1,6 @@
 quarkus:
   application:
-    name: ds-issuance-service
+    name: ds-issuer-service
   config:
     locations:
       - xroad-common.yaml
@@ -25,7 +25,7 @@ quarkus:
         enabled: false
       file:
         enabled: true
-        path: /var/log/xroad/ds-issuance-service.log
+        path: /var/log/xroad/ds-issuer-service.log
 
 web:
   http:
@@ -54,9 +54,9 @@ edc:
   hostname: ${HOSTNAME}
   datasource:
     default:
-      url: ${xroad.db.ds-issuance-service.hibernate.connection.url}
-      user: ${xroad.db.ds-issuance-service.hibernate.connection.username}
-      password: ${xroad.db.ds-issuance-service.hibernate.connection.password}
+      url: ${xroad.db.ds-issuer-service.hibernate.connection.url}
+      user: ${xroad.db.ds-issuer-service.hibernate.connection.username}
+      password: ${xroad.db.ds-issuer-service.hibernate.connection.password}
   sql:
     schema:
       autocreate: true
