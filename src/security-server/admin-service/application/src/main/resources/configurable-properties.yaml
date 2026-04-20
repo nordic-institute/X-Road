@@ -631,7 +631,7 @@ configurableProperties:
   - propertyName: "xroad.auxiliary-service.backup.encryption-enabled"
     defaultValue: "false"
     scope: "auxiliary-service"
-  - propertyName: "xroad.auxiliary-service.encryption-keyids"
+  - propertyName: "xroad.auxiliary-service.backup.encryption-keyids"
     defaultValue: ""
     scope: "auxiliary-service"
 
