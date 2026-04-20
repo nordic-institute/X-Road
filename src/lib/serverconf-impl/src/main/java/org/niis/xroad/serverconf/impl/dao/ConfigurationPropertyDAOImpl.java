@@ -26,12 +26,13 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
+import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 
 /**
  * Configuration property data access object implementation.
  */
-public class ConfigurationPropertyDAOImpl {
+public class ConfigurationPropertyDAOImpl extends AbstractDAOImpl<ConfigurationPropertyEntity> {
 
     /**
      * Find a configuration property by its property key.

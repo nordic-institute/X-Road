@@ -83,7 +83,7 @@ class ConfigurablePropertiesServiceTest {
         systemParameter.setDefaultValue(DEFAULT_VALUE);
         systemParameter.setScope(SCOPE);
         when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
+        when(repository.findAll()).thenReturn(List.of());
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
         assertEquals(1, systemParameters.size());
@@ -100,9 +100,11 @@ class ConfigurablePropertiesServiceTest {
         systemParameter.setDefaultValue(DEFAULT_VALUE);
         systemParameter.setScope(SCOPE);
         var entity = new ConfigurationPropertyEntity();
+        entity.setPropertyKey(PROPERTY_NAME);
+        entity.setScope(SCOPE);
         entity.setPropertyValue(PROPERTY_VALUE_2);
         when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
+        when(repository.findAll()).thenReturn(List.of(entity));
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
         assertEquals(1, systemParameters.size());
@@ -110,6 +112,26 @@ class ConfigurablePropertiesServiceTest {
         assertCommonConfigurablePropertyDtoFields(parameter);
         assertEquals(SCOPE, parameter.getScope());
         assertEquals(PROPERTY_VALUE_2, parameter.getCurrentValue());
+    }
+
+    @Test
+    void getConfigurationPropertiesFoundInDatabaseScopeIsDifferent() {
+        var systemParameter = new ConfigurablePropertiesDefinition.ConfigurableProperty();
+        systemParameter.setPropertyName(PROPERTY_NAME);
+        systemParameter.setDefaultValue(DEFAULT_VALUE);
+        systemParameter.setScope(SCOPE);
+        var entity = new ConfigurationPropertyEntity();
+        entity.setPropertyKey(PROPERTY_NAME);
+        entity.setPropertyValue(PROPERTY_VALUE_2);
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
+        when(repository.findAll()).thenReturn(List.of(entity));
+
+        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        assertEquals(1, systemParameters.size());
+        SecurityServerConfigurablePropertyDto parameter = systemParameters.iterator().next();
+        assertCommonConfigurablePropertyDtoFields(parameter);
+        assertEquals(SCOPE, parameter.getScope());
+        assertNull(parameter.getCurrentValue());
     }
 
     @Test

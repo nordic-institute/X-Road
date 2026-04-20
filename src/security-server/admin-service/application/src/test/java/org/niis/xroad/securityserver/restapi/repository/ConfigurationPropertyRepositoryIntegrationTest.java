@@ -27,13 +27,17 @@
 package org.niis.xroad.securityserver.restapi.repository;
 
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFacadeMockingTestContext {
@@ -42,12 +46,21 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
     private static final String PROPERTY_VALUE = "10000";
     private static final String PROPERTY_NAME_2 = "xroad.proxy-ui-api.rate-limit-cache-size";
     private static final String PROPERTY_VALUE_2 = "30000";
+    private static final String SCOPE = "proxy-ui-api";
 
     @Autowired
     ConfigurationPropertyRepository configurationPropertyRepository;
 
     @Test
-    public void saveAndFindByPropertyKey() {
+    public void findAll() {
+        List<ConfigurationPropertyEntity> all = configurationPropertyRepository.findAll();
+
+        assertFalse(all.isEmpty());
+        assertEquals(1, all.size());
+    }
+
+    @Test
+    public void findConfigurationPropertyByPropertyKeyAndScope() {
         Optional<ConfigurationPropertyEntity> found =
                 configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, null);
 
@@ -55,8 +68,20 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
         assertEquals(PROPERTY_VALUE, found.get().getPropertyValue());
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+            "xroad.proxy-ui-api.client-timeout,not_found",
+            "not_found,proxy-ui-api"
+    })
+    public void findConfigurationPropertyByPropertyKeyAndScopeNotFound(String propertyName, String scope) {
+        Optional<ConfigurationPropertyEntity> found =
+                configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(propertyName, scope);
+
+        assertTrue(found.isEmpty());
+    }
+
     @Test
-    public void updateExistingPropertyValue() {
+    public void saveOrUpdate() {
         Optional<ConfigurationPropertyEntity> initial =
                 configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, null);
 
@@ -74,7 +99,7 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
     }
 
     @Test
-    public void updatePropertyValueThatDoesNotExist() {
+    public void saveOrUpdateValueThatDoesNotExist() {
         Optional<ConfigurationPropertyEntity> initial =
                 configurationPropertyRepository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME_2, null);
 

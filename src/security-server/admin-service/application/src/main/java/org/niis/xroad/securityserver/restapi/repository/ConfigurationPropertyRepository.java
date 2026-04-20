@@ -36,6 +36,7 @@ import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -51,6 +52,15 @@ public class ConfigurationPropertyRepository extends AbstractRepository<Configur
     private final PersistenceUtils persistenceUtils;
 
     private final ConfigurationPropertyDAOImpl configurationPropertyDAO = new ConfigurationPropertyDAOImpl();
+
+    /**
+     * Find all stored configuration property overrides.
+     *
+     * @return list of all configuration property entities
+     */
+    public List<ConfigurationPropertyEntity> findAll() {
+        return configurationPropertyDAO.findAll(persistenceUtils.getCurrentSession(), ConfigurationPropertyEntity.class);
+    }
 
     /**
      *
