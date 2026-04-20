@@ -60,6 +60,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_FILE_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_FAILED;
@@ -286,6 +288,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         TokensLoggedOutDto tokensLoggedOut = response.getBody();
         assertFalse(tokensLoggedOut.getHsmTokensLoggedOut());
+        verify(applicationRestarter).scheduleRestartIfNeeded();
     }
 
     @Test
@@ -297,6 +300,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         TokensLoggedOutDto tokensLoggedOut = response.getBody();
         assertTrue(tokensLoggedOut.getHsmTokensLoggedOut());
+        verify(applicationRestarter).scheduleRestartIfNeeded();
     }
 
     @Test
@@ -309,6 +313,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         } catch (InternalServerErrorException e) {
             assertEquals(BACKUP_FILE_NOT_FOUND.code(), e.getErrorDeviation().code());
         }
+        verify(applicationRestarter, never()).scheduleRestartIfNeeded();
     }
 
     @Test
@@ -322,5 +327,6 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         } catch (InternalServerErrorException e) {
             assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
         }
+        verify(applicationRestarter, never()).scheduleRestartIfNeeded();
     }
 }

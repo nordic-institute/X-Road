@@ -52,7 +52,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Set;
@@ -72,6 +71,7 @@ public class BackupsApiController implements BackupsApi {
     private final BackupConverter backupConverter;
     private final SecurityServerBackupService backupService;
     private final TokenService tokenService;
+    private final ApplicationRestarter applicationRestarter;
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
@@ -147,27 +147,8 @@ public class BackupsApiController implements BackupsApi {
         } catch (NotFoundException e) {
             throw new InternalServerErrorException(e);
         }
-        scheduleRestartIfNeeded();
+        applicationRestarter.scheduleRestartIfNeeded();
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
-    }
-
-    // In Kubernetes, the auxiliary-service orchestrates all service restarts via kubectl.
-    private void scheduleRestartIfNeeded() {
-        if (System.getenv("KUBERNETES_SERVICE_HOST") != null) {
-            log.info("Kubernetes environment detected — proxy-ui-api restart is handled by auxiliary-service");
-            return;
-        }
-        log.info("Scheduling Proxy UI restart after backup restore");
-        Thread.ofVirtual().start(() -> {
-            try {
-                Thread.sleep(Duration.ofSeconds(DELAY_FOR_RESPONSE));
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-            log.info("Shutting down Proxy UI for restart after backup restore");
-            System.exit(1);
-        });
     }
 
 }
