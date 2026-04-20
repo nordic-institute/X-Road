@@ -24,33 +24,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.proxy.core.healthcheck;
 
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
 
-/**
- * No-op {@link HealthCheckPort} used when the legacy Jetty health-check port is disabled
- * (i.e. {@code xroad.proxy.health-check-port <= 0}).
- * <p>
- * Unlike a true no-op, {@link #setMaintenanceMode(boolean)} still delegates to the shared
- * {@link MaintenanceModeState} bean — maintenance mode is a process-wide flag observed by
- * the SmallRye {@code /q/health/ready} route filter even when the legacy port is off. As a
- * result {@link #isEnabled()} returns {@code true}: the {@code AdminPort /maintenance} command
- * is functional against this implementation.
- */
-@RequiredArgsConstructor
-public class NoopHealthCheckPort implements HealthCheckPort {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private final MaintenanceModeState maintenanceModeState;
+class MaintenanceModeStateTest {
 
-    @Override
-    public String setMaintenanceMode(boolean targetState) {
-        return maintenanceModeState.setMaintenanceMode(targetState);
+    @Test
+    void defaultsToOff() {
+        MaintenanceModeState state = new MaintenanceModeState();
+
+        assertThat(state.isMaintenanceMode()).isFalse();
     }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
+    @Test
+    void setMaintenanceModeTrueReturnsTransitionMessage() {
+        MaintenanceModeState state = new MaintenanceModeState();
+
+        String message = state.setMaintenanceMode(true);
+
+        assertThat(message).isEqualTo("Maintenance mode set: false => true");
+        assertThat(state.isMaintenanceMode()).isTrue();
+    }
+
+    @Test
+    void setMaintenanceModeFalseAfterTrueReturnsTransition() {
+        MaintenanceModeState state = new MaintenanceModeState();
+        state.setMaintenanceMode(true);
+
+        String message = state.setMaintenanceMode(false);
+
+        assertThat(message).isEqualTo("Maintenance mode set: true => false");
+        assertThat(state.isMaintenanceMode()).isFalse();
+    }
+
+    @Test
+    void repeatedSetToSameValueStillReturnsTransitionMessage() {
+        MaintenanceModeState state = new MaintenanceModeState();
+        state.setMaintenanceMode(true);
+
+        String message = state.setMaintenanceMode(true);
+
+        assertThat(message).isEqualTo("Maintenance mode set: true => true");
+        assertThat(state.isMaintenanceMode()).isTrue();
     }
 }

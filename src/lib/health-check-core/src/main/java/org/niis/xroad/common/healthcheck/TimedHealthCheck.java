@@ -87,7 +87,7 @@ public final class TimedHealthCheck implements HealthCheck {
         try {
             return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
-            // D-07: abandon-and-let-run — do NOT interrupt the wrapped thread.
+            // abandon-and-let-run — do NOT interrupt the wrapped thread.
             future.cancel(false);
             return HealthCheckResponse.named(nameOrFallback())
                     .down()

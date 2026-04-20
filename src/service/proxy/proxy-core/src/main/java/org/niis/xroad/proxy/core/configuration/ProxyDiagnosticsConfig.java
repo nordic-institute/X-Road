@@ -37,6 +37,7 @@ import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
 import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
+import org.niis.xroad.proxy.core.healthcheck.MaintenanceModeState;
 import org.niis.xroad.proxy.core.healthcheck.NoopHealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 
@@ -56,13 +57,14 @@ public class ProxyDiagnosticsConfig {
         @Startup
         @ArchUnitSuppressed("NoVanillaExceptions")
         HealthCheckPort healthCheckPort(ProxyProperties proxyProperties,
-                                        HealthChecks healthChecks) throws Exception {
+                                        HealthChecks healthChecks,
+                                        MaintenanceModeState maintenanceModeState) throws Exception {
             if (proxyProperties.healthCheckPort() > 0) {
-                HealthCheckPortImpl healthCheckPort = new HealthCheckPortImpl(healthChecks, proxyProperties);
+                HealthCheckPortImpl healthCheckPort = new HealthCheckPortImpl(healthChecks, proxyProperties, maintenanceModeState);
                 healthCheckPort.init();
                 return healthCheckPort;
             } else {
-                return new NoopHealthCheckPort();
+                return new NoopHealthCheckPort(maintenanceModeState);
             }
         }
 

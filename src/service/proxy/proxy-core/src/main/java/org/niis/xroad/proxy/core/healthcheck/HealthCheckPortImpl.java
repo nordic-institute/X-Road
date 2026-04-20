@@ -41,8 +41,6 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 import static org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503;
@@ -64,22 +62,25 @@ public class HealthCheckPortImpl implements HealthCheckPort {
     private final Server server;
     private final StoppableHealthCheckProvider stoppableHealthCheckProvider;
     private final int portNumber;
-    private final AtomicBoolean maintenanceMode = new AtomicBoolean(false);
+    private final MaintenanceModeState maintenanceModeState;
 
     /**
      * Create a new {@link HealthCheckPortImpl}.
      */
-    public HealthCheckPortImpl(HealthChecks healthChecks, ProxyProperties proxyProperties) {
+    public HealthCheckPortImpl(HealthChecks healthChecks, ProxyProperties proxyProperties, MaintenanceModeState maintenanceModeState) {
         server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
         stoppableHealthCheckProvider = new StoppableCombinationHealthCheckProvider(healthChecks, proxyProperties.hsmHealthCheckEnabled());
         portNumber = proxyProperties.healthCheckPort();
+        this.maintenanceModeState = maintenanceModeState;
         createHealthCheckConnector(proxyProperties.healthCheckInterface());
     }
 
-    public HealthCheckPortImpl(StoppableHealthCheckProvider testProvider, int testPort, String healthCheckInterface) {
+    public HealthCheckPortImpl(StoppableHealthCheckProvider testProvider, int testPort, String healthCheckInterface,
+                               MaintenanceModeState maintenanceModeState) {
         server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
         stoppableHealthCheckProvider = testProvider;
         portNumber = testPort;
+        this.maintenanceModeState = maintenanceModeState;
         createHealthCheckConnector(healthCheckInterface);
     }
 
@@ -109,15 +110,11 @@ public class HealthCheckPortImpl implements HealthCheckPort {
      */
     @Override
     public String setMaintenanceMode(boolean targetState) {
-        boolean oldValue = maintenanceMode.getAndSet(targetState);
-        return "Maintenance mode set: "
-                + oldValue
-                + " => "
-                + targetState;
+        return maintenanceModeState.setMaintenanceMode(targetState);
     }
 
     public boolean isMaintenanceMode() {
-        return maintenanceMode.get();
+        return maintenanceModeState.isMaintenanceMode();
     }
 
     @ArchUnitSuppressed("NoVanillaExceptions")

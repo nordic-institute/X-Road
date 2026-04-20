@@ -41,6 +41,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckResult;
+import org.niis.xroad.proxy.core.healthcheck.MaintenanceModeState;
 import org.niis.xroad.proxy.core.healthcheck.StoppableCombinationHealthCheckProvider;
 import org.niis.xroad.proxy.core.healthcheck.StoppableHealthCheckProvider;
 
@@ -88,7 +89,7 @@ public class MaintenanceModeTest {
         testClient = HttpClients.createDefault();
 
         testProvider = mock(StoppableCombinationHealthCheckProvider.class);
-        testPort = new HealthCheckPortImpl(testProvider, TEST_PORT_NUMBER, "0.0.0.0");
+        testPort = new HealthCheckPortImpl(testProvider, TEST_PORT_NUMBER, "0.0.0.0", new MaintenanceModeState());
         testPort.init();
     }
 
