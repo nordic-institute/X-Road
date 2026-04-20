@@ -182,15 +182,28 @@
       "messageLogDisabled": "Konfiguratsiooniga blokeeritud"
     },
     "connection": {
+      "ok": "Kõik on korras",
+      "test": "Test",
       "centralServer": {
-        "authCertRequest": "Autentimise sertifikaadid registreerimise teenus",
+        "authCertRequest": "Autentimise sertifikaadi registreerimise teenus",
         "globalConf": "Globaalse konfiguratsiooni allalaadimine",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
         "title": "Keskserver"
       },
-      "ok": "Kõik on korras",
-      "test": "Test"
+      "management": {
+        "title": "Haldusteenuse pakkuja"
+      },
+      "securityServer": {
+        "client": "Klient",
+        "sourceClient": "Lähteklient",
+        "rest": "REST",
+        "securityServer": "Turvaserver",
+        "soap": "SOAP",
+        "title": "Teine turvaserver",
+        "target": "Teine klient",
+        "targetClient": "Klient"
+      }
     },
     "costType": "Hinna tüüp",
     "downloadReport": "Salvesta Diagnostika Raport",
@@ -339,34 +352,7 @@
       "statusInfo": "Edukad või ebaõnnestunud päringud",
       "success": "Edukas",
       "successfulRequests": "Edukad päringud",
-      "time": "Kell",
-      "failedRequests": "Ebaõnnestunud päringud",
-      "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
-      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring)."
-    },
-    "connection": {
-      "ok": "Kõik on korras",
-      "test": "Test",
-      "centralServer": {
-        "authCertRequest": "Autentimise sertifikaadi registreerimise teenus",
-        "globalConf": "Globaalse konfiguratsiooni allalaadimine",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "title": "Keskserver"
-      },
-      "management": {
-        "title": "Haldusteenuse pakkuja"
-      },
-      "securityServer": {
-        "client": "Klient",
-        "sourceClient": "Lähteklient",
-        "rest": "REST",
-        "securityServer":  "Turvaserver",
-        "soap": "SOAP",
-        "title": "Teine turvaserver",
-        "target": "Teine klient",
-        "targetClient": "Klient"
-      }
+      "time": "Kell"
     }
   },
   "endpoints": {
@@ -988,74 +974,13 @@
       },
       "title": "Ajatempli teenused"
     },
-    "title": "Süsteemi parameetrid"
-  },
-  "tab": {
-    "client": {
-      "details": "Detailid",
-      "internalServers": "Sisemised serverid",
-      "localGroups": "Lokaalsed rühmad",
-      "serviceClients": "Teenuse kliendid",
-      "services": "Teenused"
-    },
-    "diagnostics": {
-      "connectionTesting": "Ühenduste testimine",
-      "overview": "Ülevaade",
-      "traffic": "Päringute statistika"
-    },
-    "keys": {
-      "apiKey": "API võtmed",
-      "signAndAuthKeys": "SIGN- ja AUTH-võtmed",
-      "ssTlsCertificate": "Turvaserveri TLS-võti"
-    },
-    "main": {
-      "clients": "Kliendid",
-      "diagnostics": "Diagnostika",
-      "keys": "Võtmed ja sertifikaadid",
-      "settings": "Seaded"
-    },
-    "services": {
-      "endpoints": "Otspunktid",
-      "parameters": "Teenuse parameetrid"
-    },
-    "settings": {
-      "backupAndRestore": "Varundamine ja taastamine",
-      "systemParameters": "Süsteemi parameetrid"
-    }
-  },
-  "tlsCertificates": {
-    "generateCsr": {
-      "example": "CN=mysecurityserver.example.com, O=Minu organisatsioon, C=EE"
-    },
-    "generateKey": {
-      "confirmation": "Kas luua uus turvaserveri TLS võti ja sertifikaat?",
-      "explanation": "Süsteem loob uue turvaserveri TLS võtme ja endasigneeritud sertifikaadi, asendades olemasoleva võtme ja sertifikaadi.",
-      "success": "Uus turvaserveri TLS võti ja sertifikaat edukalt loodud",
-      "title": "Turvaserveri TLS võti"
-    },
-    "key": "TLS võti ja sertifikaat",
-    "title": "Turvaserveri TLS võti",
-    "uploadCertificate": {
-      "success": "Sertifikaat imporditud"
-    }
-  },
-  "token": {
-    "changePin": "Muuda PIN",
-    "pinChanged": "Krüptomooduli PIN-koodi muudeti – logige Krüptomoodulisse sisse uue PIN-koodiga",
-    "tokenPinPolicy": "Tarkvaralise krüptomooduli PIN-kood peab sisaldama vähemalt 10 ASCII märki vähemalt kolmest märgiklassist (väiketähed, suurtähed, numbrid, erimärgid).",
-    "tokenPinPolicyHeader": "Krüptomooduli PIN-koodi poliitika on lubatud."
-  },
-  "toolbar": {
-    "securityServerNodeType": {
-      "PRIMARY": "Primaarne õlg",
-      "SECONDARY": "Sekundaarne õlg",
-      "undefined": ""
-    },
+    "title": "Süsteemi parameetrid",
     "configurableProperties": {
       "title": "Konfigureeritavad süsteemi omadused",
       "search": "Otsi omadusi...",
       "restartWarning": "Muudatuste jõustumiseks tuleb järgmised teenused taaskäivitada: {scopes}.",
       "propertyRestartWarning": "Muudatuste jõustumiseks on vajalik taaskäivitamine.",
+      "collapseAll": "Ahenda kõik",
       "updateSuccess": "Omadus edukalt uuendatud",
       "editDialog": {
         "title": "Muuda omaduse väärtust"
@@ -1094,7 +1019,7 @@
             "mail-notification-locale": "Meiliteadete lokaat, mis määrab teadete keele.",
             "acme-renewal-active": "Kui lubatud, käivitatakse ACME automaatse sertifikaadi uuendamise töö perioodiliselt.",
             "acme-renewal-retry-delay": "Sekundite arv automaatsete ACME sertifikaadi uuendamiskatsete vahel, kui viimane katse ebaõnnestus.",
-            "acme-renewal-internal": "Sekundid ACME uuendamise kontrolltsüklite vahel.",
+            "acme-renewal-interval": "Sekundid ACME uuendamise kontrolltsüklite vahel.",
             "acme-renewal-time-before-expiration-date": "Millal käivitada järgmine automaatne uuendamine. Lahutatakse päevades sertifikaadi aegumiskuupäevast. Kasutatakse juhul, kui ACME serverist ei ole võimalik ACME uuendamisteavet saada.",
             "acme-keypair-renewal-time-before-expiration-date": "Millal käivitada automaatne ACME konto võtmepaari uuendamine, lahutatakse päevades sertifikaadi aegumiskuupäevast.",
             "automatic-activate-acme-sign-certificate": "Kui lubatud, aktiveeritakse allkirjastamissertifikaadid automaatselt, kui need on ACME kaudu tellitud (uus või uuendamine).",
@@ -1136,6 +1061,7 @@
             "health-check-port": "TCP port, kus tervisekontrolli teenus kuulab päringuid. Pordi seadistamine väärtusele 0 keelab tervisekontrolli teenuse täielikult.",
             "health-check-interface": "Võrguliides, kus tervisekontrolli teenus kuulab päringuid. Vaikimisi kõik saadaolevad liidesed.",
             "hsm-health-check-enabled": "Kui lubatud, kontrollib tervisekontrolli lõpp-punkt ka HSM kättesaadavust.",
+            "memory-usage-threshold": "Maksimaalne lubatud protsent (0-100) puhverserveri mälukasutusest enne tervisekontrolli ebaõnnestumist. Keelamiseks jäta tühjaks.",
             "message-sign-digest-name": "Räsialgoritm, mida kasutatakse X-Road sõnumite allkirjastamiseks.",
             "verify-client-cert": "Kui lubatud, kontrollib serveri puhverserver kliendi puhverserveri TLS sertifikaati.",
             "log-client-cert": "Kas logida kliendi sertifikaadi teema teavet.",
@@ -1169,7 +1095,8 @@
               "listen-port": "TCP port, millel teenusepakkuja turvaserver kuulab teenuse kliendi turvaserveri ühendusi.",
               "connector-initial-idle-time": "Esialgne jõudeaeg (millisekundites), mille jooksul autentimata ühendused võivad olla jõude, enne kui pakkujapoolne turvaserver hakkab neid sulgema. Väärtus 0 tähendab, et lõputu jõudeaeg on lubatud.",
               "jetty-configuration-file": "Jetty konfiguratsioonifaili absoluutne failinimi teenusepakkuja turvaserveri jaoks. Lisateavet Jetty serveri konfigureerimise kohta vaadake aadressilt https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
-              "support-clients-pooled-connections": "Kas see teenust pakkuv turvaserver toetab basseinitud ühendusi teenuse tarbijapoolelt. Kui seadistatud väärtusele false, suletakse ühendused kohe pärast iga sõnumit. See võib olla soovitud lähenemine koormuse tasakaalustajate taga asuvatele turvaserveritele."
+              "support-clients-pooled-connections": "Kas see teenust pakkuv turvaserver toetab basseinitud ühendusi teenuse tarbijapoolelt. Kui seadistatud väärtusele false, suletakse ühendused kohe pärast iga sõnumit. See võib olla soovitud lähenemine koormuse tasakaalustajate taga asuvatele turvaserveritele.",
+              "min-supported-client-version": "Minimaalne kliendi turvaserveri versioon, millel on lubatud selle pakkuja teenuseid kutsuda. Vanematest versioonidest pärit päringud lükatakse tagasi. Kõigi versioonide lubamiseks jäta tühjaks."
             },
             "ocsp-responder": {
               "listen-address": "IP-aadress, millel teenusepakkuja turvaserver kuulab OCSP vastuste päringuid teenuse kliendi turvaserverilt. Teenuse kliendi turvaserver laadib OCSP vastused alla teenusepakkuja turvaserverilt, luues turvaserverite vahelist turvalist ühendust. Väärtus 0.0.0.0 lubab kuulata kõigil IPv4 liidestel. Peab ühtima väärtusega proxy.server-listen-address.",
@@ -1179,8 +1106,12 @@
               "jetty-configuration-file": "Jetty konfiguratsioonifaili absoluutne failinimi teenusepakkuja turvaserveri OCSP vastaja jaoks. Lisateavet Jetty serveri konfigureerimise kohta vaadake aadressilt https://www.eclipse.org/jetty/documentation/jetty-9/index.html."
             },
             "addon": {
-              "proxy-monitor": { "enabled": "Luba puhverserveri monitooringu lisandmoodul." },
-              "meta-services": { "enabled": "Luba metateenuste lisandmoodul." },
+              "proxy-monitor": {
+                "enabled": "Luba puhverserveri monitooringu lisandmoodul."
+              },
+              "meta-services": {
+                "enabled": "Luba metateenuste lisandmoodul."
+              },
               "op-monitor": {
                 "enabled": "Luba operatsioonide monitooringu lisandmoodul.",
                 "buffer": {
@@ -1345,6 +1276,11 @@
                 "host": "Hostinimi abiteenuse gRPC serveriga ühendumiseks.",
                 "port": "Port abiteenuse gRPC serveriga ühendumiseks.",
                 "deadline-after": "Millisekundid enne abiteenusele tehtava gRPC kõne aegumist."
+              },
+              "op-monitor": {
+                "host": "Hostinimi operatsioonide monitooringu deemoni gRPC serveriga ühendumiseks.",
+                "port": "Port operatsioonide monitooringu deemoni gRPC serveriga ühendumiseks.",
+                "deadline-after": "Millisekundid enne operatsioonide monitooringu deemonile tehtava gRPC kõne aegumist."
               }
             }
           },
@@ -1375,9 +1311,9 @@
               "restore-script-path": "Tee varukoopia taastamise skriptile.",
               "generate-gpg-keypair-path": "Tee skriptile, mis genereerib GPG võtmepaari varukoopia krüptimiseks.",
               "gpgkeys-home": "Kaust, mida kasutatakse GNUPGHOME-na varukoopia GPG operatsioonide jaoks.",
-              "encryption-enabled": "Kui lubatud, krüpteeritakse varukoopiate arhiivid GPG-ga."
+              "encryption-enabled": "Kui lubatud, krüpteeritakse varukoopiate arhiivid GPG-ga.",
+              "encryption-keyids": "Komaga eraldatud GPG võtmete ID-d, mida kasutatakse varukoopiate arhiivide krüptimiseks."
             },
-            "encryption-keyids": "Komaga eraldatud GPG võtmete ID-d, mida kasutatakse varukoopiate arhiivide krüptimiseks.",
             "rpc": {
               "enabled": "Luba abiteenuse gRPC server.",
               "listen-address": "IP-aadress, millel abiteenuse gRPC server kuulab.",
@@ -1398,9 +1334,121 @@
               "clean-cron": "Cron-avaldis, mis määrab, millal vanad sõnumilogi kirjed puhastatakse.",
               "command-path": "Tee sõnumilogi arhiveerimise täidetavale failile."
             }
+          },
+          "op-monitor": {
+            "listen-address": "IP-aadress, millel operatsioonide monitooringu deemon kuulab.",
+            "port": "TCP port, millel operatsioonide monitooringu deemon kuulab.",
+            "scheme": "Operatsioonide monitooringu deemoni URI skeem. Võimalikud väärtused on http ja https.",
+            "xroad-tls-ciphers": "TLS šifrid (komaga eraldatud loend eelistatud järjekorras), mida aktsepteeritakse operatsioonide monitooringu deemoniga ühenduste korral.",
+            "keep-records-for-days": "Päevade arv, mille jooksul operatsioonide monitooringu kirjeid säilitatakse enne nende kustutamist.",
+            "clean-interval": "Cron expression, mis määrab, millal vanad operatsioonide monitooringu kirjed puhastatakse.",
+            "max-records-in-payload": "Maksimaalne operatsioonide monitooringu kirjete arv, mis tagastatakse ühe vastuse andmekoormas.",
+            "records-available-timestamp-offset-seconds": "Nihe sekundites, mis lahutatakse praegusest ajast saadaolevate kirjete ülempiiri määramisel.",
+            "health-statistics-period-seconds": "Periood sekundites, mille jooksul tervisemõõdikuid koondatakse.",
+            "rpc": {
+              "enabled": "Luba operatsioonide monitooringu deemoni gRPC server.",
+              "listen-address": "IP-aadress, millel operatsioonide monitooringu deemoni gRPC server kuulab.",
+              "port": "Port, millel operatsioonide monitooringu deemoni gRPC server kuulab."
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Vault PKI rolli nimi, mida kasutatakse operatsioonide monitooringu deemoni TLS sertifikaadi ettevalmistamisel.",
+                "common-name": "Ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaadile seatud üldnimi.",
+                "alt-names": "DNS-i teema alternatiivsed nimed, mis on lisatud ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaati.",
+                "ip-subject-alt-names": "IP teema alternatiivsed nimed, mis on lisatud ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaati.",
+                "ttl": "Ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaadi eluiga (nt 3650D).",
+                "secret-store-pki-path": "Vault PKI saladuste mootori ühenduspunkt operatsioonide monitooringu deemoni TLS sertifikaadi ettevalmistamiseks."
+              },
+              "client-certificate-refresh-interval": "Intervall, millega operatsioonide monitooringu deemon uuendab oma kliendi TLS sertifikaati (nt 0S keelamiseks)."
+            }
+          },
+          "message-log-archiver": {
+            "clean-transaction-batch-size": "Maksimaalne sõnumilogi kirjete arv, mis eemaldatakse ühe andmebaasitehinguga puhastamise käigus.",
+            "clean-keep-records-for": "Päevade arv, mille jooksul arhiveeritud sõnumilogi kirjeid säilitatakse enne nende kustutamist.",
+            "max-filesize": "Ühe sõnumilogi arhiivifaili maksimaalne suurus baitides.",
+            "transaction-batch-size": "Sõnumilogi kirjete arv, mida töödeldakse ühe arhiveerimistehingu paketis.",
+            "archive-path": "Absoluutne tee kaustani, kuhu arhiveeritud sõnumilogi failid salvestatakse.",
+            "archive-transfer-command": "Shellikäsk, mis käivitatakse pärast iga arhiveerimist arhiivifailide edastamiseks (nt kaugmällu). Keelamiseks jäta tühjaks.",
+            "hash-algo-id": "Räsialgoritmi identifikaator, mida kasutatakse sõnumilogi arhiivis räsimisel. Võimalikud väärtused on SHA-224, SHA-256, SHA-384, SHA-512."
+          },
+          "message-log-encryption": {
+            "archive": {
+              "encryption-enabled": "Kui lubatud, krüpteeritakse sõnumilogi arhiivifailid OpenPGP (GnuPG) abil.",
+              "default-key-id": "Vaikimisi OpenPGP võtme ID, mida kasutatakse sõnumilogi arhiivifailide krüptimiseks, kui liikme-spetsiifilist võtit ei ole seadistatud.",
+              "grouping-strategy": "Strateegia kirjete grupeerimiseks arhiivifailidesse. Võimalikud väärtused: NONE (grupeerimine puudub), MEMBER (grupeeri liikme järgi), SUBSYSTEM (grupeeri alasüsteemi järgi)."
+            },
+            "db": {
+              "encryption-enabled": "Kui lubatud, salvestatakse sõnumite kehad andmebaasi krüptitud kujul.",
+              "key-id": "Andmebaasitasemel sõnumilogi krüptimiseks kasutatava krüptimisvõtme identifikaator."
+            }
+          },
+          "common": {
+            "temp-files-path": "Absoluutne tee kaustani, kuhu ajutised failid salvestatakse."
           }
         }
       }
+    }
+  },
+  "tab": {
+    "client": {
+      "details": "Detailid",
+      "internalServers": "Sisemised serverid",
+      "localGroups": "Lokaalsed rühmad",
+      "serviceClients": "Teenuse kliendid",
+      "services": "Teenused"
+    },
+    "diagnostics": {
+      "connectionTesting": "Ühenduste testimine",
+      "overview": "Ülevaade",
+      "traffic": "Päringute statistika"
+    },
+    "keys": {
+      "apiKey": "API võtmed",
+      "signAndAuthKeys": "SIGN- ja AUTH-võtmed",
+      "ssTlsCertificate": "Turvaserveri TLS-võti"
+    },
+    "main": {
+      "clients": "Kliendid",
+      "diagnostics": "Diagnostika",
+      "keys": "Võtmed ja sertifikaadid",
+      "settings": "Seaded"
+    },
+    "services": {
+      "endpoints": "Otspunktid",
+      "parameters": "Teenuse parameetrid"
+    },
+    "settings": {
+      "backupAndRestore": "Varundamine ja taastamine",
+      "systemParameters": "Süsteemi parameetrid"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN=mysecurityserver.example.com, O=Minu organisatsioon, C=EE"
+    },
+    "generateKey": {
+      "confirmation": "Kas luua uus turvaserveri TLS võti ja sertifikaat?",
+      "explanation": "Süsteem loob uue turvaserveri TLS võtme ja endasigneeritud sertifikaadi, asendades olemasoleva võtme ja sertifikaadi.",
+      "success": "Uus turvaserveri TLS võti ja sertifikaat edukalt loodud",
+      "title": "Turvaserveri TLS võti"
+    },
+    "key": "TLS võti ja sertifikaat",
+    "title": "Turvaserveri TLS võti",
+    "uploadCertificate": {
+      "success": "Sertifikaat imporditud"
+    }
+  },
+  "token": {
+    "changePin": "Muuda PIN",
+    "pinChanged": "Krüptomooduli PIN-koodi muudeti – logige Krüptomoodulisse sisse uue PIN-koodiga",
+    "tokenPinPolicy": "Tarkvaralise krüptomooduli PIN-kood peab sisaldama vähemalt 10 ASCII märki vähemalt kolmest märgiklassist (väiketähed, suurtähed, numbrid, erimärgid).",
+    "tokenPinPolicyHeader": "Krüptomooduli PIN-koodi poliitika on lubatud."
+  },
+  "toolbar": {
+    "securityServerNodeType": {
+      "PRIMARY": "Primaarne õlg",
+      "SECONDARY": "Sekundaarne õlg",
+      "undefined": ""
     }
   },
   "validationError": {

@@ -165,15 +165,28 @@
       "messageLogDisabled": "Konfigurasiýa tarapyndan öçürilendir"
     },
     "connection": {
+      "ok": "Hemmesi tertipde",
+      "test": "Test",
       "centralServer": {
-        "authCertRequest": "Kimlik doğrulama sertifikası kayıt servisi",
-        "globalConf": "Küresel yapılandırma indirme",
+        "authCertRequest": "Tassyklama şahadatnamasy üçin hasaba alyş gullugy",
+        "globalConf": "Global konfigurasiýany ýükläp almak",
         "globalConfHttp": "http",
         "globalConfHttps": "https",
-        "title": "Merkezi Sunucu"
+        "title": "Merkezi serwer"
       },
-      "ok": "Her şey yolunda",
-      "test": "Test"
+      "management": {
+        "title": "Dolandyryş howpsuzlyk serweri"
+      },
+      "securityServer": {
+        "client": "Müşderi",
+        "sourceClient": "Çeşme müşderi",
+        "rest": "REST",
+        "securityServer": "Howpsuzlyk serweri",
+        "soap": "SOAP",
+        "title": "Beýleki howpsuzlyk serweri",
+        "target": "Maksat",
+        "targetClient": "Maksat müşderi"
+      }
     },
     "costType": "Gurluş görnüşi",
     "encryption": {
@@ -268,34 +281,7 @@
       "statusInfo": "Habar alyş-çalyşynyň statusy",
       "success": "Üstünlik",
       "successfulRequests": "Üstünlikli talaplar",
-      "time": "Wagt",
-      "failedRequests": "Şowsuz talaplar",
-      "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
-      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň."
-    },
-    "connection": {
-      "ok": "Hemmesi tertipde",
-      "test": "Test",
-      "centralServer": {
-        "authCertRequest": "Tassyklama şahadatnamasy üçin hasaba alyş gullugy",
-        "globalConf": "Global konfigurasiýany ýükläp almak",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "title": "Merkezi serwer"
-      },
-      "management": {
-        "title": "Dolandyryş howpsuzlyk serweri"
-      },
-      "securityServer": {
-        "client": "Müşderi",
-        "sourceClient": "Çeşme müşderi",
-        "rest": "REST",
-        "securityServer": "Howpsuzlyk serweri",
-        "soap": "SOAP",
-        "title": "Beýleki howpsuzlyk serweri",
-        "target": "Maksat",
-        "targetClient": "Maksat müşderi"
-      }
+      "time": "Wagt"
     }
   },
   "endpoints": {
@@ -909,74 +895,13 @@
       },
       "title": "Wagt belleme gulluklary"
     },
-    "title": "Ulgam parametrleri"
-  },
-  "tab": {
-    "client": {
-      "details": "Jikme-jikleri",
-      "internalServers": "Içki serwerler",
-      "localGroups": "Ýerli toparlar",
-      "serviceClients": "Müşderileriň gullugy",
-      "services": "Gulluklary"
-    },
-    "diagnostics": {
-      "connectionTesting": "Bağlantı testi",
-      "overview": "Syn",
-      "traffic": "Trafik"
-    },
-    "keys": {
-      "apiKey": "API açarlary",
-      "signAndAuthKeys": "SIGN we AUTH açarlary",
-      "ssTlsCertificate": "Howpsuz serweriň TLS açary"
-    },
-    "main": {
-      "clients": "Müşderiler",
-      "diagnostics": "Diagnostikalar",
-      "keys": "Açarlar we şahadatnamalar",
-      "settings": "Sazlamalar"
-    },
-    "services": {
-      "endpoints": "Ahyrky nokatlar",
-      "parameters": "Gullugyň parametrleri"
-    },
-    "settings": {
-      "backupAndRestore": "Ätiýaçlyk nusgasy we Dikeltme",
-      "systemParameters": "Ulgam parametrleri"
-    }
-  },
-  "tlsCertificates": {
-    "generateCsr": {
-      "example": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
-    },
-    "generateKey": {
-      "confirmation": "Täze Howpsuzlyk Serweriň TLS açaryny we şahadatnamasyny döretmelimi? ",
-      "explanation": "Ulgam, bar bolan açaryň we şahadatnamanyň ýerine täze Howpsuzlyk Serweriň TLS açaryny we öz-özüne gol çekilen şahadatnamany döreder.",
-      "success": "Täze Howpsuzlyk Serweriň TLS açary we şahadatnamasy üstünlikli döredildi",
-      "title": "Howpsuzlyk serweriň TLS açary"
-    },
-    "key": "TLS açary we şahadatnamasy",
-    "title": "Howpsuzlyk serweriň TLS açary",
-    "uploadCertificate": {
-      "success": "Şahadatnama import edildi"
-    }
-  },
-  "token": {
-    "changePin": "Pin çalyş",
-    "pinChanged": "Token pin çalyşyryldy  – tokene täze pin bilen girmegiňizi haýyş edýäris",
-    "tokenPinPolicy": "Programma tokeniň PIN-inde iň azyndan üç klass nyşanlaryndan (kiçi harplar, baş harplar, sanlar, ýörite nyşanlar) azyndan 10 ASCII nyşan bolmaly.",
-    "tokenPinPolicyHeader": "Tokeniň PIN syýasaty işe girizildi."
-  },
-  "toolbar": {
-    "securityServerNodeType": {
-      "PRIMARY": "Esasy düwün",
-      "SECONDARY": "Ikinji düwün",
-      "undefined": ""
-    },
+    "title": "Ulgam parametrleri",
     "configurableProperties": {
       "title": "Sazlanylýan ulgam häsiýetleri",
       "search": "Häsiýetleri gözle...",
       "restartWarning": "Üýtgetmeleriň güýje girmegi üçin şu hyzmatlar täzeden başladylmaly: {scopes}.",
       "propertyRestartWarning": "Üýtgetmeleriň güýje girmegi üçin täzeden başlatmak talap edilýär.",
+      "collapseAll": "Hemmesini ýyg",
       "updateSuccess": "Häsiýet üstünlikli täzelendi",
       "editDialog": {
         "title": "Häsiýetiň bahasyny redaktirle"
@@ -1015,7 +940,7 @@
             "mail-notification-locale": "Poçta habarlary üçin dil, bildirişleriň dilini kesgitleýär.",
             "acme-renewal-active": "Işe girizilende, ACME awtomatiki şahadatnama täzeleme işi döwürleýin işleýär.",
             "acme-renewal-retry-delay": "Soňky ylga şowsuz bolan ýagdaýynda awtomatiki ACME şahadatnamasy täzeleme ylgalarynyň arasynda sekuntlaryň sany.",
-            "acme-renewal-internal": "ACME täzeleme barlag aýlawlarynyň arasynda sekuntlar.",
+            "acme-renewal-interval": "ACME täzeleme barlag aýlawlarynyň arasynda sekuntlar.",
             "acme-renewal-time-before-expiration-date": "Indiki awtomatiki täzelemegiň haçan başlajakdygyny kesgitleýär. Şahadatnamanyň möhletiniň gutarma senesinden gün hökmünde aýyrylýar. ACME serwerinden täzeleme maglumatyny almak mümkin bolmadyk ýagdaýynda ulanylýar.",
             "acme-keypair-renewal-time-before-expiration-date": "ACME hasap açar jübüti awtomatiki täzelegini haçan başlatjakdygyny kesgitleýär, şahadatnamanyň möhletiniň gutarma senesinden gün hökmünde aýyrylýar.",
             "automatic-activate-acme-sign-certificate": "Işe girizilende, gol çekme şahadatnamalary ACME arkaly sargyt edilenden soň awtomatiki işe girizilýär (täze ýa-da täzeleme).",
@@ -1057,6 +982,7 @@
             "health-check-port": "Saglyk barlag gullugynyň soraglary diňleýän TCP porty. Porty 0 etmek saglyk barlag gullugy doly öçürýär.",
             "health-check-interface": "Saglyk barlag gullugynyň soraglary diňleýän tor araýüzi. Deslapky ähli elýeterli araýüzlerdir.",
             "hsm-health-check-enabled": "Işe girizilende, saglyk barlag nokatynda HSM elýeterliligini hem barlaýar.",
+            "memory-usage-threshold": "Saglyk barlagy şowsuzlyga başlamazdan öň rugsat berilen proksi hakyda ulanylyşynyň iň uly göterimi (0-100). Öçürmek üçin boş goýuň.",
             "message-sign-digest-name": "X-Road habarlaryna gol çekmek üçin ulanylýan şifrlemesi algoritmi.",
             "verify-client-cert": "Işe girizilende, serwer proksi müşderi proksisiniň TLS şahadatnamasyny barlaýar.",
             "log-client-cert": "Müşderi şahadatnamasy subýekt maglumatlarynyň ýazyljakdygy.",
@@ -1090,7 +1016,8 @@
               "listen-port": "Hyzmat üpjünçisiniň howpsuzlyk serweriniň hyzmat müşderisiniň howpsuzlyk serwerinden birikmeleri diňleýän TCP porty.",
               "connector-initial-idle-time": "Üpjünçi howpsuzlyk serweri olary ýapmaga başlamazdan öň tassyklanmadyk birikmeleriň boş bolmagyna rugsat berilýän başlangyç boş wagt (millisekuntlarda). 0 bahasy çäksiz boş wagt rugsadyny aňladýar.",
               "jetty-configuration-file": "Hyzmat üpjünçisiniň howpsuzlyk serweri üçin Jetty konfigurasiýa faýlynyň doly faýl ady. Jetty serweri sazlamak barada has köp maglumat almak üçin https://www.eclipse.org/jetty/documentation/jetty-9/index.html seredip biliň.",
-              "support-clients-pooled-connections": "Bu hyzmat üpjünçisiniň howpsuzlyk serweriniň hyzmat müşderisi tarapyndan howuzlanan birikmeleri goldap goldamaýandygy. Ýalan edilse, her habaryň soňunda birikme dessine ýapylmaly. Bu ýük paýlaýjylarynyň aňyrsynda bolan howpsuzlyk serwerleri üçin islenilýän usul bolup biler."
+              "support-clients-pooled-connections": "Bu hyzmat üpjünçisiniň howpsuzlyk serweriniň hyzmat müşderisi tarapyndan howuzlanan birikmeleri goldap goldamaýandygy. Ýalan edilse, her habaryň soňunda birikme dessine ýapylmaly. Bu ýük paýlaýjylarynyň aňyrsynda bolan howpsuzlyk serwerleri üçin islenilýän usul bolup biler.",
+              "min-supported-client-version": "Bu üpjünçide hyzmatlary çagyrmaga rugsat berilen müşderi Howpsuzlyk Serweriň iň az wersiýasy. Köne wersiýalardan soraglar ret edilýär. Ähli wersiýalara rugsat bermek üçin boş goýuň."
             },
             "ocsp-responder": {
               "listen-address": "Hyzmat üpjünçisiniň howpsuzlyk serweriniň hyzmat müşderisiniň howpsuzlyk serwerinden OCSP jogaplary üçin soraglary diňleýän IP salgysy. Hyzmat müşderisiniň howpsuzlyk serweri howpsuzlyk serwerleri arasynda howpsuz birikme gurulýarka hyzmat üpjünçisiniň howpsuzlyk serwerinden OCSP jogaplaryny ýükleýär. 0.0.0.0 bahasy ähli IPv4 araýüzlerde diňlemäge rugsat berýär. proxy.server-listen-address bahasy bilen gabat gelmeli.",
@@ -1270,6 +1197,11 @@
                 "host": "Kömekçi hyzmat gRPC serwere birikme üçin ulanylýan hosta ady.",
                 "port": "Kömekçi hyzmat gRPC serwere birikme üçin ulanylýan port.",
                 "deadline-after": "Kömekçi hyzmate gRPC çagyryşynyň möhleti dolmazdan öňki millisekuntlar."
+              },
+              "op-monitor": {
+                "host": "Operasion gözegçilik demony gRPC serwere birikme üçin ulanylýan hosta ady.",
+                "port": "Operasion gözegçilik demony gRPC serwere birikme üçin ulanylýan port.",
+                "deadline-after": "Operasion gözegçilik demonyna gRPC çagyryşynyň möhleti dolmazdan öňki millisekuntlar."
               }
             }
           },
@@ -1300,9 +1232,9 @@
               "restore-script-path": "Ätiýaçlyk dikeltme skripteriň ýoly.",
               "generate-gpg-keypair-path": "Ätiýaçlyk şifrleme üçin GPG açar jübüt döredýän skripteriň ýoly.",
               "gpgkeys-home": "Ätiýaçlyk GPG amallary üçin GNUPGHOME hökmünde ulanylýan katalog.",
-              "encryption-enabled": "Işe girizilende, ätiýaçlyk arhiwleri GPG bilen şifrlenmesi."
+              "encryption-enabled": "Işe girizilende, ätiýaçlyk arhiwleri GPG bilen şifrlenmesi.",
+              "encryption-keyids": "Ätiýaçlyk arhiwlerini şifrlemek üçin ulanylýan ütirli bölünen GPG açar ID-leri."
             },
-            "encryption-keyids": "Ätiýaçlyk arhiwlerini şifrlemek üçin ulanylýan ütirli bölünen GPG açar ID-leri.",
             "rpc": {
               "enabled": "Kömekçi hyzmat gRPC serweri işe giriziň.",
               "listen-address": "Kömekçi hyzmat gRPC serweri diňleýän IP salgysy.",
@@ -1323,9 +1255,121 @@
               "clean-cron": "Köne habar ýazgy ýazgylarynyň haçan arassalanýandygyny dolandyrýan cron aňlatmasy.",
               "command-path": "Habar ýazgy arhiwleýji ýerine ýetiriji faýlyň ýoly."
             }
+          },
+          "op-monitor": {
+            "listen-address": "Operasion gözegçilik demoninyň diňleýän IP salgysy.",
+            "port": "Operasion gözegçilik demoninyň diňleýän TCP porty.",
+            "scheme": "Operasion gözegçilik demoniniň URI shemasy. Mümkin bahalar: http we https.",
+            "xroad-tls-ciphers": "Operasion gözegçilik demonyna birikmelerde kabul edilýän TLS şifrlemesi (üstünlik tertibinde ütirli bölünen sanaw).",
+            "keep-records-for-days": "Operasion gözegçilik ýazgylarynyň pozulmazdan öň saklanylýan günleriň sany.",
+            "clean-interval": "Köne operasion gözegçilik ýazgylarynyň haçan arassalanýandygyny dolandyrýan cron aňlatmasy.",
+            "max-records-in-payload": "Ýeke jogap ýüküne gaýtarylýan operasion gözegçilik ýazgylarynyň iň köp sany.",
+            "records-available-timestamp-offset-seconds": "Elýeterli ýazgylaryň ýokarky çägini kesgitlenende häzirki wagtdan aýyrylýan sekuntlardaky ofset.",
+            "health-statistics-period-seconds": "Saglyk statistikasynyň jemlenýän sekuntlardaky döwür.",
+            "rpc": {
+              "enabled": "Operasion gözegçilik demony gRPC serweri işe giriziň.",
+              "listen-address": "Operasion gözegçilik demony gRPC serweri diňleýän IP salgysy.",
+              "port": "Operasion gözegçilik demony gRPC serweri diňleýän porty."
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Operasion gözegçilik demony TLS şahadatnamasy üpjün edilende ulanylýan Vault PKI rol ady.",
+                "common-name": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasynda kesgitlenen umumy at.",
+                "alt-names": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasyna goşulan DNS subýekt alternatiw atlary.",
+                "ip-subject-alt-names": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasyna goşulan IP subýekt alternatiw atlary.",
+                "ttl": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasynyň ömür dowamlylygy (mysal üçin 3650D).",
+                "secret-store-pki-path": "Operasion gözegçilik demony TLS şahadatnamasy üpjünçiligi üçin Vault PKI syrlar dwigateli gurnamasy ýoly."
+              },
+              "client-certificate-refresh-interval": "Operasion gözegçilik demoniniň müşderi TLS şahadatnamasyny täzeleýän aralygny (mysal üçin 0S öçürmek üçin)."
+            }
+          },
+          "message-log-archiver": {
+            "clean-transaction-batch-size": "Arassalamak wagtynda ýeke maglumat bazasy amaly başynda aýrylýan habar ýazgy ýazgylarynyň iň köp sany.",
+            "clean-keep-records-for": "Arhiwirlenen habar ýazgy ýazgylarynyň pozulmazdan öň saklanylýan günleriň sany.",
+            "max-filesize": "Ýeke habar ýazgy arhiw faýlynyň baýtlardaky iň uly ölçegi.",
+            "transaction-batch-size": "Ýeke arhiwleme amaly tapgyrynda işlenýän habar ýazgy ýazgylarynyň sany.",
+            "archive-path": "Arhiwirlenen habar ýazgy faýllarynyň saklanylýan katalogyna doly ýol.",
+            "archive-transfer-command": "Arhiw faýllaryny geçirmek üçin her arhiwleme ylgasyndan soň ýerine ýetirilýän gabyk buýrugy (mysal üçin uzak saklamaga). Öçürmek üçin boş goýuň.",
+            "hash-algo-id": "Habar ýazgy arhiwinde şifrlemede ulanylýan algoritm identifikatory. Mümkin bahalar: SHA-224, SHA-256, SHA-384, SHA-512."
+          },
+          "message-log-encryption": {
+            "archive": {
+              "encryption-enabled": "Işe girizilende, habar ýazgy arhiw faýllary OpenPGP (GnuPG) ulanylyp şifrlenmesi.",
+              "default-key-id": "Agza bilen bagly açar sazlanylmadyk ýagdaýynda habar ýazgy arhiw faýllaryny şifrlemek üçin ulanylýan deslapky OpenPGP açar ID-si.",
+              "grouping-strategy": "Ýazgylary arhiw faýllaryna toparlama strategiýasy. Mümkin bahalar: NONE (toparlamak ýok), MEMBER (agza boýunça toplalamak), SUBSYSTEM (kiçi ulgam boýunça toparlama)."
+            },
+            "db": {
+              "encryption-enabled": "Işe girizilende, habar eserasy bazasynda şifrlenip saklanylýar.",
+              "key-id": "Maglumat bazasy derejesindäki habar ýazgy şifrlemesi üçin ulanylýan şifrlemesi açarynyň identifikatory."
+            }
+          },
+          "common": {
+            "temp-files-path": "Wagtlaýyn faýllarynyň saklanylýan katalogyna doly ýol."
           }
         }
       }
+    }
+  },
+  "tab": {
+    "client": {
+      "details": "Jikme-jikleri",
+      "internalServers": "Içki serwerler",
+      "localGroups": "Ýerli toparlar",
+      "serviceClients": "Müşderileriň gullugy",
+      "services": "Gulluklary"
+    },
+    "diagnostics": {
+      "connectionTesting": "Bağlantı testi",
+      "overview": "Syn",
+      "traffic": "Trafik"
+    },
+    "keys": {
+      "apiKey": "API açarlary",
+      "signAndAuthKeys": "SIGN we AUTH açarlary",
+      "ssTlsCertificate": "Howpsuz serweriň TLS açary"
+    },
+    "main": {
+      "clients": "Müşderiler",
+      "diagnostics": "Diagnostikalar",
+      "keys": "Açarlar we şahadatnamalar",
+      "settings": "Sazlamalar"
+    },
+    "services": {
+      "endpoints": "Ahyrky nokatlar",
+      "parameters": "Gullugyň parametrleri"
+    },
+    "settings": {
+      "backupAndRestore": "Ätiýaçlyk nusgasy we Dikeltme",
+      "systemParameters": "Ulgam parametrleri"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
+    },
+    "generateKey": {
+      "confirmation": "Täze Howpsuzlyk Serweriň TLS açaryny we şahadatnamasyny döretmelimi? ",
+      "explanation": "Ulgam, bar bolan açaryň we şahadatnamanyň ýerine täze Howpsuzlyk Serweriň TLS açaryny we öz-özüne gol çekilen şahadatnamany döreder.",
+      "success": "Täze Howpsuzlyk Serweriň TLS açary we şahadatnamasy üstünlikli döredildi",
+      "title": "Howpsuzlyk serweriň TLS açary"
+    },
+    "key": "TLS açary we şahadatnamasy",
+    "title": "Howpsuzlyk serweriň TLS açary",
+    "uploadCertificate": {
+      "success": "Şahadatnama import edildi"
+    }
+  },
+  "token": {
+    "changePin": "Pin çalyş",
+    "pinChanged": "Token pin çalyşyryldy  – tokene täze pin bilen girmegiňizi haýyş edýäris",
+    "tokenPinPolicy": "Programma tokeniň PIN-inde iň azyndan üç klass nyşanlaryndan (kiçi harplar, baş harplar, sanlar, ýörite nyşanlar) azyndan 10 ASCII nyşan bolmaly.",
+    "tokenPinPolicyHeader": "Tokeniň PIN syýasaty işe girizildi."
+  },
+  "toolbar": {
+    "securityServerNodeType": {
+      "PRIMARY": "Esasy düwün",
+      "SECONDARY": "Ikinji düwün",
+      "undefined": ""
     }
   },
   "validationError": {

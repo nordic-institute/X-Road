@@ -135,7 +135,7 @@ public class SystemParametersPageObj {
     }
 
     public SelenideElement configurablePropertiesPanelTitle(String scope) {
-        return $x(format("//div[@data-test='configurable-properties-panel-title-%s']", scope));
+        return $x(format("//*[@data-test='configurable-properties-panel-title-%s']", scope));
     }
 
     public ElementsCollection configurablePropertiesTableRows(String scope) {

@@ -35,7 +35,7 @@
         <MaintenanceModeWidget class="mr-1" />
       </template>
       <XrdCard
-        v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)"
+        v-if="hasPermission(Permissions.CHANGE_SS_ADDRESS)"
         title="systemParameters.securityServer.securityServer"
         class="settings-block"
       >
@@ -76,11 +76,11 @@
         </v-table>
       </XrdCard>
 
-      <XrdCard v-if="hasPermission(permissions.VIEW_ANCHOR)" title="systemParameters.configurationAnchor.title" class="settings-block">
+      <XrdCard v-if="hasPermission(Permissions.VIEW_ANCHOR)" title="systemParameters.configurationAnchor.title" class="settings-block">
         <template #title-actions>
           <div class="d-flex flex-row align-center justify-end">
             <XrdBtn
-              v-if="hasPermission(permissions.DOWNLOAD_ANCHOR)"
+              v-if="hasPermission(Permissions.DOWNLOAD_ANCHOR)"
               data-test="system-parameters-configuration-anchor-download-button"
               variant="text"
               text="systemParameters.configurationAnchor.action.download"
@@ -125,13 +125,13 @@
       </XrdCard>
 
       <XrdCard
-        v-if="hasPermission(permissions.VIEW_TSPS)"
+        v-if="hasPermission(Permissions.VIEW_TSPS)"
         title="systemParameters.timestampingServices.title"
         class="settings-block"
         :class="{ 'ts-disabled': !messageLogEnabled }"
       >
         <template #title-actions>
-          <template v-if="hasPermission(permissions.ADD_TSP) && messageLogEnabled">
+          <template v-if="hasPermission(Permissions.ADD_TSP) && messageLogEnabled">
             <AddTimestampingServiceDialog
               :configured-timestamping-services="configuredTimestampingServices"
               @added="fetchConfiguredTimestampingServiced"
@@ -144,7 +144,7 @@
         <span class="pl-4" :class="{ 'opacity-60': !messageLogEnabled }">
           {{ $t('systemParameters.servicePrioritizationStrategy.timestamping.label') }}
           <strong data-test="timestamping-prioritization-strategy">{{ timestampingPrioritizationStrategy }}</strong>
-          {{ separator }}
+          {{ ' - ' }}
           {{ $t(`systemParameters.servicePrioritizationStrategy.timestamping.${timestampingPrioritizationStrategy}`) }}
         </span>
         <v-table class="xrd">
@@ -181,7 +181,7 @@
         </v-table>
       </XrdCard>
       <XrdCard
-        v-if="hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)"
+        v-if="hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)"
         title="systemParameters.approvedCertificateAuthorities.title"
         class="settings-block"
         :class="{ 'ts-disabled': !messageLogEnabled }"
@@ -189,7 +189,7 @@
         <span class="pl-4">
           {{ $t('systemParameters.servicePrioritizationStrategy.ocsp.label') }}
           <strong data-test="ocsp-prioritization-strategy">{{ ocspPrioritizationStrategy }}</strong>
-          {{ separator }}
+          {{ ' - ' }}
           {{ $t(`systemParameters.servicePrioritizationStrategy.ocsp.${ocspPrioritizationStrategy}`) }}
         </span>
         <v-table class="xrd">
@@ -269,12 +269,23 @@
       </XrdCard>
 
       <XrdCard
-        v-if="hasPermission(permissions.CHANGE_CONFIGURATION_PROPERTY)"
+        v-if="hasPermission(Permissions.CHANGE_CONFIGURATION_PROPERTY)"
         title="systemParameters.configurableProperties.title"
         class="settings-block"
       >
+        <template #title-actions>
+          <XrdBtn
+            v-if="hasAnyOpenScope"
+            data-test="configurable-properties-collapse-all"
+            variant="text"
+            text="systemParameters.configurableProperties.collapseAll"
+            prepend-icon="keyboard_arrow_up"
+            color="tertiary"
+            @click="collapseAllScopes"
+          />
+        </template>
         <v-alert
-          v-if="modifiedScopes.length > 0"
+          v-if="modifiedScopes.size > 0"
           class="ma-4"
           type="warning"
           variant="outlined"
@@ -282,7 +293,7 @@
           density="compact"
           data-test="configurable-properties-restart-warning"
         >
-          {{ $t('systemParameters.configurableProperties.restartWarning', { scopes: modifiedScopes.join(', ') }) }}
+          {{ $t('systemParameters.configurableProperties.restartWarning', { scopes: [...modifiedScopes].join(', ') }) }}
         </v-alert>
 
         <div class="px-4">
@@ -295,82 +306,28 @@
 
         <XrdEmptyPlaceholder
           class="px-4"
-          :data="Object.keys(filteredPropertiesByScope)"
+          :data="filteredScopeKeys"
           :filtered="propertySearch.length > 0"
           :loading="loadingProperties"
           :no-items-text="$t('noData.noConfigurableProperties')"
         />
 
-        <div v-if="!loadingProperties && Object.keys(filteredPropertiesByScope).length > 0" class="mt-3 mx-4 border xrd-rounded-12 pa-0" data-test="configurable-properties-panels">
-          <div
-            v-for="(scopeProperties, scope, index) in filteredPropertiesByScope"
+        <div
+          v-if="!loadingProperties && filteredScopeKeys.length > 0"
+          class="mt-3 mx-4 mb-4"
+          data-test="configurable-properties-panels"
+        >
+          <ScopePropertiesExpandable
+            v-for="(scope, index) in filteredScopeKeys"
             :key="scope"
-            :class="{ 'border-b': index < Object.keys(filteredPropertiesByScope).length - 1 }"
-            :data-test="`configurable-properties-panel-${scope}`"
-          >
-            <div
-              class="cursor-pointer d-flex flex-row align-center pt-2 pb-2 pl-4 pr-4"
-              :data-test="`configurable-properties-panel-title-${scope}`"
-              @click="toggleScope(String(scope))"
-            >
-              <v-btn
-                class="xrd opacity-100"
-                variant="plain"
-                color="primary"
-                :icon="isScopeOpen(String(scope)) ? 'keyboard_arrow_down' : 'chevron_right'"
-                :ripple="false"
-              />
-              <span class="font-weight-medium text-capitalize">{{ scope }}</span>
-            </div>
-            <v-slide-y-transition>
-              <v-table v-if="isScopeOpen(String(scope))" class="xrd configurable-properties-table">
-                <colgroup>
-                  <col style="width: 25%" />
-                  <col style="width: 13%" />
-                  <col style="width: 13%" />
-                  <col style="width: 39%" />
-                  <col style="width: 10%" />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>{{ $t('systemParameters.configurableProperties.table.header.propertyName') }}</th>
-                    <th>{{ $t('systemParameters.configurableProperties.table.header.currentValue') }}</th>
-                    <th>{{ $t('systemParameters.configurableProperties.table.header.defaultValue') }}</th>
-                    <th>{{ $t('systemParameters.configurableProperties.table.header.description') }}</th>
-                  </tr>
-                </thead>
-                <tbody :data-test="`configurable-properties-table-body-${scope}`">
-                  <tr
-                    v-for="prop in scopeProperties"
-                    :key="prop.property_name"
-                    data-test="configurable-property-row"
-                  >
-                    <td class="property-name-cell">{{ prop.property_name }}</td>
-                    <td class="property-value-cell">{{ prop.current_value ?? '-' }}</td>
-                    <td class="property-value-cell">{{ prop.default_value || '-' }}</td>
-                    <td class="property-description-cell">{{ getPropertyDescription(prop.property_name) }}</td>
-                    <td>
-                      <div class="d-flex align-center justify-end">
-                        <v-tooltip v-if="modifiedProperties.includes(prop.property_name!)" open-delay="500">
-                          <template #activator="{ props: tooltipProps }">
-                            <v-icon v-bind="tooltipProps" icon="warning" color="warning" class="mr-2" />
-                          </template>
-                          {{ $t('systemParameters.configurableProperties.propertyRestartWarning') }}
-                        </v-tooltip>
-                        <XrdBtn
-                          data-test="edit-configurable-property-button"
-                          variant="text"
-                          text="action.edit"
-                          color="tertiary"
-                          @click="openEditDialog(prop)"
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </v-slide-y-transition>
-          </div>
+            :class="{ 'mb-4': index < filteredScopeKeys.length - 1 }"
+            :scope="scope"
+            :properties="filteredPropertiesByScope[scope]"
+            :modified-properties="modifiedProperties"
+            :is-open="openScopes[scope] ?? false"
+            @open="openScopes[scope] = $event"
+            @edit-property="editingProperty = $event"
+          />
         </div>
       </XrdCard>
     </XrdSubView>
@@ -389,8 +346,8 @@
   </XrdView>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed, ref, watch } from 'vue';
 import {
   saveResponseAsFile,
   useNotifications,
@@ -406,13 +363,13 @@ import {
   XrdSubView,
   XrdView,
 } from '@niis/shared-ui';
-import { Anchor, CertificateAuthority, ServicePrioritizationStrategy, TimestampingService, SecurityServerConfigurableProperty } from '@/openapi-types';
+import type { Anchor, CertificateAuthority, SecurityServerConfigurableProperty, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
 import EditConfigurablePropertyDialog from '@/views/Settings/SystemParameters/EditConfigurablePropertyDialog.vue';
-import { mapState } from 'pinia';
+import ScopePropertiesExpandable from '@/views/Settings/SystemParameters/ScopePropertiesExpandable.vue';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
@@ -422,237 +379,197 @@ import { useDiagnostics } from '@/store/modules/diagnostics';
 import { useTimestampingServices } from '@/store/modules/timestamping-services';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 
-export default defineComponent({
-  components: {
-    XrdStatusIcon,
-    XrdEmptyPlaceholder,
-    SettingsTabs,
-    MaintenanceModeWidget,
-    EditSecurityServerAddressDialog,
-    EditConfigurablePropertyDialog,
-    XrdBtn,
-    TimestampingServiceRow,
-    UploadConfigurationAnchorDialog,
-    AddTimestampingServiceDialog,
-    XrdDateTime,
-    XrdDate,
-    XrdHashValue,
-    XrdView,
-    XrdCard,
-    XrdSubView,
-    XrdStatusChip,
-    XrdEmptyPlaceholderRow,
-  },
-  setup() {
-    const { addError } = useNotifications();
-    const {
-      fetchConfigurationAnchor: apiFetchConfigurationAnchor,
-      downloadAnchor: apiDownloadAnchor,
-      fetchSecurityServerAddress,
-      fetchConfigurableProperties: apiFetchConfigurableProperties,
-    } = useSystem();
-    const { fetchAddonStatus } = useDiagnostics();
-    const { fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy } =
-      useTimestampingServices();
-    const { searchCertificateAuthorities, fetchCertificateAuthoritiesPrioritizationStrategy } = useCsr();
-    return {
-      addError,
-      apiFetchConfigurationAnchor,
-      fetchAddonStatus,
-      fetchSortedTimestampingServiced,
-      apiFetchTimestampingPrioritizationStrategy,
-      searchCertificateAuthorities,
-      fetchCertificateAuthoritiesPrioritizationStrategy,
-      apiDownloadAnchor,
-      fetchSecurityServerAddress,
-      apiFetchConfigurableProperties,
-    };
-  },
-  data() {
-    return {
-      configurationAnchor: undefined as Anchor | undefined,
-      downloadingAnchor: false,
-      configuredTimestampingServices: [] as TimestampingService[],
-      timestampingPrioritizationStrategy: undefined as ServicePrioritizationStrategy | undefined,
-      certificateAuthorities: [] as CertificateAuthority[],
-      ocspPrioritizationStrategy: undefined as ServicePrioritizationStrategy | undefined,
-      permissions: Permissions,
-      loadingTimestampingservices: false,
-      loadingAnchor: false,
-      loadingCAs: false,
-      loadingMessageLogEnabled: false,
-      messageLogEnabled: false,
-      showEditServerAddressDialog: false,
-      addressChangeInProgress: false,
-      serverAddress: '',
-      separator: ' - ',
-      configurableProperties: [] as SecurityServerConfigurableProperty[],
-      loadingProperties: false,
-      editingProperty: undefined as SecurityServerConfigurableProperty | undefined,
-      modifiedScopes: [] as string[],
-      modifiedProperties: [] as string[],
-      openScopes: {} as Record<string, boolean>,
-      propertySearch: '',
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['hasPermission', 'currentSecurityServer']),
-    orderedCertificateAuthorities(): CertificateAuthority[] {
-      const temp = this.certificateAuthorities;
+const { addError } = useNotifications();
+const {
+  fetchConfigurationAnchor: apiFetchConfigurationAnchor,
+  downloadAnchor: apiDownloadAnchor,
+  fetchSecurityServerAddress,
+  fetchConfigurableProperties,
+} = useSystem();
+const { fetchAddonStatus } = useDiagnostics();
+const { fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy } =
+  useTimestampingServices();
+const { searchCertificateAuthorities, fetchCertificateAuthoritiesPrioritizationStrategy } = useCsr();
+const { hasPermission } = useUser();
 
-      return temp.sort((authorityA, authorityB) => authorityA.path.localeCompare(authorityB.path));
-    },
-    propertiesByScope(): Record<string, SecurityServerConfigurableProperty[]> {
-      const result: Record<string, SecurityServerConfigurableProperty[]> = {};
-      for (const prop of this.configurableProperties) {
-        const scope = prop.scope || 'common';
-        if (!result[scope]) result[scope] = [];
-        result[scope].push(prop);
-      }
-      for (const scope of Object.keys(result)) {
-        result[scope].sort((a, b) => (a.property_name ?? '').localeCompare(b.property_name ?? ''));
-      }
-      return result;
-    },
-    filteredPropertiesByScope(): Record<string, SecurityServerConfigurableProperty[]> {
-      const term = this.propertySearch.trim().toLowerCase();
-      if (!term) return this.propertiesByScope;
+const configurationAnchor = ref<Anchor | undefined>(undefined);
+const downloadingAnchor = ref(false);
+const configuredTimestampingServices = ref<TimestampingService[]>([]);
+const timestampingPrioritizationStrategy = ref<ServicePrioritizationStrategy | undefined>(undefined);
+const certificateAuthorities = ref<CertificateAuthority[]>([]);
+const ocspPrioritizationStrategy = ref<ServicePrioritizationStrategy | undefined>(undefined);
+const loadingTimestampingservices = ref(false);
+const loadingAnchor = ref(false);
+const loadingCAs = ref(false);
+const loadingMessageLogEnabled = ref(false);
+const messageLogEnabled = ref(false);
+const showEditServerAddressDialog = ref(false);
+const addressChangeInProgress = ref(false);
+const serverAddress = ref('');
+const configurableProperties = ref<SecurityServerConfigurableProperty[]>([]);
+const loadingProperties = ref(false);
+const editingProperty = ref<SecurityServerConfigurableProperty | undefined>(undefined);
+const modifiedScopes = ref<Set<string>>(new Set());
+const modifiedProperties = ref<Set<string>>(new Set());
+const openScopes = ref<Record<string, boolean>>({});
+const propertySearch = ref('');
 
-      const result: Record<string, SecurityServerConfigurableProperty[]> = {};
-      for (const [scope, props] of Object.entries(this.propertiesByScope)) {
-        const matched = props.filter((p) => p.property_name?.toLowerCase().includes(term));
-        if (matched.length > 0) {
-          result[scope] = matched;
-        }
-      }
-      return result;
-    },
-  },
-  watch: {
-    filteredPropertiesByScope(filtered: Record<string, SecurityServerConfigurableProperty[]>) {
-      if (!this.propertySearch.trim()) return;
-      for (const scope of Object.keys(filtered)) {
-        this.openScopes[scope] = true;
-      }
-    },
-  },
-  created(): void {
-    if (this.hasPermission(Permissions.VIEW_ANCHOR)) {
-      this.fetchConfigurationAnchor();
-    }
+const orderedCertificateAuthorities = computed<CertificateAuthority[]>(() =>
+  [...certificateAuthorities.value].sort((a, b) => a.path.localeCompare(b.path)),
+);
 
-    if (this.hasPermission(Permissions.VIEW_TSPS)) {
-      this.fetchMessageLogEnabled();
-      this.fetchConfiguredTimestampingServiced();
-      this.fetchTimestampingPrioritizationStrategy();
-    }
-
-    if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
-      this.fetchApprovedCertificateAuthorities();
-      this.fetchOcspPrioritizationStrategy();
-    }
-    if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
-      this.fetchServerAddress();
-    }
-    if (this.hasPermission(Permissions.CHANGE_CONFIGURATION_PROPERTY)) {
-      this.fetchConfigurablePropertiesList();
-    }
-  },
-  methods: {
-    async fetchConfigurationAnchor() {
-      this.loadingAnchor = true;
-      return this.apiFetchConfigurationAnchor()
-        .then((data) => (this.configurationAnchor = data))
-        .catch((error) => this.addError(error))
-        .finally(() => (this.loadingAnchor = false));
-    },
-    async fetchMessageLogEnabled() {
-      this.loadingMessageLogEnabled = true;
-      return this.fetchAddonStatus()
-        .then((data) => (this.messageLogEnabled = data.messagelog_enabled))
-        .catch((error) => this.addError(error))
-        .finally(() => (this.loadingMessageLogEnabled = false));
-    },
-    async fetchConfiguredTimestampingServiced() {
-      this.loadingTimestampingservices = true;
-      return this.fetchSortedTimestampingServiced()
-        .then((sorted) => (this.configuredTimestampingServices = sorted))
-        .catch((error) => this.addError(error))
-        .finally(() => (this.loadingTimestampingservices = false));
-    },
-    async fetchTimestampingPrioritizationStrategy() {
-      return this.apiFetchTimestampingPrioritizationStrategy()
-        .then((data) => (this.timestampingPrioritizationStrategy = data))
-        .catch((error) => this.addError(error));
-    },
-    async fetchApprovedCertificateAuthorities() {
-      this.loadingCAs = true;
-      return this.searchCertificateAuthorities(true)
-        .then((data) => (this.certificateAuthorities = data))
-        .catch((error) => this.addError(error))
-        .finally(() => (this.loadingCAs = false));
-    },
-    async fetchOcspPrioritizationStrategy() {
-      return this.fetchCertificateAuthoritiesPrioritizationStrategy()
-        .then((data) => (this.ocspPrioritizationStrategy = data))
-        .catch((error) => this.addError(error));
-    },
-    downloadAnchor(): void {
-      this.downloadingAnchor = true;
-      this.apiDownloadAnchor()
-        .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
-        .catch((error) => this.addError(error))
-        .finally(() => (this.downloadingAnchor = false));
-    },
-    fetchServerAddress(): boolean {
-      if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
-        this.fetchSecurityServerAddress()
-          .then((data) => {
-            this.serverAddress = data.current_address?.address || '';
-            this.addressChangeInProgress = data.requested_change !== undefined;
-          })
-          .catch((error) => this.addError(error));
-      }
-      return false;
-    },
-    addressChangeSubmitted(): void {
-      this.showEditServerAddressDialog = false;
-      this.addressChangeInProgress = true;
-    },
-    async fetchConfigurablePropertiesList() {
-      this.loadingProperties = true;
-      return this.apiFetchConfigurableProperties()
-        .then((data) => (this.configurableProperties = data))
-        .catch((error) => this.addError(error))
-        .finally(() => (this.loadingProperties = false));
-    },
-    getPropertyDescription(propertyName: string | undefined): string {
-      if (!propertyName) return '-';
-      const key = 'systemParameters.configurableProperties.descriptions.' + propertyName;
-      return this.$te(key) ? String(this.$t(key)) : '-';
-    },
-    openEditDialog(prop: SecurityServerConfigurableProperty): void {
-      this.editingProperty = prop;
-    },
-    isScopeOpen(scope: string): boolean {
-      return this.openScopes[scope];
-    },
-    toggleScope(scope: string): void {
-      this.openScopes[scope] = !this.isScopeOpen(scope);
-    },
-    onPropertySaved(scope: string | undefined): void {
-      const propertyName = this.editingProperty?.property_name;
-      this.editingProperty = undefined;
-      if (scope && !this.modifiedScopes.includes(scope)) {
-        this.modifiedScopes.push(scope);
-      }
-      if (propertyName && !this.modifiedProperties.includes(propertyName)) {
-        this.modifiedProperties.push(propertyName);
-      }
-      this.fetchConfigurablePropertiesList();
-    }
-  },
+const propertiesByScope = computed<Record<string, SecurityServerConfigurableProperty[]>>(() => {
+  const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+  for (const prop of configurableProperties.value) {
+    const scope = prop.scope || 'common';
+    if (!result[scope]) result[scope] = [];
+    result[scope].push(prop);
+  }
+  for (const scope of Object.keys(result)) {
+    result[scope].sort((a, b) => (a.property_name ?? '').localeCompare(b.property_name ?? ''));
+  }
+  return result;
 });
+
+const filteredPropertiesByScope = computed<Record<string, SecurityServerConfigurableProperty[]>>(() => {
+  const term = propertySearch.value.trim().toLowerCase();
+  if (!term) return propertiesByScope.value;
+
+  const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+  for (const [scope, props] of Object.entries(propertiesByScope.value)) {
+    const matched = props.filter((p) => p.property_name?.toLowerCase().includes(term));
+    if (matched.length > 0) result[scope] = matched;
+  }
+  return result;
+});
+
+const filteredScopeKeys = computed(() =>
+  Object.keys(filteredPropertiesByScope.value).sort((a, b) =>
+    a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b),
+  ),
+);
+
+const hasAnyOpenScope = computed(() =>
+  filteredScopeKeys.value.some((scope) => openScopes.value[scope]),
+);
+
+watch(filteredPropertiesByScope, (filtered) => {
+  if (!propertySearch.value.trim()) return;
+  for (const scope of Object.keys(filtered)) {
+    openScopes.value[scope] = true;
+  }
+});
+
+async function fetchConfigurationAnchor() {
+  loadingAnchor.value = true;
+  return apiFetchConfigurationAnchor()
+    .then((data) => (configurationAnchor.value = data))
+    .catch((error) => addError(error))
+    .finally(() => (loadingAnchor.value = false));
+}
+
+async function fetchMessageLogEnabled() {
+  loadingMessageLogEnabled.value = true;
+  return fetchAddonStatus()
+    .then((data) => (messageLogEnabled.value = data.messagelog_enabled))
+    .catch((error) => addError(error))
+    .finally(() => (loadingMessageLogEnabled.value = false));
+}
+
+async function fetchConfiguredTimestampingServiced() {
+  loadingTimestampingservices.value = true;
+  return fetchSortedTimestampingServiced()
+    .then((sorted) => (configuredTimestampingServices.value = sorted))
+    .catch((error) => addError(error))
+    .finally(() => (loadingTimestampingservices.value = false));
+}
+
+async function fetchTimestampingPrioritizationStrategy() {
+  return apiFetchTimestampingPrioritizationStrategy()
+    .then((data) => (timestampingPrioritizationStrategy.value = data))
+    .catch((error) => addError(error));
+}
+
+async function fetchApprovedCertificateAuthorities() {
+  loadingCAs.value = true;
+  return searchCertificateAuthorities(true)
+    .then((data) => (certificateAuthorities.value = data))
+    .catch((error) => addError(error))
+    .finally(() => (loadingCAs.value = false));
+}
+
+async function fetchOcspPrioritizationStrategy() {
+  return fetchCertificateAuthoritiesPrioritizationStrategy()
+    .then((data) => (ocspPrioritizationStrategy.value = data))
+    .catch((error) => addError(error));
+}
+
+function downloadAnchor(): void {
+  downloadingAnchor.value = true;
+  apiDownloadAnchor()
+    .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
+    .catch((error) => addError(error))
+    .finally(() => (downloadingAnchor.value = false));
+}
+
+function fetchServerAddress(): void {
+  fetchSecurityServerAddress()
+    .then((data) => {
+      serverAddress.value = data.current_address?.address || '';
+      addressChangeInProgress.value = data.requested_change !== undefined;
+    })
+    .catch((error) => addError(error));
+}
+
+function addressChangeSubmitted(): void {
+  showEditServerAddressDialog.value = false;
+  addressChangeInProgress.value = true;
+}
+
+async function fetchConfigurablePropertiesList() {
+  loadingProperties.value = true;
+  return fetchConfigurableProperties()
+    .then((data) => (configurableProperties.value = data))
+    .catch((error) => addError(error))
+    .finally(() => (loadingProperties.value = false));
+}
+
+function collapseAllScopes(): void {
+  for (const scope of filteredScopeKeys.value) {
+    openScopes.value[scope] = false;
+  }
+}
+
+function onPropertySaved(scope: string): void {
+  const propertyName = editingProperty.value?.property_name;
+  editingProperty.value = undefined;
+  modifiedScopes.value.add(scope);
+  if (propertyName) modifiedProperties.value.add(propertyName);
+  fetchConfigurablePropertiesList();
+}
+
+if (hasPermission(Permissions.VIEW_ANCHOR)) {
+  fetchConfigurationAnchor();
+}
+
+if (hasPermission(Permissions.VIEW_TSPS)) {
+  fetchMessageLogEnabled();
+  fetchConfiguredTimestampingServiced();
+  fetchTimestampingPrioritizationStrategy();
+}
+
+if (hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
+  fetchApprovedCertificateAuthorities();
+  fetchOcspPrioritizationStrategy();
+}
+
+if (hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
+  fetchServerAddress();
+}
+
+if (hasPermission(Permissions.CHANGE_CONFIGURATION_PROPERTY)) {
+  fetchConfigurablePropertiesList();
+}
 </script>
 
 <style lang="scss" scoped>
@@ -669,17 +586,5 @@ export default defineComponent({
 
 .settings-block:not(:last-child) {
   margin-bottom: 16px;
-}
-
-:deep(.configurable-properties-table) {
-  table {
-    table-layout: fixed;
-    width: 100%;
-  }
-
-  td {
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
 }
 </style>

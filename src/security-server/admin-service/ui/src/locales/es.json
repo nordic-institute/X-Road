@@ -170,6 +170,8 @@
       "messageLogDisabled": "Deshabilitado por configuración"
     },
     "connection": {
+      "ok": "Ok",
+      "test": "Prueba",
       "centralServer": {
         "authCertRequest": "Servicio de registro de certificados de autenticación",
         "globalConf": "Descarga de configuración global",
@@ -177,8 +179,19 @@
         "globalConfHttps": "https",
         "title": "Servidor Central"
       },
-      "ok": "Ok",
-      "test": "Prueba"
+      "management": {
+        "title": "Servidor de Seguridad de Gestión"
+      },
+      "securityServer": {
+        "client": "Cliente",
+        "sourceClient": "Cliente de origen",
+        "rest": "REST",
+        "securityServer": "Servidor de Seguridad",
+        "soap": "SOAP",
+        "title": "Otro Servidor de Seguridad",
+        "target": "Destino",
+        "targetClient": "Cliente destino"
+      }
     },
     "costType": "Tipo de costo",
     "encryption": {
@@ -292,34 +305,7 @@
       "statusInfo": "Estado del intercambio de mensajes",
       "success": "Éxito",
       "successfulRequests": "Solicitudes exitosas",
-      "time": "Hora",
-      "failedRequests": "Solicitudes fallidas",
-      "disabledTitle": "La monitorización de datos operativos está deshabilitada",
-      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
-    },
-    "connection": {
-      "ok": "Ok",
-      "test": "Prueba",
-      "centralServer": {
-        "authCertRequest": "Servicio de registro de certificados de autenticación",
-        "globalConf": "Descarga de configuración global",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "title": "Servidor Central"
-      },
-      "management": {
-        "title": "Servidor de Seguridad de Gestión"
-      },
-      "securityServer": {
-        "client": "Cliente",
-        "sourceClient": "Cliente de origen",
-        "rest": "REST",
-        "securityServer": "Servidor de Seguridad",
-        "soap": "SOAP",
-        "title": "Otro Servidor de Seguridad",
-        "target": "Destino",
-        "targetClient": "Cliente destino"
-      }
+      "time": "Hora"
     }
   },
   "endpoints": {
@@ -931,74 +917,13 @@
       },
       "title": "Servicios de marca de tiempo"
     },
-    "title": "Parámetros del sistema"
-  },
-  "tab": {
-    "client": {
-      "details": "Detalles",
-      "internalServers": "Servidores internos",
-      "localGroups": "Grupos locales",
-      "serviceClients": "Clientes de servicio",
-      "services": "Servicios"
-    },
-    "diagnostics": {
-      "connectionTesting": "Prueba de conexión",
-      "overview": "Resumen",
-      "traffic": "Tráfico"
-    },
-    "keys": {
-      "apiKey": "Clave de API",
-      "signAndAuthKeys": "Clave de firma y autenticación",
-      "ssTlsCertificate": "Clave TLS del servidor de seguridad"
-    },
-    "main": {
-      "clients": "Clientes",
-      "diagnostics": "Diagnostico",
-      "keys": "Clave y certificados",
-      "settings": "Ajustes"
-    },
-    "services": {
-      "endpoints": "Endpoint",
-      "parameters": "Parámetros de servicio"
-    },
-    "settings": {
-      "backupAndRestore": "Copia de seguridad y restauración",
-      "systemParameters": "Parámetros del sistema"
-    }
-  },
-  "tlsCertificates": {
-    "generateCsr": {
-      "example": "CN = miservidorseguridad.ejemplo.com, O = Mi organización, C = ee"
-    },
-    "generateKey": {
-      "confirmation": "¿Generar una nueva clave y certificado TLS para el servidor de seguridad?",
-      "explanation": "El sistema generará una nueva clave TLS para el servidor de seguridad y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
-      "success": "Nueva clave y certificado TLS generados correctamente",
-      "title": "Clave TLS del servidor de seguridad"
-    },
-    "key": "Clave y certificado TLS",
-    "title": "Clave TLS del servidor de seguridad",
-    "uploadCertificate": {
-      "success": "Certificado importado"
-    }
-  },
-  "token": {
-    "changePin": "Cambiar el PIN",
-    "pinChanged": "Se cambió el PIN del token: inicie sesión en el token con el nuevo PIN",
-    "tokenPinPolicy": "El PIN del token de software debe tener al menos 10 caracteres ASCII provenientes de al menos tres clases de caracteres (letras minúsculas, letras mayúsculas, dígitos, caracteres especiales).",
-    "tokenPinPolicyHeader": "La política de PIN del token está habilitada."
-  },
-  "toolbar": {
-    "securityServerNodeType": {
-      "PRIMARY": "Nodo primario",
-      "SECONDARY": "Nodo secundario",
-      "undefined": ""
-    },
+    "title": "Parámetros del sistema",
     "configurableProperties": {
       "title": "Propiedades del sistema configurables",
       "search": "Buscar propiedades...",
       "restartWarning": "Es necesario reiniciar los siguientes servicios para que los cambios surtan efecto: {scopes}.",
       "propertyRestartWarning": "Se requiere reinicio para que los cambios surtan efecto.",
+      "collapseAll": "Contraer todo",
       "updateSuccess": "Propiedad actualizada correctamente",
       "editDialog": {
         "title": "Editar valor de propiedad"
@@ -1037,7 +962,7 @@
             "mail-notification-locale": "Configuración regional para las notificaciones por correo, que determina el idioma de las notificaciones.",
             "acme-renewal-active": "Si está habilitado, el trabajo de renovación automática de certificados ACME se ejecutará periódicamente.",
             "acme-renewal-retry-delay": "Cantidad de segundos entre ejecuciones de renovación automática de certificados ACME cuando la última ejecución fue un error.",
-            "acme-renewal-internal": "Segundos entre ciclos de verificación de renovación ACME.",
+            "acme-renewal-interval": "Segundos entre ciclos de verificación de renovación ACME.",
             "acme-renewal-time-before-expiration-date": "Cuándo activar la próxima renovación automática. Se resta como días de la fecha de expiración del certificado. Se utiliza cuando no es posible recibir la información de renovación ACME del servidor ACME.",
             "acme-keypair-renewal-time-before-expiration-date": "Cuándo activar la renovación automática del par de claves de cuenta ACME, restado como días de la fecha de expiración del certificado.",
             "automatic-activate-acme-sign-certificate": "Si está habilitado, los certificados de firma se activan automáticamente cuando han sido solicitados a través de ACME (nuevos o renovados).",
@@ -1079,6 +1004,7 @@
             "health-check-port": "El puerto TCP donde el servicio de verificación de estado escucha solicitudes. Establecer el puerto en 0 deshabilita completamente el servicio de verificación de estado.",
             "health-check-interface": "La interfaz de red donde el servicio de verificación de estado escucha solicitudes. El valor predeterminado es todas las interfaces disponibles.",
             "hsm-health-check-enabled": "Cuando está habilitado, el endpoint de verificación de estado también verifica la disponibilidad del HSM.",
+            "memory-usage-threshold": "Porcentaje máximo permitido (0-100) de uso de memoria del proxy antes de que la verificación de estado comience a fallar. Dejar vacío para deshabilitar.",
             "message-sign-digest-name": "Algoritmo de resumen utilizado para firmar mensajes X-Road.",
             "verify-client-cert": "Cuando está habilitado, el proxy del servidor verifica el certificado TLS del proxy del cliente.",
             "log-client-cert": "Si se debe registrar la información del sujeto del certificado del cliente.",
@@ -1112,7 +1038,8 @@
               "listen-port": "Puerto TCP en el que el servidor de seguridad del proveedor de servicios escucha conexiones del servidor de seguridad del cliente de servicio.",
               "connector-initial-idle-time": "El tiempo de inactividad inicial (en milisegundos) que se permite que las conexiones no autenticadas estén inactivas antes de que el servidor de seguridad proveedor comience a cerrarlas. Un valor de 0 significa que se permite un tiempo de inactividad infinito.",
               "jetty-configuration-file": "Nombre de archivo absoluto del archivo de configuración de Jetty para el servidor de seguridad del proveedor de servicios. Para más información sobre la configuración del servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
-              "support-clients-pooled-connections": "Si este servidor de seguridad proveedor de servicios admite conexiones en pool desde el lado del consumidor de servicios. Si se establece en false, las conexiones deben cerrarse inmediatamente después de cada mensaje. Este puede ser un enfoque deseado para servidores de seguridad detrás de balanceadores de carga."
+              "support-clients-pooled-connections": "Si este servidor de seguridad proveedor de servicios admite conexiones en pool desde el lado del consumidor de servicios. Si se establece en false, las conexiones deben cerrarse inmediatamente después de cada mensaje. Este puede ser un enfoque deseado para servidores de seguridad detrás de balanceadores de carga.",
+              "min-supported-client-version": "Versión mínima del servidor de seguridad cliente autorizada para llamar a servicios en este proveedor. Las solicitudes de versiones anteriores son rechazadas. Dejar vacío para permitir todas las versiones."
             },
             "ocsp-responder": {
               "listen-address": "Dirección IP en la que el servidor de seguridad del proveedor de servicios escucha solicitudes de respuestas OCSP del servidor de seguridad del cliente de servicio. El servidor de seguridad del cliente descarga respuestas OCSP del servidor de seguridad del proveedor mientras establece una conexión segura entre los servidores de seguridad. El valor 0.0.0.0 permite escuchar en todas las interfaces IPv4. Debe coincidir con el valor de proxy.server-listen-address.",
@@ -1122,8 +1049,12 @@
               "jetty-configuration-file": "Nombre de archivo absoluto del archivo de configuración de Jetty para el respondedor OCSP del servidor de seguridad del proveedor de servicios. Para más información sobre la configuración del servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html."
             },
             "addon": {
-              "proxy-monitor": { "enabled": "Habilitar el complemento proxy-monitor." },
-              "meta-services": { "enabled": "Habilitar el complemento de meta-servicios." },
+              "proxy-monitor": {
+                "enabled": "Habilitar el complemento proxy-monitor."
+              },
+              "meta-services": {
+                "enabled": "Habilitar el complemento de meta-servicios."
+              },
               "op-monitor": {
                 "enabled": "Habilitar el complemento op-monitor.",
                 "buffer": {
@@ -1288,6 +1219,11 @@
                 "host": "Nombre de host utilizado para conectarse al servidor gRPC del servicio auxiliar.",
                 "port": "Puerto utilizado para conectarse al servidor gRPC del servicio auxiliar.",
                 "deadline-after": "Milisegundos antes de que una llamada gRPC al servicio auxiliar agote el tiempo de espera."
+              },
+              "op-monitor": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del daemon de monitoreo operacional.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del daemon de monitoreo operacional.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al daemon de monitoreo operacional agote el tiempo de espera."
               }
             }
           },
@@ -1318,9 +1254,9 @@
               "restore-script-path": "Ruta al script de restauración de copia de seguridad.",
               "generate-gpg-keypair-path": "Ruta al script que genera un par de claves GPG para el cifrado de copias de seguridad.",
               "gpgkeys-home": "Directorio utilizado como GNUPGHOME para las operaciones GPG de copia de seguridad.",
-              "encryption-enabled": "Cuando está habilitado, los archivos de copia de seguridad se cifran con GPG."
+              "encryption-enabled": "Cuando está habilitado, los archivos de copia de seguridad se cifran con GPG.",
+              "encryption-keyids": "IDs de clave GPG separados por comas utilizados para cifrar los archivos de copia de seguridad."
             },
-            "encryption-keyids": "IDs de clave GPG separados por comas utilizados para cifrar los archivos de copia de seguridad.",
             "rpc": {
               "enabled": "Habilitar el servidor gRPC del servicio auxiliar.",
               "listen-address": "Dirección IP en la que escucha el servidor gRPC del servicio auxiliar.",
@@ -1341,9 +1277,121 @@
               "clean-cron": "Expresión cron que controla cuándo se limpian los registros de mensajes antiguos.",
               "command-path": "Ruta al ejecutable del archivador del registro de mensajes."
             }
+          },
+          "op-monitor": {
+            "listen-address": "Dirección IP en la que escucha el daemon de monitoreo operacional.",
+            "port": "Puerto TCP en el que escucha el daemon de monitoreo operacional.",
+            "scheme": "Esquema URI del daemon de monitoreo operacional. Los valores posibles son http y https.",
+            "xroad-tls-ciphers": "Cifrados TLS (lista separada por comas en orden de preferencia) aceptados en las conexiones al daemon de monitoreo operacional.",
+            "keep-records-for-days": "Número de días que se retienen los registros de monitoreo operacional antes de ser eliminados.",
+            "clean-interval": "Expresión cron que controla cuándo se limpian los registros de monitoreo operacional antiguos.",
+            "max-records-in-payload": "Número máximo de registros de monitoreo operacional devueltos en una sola respuesta.",
+            "records-available-timestamp-offset-seconds": "Desplazamiento en segundos que se resta del tiempo actual al determinar el límite superior de los registros disponibles.",
+            "health-statistics-period-seconds": "Período en segundos durante el cual se agregan las estadísticas de salud.",
+            "rpc": {
+              "enabled": "Habilitar el servidor gRPC del daemon de monitoreo operacional.",
+              "listen-address": "Dirección IP en la que escucha el servidor gRPC del daemon de monitoreo operacional.",
+              "port": "Puerto en el que escucha el servidor gRPC del daemon de monitoreo operacional."
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Nombre del rol PKI de Vault utilizado al aprovisionar el certificado TLS del daemon de monitoreo operacional.",
+                "common-name": "Nombre común establecido en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
+                "alt-names": "Nombres alternativos de sujeto DNS incluidos en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
+                "ip-subject-alt-names": "Nombres alternativos de sujeto IP incluidos en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
+                "ttl": "Tiempo de vida del certificado TLS del daemon de monitoreo operacional aprovisionado (p. ej. 3650D).",
+                "secret-store-pki-path": "Ruta de montaje del motor de secretos PKI de Vault para el aprovisionamiento del certificado TLS del daemon de monitoreo operacional."
+              },
+              "client-certificate-refresh-interval": "Intervalo con el que el daemon de monitoreo operacional renueva su certificado TLS de cliente (p. ej. 0S para deshabilitar)."
+            }
+          },
+          "message-log-archiver": {
+            "clean-transaction-batch-size": "Número máximo de registros del registro de mensajes eliminados por transacción de base de datos durante la limpieza.",
+            "clean-keep-records-for": "Número de días que se retienen los registros archivados del registro de mensajes antes de ser eliminados.",
+            "max-filesize": "Tamaño máximo en bytes de un único archivo de archivo del registro de mensajes.",
+            "transaction-batch-size": "Número de registros del registro de mensajes procesados en un único lote de transacción de archivado.",
+            "archive-path": "Ruta absoluta al directorio donde se almacenan los archivos del registro de mensajes archivados.",
+            "archive-transfer-command": "Comando de shell ejecutado tras cada operación de archivado para transferir los archivos de archivo (p. ej. a almacenamiento remoto). Dejar vacío para deshabilitar.",
+            "hash-algo-id": "Identificador del algoritmo utilizado para el hash en el archivo del registro de mensajes. Los valores posibles son SHA-224, SHA-256, SHA-384, SHA-512."
+          },
+          "message-log-encryption": {
+            "archive": {
+              "encryption-enabled": "Cuando está habilitado, los archivos de archivo del registro de mensajes se cifran con OpenPGP (GnuPG).",
+              "default-key-id": "ID de clave OpenPGP predeterminado utilizado para cifrar los archivos de archivo del registro de mensajes cuando no hay una clave específica de miembro configurada.",
+              "grouping-strategy": "Estrategia para agrupar registros en archivos de archivo. Valores posibles: NONE (sin agrupación), MEMBER (agrupar por miembro), SUBSYSTEM (agrupar por subsistema)."
+            },
+            "db": {
+              "encryption-enabled": "Cuando está habilitado, los cuerpos de los mensajes se almacenan en la base de datos en forma cifrada.",
+              "key-id": "Identificador de la clave de cifrado utilizada para el cifrado del registro de mensajes a nivel de base de datos."
+            }
+          },
+          "common": {
+            "temp-files-path": "Ruta absoluta al directorio donde se almacenan los archivos temporales."
           }
         }
       }
+    }
+  },
+  "tab": {
+    "client": {
+      "details": "Detalles",
+      "internalServers": "Servidores internos",
+      "localGroups": "Grupos locales",
+      "serviceClients": "Clientes de servicio",
+      "services": "Servicios"
+    },
+    "diagnostics": {
+      "connectionTesting": "Prueba de conexión",
+      "overview": "Resumen",
+      "traffic": "Tráfico"
+    },
+    "keys": {
+      "apiKey": "Clave de API",
+      "signAndAuthKeys": "Clave de firma y autenticación",
+      "ssTlsCertificate": "Clave TLS del servidor de seguridad"
+    },
+    "main": {
+      "clients": "Clientes",
+      "diagnostics": "Diagnostico",
+      "keys": "Clave y certificados",
+      "settings": "Ajustes"
+    },
+    "services": {
+      "endpoints": "Endpoint",
+      "parameters": "Parámetros de servicio"
+    },
+    "settings": {
+      "backupAndRestore": "Copia de seguridad y restauración",
+      "systemParameters": "Parámetros del sistema"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN = miservidorseguridad.ejemplo.com, O = Mi organización, C = ee"
+    },
+    "generateKey": {
+      "confirmation": "¿Generar una nueva clave y certificado TLS para el servidor de seguridad?",
+      "explanation": "El sistema generará una nueva clave TLS para el servidor de seguridad y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
+      "success": "Nueva clave y certificado TLS generados correctamente",
+      "title": "Clave TLS del servidor de seguridad"
+    },
+    "key": "Clave y certificado TLS",
+    "title": "Clave TLS del servidor de seguridad",
+    "uploadCertificate": {
+      "success": "Certificado importado"
+    }
+  },
+  "token": {
+    "changePin": "Cambiar el PIN",
+    "pinChanged": "Se cambió el PIN del token: inicie sesión en el token con el nuevo PIN",
+    "tokenPinPolicy": "El PIN del token de software debe tener al menos 10 caracteres ASCII provenientes de al menos tres clases de caracteres (letras minúsculas, letras mayúsculas, dígitos, caracteres especiales).",
+    "tokenPinPolicyHeader": "La política de PIN del token está habilitada."
+  },
+  "toolbar": {
+    "securityServerNodeType": {
+      "PRIMARY": "Nodo primario",
+      "SECONDARY": "Nodo secundario",
+      "undefined": ""
     }
   },
   "validationError": {

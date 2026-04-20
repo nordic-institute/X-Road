@@ -53,82 +53,59 @@
   </XrdSimpleDialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { mapActions } from 'pinia';
 import { XrdFormBlock, XrdFormBlockRow, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
-import { SecurityServerConfigurableProperty } from '@/openapi-types';
+import type { SecurityServerConfigurableProperty } from '@/openapi-types';
 import { useSystem } from '@/store/modules/system';
 
-export default defineComponent({
-  components: {
-    XrdSimpleDialog,
-    XrdFormBlock,
-    XrdFormBlockRow,
-  },
-  props: {
-    property: {
-      type: Object as PropType<SecurityServerConfigurableProperty>,
-      required: true,
-    },
-  },
-  emits: ['cancel', 'saved'],
-  // saved emits the scope string so the parent can show a targeted restart warning
-  setup(props) {
-    const { addError, addSuccessMessage } = useNotifications();
+const props = defineProps<{
+  property: SecurityServerConfigurableProperty;
+}>();
 
-    const { values, meta, resetForm, defineField } = useForm({
-      validationSchema: {
-        propertyValue: 'required|max:4096',
-      },
-      initialValues: {
-        propertyValue: props.property.current_value ?? props.property.default_value ?? '',
-      },
-    });
+const emit = defineEmits<{
+  cancel: [];
+  saved: [scope: string];
+}>();
 
-    const [propertyValueMdl, propertyValueRef] = defineField('propertyValue');
+const { addError, addSuccessMessage } = useNotifications();
+const { updateConfigurableProperty } = useSystem();
 
-    return {
-      values,
-      meta,
-      resetForm,
-      propertyValueMdl,
-      propertyValueRef,
-      addError,
-      addSuccessMessage,
-    };
+const { values, meta, resetForm, defineField } = useForm({
+  validationSchema: {
+    propertyValue: 'required|max:4096',
   },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  methods: {
-    ...mapActions(useSystem, ['updateConfigurableProperty']),
-    close(): void {
-      this.resetForm();
-      this.$emit('cancel');
-    },
-    save() {
-      this.loading = true;
-      return this.updateConfigurableProperty({
-        property_name: this.property.property_name!,
-        property_value: this.values.propertyValue,
-        scope: this.property.scope,
-      })
-        .then(() => {
-          this.addSuccessMessage('systemParameters.configurableProperties.updateSuccess');
-          this.$emit('saved', this.property.scope || 'common');
-        })
-        .catch((error) => {
-          this.addError(error);
-          this.close();
-        })
-        .finally(() => (this.loading = false));
-    },
+  initialValues: {
+    propertyValue: props.property.current_value ?? props.property.default_value ?? '',
   },
 });
+
+const [propertyValueMdl, propertyValueRef] = defineField('propertyValue');
+
+const loading = ref(false);
+
+function close(): void {
+  resetForm();
+  emit('cancel');
+}
+
+async function save() {
+  loading.value = true;
+  try {
+    await updateConfigurableProperty({
+      property_name: props.property.property_name!,
+      property_value: values.propertyValue,
+      scope: props.property.scope,
+    });
+    addSuccessMessage('systemParameters.configurableProperties.updateSuccess');
+    emit('saved', props.property.scope || 'common');
+  } catch (error) {
+    return addError(error);
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <style lang="scss" scoped></style>

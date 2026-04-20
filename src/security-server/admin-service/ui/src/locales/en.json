@@ -188,6 +188,8 @@
       "messageLogDisabled": "Disabled by configuration"
     },
     "connection": {
+      "ok": "Everything ok",
+      "test": "Test",
       "centralServer": {
         "authCertRequest": "Authentication certificate registration service",
         "globalConf": "Global configuration download",
@@ -195,8 +197,19 @@
         "globalConfHttps": "https",
         "title": "Central Server"
       },
-      "ok": "Everything ok",
-      "test": "Test"
+      "management": {
+        "title": "Management Security Server"
+      },
+      "securityServer": {
+        "client": "Client",
+        "sourceClient": "Source Client",
+        "rest": "REST",
+        "securityServer": "Security Server",
+        "soap": "SOAP",
+        "title": "Other Security Server",
+        "target": "Target",
+        "targetClient": "Target Client"
+      }
     },
     "costType": "Cost Type",
     "downloadReport": "Download Diagnostic Report",
@@ -350,34 +363,7 @@
       "statusInfo": "Message exchange status",
       "success": "Success",
       "successfulRequests": "Successful requests",
-      "time": "Time",
-      "failedRequests": "Failed requests",
-      "disabledTitle": "Operational Data Monitoring Is Disabled",
-      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
-    },
-    "connection": {
-      "ok": "Everything ok",
-      "test": "Test",
-      "centralServer": {
-        "authCertRequest": "Authentication certificate registration service",
-        "globalConf": "Global configuration download",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "title": "Central Server"
-      },
-      "management": {
-        "title": "Management Security Server"
-      },
-      "securityServer": {
-        "client": "Client",
-        "sourceClient": "Source Client",
-        "rest": "REST",
-        "securityServer": "Security Server",
-        "soap": "SOAP",
-        "title": "Other Security Server",
-        "target": "Target",
-        "targetClient": "Target Client"
-      }
+      "time": "Time"
     }
   },
   "endpoints": {
@@ -1062,6 +1048,7 @@
       "search": "Search configurable properties",
       "restartWarning": "The following services need to be restarted for the changes to take effect: {scopes}.",
       "propertyRestartWarning": "Restart required for changes to take effect.",
+      "collapseAll": "Collapse All",
       "updateSuccess": "Property updated successfully",
       "editDialog": {
         "title": "Edit Property Value"
@@ -1100,7 +1087,7 @@
             "mail-notification-locale": "Locale for mail notifications, which determines the language of the notifications.",
             "acme-renewal-active": "If enabled, the ACME automatic certificate renewal job will run periodically",
             "acme-renewal-retry-delay": "Amount of seconds between automatic ACME certificate renewal runs, if the last run was a failure",
-            "acme-renewal-internal": "Seconds between ACME renewal check cycles.",
+            "acme-renewal-interval": "Seconds between ACME renewal check cycles.",
             "acme-renewal-time-before-expiration-date": "When to trigger next automatic renewal. Subtracted as days from the expiration date of the certificate. Used when it's not possible to receive the ACME renewal information from the ACME server.",
             "acme-keypair-renewal-time-before-expiration-date": "When to trigger automatic ACME account keypair renewal subtracted as days from the expiration date of the certificate",
             "automatic-activate-acme-sign-certificate": "If enabled, signing certificates are activated automatically when they have been ordered from via ACME (new or renew)",
@@ -1142,6 +1129,7 @@
             "health-check-port": "The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.",
             "health-check-interface": "The network interface where the health check service listens to requests. Default is all available interfaces.",
             "hsm-health-check-enabled": "When enabled, the health-check endpoint also verifies HSM availability.",
+            "memory-usage-threshold": "Maximum allowed percentage (0-100) of proxy memory usage before the health check starts failing. Leave empty to disable.",
             "message-sign-digest-name": "Digest algorithm used to sign X-Road messages.",
             "verify-client-cert": "When enabled, the server proxy verifies the client proxy's TLS certificate.",
             "log-client-cert": "Whether to log client certificate subject information.",
@@ -1175,7 +1163,8 @@
               "listen-port": "TCP port on which the service provider's security server listens for connections from the service client's security server.",
               "connector-initial-idle-time": "The initial idle time (in milliseconds) that unauthenticated connections are allowed to be idle before the provider security server starts closing them. Value of 0 means that an infinite idle time is allowed.",
               "jetty-configuration-file": "Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
-              "support-clients-pooled-connections": "Whether this service providing security server supports pooled connections from the service consumer side. If set to false, connections are to be closed immediately after each message. This may be a wanted approached for security servers behind load balancers."
+              "support-clients-pooled-connections": "Whether this service providing security server supports pooled connections from the service consumer side. If set to false, connections are to be closed immediately after each message. This may be a wanted approached for security servers behind load balancers.",
+              "min-supported-client-version": "Minimum version of the client Security Server allowed to call services on this provider. Requests from older versions are rejected. Leave empty to allow all versions."
             },
             "ocsp-responder": {
               "listen-address": "IP address on which the service provider's security server listens for requests for OCSP responses from the service client's security server. The service client's security server downloads OCSP responses from the service provider's security server while establishing a secure connection between the security servers. The value 0.0.0.0 allows listening on all IPv4 interfaces. Must match the value of proxy.server-listen-address.",
@@ -1355,6 +1344,11 @@
                 "host": "Hostname used to connect to the auxiliary service gRPC server.",
                 "port": "Port used to connect to the auxiliary service gRPC server.",
                 "deadline-after": "Milliseconds before a gRPC call to the auxiliary service times out."
+              },
+              "op-monitor": {
+                "host": "Hostname used to connect to the operational monitoring daemon gRPC server.",
+                "port": "Port used to connect to the operational monitoring daemon gRPC server.",
+                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out."
               }
             }
           },
@@ -1385,9 +1379,9 @@
               "restore-script-path": "Path to the backup restore script.",
               "generate-gpg-keypair-path": "Path to the script that generates a GPG key pair for backup encryption.",
               "gpgkeys-home": "Directory used as the GNUPGHOME for backup GPG operations.",
-              "encryption-enabled": "When enabled, backup archives are encrypted with GPG."
+              "encryption-enabled": "When enabled, backup archives are encrypted with GPG.",
+              "encryption-keyids": "Comma-separated GPG key IDs used to encrypt backup archives."
             },
-            "encryption-keyids": "Comma-separated GPG key IDs used to encrypt backup archives.",
             "rpc": {
               "enabled": "Enable the auxiliary service gRPC server.",
               "listen-address": "IP address on which the auxiliary service gRPC server listens.",
@@ -1408,6 +1402,56 @@
               "clean-cron": "Cron expression controlling when old message log records are cleaned up.",
               "command-path": "Path to the message log archiver executable."
             }
+          },
+          "op-monitor": {
+            "listen-address": "IP address on which the operational monitoring daemon listens.",
+            "port": "TCP port on which the operational monitoring daemon listens.",
+            "scheme": "URI scheme of the operational monitoring daemon. Possible values are http and https.",
+            "xroad-tls-ciphers": "TLS ciphers (comma-separated list in preferred order) accepted on connections to the operational monitoring daemon.",
+            "keep-records-for-days": "Number of days to retain operational monitoring records before they are deleted.",
+            "clean-interval": "Cron expression controlling when old operational monitoring records are cleaned up.",
+            "max-records-in-payload": "Maximum number of operational monitoring records returned in a single response payload.",
+            "records-available-timestamp-offset-seconds": "Offset in seconds subtracted from the current time when determining the upper bound for available records.",
+            "health-statistics-period-seconds": "Period in seconds over which health statistics are aggregated.",
+            "rpc": {
+              "enabled": "Enable the operational monitoring daemon gRPC server.",
+              "listen-address": "IP address on which the operational monitoring daemon gRPC server listens.",
+              "port": "Port on which the operational monitoring daemon gRPC server listens."
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Vault PKI role name used when provisioning the operational monitoring daemon TLS certificate.",
+                "common-name": "Common name set on the provisioned operational monitoring daemon TLS certificate.",
+                "alt-names": "DNS subject alternative names included in the provisioned operational monitoring daemon TLS certificate.",
+                "ip-subject-alt-names": "IP subject alternative names included in the provisioned operational monitoring daemon TLS certificate.",
+                "ttl": "Time-to-live of the provisioned operational monitoring daemon TLS certificate (e.g. 3650D).",
+                "secret-store-pki-path": "Vault PKI secrets engine mount path for operational monitoring daemon TLS certificate provisioning."
+              },
+              "client-certificate-refresh-interval": "Interval at which the operational monitoring daemon refreshes its client TLS certificate (e.g. 0S to disable)."
+            }
+          },
+          "message-log-archiver": {
+            "clean-transaction-batch-size": "Maximum number of message log records removed per database transaction during clean-up.",
+            "clean-keep-records-for": "Number of days to retain archived message log records before they are deleted.",
+            "max-filesize": "Maximum size in bytes of a single message log archive file.",
+            "transaction-batch-size": "Number of message log records processed in a single archiving transaction batch.",
+            "archive-path": "Absolute path to the directory where archived message log files are stored.",
+            "archive-transfer-command": "Shell command executed after each archiving run to transfer archive files (e.g. to remote storage). Leave empty to disable.",
+            "hash-algo-id": "The algorithm identifier used for hashing in the message log archive. Possible values are SHA-224, SHA-256, SHA-384, SHA-512."
+          },
+          "message-log-encryption": {
+            "archive": {
+              "encryption-enabled": "When enabled, message log archive files are encrypted using OpenPGP (GnuPG).",
+              "default-key-id": "Default OpenPGP key ID used to encrypt message log archive files when no member-specific key is configured.",
+              "grouping-strategy": "Strategy for grouping records into archive files. Possible values: NONE (no grouping), MEMBER (group by member), SUBSYSTEM (group by subsystem)."
+            },
+            "db": {
+              "encryption-enabled": "When enabled, message bodies are stored in the database in encrypted form.",
+              "key-id": "Identifier of the encryption key used for database-level message log encryption."
+            }
+          },
+          "common": {
+            "temp-files-path": "Absolute path to the directory where temporary files are stored."
           }
         }
       }
