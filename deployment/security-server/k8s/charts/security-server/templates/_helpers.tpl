@@ -153,13 +153,13 @@ spec:
           readinessProbe:
             httpGet:
               path: {{ .config.readinessProbe.path }}
-              port: {{ (index .config.ports 0).port }}
-              scheme: {{ .config.readinessProbe.scheme }}
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 1
+              port: {{ .config.readinessProbe.port | default (index .config.ports 0).port }}
+              scheme: {{ .config.readinessProbe.scheme | default "HTTP" }}
+            initialDelaySeconds: {{ .config.readinessProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .config.readinessProbe.periodSeconds | default 5 }}
+            timeoutSeconds: {{ .config.readinessProbe.timeoutSeconds | default 1 }}
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: {{ .config.readinessProbe.failureThreshold | default 3 }}
           {{- if .config.livenessProbe }}
           livenessProbe:
             httpGet:
