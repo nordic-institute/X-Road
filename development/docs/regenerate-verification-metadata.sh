@@ -41,7 +41,6 @@ fi
 die() { log_error "$*"; exit 1; }
 
 command -v python3 >/dev/null || die "python3 not found"
-command -v xmllint >/dev/null || die "xmllint not found"
 [[ -f "$META" ]]              || die "metadata not found: $META"
 [[ -d "$GRADLE_DIR" ]]        || die "gradle dir not found: $GRADLE_DIR"
 [[ -x "$UPDATER" ]]           || die "update script not executable: $UPDATER"
@@ -76,8 +75,9 @@ with open(path, 'w', encoding='utf-8') as f:
 print("cleared <components> block")
 PY
 
-# Validate XML still well-formed.
-xmllint --noout "$META" || die "XML invalid after clearing components"
+# Validate XML still well-formed (python3 stdlib).
+python3 -c "import xml.etree.ElementTree as E, sys; E.parse(sys.argv[1])" "$META" \
+  || die "XML invalid after clearing components"
 log_success "<components> cleared"
 
 # Step 2: gradle regeneration.
