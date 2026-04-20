@@ -271,7 +271,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:5588/q/health" ]
     networks:
       - xrd-ss-network
     depends_on:

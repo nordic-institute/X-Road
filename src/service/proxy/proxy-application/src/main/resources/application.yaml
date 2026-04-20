@@ -7,6 +7,9 @@ quarkus:
       - xroad-logging.yaml
 
 "%containerized":
+  quarkus:
+    http:
+      port: 5588
   xroad:
     proxy:
       rpc:
