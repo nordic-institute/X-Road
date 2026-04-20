@@ -38,7 +38,7 @@ jobs:
       - name: Regenerate verification metadata
         run: |
           bash development/docs/regenerate-verification-metadata.sh \
-            dependencies \
+            build -x test \
             --dependency-verification=off \
             --no-daemon \
             --parallel \
