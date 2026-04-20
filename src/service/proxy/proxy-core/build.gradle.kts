@@ -27,7 +27,7 @@ dependencies {
   implementation(project(":service::proxy:proxy-monitoring-api"))
   implementation(project(":service:monitor:monitor-api"))
 
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jetty.xml)
   implementation(libs.semver4j)
 

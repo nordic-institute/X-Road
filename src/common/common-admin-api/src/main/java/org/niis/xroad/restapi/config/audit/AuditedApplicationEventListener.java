@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.config.audit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.access.event.AuthenticationCredentialsNotFoundEvent;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,11 +45,11 @@ public class AuditedApplicationEventListener {
     }
 
     @EventListener
-    void handleAuthenticationCredentialsNotFoundEvent(AuthenticationCredentialsNotFoundEvent event) {
+    void handleAuthenticationFailureEvent(AbstractAuthenticationFailureEvent event) {
         // prevent double audit logging both API_KEY_AUTHENTICATION and AUTH_CREDENTIALS_DISCOVERY
         if (!auditEventLoggingFacade.hasAlreadyLoggedForThisRequest(RestApiAuditEvent.API_KEY_AUTHENTICATION)) {
             auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY,
-                    event.getCredentialsNotFoundException());
+                    event.getException());
         }
     }
 }

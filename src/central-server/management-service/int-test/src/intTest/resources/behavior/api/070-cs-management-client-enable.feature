@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Client enabling
+Feature: 070 - Management requests API: Client enabling
 
   Scenario: Client enabling request is successful
     Given Admin api is mocked with a response with status-code 202, type CLIENT_ENABLE_REQUEST and id 1122

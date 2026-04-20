@@ -27,7 +27,6 @@
 
 package org.niis.xroad.ss.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ss.test.ui.container.Port;
@@ -36,6 +35,7 @@ import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.utility.MountableFile;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +62,8 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
     public static final String OPENBAO = "openbao";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
+    public static final String DS_IDENTITY_HUB = "ds-identity-hub";
+    public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "compose.systemtest.yaml";
@@ -93,6 +95,9 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
                 .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
                 .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
+                .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
@@ -103,7 +108,9 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
                 .withLogConsumer(NGINX, createLogConsumer(NGINX))
                 .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
-                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE));
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
+                .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(DS_IDENTITY_HUB))
+                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer(DS_ISSUER_SERVICE));
     }
 
     @Override

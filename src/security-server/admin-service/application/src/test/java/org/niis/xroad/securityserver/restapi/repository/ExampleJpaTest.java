@@ -27,16 +27,17 @@
 package org.niis.xroad.securityserver.restapi.repository;
 
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -50,7 +51,7 @@ import static org.junit.Assert.assertEquals;
  * test ClientRepository
  */
 @RunWith(SpringRunner.class)
-@DataJpaTest
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @EntityScan(basePackages = {
@@ -61,12 +62,8 @@ import static org.junit.Assert.assertEquals;
 @ActiveProfiles("test")
 public class ExampleJpaTest {
 
-    // TestEntityManager only works with DataJpaTests (?)
-    // and DataJpaTests only inject jpa repositories (which we
-    // dont have at least yet), so not sure how useful this
-    // kind of tests will be
-    @Autowired
-    private TestEntityManager testEntityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -80,12 +77,13 @@ public class ExampleJpaTest {
         conf2.setServerCode("from-test");
         conf2.setId(null);
         conf2.setOwner(null);
-        ServerConfEntity confPersisted = testEntityManager.persistFlushFind(conf2);
+        entityManager.persist(conf2);
+        entityManager.flush();
 
-        ServerConfEntity confLoad1 = testEntityManager.find(ServerConfEntity.class, 1L);
+        ServerConfEntity confLoad1 = entityManager.find(ServerConfEntity.class, 1L);
         assertEquals("TEST-INMEM-SS", confLoad1.getServerCode());
 
-        ServerConfEntity confLoad2 = testEntityManager.find(ServerConfEntity.class, confPersisted.getId());
+        ServerConfEntity confLoad2 = entityManager.find(ServerConfEntity.class, conf2.getId());
         assertEquals("from-test", confLoad2.getServerCode());
     }
 

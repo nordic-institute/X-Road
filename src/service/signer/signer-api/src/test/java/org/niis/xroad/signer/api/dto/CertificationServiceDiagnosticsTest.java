@@ -31,11 +31,9 @@ import ee.ria.xroad.common.util.JsonUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 class CertificationServiceDiagnosticsTest {
     @Test
-    void serializeAndDeserializeCertificationServiceDiagnostics() throws IOException {
+    void serializeAndDeserializeCertificationServiceDiagnostics() {
         CertificationServiceDiagnostics certificationServiceDiagnostics = new CertificationServiceDiagnostics();
         String name = "name";
         String url = "url";
@@ -49,7 +47,8 @@ class CertificationServiceDiagnosticsTest {
         Assertions.assertTrue(bytesOut.length > 0);
 
         CertificationServiceDiagnostics deserialized = JsonUtils.getObjectReader()
-                .readValue(bytesOut, CertificationServiceDiagnostics.class);
+                .forType(CertificationServiceDiagnostics.class)
+                .readValue(bytesOut);
 
         Assertions.assertNotNull(deserialized);
     }

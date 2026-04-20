@@ -95,24 +95,6 @@ services:
       - xroad-network
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
-  mock-jwks-server:
-    image: python:3.11-alpine
-    command: >
-      sh -c "
-        mkdir -p  /tmp/jwks &&
-        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
-        python3 -m http.server 8080 --directory /tmp/jwks
-      "
-    ports:
-      - "0:8080"
-    networks:
-      - xroad-network
-    healthcheck:
-      interval: 5s
-      retries: 3
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json" ]
-    volumes:
-      - ./jwks/:/jwks
   hurl:
     build:
         context: hurl
@@ -150,6 +132,89 @@ services:
         condition: service_healthy
       isrest:
         condition: service_healthy
+
+  db-ds-issuer-service:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=ds_issuer_service_admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-issuer-service
+    networks:
+      - xroad-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  ds-issuer-service:
+    image: ${DS_ISSUER_SERVICE_IMG}
+    pull_policy: always
+    environment:
+      - HOSTNAME=ds-issuer-service
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      # admin permissions required to create schema on startup
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuer_service_admin_secret
+      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+      - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
+      - EDC_ENCRYPTION_STRICT=false
+      - DEBUG=true
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "http://localhost:8383/api/check/health" ]
+    networks:
+      - xroad-network
+    ports:
+      - "0:8182" # identity API
+      - "0:10012" # issuance API
+      - "0:10013" # admin API
+      - "0:10100" # DID resolution
+      - "0:9999" # debug port
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+    depends_on:
+      db-ds-issuer-service:
+        condition: service_healthy
+      mock-jwks-server:
+        condition: service_healthy
+
+  mock-jwks-server:
+    image: python:3.11-alpine
+    command: >
+      sh -c "
+        mkdir -p  /tmp/jwks &&
+        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
+        python3 -m http.server 8080 --directory /tmp/jwks
+      "
+    ports:
+      - "0:8080"
+    networks:
+      - xroad-network
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
+    volumes:
+      - ./jwks/:/jwks
 volumes:
   ca-volume:
 networks:
