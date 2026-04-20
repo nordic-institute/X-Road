@@ -118,6 +118,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
     @MockitoBean
     JavaMailSender mailSender;
+    @MockitoBean
+    ApplicationRestarter applicationRestarter;
 
     @MockitoSpyBean
     DiagnosticService diagnosticService;
