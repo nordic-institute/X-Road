@@ -57,9 +57,12 @@ import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerPropertyUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
+import org.niis.xroad.securityserver.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
@@ -88,6 +91,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class SystemApiController implements SystemApi {
     private final InternalTlsCertificateService internalTlsCertificateService;
+    private final ConfigurablePropertiesService configurablePropertiesService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
     private final MaintenanceModeConverter maintenanceModeConverter;
@@ -126,20 +130,39 @@ public class SystemApiController implements SystemApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_KEY_CERT')")
+    @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_KEY_CERT)
+    public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
+        internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
+        return ControllerUtil.createCreatedResponse("/api/system/certificate", null);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
+    public ResponseEntity<Set<SecurityServerConfigurablePropertyDto>> getConfigurableProperties() {
+        return new ResponseEntity<>(configurablePropertiesService.getConfigurationProperties(), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
+    public ResponseEntity<Void> updateConfigurableProperty(
+            SecurityServerPropertyUpdateDto securityServerSystemParameterUpdateDto
+    ) {
+        configurablePropertiesService.updateConfigurableProperty(
+                securityServerSystemParameterUpdateDto.getPropertyName(),
+                securityServerSystemParameterUpdateDto.getPropertyValue(),
+                securityServerSystemParameterUpdateDto.getScope()
+        );
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<VersionInfoDto> systemVersion() {
         VersionInfo versionInfo = versionService.getVersionInfo();
         VersionInfoDto result = versionConverter.convert(versionInfo);
         globalConfService.getGlobalConfigurationVersion().ifPresent(result::setGlobalConfigurationVersion);
         return ResponseEntity.ok(result);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_KEY_CERT')")
-    @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_KEY_CERT)
-    public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
-        internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
-        return ControllerUtil.createCreatedResponse("/api/system/certificate", null);
     }
 
     @Override
