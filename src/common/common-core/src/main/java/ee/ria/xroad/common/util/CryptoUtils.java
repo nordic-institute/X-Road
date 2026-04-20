@@ -162,7 +162,7 @@ public final class CryptoUtils {
      */
     public static CertificateID createCertId(X509Certificate subject,
                                              X509Certificate issuer)
-            throws OCSPException, CertificateEncodingException, IOException, OperatorCreationException {
+            throws OCSPException, CertificateEncodingException, IOException {
         return createCertId(subject.getSerialNumber(), issuer);
     }
 

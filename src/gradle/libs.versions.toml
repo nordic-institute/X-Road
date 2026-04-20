@@ -6,19 +6,19 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.38"
-jetty = "12.0.33"
+jetty = "12.1.8"
 jaxb = "4.0.7"
 hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
-jackson = "2.21.2"
+jackson = "3.1.1"
 jacksonAnnotations = "2.21"
 mockito = "5.23.0"
-springBoot = "3.5.9"
+springBoot = "4.0.5"
 springFramework = "7.0.6"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
-bouncyCastle = "1.83"
+bouncyCastle = "1.84"
 slf4j = "2.0.17"
 protoc = "4.34.1"
 grpc = "1.80.0"
@@ -56,15 +56,29 @@ jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
 
 springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+springBoot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
+springBoot-starterActuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
+springBoot-starterCache = { module = "org.springframework.boot:spring-boot-starter-cache", version.ref = "springBoot" }
+springBoot-starterDataJpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
+springBoot-starterJetty = { module = "org.springframework.boot:spring-boot-starter-jetty", version.ref = "springBoot" }
+springBoot-starterMail = { module = "org.springframework.boot:spring-boot-starter-mail", version.ref = "springBoot" }
+springBoot-starterSecurity = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "springBoot" }
+springBoot-starterSecurityTest = { module = "org.springframework.boot:spring-boot-starter-security-test", version.ref = "springBoot" }
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+springBoot-starterJdbcTest = { module = "org.springframework.boot:spring-boot-starter-jdbc-test", version.ref = "springBoot" }
+springBoot-starterWebmvcTest = { module = "org.springframework.boot:spring-boot-starter-webmvc-test", version.ref = "springBoot" }
+springBoot-starterValidation = { module = "org.springframework.boot:spring-boot-starter-validation", version.ref = "springBoot" }
+springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-webmvc", version.ref = "springBoot" }
+springBoot-starterWebfluxTest = { module = "org.springframework.boot:spring-boot-starter-webflux-test", version.ref = "springBoot" }
+springBoot-micrometerTracingBrave = { module = "org.springframework.boot:spring-boot-micrometer-tracing-brave", version.ref = "springBoot" }
+springBoot-micrometerTracingTest = { module = "org.springframework.boot:spring-boot-micrometer-tracing-test", version.ref = "springBoot" }
 
 springFramework-context = { module = "org.springframework:spring-context", version.ref = "springFramework" }
 springFramework-web = { module = "org.springframework:spring-web", version.ref = "springFramework" }
 springFramework-test = { module = "org.springframework:spring-test", version.ref = "springFramework" }
 springFramework-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "springFramework" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.0.0" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.1.1" }
 
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
@@ -123,7 +137,7 @@ jclOverSlf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "slf4j" }
 julOverSlf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j" }
 
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version.ref = "feign" }
-feign-jackson = { module = "io.github.openfeign:feign-jackson", version.ref = "feign" }
+feign-jackson = { module = "io.github.openfeign:feign-jackson3", version.ref = "feign" }
 feign-slf4j = { module = "io.github.openfeign:feign-slf4j", version.ref = "feign" }
 
 # Testing libraries
@@ -153,10 +167,10 @@ mapstructProcessor = { module = "org.mapstruct:mapstruct-processor", version.ref
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 
 hibernate-hikaricp = { module = "org.hibernate:hibernate-hikaricp", version.ref = "hibernate" }
-hibernate-jpamodelgen = { module = "org.hibernate:hibernate-jpamodelgen", version.ref = "hibernate" }
+hibernate-jpamodelgen = { module = "org.hibernate.orm:hibernate-processor", version.ref = "hibernate" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
+jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }

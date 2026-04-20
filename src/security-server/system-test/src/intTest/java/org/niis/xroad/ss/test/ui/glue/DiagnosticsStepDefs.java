@@ -29,10 +29,10 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebElementCondition;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.DiagnosticsPageObj;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -216,7 +216,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             assertThat(json.size()).isEqualTo(EXPECTED_REPORT_ITEMS.length);
             var actualItems = new HashSet<String>();
             for (var item : json) {
-                String name = item.get("name").asText();
+                String name = item.get("name").asString();
                 assertThat(name).withFailMessage("Item should have name", name).isNotEmpty();
                 assertThat(item.get("value")).withFailMessage("Item \"%s\" should have value", name).isNotNull();
                 actualItems.add(name);

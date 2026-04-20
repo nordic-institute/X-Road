@@ -33,6 +33,7 @@ import io.restassured.http.Method;
 import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
 import org.niis.xroad.e2e.EnvSetup;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Base64;
@@ -48,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.niis.xroad.e2e.EnvSetup.DS_CONTROL_PLANE;
 import static org.niis.xroad.e2e.EnvSetup.DS_IDENTITY_HUB;
-import static org.niis.xroad.e2e.EnvSetup.DS_ISSUANCE_SERVICE;
+import static org.niis.xroad.e2e.EnvSetup.DS_ISSUER_SERVICE;
 
 public class DsStepDefs extends BaseE2EStepDefs {
 
@@ -60,14 +61,16 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
 
     private String offerId;
+    private String targetAssetId;
+    private String permissionJson;
     private String negotiationId;
     private String contractAgreementId;
     private String transferProcessId;
 
-    // --- Issuance Service provisioning ---
+    // --- Issuer Service provisioning ---
 
-    @Step("Issuance Service participant context {string} with DID {string} and issuance service endpoint {string} is created on {string}")
-    public void createIssuanceServiceParticipantContext(
+    @Step("Issuer Service participant context {string} with DID {string} and issuer service endpoint {string} is created on {string}")
+    public void createIssuerServiceParticipantContext(
             String participantContext, String did, String credentialServiceEndpoint, String env) {
         String request = """
                 {
@@ -92,9 +95,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(credentialServiceEndpoint, did, participantContext, did, did);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_IDENTITY);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_IDENTITY);
         String url = IS_IDENTITY_BASE_URL.formatted(mapping.host(), mapping.port());
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PROVISIONER, request, HttpStatus.SC_OK);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PROVISIONER, request, HttpStatus.SC_OK);
     }
 
     @Step("Holder for DID {string} is created for {string} on {string}")
@@ -110,10 +113,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(did, did);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_ADMIN);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/holders"
                 .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
     @Step("{string} attestation definition is created for {string} on {string}")
@@ -126,10 +129,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(attestationDefinition);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_ADMIN);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/attestations"
                 .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
     @Step("{string} credential definition is created for {string} on {string}")
@@ -154,10 +157,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(credentialDefinition, credentialDefinition);
 
-        var mapping = envSetup.getContainerMapping(env, DS_ISSUANCE_SERVICE, EnvSetup.Port.ISSUANCE_SERVICE_ADMIN);
+        var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/credentialdefinitions"
                 .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
-        sendRequest(POST, url, IssuanceServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
+        sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
     // --- Identity Hub provisioning ---
@@ -309,28 +312,54 @@ public class DsStepDefs extends BaseE2EStepDefs {
         sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
     }
 
-    @Step("Policy definition is created in participant context {string} on {string}")
-    public void policyDefinitionIsCreated(String participantContext, String server) {
+    @Step("Policy definition allowing only {string} is created in participant context {string} on {string}")
+    public void policyDefinitionIsCreated(String consumerDid, String participantContext, String server) {
+        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
+
+        // Register a CEL expression that checks the consumer's DID
+        String celRequest = """
+                {
+                    "@context": [
+                        "https://w3id.org/edc/connector/management/v2"
+                    ],
+                    "@type": "CelExpression",
+                    "@id": "allowed-consumer-cel",
+                    "leftOperand": "allowed-consumer",
+                    "description": "Only allows the specified consumer participant",
+                    "scopes": ["catalog", "contract.negotiation", "transfer.process"],
+                    "actions": ["use"],
+                    "expression": "ctx.agent.id == '%s'"
+                }
+                """.formatted(consumerDid);
+        String celUrl = "http://%s:%d/api/mgmt/v4alpha/celexpressions".formatted(mapping.host(), mapping.port());
+        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
+
+        // Create policy with constraint referencing the CEL expression
         String request = """
                 {
                     "@context": [
                         "https://w3id.org/edc/connector/management/v2"
                     ],
-                    "@id": "policy-allow-all",
+                    "@id": "policy-consumer-restricted",
                     "@type": "PolicyDefinition",
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "Set",
                         "permission": [
                             {
-                                "action": "use"
+                                "action": "use",
+                                "constraint": [
+                                    {
+                                        "leftOperand": "allowed-consumer",
+                                        "operator": "eq",
+                                        "rightOperand": "true"
+                                    }
+                                ]
                             }
                         ]
                     }
                 }
                 """;
-
-        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/policydefinitions").formatted(mapping.host(), mapping.port(), participantContext);
         sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
     }
@@ -344,8 +373,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@id": "contract-def-1",
                     "@type": "ContractDefinition",
-                    "accessPolicyId": "policy-allow-all",
-                    "contractPolicyId": "policy-allow-all",
+                    "accessPolicyId": "policy-consumer-restricted",
+                    "contractPolicyId": "policy-consumer-restricted",
                     "assetsSelector": [
                         {
                             "@type": "Criterion",
@@ -382,13 +411,14 @@ public class DsStepDefs extends BaseE2EStepDefs {
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
-        offerId = extractOfferId(body);
+        extractNecessaryPropertiesFromCatalog(body);
         assertNotNull(offerId, "Offer ID should be present in catalog response");
     }
 
     @Step("Contract negotiation is initiated using participant context {string} on {string} with provider {string} on {string}")
     public void contractNegotiationIsInitiated(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
         String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
+
         String request = """
                 {
                     "@context": [
@@ -403,16 +433,12 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "@type": "Offer",
                         "@id": "%s",
                         "assigner": "%s",
-                        "target": "asset-1",
-                        "permission": [
-                            {
-                                "action": "use"
-                            }
-                        ]
+                        "target": "%s",
+                        "permission": %s
                     }
                 }
                 """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL,
-                providerDid, offerId, providerDid);
+                providerDid, offerId, providerDid, targetAssetId, permissionJson);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/contractnegotiations".formatted(participantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
 
@@ -552,7 +578,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     }
 
     @SuppressWarnings("unchecked")
-    private String extractOfferId(Map<String, Object> catalogBody) {
+    private void extractNecessaryPropertiesFromCatalog(Map<String, Object> catalogBody) {
         Object datasetObj = catalogBody.get("dataset");
         if (datasetObj == null) {
             datasetObj = catalogBody.get("dcat:dataset");
@@ -563,6 +589,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
         } else {
             dataset = (Map<String, Object>) datasetObj;
         }
+        targetAssetId = (String) dataset.get("@id");
 
         Object policyObj = dataset.get("hasPolicy");
         if (policyObj == null) {
@@ -574,7 +601,14 @@ public class DsStepDefs extends BaseE2EStepDefs {
         } else {
             policy = (Map<String, Object>) policyObj;
         }
-        return (String) policy.get("@id");
+        offerId = (String) policy.get("@id");
+
+        var permission = policy.get("permission");
+        if (permission == null) {
+            permission = dataset.get("odrl:permission");
+        }
+
+        permissionJson = JsonMapper.builder().build().writeValueAsString(permission);
     }
 
     // --- Auth tokens (without "Bearer " prefix — REST Assured .auth().oauth2() adds it) ---
@@ -617,8 +651,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 + "5WGSel_8xTJD3xSVzg";
     }
 
-    // Issuance Service tokens (scope: issuer-admin-api + identity-api)
-    static class IssuanceServiceAuthTokens {
+    // Issuer Service tokens (scope: issuer-admin-api + identity-api)
+    static class IssuerServiceAuthTokens {
         static final String PROVISIONER = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhl"
                 + "N2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOi"
                 + "I3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoiaXNzdWVyLWFkbWluLWFwaT"

@@ -31,7 +31,7 @@ import org.apache.coyote.http11.Http11NioProtocol;
 import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -58,7 +58,7 @@ public class AcmeBeanConfig {
                 connector.setScheme("http");
                 connector.setPort(acmeChallengePort);
                 log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
-                factory.addAdditionalTomcatConnectors(connector);
+                factory.addAdditionalConnectors(connector);
             };
         } else {
             log.info("ACME challenge port is disabled");

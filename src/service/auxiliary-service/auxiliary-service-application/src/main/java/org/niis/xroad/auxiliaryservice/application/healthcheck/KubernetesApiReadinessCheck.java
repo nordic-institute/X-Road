@@ -110,7 +110,7 @@ public class KubernetesApiReadinessCheck implements HealthCheck {
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private boolean checkKubernetesApiAccess(AuxiliaryServiceReadinessCheckProperties.KubernetesApiProperties k8sProps)
-            throws IOException, GeneralSecurityException {
+            throws IOException {
         String k8sHost = k8sProps.serviceHost().orElseThrow();
         String k8sPort = k8sProps.servicePort().orElseThrow();
 

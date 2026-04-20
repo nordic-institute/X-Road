@@ -25,16 +25,18 @@
  */
 package org.niis.xroad.restapi.service;
 
-import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.entity.ApiKeyEntity;
 import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -52,7 +54,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test {@link  ApiKeyService} and api key authentication helper
- * caching while mocking DB. Will acquire a new application context because mocks EntityManager, Session and Query
+ * caching while mocking DB. Will acquire a new application context because mocks PersistenceUtils, Session and Query
  */
 class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
 
@@ -63,7 +65,7 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
 
     @MockitoBean
-    private EntityManager entityManager;
+    private PersistenceUtils persistenceUtils;
 
     @Mock
     private Session session;
@@ -71,10 +73,15 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     @Mock
     private Query<ApiKeyEntity> query;
 
+    @BeforeEach
+    void initMocks() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
     @WithMockUser(authorities = {"ROLE_XROAD_REGISTRATION_OFFICER"})
     void testList() throws Exception {
-        when(entityManager.unwrap(any())).thenReturn(session);
+        when(persistenceUtils.getCurrentSession()).thenReturn(session);
         when(session.createQuery(anyString(), same(ApiKeyEntity.class))).thenReturn(query);
         when(query.list()).thenReturn(new ArrayList<>());
         // No keys
@@ -96,7 +103,7 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     @WithMockUser(authorities = {"ROLE_XROAD_REGISTRATION_OFFICER"})
     void testCacheEviction() throws Exception {
         // "store" one key
-        when(entityManager.unwrap(any())).thenReturn(session);
+        when(persistenceUtils.getCurrentSession()).thenReturn(session);
         when(session.createQuery(anyString(), same(ApiKeyEntity.class))).thenReturn(query);
         doNothing().when(session).persist(any());
         PlaintextApiKeyDto key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
@@ -135,7 +142,7 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     @WithMockUser(authorities = {"ROLE_XROAD_REGISTRATION_OFFICER"})
     void testGet() throws Exception {
         // "store" one key
-        when(entityManager.unwrap(any())).thenReturn(session);
+        when(persistenceUtils.getCurrentSession()).thenReturn(session);
         when(session.createQuery(anyString(), same(ApiKeyEntity.class))).thenReturn(query);
         doNothing().when(session).persist(any());
         PlaintextApiKeyDto key =

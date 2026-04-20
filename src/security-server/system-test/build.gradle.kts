@@ -42,7 +42,7 @@ intTestComposeEnv {
     "OP_MONITOR_IMG" to "ss-op-monitor",
     "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
     "DS_IDENTITY_HUB_IMG" to "ds-identity-hub",
-    "DS_ISSUANCE_SERVICE_IMG" to "ds-issuance-service"
+    "DS_ISSUER_SERVICE_IMG" to "ds-issuer-service"
   )
 }
 

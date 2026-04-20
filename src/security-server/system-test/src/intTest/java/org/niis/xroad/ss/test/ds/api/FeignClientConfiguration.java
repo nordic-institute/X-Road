@@ -43,7 +43,7 @@ import java.util.Collections;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_CONTROL_PLANE;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_IDENTITY_HUB;
-import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_ISSUANCE_SERVICE;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_ISSUER_SERVICE;
 
 @Configuration
 @RequiredArgsConstructor
@@ -89,27 +89,27 @@ public class FeignClientConfiguration {
                 rawStringEncoder, Collections.emptyList());
     }
 
-    private String getIssuanceServiceAdminBaseUrl() {
-        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUANCE_SERVICE, Port.DS_ISSUANCE_SERVICE_ADMIN);
+    private String getIssuerServiceAdminBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN);
         return "http://%s:%d/api/admin/v1alpha".formatted(container.host(), container.port());
     }
 
     @Bean
-    FeignIssuanceServiceAdminApi feignIssuanceServiceAdminApi(Encoder defaultEncoder) {
+    FeignIssuerServiceAdminApi feignIssuerServiceAdminApi(Encoder defaultEncoder) {
         var rawStringEncoder = new RawStringEncoder(defaultEncoder);
-        return feignFactory.createClient(FeignIssuanceServiceAdminApi.class, getIssuanceServiceAdminBaseUrl(),
+        return feignFactory.createClient(FeignIssuerServiceAdminApi.class, getIssuerServiceAdminBaseUrl(),
                 rawStringEncoder, Collections.emptyList());
     }
 
-    private String getIssuanceServiceIdentityBaseUrl() {
-        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUANCE_SERVICE, Port.DS_ISSUANCE_SERVICE_IDENTITY);
+    private String getIssuerServiceIdentityBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY);
         return "http://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
     }
 
     @Bean
-    FeignIssuanceServiceIdentityApi feignIssuanceServiceIdentityApi(Encoder defaultEncoder) {
+    FeignIssuerServiceIdentityApi feignIssuerServiceIdentityApi(Encoder defaultEncoder) {
         var rawStringEncoder = new RawStringEncoder(defaultEncoder);
-        return feignFactory.createClient(FeignIssuanceServiceIdentityApi.class, getIssuanceServiceIdentityBaseUrl(),
+        return feignFactory.createClient(FeignIssuerServiceIdentityApi.class, getIssuerServiceIdentityBaseUrl(),
                 rawStringEncoder, Collections.emptyList());
     }
 
