@@ -5,11 +5,17 @@ quarkus:
     locations:
       - xroad-common.yaml
       - xroad-logging.yaml
+  http:
+    host: ${xroad.proxy.health-check-interface:0.0.0.0}
+    host-enabled: ${xroad.proxy.health-check-enabled:false}
+    port: ${xroad.proxy.health-check-port:5588}
 
 "%containerized":
   quarkus:
     http:
-      port: 5588
+      host: ${xroad.proxy.health-check-interface:0.0.0.0}
+      host-enabled: ${xroad.proxy.health-check-enabled:true}
+      port: ${xroad.proxy.health-check-port:5588}
   xroad:
     proxy:
       rpc:

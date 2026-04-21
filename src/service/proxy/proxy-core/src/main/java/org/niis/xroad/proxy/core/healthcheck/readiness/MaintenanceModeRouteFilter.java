@@ -63,7 +63,7 @@ import org.niis.xroad.proxy.core.healthcheck.MaintenanceModeState;
 public class MaintenanceModeRouteFilter {
 
     static final String MAINTENANCE_CHECK_NAME = "MAINTENANCE_MODE";
-    static final String MAINTENANCE_STATUS_VALUE = "MAINTENANCE";
+    static final String MAINTENANCE_MESSAGE = "Health check interface is in maintenance mode.";
 
     private static final int HTTP_SERVICE_UNAVAILABLE = 503;
     /** Negative order so this handler runs before SmallRye Health's default (order 0). */
@@ -117,7 +117,7 @@ public class MaintenanceModeRouteFilter {
                             new JsonObject()
                                     .put("name", MAINTENANCE_CHECK_NAME)
                                     .put("status", "DOWN")
-                                    .put("data", new JsonObject().put("status", MAINTENANCE_STATUS_VALUE))));
+                                    .put("data", MAINTENANCE_MESSAGE)));
             rc.response()
                     .setStatusCode(HTTP_SERVICE_UNAVAILABLE)
                     .putHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")

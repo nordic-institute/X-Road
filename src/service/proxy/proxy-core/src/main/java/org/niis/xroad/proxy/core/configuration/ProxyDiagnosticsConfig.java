@@ -27,18 +27,10 @@ package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 
-import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Disposes;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
-import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
-import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
-import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
-import org.niis.xroad.proxy.core.healthcheck.MaintenanceModeState;
-import org.niis.xroad.proxy.core.healthcheck.NoopHealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 
 public class ProxyDiagnosticsConfig {
@@ -48,32 +40,6 @@ public class ProxyDiagnosticsConfig {
                                                   OpMonitoringBuffer opMonitoringBuffer) {
         return new AddOnStatusDiagnostics(NullLogManager.class != logManager.getClass(),
                 NoOpMonitoringBuffer.class != opMonitoringBuffer.getClass());
-    }
-
-    @ApplicationScoped
-    static class HealthCheckPortInitializer {
-
-        @ApplicationScoped
-        @Startup
-        @ArchUnitSuppressed("NoVanillaExceptions")
-        HealthCheckPort healthCheckPort(ProxyProperties proxyProperties,
-                                        HealthChecks healthChecks,
-                                        MaintenanceModeState maintenanceModeState) throws Exception {
-            if (proxyProperties.healthCheckPort() > 0) {
-                HealthCheckPortImpl healthCheckPort = new HealthCheckPortImpl(healthChecks, proxyProperties, maintenanceModeState);
-                healthCheckPort.init();
-                return healthCheckPort;
-            } else {
-                return new NoopHealthCheckPort(maintenanceModeState);
-            }
-        }
-
-        @ArchUnitSuppressed("NoVanillaExceptions")
-        public void dispose(@Disposes HealthCheckPort healthCheckPort) throws Exception {
-            if (healthCheckPort instanceof HealthCheckPortImpl impl) {
-                impl.destroy();
-            }
-        }
     }
 
 }

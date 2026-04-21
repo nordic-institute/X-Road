@@ -250,6 +250,6 @@ class MaintenanceModeRouteFilterTest {
         JsonObject check = parsed.getJsonArray("checks").getJsonObject(0);
         assertThat(check.getString("name")).isEqualTo(MaintenanceModeRouteFilter.MAINTENANCE_CHECK_NAME);
         assertThat(check.getString("status")).isEqualTo("DOWN");
-        assertThat(check.getJsonObject("data").getString("status")).isEqualTo(MaintenanceModeRouteFilter.MAINTENANCE_STATUS_VALUE);
+        assertThat(check.getString("data")).isEqualTo(MaintenanceModeRouteFilter.MAINTENANCE_MESSAGE);
     }
 }
