@@ -6,7 +6,7 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.38"
-jetty = "12.0.33"
+jetty = "12.1.8"
 jaxb = "4.0.7"
 hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
@@ -18,7 +18,7 @@ springFramework = "7.0.6"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
-bouncyCastle = "1.83"
+bouncyCastle = "1.84"
 slf4j = "2.0.17"
 protoc = "4.34.1"
 grpc = "1.80.0"
