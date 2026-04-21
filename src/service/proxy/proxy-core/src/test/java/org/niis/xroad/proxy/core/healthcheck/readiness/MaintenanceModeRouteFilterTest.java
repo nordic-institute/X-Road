@@ -107,6 +107,28 @@ class MaintenanceModeRouteFilterTest {
     }
 
     @Test
+    void shortCircuitsAggregateHealthPathWithTrailingSlashWhenMaintenanceOn() {
+        when(rc.normalizedPath()).thenReturn("/q/health/");
+        when(maintenanceModeState.isMaintenanceMode()).thenReturn(true);
+
+        filter.filter(rc);
+
+        verify(response).setStatusCode(503);
+        verify(rc, never()).next();
+    }
+
+    @Test
+    void shortCircuitsReadinessPathWithTrailingSlashWhenMaintenanceOn() {
+        when(rc.normalizedPath()).thenReturn("/q/health/ready/");
+        when(maintenanceModeState.isMaintenanceMode()).thenReturn(true);
+
+        filter.filter(rc);
+
+        verify(response).setStatusCode(503);
+        verify(rc, never()).next();
+    }
+
+    @Test
     void delegatesReadinessWhenMaintenanceOff() {
         when(rc.normalizedPath()).thenReturn("/q/health/ready");
         when(maintenanceModeState.isMaintenanceMode()).thenReturn(false);

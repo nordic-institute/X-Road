@@ -131,12 +131,16 @@ public class MaintenanceModeRouteFilter {
         if (path == null) {
             return false;
         }
-        if (path.equals(aggregatePath) || path.equals(readinessPath)) {
+        // Treat /q/health and /q/health/ (plus readiness variants) as the same endpoint.
+        String normalized = (path.length() > 1 && path.endsWith("/"))
+                ? path.substring(0, path.length() - 1)
+                : path;
+        if (normalized.equals(aggregatePath) || normalized.equals(readinessPath)) {
             return true;
         }
         // Match subpaths under the readiness endpoint (e.g. if SmallRye ever exposes ready/<group>).
         // The "/" suffix prevents false positives like /q/health/readyx accidentally matching.
-        return path.startsWith(readinessPath + "/");
+        return normalized.startsWith(readinessPath + "/");
     }
 
     /**
