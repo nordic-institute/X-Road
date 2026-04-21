@@ -157,6 +157,7 @@ xroad:
     source: REMOTE
   proxy-ui-api:
     authentication-provider: DATABASE
+    enforce-user-password-policy: true
 ---
 spring:
   config:
