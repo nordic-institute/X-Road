@@ -1,6 +1,8 @@
 quarkus:
   application:
     name: proxy
+  arc:
+    exclude-types: org.niis.xroad.common.healthcheck.HeapMemoryLivenessCheck
   config:
     locations:
       - xroad-common.yaml
