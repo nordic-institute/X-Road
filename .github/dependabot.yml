@@ -36,6 +36,8 @@ updates:
           - "io.opentelemetry.instrumentation*"
           - "org.hibernate*"
           - "com.zaxxer:HikariCP"
+          - "org.eclipse.dataplane-core"
+          - "org.eclipse.edc"
   - package-ecosystem: "npm"
     directory: "/src"
     schedule:

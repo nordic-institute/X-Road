@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ github.ref }}
+          fetch-depth: 2  # enough for --amend; avoids shallow push issues
 
       - name: Set up JDK 25
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
@@ -37,20 +38,21 @@ jobs:
       - name: Regenerate verification metadata
         run: |
           bash development/docs/regenerate-verification-metadata.sh \
-            dependencies \
+            build -x test \
             --dependency-verification=off \
             --no-daemon \
             --parallel \
             -q
 
-      - name: Commit and push if changed
+      # Always amend + force-push (even when metadata unchanged) so the PR
+      # head moves, pull_request.synchronize fires, and the Build workflow
+      # runs exactly once on a known-good commit. The Build workflow is
+      # configured to skip the initial `opened` event on dependabot/gradle/*
+      # branches — it relies on this sync to run.
+      - name: Amend Dependabot commit and force-push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/gradle/verification-metadata.xml
-          if git diff --staged --quiet; then
-            echo "No changes - verification metadata is already up to date."
-          else
-            git commit -m "chore: update Gradle verification metadata [skip ci]"
-            git push
-          fi
+          git commit --amend --no-edit --allow-empty
+          git push --force-with-lease

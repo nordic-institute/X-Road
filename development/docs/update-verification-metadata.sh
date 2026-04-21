@@ -37,7 +37,6 @@ die() { log_error "$*"; exit 1; }
 
 command -v curl    >/dev/null || die "curl not found"
 command -v python3 >/dev/null || die "python3 not found"
-command -v xmllint >/dev/null || die "xmllint not found"
 if command -v sha256sum >/dev/null; then
   SHA256_CMD=(sha256sum)
 elif command -v shasum >/dev/null; then
@@ -230,8 +229,8 @@ with open(meta_path, 'w', encoding='utf-8') as f:
 print(f"[update-meta] inserted {added} artifact entries")
 PY
 
-# Step 4: XML validity check.
-if ! xmllint --noout "$META"; then
+# Step 4: XML validity check (python3 stdlib, no extra tool required).
+if ! python3 -c "import xml.etree.ElementTree as E, sys; E.parse(sys.argv[1])" "$META"; then
   die "XML validation failed after insertion"
 fi
 
