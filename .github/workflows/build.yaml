@@ -33,16 +33,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Skip initial PR-opened build on Dependabot Gradle branches. The
-  # dependabot-gradle-metadata.yml workflow amends + force-pushes to update
-  # verification-metadata.xml, which triggers pull_request.synchronize and
-  # runs Build once on the fixed commit. See gradle-dependency-verification.md.
+  # Skip Build on dependabot/gradle/* branches for any event sent by
+  # Dependabot itself (open, recreate, rebase — all fire pull_request with
+  # sender.login == 'dependabot[bot]'). The dependabot-gradle-metadata.yml
+  # workflow regenerates verification-metadata.xml and force-pushes as
+  # github-actions[bot]; that sync event has sender.login ==
+  # 'github-actions[bot]' and runs Build on the fixed commit.
+  # See gradle-dependency-verification.md.
   build-and-package:
     name: build & package
     if: >
-      !(github.event_name == 'pull_request'
-        && github.event.action == 'opened'
-        && startsWith(github.head_ref, 'dependabot/gradle/'))
+      !(startsWith(github.head_ref, 'dependabot/gradle/')
+        && github.event.sender.login == 'dependabot[bot]')
     uses: ./.github/workflows/_build-and-package.yml
     secrets: inherit
     with:
