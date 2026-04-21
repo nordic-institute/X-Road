@@ -172,6 +172,7 @@ export enum Permissions {
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab
   VIEW_TSPS = 'VIEW_TSPS', // settings > system parameters > timestamping services
   CHANGE_SS_ADDRESS = 'CHANGE_SS_ADDRESS', // settings > system parameters > server address
+  CHANGE_CONFIGURATION_PROPERTY = 'CHANGE_CONFIGURATION_PROPERTY', // settings > system parameters > configurable properties
   DOWNLOAD_DIAGNOSTICS_REPORT = 'DOWNLOAD_DIAGNOSTICS_REPORT', // diagnostics > download diagnostics report
   TOGGLE_MAINTENANCE_MODE = 'TOGGLE_MAINTENANCE_MODE', // diagnostics > enable / disable maintenance mode button
 }
