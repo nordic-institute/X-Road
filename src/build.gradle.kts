@@ -1,5 +1,6 @@
 plugins {
   alias(libs.plugins.sonarqube)
+  alias(libs.plugins.owaspDependencyCheck)
   id("jacoco-report-aggregation")
   id("java")
 }
@@ -109,4 +110,25 @@ tasks.named("assemble") {
 tasks.named("sonar") {
   dependsOn(tasks.named("jacocoAggregatedReport"))
   onlyIf { System.getenv("SONAR_TOKEN") != null }
+}
+
+dependencyCheck {
+  formats = listOf("HTML", "JSON")
+  failBuildOnCVSS = 11f // Never fail the build (max CVSS is 10.0) — report only
+  suppressionFile = "config/owasp/suppressions.xml"
+  nvd {
+    apiKey = System.getenv("NVD_API_KEY") ?: ""
+  }
+}
+
+tasks.register("dependencyAuditBackend") {
+  description = "Runs OWASP dependency-check on backend dependencies."
+  group = "verification"
+  dependsOn("dependencyCheckAnalyze")
+}
+
+tasks.register("dependencyAudit") {
+  description = "Runs dependency security audit on all frontend and backend dependencies."
+  group = "verification"
+  dependsOn(":shared-ui:dependencyAuditFrontend", "dependencyAuditBackend")
 }

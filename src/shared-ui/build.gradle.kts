@@ -62,8 +62,8 @@ tasks.register<RunPnpmTaskType>("build-pnpm-workspace") {
   args.set("run build-workspace")
 }
 
-tasks.register<RunPnpmTaskType>("checkFrontAudit") {
-  description = "Runs npm audit on frontend pnpm workspace."
+tasks.register<RunPnpmTaskType>("dependencyAuditFrontend") {
+  description = "Runs dependency security audit on frontend pnpm workspace."
   group = "verification"
 
   dependsOn(tasks.named("assembleFrontend"))
@@ -80,7 +80,7 @@ tasks.register<RunPnpmTaskType>("test") {
 
 if (project.hasProperty("frontend-npm-audit")) {
   tasks.assemble {
-    dependsOn(tasks.named("checkFrontAudit"))
+    dependsOn(tasks.named("dependencyAuditFrontend"))
   }
 }
 
