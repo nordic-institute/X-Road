@@ -10,11 +10,11 @@ jetty = "12.1.8"
 jaxb = "4.0.7"
 hibernate = "7.2.6.Final"
 mapstruct = "1.6.3"
-jackson = "3.1.1"
+jackson = "3.1.2"
 jacksonAnnotations = "2.21"
 mockito = "5.23.0"
 springBoot = "4.0.5"
-springFramework = "7.0.6"
+springFramework = "7.0.7"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
@@ -22,7 +22,7 @@ bouncyCastle = "1.84"
 slf4j = "2.0.17"
 protoc = "4.34.1"
 grpc = "1.80.0"
-swaggerParser = "2.1.39"
+swaggerParser = "2.1.40"
 logback = "1.5.32"
 logbackAccess = "2.0.12"
 apacheCxf = "4.2.0"
@@ -33,13 +33,13 @@ jacoco = "0.8.14"
 resilience4j = "2.4.0"
 quarkus = "3.32.4"
 quarkus-vault = "4.7.0"
-smallryeConfig = "3.16.0"
+smallryeConfig = "3.17.1"
 microprofile = "3.1"
-feign = "13.11"
+feign = "13.12"
 testCucumber = "7.34.3"
 testContainers = "2.0.4"
-testAllure = "2.33.0"
-testSelenide = "7.15.0"
+testAllure = "2.34.0"
+testSelenide = "7.16.0"
 shadowPlugin = "9.4.1"
 edc = "0.16.0"
 edc-v = "0.16.0-20260323-1-SNAPSHOT"
@@ -179,7 +179,7 @@ mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.28.0" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.15.0" }
-apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.13.0" }
+apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.14.0" }
 apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.13.1" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
@@ -217,8 +217,8 @@ postgresql = { module = "org.postgresql:postgresql", version = "42.7.10" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 h2database = { module = "com.h2database:h2", version = "2.4.240" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
-guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.45" }
+guava = { module = "com.google.guava:guava", version = "33.6.0-jre" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.48" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -370,7 +370,7 @@ quarkus-containerized = [
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.21.0" }
-sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
+sonarqube = { id = "org.sonarqube", version = "7.2.3.7755" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
