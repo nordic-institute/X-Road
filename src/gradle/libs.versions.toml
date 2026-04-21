@@ -41,6 +41,7 @@ testContainers = "2.0.4"
 testAllure = "2.33.0"
 testSelenide = "7.15.0"
 shadowPlugin = "9.4.1"
+owaspDependencyCheck = "12.1.1"
 edc = "0.16.0"
 edc-v = "0.16.0-20260323-1-SNAPSHOT"
 dataplane-sdk = "0.0.7-SNAPSHOT"
@@ -376,3 +377,4 @@ quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadowPlugin" }
+owaspDependencyCheck = { id = "org.owasp.dependencycheck", version.ref = "owaspDependencyCheck" }
