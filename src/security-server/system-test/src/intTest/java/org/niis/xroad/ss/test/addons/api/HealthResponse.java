@@ -24,17 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.ss.test.addons.api;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * Feign client for MicroProfile Health readiness endpoint.
- */
-public interface FeignReadinessApi {
+import java.util.List;
+import java.util.Map;
 
-    @GetMapping("/q/health/ready")
-    ResponseEntity<JsonNode> getReadiness();
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record HealthResponse(
+        String status,
+        List<Check> checks
+) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Check(
+            String name,
+            String status,
+            Map<String, Object> data
+    ) {
+        public boolean isUp() {
+            return "UP".equalsIgnoreCase(status);
+        }
+    }
+
+    public boolean isUp() {
+        return "UP".equalsIgnoreCase(status);
+    }
 }
+

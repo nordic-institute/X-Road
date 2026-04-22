@@ -13,7 +13,7 @@ Feature: 2300 - SS Proxy: healthcheck
     And Change the pin section is expanded
     And PIN is changed from "T0ken1zer3" to "Secret1234"
     Then Token: softToken-0 is logged-out
-    And healthcheck has errors and error message is "No certificate chain available in authentication key."
+    Then Proxy healthcheck check "PROXY_AUTH_KEY_OCSP_READINESS_CHECK" is "UP" with status "AWAITING_CERT_CHAIN"
     When HSM tokens are deleted
     And All Signer keys are deleted
     And authentication key "DF9242D3CBDE6DAC8058D2878340C3B527041FD0" named "Auth key" is added to softtoken
@@ -36,15 +36,13 @@ Feature: 2300 - SS Proxy: healthcheck
   Scenario: Healthcheck is fails when signer is down
     Given healthcheck has no errors
     When service "signer" is "stopped"
-    Then healthcheck has errors and error message is "Fetching health check response timed out for: Hardware Security Modules status"
+    Then Proxy healthcheck check "PROXY_HSM_READINESS_CHECK" is "DOWN"
     When service "signer" is "started"
     Then healthcheck has no errors
 
-  #This fails with a different message. Should be re-enabled if we change health-check implementation
-  @Skip
   Scenario: Healthcheck is fails when database is down
     Given healthcheck has no errors
-    When service "postgres" is "stopped"
-    Then healthcheck has errors and error message is "ServerConf is not available"
-    When service "postgres" is "started"
+    When service "db-serverconf" is "stopped"
+    Then Proxy healthcheck check "PROXY_SERVERCONF_DATABASE_READINESS_CHECK" is "DOWN"
+    When service "db-serverconf" is "started"
     Then healthcheck has no errors

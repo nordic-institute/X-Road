@@ -28,13 +28,13 @@
 package org.niis.xroad.ss.test.addons.api;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient
 public interface FeignHealthcheckApi {
 
-    @GetMapping
-    ResponseEntity<Resource> getHealthcheck();
+    @GetMapping(value = "/q/health", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<HealthResponse> getHealthcheck();
 }
