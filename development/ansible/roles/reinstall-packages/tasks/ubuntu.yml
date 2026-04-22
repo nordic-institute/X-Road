@@ -3,15 +3,11 @@
   become: true
   apt:
     update_cache: true
-    lock_timeout: 300
 
 - name: Force reinstall selected packages [{{selected_modules}}]
   become: true
-  apt:
-    name: "{{ modules[item] }}"
-    state: present
-    reinstall: true
-    lock_timeout: 300
+  shell: |
+    apt-get install --reinstall -y {{ modules[item] }}
   when: item in modules
   loop: "{{selected_modules.split(',')}}"
   register: reinstall_result

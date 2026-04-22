@@ -138,7 +138,7 @@ check_requirements_rhel() {
       log_die "Java 25 is NOT the default version (Found: $java_version). Please use 'alternatives --config java' to set it."
     fi
   else
-    log_die "Java is not installed. Java 25 is required (can be installed using 'sudo dnf install java-25-openjdk-headless')."
+    log_die "Java is not installed. Java 25 is required (can be installed using 'sudo dnf install jre-25-headless')."
   fi
 }
 

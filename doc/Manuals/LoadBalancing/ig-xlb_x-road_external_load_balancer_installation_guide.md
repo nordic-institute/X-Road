@@ -271,9 +271,6 @@ In order to properly set up the data replication, the secondary nodes must be ab
 
 1. Install the X-Road Security Server packages using the normal installation procedure or use an existing standalone node.
 2. Stop the xroad services.
-      ```bash
-      sudo systemctl stop "xroad-*"
-      ```
 3. Create a separate PostgreSQL instance for the `serverconf` database (see section
    [4. Database replication setup](#4-database-replication-setup) for details).
 4. Change `/etc/xroad/db.properties` to point to the separate database instance:
@@ -299,9 +296,6 @@ In order to properly set up the data replication, the secondary nodes must be ab
       server-support-clients-pooled-connections=false
       ```
 9. Start the X-Road services.
-      ```bash
-      sudo systemctl start "xroad-*" --all 
-      ```
 
 ### 3.3 Secondary installation
 1. Install Security Server packages using the normal installation procedure. Alternatively you can also install only the packages
@@ -309,9 +303,6 @@ In order to properly set up the data replication, the secondary nodes must be ab
    (which is provided by this package) can be handy for diagnostics. It should be noted that changing a secondary's
    configuration via the admin gui is not possible (except entering token PIN).
 2. Stop the `xroad` services.
-      ```bash
-      sudo systemctl stop "xroad-*"
-      ```
 3. Create a separate PostgreSQL instance for the serverconf database (see section
    [4. Database replication setup](#4-database-replication-setup) for details)
 4. Change `/etc/xroad/db.properties` to point to the separate database instance and change password to match the one
@@ -340,9 +331,6 @@ In order to properly set up the data replication, the secondary nodes must be ab
       ```
       Change the owner and group of the file to `xroad:xroad` if it is not already.
 8. Start the X-Road services.
-      ```bash
-      sudo systemctl start "xroad-*" --all 
-      ```
 9. If you wish to use the secondary Security Server's admin user interface, you need to implement additional user group restrictions. As noted in step 1, changes to the secondary node Security Server configuration must not be made through its admin user interface, as any such changes would be overwritten by the replication. To disable UI editing privileges for all users, remove the following user groups from the secondary Security Server:
 
    * `xroad-registration-officer`
@@ -580,7 +568,7 @@ exit
     # Init db
     sudo su postgres
     cd /tmp
-    /usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/15/serverconf/
+    /usr/pgsql-15/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/15/serverconf/
     exit
     ```
 
