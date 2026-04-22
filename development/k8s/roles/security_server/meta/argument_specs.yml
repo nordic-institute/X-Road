@@ -17,8 +17,6 @@ argument_specs:
       proxy_ui_superuser: {type: str, default: xrd}
       proxy_ui_superuser_password: {type: str, required: true}
       configuration_client_update_interval: {type: str, default: "10"}
-      security_server_helm_timeout: {type: str, default: 10m}
-      security_server_helm_wait: {type: bool, default: true}
       serverconf_db: {type: dict, required: true}
       messagelog_db: {type: dict, required: true}
       opmonitor_db: {type: dict, required: true}

@@ -7,7 +7,7 @@ Ansible Collection that spins up the X-Road Security Server on a local [KinD](ht
 - Docker Desktop (macOS) or Docker / Podman (Linux)
 - `kind`, `kubectl`, `helm` on PATH
 - Python 3.11+
-- `ansible-core >= 2.16`
+- `ansible-core >= 2.20, < 2.21` (installed via `requirements.txt`)
 
 One-shot install (from `core/development/k8s/`):
 

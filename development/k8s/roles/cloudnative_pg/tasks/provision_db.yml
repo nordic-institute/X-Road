@@ -67,9 +67,11 @@
             owner: "{{ db.username }}"
             secret:
               name: "{{ db.name }}"
-        storage:
-          size: "{{ db.storage_size | default('1Gi') }}"
-          storageClass: "{{ storage_class | default(omit) }}"
+        storage: >-
+          {{ {'size': db.storage_size | default('1Gi')}
+             | combine({'storageClass': storage_class}
+                       if storage_class is defined and (storage_class | length > 0)
+                       else {}) }}
         resources:
           requests:
             memory: 128Mi

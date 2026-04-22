@@ -14,8 +14,6 @@ serverconf_init_image: ""
 
 jvm_metrics_enabled: false
 
-security_server_helm_timeout: 10m
-security_server_helm_wait: true
 security_server_wait_retries: 60
 security_server_wait_delay: 10
 

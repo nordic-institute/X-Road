@@ -48,7 +48,14 @@ parse_arguments() {
       --custom-inventory=*) CUSTOM_INVENTORY="${1#*=}" ;;
       -v|-vv|-vvv|-vvvv) ANSIBLE_VERBOSITY="$1" ;;
       --quiet) ANSIBLE_VERBOSITY="" ;;
-      -e) EXTRA_ANSIBLE_ARGS+=("-e" "$2"); shift ;;
+      -e)
+        if [[ -z "${2:-}" || "$2" == -* ]]; then
+          log_error "-e requires a VAR=VAL argument"
+          usage
+        fi
+        EXTRA_ANSIBLE_ARGS+=("-e" "$2")
+        shift
+        ;;
       -h|--help) usage 0 ;;
       *) log_error "Unknown parameter: $1"; usage ;;
     esac
@@ -68,13 +75,15 @@ parse_arguments() {
 
 handlePreflight() {
   [[ "${SKIP_PREFLIGHT}" == true ]] && { log_info "Skipping preflight"; return; }
-  "${K8S_ROOT}/scripts/preflight.sh"
+  SKIP_INIT="${SKIP_INIT}" "${K8S_ROOT}/scripts/preflight.sh"
 }
 
 handleRecreate() {
   [[ "${RECREATE}" != true ]] && return
   log_info "Recreating environment — running delete first"
-  "${K8S_ROOT}/scripts/delete-env.sh" --env="${ENV_NAME}" --force
+  local delete_args=(--env="${ENV_NAME}" --force)
+  [[ -n "${CUSTOM_INVENTORY}" ]] && delete_args+=(--custom-inventory="${CUSTOM_INVENTORY}")
+  "${K8S_ROOT}/scripts/delete-env.sh" "${delete_args[@]}"
 }
 
 handleBuildImages() {

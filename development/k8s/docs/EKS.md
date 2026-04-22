@@ -10,7 +10,7 @@ targets both; flipping between them is driven by `cluster_provider: eks` in `inv
 
 - `aws` CLI v2 configured (`aws configure` or AWS SSO)
 - `eksctl` ≥ 0.170 (if you want the quickstart cluster bring-up below)
-- `kubectl`, `helm`, `ansible-core >= 2.16`
+- `kubectl`, `helm`, `ansible-core >= 2.20, < 2.21`
 - Python `kubernetes` client (`pip install -r requirements.txt`)
 
 ## One-shot cluster bring-up (quickstart, optional)
