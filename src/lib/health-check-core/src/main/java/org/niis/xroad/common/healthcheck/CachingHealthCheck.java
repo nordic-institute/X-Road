@@ -86,9 +86,8 @@ public final class CachingHealthCheck implements HealthCheck {
 
     @Override
     public HealthCheckResponse call() {
-        var now = System.nanoTime();
         var cached = ref.get();
-        if (cached != null && now - cached.expiresAtNanos() < 0) {
+        if (cached != null && System.nanoTime() - cached.expiresAtNanos() < 0) {
             return cached.response();
         }
 
@@ -109,7 +108,7 @@ public final class CachingHealthCheck implements HealthCheck {
         }
 
         long nextErrorTtlNanos = computeNextErrorTtl(cached, isError);
-        long newExpiryNanos = now + (isError ? nextErrorTtlNanos : successTtlNanos);
+        long newExpiryNanos = System.nanoTime() + (isError ? nextErrorTtlNanos : successTtlNanos);
         var updated = new CachedResponse(fresh, newExpiryNanos, nextErrorTtlNanos, isError);
         ref.compareAndSet(cached, updated);
         return fresh;

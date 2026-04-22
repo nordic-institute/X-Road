@@ -43,10 +43,10 @@ import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
  * Readiness check for HSM operational status via signer gRPC.
  * <p>
  * Conditionally registered: only constructed when
- * {@code xroad.proxy.hsm-health-check-enabled=true} (property key preserved verbatim per D-16
+ * {@code xroad.proxy.hsm-health-check-enabled=true} (property key preserved verbatim
  * for operator config backward-compatibility). When the property is absent or set to any other
  * value, Quarkus ARC skips bean construction entirely — the check does NOT appear in
- * {@code /q/health/ready} response (satisfies SC#2).
+ * {@code /q/health/ready} response.
  * <p>
  * Self-wraps in its constructor: {@code CachingHealthCheck(TimedHealthCheck(this::doCheck))}.
  * Cache outside, timeout inside. Repeated probes within {@code hsm.successTtl} serve cached response
