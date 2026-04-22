@@ -1,0 +1,91 @@
+---
+- name: Tear down X-Road Security Server stack
+  hosts: k8s_control
+  gather_facts: true
+  vars:
+    keep_cluster: false
+  tasks:
+    - name: Uninstall security-server helm release
+      kubernetes.core.helm:
+        name: security-server
+        release_namespace: "{{ security_server_namespace }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Delete CNPG Cluster CRs
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: postgresql.cnpg.io/v1
+        kind: Cluster
+        namespace: "{{ security_server_namespace }}"
+        name: "{{ item }}"
+        state: absent
+        wait: true
+        wait_timeout: 120
+      loop:
+        - db-serverconf
+        - db-messagelog
+        - db-opmonitor
+        - db-openbao
+      ignore_errors: true
+
+    - name: Uninstall external-service-bridge helm releases
+      kubernetes.core.helm:
+        name: "xroad-bridge-{{ item.name }}"
+        release_namespace: "{{ security_server_namespace }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: absent
+      loop: "{{ external_service_bridges | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+      ignore_errors: true
+
+    - name: Uninstall openbao helm releases
+      kubernetes.core.helm:
+        name: "{{ item }}"
+        release_namespace: "{{ security_server_namespace }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: absent
+      loop:
+        - openbao-initializer
+        - openbao
+      ignore_errors: true
+
+    - name: Uninstall prometheus helm release
+      kubernetes.core.helm:
+        name: prometheus
+        release_namespace: "{{ monitoring_namespace | default('ss-monitoring') }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: absent
+      when: deploy_prometheus | default(false) | bool
+      ignore_errors: true
+
+    - name: Delete namespaces
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: v1
+        kind: Namespace
+        name: "{{ item }}"
+        state: absent
+        wait: true
+      loop:
+        - "{{ security_server_namespace }}"
+        - "{{ monitoring_namespace | default('ss-monitoring') }}"
+      ignore_errors: true
+
+    - name: List existing kind clusters
+      ansible.builtin.command: kind get clusters -q
+      register: kind_clusters
+      changed_when: false
+      check_mode: false
+      when: cluster_provider | default('kind') == 'kind'
+      failed_when: kind_clusters.rc not in [0, 1]
+
+    - name: Delete kind cluster
+      ansible.builtin.command: "kind delete cluster --name {{ kind_cluster_name }}"
+      when:
+        - cluster_provider | default('kind') == 'kind'
+        - not (keep_cluster | bool)
+        - kind_cluster_name in (kind_clusters.stdout_lines | default([]))
+      changed_when: true

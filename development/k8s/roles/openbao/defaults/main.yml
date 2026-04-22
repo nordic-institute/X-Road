@@ -1,0 +1,32 @@
+---
+security_server_namespace: ss
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+openbao_db:
+  name: db-openbao
+  database: openbao
+  username: openbao
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+
+openbao_chart_repo: "https://openbao.github.io/openbao-helm"
+openbao_chart: "openbao/openbao"
+openbao_chart_version: "0.25.6"
+
+openbao_init_chart_repo: ""
+openbao_init_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/openbao-init"
+openbao_init_chart_version: ""
+
+openbao_ha_replicas: 2
+openbao_global_tls_disable: false
+
+# self_signed writes a P384 ECDSA cert + k8s Secret. cert_manager delegates
+# to cert-manager CRs (used on EKS; see docs/EKS.md).
+openbao_tls_mode: self_signed
+openbao_tls_secret_name: openbao-server-tls
+openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls"
+openbao_tls_validity_days: 1825
+
+openbao_helm_wait_timeout: 10m

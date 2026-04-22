@@ -1,0 +1,34 @@
+---
+{% if not openbao_global_tls_disable %}
+global:
+  tlsDisable: false
+{% endif %}
+server:
+  ha:
+    enabled: true
+    replicas: {{ openbao_ha_replicas }}
+    config: |
+      ui = true
+      listener "tcp" {
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+        tls_cert_file = "/openbao/userconfig/server-tls/tls.crt"
+        tls_key_file = "/openbao/userconfig/server-tls/tls.key"
+      }
+      storage "postgresql" {
+        ha_enabled = "true"
+      }
+      service_registration "kubernetes" {}
+  extraSecretEnvironmentVars:
+    - envName: BAO_PG_PASSWORD
+      secretName: db-openbao
+      secretKey: password
+  extraEnvironmentVars:
+    BAO_PG_CONNECTION_URL: postgres://openbao:$(BAO_PG_PASSWORD)@db-openbao:5432/openbao
+  volumes:
+    - name: userconfig-openbao-server-tls
+      secret:
+        secretName: {{ openbao_tls_secret_name }}
+  volumeMounts:
+    - mountPath: /openbao/userconfig/server-tls
+      name: userconfig-openbao-server-tls

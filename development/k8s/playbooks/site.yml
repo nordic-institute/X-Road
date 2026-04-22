@@ -1,0 +1,56 @@
+---
+- name: Deploy X-Road Security Server stack
+  hosts: k8s_control
+  gather_facts: true
+  vars:
+    on_macos: "{{ ansible_system == 'Darwin' }}"
+  pre_tasks:
+    - name: Assert required vars present
+      ansible.builtin.assert:
+        that:
+          - kubeconfig_path is defined
+          - security_server_namespace is defined
+          - cluster_provider is defined
+        fail_msg: "Inventory group_vars missing required variables"
+
+    - name: Ensure state directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../.state"
+        state: directory
+        mode: "0755"
+
+  tasks:
+    - name: Provision KinD cluster
+      ansible.builtin.include_role:
+        name: kind_cluster
+      vars:
+        kind_state_dir: "{{ playbook_dir }}/../.state"
+      when: cluster_provider == 'kind'
+
+    - name: Install CloudNativePG operator
+      ansible.builtin.include_role:
+        name: cloudnative_pg
+
+    - name: Deploy OpenBao (TLS + postgres + openbao + init)
+      ansible.builtin.include_role:
+        name: openbao
+
+    - name: Deploy external service bridges
+      ansible.builtin.include_role:
+        name: external_service_bridge
+      vars:
+        bridge_name: "{{ item.name }}"
+        bridge_external_host: "{{ item.external_host }}"
+        bridge_ports: "{{ item.ports }}"
+      loop: "{{ external_service_bridges | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Deploy Security Server
+      ansible.builtin.include_role:
+        name: security_server
+
+    - name: Deploy Prometheus (when enabled)
+      ansible.builtin.include_role:
+        name: prometheus
+      when: deploy_prometheus | default(false) | bool

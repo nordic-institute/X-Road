@@ -1,0 +1,11 @@
+---
+service:
+  name: {{ bridge_name }}
+  namespace: {{ security_server_namespace }}
+externalHost: {{ bridge_external_host }}
+ports:
+{% for p in bridge_ports %}
+  - name: {{ p.name }}
+    port: {{ p.port }}
+    targetPort: {{ p.targetPort }}
+{% endfor %}
