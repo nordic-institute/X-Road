@@ -9,7 +9,7 @@ monitoring_namespace: ss-monitoring
 
 xroad_image_registry: "localhost:5555"
 xroad_image_tag: "latest"
-serverconf_init_image: "localhost:5555/ss-db-serverconf-init:latest"
+serverconf_init_image: "localhost:5555/ss-db-init:latest"
 jvm_metrics_enabled: true
 
 charts_root: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts"
