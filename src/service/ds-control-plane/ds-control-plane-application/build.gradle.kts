@@ -30,7 +30,9 @@ dependencies {
 
   runtimeOnly(libs.edc.dataplane.signaling)
   runtimeOnly(libs.edc.contolplane.api.config)
+  runtimeOnly(libs.edc.api.secrets)
 
   runtimeOnly(libs.edc.core.sql.bootstrapper)  //TODO runs DML on startup. move to different module?
   runtimeOnly(libs.bundles.edc.dcp)
+  runtimeOnly(libs.edc.virtual.controlplane.feature.dcp.bom)
 }

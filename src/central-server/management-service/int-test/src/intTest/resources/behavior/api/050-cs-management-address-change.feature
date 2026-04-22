@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Security Server address change
+Feature: 050 - Management requests API: Security Server address change
 
   Scenario: Address change request is successful
     Given Admin api is mocked with a response with status-code 202, type ADDRESS_CHANGE_REQUEST and id 1133

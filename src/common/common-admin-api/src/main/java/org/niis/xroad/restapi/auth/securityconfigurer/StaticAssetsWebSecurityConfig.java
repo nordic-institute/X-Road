@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -42,11 +41,9 @@ import org.springframework.security.web.header.HeaderWriterFilter;
 @Configuration
 public class StaticAssetsWebSecurityConfig {
 
-
     @Bean
     @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) {
         return http
                 .securityMatcher(
                         "/favicon.ico",

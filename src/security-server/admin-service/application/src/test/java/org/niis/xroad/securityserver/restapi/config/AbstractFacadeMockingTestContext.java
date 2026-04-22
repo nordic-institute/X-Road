@@ -39,7 +39,7 @@ import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderServ
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;

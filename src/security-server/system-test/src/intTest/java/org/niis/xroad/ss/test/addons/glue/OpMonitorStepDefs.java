@@ -36,7 +36,6 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import com.codeborne.selenide.Selenide;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPMessage;
@@ -51,6 +50,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Element;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -170,7 +170,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                         String expectedCid = "<" + OPERATIONAL_DATA_JSON + ">";
                         assertEquals(expectedCid, additionalHeaders.get("content-id"));
 
-                        OperationalDataRecords monitoringData = new ObjectMapper()
+                        OperationalDataRecords monitoringData = JsonMapper.builder().build()
                                 .readValue(readGzipContent(content), OperationalDataRecords.class);
 
                         // saved REST endpoint call: client path is null and producer path is saved path

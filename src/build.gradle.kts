@@ -41,6 +41,7 @@ dependencies {
 }
 
 allprojects {
+
   configurations.all {
     resolutionStrategy {
       eachDependency {

@@ -32,7 +32,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -110,7 +109,7 @@ public class ConfigurationLocation {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
-    private static byte[] hash(DigestAlgorithm hashAlgoUri, byte[] data) throws IOException, OperatorCreationException {
+    private static byte[] hash(DigestAlgorithm hashAlgoUri, byte[] data) throws IOException {
         return calculateDigest(hashAlgoUri, data);
     }
 

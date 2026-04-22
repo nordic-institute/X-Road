@@ -164,6 +164,9 @@ include("service:ds-data-plane:ds-xroad-data-plane-policy")
 include("service:ds-identity-hub")
 include("service:ds-identity-hub:ds-identity-hub-application")
 include("service:ds-identity-hub:ds-identity-hub-db")
+include("service:ds-identity-hub:ds-identity-hub-customization")
+include("service:ds-issuer-service")
+include("service:ds-issuer-service:ds-issuer-service-application")
 
 // Tool projects
 include("tool")

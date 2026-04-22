@@ -146,7 +146,6 @@ services:
           memory: 64M
         limits:
           memory: 512M
-
   configuration-client:
     image: ${CONFIGURATION_CLIENT_IMG}
     pull_policy: always

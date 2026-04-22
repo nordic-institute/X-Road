@@ -71,6 +71,8 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String MESSAGE_LOG_CLI = "message-log-cli";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     private static final String DS_DATA_PLANE = "ds-data-plane";
+    public static final String DS_IDENTITY_HUB = "ds-identity-hub";
+    public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
     private static final String XROAD_NETWORK = "xroad-network";
 
     public static final String DB_MESSAGELOG = "db-messagelog";
@@ -92,12 +94,15 @@ public class EnvSetup extends BaseComposeSetup {
 
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_ADMIN, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
                 .withEnv("PROXY_0", getContainerName(envSs0, PROXY))
                 .withEnv("PROXY_UI_1", getContainerName(envSs1, UI))
                 .withEnv("PROXY_1", getContainerName(envSs1, PROXY))
                 .withLogConsumer(HURL, createLogConsumer("aux", HURL))
                 .withLogConsumer(CS, createLogConsumer("aux", CS))
+                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer("aux", DS_ISSUER_SERVICE))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 
@@ -144,6 +149,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
+                .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_IDENTITY, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
@@ -152,6 +158,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(AUX_SERVICE, createLogConsumer(name, AUX_SERVICE))
                 .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI))
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE))
+                .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB))
                 .withLogConsumer(DS_DATA_PLANE, createLogConsumer(name, DS_DATA_PLANE));
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
@@ -161,7 +168,7 @@ public class EnvSetup extends BaseComposeSetup {
         env.start();
 
         List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER,
-                DS_CONTROL_PLANE, DS_DATA_PLANE));
+                DS_CONTROL_PLANE, DS_IDENTITY_HUB, DS_DATA_PLANE));
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             services.add(SOFTTOKEN_SIGNER);
         }
@@ -252,6 +259,9 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int DB = 5432;
         public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
+        public static final int IDENTITY_HUB_IDENTITY = 8182;
+        public static final int ISSUER_SERVICE_ADMIN = 10013;
+        public static final int ISSUER_SERVICE_IDENTITY = 8182;
     }
 
     enum Feature {

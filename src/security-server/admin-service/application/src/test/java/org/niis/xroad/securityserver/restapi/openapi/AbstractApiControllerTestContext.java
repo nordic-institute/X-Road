@@ -40,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.mail.MailService;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
+import org.niis.xroad.securityserver.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticConnectionService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
@@ -59,6 +60,7 @@ import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -83,6 +85,7 @@ import org.springframework.web.context.request.RequestContextHolder;
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
 public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
     @MockitoBean
     CertificateAuthorityService certificateAuthorityService;
@@ -94,6 +97,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     SystemService systemService;
     @MockitoBean
     InternalTlsCertificateService internalTlsCertificateService;
+    @MockitoBean
+    ConfigurablePropertiesService configurablePropertiesService;
     @MockitoBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     @MockitoBean

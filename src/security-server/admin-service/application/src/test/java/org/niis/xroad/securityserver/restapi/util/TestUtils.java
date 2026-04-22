@@ -45,10 +45,10 @@ import org.niis.xroad.securityserver.restapi.openapi.model.CostTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.model.TimestampingService;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -279,29 +279,27 @@ public final class TestUtils {
     public static final String API_KEY_TOKEN_WITH_ALL_ROLES = "d56e1ca7-4134-4ed4-8030-5f330bdb602a";
 
     /**
-     * Add Authentication header for API key with all roles
+     * Add Authorization header for API key with all roles to WebTestClient
      *
-     * @param testRestTemplate
+     * @param webTestClient
+     * @return mutated WebTestClient with the authorization header
      */
-    public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate) {
-        addApiKeyAuthorizationHeader(testRestTemplate, API_KEY_TOKEN_WITH_ALL_ROLES);
+    public static WebTestClient addApiKeyAuthorizationHeader(WebTestClient webTestClient) {
+        return addApiKeyAuthorizationHeader(webTestClient, API_KEY_TOKEN_WITH_ALL_ROLES);
     }
 
     /**
-     * Add Authentication header for specific API key
+     * Add Authorization header for specific API key to WebTestClient
      *
-     * @param testRestTemplate
-     * @param apiKeyToken      API key token
+     * @param webTestClient
+     * @param apiKeyToken   API key token
+     * @return mutated WebTestClient with the authorization header
      */
-    public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate,
-                                                    String apiKeyToken) {
-        testRestTemplate.getRestTemplate().setInterceptors(
-                Collections.singletonList((request, body, execution) -> {
-                    request.getHeaders()
-                            .add("Authorization",
-                                    API_KEY_HEADER_PREFIX + apiKeyToken);
-                    return execution.execute(request, body);
-                }));
+    public static WebTestClient addApiKeyAuthorizationHeader(WebTestClient webTestClient,
+                                                             String apiKeyToken) {
+        return webTestClient.mutate()
+                .defaultHeader("Authorization", API_KEY_HEADER_PREFIX + apiKeyToken)
+                .build();
     }
 
     /**

@@ -38,7 +38,8 @@
     enabled: true
 
 - name: Configure OpenBao DNF repository
-  script: "{{ role_path }}/../../../../deployment/.scripts/configure-mirror-openbao-rpm.sh"
+  script:
+    cmd: "{{ role_path }}/../../../../deployment/.scripts/configure-mirror-openbao-rpm.sh"
 
 - name: Touch repo file
   file:

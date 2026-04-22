@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.RequestDefinition;
@@ -50,6 +48,8 @@ import org.niis.xroad.test.framework.core.asserts.AssertionOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.eclipse.jetty.http.HttpMethod.POST;
 import static org.mockserver.model.HttpRequest.request;
@@ -100,7 +100,7 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
     }
 
     @Step("Admin api has received following request")
-    public void adminApiValidateMock(String expectedRequest) throws JsonProcessingException {
+    public void adminApiValidateMock(String expectedRequest) throws JacksonException {
         cucumberScenarioProvider.getCucumberScenario()
                 .attach(expectedRequest, MediaType.APPLICATION_JSON_VALUE, "Expected json");
 
@@ -123,7 +123,7 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
     }
 
     @Step("Admin api has received following auth cert deletion request")
-    public void adminApiValidateAuthCertDeletionMock(String expectedRequest) throws JsonProcessingException {
+    public void adminApiValidateAuthCertDeletionMock(String expectedRequest) throws JacksonException {
         HttpRequest[] httpRequests = mockServerClient.client().retrieveRecordedRequests(getManagementRequestsDefinition());
 
         var actualBody = httpRequests[0].getBody().getValue();

@@ -39,7 +39,6 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapper;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -172,7 +171,6 @@ public class SystemParameterServiceImpl implements SystemParameterService {
                 getParameterValue(MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM));
     }
 
-    @PreAuthorize("isAuthenticated()")
     @Override
     public SystemParameter updateOrCreateParameter(String lookupKey, String updateValue) {
         Optional<SystemParameterEntity> systemParameter =

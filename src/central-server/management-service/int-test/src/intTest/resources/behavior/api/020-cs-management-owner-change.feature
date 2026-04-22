@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Owner change
+Feature: 020 - Management requests API: Owner change
   As owner change flow is pretty much the same as client registration, we're checking only handful of scenarios
 
   Scenario: Owner change is successful

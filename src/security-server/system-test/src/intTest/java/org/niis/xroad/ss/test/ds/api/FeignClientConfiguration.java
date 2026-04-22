@@ -42,6 +42,8 @@ import java.util.Collections;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_CONTROL_PLANE;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_IDENTITY_HUB;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.DS_ISSUER_SERVICE;
 
 @Configuration
 @RequiredArgsConstructor
@@ -51,7 +53,7 @@ public class FeignClientConfiguration {
     private final FeignFactory feignFactory;
     private final SsSystemTestContainerSetup systemTestContainerSetup;
 
-    private String getBaseUrl() {
+    private String getControlPlaneManagementBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT);
         return "http://%s:%d/api/mgmt/v4alpha/participants".formatted(container.host(), container.port());
     }
@@ -59,7 +61,55 @@ public class FeignClientConfiguration {
     @Bean
     FeignControlPlaneManagementApi feignControlPlaneManagementApi(Encoder defaultEncoder) {
         var rawStringEncoder = new RawStringEncoder(defaultEncoder);
-        return feignFactory.createClient(FeignControlPlaneManagementApi.class, getBaseUrl(),
+        return feignFactory.createClient(FeignControlPlaneManagementApi.class, getControlPlaneManagementBaseUrl(),
+                rawStringEncoder, Collections.emptyList());
+    }
+
+    private String getControlPlaneSecretsBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT);
+        return "http://%s:%d/api/mgmt/v3/secrets".formatted(container.host(), container.port());
+    }
+
+    @Bean
+    FeignControlPlaneSecretsApi feignControlPlaneSecretsApi(Encoder defaultEncoder) {
+        var rawStringEncoder = new RawStringEncoder(defaultEncoder);
+        return feignFactory.createClient(FeignControlPlaneSecretsApi.class, getControlPlaneSecretsBaseUrl(),
+                rawStringEncoder, Collections.emptyList());
+    }
+
+    private String getIdentityHubManagementBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY);
+        return "http://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
+    }
+
+    @Bean
+    FeignIdentityHubManagementApi feignIdentityHubManagementApi(Encoder defaultEncoder) {
+        var rawStringEncoder = new RawStringEncoder(defaultEncoder);
+        return feignFactory.createClient(FeignIdentityHubManagementApi.class, getIdentityHubManagementBaseUrl(),
+                rawStringEncoder, Collections.emptyList());
+    }
+
+    private String getIssuerServiceAdminBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN);
+        return "http://%s:%d/api/admin/v1alpha".formatted(container.host(), container.port());
+    }
+
+    @Bean
+    FeignIssuerServiceAdminApi feignIssuerServiceAdminApi(Encoder defaultEncoder) {
+        var rawStringEncoder = new RawStringEncoder(defaultEncoder);
+        return feignFactory.createClient(FeignIssuerServiceAdminApi.class, getIssuerServiceAdminBaseUrl(),
+                rawStringEncoder, Collections.emptyList());
+    }
+
+    private String getIssuerServiceIdentityBaseUrl() {
+        var container = systemTestContainerSetup.getContainerMapping(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY);
+        return "http://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
+    }
+
+    @Bean
+    FeignIssuerServiceIdentityApi feignIssuerServiceIdentityApi(Encoder defaultEncoder) {
+        var rawStringEncoder = new RawStringEncoder(defaultEncoder);
+        return feignFactory.createClient(FeignIssuerServiceIdentityApi.class, getIssuerServiceIdentityBaseUrl(),
                 rawStringEncoder, Collections.emptyList());
     }
 

@@ -29,7 +29,7 @@ dependencies {
   implementation("org.yaml:snakeyaml")
 
   testImplementation(project(":common:common-test"))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
 
   xjc(libs.bundles.jaxb)
 }
