@@ -1,0 +1,50 @@
+---
+security_server_namespace: ss
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+security_server_chart_repo: ""
+security_server_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/security-server"
+security_server_chart_version: ""
+
+xroad_image_registry: ""
+xroad_image_tag: ""
+serverconf_init_image: ""
+
+jvm_metrics_enabled: false
+
+security_server_wait_retries: 60
+security_server_wait_delay: 10
+
+openbao_tls_secret_name: openbao-server-tls
+
+# argon2id hash of the plaintext password "secret" — matches the upstream
+# chart's built-in dev user expected by the hurl init scenario.
+proxy_ui_superuser: xrd
+proxy_ui_superuser_password: >-
+  $argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0
+
+configuration_client_update_interval: "10"
+
+serverconf_db:
+  name: db-serverconf
+  database: serverconf
+  username: serverconf
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+messagelog_db:
+  name: db-messagelog
+  database: messagelog
+  username: messagelog
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+opmonitor_db:
+  name: db-opmonitor
+  database: op-monitor
+  username: opmonitor
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi

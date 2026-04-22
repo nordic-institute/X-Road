@@ -1,0 +1,105 @@
+---
+{% if xroad_image_registry | length > 0 %}
+global:
+  image:
+    registry: {{ xroad_image_registry }}
+{% if xroad_image_tag | length > 0 %}
+    tag: {{ xroad_image_tag }}
+{% endif %}
+{% endif %}
+
+init:
+  serverconf:
+    dbUsername: {{ serverconf_db.username }}
+    proxyUiSuperuser: {{ proxy_ui_superuser }}
+    proxyUiSuperuserPassword: "{{ proxy_ui_superuser_password }}"
+  messagelog:
+    dbUsername: {{ messagelog_db.username }}
+  opmonitor:
+    dbUsername: {{ opmonitor_db.username }}
+
+services:
+{% for svc, extra_env in [
+  ('configuration-client', {'XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL': configuration_client_update_interval, 'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('signer', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('proxy', {'XROAD_PROXY_ADDON_OP_MONITOR_ENABLED': 'true', 'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('monitor', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+] %}
+  {{ svc }}:
+    env:
+{% for k, v in extra_env.items() %}
+      {{ k }}: "{{ v }}"
+{% endfor %}
+    extraVolumes:
+      - name: {{ svc }}-openbao-tls-certificate
+        secret:
+          secretName: {{ openbao_tls_secret_name }}
+          items:
+            - key: tls.crt
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt
+        subPath: openbao.crt
+        name: {{ svc }}-openbao-tls-certificate
+{% endfor %}
+
+  proxy-ui-api:
+    env:
+      SPRING_CLOUD_VAULT_SSL_TRUST_STORE: "file:/etc/xroad/ssl/openbao.crt"
+      SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE: "PEM"
+    extraVolumes:
+      - name: proxy-ui-openbao-tls-certificate
+        secret:
+          secretName: {{ openbao_tls_secret_name }}
+          items:
+            - key: tls.crt
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt
+        subPath: openbao.crt
+        name: proxy-ui-openbao-tls-certificate
+
+  op-monitor:
+    enabled: true
+    env:
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: op-monitor-openbao-tls-certificate
+        secret:
+          secretName: {{ openbao_tls_secret_name }}
+          items:
+            - key: tls.crt
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt
+        subPath: openbao.crt
+        name: op-monitor-openbao-tls-certificate
+
+  auxiliary-service:
+    env:
+{% if serverconf_init_image | length > 0 %}
+      SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
+{% endif %}
+      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
+      PROXY_UI_SUPERUSER: {{ proxy_ui_superuser }}
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: auxiliary-service-openbao-tls-certificate
+        secret:
+          secretName: {{ openbao_tls_secret_name }}
+          items:
+            - key: tls.crt
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt
+        subPath: openbao.crt
+        name: auxiliary-service-openbao-tls-certificate
+
+messageLogArchiver:
+  env:
+    QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+
+{% if jvm_metrics_enabled %}
+jvmMetrics:
+  enabled: true
+{% endif %}

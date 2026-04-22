@@ -1,0 +1,187 @@
+---
+- name: Ensure target namespace exists
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ security_server_namespace }}"
+
+- name: Add openbao helm repo
+  kubernetes.core.helm_repository:
+    name: openbao
+    repo_url: "{{ openbao_chart_repo }}"
+  when: not (openbao_chart_repo | regex_search('^oci://'))
+
+- name: Provision openbao postgres cluster (CNPG)
+  ansible.builtin.include_role:
+    name: cloudnative_pg
+    tasks_from: provision_db.yml
+  vars:
+    db: "{{ openbao_db }}"
+
+- name: Provision TLS material (self-signed mode)
+  when: openbao_tls_mode == 'self_signed'
+  block:
+    - name: Ensure TLS state directory
+      ansible.builtin.file:
+        path: "{{ openbao_tls_dir }}"
+        state: directory
+        mode: "0700"
+
+    - name: Generate openbao server private key (ECDSA P384)
+      community.crypto.openssl_privatekey:
+        path: "{{ openbao_tls_dir }}/openbao.key"
+        type: ECC
+        curve: secp384r1
+        mode: "0600"
+      no_log: true
+
+    - name: Build CSR for self-signed cert
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ openbao_tls_dir }}/openbao.key"
+        common_name: openbao
+        subject_alt_name:
+          - "DNS:openbao"
+          - "DNS:openbao.{{ security_server_namespace }}.svc.cluster.local"
+          - "DNS:localhost"
+          - "IP:127.0.0.1"
+        extended_key_usage:
+          - serverAuth
+        key_usage:
+          - digitalSignature
+          - keyEncipherment
+      register: openbao_csr
+      no_log: true
+
+    - name: Self-sign the cert
+      community.crypto.x509_certificate:
+        path: "{{ openbao_tls_dir }}/openbao.crt"
+        privatekey_path: "{{ openbao_tls_dir }}/openbao.key"
+        csr_content: "{{ openbao_csr.csr }}"
+        provider: selfsigned
+        selfsigned_not_after: "+{{ openbao_tls_validity_days }}d"
+        mode: "0644"
+
+    - name: Read cert+key for secret creation
+      ansible.builtin.slurp:
+        src: "{{ item }}"
+      register: openbao_tls_files
+      loop:
+        - "{{ openbao_tls_dir }}/openbao.crt"
+        - "{{ openbao_tls_dir }}/openbao.key"
+      no_log: true
+
+    - name: Create openbao-server-tls Secret
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          type: kubernetes.io/tls
+          metadata:
+            name: "{{ openbao_tls_secret_name }}"
+            namespace: "{{ security_server_namespace }}"
+          data:
+            tls.crt: "{{ openbao_tls_files.results[0].content }}"
+            tls.key: "{{ openbao_tls_files.results[1].content }}"
+      no_log: true
+
+- name: Cert-manager TLS mode not yet implemented
+  ansible.builtin.fail:
+    msg: "openbao_tls_mode=cert_manager is documented but not yet implemented; see docs/EKS.md"
+  when: openbao_tls_mode == 'cert_manager'
+
+- name: Deploy openbao secret store
+  kubernetes.core.helm:
+    name: openbao
+    chart_ref: "{{ openbao_chart }}"
+    chart_version: "{{ openbao_chart_version | default(omit, true) }}"
+    release_namespace: "{{ security_server_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    wait: true
+    wait_timeout: "{{ openbao_helm_wait_timeout }}"
+    values: "{{ lookup('template', 'openbao-values.yaml.j2') | from_yaml }}"
+
+# Skip the whole init block if xroad-token already exists — helm sees no
+# diff on re-runs, so we can't rely on it to recreate a stale Job.
+- name: Check for existing xroad-token secret
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: v1
+    kind: Secret
+    name: xroad-token
+    namespace: "{{ security_server_namespace }}"
+  register: xroad_token_pre
+
+- name: Run openbao initializer (ensure fresh Job when secret missing)
+  when: xroad_token_pre.resources | length == 0
+  block:
+    # K8s Jobs are immutable — must uninstall + delete Job to force helm to
+    # recreate the pod with the current init-script ConfigMap.
+    - name: Uninstall stale openbao-initializer release
+      kubernetes.core.helm:
+        name: openbao-initializer
+        release_namespace: "{{ security_server_namespace }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: absent
+        wait: true
+
+    - name: Remove stale openbao-init Job + pods
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: batch/v1
+        kind: Job
+        name: openbao-init-sa
+        namespace: "{{ security_server_namespace }}"
+        state: absent
+        wait: true
+        wait_timeout: 60
+
+    - name: Install openbao initializer (fresh)
+      kubernetes.core.helm:
+        name: openbao-initializer
+        chart_ref: "{{ (openbao_init_chart_repo | length > 0) | ternary(openbao_init_chart_repo + '/' + openbao_init_chart, openbao_init_chart) }}"
+        chart_version: "{{ openbao_init_chart_version | default(omit, true) }}"
+        release_namespace: "{{ security_server_namespace }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+        wait: true
+        wait_timeout: "{{ openbao_helm_wait_timeout }}"
+        values: "{{ lookup('template', 'openbao-init-values.yaml.j2') | from_yaml }}"
+
+    - name: Wait for openbao-init Job outcome
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: batch/v1
+        kind: Job
+        name: openbao-init-sa
+        namespace: "{{ security_server_namespace }}"
+      register: init_job
+      until: >-
+        (init_job.resources | length > 0) and
+        ((init_job.resources[0].status.succeeded | default(0)) >= 1 or
+         (init_job.resources[0].status.failed | default(0)) >= 1)
+      retries: 60
+      delay: 5
+
+    - name: Fail fast if openbao-init Job failed
+      ansible.builtin.fail:
+        msg: >-
+          openbao-init Job failed — check `kubectl logs -n {{ security_server_namespace }} -l job-name=openbao-init-sa`
+      when: (init_job.resources[0].status.failed | default(0)) >= 1
+
+- name: Confirm xroad-token secret exists
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: v1
+    kind: Secret
+    name: xroad-token
+    namespace: "{{ security_server_namespace }}"
+  register: xroad_token_post
+  until: xroad_token_post.resources | length > 0
+  retries: 30
+  delay: 2

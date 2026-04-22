@@ -88,7 +88,7 @@ Content-Type: application/json
       "C": "FI",
       "O": "Test SS2 client",
       "serialNumber": "DEV/SS2/ORG",
-      "subjectAltName": "proxy,localhost"
+      "subjectAltName": "localhost"
     }
   }
 }
@@ -156,7 +156,7 @@ Content-Type: application/json
       "C": "FI",
       "O": "Test SS2 client",
       "serialNumber": "DEV/ss2/ORG",
-      "subjectAltName": "proxy,localhost"
+      "subjectAltName": "localhost"
     }
   }
 }
@@ -326,4 +326,5 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     ]
 }
 
-HTTP 201
+# 201 on first run; 409 duplicate_accessright
+HTTP *

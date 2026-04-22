@@ -1,0 +1,73 @@
+---
+cluster_provider: kind
+kind_cluster_name: xroad-test-cluster
+kind_worker_count: 2
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+security_server_namespace: ss
+monitoring_namespace: ss-monitoring
+
+xroad_image_registry: ""
+xroad_image_tag: ""
+serverconf_init_image: ""
+jvm_metrics_enabled: false
+
+xroad8_oci_repo: "oci://artifactory.niis.org/xroad8-snapshot-helm"
+
+openbao_init_chart_repo: "{{ xroad8_oci_repo }}"
+openbao_init_chart: "openbao-init"
+openbao_init_chart_version: "0.1.0"
+
+security_server_chart_repo: "{{ xroad8_oci_repo }}"
+security_server_chart: "security-server"
+security_server_chart_version: "0.1.0"
+
+external_service_bridge_chart_repo: "{{ xroad8_oci_repo }}"
+external_service_bridge_chart: "external-service-bridge"
+external_service_bridge_chart_version: "0.1.0"
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+openbao_chart_repo: "https://openbao.github.io/openbao-helm"
+openbao_chart: "openbao/openbao"
+openbao_chart_version: "0.25.6"
+
+prometheus_chart_repo: "https://prometheus-community.github.io/helm-charts"
+prometheus_chart: "prometheus-community/kube-prometheus-stack"
+prometheus_chart_version: "80.4.1"
+
+containerd_config_patches: []
+
+external_service_host: host.docker.internal
+
+external_service_bridges:
+  - name: xrd-cs
+    external_host: "{{ external_service_host }}"
+    ports:
+      - {name: http, port: 80, targetPort: 3010}
+      - {name: https, port: 443, targetPort: 3015}
+      - {name: registration, port: 4001, targetPort: 3030}
+      - {name: management, port: 4002, targetPort: 3035}
+  - name: xrd-ca
+    external_host: "{{ external_service_host }}"
+    ports:
+      - {name: ca, port: 8888, targetPort: 4002}
+      - {name: tsa, port: 8899, targetPort: 4004}
+  - name: xrd-ss0
+    external_host: "{{ external_service_host }}"
+    ports:
+      - {name: proxy, port: 5500, targetPort: 3230}
+      - {name: proxy-ocsp, port: 5577, targetPort: 3240}
+
+deploy_prometheus: false
+
+openbao_ha_replicas: 1
+openbao_global_tls_disable: true
+openbao_tls_mode: self_signed
+
+port_forwards:
+  - {name: proxy-ui-api, namespace: "{{ security_server_namespace }}", resource: svc/proxy-ui-api, ports: "4000:4000"}
+  - {name: proxy-http, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5500:5500"}
+  - {name: proxy-ocsp, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5577:5577"}
+  - {name: proxy-8080, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8080:8080"}
+  - {name: proxy-8443, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8443:8443"}

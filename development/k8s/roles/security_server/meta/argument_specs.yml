@@ -1,0 +1,22 @@
+---
+argument_specs:
+  main:
+    short_description: Deploy X-Road Security Server stack
+    options:
+      security_server_namespace: {type: str, required: true}
+      kubeconfig_path: {type: path, required: true}
+      security_server_chart_repo: {type: str, required: false}
+      security_server_chart: {type: str, required: true}
+      security_server_chart_version: {type: str, required: false}
+      postgres_image: {type: str, required: true}
+      xroad_image_registry: {type: str, required: false}
+      xroad_image_tag: {type: str, required: false}
+      serverconf_init_image: {type: str, required: false}
+      jvm_metrics_enabled: {type: bool, default: false}
+      openbao_tls_secret_name: {type: str, default: openbao-server-tls}
+      proxy_ui_superuser: {type: str, default: xrd}
+      proxy_ui_superuser_password: {type: str, required: true}
+      configuration_client_update_interval: {type: str, default: "10"}
+      serverconf_db: {type: dict, required: true}
+      messagelog_db: {type: dict, required: true}
+      opmonitor_db: {type: dict, required: true}

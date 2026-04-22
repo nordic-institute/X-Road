@@ -1,0 +1,83 @@
+---
+- name: Start kubectl port-forwards
+  hosts: k8s_control
+  gather_facts: false
+  vars:
+    state_dir: "{{ playbook_dir }}/../.state"
+    pidfile: "{{ state_dir }}/port-forwards-{{ env_name | default('dev') }}.pid"
+    logdir: "{{ state_dir }}/port-forwards-{{ env_name | default('dev') }}"
+  tasks:
+    - name: Ensure state + log directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "{{ state_dir }}"
+        - "{{ logdir }}"
+
+    # PIDs can be recycled between runs; verify the process is actually a
+    # kubectl port-forward before sending SIGTERM so we don't kill unrelated
+    # local processes that happened to reuse the PID.
+    - name: Reap previous port-forwards (by pidfile, verified via ps)
+      ansible.builtin.shell: |
+        set -e
+        if [[ -f "{{ pidfile }}" ]]; then
+          while IFS= read -r pid; do
+            [[ "$pid" =~ ^[0-9]+$ ]] || continue
+            cmd=$(ps -o args= -p "$pid" 2>/dev/null || true)
+            if [[ -n "$cmd" && "$cmd" == *kubectl* && "$cmd" == *port-forward* ]]; then
+              kill -TERM "$pid" 2>/dev/null || true
+            fi
+          done < "{{ pidfile }}"
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+    - name: Drop stale pidfile
+      ansible.builtin.file:
+        path: "{{ pidfile }}"
+        state: absent
+
+    # nohup + disown + stdin redirect detaches the kubectl child so it
+    # survives ansible-playbook exit. `setsid` is not on BSD/macOS.
+    - name: Launch detached port-forwards
+      ansible.builtin.shell: |
+        set -e
+        exec </dev/null
+        nohup kubectl --kubeconfig {{ kubeconfig_path | quote }} \
+          port-forward \
+          -n {{ item.namespace | quote }} \
+          {{ item.resource }} \
+          {{ item.ports }} \
+          >> {{ logdir | quote }}/{{ item.name }}.log 2>&1 &
+        pid=$!
+        disown "$pid" 2>/dev/null || true
+        echo "$pid"
+      args:
+        executable: /bin/bash
+      register: port_forward_jobs
+      loop: "{{ port_forwards | default([]) }}"
+      loop_control:
+        label: "{{ item.name }} ({{ item.ports }})"
+      changed_when: true
+
+    - name: Record port-forward PIDs
+      ansible.builtin.copy:
+        content: |
+          {% for job in port_forward_jobs.results %}
+          {{ job.stdout | trim }}
+          {% endfor %}
+        dest: "{{ pidfile }}"
+        mode: "0644"
+      when: port_forward_jobs.results | default([]) | length > 0
+
+    - name: Wait for each forwarded port to accept connections
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ item.ports.split(':')[0] | int }}"
+        timeout: 30
+      loop: "{{ port_forwards | default([]) }}"
+      loop_control:
+        label: "{{ item.name }} (127.0.0.1:{{ item.ports.split(':')[0] }})"

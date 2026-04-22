@@ -1,0 +1,10 @@
+---
+monitoring_namespace: ss-monitoring
+security_server_namespace: ss
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+prometheus_chart_repo: "https://prometheus-community.github.io/helm-charts"
+prometheus_chart: "prometheus-community/kube-prometheus-stack"
+prometheus_chart_version: "80.4.1"
+
+prometheus_helm_timeout: 10m

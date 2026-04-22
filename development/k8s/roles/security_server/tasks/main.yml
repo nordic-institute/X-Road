@@ -1,0 +1,54 @@
+---
+- name: Provision Security Server postgres clusters (CNPG)
+  ansible.builtin.include_role:
+    name: cloudnative_pg
+    tasks_from: provision_db.yml
+  vars:
+    db: "{{ item }}"
+  loop:
+    - "{{ serverconf_db }}"
+    - "{{ messagelog_db }}"
+    - "{{ opmonitor_db }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install/upgrade Security Server chart (non-blocking)
+  kubernetes.core.helm:
+    name: security-server
+    chart_ref: "{{ (security_server_chart_repo | length > 0) | ternary(security_server_chart_repo + '/' + security_server_chart, security_server_chart) }}"
+    chart_version: "{{ security_server_chart_version | default(omit, true) }}"
+    release_namespace: "{{ security_server_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    # wait=false + explicit polling below — avoids 10-min silent hang, prints
+    # per-retry status under -vv during 3-5 min container pulls.
+    wait: false
+    values: "{{ lookup('template', 'security-server-values.yaml.j2') | from_yaml }}"
+
+- name: Wait for Security Server Deployments to become Available
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ security_server_namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/instance=security-server"
+  register: ss_deployments
+  until: >-
+    (ss_deployments.resources | length > 0) and
+    (ss_deployments.resources
+     | map(attribute='spec.replicas', default=0)
+     | map('int') | sum) ==
+    (ss_deployments.resources
+     | map(attribute='status.availableReplicas', default=0)
+     | map('int') | sum)
+  retries: "{{ security_server_wait_retries }}"
+  delay: "{{ security_server_wait_delay }}"
+
+- name: Summarise pod readiness
+  ansible.builtin.debug:
+    msg: >-
+      {{ item.metadata.name }}: available {{ item.status.availableReplicas | default(0) }}/{{ item.status.replicas | default(0) }}
+  loop: "{{ ss_deployments.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"

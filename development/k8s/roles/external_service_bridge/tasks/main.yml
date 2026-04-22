@@ -1,0 +1,12 @@
+---
+- name: "Deploy external-service-bridge: {{ bridge_name }}"
+  kubernetes.core.helm:
+    name: "xroad-bridge-{{ bridge_name }}"
+    chart_ref: "{{ (external_service_bridge_chart_repo | length > 0) | ternary(external_service_bridge_chart_repo + '/' + external_service_bridge_chart, external_service_bridge_chart) }}"
+    chart_version: "{{ external_service_bridge_chart_version | default(omit, true) }}"
+    release_namespace: "{{ security_server_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    wait: true
+    wait_timeout: "{{ external_service_bridge_timeout }}"
+    values: "{{ lookup('template', 'bridge-values.yaml.j2') | from_yaml }}"

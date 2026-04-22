@@ -1,0 +1,64 @@
+---
+- name: Ensure state directory exists
+  ansible.builtin.file:
+    path: "{{ kind_state_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: List existing kind clusters
+  ansible.builtin.command: kind get clusters -q
+  register: kind_clusters
+  changed_when: false
+  check_mode: false
+  failed_when: kind_clusters.rc not in [0, 1]
+
+- name: Render kind config
+  ansible.builtin.template:
+    src: kind-config.yaml.j2
+    dest: "{{ kind_state_dir }}/kind-config-{{ kind_cluster_name }}.yaml"
+    mode: "0644"
+
+- name: Announce kind create (first run pulls kindest/node image — can take 1-2 min)
+  ansible.builtin.debug:
+    msg: >-
+      Creating kind cluster '{{ kind_cluster_name }}'. First run pulls the
+      kindest/node image (~200MB) and waits up to {{ kind_wait_for_ready }}
+      for the control-plane to become Ready.
+  when: kind_cluster_name not in (kind_clusters.stdout_lines | default([]))
+
+- name: Create kind cluster (async, polled for progress)
+  ansible.builtin.command: >-
+    kind create cluster
+    --name {{ kind_cluster_name }}
+    --config {{ kind_state_dir }}/kind-config-{{ kind_cluster_name }}.yaml
+    --kubeconfig {{ kubeconfig_path }}
+    --wait {{ kind_wait_for_ready }}
+  async: "{{ kind_create_async_timeout | default(900) }}"
+  poll: "{{ kind_create_poll_interval | default(10) }}"
+  when: kind_cluster_name not in (kind_clusters.stdout_lines | default([]))
+  changed_when: true
+  register: kind_create_result
+
+- name: Show kind create stderr (when relevant)
+  ansible.builtin.debug:
+    var: kind_create_result.stderr_lines
+  when:
+    - kind_create_result is defined
+    - kind_create_result.stderr_lines is defined
+    - kind_create_result.stderr_lines | length > 0
+
+- name: Verify cluster reachable via kubectl
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    context: "kind-{{ kind_cluster_name }}"
+    kind: Node
+  register: kind_nodes
+  changed_when: false
+
+- name: Assert cluster has expected node count
+  ansible.builtin.assert:
+    that:
+      - (kind_nodes.resources | length) == (kind_worker_count + 1)
+    fail_msg: >-
+      Expected {{ kind_worker_count + 1 }} nodes but found
+      {{ kind_nodes.resources | length }}
