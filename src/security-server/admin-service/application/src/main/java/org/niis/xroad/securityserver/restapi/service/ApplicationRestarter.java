@@ -24,14 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi;
+package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-
-import static org.niis.xroad.securityserver.restapi.openapi.BackupsApiController.DELAY_FOR_RESPONSE;
 
 /**
  * Handles scheduling application restart after backup restore.
@@ -39,10 +37,12 @@ import static org.niis.xroad.securityserver.restapi.openapi.BackupsApiController
  */
 @Slf4j
 @Component
-class ApplicationRestarter {
+public class ApplicationRestarter {
+
+    private static final int DELAY_FOR_RESPONSE = 5;
 
     // In Kubernetes, the auxiliary-service orchestrates all service restarts via kubectl.
-    void scheduleRestartIfNeeded() {
+    public void scheduleRestartIfNeeded() {
         if (System.getenv("KUBERNETES_SERVICE_HOST") != null) {
             log.info("Kubernetes environment detected — proxy-ui-api restart is handled by auxiliary-service");
             return;
@@ -59,7 +59,7 @@ class ApplicationRestarter {
         });
     }
 
-    void exitApplication() {
+    private void exitApplication() {
         log.info("Shutting down Proxy UI for restart after backup restore");
         System.exit(1);
     }
