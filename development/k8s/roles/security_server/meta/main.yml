@@ -14,5 +14,4 @@ galaxy_info:
     - name: EL
       versions: ["8", "9", "10"]
   galaxy_tags: [kubernetes, xroad, security-server]
-dependencies:
-  - role: openbao
+dependencies: []
