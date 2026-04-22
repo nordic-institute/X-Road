@@ -253,7 +253,7 @@ public class MessageTestCase {
                 sender.doGet(getClientUri());
             }
 
-            sender.waitForResponse(DEFAULT_CLIENT_TIMEOUT);
+            sender.waitForResponse(getClientTimeout());
         }
 
         try {
@@ -391,7 +391,7 @@ public class MessageTestCase {
         return builder.build();
     }
 
-    protected int getClientTimeout() {
+    public int getClientTimeout() {
         return DEFAULT_CLIENT_TIMEOUT;
     }
 
