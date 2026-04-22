@@ -55,7 +55,7 @@ jobs:
           - x-road/ds-control-plane
           - x-road/ds-data-plane
           - x-road/ds-identity-hub
-          # Database initialization image
+          # Database initialization images
           - x-road/ss-db-init
           - x-road/ss-db-messagelog-init
           - x-road/ss-db-opmonitor-init
