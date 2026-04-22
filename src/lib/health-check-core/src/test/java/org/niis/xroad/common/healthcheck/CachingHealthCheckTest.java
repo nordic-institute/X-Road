@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,40 +68,33 @@ class CachingHealthCheckTest {
     }
 
     @Test
-    void refreshesAfterSuccessTtlExpiry() throws InterruptedException {
+    void refreshesAfterSuccessTtlExpiry() {
+        AtomicLong clockNanos = new AtomicLong();
         AtomicInteger invocations = new AtomicInteger();
         HealthCheck delegate = () -> {
             invocations.incrementAndGet();
             return HealthCheckResponse.up(CHECK_NAME);
         };
         CachingHealthCheck caching = new CachingHealthCheck(delegate,
-                SUCCESS_TTL, ERROR_TTL, MAX_ERROR_TTL, BACKOFF_MULTIPLIER);
+                SUCCESS_TTL, ERROR_TTL, MAX_ERROR_TTL, BACKOFF_MULTIPLIER, clockNanos::get);
 
         caching.call();
-        Thread.sleep(SUCCESS_TTL.toMillis() + 30);
+        clockNanos.addAndGet(SUCCESS_TTL.toNanos() + 1);
         caching.call();
 
         assertThat(invocations.get()).isEqualTo(2);
     }
 
     @Test
-    void errorTtlDoublesUntilCap() throws InterruptedException {
-        // Warm JIT + class-loading so first-iteration timing isn't distorted by
-        // ~50ms startup cost that can otherwise erode the 50ms sleep margin inside
-        // the 100ms step-0 TTL window.
-        CachingHealthCheck warmup = new CachingHealthCheck(
-                () -> HealthCheckResponse.down(CHECK_NAME),
-                Duration.ofSeconds(5), Duration.ofSeconds(5), Duration.ofSeconds(10), 2);
-        warmup.call();
-        warmup.call();
-
+    void errorTtlDoublesUntilCap() {
+        AtomicLong clockNanos = new AtomicLong();
         AtomicInteger invocations = new AtomicInteger();
         HealthCheck delegate = () -> {
             invocations.incrementAndGet();
             return HealthCheckResponse.down(CHECK_NAME);
         };
         CachingHealthCheck caching = new CachingHealthCheck(delegate,
-                SUCCESS_TTL, ERROR_TTL, MAX_ERROR_TTL, BACKOFF_MULTIPLIER);
+                SUCCESS_TTL, ERROR_TTL, MAX_ERROR_TTL, BACKOFF_MULTIPLIER, clockNanos::get);
 
         // Expected progression of stored error-TTL (ms): 100, 200, 400, 800 (cap), 800
         long[] expectedTtlMs = {100, 200, 400, 800, 800};
@@ -112,18 +106,16 @@ class CachingHealthCheckTest {
             assertThat(invocations.get()).isEqualTo(before + 1);
 
             long currentTtl = expectedTtlMs[i];
-            // Sleep well within current TTL and verify no new invocation (cache still valid).
-            // Use currentTtl/4 (not currentTtl/2) so first-iteration JIT/class-load jitter
-            // doesn't accidentally exhaust the cache window on the tightest step (100ms).
-            Thread.sleep(currentTtl / 4);
+            // Advance within current TTL — cache must still be valid.
+            clockNanos.addAndGet(TimeUnit.MILLISECONDS.toNanos(currentTtl / 2));
             long midInvocations = invocations.get();
             caching.call();
             assertThat(invocations.get())
                     .as("within error-TTL step %d (ttl=%dms) no new invocation", i, currentTtl)
                     .isEqualTo(midInvocations);
 
-            // Sleep past the TTL window so the next outer-loop call refreshes
-            Thread.sleep(currentTtl * 3 / 4 + 50);
+            // Advance past the TTL window so the next outer-loop call refreshes.
+            clockNanos.addAndGet(TimeUnit.MILLISECONDS.toNanos(currentTtl / 2 + 1));
         }
 
         // After cap is reached, next refresh should STILL use cap (not grow further)
@@ -131,13 +123,14 @@ class CachingHealthCheckTest {
         caching.call();
         assertThat(invocations.get()).isEqualTo(before + 1);
         // Within cap window, still cached
-        Thread.sleep(MAX_ERROR_TTL.toMillis() / 2);
+        clockNanos.addAndGet(TimeUnit.MILLISECONDS.toNanos(MAX_ERROR_TTL.toMillis() / 2));
         caching.call();
         assertThat(invocations.get()).isEqualTo(before + 1);
     }
 
     @Test
-    void errorTtlResetsOnFirstOkAfterErrors() throws InterruptedException {
+    void errorTtlResetsOnFirstOkAfterErrors() {
+        AtomicLong clockNanos = new AtomicLong();
         AtomicInteger invocations = new AtomicInteger();
         AtomicReference<HealthCheckResponse.Status> nextStatus =
                 new AtomicReference<>(HealthCheckResponse.Status.DOWN);
@@ -148,20 +141,20 @@ class CachingHealthCheckTest {
                     : HealthCheckResponse.down(CHECK_NAME);
         };
         CachingHealthCheck caching = new CachingHealthCheck(delegate,
-                SUCCESS_TTL, ERROR_TTL, MAX_ERROR_TTL, BACKOFF_MULTIPLIER);
+                SUCCESS_TTL, ERROR_TTL, MAX_ERROR_TTL, BACKOFF_MULTIPLIER, clockNanos::get);
 
         // Walk backoff a few steps: 100ms, 200ms, 400ms
         long[] climbTtlMs = {100, 200, 400};
         for (long ttl : climbTtlMs) {
             caching.call();
-            Thread.sleep(ttl + 30);
+            clockNanos.addAndGet(TimeUnit.MILLISECONDS.toNanos(ttl + 1));
         }
 
         // Flip to UP and let the next refresh observe it
         nextStatus.set(HealthCheckResponse.Status.UP);
         HealthCheckResponse resp = caching.call();
         assertThat(resp.getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
-        Thread.sleep(SUCCESS_TTL.toMillis() + 30);
+        clockNanos.addAndGet(SUCCESS_TTL.toNanos() + 1);
 
         // Now flip back to DOWN. The very first DOWN after the OK must store error-ttl (100ms), NOT the cap.
         nextStatus.set(HealthCheckResponse.Status.DOWN);
@@ -169,16 +162,16 @@ class CachingHealthCheckTest {
         caching.call();
         assertThat(invocations.get()).isEqualTo(beforeFirstError + 1);
 
-        // Within 100ms window (initial error-TTL), cached.
-        Thread.sleep(50);
+        // Within initial error-TTL (100ms) window, cached.
+        clockNanos.addAndGet(TimeUnit.MILLISECONDS.toNanos(50));
         long midInvocations = invocations.get();
         caching.call();
         assertThat(invocations.get())
                 .as("first error after OK uses initial error-TTL, not cap")
                 .isEqualTo(midInvocations);
 
-        // After 100ms (+margin), cache must expire — confirms TTL was 100ms (reset) not 800ms (cap).
-        Thread.sleep(90);
+        // After the initial error-TTL boundary, cache must expire — confirms TTL was 100ms (reset) not 800ms (cap).
+        clockNanos.addAndGet(TimeUnit.MILLISECONDS.toNanos(60));
         caching.call();
         assertThat(invocations.get())
                 .as("cache expired at initial error-TTL (reset verified)")

@@ -31,6 +31,7 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.LongSupplier;
 
 /**
  * {@link HealthCheck} wrapper that memoizes a delegate's {@link HealthCheckResponse} using
@@ -54,6 +55,7 @@ public final class CachingHealthCheck implements HealthCheck {
     private final long errorTtlNanos;
     private final long maxErrorTtlNanos;
     private final int backoffMultiplier;
+    private final LongSupplier nanoClock;
 
     private final AtomicReference<CachedResponse> ref = new AtomicReference<>();
 
@@ -77,17 +79,29 @@ public final class CachingHealthCheck implements HealthCheck {
                               Duration errorTtl,
                               Duration maxErrorTtl,
                               int backoffMultiplier) {
+        this(delegate, successTtl, errorTtl, maxErrorTtl, backoffMultiplier, System::nanoTime);
+    }
+
+    // Package-private: lets tests inject a deterministic clock so TTL behaviour
+    // does not depend on wall-clock scheduling (GC pauses, CI CPU contention).
+    CachingHealthCheck(HealthCheck delegate,
+                       Duration successTtl,
+                       Duration errorTtl,
+                       Duration maxErrorTtl,
+                       int backoffMultiplier,
+                       LongSupplier nanoClock) {
         this.delegate = delegate;
         this.successTtlNanos = successTtl.toNanos();
         this.errorTtlNanos = errorTtl.toNanos();
         this.maxErrorTtlNanos = maxErrorTtl.toNanos();
         this.backoffMultiplier = backoffMultiplier;
+        this.nanoClock = nanoClock;
     }
 
     @Override
     public HealthCheckResponse call() {
         var cached = ref.get();
-        if (cached != null && System.nanoTime() - cached.expiresAtNanos() < 0) {
+        if (cached != null && nanoClock.getAsLong() - cached.expiresAtNanos() < 0) {
             return cached.response();
         }
 
@@ -108,7 +122,7 @@ public final class CachingHealthCheck implements HealthCheck {
         }
 
         long nextErrorTtlNanos = computeNextErrorTtl(cached, isError);
-        long newExpiryNanos = System.nanoTime() + (isError ? nextErrorTtlNanos : successTtlNanos);
+        long newExpiryNanos = nanoClock.getAsLong() + (isError ? nextErrorTtlNanos : successTtlNanos);
         var updated = new CachedResponse(fresh, newExpiryNanos, nextErrorTtlNanos, isError);
         ref.compareAndSet(cached, updated);
         return fresh;
