@@ -37,20 +37,11 @@
   until: >-
     (ss_deployments.resources | length > 0) and
     (ss_deployments.resources
-     | map(attribute='status.availableReplicas', default=0)
-     | map('int')
-     | list
-     | reject('gt', 0)
-     | list
-     | length == 0) and
+     | map(attribute='spec.replicas', default=0)
+     | map('int') | sum) ==
     (ss_deployments.resources
-     | map(attribute='status.replicas', default=0)
-     | map('int')
-     | sum ==
-     ss_deployments.resources
      | map(attribute='status.availableReplicas', default=0)
-     | map('int')
-     | sum)
+     | map('int') | sum)
   retries: "{{ security_server_wait_retries }}"
   delay: "{{ security_server_wait_delay }}"
 

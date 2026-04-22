@@ -22,7 +22,7 @@ argument_specs:
       openbao_tls_mode:
         type: str
         default: self_signed
-        choices: [self_signed, cert_manager, external]
+        choices: [self_signed, cert_manager]
       openbao_tls_secret_name: {type: str, default: openbao-server-tls}
       openbao_tls_dir: {type: path, required: false}
       openbao_tls_validity_days: {type: int, default: 1825}

@@ -70,7 +70,7 @@ is_initialized() {
   local status
   status=$(bao_api "GET" "$addr" "/v1/sys/init" "" "" "Checking init status") || {
     echo "[OPENBAO] Failed to check initialization status" >&2
-    return 2
+    exit 1
   }
   echo "$status" | jq -e '.initialized == true' >/dev/null
 }
@@ -109,7 +109,7 @@ is_sealed() {
   done
   if [ $attempt -eq $max_attempts ]; then
     echo "[OPENBAO] Failed to check seal status after $max_attempts attempts" >&2
-    return 2
+    exit 1
   fi
   echo "$status" | jq -e '.sealed == true' >/dev/null
 }

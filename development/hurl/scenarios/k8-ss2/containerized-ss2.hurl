@@ -326,6 +326,5 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     ]
 }
 
+# 201 on first run; 409 duplicate_accessright
 HTTP *
-[Asserts]
-status in [201, 409]

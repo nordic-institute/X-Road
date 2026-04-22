@@ -152,8 +152,10 @@ spec:
     kind: Issuer
 ```
 
-Apply before running the playbook. The `openbao` role detects `openbao_tls_mode: cert_manager` and skips self-signed generation (
-implementation landed in a follow-up PR — for now set `openbao_tls_mode: self_signed` and migrate later).
+The `openbao` role does **not** currently implement `openbao_tls_mode: cert_manager`; setting
+that mode hard-fails. For EKS bring-up, keep `openbao_tls_mode: self_signed` (the default
+in `inventory/eks/group_vars/all.yml`). Migrate to `cert_manager` only after the role adds
+the detect-and-skip-generation path.
 
 ## IRSA for image pulls from ECR
 

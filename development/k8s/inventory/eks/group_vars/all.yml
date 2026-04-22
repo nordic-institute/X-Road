@@ -31,8 +31,9 @@ openbao_chart_repo: "https://openbao.github.io/openbao-helm"
 openbao_chart: "openbao/openbao"
 openbao_chart_version: "0.25.6"
 
-# cert-manager-issued cert preferred on EKS; self_signed supported for bring-up.
-openbao_tls_mode: cert_manager
+# cert_manager is not yet implemented in the openbao role — use self_signed
+# for initial bring-up. Migrate once the cert_manager path lands.
+openbao_tls_mode: self_signed
 
 # No host bridges on real EKS — real X-Road CS/CA reachable via DNS.
 external_service_bridges: []

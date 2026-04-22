@@ -72,14 +72,9 @@ else
         exit 1
       fi
 
-      sealed_rc=0
-      is_sealed "$NODE" || sealed_rc=$?
-      if [ $sealed_rc -eq 1 ]; then
+      if ! is_sealed "$NODE"; then
         echo "[UNSEAL] Successfully unsealed OpenBao node: $NODE"
         break
-      elif [ $sealed_rc -eq 2 ]; then
-        echo "[UNSEAL] Transient seal-status failure on $NODE — applying next key" >&2
-        continue
       fi
     done
   done

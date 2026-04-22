@@ -1,12 +1,14 @@
 ---
 collections:
   # kubernetes.core 6.3.0 hardcodes Helm <4.0.0. Helm 4 support is merged on
-  # `main` (PR #1090) and will ship in 6.4.0 (PR #1101 still open 2026-04-22).
-  # TODO: switch back to `version: ">=6.4.0,<7.0.0"` once 6.4.0 lands on Galaxy.
+  # `main` (PR #1090, commit e6076e5) but not yet released; pin to the exact
+  # HEAD SHA for reproducible installs instead of tracking `main`. Bump only
+  # after validating a newer revision.
+  # TODO: switch to `version: ">=6.4.0,<7.0.0"` once 6.4.0 lands on Galaxy.
   - name: kubernetes.core
     source: https://github.com/ansible-collections/kubernetes.core.git
     type: git
-    version: main
+    version: 11f619b69e11194492e4009bf0f668986ab8de46
   - name: community.crypto
     version: ">=3.0.0,<4.0.0"
   - name: ansible.posix
