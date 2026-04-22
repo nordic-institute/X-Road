@@ -19,10 +19,7 @@
   rpm_key:
     state: present
     key: "{{ rhel_repo_gpgkey }}"
-  when:
-    - rhel_repo_gpgkey is defined
-    - package_source == "remote"
-    - (rhel_repo_gpgcheck | default('no') | string | lower) in ['yes', 'true', '1']
+  when: rhel_repo_gpgkey is defined and package_source == "remote"
 
 - name: Setup the correct repository for X-Road installation
   yum_repository:
