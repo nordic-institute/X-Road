@@ -1,0 +1,73 @@
+---
+# On Linux Docker, `host.docker.internal` is not populated automatically (unlike
+# Docker Desktop). Kind does not pass --add-host=host.docker.internal:host-gateway
+# to node containers, so containerd and in-cluster pods cannot resolve it. We
+# patch it in two places: node /etc/hosts (so containerd can pull from the
+# localhost:5555 registry mirror) and CoreDNS (so pods — e.g. the
+# external-service-bridge resolver Jobs — can resolve it too).
+- name: Collect kind node container names
+  ansible.builtin.command: >-
+    docker ps --filter label=io.x-k8s.kind.cluster={{ kind_cluster_name }}
+    --format {{ '{{.Names}}' }}
+  register: kind_node_containers
+  changed_when: false
+  check_mode: false
+
+- name: Determine docker bridge gateway IP (host-gateway)
+  ansible.builtin.shell: >-
+    set -o pipefail &&
+    docker exec {{ kind_node_containers.stdout_lines[0] }}
+    sh -c "ip route | awk '/default/ {print \$3}'"
+  args:
+    executable: /bin/bash
+  register: kind_gateway_ip
+  changed_when: false
+  check_mode: false
+
+- name: Patch /etc/hosts in kind nodes with host.docker.internal
+  ansible.builtin.command: >-
+    docker exec {{ item }}
+    sh -c "grep -q host.docker.internal /etc/hosts ||
+    echo '{{ kind_gateway_ip.stdout }} host.docker.internal' | tee -a /etc/hosts"
+  register: hosts_patch
+  changed_when: hosts_patch.stdout | trim | length > 0
+  loop: "{{ kind_node_containers.stdout_lines }}"
+
+- name: Fetch CoreDNS configmap
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    context: "kind-{{ kind_cluster_name }}"
+    kind: ConfigMap
+    name: coredns
+    namespace: kube-system
+  register: coredns_cm
+
+- name: Patch CoreDNS Corefile to resolve host.docker.internal
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    context: "kind-{{ kind_cluster_name }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: coredns
+        namespace: kube-system
+      data:
+        Corefile: "{{ lookup('template', 'coredns-corefile.j2') }}"
+  when: "'host.docker.internal' not in (coredns_cm.resources[0].data.Corefile | default(''))"
+  register: coredns_patched
+
+- name: Restart CoreDNS to pick up patched Corefile
+  ansible.builtin.command: >-
+    kubectl --kubeconfig={{ kubeconfig_path }} --context=kind-{{ kind_cluster_name }}
+    -n kube-system rollout restart deployment coredns
+  changed_when: true
+  when: coredns_patched is changed
+
+- name: Wait for CoreDNS rollout to complete
+  ansible.builtin.command: >-
+    kubectl --kubeconfig={{ kubeconfig_path }} --context=kind-{{ kind_cluster_name }}
+    -n kube-system rollout status deployment coredns --timeout=60s
+  changed_when: false
+  when: coredns_patched is changed

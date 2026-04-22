@@ -62,3 +62,6 @@
     fail_msg: >-
       Expected {{ kind_worker_count + 1 }} nodes but found
       {{ kind_nodes.resources | length }}
+
+- name: Patch host.docker.internal for Linux Docker compatibility
+  ansible.builtin.import_tasks: host_docker_internal.yml
