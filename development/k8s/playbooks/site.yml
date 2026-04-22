@@ -2,8 +2,6 @@
 - name: Deploy X-Road Security Server stack
   hosts: k8s_control
   gather_facts: true
-  vars:
-    on_macos: "{{ ansible_system == 'Darwin' }}"
   pre_tasks:
     - name: Assert required vars present
       ansible.builtin.assert:

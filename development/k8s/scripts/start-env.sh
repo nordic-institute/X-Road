@@ -104,8 +104,6 @@ handleBuildImages() {
 
 handleAnsible() {
   local inventory="${CUSTOM_INVENTORY:-$(inventory_path_for "${ENV_NAME}")}"
-  local on_macos
-  on_macos="$(on_macos_flag)"
 
   log_info "Running ansible site.yml (inventory=${inventory})"
   log_info "Slow steps ahead: 'kind create cluster' pulls the node image (~1-2 min on first run)"
@@ -115,7 +113,6 @@ handleAnsible() {
   [[ -n "${ANSIBLE_VERBOSITY}" ]] && verbosity_args+=("${ANSIBLE_VERBOSITY}")
   run_ansible_playbook playbooks/site.yml \
     -i "${inventory}" \
-    -e "on_macos=${on_macos}" \
     -e "env_name=${ENV_NAME}" \
     --forks 10 \
     "${verbosity_args[@]}" \

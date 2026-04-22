@@ -16,14 +16,23 @@
         - "{{ state_dir }}"
         - "{{ logdir }}"
 
-    - name: Reap previous port-forwards (by pidfile)
+    # PIDs can be recycled between runs; verify the process is actually a
+    # kubectl port-forward before sending SIGTERM so we don't kill unrelated
+    # local processes that happened to reuse the PID.
+    - name: Reap previous port-forwards (by pidfile, verified via ps)
       ansible.builtin.shell: |
         set -e
         if [[ -f "{{ pidfile }}" ]]; then
           while IFS= read -r pid; do
-            [[ -n "$pid" ]] && kill -TERM "$pid" 2>/dev/null || true
+            [[ "$pid" =~ ^[0-9]+$ ]] || continue
+            cmd=$(ps -o args= -p "$pid" 2>/dev/null || true)
+            if [[ -n "$cmd" && "$cmd" == *kubectl* && "$cmd" == *port-forward* ]]; then
+              kill -TERM "$pid" 2>/dev/null || true
+            fi
           done < "{{ pidfile }}"
         fi
+      args:
+        executable: /bin/bash
       changed_when: false
 
     - name: Drop stale pidfile

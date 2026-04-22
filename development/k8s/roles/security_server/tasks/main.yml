@@ -32,7 +32,7 @@
     kind: Deployment
     namespace: "{{ security_server_namespace }}"
     label_selectors:
-      - "app.kubernetes.io/managed-by=Helm"
+      - "app.kubernetes.io/instance=security-server"
   register: ss_deployments
   until: >-
     (ss_deployments.resources | length > 0) and

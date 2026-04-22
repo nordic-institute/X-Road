@@ -33,10 +33,6 @@ detect_os() {
   esac
 }
 
-on_macos_flag() {
-  [[ "$(detect_os)" == "macos" ]] && echo "yes" || echo "no"
-}
-
 require_bin() {
   local bin="$1"
   local install_hint="${2:-}"

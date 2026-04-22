@@ -51,8 +51,12 @@ reapPortForwards() {
   if [[ -f "${pidfile}" ]]; then
     log_info "Reaping port-forward PIDs from ${pidfile}"
     while IFS= read -r pid; do
-      [[ -z "${pid}" ]] && continue
-      if kill -0 "${pid}" 2>/dev/null; then
+      [[ "${pid}" =~ ^[0-9]+$ ]] || continue
+      local cmd
+      cmd=$(ps -o args= -p "${pid}" 2>/dev/null || true)
+      # Only signal the PID if it still maps to a kubectl port-forward —
+      # avoids nuking unrelated processes if the OS recycled the PID.
+      if [[ -n "${cmd}" && "${cmd}" == *kubectl* && "${cmd}" == *port-forward* ]]; then
         kill "${pid}" 2>/dev/null || true
       fi
     done < "${pidfile}"
@@ -62,11 +66,8 @@ reapPortForwards() {
 
 runTeardown() {
   local inventory="${CUSTOM_INVENTORY:-$(inventory_path_for "${ENV_NAME}")}"
-  local on_macos
-  on_macos="$(on_macos_flag)"
   run_ansible_playbook playbooks/teardown.yml \
     -i "${inventory}" \
-    -e "on_macos=${on_macos}" \
     -e "env_name=${ENV_NAME}" \
     -e "keep_cluster=${KEEP_CLUSTER}"
 }
