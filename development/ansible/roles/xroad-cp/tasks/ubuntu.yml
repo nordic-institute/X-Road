@@ -3,7 +3,7 @@
   block:
     - name: install remote database package
       apt:
-        name: "xroad-database-remote"
+        name: xroad-database-remote
         state: latest
 
     - name: xroad.properties template
@@ -15,30 +15,26 @@
         mode: 0600
         force: no
 
-  when: (database_admin_password is defined) and (database_admin_password != "")
+    - name: debconf xroad-confproxy
+      debconf:
+        name: xroad-confproxy
+        question: "{{ item.question }}"
+        vtype: "string"
+        value: "{{ item.value }}"
+      with_items:
+        - { question: "xroad-common/database-host", value: "{{ database_host }}" }
 
-- name: debconf xroad-confproxy
-  debconf:
-    name: xroad-confproxy
-    question: "{{ item.question }}"
-    vtype: "string" # parametrize if you add a different type of question to item list
-    value: "{{ item.value }}"
-  with_items:
-    - { question: "xroad-common/database-host",      value: "{{ database_host }}" }
-  tags:
-    - install-xroad-cp-packages
+    - name: create xroad properties file
+      copy:
+        content: "postgres.connection.password = {{ database_admin_password }}"
+        dest: /etc/xroad.properties
+        mode: 0600
 
-- name: create xroad properties file
-  copy:
-    content: "postgres.connection.password = {{ database_admin_password }}"
-    dest: /etc/xroad.properties
-    mode: 0600
-  when: (database_admin_password is defined) and (database_admin_password != "")
-
-- name: use remote database
-  apt:
-    name: xroad-database-remote
-  when: (database_admin_password is defined) and (database_admin_password != "")
+  when:
+    - database_admin_password is defined
+    - database_admin_password != ""
+    - database_host is defined
+    - database_host != ""
 
 - name: "install xroad-confproxy via apt"
   apt:
