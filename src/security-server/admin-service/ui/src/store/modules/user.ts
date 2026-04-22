@@ -219,7 +219,7 @@ export const useUser = defineStore('user', {
 
       // Call backend for logout
       return axiosAuth
-        .delete('/logout')
+        .post('/logout')
         .catch(() => {
           // Nothing to do
         })

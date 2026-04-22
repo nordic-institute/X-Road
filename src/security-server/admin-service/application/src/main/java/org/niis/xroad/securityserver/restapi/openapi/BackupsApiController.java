@@ -40,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupExtDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOutDto;
+import org.niis.xroad.securityserver.restapi.service.ApplicationRestarter;
 import org.niis.xroad.securityserver.restapi.service.SecurityServerBackupService;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.springframework.core.io.Resource;
@@ -67,7 +68,6 @@ import static java.lang.Boolean.TRUE;
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class BackupsApiController implements BackupsApi {
-    public static final int DELAY_FOR_RESPONSE = 5;
     private final BackupConverter backupConverter;
     private final SecurityServerBackupService backupService;
     private final TokenService tokenService;
