@@ -60,6 +60,7 @@ import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
@@ -117,6 +118,8 @@ public class TestContext {
             var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
                     globalConfProvider, proxyProperties, certHelper);
 
+            var identifierValidationService = new IdentifierValidationService(proxyProperties);
+
             var metadataProcessor = new org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataClientRequestProcessor(
                     globalConfProvider);
             MetadataHandler metadataHandler = new MetadataHandler(metadataProcessor);
@@ -127,7 +130,7 @@ public class TestContext {
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
-                    ocspVerifierFactory, clientRequestPreparationService);
+                    ocspVerifierFactory, clientRequestPreparationService, identifierValidationService);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);
@@ -148,12 +151,12 @@ public class TestContext {
                 var serverRestMessageProcessor = new ServerRestMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,
                         globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
-                        ocspVerifierFactory, serviceHandlerLoader);
+                        ocspVerifierFactory, serviceHandlerLoader, identifierValidationService);
 
                 var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,
                         globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
-                        ocspVerifierFactory, serviceHandlerLoader);
+                        ocspVerifierFactory, serviceHandlerLoader, identifierValidationService);
 
 
                 ServerProxyHandler proxyHandler = new ServerProxyHandler(serverRestMessageProcessor,

@@ -47,6 +47,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -106,7 +107,8 @@ class ClientRestMessageProcessorTest {
                 proxyProperties,
                 commonProperties,
                 mock(OcspVerifierFactory.class),
-                clientRequestPreparationService
+                clientRequestPreparationService,
+                mock(IdentifierValidationService.class)
         );
     }
 

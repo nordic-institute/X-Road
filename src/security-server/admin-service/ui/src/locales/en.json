@@ -1137,6 +1137,7 @@
             "server-port": "Destination TCP port for outgoing queries in the service client's security server.",
             "xroad-tls-ciphers": "TLS ciphers (comma-separated list in preferred order) accepted on requests between security servers, and between operational monitoring daemon and client. (since version 6.20)",
             "batch-signing-enabled": "When enabled, multiple messages are signed in a single batch operation.",
+            "strict-identifier-checks": "Configures identifier input validation (member code, subsystem code etc). Values: true - identifiers must match pattern ^[a-zA-Z0-9'()+,-.=?]* and non-matching values are rejected. false - identifiers are validated against the pattern, non-matching values are not rejected but a warning is logged.",
             "client-proxy": {
               "connector-host": "IP address on which the service client's security server listens for connections from client applications. The value 0.0.0.0 allows listening on all IPv4 interfaces. The value 127.0.0.1 allows listening on localhost only. NB! Changing this value could make your Security Server externally accessible and as such, a firewall rules should be implemented first to limit access to trusted hosts.",
               "client-http-port": "TCP port on which the service client's security server listens for HTTP requests from client applications.",

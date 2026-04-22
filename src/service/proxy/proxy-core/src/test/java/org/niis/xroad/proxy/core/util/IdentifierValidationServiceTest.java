@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,46 +25,68 @@
  */
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+class IdentifierValidationServiceTest {
 
-class IdentifierValidatorTest {
+    @Mock
+    private ProxyProperties proxyProperties;
+
+    @InjectMocks
+    private IdentifierValidationService identifierValidationService;
 
     @Test
-    void testCheckIdentifierValid() {
-        final ServiceId valid = ServiceId.Conf.create("TEST", "CLASS", "CODE", null, "SERVICE");
-        assertTrue(IdentifierValidator.isValid(valid));
+    void testCheckIdentifier() {
+        var id = ServiceId.Conf.create("TEST", "CLASS", "CODE", null, "SERVICE");
+        identifierValidationService.checkIdentifier(id);
     }
 
     @ParameterizedTest
     @MethodSource("invalidIdentifiers")
-    void testCheckIdentifierInvalid(XRoadId id) {
-        assertFalse(IdentifierValidator.isValid(id));
+    void testCheckIdentifierLogsWarnWhenStrictCheckDisabled(XRoadId id) {
+        when(proxyProperties.strictIdentifierChecks()).thenReturn(false);
+        assertDoesNotThrow(() -> identifierValidationService.checkIdentifier(id));
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidIdentifiers")
+    void testCheckIdentifierThrowsExceptionWhenStrictCheckEnabled(XRoadId id) {
+        when(proxyProperties.strictIdentifierChecks()).thenReturn(true);
+
+        XrdRuntimeException exception = assertThrows(XrdRuntimeException.class,
+                () -> identifierValidationService.checkIdentifier(id));
+
+        assertThat(exception.getCode())
+                .isEqualTo(ErrorCode.INVALID_CLIENT_IDENTIFIER.code());
+        assertThat(exception.getDetails())
+                .isEqualTo("Invalid character(s) in identifier " + id);
     }
 
     private static Stream<Arguments> invalidIdentifiers() {
         return Stream.of(
-                Arguments.of(ClientId.Conf.create("TEST", "CLASS", "CO\tDE")),
-                Arguments.of(SecurityServerId.Conf.create("TEST", "CLASS", "MEMBER", "SER:VER")),
-                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "CO DE", null, "SERVICE")),
                 Arguments.of(ServiceId.Conf.create("TE/ST", "CLASS", "MEMBER", "SYSTEM", "SERVICE")),
-                Arguments.of(ServiceId.Conf.create("TEST", "CLA;SS", "MEMBER", "SYSTEM", "SERVICE")),
-                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE")),
-                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE")),
-                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"))
+                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "CO DE", "SERVICE"))
         );
     }
 

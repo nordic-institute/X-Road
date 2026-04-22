@@ -109,6 +109,10 @@ public interface ProxyProperties {
     @WithDefault("false")
     boolean batchSigningEnabled();
 
+    @WithName("strict-identifier-checks")
+    @WithDefault("true")
+    boolean strictIdentifierChecks();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")
