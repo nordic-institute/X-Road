@@ -19,7 +19,8 @@
       "minimatch": "^10.2.3",
       "rollup": "^4.59.0",
       "immutable": "^5.1.5",
-      "flatted": "^3.4.2"
+      "flatted": "^3.4.2",
+      "typescript": "^5.9.3"
     }
   },
   "devDependencies": {
