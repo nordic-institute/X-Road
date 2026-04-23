@@ -21,7 +21,7 @@
   debconf:
     name: xroad-confproxy
     question: "{{ item.question }}"
-    vtype: "string"
+    vtype: string" # parametrize if you add a different type of question to item list
     value: "{{ item.value }}"
   with_items:
     - { question: "xroad-common/database-host", value: "{{ database_host }}" }
