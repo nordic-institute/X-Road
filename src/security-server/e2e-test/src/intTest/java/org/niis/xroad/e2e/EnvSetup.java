@@ -259,9 +259,10 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int DB = 5432;
         public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
-        public static final int IDENTITY_HUB_IDENTITY = 8182;
-        public static final int ISSUER_SERVICE_ADMIN = 10013;
-        public static final int ISSUER_SERVICE_IDENTITY = 8182;
+        public static final int IDENTITY_HUB_IDENTITY = 7182;
+        public static final int IDENTITY_HUB_STS = 7184;
+        public static final int ISSUER_SERVICE_IDENTITY = 6182;
+        public static final int ISSUER_SERVICE_ADMIN = 6186;
     }
 
     enum Feature {

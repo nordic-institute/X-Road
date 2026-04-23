@@ -29,25 +29,25 @@ quarkus:
 
 web:
   http:
-    port: 8383
+    port: 6181
     path: /api
-    sts:
-      port: 9292
-      path: /api/sts
-    issuance:
-      port: 10012
-      path: /api/issuance
-    issueradmin:
-      port: 10013
-      path: /api/admin
     identity:
-      port: 8182
+      port: 6182
       path: /api/identity
     did:
-      port: 10100
+      port: 6183
       path: /
+    sts:
+      port: 6184
+      path: /api/sts
+    issuance:
+      port: 6185
+      path: /api/issuance
+    issueradmin:
+      port: 6186
+      path: /api/admin
     statuslist:
-      port: 10011
+      port: 6187
       path: /statuslist
 
 edc:

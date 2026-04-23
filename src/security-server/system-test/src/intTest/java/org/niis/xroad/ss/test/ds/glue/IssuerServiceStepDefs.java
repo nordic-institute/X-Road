@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Base64;
 
+import static org.niis.xroad.ss.test.ui.container.Port.DS_ISSUER_SERVICE_ISSUANCE;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -56,7 +57,7 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                     "serviceEndpoints": [
                         {
                             "type": "IssuerService",
-                            "serviceEndpoint": "http://ds-issuer-service:10012/api/issuance/v1alpha/participants/%s",
+                            "serviceEndpoint": "http://ds-issuer-service:%s/api/issuance/v1alpha/participants/%s",
                             "id": "%s-issuer-service"
                         }
                     ],
@@ -71,8 +72,8 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                         }
                     }
                 }
-                """.formatted(
-                        Base64.getUrlEncoder().encodeToString(participantId.getBytes()), did, participantId, did, did, privateKeyAlias);
+                """.formatted(DS_ISSUER_SERVICE_ISSUANCE, Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
+                did, participantId, did, did, privateKeyAlias);
 
         var response = issuerServiceIdentityApi.createParticipant(AuthTokens.PROVISIONER, request);
         validate(response)

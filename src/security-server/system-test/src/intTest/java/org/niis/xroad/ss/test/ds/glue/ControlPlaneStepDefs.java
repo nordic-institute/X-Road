@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.niis.xroad.ss.test.ui.container.Port.DS_IDENTITY_HUB_STS;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -106,13 +107,13 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                      "entries": {
                          "edc.participant.id": "%s",
                          "edc.iam.issuer.id": "%s",
-                         "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:9292/api/sts/token",
+                         "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:%s/api/sts/token",
                          "edc.iam.sts.oauth.client.id": "%s",
                          "edc.iam.sts.oauth.client.secret.alias": "%s-sts-client-secret"
                      },
                      "privateEntries": {}
                  }
-                """.formatted(did, did, did, participantContextId);
+                """.formatted(did, did, DS_IDENTITY_HUB_STS, did, participantContextId);
         var response = controlPlaneManagementApi.createParticipantContextConfig(AuthTokens.PROVISIONER, participantContextId, request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(NO_CONTENT))

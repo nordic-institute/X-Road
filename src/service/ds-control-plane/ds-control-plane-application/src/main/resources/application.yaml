@@ -68,15 +68,15 @@ edc:
       autocreate: true
   iam:
     issuer:
-      id: "did:web:${HOSTNAME:localhost}%3A10100"
+      id: "did:web:${HOSTNAME:localhost}%3A7183"
     sts:
       oauth:
         token:
-          url: "http://ds-identity-hub:9292/api/sts/token"
+          url: "http://ds-identity-hub:7184/api/sts/token"
         client:
-          id: "did:web:${HOSTNAME:localhost}%3A10100"
+          id: "did:web:${HOSTNAME:localhost}%3A7183"
           secret:
-            alias: "did:web:${HOSTNAME:localhost}%3A10100-sts-client-secret"
+            alias: "did:web:${HOSTNAME:localhost}%3A7183-sts-client-secret"
     oauth2:
       jwks:
         url: https://example.com/jwks
