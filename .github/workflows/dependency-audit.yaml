@@ -74,48 +74,71 @@ jobs:
             src/build/reports/dependency-check-report.*
             src/build/reports/frontend-audit.txt
 
-      - name: Create issue on failure
+      - name: Prepare Slack payload
         if: steps.frontend.outcome == 'failure' || steps.backend.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: slack-payload
         run: |
-          BRANCH="${{ matrix.branch }}"
-          DATE=$(date -u +%Y-%m-%d)
-          TITLE="[Security Audit] Vulnerabilities found on ${BRANCH}"
+          BACKEND_AVAILABLE="${{ steps.check-backend.outputs.available }}"
+          BACKEND_STATUS="${{ steps.backend.outcome }}"
+          BACKEND_DISPLAY=$([ "$BACKEND_AVAILABLE" = "true" ] && echo "$BACKEND_STATUS" || echo "skipped")
 
           FRONTEND_STATUS="${{ steps.frontend.outcome }}"
-          BACKEND_STATUS="${{ steps.backend.outcome }}"
-          BACKEND_AVAILABLE="${{ steps.check-backend.outputs.available }}"
 
-          BODY=$(cat <<EOF
-          ## Dependency Security Audit — \`${BRANCH}\`
-
-          **Date:** ${DATE}
-          **Frontend audit:** ${FRONTEND_STATUS}
-          **Backend audit:** $([ "$BACKEND_AVAILABLE" = "true" ] && echo "$BACKEND_STATUS" || echo "skipped (plugin not configured)")
-
-          ### Details
-
-          Download the full reports from [this workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
-
-          ### Next Steps
-
-          1. Review the audit reports in the workflow artifacts
-          2. Update vulnerable dependencies or add suppressions
-          3. Test locally: \`cd core/src && ./gradlew dependencyAudit\`
-          EOF
-          )
-
-          # Check for existing open issue to avoid duplicates
-          EXISTING=$(gh issue list --label security,audit --state open --search "in:title [Security Audit] ${BRANCH}" --json number --jq '.[0].number' 2>/dev/null || echo "")
-
-          if [ -n "$EXISTING" ]; then
-            echo "Updating existing issue #${EXISTING}"
-            gh issue comment "$EXISTING" --body "$BODY"
+          if [ "$FRONTEND_STATUS" = "failure" ] && [ "$BACKEND_STATUS" = "failure" ]; then
+            echo "severity=CRITICAL" >> $GITHUB_OUTPUT
+            echo "emoji=:rotating_light:" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
           else
-            echo "Creating new issue"
-            gh issue create \
-              --title "$TITLE" \
-              --body "$BODY" \
-              --label "security,audit"
+            echo "severity=WARNING" >> $GITHUB_OUTPUT
+            echo "emoji=:warning:" >> $GITHUB_OUTPUT
+            echo "color=#ffc107" >> $GITHUB_OUTPUT
           fi
+
+          echo "frontend_icon=$([ "$FRONTEND_STATUS" = "failure" ] && echo ":x:" || echo ":white_check_mark:")" >> $GITHUB_OUTPUT
+          echo "backend_icon=$([ "$BACKEND_DISPLAY" = "failure" ] && echo ":x:" || [ "$BACKEND_DISPLAY" = "skipped" ] && echo ":fast_forward:" || echo ":white_check_mark:")" >> $GITHUB_OUTPUT
+          echo "backend_display=$BACKEND_DISPLAY" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack on failure
+        if: steps.frontend.outcome == 'failure' || steps.backend.outcome == 'failure'
+        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52 # v2.1.0
+        with:
+          webhook: ${{ secrets.SLACK_AUDIT_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "${{ steps.slack-payload.outputs.color }}",
+                  "blocks": [
+                    {
+                      "type": "header",
+                      "text": { "type": "plain_text", "text": "${{ steps.slack-payload.outputs.emoji }} ${{ steps.slack-payload.outputs.severity }}: Dependency Audit — ${{ matrix.branch }}", "emoji": true }
+                    },
+                    {
+                      "type": "section",
+                      "fields": [
+                        { "type": "mrkdwn", "text": "*Frontend:*\n${{ steps.slack-payload.outputs.frontend_icon }} ${{ steps.frontend.outcome }}" },
+                        { "type": "mrkdwn", "text": "*Backend:*\n${{ steps.slack-payload.outputs.backend_icon }} ${{ steps.slack-payload.outputs.backend_display }}" }
+                      ]
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        { "type": "mrkdwn", "text": ":github: *X-Road* | Branch: `${{ matrix.branch }}`" }
+                      ]
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": { "type": "plain_text", "text": ":page_facing_up: View Reports", "emoji": true },
+                          "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                          "style": "danger"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
