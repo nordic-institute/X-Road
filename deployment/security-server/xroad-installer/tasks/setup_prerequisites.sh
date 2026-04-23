@@ -114,7 +114,7 @@ setup_prerequisites_rhel() {
   log_message "Checking required packages..."
   local packages_to_install=()
 
-  for pkg in yum-utils crudini bc newt python3-pyyaml; do
+  for pkg in dnf-plugins-core crudini bc newt python3-pyyaml; do
     if rpm -q "$pkg" >/dev/null 2>&1; then
       log_info "$pkg already installed"
     else
@@ -125,7 +125,7 @@ setup_prerequisites_rhel() {
 
   if [[ ${#packages_to_install[@]} -gt 0 ]]; then
     log_message "Installing: ${packages_to_install[*]}"
-    if yum install -y "${packages_to_install[@]}"; then
+    if dnf install -y "${packages_to_install[@]}"; then
       log_info "Packages installed successfully"
     else
       log_die "Failed to install packages"

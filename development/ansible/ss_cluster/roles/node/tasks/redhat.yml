@@ -13,16 +13,7 @@
   args:
     creates: /var/lib/pgsql/serverconf
   register: create_database
-  when: ansible_facts['distribution_major_version'] | int >= 8
-
-- name: create the database
-  environment:
-    PGSETUP_INITDB_OPTIONS: "--auth-local=peer --auth-host=md5"
-  command: "postgresql-setup initdb postgresql-serverconf"
-  args:
-    creates: /var/lib/pgsql/serverconf
-  register: create_database
-  when: ansible_facts['distribution_major_version'] == "7"
+  when: ansible_facts['distribution_major_version'] | int >= 9
 
 - name: allow postgresql port
   command: semanage port -a -t postgresql_port_t -p tcp "{{ serverconf_db_port }}"

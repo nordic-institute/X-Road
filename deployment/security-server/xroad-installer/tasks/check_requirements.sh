@@ -28,7 +28,7 @@ validate_os_version() {
       fi
     # Check for supported RHEL versions
     elif [[ "$ID" == "rhel" ]] || [[ "$ID" == "rocky" ]] || [[ "$ID" == "almalinux" ]]; then
-      if [[ "$VERSION_ID" =~ ^8\. ]] || [[ "$VERSION_ID" =~ ^9\. ]]; then
+      if [[ "$VERSION_ID" =~ ^9\. ]] || [[ "$VERSION_ID" =~ ^10\. ]]; then
         supported=true
       fi
     fi
@@ -138,7 +138,7 @@ check_requirements_rhel() {
       log_die "Java 25 is NOT the default version (Found: $java_version). Please use 'alternatives --config java' to set it."
     fi
   else
-    log_die "Java is not installed. Java 25 is required (can be installed using 'sudo yum install java-25-openjdk-headless')."
+    log_die "Java is not installed. Java 25 is required (can be installed using 'sudo dnf install jre-25-headless')."
   fi
 }
 

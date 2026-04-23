@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.37
+Version: 1.39
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -51,6 +51,7 @@ Doc. ID: IG-SS-RHEL
 | 21.03.2025 | 1.36    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek           |
 | 25.02.2026 | 1.37    | Update PostgreSQL to version 15 on RHEL                                                                                                                                                                              | Ričardas Bučiūnas        |
 | 23.03.2026 | 1.38    | Update java 21 references to java 25                                                                                                                                                                                 | Ričardas Bučiūnas        |
+| 22.04.2026 | 1.39    | Remove RHEL 8 and add RHEL 10 support                                                                                                                                                                                | Eneli Reimets            |
 
 ## License
 
@@ -72,7 +73,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.2 Reference Data](#22-reference-data)
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-    - [2.3.1 Installing Java 21](#231-installing-java-21)
+    - [2.3.1 Installing Java 25](#231-installing-java-25)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Database Setup](#26-database-setup)
@@ -137,7 +138,7 @@ There are multiple alternatives how the Security Server can be deployed. The opt
 
 The Security Server runs on the following platforms:
 
-* Red Hat Enterprise Linux (RHEL) versions 8 and 9 on a x86-64 platform.
+* Red Hat Enterprise Linux (RHEL) versions 9 and 10 on a x86-64 platform.
 * Ubuntu Server 22.04 LTS and 24.04 LTS on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
@@ -150,32 +151,32 @@ The software can be installed both on physical and virtualized hardware (of the 
 **Caution**: Data necessary for the functioning of the operating system is not included.
 
 
-| Ref    |                                                                                | Explanation                                                                                                                                                                                                                                                                                |
-|--------|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0    | RHEL (8.0 or newer; 9.3 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements                                                                                                                                                                                                                                                                       |
-| 1.1    | https://artifactory.niis.org/xroad-release-rpm                                 | X-Road package repository                                                                                                                                                                                                                                                                  |
-| 1.2    | https://artifactory.niis.org/api/gpg/key/public                                | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3    |                                                                                | Account name in the user interface                                                                                                                                                                                                                                                         |
-| 1.4    | **Inbound ports from external network**                                        | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
-| &nbsp; | TCP 80                                                                         | Incoming ACME challenge requests from ACME servers                                                                                                                                                                                                                                         |
-|        | TCP 5500                                                                       | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
-|        | TCP 5577                                                                       | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-| 1.5    | **Outbound ports to external network**                                         | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
-|        | TCP 5500                                                                       | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
-|        | TCP 5577                                                                       | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-|        | TCP 4001                                                                       | Communication with the Central Server                                                                                                                                                                                                                                                      |
-|        | TCP 80,443                                                                     | Downloading global configuration from the Central Server                                                                                                                                                                                                                                   |
-|        | TCP 80,443                                                                     | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
-|        | TCP 80,443                                                                     | Communication with ACME servers                                                                                                                                                                                                                                                            |
-|        | TCP 587                                                                        | Communication with mail servers. The mail server may be located in internal or external network                                                                                                                                                                                                                                                           |
-| 1.6    | **Inbound ports from internal network**                                        | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
-|        | TCP 4000                                                                       | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
-|        | TCP 8080 (or TCP 80), 8443 (or TCP 443)                                        | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
-| 1.7    | **Outbound ports to internal network**                                         | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
-|        | TCP 80, 443, *other*                                                           | Producer information system endpoints                                                                                                                                                                                                                                                      |
-|        | TCP 2080                                                                       | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
-| 1.8    |                                                                                | Security Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
-| 1.9    |                                                                                | Security Server public IP address, NAT address                                                                                                                                                                                                                                             |
+| Ref    |                                                                                 | Explanation                                                                                                                                                                                                                                                                                |
+|--------|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0    | RHEL (9.3 or newer; 10.0 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements                                                                                                                                                                                                                                                                       |
+| 1.1    | https://artifactory.niis.org/xroad-release-rpm                                  | X-Road package repository                                                                                                                                                                                                                                                                  |
+| 1.2    | https://artifactory.niis.org/api/gpg/key/public                                 | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3    |                                                                                 | Account name in the user interface                                                                                                                                                                                                                                                         |
+| 1.4    | **Inbound ports from external network**                                         | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
+| &nbsp; | TCP 80                                                                          | Incoming ACME challenge requests from ACME servers                                                                                                                                                                                                                                         |
+|        | TCP 5500                                                                        | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
+|        | TCP 5577                                                                        | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
+| 1.5    | **Outbound ports to external network**                                          | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
+|        | TCP 5500                                                                        | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
+|        | TCP 5577                                                                        | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
+|        | TCP 4001                                                                        | Communication with the Central Server                                                                                                                                                                                                                                                      |
+|        | TCP 80,443                                                                      | Downloading global configuration from the Central Server                                                                                                                                                                                                                                   |
+|        | TCP 80,443                                                                      | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
+|        | TCP 80,443                                                                      | Communication with ACME servers                                                                                                                                                                                                                                                            |
+|        | TCP 587                                                                         | Communication with mail servers. The mail server may be located in internal or external network                                                                                                                                                                                                                                                           |
+| 1.6    | **Inbound ports from internal network**                                         | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
+|        | TCP 4000                                                                        | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
+|        | TCP 8080 (or TCP 80), 8443 (or TCP 443)                                         | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
+| 1.7    | **Outbound ports to internal network**                                          | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
+|        | TCP 80, 443, *other*                                                            | Producer information system endpoints                                                                                                                                                                                                                                                      |
+|        | TCP 2080                                                                        | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
+| 1.8    |                                                                                 | Security Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
+| 1.9    |                                                                                 | Security Server public IP address, NAT address                                                                                                                                                                                                                                             |
 
 It is strongly recommended to protect the Security Server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the Security Server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks.**
 
@@ -232,8 +233,8 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured RHEL (8.0 or newer; 9.3 or newer) x86-64 operating system;
-* Java 21 should be installed;
+* an installed and configured RHEL (9.3 or newer; 10.0 or newer) x86-64 operating system;
+* Java 25 should be installed;
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
@@ -251,7 +252,7 @@ Sample installation steps are provided below.
 If the current Java version is 25, following steps should be skipped. If not, install Java 25 (OpenJDK):
 
 ```bash
-sudo yum install openjdk-25-jre-headless
+sudo dnf install jre-25-headless
 ```
 
 After the installation, verify the current java version:
@@ -274,10 +275,10 @@ sudo alternatives --config java
 LC_ALL=en_US.UTF-8
 ```
 
-* Install `yum-utils`, a collection of utilities that integrate with yum to extend its native features.
+* Install `dnf-plugins-core`, which provides additional DNF utilities.
 
 ```bash
-sudo yum install yum-utils
+sudo dnf install dnf-plugins-core
 ```
 
 ### 2.5 Setup Package Repository
@@ -285,9 +286,9 @@ sudo yum install yum-utils
 Add X-Road package repository (**reference data: 1.1**) and Extra Packages for Enterprise Linux (EPEL) repository:
 
 ```bash
-RHEL_MAJOR_VERSION=$(source /etc/os-release;echo ${VERSION_ID%.*})
-sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${RHEL_MAJOR_VERSION}.noarch.rpm
-sudo yum-config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/${RHEL_MAJOR_VERSION}/current
+RHEL_MAJOR_VERSION=$(source /etc/os-release; echo ${VERSION_ID%.*})
+sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${RHEL_MAJOR_VERSION}.noarch.rpm
+sudo dnf config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/${RHEL_MAJOR_VERSION}/current
 ```
 
 The following packages are fetched from EPEL: `crudini`, and `rlwrap`.
@@ -297,6 +298,34 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
 ```bash
 sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
 ```
+Add OpenBao package repository:
+```bash
+sudo mkdir -p /etc/pki/rpm-gpg
+sudo curl -fsSL -o /etc/pki/rpm-gpg/openbao-gpg-pub-20240618.asc \
+  https://openbao.org/assets/openbao-gpg-pub-20240618.asc
+
+sudo rpm --import /etc/pki/rpm-gpg/openbao-gpg-pub-20240618.asc
+
+sudo tee /etc/yum.repos.d/openbao.repo >/dev/null <<'EOF'
+[openbao]
+name=openbao
+baseurl=https://pkgs.openbao.org/rpm/$basearch
+repo_gpgcheck=0
+gpgcheck=1
+enabled=1
+gpgkey=file:///etc/pki/rpm-gpg/openbao-gpg-pub-20240618.asc
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+EOF
+```
+
+Exclude OpenBao from EPEL, because the EPEL OpenBao package is not compatible with X-Road:
+```bash
+sudo dnf config-manager --save --setopt=epel.exclude=openbao*
+sudo dnf clean all
+sudo dnf makecache
+```
 
 ### 2.6 Database Setup
 
@@ -304,10 +333,17 @@ If you are installing the default setup with local PostgreSQL database, continue
 
 #### 2.6.1 Local Database Setup
 
-When installing the default setup with local database, PostgreSQL packages need to be installed before continuing with X-Road Security Server installation. Enable the PostgreSQL 15 module stream first:
+When installing the default setup with a local database, PostgreSQL packages need to be installed before continuing with X-Road Security Server installation.
+
+On RHEL 9, enable the PostgreSQL 15 module stream first:
 
 ```bash
 sudo dnf module enable postgresql:15
+sudo dnf install postgresql-server postgresql-contrib
+```
+
+On RHEL 10, DNF module streams are no longer used, so install PostgreSQL directly:
+```bash
 sudo dnf install postgresql-server postgresql-contrib
 ```
 
@@ -318,13 +354,13 @@ sudo dnf install postgresql-server postgresql-contrib
 Optionally, the Security Server can use a remote database server. To avoid installing the default local PostgreSQL server during Security Server installation, install the `xroad-database-remote` -package, which will also install the PostgreSQL client and create the `xroad` system user and configuration directories (`/etc/xroad`).
 
 ```bash
-sudo yum install xroad-database-remote
+sudo dnf install xroad-database-remote
 ```
 
 Verify in the remote database server, that PostgreSQL package `postgresql-contrib` was installed before continuing with X-Road Security Server installation:
 
 ```bash
-sudo yum install postgresql-contrib
+sudo dnf install postgresql-contrib
 ```
 
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql` package (see https://www.postgresql.org/download/linux/redhat/)
@@ -408,7 +444,7 @@ echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
 Issue the following command to install the Security Server packages (use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland; there's no Estonia-specific package for RHEL):
 
 ```bash
-sudo yum install xroad-securityserver
+sudo dnf install xroad-securityserver
 ```
 
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. The meta-packages `xroad-securityserver-fi`, `xroad-securityserver-is`, and `xroad-securityserver-fo` install operational data monitoring module `xroad-addon-opmonitoring`.
@@ -439,14 +475,15 @@ The installation is successful if system services are started and the user inter
   ```bash
   sudo systemctl list-units "xroad-*"
 
-  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
-  xroad-addon-messagelog.service loaded active running X-Road Messagelog Archiver
-  xroad-base.service             loaded active exited  X-Road initialization
-  xroad-confclient.service       loaded active running X-Road confclient
-  xroad-monitor.service          loaded active running X-Road Monitor
-  xroad-proxy-ui-api.service     loaded active running X-Road Proxy UI REST API
-  xroad-proxy.service            loaded active running X-Road Proxy
-  xroad-signer.service           loaded active running X-Road signer
+  UNIT                             LOAD   ACTIVE SUB     DESCRIPTION                     
+  xroad-auxiliary-service.service  loaded active running X-Road auxiliary service
+  xroad-base.service               loaded active exited  X-Road initialization
+  xroad-confclient.service         loaded active running X-Road confclient
+  xroad-monitor.service            loaded active running X-Road Monitor
+  xroad-proxy-ui-api.service       loaded active running X-Road Proxy UI REST API
+  xroad-proxy.service              loaded active running X-Road Proxy
+  xroad-secret-store-local.service loaded active exited  X-Road OpenBao Auto Init Service
+  xroad-signer.service             loaded active running X-Road signer
   ```
 
 * Ensure that the Security Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
@@ -569,7 +606,7 @@ Upgrading the packages from the current version to the target version is not sup
 For example, the following Security Server packages are currently installed.
 
 ```bash
-[root@rh1 ~]# yum list installed | grep xroad
+[root@rh1 ~]# dnf list installed | grep xroad
 xroad-addon-messagelog.x86_64      7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
 xroad-addon-metaservices.x86_64    7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
 xroad-addon-proxymonitor.x86_64    7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
@@ -587,7 +624,7 @@ xroad-signer.x86_64                7.0.0-1.el7 @artifactory.niis.org_xroad-relea
 The following packages are available in the repository.
 
 ```bash
-[root@rh1 ~]# yum --showduplicates list xroad-securityserver
+[root@rh1 ~]# dnf --showduplicates list xroad-securityserver
 Installed Packages
 xroad-securityserver.noarch                                                                        7.0.0-1.el7                                                                         @artifactory.niis.org_xroad-release-rpm_rhel_7_current
 Available Packages
@@ -598,7 +635,7 @@ xroad-securityserver.noarch                                                     
 Now trying to upgrade the Central Server packages directly will produce the following error.
 
 ```bash
-[root@rh1 ~]# yum upgrade xroad-securityserver
+[root@rh1 ~]# dnf upgrade xroad-securityserver
 ...
 ERROR: Upgrade supported from version 7.1.0 or newer.
 error: %pre(xroad-securityserver-7.3.0-1.el7.noarch) scriptlet failed, exit status 1
@@ -608,15 +645,15 @@ Error in PREIN scriptlet in rpm package xroad-securityserver-7.3.0-1.el7.noarch
 The fix is to upgrade the Security Server in two separate steps. First, upgrade to 7.1.x with the following command.
 
 ```bash
-yum install xroad-securityserver-7.1.0-1.el7 xroad-addon-messagelog-7.1.0-1.el7 xroad-addon-metaservices-7.1.0-1.el7 xroad-addon-proxymonitor-7.1.0-1.el7 xroad-addon-wsdlvalidator-7.1.0-1.el7 xroad-base-7.1.0-1.el7 xroad-confclient-7.1.0-1.el7 xroad-database-local-7.1.0-1.el7 xroad-monitor-7.1.0-1.el7 xroad-proxy-7.1.0-1.el7 xroad-proxy-ui-api-7.1.0-1.el7 xroad-securityserver-7.1.0-1.el7 xroad-signer-7.1.0-1.el7
+dnf install xroad-securityserver-7.1.0-1.el7 xroad-addon-messagelog-7.1.0-1.el7 xroad-addon-metaservices-7.1.0-1.el7 xroad-addon-proxymonitor-7.1.0-1.el7 xroad-addon-wsdlvalidator-7.1.0-1.el7 xroad-base-7.1.0-1.el7 xroad-confclient-7.1.0-1.el7 xroad-database-local-7.1.0-1.el7 xroad-monitor-7.1.0-1.el7 xroad-proxy-7.1.0-1.el7 xroad-proxy-ui-api-7.1.0-1.el7 xroad-securityserver-7.1.0-1.el7 xroad-signer-7.1.0-1.el7
 ```
 
-An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `https://artifactory.niis.org/xroad-release-rpm/rhel/7/7.1.0` and then use the `yum update xroad-securityserver` command.
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `https://artifactory.niis.org/xroad-release-rpm/rhel/7/7.1.0` and then use the `dnf update xroad-securityserver` command.
 
 Finally, we can upgrade to our target version 7.3.x as follows.
 
 ```bash
-yum update xroad-securityserver
+dnf update xroad-securityserver
 ```
 
 ## Annex A Security Server Default Database Properties
@@ -730,7 +767,7 @@ psql -h <database host>:<port> -U <superuser> -d postgres
 Verify in the database server, that PostgreSQL package `postgresql-contrib` was installed before running following scripts:
 
 ```bash
-sudo yum install postgresql-contrib
+sudo dnf install postgresql-contrib
 ```
 
 Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several Security Server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).

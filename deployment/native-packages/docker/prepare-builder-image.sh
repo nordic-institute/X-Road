@@ -16,7 +16,7 @@ IMAGE_TAG="${IMAGE_TAG:-latest}"
 BUILD_PLATFORMS="${BUILD_PLATFORMS:-}"  # Empty = host platform only
 
 # Available releases
-ALL_RELEASES=(deb-jammy deb-noble rpm-el8 rpm-el9)
+ALL_RELEASES=(deb-jammy deb-noble rpm-el9 rpm-el10)
 
 # Parse arguments
 FORCE_BUILD=false
@@ -45,8 +45,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Prepare mirror build args (only if mirror configured)
-MIRROR_BUILD_ARGS_APT=()
-MIRROR_BUILD_ARGS_RPM=()
+MIRROR_BUILD_ARGS_APT=(
+  --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
+)
+MIRROR_BUILD_ARGS_RPM=(
+  --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
+)
 
 # Add Docker Hub mirror build arg if configured
 if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
@@ -60,15 +64,13 @@ if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
     --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
-    --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
   )
-  # For YUM/DNF-based builds (uses BASE_URL - strip the specific mirror path)
+  # For DNF-based builds (uses BASE_URL - strip the specific mirror path)
   MIRROR_BASE_URL="${XROAD_MIRROR_UBUNTU_URL%/mirror-*}"
   MIRROR_BUILD_ARGS_RPM+=(
     --build-arg XROAD_MIRROR_BASE_URL="$MIRROR_BASE_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
     --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
-    --build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts"
   )
 fi
 

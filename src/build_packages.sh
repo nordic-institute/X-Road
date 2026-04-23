@@ -25,7 +25,7 @@ usage() {
   echo " -h, --help             Display this help message and exit."
   echo " -r release-name        Specify one or more releases to build packages for. Supported values:"
   echo "                          - noble, jammy   (Debian packages)"
-  echo "                          - rpm-el9, rpm-el8 (Red Hat packages)"
+  echo "                          - rpm-el9, rpm-el10 (Red Hat packages)"
   echo "                        Example: -r noble -r rpm-el9"
   echo ""
   echo "Options can be used individually or in combination."
@@ -47,7 +47,7 @@ currentBuildPlan() {
     fi
     if [ ${#BUILD_PACKAGES_FOR_RELEASES[@]} -eq 0 ]; then
       log_info "  No specific release(s) provided -> Building all supported packages"
-      BUILD_PACKAGES_FOR_RELEASES+=("noble" "jammy" "rpm-el9" "rpm-el8")
+      BUILD_PACKAGES_FOR_RELEASES+=("noble" "jammy" "rpm-el9" "rpm-el10")
     fi
     log_kv "  Building packages" "${BUILD_PACKAGES_FOR_RELEASES[*]}" 3 5
   fi
@@ -98,13 +98,13 @@ runInBuilderImage() {
 
 prepareLocalRegistry() {
   local container_name="xrd-registry"
-  
+
   # Check if container is already running
   if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
     log_info "Container ${container_name} is already running"
     return 0
   fi
-  
+
   # Check if container exists but is stopped
   if docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
     log_info "Starting existing container ${container_name}"
@@ -125,7 +125,7 @@ prepareDebianPackagesBuilderImages() {
 
 prepareRedhatPackagesBuilderImages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
-    if [[ "$release" == "rpm-el9" || "$release" == "rpm-el8" ]]; then
+    if [[ "$release" == "rpm-el9" || "$release" == "rpm-el10" ]]; then
       buildBuilderImage "$release"
     fi
   done
@@ -141,7 +141,7 @@ buildDebianPackages() {
 
 buildRedhatPackages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
-    if [[ "$release" == "rpm-el9" || "$release" == "rpm-el8" ]]; then
+    if [[ "$release" == "rpm-el9" || "$release" == "rpm-el10" ]]; then
       runInBuilderImage "$release" /workspace/deployment/native-packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building $release packages."
     fi
   done
@@ -169,7 +169,7 @@ while [[ $# -gt 0 ]]; do
   -r)
     case $2 in
     noble | jammy) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
-    rpm-el9 | rpm-el8) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
+    rpm-el9 | rpm-el10) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
     *) errorExit "Unknown/unsupported release $2. Exiting..." ;;
     esac
     shift 2

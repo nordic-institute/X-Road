@@ -15,10 +15,10 @@
   delegate_to: "{{ item }}"
   when: hostvars[item]['ansible_facts']['os_family'] == "Debian"
 
-- name: Configure package mirror for YUM (RedHat-based)
+- name: Configure package mirror for DNF (RedHat-based)
   script:
     cmd: >-
-      {{ role_path }}/../../../../deployment/.scripts/configure-mirror-yum.sh
+      {{ role_path }}/../../../../deployment/.scripts/configure-mirror-dnf.sh
       '{{ package_mirror_url | regex_replace('/mirror-.*$', '') }}'
       '{{ package_mirror_user }}'
   environment:
