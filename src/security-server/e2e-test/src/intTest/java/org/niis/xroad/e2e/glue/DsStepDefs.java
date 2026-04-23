@@ -36,7 +36,6 @@ import org.niis.xroad.e2e.EnvSetup;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +52,7 @@ import static org.niis.xroad.e2e.EnvSetup.DS_ISSUER_SERVICE;
 
 public class DsStepDefs extends BaseE2EStepDefs {
 
-    private static final String MGMT_BASE_URL = "http://%s:%d/api/mgmt/v4alpha/participants";
+    private static final String MGMT_BASE_URL = "http://%s:%d/api/management/v5beta/participants";
     private static final String IH_BASE_URL = "http://%s:%d/api/identity/v1alpha/participants";
     private static final String IS_ADMIN_BASE_URL = "http://%s:%d/api/admin/v1alpha";
     private static final String IS_IDENTITY_BASE_URL = "http://%s:%d/api/identity/v1alpha/participants";
@@ -115,7 +114,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
         var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/holders"
-                .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
+                .formatted(issuerParticipantContext);
         sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
@@ -131,7 +130,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
         var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/attestations"
-                .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
+                .formatted(issuerParticipantContext);
         sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
@@ -159,7 +158,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
         var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/credentialdefinitions"
-                .formatted(Base64.getUrlEncoder().encodeToString(issuerParticipantContext.getBytes()));
+                .formatted(issuerParticipantContext);
         sendRequest(POST, url, IssuerServiceAuthTokens.PARTICIPANT, request, HttpStatus.SC_CREATED);
     }
 
@@ -213,7 +212,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
         var mapping = envSetup.getContainerMapping(env, DS_IDENTITY_HUB, EnvSetup.Port.IDENTITY_HUB_IDENTITY);
         String url = IH_BASE_URL.formatted(mapping.host(), mapping.port()) + "/%s/credentials/request"
-                .formatted(Base64.getUrlEncoder().encodeToString(participantContext.getBytes()));
+                .formatted(participantContext);
         sendRequest(POST, url, IdentityHubAuthTokens.ADMIN, request, HttpStatus.SC_CREATED);
     }
 
@@ -221,9 +220,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
     @Step("{string} credential request for participant {string} reaches status {string} on {string}")
     public void credentialRequestReachesStatus(String credentialRequest, String participantContext, String expectedStatus, String env) {
         var mapping = envSetup.getContainerMapping(env, DS_IDENTITY_HUB, EnvSetup.Port.IDENTITY_HUB_IDENTITY);
-        var b64ContextId = Base64.getUrlEncoder().encodeToString(participantContext.getBytes());
         String url = IH_BASE_URL.formatted(mapping.host(), mapping.port())
-                + "/%s/credentials/request/%s-credential-request".formatted(b64ContextId, credentialRequest);
+                + "/%s/credentials/request/%s-credential-request".formatted(participantContext, credentialRequest);
 
         await().atMost(Duration.ofSeconds(30))
                 .pollInterval(Duration.ofSeconds(3))
@@ -268,7 +266,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                      "@type": "ParticipantContextConfig",
                      "entries": {
                          "edc.participant.id": "%s",
-                         "edc.iam.issuer.id": "%s",
+                         "edc.participant.did": "%s",
                          "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:9292/api/sts/token",
                          "edc.iam.sts.oauth.client.id": "%s",
                          "edc.iam.sts.oauth.client.secret.alias": "%s-sts-client-secret"
@@ -331,7 +329,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     "expression": "ctx.agent.id == '%s'"
                 }
                 """.formatted(consumerDid);
-        String celUrl = "http://%s:%d/api/mgmt/v4alpha/celexpressions".formatted(mapping.host(), mapping.port());
+        String celUrl = "http://%s:%d/api/management/v5beta/celexpressions".formatted(mapping.host(), mapping.port());
         sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
 
         // Create policy with constraint referencing the CEL expression
@@ -512,7 +510,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     @Step("EDR is retrieved on {string}")
     public void edrIsRetrieved(String consumerEnv) {
         var mapping = envSetup.getContainerMapping(consumerEnv, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
-        String url = "http://%s:%d/api/mgmt/v4beta/edrs/%s/dataaddress"
+        String url = "http://%s:%d/api/management/v4beta/edrs/%s/dataaddress"
                 .formatted(mapping.host(), mapping.port(), transferProcessId);
         var response = sendGetRequest(url, ControlPlaneAuthTokens.PARTICIPANT, HttpStatus.SC_OK);
 

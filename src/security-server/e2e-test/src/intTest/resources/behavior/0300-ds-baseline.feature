@@ -2,19 +2,19 @@
 Feature: 0300 - Data spaces baseline
 
   Scenario: Issuer service is provisioned
-    Given Issuer Service participant context "issuer" with DID "did:web:ds-issuer-service%3A10100:issuer" and issuer service endpoint "http://ds-issuer-service:10012/api/issuance/v1alpha/participants/aXNzdWVy" is created on "aux"
+    Given Issuer Service participant context "issuer" with DID "did:web:ds-issuer-service%3A10100:issuer" and issuer service endpoint "http://ds-issuer-service:10012/api/issuance/v1alpha/participants/issuer" is created on "aux"
     And Holder for DID "did:web:ss0-ds-identity-hub%3A10100" is created for "issuer" on "aux"
     And Holder for DID "did:web:ss1-ds-identity-hub%3A10100" is created for "issuer" on "aux"
     And "xroad-membership" attestation definition is created for "issuer" on "aux"
     And "xroad-membership" credential definition is created for "issuer" on "aux"
 
   Scenario: SS0 Identity Hub is provisioned
-    Given Identity Hub participant context "test-part-ctx" with DID "did:web:ss0-ds-identity-hub%3A10100" and credential service endpoint "http://ss0-ds-identity-hub:10001/api/credentials/v1/participants/dGVzdC1wYXJ0LWN0eA==" is created on "ss0"
+    Given Identity Hub participant context "test-part-ctx" with DID "did:web:ss0-ds-identity-hub%3A10100" and credential service endpoint "http://ss0-ds-identity-hub:10001/api/credentials/v1/participants/test-part-ctx" is created on "ss0"
     And "xroad-membership" credential request from issuer "did:web:ds-issuer-service%3A10100:issuer" is submitted for "test-part-ctx" on "ss0"
     And "xroad-membership" credential request for participant "test-part-ctx" reaches status "ISSUED" on "ss0"
 
   Scenario: SS1 Identity Hub is provisioned
-    Given Identity Hub participant context "test-part-ctx" with DID "did:web:ss1-ds-identity-hub%3A10100" and credential service endpoint "http://ss1-ds-identity-hub:10001/api/credentials/v1/participants/dGVzdC1wYXJ0LWN0eA==" is created on "ss1"
+    Given Identity Hub participant context "test-part-ctx" with DID "did:web:ss1-ds-identity-hub%3A10100" and credential service endpoint "http://ss1-ds-identity-hub:10001/api/credentials/v1/participants/test-part-ctx" is created on "ss1"
     And "xroad-membership" credential request from issuer "did:web:ds-issuer-service%3A10100:issuer" is submitted for "test-part-ctx" on "ss1"
     And "xroad-membership" credential request for participant "test-part-ctx" reaches status "ISSUED" on "ss1"
 

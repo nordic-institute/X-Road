@@ -35,8 +35,11 @@ web:
     protocol:
       port: 8183
       path: /api/dsp
+      virtual: true
     control:
       port: 8184
+    signaling:
+      port: 8185
 
 edc:
   hostname: ${HOSTNAME:localhost}
@@ -66,9 +69,9 @@ edc:
   sql:
     schema:
       autocreate: true
+  participant:
+    did: "did:web:${HOSTNAME:localhost}%3A10100"
   iam:
-    issuer:
-      id: "did:web:${HOSTNAME:localhost}%3A10100"
     sts:
       oauth:
         token:
@@ -86,4 +89,4 @@ edc:
         membership:
           id: "membership-scope"
           type: "DEFAULT"
-          value: "org.eclipse.edc.vc.type:MembershipCredential:read"
+          value: "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"

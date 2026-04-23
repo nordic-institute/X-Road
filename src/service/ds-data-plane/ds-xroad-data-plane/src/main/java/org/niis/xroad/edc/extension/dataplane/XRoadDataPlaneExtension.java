@@ -46,6 +46,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
+import java.net.URI;
 import java.util.List;
 
 import static org.niis.xroad.edc.extension.dataplane.XRoadDataPlaneExtension.NAME;
@@ -133,8 +134,8 @@ public class XRoadDataPlaneExtension implements ServiceExtension {
             @Setting(key = "edc.hostname") String hostname,
             @Setting(key = "web.http.port") int defaultPort
     ) {
-        public String dataFlowEndpoint() {
-            return "http://%s:%d/api/v1/dataflows".formatted(hostname, defaultPort);
+        public URI dataFlowEndpoint() {
+            return URI.create("http://%s:%d/api/v1/dataflows".formatted(hostname, defaultPort));
         }
     }
 }

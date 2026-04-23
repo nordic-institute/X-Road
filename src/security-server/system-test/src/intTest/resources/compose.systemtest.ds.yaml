@@ -45,6 +45,7 @@ services:
     image: ${DS_CONTROL_PLANE_IMG}
     pull_policy: always
     environment:
+      - DEBUG=true
       - HOSTNAME=ds-control-plane
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -68,7 +69,7 @@ services:
       - xrd-ss-network
     ports:
         - "0:8181"
-        - "0:8182" # management, /api/mgmt
+        - "0:8182" # management, /api/management
         - "0:8183" # protocol, /api/dsp
         - "0:8184" # control, /api/control
         - "0:9999" # debug port

@@ -41,9 +41,9 @@ testContainers = "2.0.4"
 testAllure = "2.33.0"
 testSelenide = "7.15.0"
 shadowPlugin = "9.4.1"
-edc = "0.16.0"
-edc-v = "0.16.0-20260323-1-SNAPSHOT"
-dataplane-sdk = "0.0.7-SNAPSHOT"
+edc = "0.17.0"
+edc-v = "0.17.0-20230423-SNAPSHOT"
+dataplane-sdk = "0.0.10-SNAPSHOT"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }

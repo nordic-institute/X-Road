@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
@@ -46,6 +47,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -58,6 +60,8 @@ import org.niis.xroad.edc.extension.edr.listener.TransferCompletionListener;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
  * Orchestrates the full EDR acquisition flow: catalog fetch, offer selection, contract negotiation,
@@ -194,7 +198,9 @@ public class EdrAcquisitionService {
                     .build();
 
             var negotiationResult = contractNegotiationService.initiateNegotiation(participantContext, contractRequest);
-            var negotiationId = negotiationResult.getId();
+            var negotiationId = negotiationResult
+                    .map(Entity::getId)
+                    .orElseThrow(exceptionMapper(ContractNegotiation.class, null));
 
             var future = new CompletableFuture<ContractAgreement>();
             negotiationListener.register(negotiationId, future);

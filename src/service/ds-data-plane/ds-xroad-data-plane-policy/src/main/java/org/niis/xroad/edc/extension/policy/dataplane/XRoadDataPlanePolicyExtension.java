@@ -67,7 +67,7 @@ public class XRoadDataPlanePolicyExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Data Plane Policy extension";
 
-    @Setting(value = "DataPlane selector api URL", required = true)
+    @Setting(description = "DataPlane selector api URL")
     static final String CONTROL_PLANE_MANAGEMENT_URL_SETTING = "edc.controlplane.management.url";
 
     @Inject
