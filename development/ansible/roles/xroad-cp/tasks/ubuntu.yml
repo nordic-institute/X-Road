@@ -12,31 +12,34 @@
         dest: "/etc/xroad.properties"
         owner: "root"
         group: "root"
-        mode: 0600
+        mode: "0600"
         force: no
 
-    - name: debconf xroad-confproxy
-      debconf:
-        name: xroad-confproxy
-        question: "{{ item.question }}"
-        vtype: "string"
-        value: "{{ item.value }}"
-      with_items:
-        - { question: "xroad-common/database-host", value: "{{ database_host }}" }
+  when: (database_admin_password is defined) and (database_admin_password != "")
 
-    - name: create xroad properties file
-      copy:
-        content: "postgres.connection.password = {{ database_admin_password }}"
-        dest: /etc/xroad.properties
-        mode: 0600
+- name: debconf xroad-confproxy
+  debconf:
+    name: xroad-confproxy
+    question: "{{ item.question }}"
+    vtype: "string"
+    value: "{{ item.value }}"
+  with_items:
+    - { question: "xroad-common/database-host", value: "{{ database_host }}" }
+  tags:
+    - install-xroad-cp-packages
 
-  when:
-    - database_admin_password is defined
-    - database_admin_password != ""
-    - database_host is defined
-    - database_host != ""
+- name: ensure postgres password is present in xroad.properties
+  lineinfile:
+    path: /etc/xroad.properties
+    regexp: '^postgres\.connection\.password\s*='
+    line: "postgres.connection.password = {{ database_admin_password }}"
+    create: yes
+    owner: root
+    group: root
+    mode: "0600"
+  when: (database_admin_password is defined) and (database_admin_password != "")
 
-- name: "install xroad-confproxy via apt"
+- name: install xroad-confproxy via apt
   apt:
     name: xroad-confproxy
     state: latest
