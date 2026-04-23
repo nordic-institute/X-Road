@@ -15,7 +15,7 @@
         mode: "0600"
         force: no
 
-  when: (database_admin_password is defined) and (database_admin_password != "")
+  when: database_admin_password is defined and database_admin_password != ""
 
 - name: debconf xroad-confproxy
   debconf:
@@ -25,6 +25,7 @@
     value: "{{ item.value }}"
   with_items:
     - { question: "xroad-common/database-host", value: "{{ database_host }}" }
+  when: database_host is defined and database_host != ""
   tags:
     - install-xroad-cp-packages
 
@@ -37,7 +38,7 @@
     owner: root
     group: root
     mode: "0600"
-  when: (database_admin_password is defined) and (database_admin_password != "")
+  when: database_admin_password is defined and database_admin_password != ""
 
 - name: install xroad-confproxy via apt
   apt:
