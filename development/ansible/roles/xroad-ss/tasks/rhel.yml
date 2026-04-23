@@ -37,56 +37,39 @@
   tags:
     - install-xroad-ss-packages
 
-- name: Install PostgreSQL packages (RHEL)
+- name: Enable PostgreSQL 15 module (RHEL 9)
   become: true
-  shell: |
-    set -euo pipefail
-    dnf module enable postgresql:15 -y
-    dnf -y install postgresql-server postgresql-contrib
+  command: dnf module enable postgresql:15 -y
   when:
-    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] | int == 9
     - not ((database_admin_password is defined) and (database_admin_password != ""))
-
-- name: install xroad packages and dependencies from set up repository (RHEL8)
-  shell: |
-    set -euo pipefail
-    pkgs="{{ vars['xroad_varpkg_' + variant] if (vars['xroad_varpkg_' + variant] is string)
-            else (vars['xroad_varpkg_' + variant] | join(' ')) }}"
-    dnf -y install $pkgs
   tags:
     - install-xroad-ss-packages
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int == 8
 
-- name: install xroad packages and dependencies from set up repository (RHEL9+)
+- name: Install PostgreSQL packages (RHEL)
+  become: true
+  dnf:
+    name:
+      - postgresql-server
+      - postgresql-contrib
+    state: present
+  when:
+    - not ((database_admin_password is defined) and (database_admin_password != ""))
+  tags:
+    - install-xroad-ss-packages
+
+- name: install xroad packages and dependencies from set up repository
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
   tags:
     - install-xroad-ss-packages
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int >= 9
 
-- name: install opmonitoring (RHEL8)
-  shell: |
-    set -euo pipefail
-    dnf -y install xroad-addon-opmonitoring
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int == 8
-    - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
-  tags:
-    - install-xroad-ss-packages
-
-- name: install opmonitoring (RHEL9+)
+- name: install opmonitoring
   yum:
     name: xroad-opmonitor
     state: latest
   when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int >= 9
     - (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
     - install-xroad-ss-packages

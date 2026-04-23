@@ -7,24 +7,13 @@
 - name: EPEL repo key
   rpm_key:
     state: present
-    key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ansible_facts['distribution_major_version']}}
+    key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_facts['distribution_major_version'] }}
 
-- name: Install EPEL repository (RHEL8)
-  raw: |
-    yum -y install "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
+- name: Install EPEL repository
+  dnf:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
   when:
     - not epel.stat.exists
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int == 8
-  changed_when: true
-
-- name: Install EPEL repository (RHEL9+)
-  yum:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_facts['distribution_major_version']}}.noarch.rpm"
-  when:
-    - not epel.stat.exists
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int >= 9
 
 - name: X-Road repo key
   rpm_key:
@@ -32,7 +21,7 @@
     key: "{{ rhel_repo_gpgkey }}"
   when: rhel_repo_gpgkey is defined and package_source == "remote"
 
-- name: Setup the correct repository for X-Road installation (RHEL)
+- name: Setup the correct repository for X-Road installation
   yum_repository:
     name: "x-road"
     file: "xroad"
@@ -45,7 +34,7 @@
     state: present
     enabled: true
 
-- name: Configure OpenBao YUM/DNF repository
+- name: Configure OpenBao DNF repository
   script:
     cmd: "{{ role_path }}/../../../../deployment/.scripts/configure-mirror-openbao-rpm.sh"
 
@@ -54,14 +43,7 @@
     path: "/etc/yum.repos.d/xroad.repo"
     modification_time: now
 
-- name: Install required packages (RHEL8)
-  become: true
-  command: dnf -y install curl cronie tar acl tzdata-java
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int == 8
-
-- name: Install required packages (RHEL9+)
+- name: Install required packages
   become: true
   package:
     name:
@@ -71,6 +53,3 @@
       - acl
       - tzdata-java
     state: present
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] | int >= 9

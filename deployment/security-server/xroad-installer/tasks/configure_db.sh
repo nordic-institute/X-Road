@@ -26,7 +26,7 @@ install_remote_db_ubuntu() {
 }
 
 install_remote_db_rhel() {
-  if yum install -y xroad-database-remote; then
+  if dnf install -y xroad-database-remote; then
     log_info "xroad-database-remote package installed"
   else
     log_die "Failed to install xroad-database-remote package"
@@ -123,7 +123,7 @@ configure_db_rhel() {
   # Local DB setup
   if [[ "$XROAD_DB_TYPE" == "local" ]]; then
     log_message "Installing local database connection packages..."
-    if yum install -y postgresql-server postgresql-contrib; then
+    if dnf install -y postgresql-server postgresql-contrib; then
        log_info "Local database packages installed successfully"
     else
        log_die "Failed to install local database packages"
@@ -141,7 +141,7 @@ configure_db_rhel() {
 
   # Remote DB setup
   log_message "Installing remote database support packages..."
-  if yum install -y xroad-database-remote postgresql-contrib; then
+  if dnf install -y xroad-database-remote postgresql-contrib; then
       log_info "Remote database packages installed successfully"
   else
       log_die "Failed to install remote database packages"

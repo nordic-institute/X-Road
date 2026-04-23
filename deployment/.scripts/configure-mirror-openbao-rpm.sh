@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Configure OpenBao YUM/DNF Repository (Container Side)
+# Configure OpenBao DNF Repository (Container Side)
 #
-# Configures YUM/DNF to install OpenBao from a mirrored or official repository.
+# Configures DNF to install OpenBao from a mirrored or official repository.
 # Uses the provided mirror URL when credentials are present, falls back to
 # the official https://pkgs.openbao.org/rpm/ otherwise.
 #
@@ -19,7 +19,7 @@
 # Token is read from /run/secrets/mirror_token (Docker) or OPENBAO_MIRROR_TOKEN env var
 
 configure_openbao_rpm() {
-  echo "Configuring OpenBao YUM/DNF repository..."
+  echo "Configuring OpenBao DNF repository..."
 
   local OPENBAO_MIRROR_URL="$1"
   local MIRROR_USER="$2"
@@ -85,7 +85,7 @@ EOF
     dnf config-manager --save --setopt="${repo_id}.exclude=openbao*" 2>/dev/null || true
   done
 
-  echo "OpenBao YUM/DNF repository configured."
+  echo "OpenBao DNF repository configured."
 }
 
 # EXECUTION GUARD

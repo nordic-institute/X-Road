@@ -55,7 +55,7 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
-# Configure OpenBao YUM/DNF repository if not already configured
+# Configure OpenBao DNF repository if not already configured
 CONFIGURE_OPENBAO_REPO="/usr/share/xroad/scripts/configure-mirror-openbao.sh"
 if [ ! -f /etc/yum.repos.d/openbao.repo ] && [ -x "$CONFIGURE_OPENBAO_REPO" ]; then
     "$CONFIGURE_OPENBAO_REPO"
@@ -73,17 +73,6 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
     update-ca-trust
 
     /usr/share/xroad/scripts/secret-store-init-db.sh
-
-    # Workaround for OpenBao known issue on older systemd (RHEL8):
-    # https://github.com/openbao/openbao/blob/main/website/content/docs/known-issues.mdx
-%if 0%{?rhel} <= 8
-    mkdir -p /etc/systemd/system/openbao.service.d
-    cat > /etc/systemd/system/openbao.service.d/rhel8-securebits.conf <<EOF
-[Service]
-SecureBits=
-EOF
-    systemctl daemon-reload
-%endif
 
     # Enable and start service
     if ! systemctl enable openbao.service; then
