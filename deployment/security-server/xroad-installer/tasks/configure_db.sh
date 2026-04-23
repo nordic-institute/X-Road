@@ -78,17 +78,7 @@ configure_remote_db() {
     local psql_error
     if psql_error=$(PGPASSWORD="$XROAD_DB_PASSWORD" psql -h "$db_host" -p "$db_port" -U "$XROAD_DB_USER" -d postgres -c "SELECT 1" 2>&1); then
       log_info "Database connectivity verified successfully"
-
-      # Verify PostgreSQL version meets minimum requirement
-      local pg_version_num
-      pg_version_num=$(PGPASSWORD="$XROAD_DB_PASSWORD" psql -h "$db_host" -p "$db_port" -U "$XROAD_DB_USER" -d postgres -tAc "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]')
-      if [ -n "$pg_version_num" ]; then
-        local pg_major=$((pg_version_num / 10000))
-        if [ "$pg_major" -lt 15 ]; then
-          log_die "PostgreSQL version $pg_major is not supported. Minimum required version is 15."
-        fi
-        log_info "PostgreSQL version $pg_major verified (minimum: 15)"
-      fi
+      check_pg_version "$db_host" "$db_port" "$XROAD_DB_USER" "$XROAD_DB_PASSWORD"
 
       whiptail --msgbox "Database connectivity verified successfully." 8 78 --title "Database Connection"
     else
@@ -129,12 +119,7 @@ configure_db_rhel() {
        log_die "Failed to install local database packages"
     fi
 
-    # Verify PostgreSQL version meets minimum requirement
-    local pg_version_num
-    pg_version_num=$(postgres --version 2>/dev/null | sed 's/[^0-9]*//' | cut -d. -f1)
-    if [ -n "$pg_version_num" ] && [ "$pg_version_num" -lt 15 ]; then
-      log_die "PostgreSQL version $pg_version_num is not supported. Minimum required version is 15. Please enable PostgreSQL 15 module stream: dnf module enable postgresql:15"
-    fi
+    check_pg_version "127.0.0.1" "5432" "postgres" ""
 
     return $EXIT_SUCCESS
   fi
