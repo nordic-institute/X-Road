@@ -1,6 +1,7 @@
 [Unit]
 Description=X-Road DS Data Plane
-After=network.target xroad-secret-store-local.service xroad-secret-store-remote.service
+After=network.target xroad-secret-store-local.service xroad-secret-store-remote.service xroad-ds-control-plane.service
+Requires=xroad-ds-control-plane.service
 Wants=postgresql.service
 Wants=xroad-signer.service
 Wants=xroad-secret-store-local.service xroad-secret-store-remote.service
