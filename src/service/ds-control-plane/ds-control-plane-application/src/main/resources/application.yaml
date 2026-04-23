@@ -8,7 +8,7 @@ quarkus:
   log:
     level: INFO
     category:
-      "EDC":
+      "EDC-MONITOR":
         level: DEBUG
 
 "%native":
