@@ -142,7 +142,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -Pfrontend-npm-audit --parallel -Dorg.gradle.workers.max=6 \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build --parallel -Dorg.gradle.workers.max=6 \
           -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
           -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
@@ -217,12 +217,16 @@ jobs:
           name: e2e-test-jar
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
-      - name: Upload cs-ui-index-html
+
+      - name: Upload ui-index-html
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
-          name: cs-ui-index-html
-          path: src/central-server/admin-service/ui/dist/index.html
+          name: ui-index-html
           compression-level: '0'
+          path: |
+            src/central-server/admin-service/ui/dist/index.html
+            src/security-server/admin-service/ui/dist/index.html
+
       - name: Log storage after build
         if: always()
         uses: ./.github/actions/log-storage

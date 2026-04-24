@@ -1,0 +1,144 @@
+name: Dependency Security Audit
+
+on:
+  schedule:
+    # Weekly on Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    name: "Audit: ${{ matrix.branch }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - develop
+          - release-7.6
+          - release-7.7
+          - release-7.8
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: true
+          setup-docker-buildx: false
+          setup-packaging-tools: false
+          free-disk-space: false
+
+      - name: Frontend audit
+        id: frontend
+        working-directory: ./src
+        continue-on-error: true
+        run: |
+          # Use pnpm script directly — works on all branches regardless of Gradle task naming
+          mkdir -p build/reports
+          pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org 2>&1 | tee build/reports/frontend-audit.txt
+
+      - name: Check backend audit availability
+        id: check-backend
+        working-directory: ./src
+        run: |
+          if grep -q 'owaspDependencyCheck' gradle/libs.versions.toml 2>/dev/null; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "OWASP dependency-check plugin not configured on this branch — skipping backend audit"
+          fi
+
+      - name: Backend audit
+        id: backend
+        if: steps.check-backend.outputs.available == 'true'
+        working-directory: ./src
+        continue-on-error: true
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: ./gradlew dependencyCheckAnalyze --no-daemon
+
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: audit-reports-${{ matrix.branch }}
+          path: |
+            src/build/reports/dependency-check-report.*
+            src/build/reports/frontend-audit.txt
+
+      - name: Prepare Slack payload
+        if: steps.frontend.outcome == 'failure' || steps.backend.outcome == 'failure'
+        id: slack-payload
+        run: |
+          BACKEND_AVAILABLE="${{ steps.check-backend.outputs.available }}"
+          BACKEND_STATUS="${{ steps.backend.outcome }}"
+          BACKEND_DISPLAY=$([ "$BACKEND_AVAILABLE" = "true" ] && echo "$BACKEND_STATUS" || echo "skipped")
+
+          FRONTEND_STATUS="${{ steps.frontend.outcome }}"
+
+          if [ "$FRONTEND_STATUS" = "failure" ] && [ "$BACKEND_STATUS" = "failure" ]; then
+            echo "severity=CRITICAL" >> $GITHUB_OUTPUT
+            echo "emoji=:rotating_light:" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+          else
+            echo "severity=WARNING" >> $GITHUB_OUTPUT
+            echo "emoji=:warning:" >> $GITHUB_OUTPUT
+            echo "color=#ffc107" >> $GITHUB_OUTPUT
+          fi
+
+          echo "frontend_icon=$([ "$FRONTEND_STATUS" = "failure" ] && echo ":x:" || echo ":white_check_mark:")" >> $GITHUB_OUTPUT
+          echo "backend_icon=$([ "$BACKEND_DISPLAY" = "failure" ] && echo ":x:" || [ "$BACKEND_DISPLAY" = "skipped" ] && echo ":fast_forward:" || echo ":white_check_mark:")" >> $GITHUB_OUTPUT
+          echo "backend_display=$BACKEND_DISPLAY" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack on failure
+        if: steps.frontend.outcome == 'failure' || steps.backend.outcome == 'failure'
+        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52 # v2.1.0
+        with:
+          webhook: ${{ secrets.SLACK_AUDIT_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "${{ steps.slack-payload.outputs.color }}",
+                  "blocks": [
+                    {
+                      "type": "header",
+                      "text": { "type": "plain_text", "text": "${{ steps.slack-payload.outputs.emoji }} ${{ steps.slack-payload.outputs.severity }}: Dependency Audit — ${{ matrix.branch }}", "emoji": true }
+                    },
+                    {
+                      "type": "section",
+                      "fields": [
+                        { "type": "mrkdwn", "text": "*Frontend:*\n${{ steps.slack-payload.outputs.frontend_icon }} ${{ steps.frontend.outcome }}" },
+                        { "type": "mrkdwn", "text": "*Backend:*\n${{ steps.slack-payload.outputs.backend_icon }} ${{ steps.slack-payload.outputs.backend_display }}" }
+                      ]
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        { "type": "mrkdwn", "text": ":github: *X-Road* | Branch: `${{ matrix.branch }}`" }
+                      ]
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": { "type": "plain_text", "text": ":page_facing_up: View Reports", "emoji": true },
+                          "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                          "style": "danger"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
