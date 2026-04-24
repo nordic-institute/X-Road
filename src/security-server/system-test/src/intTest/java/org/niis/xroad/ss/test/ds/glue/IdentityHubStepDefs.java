@@ -31,6 +31,7 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.glue.BaseStepDefs;
 import org.niis.xroad.ss.test.ds.api.FeignIdentityHubManagementApi;
+import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Base64;
@@ -47,7 +48,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
     @Step("Identity Hub participant context {string} with DID {string} is initialized "
             + "and keypair is generated with private key alias {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias) {
-        var credentialServiceUrl = "http://ds-identity-hub:10001/api/credentials/v1/participants/"
+        var credentialServiceUrl = "http://ds-identity-hub:" + Port.DS_IDENTITY_HUB_CREDENTIALS + "/api/credentials/v1/participants/"
                 + Base64.getEncoder().encodeToString(participantId.getBytes());
 
         String createParticipantRequest = """
@@ -82,7 +83,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
     @Step("Identity Hub participant context {string} with DID {string} is initialized "
             + "with existing private key in vault with alias {string} and public key {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias, String publicKey) {
-        var credentialServiceUrl = "http://ds-identity-hub:10001/api/credentials/v1/participants/"
+        var credentialServiceUrl = "http://ds-identity-hub:" + Port.DS_IDENTITY_HUB_CREDENTIALS + "/api/credentials/v1/participants/"
                 + Base64.getEncoder().encodeToString(participantId.getBytes());
 
         String createParticipantRequest = """

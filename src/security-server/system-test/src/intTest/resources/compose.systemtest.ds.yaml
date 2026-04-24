@@ -8,7 +8,7 @@ services:
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -c \
           "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
-           VALUES ('edc.iam.trusted-issuer.issuer.id', 'did:web:ds-issuer-service%3A10100:issuer', 'ds-control-plane', now(), now())
+           VALUES ('edc.iam.trusted-issuer.issuer.id', 'did:web:ds-issuer-service%3A6183:issuer', 'ds-control-plane', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - xrd-ss-network
@@ -133,14 +133,14 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "http://localhost:8181/api/check/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:7181/api/check/health" ]
     networks:
       - xrd-ss-network
     ports:
+      - "0:7182" # identity API
+      - "0:7183" # DID resolution
+      - "0:7185" # credentials API
       - "0:9999" # debug port
-      - "0:8182" # identity hub management API
-      - "0:10001" # credentials service API
-      - "0:10100" # DID resolution
     depends_on:
       db-ds-identity-hub:
         condition: service_healthy
@@ -190,15 +190,15 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "http://localhost:8383/api/check/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:7181/api/check/health" ]
     networks:
       - xrd-ss-network
     ports:
-      - "0:8182" # identity API
-      - "0:10011" # statuslist API
-      - "0:10012" # issuance API
-      - "0:10013" # admin API
-      - "0:10100" # DID resolution
+      - "0:6182" # identity API
+      - "0:6183" # DID resolution
+      - "0:6185" # issuance API
+      - "0:6186" # admin API
+      - "0:6187" # statuslist API
       - "0:9999" # debug port
     deploy:
       resources:

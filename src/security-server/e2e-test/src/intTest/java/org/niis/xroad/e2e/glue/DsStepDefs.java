@@ -269,13 +269,13 @@ public class DsStepDefs extends BaseE2EStepDefs {
                      "entries": {
                          "edc.participant.id": "%s",
                          "edc.iam.issuer.id": "%s",
-                         "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:9292/api/sts/token",
+                         "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:%s/api/sts/token",
                          "edc.iam.sts.oauth.client.id": "%s",
                          "edc.iam.sts.oauth.client.secret.alias": "%s-sts-client-secret"
                      },
                      "privateEntries": {}
                  }
-                """.formatted(did, did, did, participantContext);
+                """.formatted(did, did, EnvSetup.Port.IDENTITY_HUB_STS, did, participantContext);
         var mapping = envSetup.getContainerMapping(env, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/config").formatted(mapping.host(), mapping.port(), participantContext);
 
