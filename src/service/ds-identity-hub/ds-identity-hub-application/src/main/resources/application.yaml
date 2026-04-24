@@ -8,7 +8,7 @@ quarkus:
   log:
     level: INFO
     category:
-      "EDC":
+      "EDC-MONITOR":
         level: DEBUG
 
 "%native":
@@ -29,20 +29,20 @@ quarkus:
 
 web:
   http:
-    port: 8181
+    port: 7181
     path: /api
     identity:
-      port: 8182
+      port: 7182
       path: /api/identity
-    credentials:
-      port: 10001
-      path: /api/credentials
     did:
-      port: 10100
+      port: 7183
       path: /
     sts:
-      port: 9292
+      port: 7184
       path: /api/sts
+    credentials:
+      port: 7185
+      path: /api/credentials
 
 edc:
   hostname: ${HOSTNAME:localhost}

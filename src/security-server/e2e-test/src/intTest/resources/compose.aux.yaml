@@ -176,14 +176,15 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "http://localhost:8383/api/check/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:6181/api/check/health" ]
     networks:
       - xroad-network
     ports:
-      - "0:8182" # identity API
-      - "0:10012" # issuance API
-      - "0:10013" # admin API
-      - "0:10100" # DID resolution
+      - "0:6182" # identity API
+      - "0:6183" # DID resolution
+      - "0:6185" # issuance API
+      - "0:6186" # admin API
+      - "0:6187" # statuslist API
       - "0:9999" # debug port
     deploy:
       resources:
