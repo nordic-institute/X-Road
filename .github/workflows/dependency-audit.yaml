@@ -31,7 +31,7 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-build-env
         with:
-          gradle-cache-read-only: true
+          gradle-cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           setup-docker-buildx: false
           setup-packaging-tools: false
           free-disk-space: false
@@ -60,7 +60,7 @@ jobs:
         continue-on-error: true
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: ./gradlew dependencyCheckAnalyze --no-daemon
+        run: ./gradlew dependencyAuditBackend --no-daemon
 
       - name: Upload audit reports
         if: always()
@@ -69,7 +69,7 @@ jobs:
           name: audit-reports-${{ matrix.branch }}
           path: |
             src/build/reports/dependency-check-report.*
-            src/build/reports/frontend-audit.txt
+            src/build/reports/ui-audit-ci.json
 
       - name: Prepare Slack payload
         if: steps.frontend.outcome == 'failure' || steps.backend.outcome == 'failure'
