@@ -84,7 +84,6 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 new File(coreProperties.resourceDir() + COMPOSE_SYSTEMTEST_DS_FILE))
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
-                .withExposedService(PROXY, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(SIGNER, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(CONFIGURATION_CLIENT, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(OP_MONITOR, Port.QUARKUS_HEALTH, forListeningPort())

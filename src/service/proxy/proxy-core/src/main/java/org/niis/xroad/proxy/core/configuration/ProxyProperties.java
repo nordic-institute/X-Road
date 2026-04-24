@@ -56,16 +56,26 @@ public interface ProxyProperties {
     @WithDefault("true")
     boolean sslEnabled();
 
+    @WithName("health-check-enabled")
+    @WithDefault("false")
+    boolean healthCheckEnabled();
+
     @WithName("health-check-port")
-    @WithDefault("0")
+    @WithDefault("5588")
+    @SuppressWarnings("unused")
+        // referenced in application.yaml
     int healthCheckPort();
 
     @WithName("health-check-interface")
     @WithDefault("0.0.0.0")
+    @SuppressWarnings("unused")
+        // referenced in application.yaml
     String healthCheckInterface();
 
     @WithName("hsm-health-check-enabled")
     @WithDefault("false")
+    @SuppressWarnings("unused")
+        // referenced in application.yaml
     boolean hsmHealthCheckEnabled();
 
     @WithName("memory-usage-threshold")

@@ -34,14 +34,15 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
+import org.niis.xroad.ss.test.addons.api.HealthResponse;
 import org.niis.xroad.ss.test.ui.glue.BaseUiStepDefs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.testcontainers.shaded.org.awaitility.core.ThrowingRunnable;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
@@ -54,6 +55,8 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
 
     @Autowired
     private FeignHealthcheckApi healthcheckApi;
+
+    private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
     @SneakyThrows
     @Step("^service \"(.*)\" is \"(stopped|started|restarted)\"$")
@@ -82,27 +85,48 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
             try {
                 var result = healthcheckApi.getHealthcheck();
                 assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-                log.info("HS had no error. {}. Body {}", result.getStatusCode(),
-                        result.getBody().getContentAsString(UTF_8));
+                assertThat(result.getBody().isUp()).isTrue();
             } catch (FeignException e) {
                 throw new AssertionError("Healthcheck is in error state: " + e.contentUTF8());
             }
         });
     }
 
-    @Step("healthcheck has errors and error message is {string}")
-    public void validateHealthcheckErrors(String errorMessage) {
+    @Step("Proxy healthcheck check {string} is {string}")
+    public void validateHealthcheck(String checkName, String expectedStatus) {
         assertWithWait(() -> {
-            try {
-                var response = healthcheckApi.getHealthcheck();
-                throw new AssertionError("Healthcheck is not in error state: " + response);
-            } catch (FeignException feignException) {
-                log.info("Polling for HealthCheck update..");
-                assertThat(feignException.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-                assertThat(feignException.contentUTF8()).contains(errorMessage);
-                testReportService.attachText("successful error message", errorMessage);
-            }
+            HealthResponse response = getHealthcheckResponse();
+
+            var match = response.checks().stream()
+                    .filter(check -> checkName.equals(check.name()))
+                    .findFirst();
+            assertThat(match).as("check '%s' not found in healthcheck response", checkName).isPresent();
+            assertThat(match.get().status()).isEqualTo(expectedStatus);
         });
+    }
+
+    @Step("Proxy healthcheck check {string} is {string} with status {string}")
+    public void validateHealthcheckWithStatus(String checkName, String expectedStatus, String dataStatus) {
+        assertWithWait(() -> {
+            HealthResponse response = getHealthcheckResponse();
+
+            var match = response.checks().stream()
+                    .filter(check -> checkName.equals(check.name()))
+                    .findFirst();
+            assertThat(match).as("check '%s' not found in healthcheck response", checkName).isPresent();
+            assertThat(match.get().status()).isEqualTo(expectedStatus);
+            assertThat(match.get().data().get("status"))
+                    .as("data.status of check '%s'", checkName)
+                    .isEqualTo(dataStatus);
+        });
+    }
+
+    private HealthResponse getHealthcheckResponse() {
+        try {
+            return healthcheckApi.getHealthcheck().getBody();
+        } catch (FeignException feignException) {
+            return jsonMapper.readerFor(HealthResponse.class).readValue(feignException.contentUTF8());
+        }
     }
 
     private void assertWithWait(ThrowingRunnable assertion) {

@@ -11,7 +11,7 @@ Feature: 0300 - SS: Keys and certificates
 
   @Download
   Scenario Outline: <$label> key is added and imported
-    Given healthcheck has errors and error message is "No certificate chain available in authentication key."
+    Given Proxy healthcheck check "PROXY_AUTH_KEY_OCSP_READINESS_CHECK" is "UP" with status "AWAITING_CERT_CHAIN"
     And Keys and certificates tab is selected
     And Token: <$token> is present and expanded
     When Token: <$token> - Add key wizard is opened

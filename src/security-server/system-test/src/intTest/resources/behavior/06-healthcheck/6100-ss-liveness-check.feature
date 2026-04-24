@@ -6,7 +6,7 @@ Feature: 6100 - SS: Liveness Checks
   Scenario: Proxy service liveness checks are UP
     Then proxy liveness check is UP
     And "proxy" service liveness check "DEADLOCK_CHECK" has status "UP"
-    And "proxy" service liveness check "HEAP_MEMORY_CHECK" has status "UP"
+    And "proxy" service liveness check "PROXY_HEAP_MEMORY_CHECK" has status "UP"
 
   Scenario: Signer service liveness checks are UP
     Then signer liveness check is UP

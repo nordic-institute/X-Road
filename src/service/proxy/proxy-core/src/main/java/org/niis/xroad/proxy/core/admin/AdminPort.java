@@ -45,7 +45,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
+import org.niis.xroad.proxy.core.healthcheck.MaintenanceModeState;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -77,7 +77,7 @@ public class AdminPort {
 
     private static final String CONNECTOR_HOST = "127.0.0.1";
 
-    private final HealthCheckPort healthCheckPort;
+    private final MaintenanceModeState maintenanceModeState;
     private final ProxyProperties proxyProperties;
     private final Server server = new Server();
 
@@ -176,10 +176,10 @@ public class AdminPort {
     }
 
     private String setHealthCheckMaintenanceMode(boolean targetState) {
-        if (healthCheckPort.isEnabled()) {
-            return healthCheckPort.setMaintenanceMode(targetState);
+        if (proxyProperties.healthCheckEnabled()) {
+            return maintenanceModeState.setMaintenanceMode(targetState);
         } else {
-            return "No HealthCheckPort found, maintenance mode not set";
+            return "Healthcheck endpoint disabled, maintenance mode not set";
         }
     }
 }

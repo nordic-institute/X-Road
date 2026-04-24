@@ -148,7 +148,7 @@ services:
       limits:
         memory: 1Gi
     ports:
-      - port: 4099
+      - port: 5588
         name: http
       - port: 5567
         name: grpc

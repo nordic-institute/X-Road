@@ -1,16 +1,28 @@
 quarkus:
   application:
     name: proxy
+  arc:
+    exclude-types: org.niis.xroad.common.healthcheck.HeapMemoryLivenessCheck
   config:
     locations:
       - xroad-common.yaml
       - xroad-logging.yaml
+  http:
+    host: ${xroad.proxy.health-check-interface}
+    host-enabled: ${xroad.proxy.health-check-enabled}
+    port: ${xroad.proxy.health-check-port}
 
 "%containerized":
   xroad:
     proxy:
+      health-check-enabled: true
       rpc:
         listen-address: 0.0.0.0
+  quarkus:
+    http:
+      host: ${xroad.proxy.health-check-interface}
+      host-enabled: ${xroad.proxy.health-check-enabled}
+      port: ${xroad.proxy.health-check-port}
 
 "%native":
   quarkus:

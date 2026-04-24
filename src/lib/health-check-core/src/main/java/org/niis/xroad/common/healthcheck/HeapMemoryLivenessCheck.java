@@ -68,7 +68,7 @@ public class HeapMemoryLivenessCheck implements HealthCheck {
         return HealthCheckResponse.named(NAME)
                 .up()
                 .withData("used_percent", usedPercent)
-                .withData("threshold_percent", (long) THRESHOLD_PERCENT)
+                .withData("threshold_percent", THRESHOLD_PERCENT)
                 .build();
     }
 

@@ -49,6 +49,7 @@ import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.ss.test.SsSystemTestContainerSetup.PROXY;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
@@ -69,8 +70,8 @@ public class HealthCheckAssertions {
     private final Map<String, FeignHealthApi> clientCache = new HashMap<>();
 
     public void assertOverallStatusIsUp(String serviceName,
-            Function<FeignHealthApi, ResponseEntity<JsonNode>> endpoint) {
-        var client = getClient(serviceName);
+                                        Function<FeignHealthApi, ResponseEntity<JsonNode>> endpoint) {
+        var client = getHealthCheckClient(serviceName);
         await()
                 .pollDelay(Duration.ZERO)
                 .pollInterval(5, TimeUnit.SECONDS)
@@ -88,8 +89,8 @@ public class HealthCheckAssertions {
     }
 
     public void assertCheckHasStatus(String serviceName, String checkName, String expectedStatus,
-            Function<FeignHealthApi, ResponseEntity<JsonNode>> endpoint) {
-        var client = getClient(serviceName);
+                                     Function<FeignHealthApi, ResponseEntity<JsonNode>> endpoint) {
+        var client = getHealthCheckClient(serviceName);
         await()
                 .pollDelay(Duration.ZERO)
                 .pollInterval(2, TimeUnit.SECONDS)
@@ -110,9 +111,10 @@ public class HealthCheckAssertions {
                 });
     }
 
-    private FeignHealthApi getClient(String serviceName) {
+    private FeignHealthApi getHealthCheckClient(String serviceName) {
         return clientCache.computeIfAbsent(serviceName, name -> {
-            var container = systemTestContainerSetup.getContainerMapping(name, Port.QUARKUS_HEALTH);
+            var port = PROXY.equalsIgnoreCase(name) ? Port.PROXY_HEALTHCHECK : Port.QUARKUS_HEALTH;
+            var container = systemTestContainerSetup.getContainerMapping(name, port);
             return Feign.builder()
                     .logLevel(Logger.Level.FULL)
                     .encoder(encoder)
