@@ -25,17 +25,31 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.proxy.core.healthcheck;
+package org.niis.xroad.ss.test.addons.api;
 
-public class NoopHealthCheckPort implements HealthCheckPort {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-    @Override
-    public String setMaintenanceMode(boolean targetState) {
-        throw new UnsupportedOperationException();
+import java.util.List;
+import java.util.Map;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record HealthResponse(
+        String status,
+        List<Check> checks
+) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Check(
+            String name,
+            String status,
+            Map<String, Object> data
+    ) {
+        public boolean isUp() {
+            return "UP".equalsIgnoreCase(status);
+        }
     }
 
-    @Override
-    public boolean isEnabled() {
-        return false;
+    public boolean isUp() {
+        return "UP".equalsIgnoreCase(status);
     }
 }
+

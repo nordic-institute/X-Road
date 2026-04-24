@@ -73,6 +73,8 @@ public class IniUtil {
                     mappedKeys.forEach(mappedKey ->
                             insertNestedProperty(properties, mappedKey.split("\\."), resolveValue(valueStr))
                     );
+                    LegacyConfigValueRules.derive(key, valueStr).forEach((derivedKey, derivedValue) ->
+                            insertNestedProperty(properties, derivedKey.split("\\."), derivedValue));
                 }
             }
         }
@@ -111,6 +113,8 @@ public class IniUtil {
                     mappedKeys.forEach(mappedKey ->
                             properties.put(String.join(".", rootPrefix, mappedKey), valueStr)
                     );
+                    LegacyConfigValueRules.derive(key, valueStr).forEach((derivedKey, derivedValue) ->
+                            properties.put(String.join(".", rootPrefix, derivedKey), String.valueOf(derivedValue)));
                 }
             }
         }

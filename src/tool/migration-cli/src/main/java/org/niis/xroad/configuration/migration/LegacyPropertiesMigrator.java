@@ -64,6 +64,9 @@ public class LegacyPropertiesMigrator {
                 mappedKeys.forEach(mappedKey ->
                         properties.put(PREFIX + "." + mappedKey, value)
                 );
+                String rawValue = value == null ? null : value.toString();
+                LegacyConfigValueRules.derive(key.toString(), rawValue).forEach((derivedKey, derivedValue) ->
+                        properties.put(PREFIX + "." + derivedKey, derivedValue));
             }
         });
 

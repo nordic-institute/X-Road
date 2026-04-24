@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,9 +26,48 @@
  */
 package org.niis.xroad.proxy.core.healthcheck;
 
-/**
- * Extension to {@link HealthCheckProvider} that supports stopping any running tasks when shutting down.
- */
-public interface StoppableHealthCheckProvider extends HealthCheckProvider {
-    void stop();
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class MaintenanceModeStateTest {
+
+    @Test
+    void defaultsToOff() {
+        MaintenanceModeState state = new MaintenanceModeState();
+
+        assertThat(state.isMaintenanceMode()).isFalse();
+    }
+
+    @Test
+    void setMaintenanceModeTrueReturnsTransitionMessage() {
+        MaintenanceModeState state = new MaintenanceModeState();
+
+        String message = state.setMaintenanceMode(true);
+
+        assertThat(message).isEqualTo("Maintenance mode set: false => true");
+        assertThat(state.isMaintenanceMode()).isTrue();
+    }
+
+    @Test
+    void setMaintenanceModeFalseAfterTrueReturnsTransition() {
+        MaintenanceModeState state = new MaintenanceModeState();
+        state.setMaintenanceMode(true);
+
+        String message = state.setMaintenanceMode(false);
+
+        assertThat(message).isEqualTo("Maintenance mode set: true => false");
+        assertThat(state.isMaintenanceMode()).isFalse();
+    }
+
+    @Test
+    void repeatedSetToSameValueStillReturnsTransitionMessage() {
+        MaintenanceModeState state = new MaintenanceModeState();
+        state.setMaintenanceMode(true);
+
+        String message = state.setMaintenanceMode(true);
+
+        assertThat(message).isEqualTo("Maintenance mode set: true => true");
+        assertThat(state.isMaintenanceMode()).isTrue();
+    }
 }
