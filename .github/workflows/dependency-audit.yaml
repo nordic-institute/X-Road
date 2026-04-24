@@ -40,10 +40,7 @@ jobs:
         id: frontend
         working-directory: ./src
         continue-on-error: true
-        run: |
-          # Use pnpm script directly — works on all branches regardless of Gradle task naming
-          mkdir -p build/reports
-          pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org 2>&1 | tee build/reports/frontend-audit.txt
+        run: ./gradlew :shared-ui:dependencyAuditFrontend --no-daemon
 
       - name: Check backend audit availability
         id: check-backend
