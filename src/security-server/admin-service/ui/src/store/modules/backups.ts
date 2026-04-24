@@ -29,7 +29,35 @@ import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { Backup, BackupExt } from '@/openapi-types';
-import { saveResponseAsFile, BackupItem, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
+import {
+  BackupItem,
+  buildFileFormData,
+  multipartFormDataConfig,
+  POLL_SESSION_DELAY_ON_RESTART,
+  POLL_SESSION_TIMEOUT_ON_RESTART,
+  saveResponseAsFile,
+  useAppState
+} from '@niis/shared-ui';
+import { useUser } from "@/store/modules/user";
+
+
+function pollSessionStatus(delay = POLL_SESSION_TIMEOUT_ON_RESTART) {
+  window.setTimeout(() => {
+    let status = 0;
+    useUser()
+      .fetchSessionStatus()
+      .catch((error) => {
+        status = error?.response?.data?.status;
+      })
+      .finally(() => {
+        if (status === 401) {
+          useAppState().started();
+        } else {
+          pollSessionStatus()
+        }
+      })
+  }, delay);
+}
 
 export const useBackups = defineStore('backups', {
   state: () => ({}),
@@ -57,7 +85,12 @@ export const useBackups = defineStore('backups', {
         .then((resp) => saveResponseAsFile(resp, fileName));
     },
     async restoreBackup(fileName: string) {
-      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
+      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {})
+        .then((resp) => {
+          useAppState().restarting("backup.restoreFromBackup.restarting.message");
+          pollSessionStatus(POLL_SESSION_DELAY_ON_RESTART)
+          return resp;
+        });
     },
     async uploadBackup(backupFile: File, ignoreWarnings = false) {
       return api

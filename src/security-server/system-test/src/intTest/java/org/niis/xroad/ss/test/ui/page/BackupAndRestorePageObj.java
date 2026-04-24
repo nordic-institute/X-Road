@@ -68,4 +68,8 @@ public class BackupAndRestorePageObj {
     public SelenideElement inputSearch() {
         return $x("//div[@data-test='search-query-field']");
     }
+
+    public SelenideElement restartingDialog() {
+        return $x("//*[@data-test='restarting-app-dialog']");
+    }
 }

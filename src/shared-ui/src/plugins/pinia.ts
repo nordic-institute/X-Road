@@ -25,22 +25,12 @@
  * THE SOFTWARE.
  */
 
-export interface CommonUser {
-  logout(): Promise<unknown>;
+import { createPinia } from "pinia";
+import { createPersistedState } from "pinia-plugin-persistedstate";
 
-  username(): string;
-
-  isSessionAlive(): boolean;
-}
-
-export interface CommonRouting {
-  toLogin(): void;
-
-  toHome(): void;
-
-  goBack(steps: number): void;
-}
-
-export interface CommonSystem {
-  version(): string | undefined;
-}
+export const pinia = createPinia();
+pinia.use(
+  createPersistedState({
+    storage: sessionStorage,
+  }),
+);

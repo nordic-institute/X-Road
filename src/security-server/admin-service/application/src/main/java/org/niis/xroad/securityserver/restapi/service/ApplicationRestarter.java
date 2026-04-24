@@ -24,12 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.securityserver.restapi.service;
 
-export * from './backups';
-export * from './basic-types';
-export * from './notifications';
-export * from './routing';
-export * from './theme';
-export * from './api-keys';
-export * from './tls-certificates';
-export * from './admin-users';
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+
+/**
+ * Handles scheduling application restart after backup restore.
+ * Extracted to allow mocking in tests (avoiding System.exit in the test JVM).
+ */
+@Slf4j
+@Component
+public class ApplicationRestarter {
+
+    private static final int DELAY_FOR_RESPONSE = 5;
+
+    // In Kubernetes, the auxiliary-service orchestrates all service restarts via kubectl.
+    public void scheduleRestartIfNeeded() {
+        if (System.getenv("KUBERNETES_SERVICE_HOST") != null) {
+            log.info("Kubernetes environment detected — proxy-ui-api restart is handled by auxiliary-service");
+            return;
+        }
+        log.info("Scheduling Proxy UI restart after backup restore");
+        Thread.ofVirtual().start(() -> {
+            try {
+                Thread.sleep(Duration.ofSeconds(DELAY_FOR_RESPONSE));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            exitApplication();
+        });
+    }
+
+    private void exitApplication() {
+        log.info("Shutting down Proxy UI for restart after backup restore");
+        System.exit(1);
+    }
+}

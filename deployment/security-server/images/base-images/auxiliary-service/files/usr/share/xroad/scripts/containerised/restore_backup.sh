@@ -254,6 +254,11 @@ restart_services () {
       read -r deploy replicas <<< "$entry"
       kubectl scale "$deploy" --replicas="$replicas"
     done
+
+    # Restart proxy-ui-api after a delay to allow the restore HTTP response to be sent first.
+    # Uses rollout restart for a graceful rolling update (new pod starts before old one terminates).
+    echo "Scheduling delayed restart of proxy-ui-api..."
+    (sleep 10 && kubectl rollout restart deployment/proxy-ui-api) &
   else
     echo "Skip starting up services, not in Kubernetes environment"
   fi

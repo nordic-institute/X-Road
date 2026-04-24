@@ -35,6 +35,12 @@ import vuetify from 'vite-plugin-vuetify';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const lang = /\/locales?\/([a-z]{2}([-_][A-Z]+))\.(js|json)$/;
+
+  const proxyCfg = {
+    secure: false,
+    target: env.PROXY_ADDRESS || 'https://localhost:4200',
+  }
+
   return {
     plugins: [
       vue(),
@@ -107,14 +113,9 @@ export default defineConfig(({ mode }) => {
       port: 8080,
       host: 'localhost',
       proxy: {
-        '/api': {
-          secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4200',
-        },
-        '/login': {
-          secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4200',
-        },
+        '/api': proxyCfg,
+        '/login': proxyCfg,
+        '/logout': proxyCfg,
       },
     },
   };

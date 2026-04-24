@@ -38,6 +38,7 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCert
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.mail.MailService;
+import org.niis.xroad.securityserver.restapi.service.ApplicationRestarter;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.ConfigurablePropertiesService;
@@ -118,6 +119,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
     @MockitoBean
     JavaMailSender mailSender;
+    @MockitoBean
+    ApplicationRestarter applicationRestarter;
 
     @MockitoSpyBean
     DiagnosticService diagnosticService;

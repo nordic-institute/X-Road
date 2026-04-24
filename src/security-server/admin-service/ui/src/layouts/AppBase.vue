@@ -44,12 +44,13 @@ import { useUser } from '@/store/modules/user';
 
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import AppToolbar from '@/layouts/AppToolbar.vue';
+import { POLL_SESSION_TIMEOUT, useAppState } from "@niis/shared-ui";
 
+const { isSessionAlive } = useAppState();
 const userStore = useUser();
 const { checkAlertStatus } = useAlerts();
 
 // Set interval to poll backend for session
-const sessionPollInterval = window.setInterval(() => pollSessionStatus(), 30000);
 pollSessionStatus();
 
 async function pollSessionStatus() {
@@ -60,8 +61,8 @@ async function pollSessionStatus() {
       checkAlertStatus();
     })
     .finally(() => {
-      if (!userStore.sessionAlive) {
-        clearInterval(sessionPollInterval);
+      if (isSessionAlive()) {
+        window.setTimeout(pollSessionStatus, POLL_SESSION_TIMEOUT)
       }
     });
 }

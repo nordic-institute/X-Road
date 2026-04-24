@@ -28,7 +28,14 @@
 <template>
   <v-app>
     <slot />
-    <XrdLogoutDialog v-if="!loginView && !sessionAlive" @logout="emit('logout')" />
+    <XrdConfirmDialog v-if="appStateStore.isRestarting()" data-test="restarting-app-dialog" title="common.restartingService" persistent hide-cancel-button
+                      hide-accept-button>
+      <template #text>
+        <div v-if="restartingMessage" class="font-weight-regular body-regular mb-4">{{ $t(restartingMessage) }}</div>
+        <v-progress-linear indeterminate class="xrd" />
+      </template>
+    </XrdConfirmDialog>
+    <XrdLogoutDialog v-else-if="!loginView && !appStateStore.isSessionAlive()" @logout="emit('logout')" />
     <XrdSnackBar />
   </v-app>
 </template>
@@ -36,18 +43,26 @@
 <script lang="ts" setup>
 import XrdLogoutDialog from '../components/XrdLogoutDialog.vue';
 import XrdSnackBar from '../components/XrdSnackBar.vue';
+import { XrdConfirmDialog } from "../components";
+import { computed, watch } from "vue";
+import { useAppState } from "../stores";
 
 defineProps({
   loginView: {
     type: Boolean,
     required: true,
   },
-  sessionAlive: {
-    type: Boolean,
-    required: true,
-  },
 });
 const emit = defineEmits(['logout']);
-</script>
 
-<style lang="scss" scoped></style>
+const appStateStore = useAppState();
+
+const restarting = computed(() => appStateStore.restartingState);
+const restartingMessage = computed(() => appStateStore.restartingMessage);
+
+watch(restarting, (newVal, oldVal) => {
+  if (newVal === 'started' && oldVal === 'restarting') {
+    emit('logout');
+  }
+});
+</script>

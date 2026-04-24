@@ -43,15 +43,27 @@ EOF
       "$SECRET_JSON" "Creating initialization secret"
 fi
 
-if ! is_sealed; then
-  echo "[UNSEAL] OpenBao is already unsealed"
+# Check each node individually — the Service endpoint may route to an already-unsealed
+# node while other nodes remain sealed (e.g. after a pod restart).
+SEALED_NODES=""
+for NODE in $BAO_NODES; do
+  if is_sealed "$NODE"; then
+    SEALED_NODES="$SEALED_NODES $NODE"
+  else
+    echo "[UNSEAL] Node $NODE is already unsealed"
+  fi
+done
+
+if [ -z "$SEALED_NODES" ]; then
+  echo "[UNSEAL] All OpenBao nodes are already unsealed"
 else
-  echo "[UNSEAL] Unsealing OpenBao..."
+  echo "[UNSEAL] Unsealing sealed nodes:$SEALED_NODES"
 
   SECRET_DATA=$(k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${ROOT_SECRET_NAME}" \
     "" "Retrieving unseal keys")
   if [ $? -ne 0 ]; then
     echo "[UNSEAL] Failed to retrieve secret"
+    exit 1
   fi
 
   # Extract and validate keys
@@ -61,7 +73,7 @@ else
     exit 1
   fi
 
-  for NODE in $BAO_NODES; do
+  for NODE in $SEALED_NODES; do
     echo "$KEYS" | while IFS= read -r KEY; do
       if [ -z "$KEY" ]; then
         continue
@@ -78,7 +90,7 @@ else
       fi
     done
   done
-  echo "[UNSEAL] Successfully unsealed OpenBao"
+  echo "[UNSEAL] Successfully unsealed all OpenBao nodes"
 fi
 
 SECRET_DATA=$(k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${ROOT_SECRET_NAME}" \

@@ -25,11 +25,8 @@
  * THE SOFTWARE.
  */
 
-export * from './backups';
-export * from './basic-types';
-export * from './notifications';
-export * from './routing';
-export * from './theme';
-export * from './api-keys';
-export * from './tls-certificates';
-export * from './admin-users';
+
+export const POLL_SESSION_TIMEOUT = 30000;
+export const POLL_SESSION_DELAY_ON_RESTART = 5000;
+export const POLL_SESSION_TIMEOUT_ON_RESTART = 2000;
+
