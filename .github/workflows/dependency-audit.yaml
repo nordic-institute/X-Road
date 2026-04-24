@@ -5,6 +5,17 @@ on:
     # Weekly on Monday at 06:00 UTC
     - cron: '0 6 * * 1'
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to audit (leave empty for all branches)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - develop
+          - release-7.6
+          - release-7.7
+          - release-7.8
 
 permissions:
   contents: read
@@ -18,11 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch:
-          - develop
-          - release-7.6
-          - release-7.7
-          - release-7.8
+        branch: ${{ inputs.branch != '' && fromJSON(format('["{0}"]', inputs.branch)) || fromJSON('["develop","release-7.6","release-7.7","release-7.8"]') }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -60,7 +67,7 @@ jobs:
         continue-on-error: true
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: ./gradlew dependencyAuditBackend --no-daemon
+        run: ./gradlew dependencyAuditBackend --info --no-daemon
 
       - name: Upload audit reports
         if: always()
