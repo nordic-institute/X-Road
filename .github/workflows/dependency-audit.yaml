@@ -7,15 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to audit (leave empty for all branches)'
+        description: 'Branch to audit (e.g. release-7.8, feature/my-branch)'
         required: false
-        type: choice
-        options:
-          - ''
-          - develop
-          - release-7.6
-          - release-7.7
-          - release-7.8
+        type: string
+        default: 'develop'
 
 permissions:
   contents: read
@@ -29,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: ${{ inputs.branch != '' && fromJSON(format('["{0}"]', inputs.branch)) || fromJSON('["develop","release-7.6","release-7.7","release-7.8"]') }}
+        branch: ${{ github.event_name == 'schedule' && fromJSON('["develop","release-7.6","release-7.7","release-7.8"]') || fromJSON(format('["{0}"]', inputs.branch || 'develop')) }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
