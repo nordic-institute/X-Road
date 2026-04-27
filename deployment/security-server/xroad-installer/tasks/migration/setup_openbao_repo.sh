@@ -11,9 +11,9 @@ OPENBAO_MIRROR="${OPENBAO_MIRROR:-}"
 OPENBAO_MIRROR_USER="${OPENBAO_MIRROR_USER:-}"
 
 setup_openbao_repo_ubuntu() {
-  local openbao_script="/usr/share/xroad/scripts/configure-mirror-openbao.sh"
+  local openbao_script="$SCRIPT_DIR/../../lib/configure-mirror-openbao-deb.sh"
   if [[ ! -f "$openbao_script" ]]; then
-    log_die "configure-mirror-openbao.sh not found at $openbao_script"
+    log_die "configure-mirror-openbao-deb.sh not found at $openbao_script"
   fi
   if bash "$openbao_script" "$OPENBAO_MIRROR" "$OPENBAO_MIRROR_USER"; then
     log_info "OpenBao APT repository configured"
@@ -23,9 +23,9 @@ setup_openbao_repo_ubuntu() {
 }
 
 setup_openbao_repo_rhel() {
-  local openbao_script="/usr/share/xroad/scripts/configure-mirror-openbao.sh"
+  local openbao_script="$SCRIPT_DIR/../../lib/configure-mirror-openbao-rpm.sh"
   if [[ ! -f "$openbao_script" ]]; then
-    log_die "configure-mirror-openbao.sh not found at $openbao_script"
+    log_die "configure-mirror-openbao-rpm.sh not found at $openbao_script"
   fi
   if bash "$openbao_script" "$OPENBAO_MIRROR" "$OPENBAO_MIRROR_USER"; then
     log_info "OpenBao YUM/DNF repository configured"

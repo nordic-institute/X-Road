@@ -72,7 +72,7 @@ setup_repositories_ubuntu() {
 
   # Add OpenBao repository (official or mirrored)
   log_message "Adding OpenBao APT repository"
-  local openbao_deb_script="$SCRIPT_DIR/lib/configure-mirror-openbao-deb.sh"
+  local openbao_deb_script="$SCRIPT_DIR/../lib/configure-mirror-openbao-deb.sh"
   if [[ ! -f "$openbao_deb_script" ]]; then
     log_die "configure-mirror-openbao-deb.sh not found at $openbao_deb_script"
   fi
@@ -120,11 +120,11 @@ setup_repositories_rhel() {
 
   # Add OpenBao repository (official or mirrored)
   log_message "Adding OpenBao YUM/DNF repository"
-  local openbao_rpm_script="$SCRIPT_DIR/lib/configure-mirror-openbao-rpm.sh"
+  local openbao_rpm_script="$SCRIPT_DIR/../lib/configure-mirror-openbao-rpm.sh"
   if [[ ! -f "$openbao_rpm_script" ]]; then
     log_die "configure-mirror-openbao-rpm.sh not found at $openbao_rpm_script"
   fi
-  if bash "$openbao_rpm_script" "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"; then
+  if bash "$openbao_rpm_script" "$OPENBAO_MIRROR" "$OPENBAO_MIRROR_USER"; then
     log_info "OpenBao YUM/DNF repository configured"
   else
     log_die "Failed to configure OpenBao YUM/DNF repository"
