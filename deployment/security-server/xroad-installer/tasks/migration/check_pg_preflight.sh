@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../../lib/common.sh"
 
 DB_PROPS="/etc/xroad/db.properties"
 
@@ -15,7 +15,7 @@ parse_and_check_pg() {
   fi
 
   # Extract JDBC URL for serverconf database.
-  # Key format on 7.8.x: xroad.db.serverconf.connection.url = jdbc:postgresql://host[:port]/dbname
+  # Key format on 7.8.x: xroad.db.serverconf.hibernate.connection.url = jdbc:postgresql://host[:port]/dbname
   local jdbc_url
   jdbc_url=$(grep -m1 'serverconf.*hibernate\.connection\.url' "$DB_PROPS" \
     | sed 's/^[^=]*=\s*//' | tr -d ' ')

@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../../lib/common.sh"
 
 XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 
@@ -66,7 +66,21 @@ run_migration_step() {
   confirm_step "$step" "Run migration CLI step: $step"
 
   log_message "Running: java -jar $MIGRATION_CLI_JAR $step ${args[*]}"
-  java -jar "$MIGRATION_CLI_JAR" "$step" "${args[@]}"
+  local tmpout
+  tmpout=$(mktemp)
+  if ! java -jar "$MIGRATION_CLI_JAR" "$step" "${args[@]}" 2>&1 | tee "$tmpout"; then
+    rm -f "$tmpout"
+    log_die "Migration CLI step '$step' failed (non-zero exit). Sentinel not written."
+  fi
+  # Migration-CLI sometimes returns 0 even after an internal exception. Scan
+  # output for stack traces / error markers and fail if we see any.
+  if grep -qE '^(Error |Caused by:|Exception in |[[:alpha:].]+Exception:)' "$tmpout"; then
+    local firstline
+    firstline=$(grep -m1 -E '^(Error |Caused by:|Exception in |[[:alpha:].]+Exception:)' "$tmpout")
+    rm -f "$tmpout"
+    log_die "Migration CLI step '$step' reported an error: $firstline"
+  fi
+  rm -f "$tmpout"
 
   mark_step_done "$step"
 }

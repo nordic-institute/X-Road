@@ -42,7 +42,7 @@ log_info() {
   ts=$(timestamp)
 
   # Console output with color
-  echo -e "${GREEN}✓${NC} $message"
+  echo -e "${GREEN}✓${NC} $message" >&2
 
   # File output without color codes
   init_log
@@ -56,7 +56,7 @@ log_warn() {
   ts=$(timestamp)
 
   # Console output with color
-  echo -e "${YELLOW}⚠${NC}  WARNING: $message"
+  echo -e "${YELLOW}⚠${NC}  WARNING: $message" >&2
 
   # File output without color codes
   init_log
@@ -70,7 +70,7 @@ log_error() {
   ts=$(timestamp)
 
   # Console output with color
-  echo -e "${RED}✗${NC} ERROR: $message"
+  echo -e "${RED}✗${NC} ERROR: $message" >&2
 
   # File output without color codes
   init_log
@@ -84,7 +84,7 @@ log_message() {
   ts=$(timestamp)
 
   # Console output
-  echo "$message"
+  echo "$message" >&2
 
   # File output
   init_log
@@ -116,7 +116,7 @@ check_pg_version() {
   fi
 
   local pg_version_num
-  pg_version_num=$(PGPASSWORD="$pass" psql -h "$host" -p "$port" -U "$user" \
+  pg_version_num=$(PGPASSWORD="$pass" psql -w -h "$host" -p "$port" -U "$user" \
     -d postgres -tAc "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]') || {
     log_warn "Could not connect to PostgreSQL at $host:$port to verify version"
     return 0

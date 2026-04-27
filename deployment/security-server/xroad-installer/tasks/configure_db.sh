@@ -119,7 +119,11 @@ configure_db_rhel() {
        log_die "Failed to install local database packages"
     fi
 
-    check_pg_version "127.0.0.1" "5432" "postgres" ""
+    local pg_major
+    pg_major=$(rpm -q postgresql-server --queryformat '%{VERSION}' 2>/dev/null | cut -d. -f1)
+    if [[ -n "$pg_major" ]] && [[ "$pg_major" -lt 15 ]]; then
+      log_die "PostgreSQL $pg_major is not supported. Minimum required version is 15. Enable the module stream: dnf module enable postgresql:15"
+    fi
 
     return $EXIT_SUCCESS
   fi

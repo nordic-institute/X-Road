@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../../lib/common.sh"
 
 XROAD_SERVICES=(
   "xroad-signer"
@@ -34,6 +34,10 @@ start_xroad_services() {
   done
 
   for service in "${XROAD_SERVICES[@]}"; do
+    if ! systemctl cat "$service" >/dev/null 2>&1; then
+      log_warn "$service: unit file not found, skipping (package not installed)"
+      continue
+    fi
     log_message "Starting: $service"
     systemctl start "$service"
     wait_for_service_active "$service"

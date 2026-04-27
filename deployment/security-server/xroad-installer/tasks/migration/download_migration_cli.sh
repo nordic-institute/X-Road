@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../../lib/common.sh"
 
 # Required: Artifactory download URL for the migration-cli fat JAR.
 # Example: export XROAD_MIGRATION_CLI_URL=https://artifactory.example.com/migration-cli-1.0.0.jar

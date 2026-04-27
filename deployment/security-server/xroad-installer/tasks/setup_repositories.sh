@@ -103,10 +103,11 @@ setup_repositories_rhel() {
 #  local repo_url="${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN}/rhel/${rhel_major_version}/current"
   local repo_url="${XROAD_REPO_URL_OVERRIDE:-$XROAD_REPO_BASE_URL/$XROAD_REPO_MAIN}"
   log_message "Adding X-Road repository: $repo_url"
-  if dnf config-manager --add-repo "$repo_url"; then
+
+  if yum-config-manager --add-repo "$repo_url"; then
     log_info "X-Road repository added successfully"
   else
-    log_die "Failed to add X-Road repository"
+     log_die "Failed to add X-Road repository"
   fi
 
   # Import GPG Key
@@ -118,19 +119,19 @@ setup_repositories_rhel() {
   fi
 
   # Add OpenBao repository (official or mirrored)
-  log_message "Adding OpenBao DNF repository"
+  log_message "Adding OpenBao YUM/DNF repository"
   local openbao_rpm_script="$SCRIPT_DIR/lib/configure-mirror-openbao-rpm.sh"
   if [[ ! -f "$openbao_rpm_script" ]]; then
     log_die "configure-mirror-openbao-rpm.sh not found at $openbao_rpm_script"
   fi
   if bash "$openbao_rpm_script" "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"; then
-    log_info "OpenBao DNF repository configured"
+    log_info "OpenBao YUM/DNF repository configured"
   else
-    log_die "Failed to configure OpenBao DNF repository"
+    log_die "Failed to configure OpenBao YUM/DNF repository"
   fi
 
   log_message "Updating package manager cache..."
-  dnf makecache
+  yum makecache
 }
 
 main() {
