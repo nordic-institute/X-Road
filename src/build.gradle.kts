@@ -119,6 +119,10 @@ dependencyCheck {
   nvd {
     apiKey = System.getenv("NVD_API_KEY") ?: ""
   }
+  analyzers {
+    nodeEnabled = false // Project uses pnpm, not npm — frontend audit handled separately
+    ossIndexEnabled = false // Avoid Sonatype OSS Index rate limits — NVD is sufficient
+  }
 }
 
 tasks.register("dependencyAuditBackend") {
