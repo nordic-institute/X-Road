@@ -103,11 +103,10 @@ setup_repositories_rhel() {
 #  local repo_url="${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN}/rhel/${rhel_major_version}/current"
   local repo_url="${XROAD_REPO_URL_OVERRIDE:-$XROAD_REPO_BASE_URL/$XROAD_REPO_MAIN}"
   log_message "Adding X-Road repository: $repo_url"
-
-  if yum-config-manager --add-repo "$repo_url"; then
+  if dnf config-manager --add-repo "$repo_url"; then
     log_info "X-Road repository added successfully"
   else
-     log_die "Failed to add X-Road repository"
+    log_die "Failed to add X-Road repository"
   fi
 
   # Import GPG Key
@@ -127,11 +126,11 @@ setup_repositories_rhel() {
   if bash "$openbao_rpm_script" "$OPENBAO_MIRROR" "$OPENBAO_MIRROR_USER"; then
     log_info "OpenBao YUM/DNF repository configured"
   else
-    log_die "Failed to configure OpenBao YUM/DNF repository"
+    log_die "Failed to configure OpenBao DNF repository"
   fi
 
   log_message "Updating package manager cache..."
-  yum makecache
+  dnf makecache
 }
 
 main() {
