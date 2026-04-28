@@ -56,12 +56,10 @@ setupAddErrorNavigation(router, {
 });
 
 document.addEventListener('securitypolicyviolation', (e) => {
-  console.error('[CSP]', {
-    directive: e.violatedDirective,
-    blockedURI: e.blockedURI,            // 'inline'
-    sample: e.sample,                    // first ~40 chars of blocked content
-    source: `${e.sourceFile}:${e.lineNumber}:${e.columnNumber}`,
-  });
+  console.error('[CSP]', 'directive: ', e.violatedDirective,
+    'blockedURI: ', e.blockedURI,
+    'sample: ', e.sample,
+    'source: ', `${e.sourceFile}:${e.lineNumber}:${e.columnNumber}`);
 });
 
 const app = createApp(App);
