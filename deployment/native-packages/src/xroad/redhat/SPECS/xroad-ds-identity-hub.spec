@@ -47,7 +47,6 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 
 cp -p %{_sourcedir}/ds-identity-hub/xroad-ds-identity-hub.service %{buildroot}%{_unitdir}
 cp -p -r %{srcdir}/../../../../src/service/ds-identity-hub/ds-identity-hub-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/ds-identity-hub/
-cp -p -r %{srcdir}/../../../../src/service/ds-identity-hub/ds-identity-hub-db/build/resources/main/liquibase/* %{buildroot}/usr/share/xroad/db/
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
