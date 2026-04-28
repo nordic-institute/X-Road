@@ -40,10 +40,10 @@ log_info() {
   local message="$1"
   local ts
   ts=$(timestamp)
-  
+
   # Console output with color
-  echo -e "${GREEN}✓${NC} $message"
-  
+  echo -e "${GREEN}✓${NC} $message" >&2
+
   # File output without color codes
   init_log
   echo "[$ts] $message" >> "$XROAD_INSTALLER_LOG_FILE"
@@ -54,10 +54,10 @@ log_warn() {
   local message="$1"
   local ts
   ts=$(timestamp)
-  
+
   # Console output with color
-  echo -e "${YELLOW}⚠${NC}  WARNING: $message"
-  
+  echo -e "${YELLOW}⚠${NC}  WARNING: $message" >&2
+
   # File output without color codes
   init_log
   echo "[$ts] [WARN] $message" >> "$XROAD_INSTALLER_LOG_FILE"
@@ -68,10 +68,10 @@ log_error() {
   local message="$1"
   local ts
   ts=$(timestamp)
-  
+
   # Console output with color
-  echo -e "${RED}✗${NC} ERROR: $message"
-  
+  echo -e "${RED}✗${NC} ERROR: $message" >&2
+
   # File output without color codes
   init_log
   echo "[$ts] [ERROR] $message" >> "$XROAD_INSTALLER_LOG_FILE"
@@ -82,10 +82,10 @@ log_message() {
   local message="$1"
   local ts
   ts=$(timestamp)
-  
+
   # Console output
-  echo "$message"
-  
+  echo "$message" >&2
+
   # File output
   init_log
   echo "[$ts] $message" >> "$XROAD_INSTALLER_LOG_FILE"
@@ -101,6 +101,37 @@ log_die() {
 log_warn_exit() {
   log_warn "$1"
   exit $EXIT_SUCCESS
+}
+
+# Check PostgreSQL server version. Exits with error if major version < 15.
+check_pg_version() {
+  local host="$1"
+  local port="$2"
+  local user="$3"
+  local pass="$4"
+
+  if ! command -v psql >/dev/null 2>&1; then
+    log_warn "psql client not found, skipping PostgreSQL version check"
+    return 0
+  fi
+
+  local pg_version_num
+  pg_version_num=$(PGPASSWORD="$pass" psql -w -h "$host" -p "$port" -U "$user" \
+    -d postgres -tAc "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]') || {
+    log_warn "Could not connect to PostgreSQL at $host:$port to verify version"
+    return 0
+  }
+
+  if [[ -z "$pg_version_num" ]]; then
+    log_warn "Could not determine PostgreSQL version at $host:$port"
+    return 0
+  fi
+
+  local pg_major=$(( pg_version_num / 10000 ))
+  if [[ "$pg_major" -lt 15 ]]; then
+    log_die "PostgreSQL version $pg_major is not supported. Minimum required version is 15."
+  fi
+  log_info "PostgreSQL version $pg_major verified (minimum: 15)"
 }
 
 handle_os_not_supported() {
