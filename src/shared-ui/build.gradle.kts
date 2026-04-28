@@ -78,12 +78,6 @@ tasks.register<RunPnpmTaskType>("test") {
   args.set("run test-ss")
 }
 
-if (project.hasProperty("frontend-npm-audit")) {
-  tasks.assemble {
-    dependsOn(tasks.named("dependencyAuditFrontend"))
-  }
-}
-
 tasks.register<RunPnpmTaskType>("checkFrontWorkspaceLicense") {
   description = "Checks licenses of frontend pnpm workspace."
   group = "verification"

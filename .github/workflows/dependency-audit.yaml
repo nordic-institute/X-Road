@@ -96,7 +96,7 @@ jobs:
         if: steps.check-backend.outputs.available == 'true'
         working-directory: ./src
         continue-on-error: true
-        run: ./gradlew dependencyAuditBackend --no-daemon
+        run: ./gradlew dependencyAuditBackend -PnvdAutoUpdate=false --no-daemon
 
       - name: Upload audit reports
         if: always()
@@ -217,7 +217,7 @@ jobs:
                     {
                       "type": "context",
                       "elements": [
-                        { "type": "mrkdwn", "text": ":github: *X-Road* | Branch: `${{ matrix.branch }}`" }
+                        { "type": "mrkdwn", "text": "Github: *X-Road* | Branch: `${{ matrix.branch }}`" }
                       ]
                     },
                     {
