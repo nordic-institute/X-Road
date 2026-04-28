@@ -123,6 +123,7 @@ dependencyCheck {
   analyzers {
     nodeEnabled = false // Project uses pnpm, not npm — frontend audit handled separately
     ossIndexEnabled = false // Avoid Sonatype OSS Index rate limits — NVD is sufficient
+    nodeAuditEnabled = false
   }
 }
 
