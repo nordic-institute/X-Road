@@ -62,6 +62,10 @@ runs:
         build-scan-publish: true
         build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
         build-scan-terms-of-use-agree: "yes"
+        gradle-home-cache-includes: |
+          caches
+          notifications
+          dependency-check-data
 
     - name: Set up Docker Buildx
       if: inputs.setup-docker-buildx == 'true'

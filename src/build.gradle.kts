@@ -116,6 +116,7 @@ dependencyCheck {
   formats = listOf("HTML", "JSON")
   failBuildOnCVSS = 11f // Never fail the build (max CVSS is 10.0) — report only
   suppressionFile = "config/owasp/suppressions.xml"
+  autoUpdate = false
   nvd {
     apiKey = System.getenv("NVD_API_KEY") ?: ""
   }
