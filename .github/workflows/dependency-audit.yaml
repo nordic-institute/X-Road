@@ -34,6 +34,12 @@ jobs:
           setup-packaging-tools: false
           free-disk-space: false
 
+      - name: Restore NVD cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        with:
+          path: ~/.gradle/dependency-check-data/
+          key: nvd-db
+
       - name: Update NVD database
         working-directory: ./src
         env:
@@ -62,6 +68,12 @@ jobs:
           setup-packaging-tools: false
           free-disk-space: false
 
+      - name: Restore NVD cache
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        with:
+          path: ~/.gradle/dependency-check-data/
+          key: nvd-db
+
       - name: Frontend audit
         id: frontend
         working-directory: ./src
@@ -84,7 +96,7 @@ jobs:
         if: steps.check-backend.outputs.available == 'true'
         working-directory: ./src
         continue-on-error: true
-        run: ./gradlew dependencyAuditBackend --no-daemon -Pdependency.check.noupdate
+        run: ./gradlew dependencyAuditBackend --no-daemon
 
       - name: Upload audit reports
         if: always()
