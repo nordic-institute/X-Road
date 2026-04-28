@@ -103,6 +103,17 @@ main() {
   run_migration_step "config" "/etc/xroad/conf.d/local.ini" "/etc/xroad/conf.d/local.yaml"
   run_migration_step "keyconf" "/etc/xroad/signer" "/etc/xroad/db.properties"
 
+  # signer-token-pins migrates token PINs from xroad-autologin scripts to OpenBao.
+  # Only meaningful when xroad-autologin is installed — detect by script presence
+  # at the paths the migration-cli probes (works on both Ubuntu and RHEL).
+  local autologin_custom="/usr/share/xroad/autologin/custom-fetch-pin.sh"
+  local autologin_default="/usr/share/xroad/autologin/default-fetch-pin.sh"
+  if [[ -f "$autologin_custom" || -f "$autologin_default" ]]; then
+    run_migration_step "signer-token-pins"
+  else
+    log_info "xroad-autologin not installed — skipping signer-token-pins migration"
+  fi
+
   log_message ""
   log_info "Migration CLI steps completed."
 }
