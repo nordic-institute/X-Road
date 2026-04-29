@@ -1,5 +1,6 @@
 plugins {
   alias(libs.plugins.sonarqube)
+  alias(libs.plugins.owaspDependencyCheck)
   id("jacoco-report-aggregation")
   id("java")
 }
