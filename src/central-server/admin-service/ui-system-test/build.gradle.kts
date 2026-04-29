@@ -22,6 +22,8 @@ intTestShadowJar {
 }
 
 tasks.register<Test>("intTest") {
+  dependsOn(provider { tasks.named("generateIntTestEnv") })
+
   useJUnitPlatform()
 
   description = "Runs integration tests."
