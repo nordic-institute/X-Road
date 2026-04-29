@@ -117,17 +117,13 @@ dependencyCheck {
   failBuildOnCVSS = 11f // Never fail the build (max CVSS is 10.0) — report only
   suppressionFile = "config/owasp/suppressions.xml"
   autoUpdate = (project.findProperty("nvdAutoUpdate")?.toString() ?: "true").toBoolean()
-  nvd {
-    apiKey = System.getenv("NVD_API_KEY") ?: ""
-  }
-  analyzers {
-    nodeEnabled = false // Project uses pnpm, not npm — frontend audit handled separately
-    ossIndexEnabled = false // Avoid Sonatype OSS Index rate limits — NVD is sufficient
-    nodeAudit {
-      enabled = false
-      pnpmEnabled = false
-    }
-  }
+
+  nvd.apiKey = System.getenv("NVD_API_KEY") ?: ""
+
+  analyzers.nodeEnabled = false
+  analyzers.ossIndexEnabled = false
+  analyzers.nodeAudit.enabled = false
+  analyzers.nodeAudit.pnpmEnabled = false
 }
 
 tasks.register("dependencyAuditBackend") {
