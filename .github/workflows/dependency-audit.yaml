@@ -79,17 +79,6 @@ jobs:
         continue-on-error: true
         run: ./gradlew :shared-ui:dependencyAuditFrontend --no-daemon
 
-      - name: Check backend audit availability
-        id: check-backend
-        working-directory: ./src
-        run: |
-          if grep -q 'owaspDependencyCheck' gradle/libs.versions.toml 2>/dev/null; then
-            echo "available=true" >> $GITHUB_OUTPUT
-          else
-            echo "available=false" >> $GITHUB_OUTPUT
-            echo "OWASP dependency-check plugin not configured on this branch — skipping backend audit"
-          fi
-
       - name: Backend audit
         id: backend
         if: steps.check-backend.outputs.available == 'true'
