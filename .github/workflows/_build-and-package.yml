@@ -218,15 +218,6 @@ jobs:
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload ui-index-html
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
-        with:
-          name: ui-index-html
-          compression-level: '0'
-          path: |
-            src/central-server/admin-service/ui/dist/index.html
-            src/security-server/admin-service/ui/dist/index.html
-
       - name: Log storage after build
         if: always()
         uses: ./.github/actions/log-storage
