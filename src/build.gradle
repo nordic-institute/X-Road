@@ -238,6 +238,30 @@ tasks.withType(Jar).configureEach {
     enabled = false
 }
 
+dependencyCheck {
+    formats = listOf("HTML", "JSON")
+    failBuildOnCVSS = 11f // Never fail the build (max CVSS is 10.0) — report only
+    suppressionFile = "config/owasp/suppressions.xml"
+    autoUpdate = (project.findProperty("nvdAutoUpdate")?.toString() ?: "true").toBoolean()
+    nvd {
+        apiKey = System.getenv("NVD_API_KEY") ?: ""
+    }
+    analyzers {
+        nodeEnabled = false // Project uses pnpm, not npm — frontend audit handled separately
+        ossIndexEnabled = false // Avoid Sonatype OSS Index rate limits — NVD is sufficient
+        nodeAudit {
+            enabled = false
+            pnpmEnabled = false
+        }
+    }
+}
+
+tasks.register("dependencyAuditBackend") {
+    description = "Runs OWASP dependency-check on backend dependencies."
+    group = "verification"
+    dependsOn("dependencyCheckAnalyze")
+}
+
 //Register git-hooks
 tasks.register("installGitHooks", Copy) {
     from file("$rootDir/../.githooks")
