@@ -135,9 +135,3 @@ tasks.register("dependencyAuditBackend") {
   group = "verification"
   dependsOn("dependencyCheckAnalyze")
 }
-
-tasks.register("dependencyAudit") {
-  description = "Runs dependency security audit on all frontend and backend dependencies."
-  group = "verification"
-  dependsOn(":shared-ui:dependencyAuditFrontend", "dependencyAuditBackend")
-}
