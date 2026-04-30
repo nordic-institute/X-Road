@@ -77,8 +77,6 @@ class HeapMemoryStatusServiceTest {
 
         HeapMemoryStatus status = new HeapMemoryStatusService(properties).getMemoryStatus();
 
-        // Server JVMs always expose a positive heap max via MemoryMXBean; the maxMemory > 0
-        // guard in HeapMemoryStatusService keeps usedPercent non-negative even if -1 is reported.
         assertThat(status.maxMemory()).isPositive();
         assertThat(status.usedPercent()).isNotNegative();
     }
