@@ -8,19 +8,12 @@
     "test-ss": "pnpm run --filter xroad-securityserver-admin-ui test",
     "build-workspace": "pnpm -r run build",
     "prepReportDirs": "mkdirp ./build && mkdirp ./build/reports",
-    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/audit-ci.txt"
+    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/ui-audit-ci.json"
   },
   "pnpm": {
     "minimumReleaseAge": 4320,
     "overrides": {
-      "defu": "^6.1.5",
-      "lodash": "^4.18.0",
-      "picomatch": "^4.0.4",
-      "minimatch": "^10.2.3",
-      "rollup": "^4.59.0",
-      "immutable": "^5.1.5",
-      "flatted": "^3.4.2",
-      "typescript": "^5.9.3"
+      "minimatch": "^10.2.3"
     }
   },
   "devDependencies": {
@@ -57,7 +50,7 @@
     "vue-i18n": "^11.3.1",
     "vue-tsc": "^3.2.6"
   },
-  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8",
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",

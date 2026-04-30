@@ -116,19 +116,18 @@ dependencyCheck {
   formats = listOf("HTML", "JSON")
   failBuildOnCVSS = 11f // Never fail the build (max CVSS is 10.0) — report only
   suppressionFile = "config/owasp/suppressions.xml"
-  nvd {
-    apiKey = System.getenv("NVD_API_KEY") ?: ""
-  }
+  autoUpdate = (project.findProperty("nvdAutoUpdate")?.toString() ?: "true").toBoolean()
+
+  nvd.apiKey = System.getenv("NVD_API_KEY") ?: ""
+
+  analyzers.nodeEnabled = false
+  analyzers.ossIndexEnabled = false
+  analyzers.nodeAudit.enabled = false
+  analyzers.nodeAudit.pnpmEnabled = false
 }
 
 tasks.register("dependencyAuditBackend") {
   description = "Runs OWASP dependency-check on backend dependencies."
   group = "verification"
   dependsOn("dependencyCheckAnalyze")
-}
-
-tasks.register("dependencyAudit") {
-  description = "Runs dependency security audit on all frontend and backend dependencies."
-  group = "verification"
-  dependsOn(":shared-ui:dependencyAuditFrontend", "dependencyAuditBackend")
 }
