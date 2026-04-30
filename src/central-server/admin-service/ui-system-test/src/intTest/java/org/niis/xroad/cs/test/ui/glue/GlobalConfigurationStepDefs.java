@@ -310,9 +310,11 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
         final String oldUpdated = scenarioContext.getStepData(CFG_PART_UPDATED);
 
-        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).shouldNotHave(exactText(oldUpdated));
+        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
+                .shouldNotHave(exactText(oldUpdated));
 
-        scenarioContext.putStepData(CFG_PART_UPDATED, globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text());
+        scenarioContext.putStepData(CFG_PART_UPDATED, 
+                globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text());
     }
 
     @Step("User clicks download button for it")
