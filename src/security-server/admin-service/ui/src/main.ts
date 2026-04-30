@@ -58,30 +58,6 @@ setupAddErrorNavigation(router, {
   },
 });
 
-document.addEventListener('securitypolicyviolation', (e) => {
-  console.error('[CSP]', 'directive: ', e.violatedDirective,
-    'blockedURI: ', e.blockedURI,
-    'sample: ', e.sample,
-    'source: ', `${e.sourceFile}:${e.lineNumber}:${e.columnNumber}`);
-});
-
-const styleObserver = new MutationObserver((muts) => {
-  for (const m of muts) {
-    for (const node of m.addedNodes) {
-      if (node instanceof HTMLStyleElement && !node.nonce) {
-        // Schedule on next microtask so textContent is set
-        queueMicrotask(() => {
-          console.error('[CSP] <style> added without nonce');
-          console.error('content: ', node.textContent?.slice(0, 200));
-          console.error('outer: ',  node.outerHTML.slice(0, 200));
-          console.trace();
-        });
-      }
-    }
-  }
-});
-styleObserver.observe(document.documentElement, { childList: true, subtree: true });
-
 const app = createApp(App);
 app.use(pinia);
 app.use(router);
