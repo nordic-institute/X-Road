@@ -46,3 +46,8 @@ Feature: 2300 - SS Proxy: healthcheck
     Then Proxy healthcheck check "PROXY_SERVERCONF_DATABASE_READINESS_CHECK" is "DOWN"
     When service "db-serverconf" is "started"
     Then healthcheck has no errors
+
+  Scenario: Proxy heap-memory liveness threshold reflects local.yaml override
+    Given healthcheck has no errors
+    Then Proxy healthcheck check "HEAP_MEMORY_CHECK" is "UP"
+    And Proxy healthcheck check "HEAP_MEMORY_CHECK" data "threshold_percent" is 77
