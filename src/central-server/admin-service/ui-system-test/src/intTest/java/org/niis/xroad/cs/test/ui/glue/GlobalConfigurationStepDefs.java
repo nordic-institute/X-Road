@@ -313,7 +313,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
                 .shouldNotHave(exactText(oldUpdated));
 
-        scenarioContext.putStepData(CFG_PART_UPDATED, 
+        scenarioContext.putStepData(CFG_PART_UPDATED,
                 globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text());
     }
 
