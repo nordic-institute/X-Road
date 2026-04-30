@@ -23,7 +23,7 @@ tasks.register<RunPnpmTaskType>("build-pnpm-workspace") {
   args.set("run build-workspace")
 }
 
-tasks.register<RunPnpmTaskType>("checkFrontAudit") {
+tasks.register<RunPnpmTaskType>("dependencyAuditFrontend") {
   dependsOn(tasks.named("assembleFrontend"))
   args.set("run npx-check-audit")
 }
@@ -31,12 +31,6 @@ tasks.register<RunPnpmTaskType>("checkFrontAudit") {
 tasks.register<RunPnpmTaskType>("test") {
   dependsOn(tasks.named("installFrontend"))
   args.set("run test-ss")
-}
-
-if (project.hasProperty("frontend-npm-audit")) {
-  tasks.assemble {
-    dependsOn(tasks.named("checkFrontAudit"))
-  }
 }
 
 tasks.register<RunPnpmTaskType>("checkFrontWorkspaceLicense") {

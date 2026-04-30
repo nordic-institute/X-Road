@@ -28,6 +28,7 @@ apacheCxf = "4.1.2"
 archUnitPlugin = "4.0.0"
 checkstyle = "10.22.0"
 jacoco = "0.8.12"
+owaspDependencyCheck = "12.1.1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -178,3 +179,4 @@ protobuf = { id = "com.google.protobuf", version = "0.9.5" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.8" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
+owaspDependencyCheck = { id = "org.owasp.dependencycheck", version.ref = "owaspDependencyCheck" }
