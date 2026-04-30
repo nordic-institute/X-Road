@@ -15,7 +15,6 @@ ARGS=(
   "--changelog=$CHANGELOG"
   "--url=$JDBC_URL"
   "--username=$JDBC_USER"
-  "--password=$JDBC_PASSWORD"
   "--defaultSchemaName=${DEFAULT_SCHEMA_NAME:-public}"
 )
 
@@ -33,4 +32,4 @@ if [[ -n "${LIQUIBASE_CONTEXTS:-}" ]]; then
   ARGS+=("--contexts=$LIQUIBASE_CONTEXTS")
 fi
 
-exec java -jar /app/liquibase-executor.jar "${ARGS[@]}" update
+LIQUIBASE_COMMAND_PASSWORD="$JDBC_PASSWORD" exec java -jar /app/liquibase-executor.jar "${ARGS[@]}" update

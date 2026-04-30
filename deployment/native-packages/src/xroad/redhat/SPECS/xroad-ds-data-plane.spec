@@ -47,7 +47,6 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 
 cp -p %{_sourcedir}/ds-data-plane/xroad-ds-data-plane.service %{buildroot}%{_unitdir}
 cp -p -r %{srcdir}/../../../../src/service/ds-data-plane/ds-data-plane-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/ds-data-plane/
-cp -p -r %{srcdir}/../../../../src/service/ds-data-plane/ds-data-plane-db/build/resources/main/liquibase/* %{buildroot}/usr/share/xroad/db/
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md

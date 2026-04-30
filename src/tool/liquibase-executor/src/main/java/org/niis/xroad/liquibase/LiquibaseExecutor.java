@@ -64,10 +64,6 @@ public class LiquibaseExecutor implements Callable<Integer> {
             description = "Database username")
     String username;
 
-    @Option(names = "--password",
-            description = "Database password")
-    String password;
-
     @Option(names = DEFAULT_SCHEMA_NAME_ARG,
             description = "Default database schema name (also auto-derives -Ddb_schema)")
     String defaultSchemaName;
@@ -137,9 +133,6 @@ public class LiquibaseExecutor implements Callable<Integer> {
         args.add("--url=" + url);
         if (username != null) {
             args.add("--username=" + username);
-        }
-        if (password != null) {
-            args.add("--password=" + password);
         }
         if (defaultSchemaName != null) {
             args.add(DEFAULT_SCHEMA_NAME_ARG_EQ + defaultSchemaName);

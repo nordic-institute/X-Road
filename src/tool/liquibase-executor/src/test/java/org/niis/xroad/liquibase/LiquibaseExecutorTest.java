@@ -119,7 +119,6 @@ class LiquibaseExecutorTest {
                 "--changelog=serverconf",
                 "--url=jdbc:h2:mem:test",
                 "--username=user1",
-                "--password=pass1",
                 "--defaultSchemaName=myschema",
                 "--contexts=user",
                 "--prop-db-user=xroad",
@@ -130,7 +129,6 @@ class LiquibaseExecutorTest {
         assertEquals("serverconf", executor.changelog);
         assertEquals("jdbc:h2:mem:test", executor.url);
         assertEquals("user1", executor.username);
-        assertEquals("pass1", executor.password);
         assertEquals("myschema", executor.defaultSchemaName);
         assertEquals("user", executor.contexts);
         assertEquals("update", executor.command);
@@ -162,16 +160,17 @@ class LiquibaseExecutorTest {
     }
 
     @Test
-    void shouldPassThroughUrlUsernamePasswordContexts() {
+    void shouldPassThroughUrlUsernameContexts() {
         var executor = new LiquibaseExecutor();
         new CommandLine(executor).parseArgs(
                 "--changelog=serverconf", "--url=jdbc:h2:mem:test",
-                "--username=user1", "--password=pass1",
+                "--username=user1",
                 "--defaultSchemaName=myschema", "--contexts=user", "update");
         List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
         assertTrue(args.contains("--url=jdbc:h2:mem:test"), "Should pass through --url");
         assertTrue(args.contains("--username=user1"), "Should pass through --username");
-        assertTrue(args.contains("--password=pass1"), "Should pass through --password");
+        assertFalse(args.stream().anyMatch(a -> a.startsWith("--password")),
+                "Should NOT emit --password (env var only)");
         assertTrue(args.contains("--defaultSchemaName=myschema"), "Should pass through --defaultSchemaName");
         assertTrue(args.contains("--contexts=user"), "Should pass through --contexts");
         assertTrue(args.contains("update"), "Should include command word");
@@ -296,6 +295,8 @@ class LiquibaseExecutorTest {
         String help = sw.toString();
         assertTrue(help.contains("--changelog"), "Help should mention --changelog");
         assertTrue(help.contains("--url"), "Help should mention --url");
+        assertFalse(help.contains("--password"),
+                "Help should NOT mention --password (removed; use LIQUIBASE_COMMAND_PASSWORD env var)");
     }
 
     @Test

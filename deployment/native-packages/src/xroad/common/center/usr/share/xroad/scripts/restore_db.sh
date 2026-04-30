@@ -121,10 +121,9 @@ fi
 
 url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
-/usr/share/xroad/db/liquibase.sh \
+LIQUIBASE_COMMAND_PASSWORD="${ADMIN_PASSWORD}" /usr/share/xroad/db/liquibase.sh \
   --changelog=centerui \
   --url="${db_url}${url_concat_string}currentSchema=${SCHEMA},public" \
-  --password="${ADMIN_PASSWORD}" \
   --username="${ADMIN_USER}" \
   --defaultSchemaName="${SCHEMA}" \
   --prop-db-user="${USER}" \
