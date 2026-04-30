@@ -49,6 +49,9 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exactValue;
+import static com.codeborne.selenide.Condition.text;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
@@ -102,7 +105,6 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         globalConfigurationPageObj.logoutButton(tokenKey)
                 .shouldBe(Condition.enabled)
                 .click();
-
 
         globalConfigurationPageObj.tokenLogoutDialog.btnLogout()
                 .shouldBe(Condition.enabled)
@@ -309,11 +311,10 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     public void doesntHaveUpdatedAtForConfigurationPart() {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
         final String oldUpdated = scenarioContext.getStepData(CFG_PART_UPDATED);
-        final var newUpdated = globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text();
 
-        assertThat(newUpdated).isNotEqualTo(oldUpdated);
+        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).shouldNotHave(exactText(oldUpdated));
 
-        scenarioContext.putStepData(CFG_PART_UPDATED, newUpdated);
+        scenarioContext.putStepData(CFG_PART_UPDATED, globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text());
     }
 
     @Step("User clicks download button for it")
