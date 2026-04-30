@@ -50,8 +50,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exactValue;
-import static com.codeborne.selenide.Condition.text;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
