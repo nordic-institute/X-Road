@@ -10,6 +10,7 @@
          <trust group="org.eclipse.dataplane-core" name="dataplane-sdk" version="0.0.7-SNAPSHOT" reason="Temporary SNAPSHOT; remove after switching to immutable release versions."/>
          <trust group="org.eclipse.edc.virtualized" version="0.16.0-20260323-1-SNAPSHOT" reason="Temporary SNAPSHOT; remove after switching to immutable release versions."/>
          <trust group="org.gradle" name="github-dependency-graph-gradle-plugin" version="1.4.1" reason="Loaded by GitHub Actions init script for dependency graph generation."/>
+         <trust group="io.quarkus" name="quarkus-arc-dev" version="3.32.4" reason="Quarkus dev dependency for arc."/>
          <trust file=".*-javadoc\.jar" regex="true" reason="Javadoc jars fetched by IDE are not runtime artifacts; content doesn't affect build output."/>
          <trust file=".*-sources\.jar" regex="true" reason="Source jars fetched by IDE are not runtime artifacts; content doesn't affect build output."/>
       </trusted-artifacts>
