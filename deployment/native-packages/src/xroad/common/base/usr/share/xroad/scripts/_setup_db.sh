@@ -10,14 +10,18 @@ MIN_PG_VERSION=15
 
 check_pg_version() {
   local pg_version_num="$1"
-  if [ -n "$pg_version_num" ]; then
-    local pg_major_version=$((pg_version_num / 10000))
-    if [ "$pg_major_version" -lt "$MIN_PG_VERSION" ]; then
-      die "PostgreSQL version $pg_major_version is not supported. Minimum required version is $MIN_PG_VERSION."
-    fi
-  else
-    log "WARNING: Unable to determine PostgreSQL version. Minimum required version is $MIN_PG_VERSION."
+
+  if [[ -z "$pg_version_num" ]]; then
+    die "Unable to determine PostgreSQL version. Minimum required version is $MIN_PG_VERSION."
   fi
+
+  local pg_major_version=$((pg_version_num / 10000))
+
+  if [ "$pg_major_version" -lt "$MIN_PG_VERSION" ]; then
+    die "PostgreSQL version $pg_major_version is not supported. Minimum required version is $MIN_PG_VERSION."
+  fi
+
+  log "PostgreSQL version $pg_major_version OK"
 }
 
 get_prop() {
@@ -110,8 +114,21 @@ setup_database() {
   fi
 
   # Verify PostgreSQL version meets minimum requirement
-  local pg_version_num
-  pg_version_num=$(PGCONNECT_TIMEOUT=5 psql_master -c "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]')
+  log "Checking PostgreSQL readiness and version..."
+
+  local pg_version_num=""
+
+  for i in {1..30}; do
+    pg_version_num=$(su - postgres -c "psql -tA -c 'SHOW server_version_num'" 2>/dev/null | tr -d '[:space:]')
+
+    if [[ "$pg_version_num" =~ ^[0-9]+$ ]]; then
+      break
+    fi
+
+    log "PostgreSQL not ready yet (attempt $i)..."
+    sleep 1
+  done
+
   check_pg_version "$pg_version_num"
 
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
