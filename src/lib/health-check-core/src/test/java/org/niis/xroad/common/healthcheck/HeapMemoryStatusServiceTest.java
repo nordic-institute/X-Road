@@ -54,7 +54,7 @@ class HeapMemoryStatusServiceTest {
 
         HeapMemoryStatus status = new HeapMemoryStatusService(properties).getMemoryStatus();
 
-        assertThat(status.threshold()).isEqualTo(80L);
+        assertThat(status.threshold()).isEqualTo(80);
         assertThat(status.maxMemory()).isPositive();
         assertThat(status.usedMemory()).isEqualTo(status.totalMemory() - status.freeMemory());
     }
