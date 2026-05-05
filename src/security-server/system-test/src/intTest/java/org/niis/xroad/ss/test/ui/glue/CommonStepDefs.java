@@ -26,9 +26,9 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
+import org.niis.xroad.test.framework.core.ui.utils.SeleniumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.codeborne.selenide.Condition.text;
@@ -43,15 +43,7 @@ public class CommonStepDefs extends BaseUiStepDefs {
 
     @Step("Page is prepared to be tested")
     public void preparePage() {
-        Selenide.executeJavaScript("""
-                window.e2eTestingMode = true;
-                      const style = `
-                      <style>
-                        *, ::before, ::after {
-                            transition:none !important;
-                        }
-                      </style>`;
-                      document.head.insertAdjacentHTML('beforeend', style);""");
+        SeleniumUtils.preparePage();
     }
 
     @Step("error: {string} was displayed")

@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.Selenide;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.test.framework.core.ui.utils.SeleniumUtils;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.v145.network.Network;
 import org.openqa.selenium.devtools.v145.network.model.ConnectionType;
@@ -46,14 +46,7 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
 
     @Step("Page is prepared to be tested")
     public void preparePage() {
-        Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
-                + "      const style = `\n"
-                + "      <style>\n"
-                + "        *, ::before, ::after {\n"
-                + "            transition:none !important;\n"
-                + "        }\n"
-                + "      </style>`;\n"
-                + "      document.head.insertAdjacentHTML('beforeend', style);");
+        SeleniumUtils.preparePage();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
