@@ -48,9 +48,6 @@ cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHAN
 
 ln -s /usr/share/xroad/jlib/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy-ui-api.jar
 
-cp -p %{srcdir}/../../../../src/service/message-log-archiver/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
-cp -p %{srcdir}/../../../../src/service/message-log-archiver/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad/archive-server/
-
 %clean
 rm -rf %{buildroot}
 

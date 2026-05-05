@@ -178,6 +178,8 @@ Description: X-Road auxiliary service
 
 Package: xroad-message-log-archiver
 Architecture: all
+Replaces: xroad-addon-messagelog (<< 8.0.0)
+Breaks: xroad-addon-messagelog (<< 8.0.0)
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
 Description: X-Road message log archiver
  X-Road message log archiver and cleanup CLI application
