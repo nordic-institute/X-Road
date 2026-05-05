@@ -114,6 +114,7 @@ public class LiquibaseExecutor implements Callable<Integer> {
     static void initSystemProperties(String[] args) {
         System.setProperty("xroad.liquibase.schema", resolveSchema(args).orElse("unknown"));
         System.setProperty("liquibase.analytics.enabled", "false");
+        System.setProperty("liquibase.showBanner", "false");
     }
 
     /**
