@@ -55,7 +55,7 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
-import org.niis.xroad.proxy.core.util.IdentifierValidator;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
 
@@ -100,6 +100,7 @@ public class ClientSoapMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
+    private final IdentifierValidationService identifierValidationService;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -198,9 +199,9 @@ public class ClientSoapMessageProcessor {
     }
 
     private void checkRequestIdentifiers(SoapRequestDecoder decoder) {
-        IdentifierValidator.checkIdentifier(decoder.getRequestSoap().getClient());
-        IdentifierValidator.checkIdentifier(decoder.getRequestSoap().getService());
-        IdentifierValidator.checkIdentifier(decoder.getRequestSoap().getSecurityServer());
+        identifierValidationService.checkIdentifier(decoder.getRequestSoap().getClient());
+        identifierValidationService.checkIdentifier(decoder.getRequestSoap().getService());
+        identifierValidationService.checkIdentifier(decoder.getRequestSoap().getSecurityServer());
     }
 
     private ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,

@@ -59,6 +59,11 @@ keep_batch_signatures() {
   esac
 }
 
+disable_strict_identifier_checks() {
+  save_value_to_db "xroad.proxy.strict-identifier-checks" "false"
+  echo "xroad.proxy.strict-identifier-checks is now set to false"
+}
+
 echo "Using database properties: $DB_PROPERTIES_FILE"
 echo "Starting configuration files migration..."
 
@@ -76,4 +81,5 @@ migrate_file "$ACME_CONFIG_FILE" FileToDbPropertyMigrator "ACME configuration fi
 migrate_file "$MAIL_CONFIG_FILE" FileToDbPropertyMigrator "Mail notification configuration file" "proxy-ui-api" "xroad.mail-notification"
 
 keep_batch_signatures
+disable_strict_identifier_checks
 

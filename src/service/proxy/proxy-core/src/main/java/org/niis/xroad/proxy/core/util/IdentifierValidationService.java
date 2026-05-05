@@ -28,43 +28,35 @@ package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import com.google.common.base.CharMatcher;
-import lombok.experimental.UtilityClass;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
-import static com.google.common.base.CharMatcher.anyOf;
-import static com.google.common.base.CharMatcher.inRange;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_IDENTIFIER;
+
 
 @Slf4j
-@UtilityClass
-public class IdentifierValidator {
+@ApplicationScoped
+public class IdentifierValidationService {
 
-    private static final CharMatcher VALID_CHARS =
-            inRange('a', 'z')
-                    .or(inRange('A', 'Z'))
-                    .or(inRange('0', '9'))
-                    .or(anyOf("'()+,-.=?"));
+    private final ProxyProperties proxyProperties;
 
-    public static boolean isValid(XRoadId id) {
-        if (id != null) {
-            if (!isIdentifierFieldValid(id.getXRoadInstance())) {
-                return false;
-            }
-
-            for (String f : id.getFieldsForStringFormat()) {
-                if (!isIdentifierFieldValid(f)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+    public IdentifierValidationService(final ProxyProperties proxyProperties) {
+        this.proxyProperties = proxyProperties;
     }
 
-    private static boolean isIdentifierFieldValid(String field) {
-        if (field == null) {
-            return true;
+    public void checkIdentifier(XRoadId id) {
+        if (IdentifierValidator.isValid(id)) {
+            return;
         }
-        return VALID_CHARS.matchesAllOf(field);
+
+        if (proxyProperties.strictIdentifierChecks()) {
+            throw XrdRuntimeException.systemException(
+                    INVALID_CLIENT_IDENTIFIER, "Invalid character(s) in identifier %s", id);
+        } else {
+            log.warn("Invalid character(s) in identifier {}", id);
+        }
     }
 
 }
