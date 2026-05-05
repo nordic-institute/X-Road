@@ -27,6 +27,8 @@ OPENBAO_MIRROR_USER="${OPENBAO_MIRROR_USER:-}"
 
 XROAD_SS_PACKAGE="${XROAD_SS_PACKAGE:-}"
 
+XROAD_DELETE_DB_PROPS_BAK="${XROAD_DELETE_DB_PROPS_BAK:-}"
+
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case $1 in
@@ -138,36 +140,37 @@ main() {
   export OPENBAO_MIRROR
   export OPENBAO_MIRROR_USER
   export XROAD_SS_PACKAGE
+  export XROAD_DELETE_DB_PROPS_BAK
 
   # Step 1: Version gate — fail fast if not 7.8.x.
   run_step "check_version_gate.sh" \
     "Version gate passed" \
     "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
 
-  # Step 2: PostgreSQL pre-flight — parse db.properties and verify PG >= 15.
+  # Step 2: Migrate db.properties to V8 format — add xroad.db.* prefix, backup original.
+  run_step "migrate_db_properties.sh" \
+    "db.properties migrated to V8 format" \
+    "db.properties migration failed. Original file is preserved at /etc/xroad/db.properties.bak (if a backup was written). Restore it and re-run the wizard."
+
+  # Step 3: PostgreSQL pre-flight — parse db.properties and verify PG >= 15.
   run_step "check_pg_preflight.sh" \
     "PostgreSQL pre-flight passed" \
     "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
 
-  # Step 3: OpenBao repository setup — required before stopping services.
+  # Step 4: OpenBao repository setup — required before stopping services.
   run_step "setup_openbao_repo.sh" \
     "OpenBao repository configured" \
     "OpenBao repository setup failed. No destructive steps executed. Check network and OPENBAO_MIRROR settings."
 
-  # Step 4: Download migration-CLI JAR — must exist before stopping services.
+  # Step 5: Download migration-CLI JAR — must exist before stopping services.
   run_step "download_migration_cli.sh" \
     "Migration-CLI downloaded" \
     "Migration CLI download failed. No services stopped yet. Check XROAD_MIGRATION_CLI_URL and network connectivity."
 
-  # Step 5: Stop X-Road services — dynamic discovery, polling wait.
+  # Step 6: Stop X-Road services — dynamic discovery, polling wait.
   run_step "stop_xroad_services.sh" \
     "X-Road services stopped" \
     "Service stop failed. Some services may still be running. Check: systemctl status xroad-proxy xroad-signer"
-
-  # Step 6: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
-  run_step "run_migration_cli.sh" \
-    "Migration-CLI steps completed" \
-    "Migration failed. X-Road services are stopped. V7 repo is still active. Fix the issue and re-run the wizard to resume from checkpoint."
 
   # Step 7: Switch to V8 repository — backup V7 repo file, write V8 repo.
   run_step "switch_v8_repository.sh" \
@@ -179,10 +182,21 @@ main() {
     "Security Server packages upgraded to 8.0" \
     "Package upgrade failed. V8 repo is active but packages are still at V7. Restore V7 repo backup and investigate before retrying."
 
-  # Step 9: Start X-Road services, is-active polling.
+  # Step 9: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
+  run_step "run_migration_cli.sh" \
+    "Migration-CLI steps completed" \
+    "Migration failed. X-Road services are stopped. V7 repo is still active. Fix the issue and re-run the wizard to resume from checkpoint."
+
+
+  # Step 10: Start X-Road services, is-active polling.
   run_step "start_xroad_services.sh" \
     "X-Road services started" \
     "Service start failed after successful upgrade. Run: systemctl status <service> to diagnose."
+
+  # Step 11: Delete /etc/xroad/db.properties.bak (operator-confirmed; unattended deletes by default — set XROAD_DELETE_DB_PROPS_BAK=no to keep).
+  run_step "cleanup_db_properties_backup.sh" \
+    "db.properties backup cleanup completed" \
+    "Backup cleanup step failed. Upgrade succeeded; remove /etc/xroad/db.properties.bak manually if no longer needed."
 
   log_message "========================================"
   log_info "X-Road 8.0 upgrade completed successfully!"
