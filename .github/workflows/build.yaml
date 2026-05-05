@@ -31,6 +31,16 @@ concurrency:
 jobs:
   BuildAndPackageWithUnitTests:
     name: Build, test and package code
+    # Skip Build on dependabot/gradle/* branches for any event sent by
+    # Dependabot itself (open, recreate, rebase — all fire pull_request with
+    # sender.login == 'dependabot[bot]'). The dependabot-gradle-metadata.yaml
+    # workflow regenerates verification-metadata.xml and force-pushes as
+    # github-actions[bot]; that sync event has sender.login ==
+    # 'github-actions[bot]' and runs Build on the fixed commit.
+    # See development/docs/gradle-dependency-verification.md.
+    if: >
+      !(startsWith(github.head_ref, 'dependabot/gradle/')
+        && github.event.sender.login == 'dependabot[bot]')
     runs-on: ubuntu-22.04
     steps:
       - name: Start Measurement
