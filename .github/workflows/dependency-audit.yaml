@@ -26,7 +26,7 @@ jobs:
           ref: develop
 
       - name: Setup build environment
-        uses: nordic-institute/X-Road/.github/actions/setup-build-env@develop
+        uses: ./.github/actions/setup-build-env
         with:
           gradle-cache-read-only: false
           setup-docker-buildx: false
@@ -60,7 +60,7 @@ jobs:
           ref: ${{ matrix.branch }}
 
       - name: Setup build environment
-        uses: nordic-institute/X-Road/.github/actions/setup-build-env@develop
+        uses: ./.github/actions/setup-build-env
         with:
           gradle-cache-read-only: true
           setup-docker-buildx: false
