@@ -66,6 +66,8 @@ setup_repositories_ubuntu() {
 
   local repo_url="${XROAD_REPO_URL_OVERRIDE:-$XROAD_REPO_BASE_URL/$XROAD_REPO_MAIN $codename-current main}"
 
+  echo "deb [signed-by=${xroad_keyring_path}] ${repo_url}" > "$sources_file"
+
   log_message "  Main repository: $repo_url"
   log_info "Repository configuration added to $sources_file"
   log_message ""
@@ -82,6 +84,25 @@ setup_repositories_ubuntu() {
     log_die "Failed to configure OpenBao APT repository"
   fi
   log_message ""
+
+  # Add PostgreSQL PGDG repository for Jammy
+  if [[ "$codename" == "jammy" ]]; then
+    log_message "Adding PostgreSQL PGDG repository for Jammy"
+
+    local pgdg_keyring="/usr/share/keyrings/postgresql-keyring.asc"
+    local pgdg_sources="/etc/apt/sources.list.d/pgdg.list"
+
+    if curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o "$pgdg_keyring"; then
+      log_info "PostgreSQL GPG key added successfully"
+    else
+      log_die "Failed to download PostgreSQL GPG key"
+    fi
+
+    echo "deb [signed-by=${pgdg_keyring}] http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > "$pgdg_sources"
+
+    log_info "PostgreSQL PGDG repository added to $pgdg_sources"
+    log_message ""
+  fi
 
   # Update repository metadata
   log_message "Updating repository metadata"
