@@ -81,7 +81,7 @@ public interface ProxyProperties {
     @WithName("memory-usage-threshold")
     // referenced in application.yaml
     @SuppressWarnings("unused")
-    Optional<Long> memoryUsageThreshold();
+    Optional<Integer> memoryUsageThreshold();
 
     @WithName("message-sign-digest-name")
     @WithDefault("SHA-512")
