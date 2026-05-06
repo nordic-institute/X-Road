@@ -20,6 +20,8 @@ xroad:
       hwtoken:
         enabled: true
     ocsp-prioritization-strategy: ONLY_FREE
+    autologin:
+      enabled: true
   proxy:
     ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
     health-check-port: 5558
