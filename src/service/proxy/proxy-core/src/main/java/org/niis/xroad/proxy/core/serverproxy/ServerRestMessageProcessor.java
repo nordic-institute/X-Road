@@ -56,7 +56,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
-import org.niis.xroad.proxy.core.util.IdentifierValidator;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -94,6 +94,7 @@ public class ServerRestMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
+    private final IdentifierValidationService identifierValidationService;
 
     /**
      * Processes a server-side REST request.
@@ -200,9 +201,9 @@ public class ServerRestMessageProcessor {
             throw XrdRuntimeException.systemException(MISSING_SIGNATURE, "Request does not have signature");
         }
 
-        IdentifierValidator.checkIdentifier(rest.getClientId());
-        IdentifierValidator.checkIdentifier(rest.getServiceId());
-        IdentifierValidator.checkIdentifier(rest.getTargetSecurityServer());
+        identifierValidationService.checkIdentifier(rest.getClientId());
+        identifierValidationService.checkIdentifier(rest.getServiceId());
+        identifierValidationService.checkIdentifier(rest.getTargetSecurityServer());
     }
 
     private HandleResult handleRequest(VerifyingProxyMessage requestMessage, ServiceId requestServiceId,

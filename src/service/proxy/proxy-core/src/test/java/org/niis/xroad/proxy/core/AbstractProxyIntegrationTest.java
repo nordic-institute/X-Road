@@ -80,6 +80,7 @@ import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
@@ -177,6 +178,8 @@ public abstract class AbstractProxyIntegrationTest {
         var clientVerificationServiceClient = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
+        var identifierValidationService = new IdentifierValidationService(proxyProperties);
+
         var clientRequestPreparationServiceClient = new ClientRequestPreparationService(
                 serviceAddressResolverClient, proxyProperties, opMonitoringDataHelperClient);
         clientRequestPreparationServiceClient.init();
@@ -184,7 +187,7 @@ public abstract class AbstractProxyIntegrationTest {
                 messageSigningServiceClient, httpSenderProviderClient,
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient);
+                OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient, identifierValidationService);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),
@@ -216,15 +219,17 @@ public abstract class AbstractProxyIntegrationTest {
                 httpSenderProviderServer, httpClientCreator.getHttpClient());
         serviceHandlerLoader.init();
 
+        var identifierValidationService = new IdentifierValidationService(proxyProperties);
+
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
                 serverSoapMessageProcessor, proxyProperties.server(),

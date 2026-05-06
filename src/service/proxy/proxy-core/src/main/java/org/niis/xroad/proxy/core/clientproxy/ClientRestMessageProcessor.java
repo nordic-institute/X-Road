@@ -65,7 +65,7 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
-import org.niis.xroad.proxy.core.util.IdentifierValidator;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
 import org.niis.xroad.proxy.core.util.ProxyRequestContext;
@@ -109,6 +109,7 @@ public class ClientRestMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
+    private final IdentifierValidationService identifierValidationService;
 
     /**
      * Processes a REST message exchange described by the given request context.
@@ -164,9 +165,9 @@ public class ClientRestMessageProcessor {
     }
 
     private void checkRequestIdentifiers(RestRequest restRequest) {
-        IdentifierValidator.checkIdentifier(restRequest.getClientId());
-        IdentifierValidator.checkIdentifier(restRequest.getServiceId());
-        IdentifierValidator.checkIdentifier(restRequest.getTargetSecurityServer());
+        identifierValidationService.checkIdentifier(restRequest.getClientId());
+        identifierValidationService.checkIdentifier(restRequest.getServiceId());
+        identifierValidationService.checkIdentifier(restRequest.getTargetSecurityServer());
     }
 
     private ProxyMessage processRequest(RequestWrapper jRequest, OpMonitoringData opMonitoringData,

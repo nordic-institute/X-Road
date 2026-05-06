@@ -29,6 +29,12 @@
 @use "text-styles";
 @use "vuetify-overrides";
 
+body.e2e-testing-mode {
+  *, ::before, ::after {
+    transition: none !important;
+  }
+}
+
 body {
   color: rgb(var(--v-theme-on-surface));
 }

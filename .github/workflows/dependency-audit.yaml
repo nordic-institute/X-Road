@@ -53,7 +53,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: ${{ github.event_name == 'schedule' && fromJSON('["develop","release-7.6","release-7.7","release-7.8"]') || fromJSON(format('["{0}"]', inputs.branch || 'develop')) }}
+        #later on array can be extended to include release branches: release-8.0 and etc
+        branch: ${{ github.event_name == 'schedule' && fromJSON('["develop"]') || fromJSON(format('["{0}"]', inputs.branch || 'develop')) }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:

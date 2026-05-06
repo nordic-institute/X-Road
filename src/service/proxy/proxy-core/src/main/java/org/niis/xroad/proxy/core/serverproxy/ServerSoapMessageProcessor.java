@@ -56,7 +56,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
-import org.niis.xroad.proxy.core.util.IdentifierValidator;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ServerSoapRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -102,6 +102,7 @@ public class ServerSoapMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
+    private final IdentifierValidationService identifierValidationService;
 
     /**
      * Processes a server-side SOAP request.
@@ -202,9 +203,9 @@ public class ServerSoapMessageProcessor {
         if (requestMessage.getSignature() == null) {
             throw XrdRuntimeException.systemException(MISSING_SIGNATURE, "Request does not have signature");
         }
-        IdentifierValidator.checkIdentifier(requestMessage.getSoap().getClient());
-        IdentifierValidator.checkIdentifier(requestMessage.getSoap().getService());
-        IdentifierValidator.checkIdentifier(requestMessage.getSoap().getSecurityServer());
+        identifierValidationService.checkIdentifier(requestMessage.getSoap().getClient());
+        identifierValidationService.checkIdentifier(requestMessage.getSoap().getService());
+        identifierValidationService.checkIdentifier(requestMessage.getSoap().getSecurityServer());
     }
 
     private ServiceHandlerResult prepareHandler(ProxyMessage requestMessage, RequestWrapper jRequest,

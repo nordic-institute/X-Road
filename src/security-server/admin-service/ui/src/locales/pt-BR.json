@@ -1069,6 +1069,7 @@
             "server-port": "Porta TCP de destino para consultas de saída no servidor de segurança do cliente de serviço.",
             "xroad-tls-ciphers": "Cifras TLS (lista separada por vírgulas em ordem de preferência) aceitas nas requisições entre servidores de segurança e entre o daemon de monitoramento operacional e o cliente. (desde a versão 6.20)",
             "batch-signing-enabled": "Quando habilitado, múltiplas mensagens são assinadas em uma única operação em lote.",
+            "strict-identifier-checks": "Configura a validação de entrada de identificadores (código do membro, código do subsistema, etc). Valores: true - os identificadores devem corresponder ao padrão ^[a-zA-Z0-9'()+,-.=?]* e valores que não correspondem são rejeitados. false - os identificadores são validados contra o padrão, valores que não correspondem não são rejeitados, mas um aviso é registrado.",
             "client-proxy": {
               "connector-host": "Endereço IP no qual o servidor de segurança do cliente de serviço escuta conexões de aplicações clientes. O valor 0.0.0.0 permite escutar em todas as interfaces IPv4. O valor 127.0.0.1 permite escutar apenas no localhost. Atenção: Alterar este valor pode tornar seu Servidor de Segurança acessível externamente; portanto, regras de firewall devem ser implementadas para limitar o acesso a hosts confiáveis.",
               "client-http-port": "Porta TCP na qual o servidor de segurança do cliente de serviço escuta requisições HTTP de aplicações clientes.",

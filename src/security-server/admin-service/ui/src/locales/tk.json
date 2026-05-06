@@ -990,6 +990,7 @@
             "server-port": "Hyzmat müşderisiniň howpsuzlyk serwerinde çykýan soraglar üçin niýetlenen TCP porty.",
             "xroad-tls-ciphers": "Howpsuzlyk serwerleri arasynda we operasion gözegçilik demony bilen müşderi arasynda soraglarda kabul edilýän TLS şifrlemesi (üstünlik tertibinde ütirli bölünen sanaw). (6.20 wersiýasyndan bäri)",
             "batch-signing-enabled": "Işe girizilende, birnäçe habar bir toplu amalda gol çekilýär.",
+            "strict-identifier-checks": "Giriş identifikatorlarynyň barlagyny sazlaýar (agza kody, subsistema kody we ş.m.). Gymmatlyklar: true - identifikatorlar ^[a-zA-Z0-9'()+,-.=?]* nusgasyna laýyk gelmeli we laýyk gelmeýän gymmatlyklar ret edilýär. false - identifikatorlar nusga boýunça barlanýar, laýyk gelmeýän gymmatlyklar ret edilmeýär, ýöne duýduryş ýazylýar.",
             "client-proxy": {
               "connector-host": "Hyzmat müşderisiniň howpsuzlyk serweriniň müşderi programmalaryndan birikmeleri diňleýän IP salgysy. 0.0.0.0 bahasy ähli IPv4 araýüzlerde diňlemäge rugsat berýär. 127.0.0.1 bahasy diňe lokal hostredan diňlemäge rugsat berýär. ÜNSLI BOLUŇ! Bu bahany üýtgetmek Howpsuzlyk Serweriňizi daşardan girmäge mümkin edip biler, şonuň üçin ilki ygtybarly hosta girmegi çäklendirmek üçin brander düzgünleri amala aşyrylmalydyr.",
               "client-http-port": "Hyzmat müşderisiniň howpsuzlyk serweriniň müşderi programmalardan HTTP soraglary diňleýän TCP porty.",
