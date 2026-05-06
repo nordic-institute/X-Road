@@ -196,6 +196,11 @@ Update package repository metadata:
 sudo apt update
 ```
 
+On Ubuntu 22.04 (Jammy), install PostgreSQL 15 packages explicitly:
+```bash
+sudo apt install -y postgresql-15 postgresql-client-15 postgresql-contrib-15
+```
+
 Issue the following command to install the Central Server packages:
 ```bash
 sudo apt install xroad-centralserver

@@ -112,6 +112,22 @@ setup_repositories_ubuntu() {
   else
     log_die "Failed to update repository metadata"
   fi
+
+  # Install PostgreSQL 15 explicitly on Jammy
+  if [[ "$codename" == "jammy" ]]; then
+    log_message "Installing PostgreSQL 15 packages"
+
+    if apt-get install -y \
+        postgresql-15 \
+        postgresql-client-15 \
+        postgresql-contrib-15; then
+      log_info "PostgreSQL 15 packages installed successfully"
+    else
+      log_die "Failed to install PostgreSQL 15 packages"
+    fi
+
+    log_message ""
+  fi
 }
 
 # Setup repositories for RHEL

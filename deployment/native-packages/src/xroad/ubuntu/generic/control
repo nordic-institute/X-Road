@@ -133,13 +133,13 @@ Description: X-Road proxy UI REST API
 Package: xroad-database-local
 Architecture: all
 Conflicts: xroad-database-remote
-Depends: xroad-base (=${binary:Version}), postgresql-15 | postgresql-16, postgresql-contrib-15 | postgresql-contrib-16
+Depends: xroad-base (=${binary:Version}), postgresql, postgresql-contrib
 Description: Meta-package for X-Road local database dependencies
 
 Package: xroad-database-remote
 Architecture: all
 Conflicts: xroad-database-local
-Depends: xroad-base (=${binary:Version}), postgresql-client-15 | postgresql-client-16
+Depends: xroad-base (=${binary:Version}), postgresql-client
 Description: Meta-package for X-Road remote database dependencies
 
 Package: xroad-center-registration-service
