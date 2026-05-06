@@ -5,6 +5,8 @@ XROAD_MIGRATION_CLI_URL=https://artifactory.niis.org/.../xroad-migration-cli.jar
 XROAD_REPO_BASE_URL=https://artifactory.niis.org
 XROAD_REPO_MAIN=
 XROAD_REPO_GPG_KEY_URL=
+# Optional: override the full repo URL
+XROAD_REPO_URL_OVERRIDE=
 OPENBAO_MIRROR=
 OPENBAO_MIRROR_USER=
 XROAD_SS_PACKAGE=xroad-securityserver
