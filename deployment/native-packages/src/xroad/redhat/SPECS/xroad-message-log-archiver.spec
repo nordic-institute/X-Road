@@ -32,7 +32,9 @@ cp -a * %{buildroot}
 mkdir -p %{buildroot}/usr/share/xroad/jlib
 mkdir -p %{buildroot}/usr/share/xroad/jlib/message-log-archiver
 mkdir -p %{buildroot}/usr/share/xroad/bin
+mkdir -p %{buildroot}/usr/share/xroad/scripts
 mkdir -p %{buildroot}/usr/share/doc/%{name}
+mkdir -p %{buildroot}/usr/share/doc/xroad/archive-server
 
 cp -p -r %{srcdir}/../../../../src/service/message-log-archiver/message-log-archiver-cli/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/message-log-archiver
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
@@ -59,6 +61,8 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
+/usr/share/xroad/scripts/archive-http-transporter.sh
+/usr/share/doc/xroad/archive-server/demo-upload.pl
 
 %pre -p /bin/bash
 %upgrade_check

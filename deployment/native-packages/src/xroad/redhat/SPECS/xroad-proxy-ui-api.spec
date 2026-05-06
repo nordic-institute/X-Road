@@ -36,7 +36,6 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib
 mkdir -p %{buildroot}/usr/share/xroad/scripts
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/conf.d
-mkdir -p %{buildroot}/usr/share/doc/xroad/archive-server
 
 cp -p %{_sourcedir}/proxy-ui-api/xroad-proxy-ui-api.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../../src/security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/
@@ -63,8 +62,6 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
-/usr/share/xroad/scripts/archive-http-transporter.sh
-/usr/share/doc/xroad/archive-server/demo-upload.pl
 
 %pre -p /bin/bash
 %upgrade_check
