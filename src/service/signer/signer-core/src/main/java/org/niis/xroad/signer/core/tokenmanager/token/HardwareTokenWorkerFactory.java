@@ -150,14 +150,6 @@ public class HardwareTokenWorkerFactory {
                 tokenManager.disableToken(tokenId);
 
                 log.error("Error initializing token ({})", getWorkerId(), e);
-
-                return;
-            }
-
-            try {
-                login();
-            } catch (Exception e) {
-                log.error("Failed to log in to token '{}' at initialization", getWorkerId(), e);
             }
         }
 

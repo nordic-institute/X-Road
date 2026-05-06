@@ -152,7 +152,7 @@ public class SoftwareTokenWorkerFactory {
                 log.debug("Searching for new software keys");
                 tokenRegistry.refresh();
 
-                if (isPinStored()) {
+                if (tokenLookup.isTokenActive(tokenId)) {
                     updateKeys();
                 }
             } catch (Exception e) {
@@ -271,28 +271,11 @@ public class SoftwareTokenWorkerFactory {
             return certPath.getEncoded("PEM");
         }
 
-        private boolean isPinStored() {
-            return tokenPinStoreProvider.getPin(tokenId).isPresent();
-        }
-
         private void updateStatus() {
             boolean isInitialized = pinManager.tokenHasPin(tokenId);
 
             if (!isInitialized) {
                 tokenManager.setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
-            }
-
-            boolean isActive = isInitialized && isPinStored();
-            tokenManager.setTokenActive(tokenId, isActive);
-
-            if (isActive) {
-                try {
-                    activateToken();
-                } catch (Exception e) {
-                    tokenManager.setTokenActive(tokenId, false);
-
-                    log.trace("Failed to activate token", e);
-                }
             }
         }
 

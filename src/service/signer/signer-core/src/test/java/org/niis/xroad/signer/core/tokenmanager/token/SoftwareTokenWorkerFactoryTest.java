@@ -87,9 +87,11 @@ class SoftwareTokenWorkerFactoryTest {
     private final SignatureGenerator signatureGenerator = new SignatureGenerator(keyManagers);
     private final TokenPinStoreProvider tokenPinStoreProvider = mock(TokenPinStoreProvider.class);
 
-    private final SoftwareTokenWorkerFactory factory = new SoftwareTokenWorkerFactory(signerProperties, tokenManager, keyManager,
-            certManager, tokenLookup, pinManager, tokenRegistry, keyManagers, signatureGenerator, tokenPinStoreProvider);
+    private final SoftwareTokenWorkerFactory factory = new SoftwareTokenWorkerFactory(signerProperties,
+            tokenManager, keyManager, certManager, tokenLookup, pinManager, tokenRegistry, keyManagers, signatureGenerator,
+            tokenPinStoreProvider);
 
+    private static final char[] TOKEN_PIN = "Secret1234".toCharArray();
     private static final String TOKEN_ID = "token-id";
     private static final String KEY_ID = "key-id";
     private final TokenDefinition tokenDefinition = new SoftwareTokenDefinition(Map.of(KeyAlgorithm.RSA, CKM_RSA_PKCS));
@@ -104,44 +106,76 @@ class SoftwareTokenWorkerFactoryTest {
     @Test
     void testRefresh() throws Exception {
         when(pinManager.tokenHasPin(TOKEN_ID)).thenReturn(true);
-        when(pinManager.verifyTokenPin(TOKEN_ID, "Secret1234".toCharArray())).thenReturn(true);
+        when(pinManager.verifyTokenPin(TOKEN_ID, TOKEN_PIN)).thenReturn(true);
         var keyInfoMock = mock(KeyInfo.class);
         when(keyInfoMock.getId()).thenReturn(KEY_ID);
         when(tokenLookup.listKeys(TOKEN_ID)).thenReturn(List.of(keyInfoMock));
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.of(
                 IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
-        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(TOKEN_PIN));
+        when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(true);
         tokenWorker.refresh();
 
-        verify(tokenManager, times(2)).setTokenActive(TOKEN_ID, true);
-        verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.OK);
         verify(tokenRegistry).refresh();
         verify(keyManager).setKeyAvailable(KEY_ID, true);
     }
 
     @Test
-    void testRefreshNoPinHashInToken() {
+    void testRefreshTokenNotInitialized() {
         when(pinManager.tokenHasPin(TOKEN_ID)).thenReturn(false);
 
         tokenWorker.refresh();
 
         verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.NOT_INITIALIZED);
-        verify(tokenManager).setTokenActive(TOKEN_ID, false);
         verify(tokenRegistry).refresh();
         verifyNoInteractions(keyManager);
     }
 
     @Test
-    void testRefreshNoPinInTokenPinStoreProvider() {
+    void testRefreshTokenInitializedButNotActive() {
         when(pinManager.tokenHasPin(TOKEN_ID)).thenReturn(true);
+        when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(false);
 
-        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(new char[0]));
         tokenWorker.refresh();
 
-        verify(tokenManager).setTokenActive(TOKEN_ID, false);
         verify(tokenRegistry).refresh();
         verifyNoInteractions(keyManager);
+    }
+
+    @Test
+    void testRefreshKeyLoadingFails() {
+        when(pinManager.tokenHasPin(TOKEN_ID)).thenReturn(true);
+        when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(true);
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(TOKEN_PIN));
+        when(pinManager.verifyTokenPin(TOKEN_ID, TOKEN_PIN)).thenReturn(true);
+        var keyInfoMock = mock(KeyInfo.class);
+        when(keyInfoMock.getId()).thenReturn(KEY_ID);
+        when(tokenLookup.listKeys(TOKEN_ID)).thenReturn(List.of(keyInfoMock));
+        when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.of(new byte[]{0, 1, 2}));
+
+        tokenWorker.refresh();
+
+        verify(keyManager).setKeyAvailable(KEY_ID, true);
+        verify(keyManager).setKeyAvailable(KEY_ID, false);
+    }
+
+    @Test
+    void testRefreshKeyAlreadyCached() throws Exception {
+        when(pinManager.tokenHasPin(TOKEN_ID)).thenReturn(true);
+        when(tokenLookup.isTokenActive(TOKEN_ID)).thenReturn(true);
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(TOKEN_PIN));
+        when(pinManager.verifyTokenPin(TOKEN_ID, TOKEN_PIN)).thenReturn(true);
+        var keyInfoMock = mock(KeyInfo.class);
+        when(keyInfoMock.getId()).thenReturn(KEY_ID);
+        when(tokenLookup.listKeys(TOKEN_ID)).thenReturn(List.of(keyInfoMock));
+        when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.of(
+                IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
+
+        tokenWorker.refresh();
+        tokenWorker.refresh();
+
+        verify(tokenLookup, times(1)).getSoftwareTokenKeyStore(KEY_ID);
     }
 
     @Test
@@ -260,7 +294,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(Optional.of(
                 IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
-        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(TOKEN_PIN));
 
         var signature = tokenWorker.sign(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, new byte[]{1, 2, 3});
         assertNotNull(signature);
@@ -310,7 +344,7 @@ class SoftwareTokenWorkerFactoryTest {
         when(tokenLookup.getSoftwareTokenKeyStore(KEY_ID)).thenReturn(
                 Optional.of(IOUtils.toByteArray(getClass().getResourceAsStream("/keystore.p12"))));
 
-        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of("Secret1234".toCharArray()));
+        when(tokenPinStoreProvider.getPin(TOKEN_ID)).thenReturn(Optional.of(TOKEN_PIN));
 
         var result = tokenWorker.signCertificate(KEY_ID, SignAlgorithm.SHA256_WITH_RSA, "CN=Test",
                 TestCertUtil.getCaCert().getPublicKey());
