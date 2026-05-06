@@ -181,8 +181,7 @@ curl -fsSL https://openbao.org/assets/openbao-gpg-pub-20240618.asc | sudo tee /u
 echo "deb [signed-by=/usr/share/keyrings/openbao-keyring.asc] https://pkgs.openbao.org/deb/ stable main" | sudo tee /etc/apt/sources.list.d/openbao.list > /dev/null
 ```
 
-Ubuntu 22.04 (Jammy) includes PostgreSQL 14 in its default repositories.
-Because PostgreSQL 15 or newer is not available by default, the official PostgreSQL (PGDG) repository must be added before installing X-Road packages.
+Ubuntu 22.04 (Jammy) includes PostgreSQL 14 in its default repositories. Because PostgreSQL 15 or newer is not available by default, the official PostgreSQL (PGDG) repository must be added before installing X-Road packages.
 Add the PostgreSQL repository and import its signing key:
 ```bash
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/keyrings/postgresql-keyring.asc > /dev/null
