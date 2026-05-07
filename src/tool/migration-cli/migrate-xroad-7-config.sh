@@ -1,9 +1,10 @@
 #!/bin/bash
 
-DEFAULT_DB_DB_PROPERTIES_FILE=$(crudini --get proxy database-properties	/etc/xroad/conf.d/local.ini || echo "/etc/xroad/db.properties")
+DEFAULT_DB_DB_PROPERTIES_FILE=$(crudini --get /etc/xroad/conf.d/local.ini proxy database-properties 2>/dev/null || echo "/etc/xroad/db.properties")
 DB_PROPERTIES_FILE="${1:-$DEFAULT_DB_DB_PROPERTIES_FILE}"
 
-MIGRATION_CLI_JAR_PATH=$XROAD_HOME/src/tool/migration-cli/build/libs/migration-cli-1.0.jar
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MIGRATION_CLI_JAR_PATH="${MIGRATION_CLI_JAR_PATH:-$SCRIPT_DIR/build/libs/migration-cli-1.0.jar}"
 
 SSL_PROPERTIES_FILE=$(crudini --get /etc/xroad/conf.d/local.ini proxy-ui-api ssl-properties 2>/dev/null || echo "/etc/xroad/ssl.properties")
 CONF_ANCHOR_FILE=$(crudini --get /etc/xroad/conf.d/local.ini proxy configuration-anchor-file 2>/dev/null || echo "/etc/xroad/configuration-anchor.xml")
