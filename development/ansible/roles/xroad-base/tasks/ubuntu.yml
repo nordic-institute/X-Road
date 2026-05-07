@@ -27,18 +27,6 @@
   when:
     - ansible_facts['distribution_release'] == "jammy"
 
-- name: Install PostgreSQL 15 on Jammy
-  apt:
-    name:
-      - postgresql-15
-      - postgresql-client-15
-      - postgresql-contrib-15
-    state: present
-    update_cache: true
-    install_recommends: false
-  when:
-    - ansible_facts['distribution_release'] == "jammy"
-
 - name: Disable automatic upgrades
   copy:
     src: 99override-auto
