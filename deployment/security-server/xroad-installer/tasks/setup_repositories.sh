@@ -98,7 +98,7 @@ setup_repositories_ubuntu() {
       log_die "Failed to download PostgreSQL GPG key"
     fi
 
-    echo "deb [signed-by=${pgdg_keyring}] http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > "$pgdg_sources"
+    echo "deb [signed-by=${pgdg_keyring}] https://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > "$pgdg_sources"
 
     log_info "PostgreSQL PGDG repository added to $pgdg_sources"
     log_message ""

@@ -119,7 +119,7 @@ setup_database() {
   local pg_version_num=""
 
   for i in {1..30}; do
-    pg_version_num=$(su - postgres -c "psql -tA -c 'SHOW server_version_num'" 2>/dev/null | tr -d '[:space:]')
+    pg_version_num=$(PGCONNECT_TIMEOUT=5 psql_master -tA -c "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]')
 
     if [[ "$pg_version_num" =~ ^[0-9]+$ ]]; then
       break

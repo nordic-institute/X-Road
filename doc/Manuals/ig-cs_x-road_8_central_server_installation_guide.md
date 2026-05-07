@@ -185,7 +185,7 @@ Ubuntu 22.04 (Jammy) includes PostgreSQL 14 in its default repositories. Because
 Add the PostgreSQL repository and import its signing key:
 ```bash
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/keyrings/postgresql-keyring.asc > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.asc] http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.asc] https://apt.postgresql.org/pub/repos/apt jammy-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
 ```
 
 ### 2.6 Package Installation
