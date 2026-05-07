@@ -30,7 +30,7 @@ package org.niis.xroad.proxy.proto;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -149,9 +149,9 @@ public class ProxyRpcClient extends AbstractRpcClient {
         return diagnosticsStatus;
     }
 
-    public ProxyMemory getProxyMemoryStatus() {
+    public HeapMemoryStatus getProxyMemoryStatus() {
         var response = exec(() -> adminServiceBlockingStub.getProxyMemoryStatus(Empty.getDefaultInstance()));
-        return new ProxyMemory(response.getTotalMemory(),
+        return new HeapMemoryStatus(response.getTotalMemory(),
                 response.getFreeMemory(),
                 response.getMaxMemory(),
                 response.getUsedMemory(),
