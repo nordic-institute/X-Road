@@ -14,6 +14,7 @@
     update_cache: true
     install_recommends: false
     state: present
+  when: not cache_marker.stat.exists
 
 - name: Get latest example-restapi version
   shell: |
@@ -21,6 +22,8 @@
     jq -r '.children[] | select(.uri | match("/[0-9]+.[0-9]+.[0-9]+")) | .uri' | \
     sort -V | tail -n1 | tr -d '/'
   register: latest_version
+  when: not cache_marker.stat.exists
+  changed_when: false
 
 - name: Get latest example-restapi artifact URL
   shell: |
@@ -28,22 +31,26 @@
     jq -r '.children[] | select(.uri | endswith("-boot.jar")) | .uri' | \
     sort -V | tail -n1 | tr -d '/'
   register: artifact_filename
+  when: not cache_marker.stat.exists
+  changed_when: false
 
 - name: Download example-restapi
   get_url:
     url: "https://artifactory.niis.org/xroad-maven-releases/org/niis/example-restapi/{{ latest_version.stdout }}/{{ artifact_filename.stdout }}"
     dest: /opt/example-restapi.jar
     mode: "0644"
+  when: not cache_marker.stat.exists
 
 - name: Create systemd service
   template:
     src: templates/example-restapi.service.j2
     dest: /etc/systemd/system/example-restapi.service
     mode: "0644"
+  when: not cache_marker.stat.exists
 
 - name: Start and enable example-restapi service
   systemd:
     name: example-restapi
     state: started
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ not cache_marker.stat.exists }}"

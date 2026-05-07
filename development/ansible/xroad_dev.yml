@@ -46,6 +46,16 @@
   roles:
     - init-dev-configuration
 
+- name: Install host-level monitoring (Netdata)
+  hosts: lxd_servers
+  become: true
+  strategy: free
+  roles:
+    - role: netdata
+      when: enable_netdata | default(true) | bool
+  tags:
+    - netdata
+
 - name: Configure local repositories
   hosts: ss_servers, cs_servers, cp_servers
   strategy: free
