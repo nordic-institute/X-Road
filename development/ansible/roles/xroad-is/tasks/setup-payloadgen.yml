@@ -6,19 +6,22 @@
         path: /opt/payloadgen
         state: directory
         mode: "0755"
+      when: not cache_marker.stat.exists
     - name: Download example-adapter
       get_url:
         url: "https://artifactory.niis.org/artifactory/xroad-generic-utils/payloadgen-{{ ansible_facts['architecture'] }}"
         dest: /opt/payloadgen/payloadgen
         mode: "0744"
+      when: not cache_marker.stat.exists
     - name: Create payloadgen systemd service
       template:
         src: templates/payloadgen.service.j2
         dest: /etc/systemd/system/payloadgen.service
         mode: "0644"
+      when: not cache_marker.stat.exists
     - name: Start and enable payloadgen service
       systemd:
         name: payloadgen
         state: started
         enabled: true
-        daemon_reload: true
+        daemon_reload: "{{ not cache_marker.stat.exists }}"

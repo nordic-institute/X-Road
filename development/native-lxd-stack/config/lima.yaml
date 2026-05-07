@@ -21,12 +21,8 @@ containerd:
   user: false
 
 portForwards:
-  - guestIP: "0.0.0.0"
-    guestPortRange: [3000, 3999]
-    hostIP: "0.0.0.0"
-    hostPortRange: [3000, 3999]
-  - guestPort: 28443
-    hostPort: 28443
+  - guestPortRange: [1, 65535]
+    ignore: true
 
 provision:
   - mode: system

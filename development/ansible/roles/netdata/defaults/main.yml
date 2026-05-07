@@ -1,0 +1,14 @@
+---
+# Whether to install and configure Netdata on the LXD host.
+# Enabled by default — host-level monitoring of the dev stack.
+# Disable for a run by exporting ENABLE_NETDATA=false (see start-env.sh)
+# or pass -e enable_netdata=false to ansible-playbook directly.
+enable_netdata: true
+
+# Port the Netdata web UI / API binds to. 3999 is intentionally inside the
+# Lima portForwards range (3000-3999) so the dashboard is reachable from the
+# macOS host without editing lima.yaml.
+netdata_port: 3999
+
+# Path to the Netdata main config file (native deb package).
+netdata_config_path: /etc/netdata/netdata.conf

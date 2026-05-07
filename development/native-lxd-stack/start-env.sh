@@ -7,7 +7,11 @@ SKIP_COMPILE=false
 SKIP_TESTS=false
 SKIP_BUILD=false
 SKIP_INITIALIZE=false
+BUST_CACHE=false
 INVENTORY_PATH="config/ansible_hosts.txt"
+
+CACHEABLE_ROLES=(xroad-is xroad-ca)
+UBUNTU_RELEASEVER="${UBUNTU_RELEASEVER:-noble}"
 
 function parse_arguments() {
   while [[ "$#" -gt 0 ]]; do
@@ -17,6 +21,7 @@ function parse_arguments() {
     --skip-tests) SKIP_TESTS=true ;;
     --skip-build) SKIP_BUILD=true ;;
     --skip-init) SKIP_INITIALIZE=true ;;
+    --bust-cache) BUST_CACHE=true ;;
     --custom-inventory=*)
       INVENTORY_PATH="${1#*=}"
       if [ ! -f "$INVENTORY_PATH" ]; then
@@ -45,6 +50,7 @@ function parse_arguments() {
   log_kv "Skip tests" "$SKIP_TESTS" 2 5
   log_kv "Skip build" "$SKIP_BUILD" 2 5
   log_kv "Skip Initialize with Hurl" "$SKIP_INITIALIZE" 2 5
+  log_kv "Bust cached images" "$BUST_CACHE" 2 5
   log_kv "Using inventory" "$INVENTORY_PATH" 2 5
 }
 
@@ -56,6 +62,7 @@ usage() {
   echo " --skip-build               Skip both compilation and package building"
   echo " --recreate                Recreate containers"
   echo " --initialize              Initialize with Hurl"
+  echo " --bust-cache              Delete cached LXD images and refill"
   echo " --custom-inventory=PATH   Use custom inventory file instead of default"
   echo " -h, --help                This help text."
   exit 1
@@ -97,6 +104,95 @@ function handleRecreate() {
   fi
 }
 
+function handleBustCache() {
+  if [ "$BUST_CACHE" = true ]; then
+    ./scripts/delete-env.sh
+    for role in "${CACHEABLE_ROLES[@]}"; do
+      local alias="${role}-cached"
+      if lxc image info "$alias" >/dev/null 2>&1; then
+        log_info "Deleting cached image $alias"
+        lxc image delete "$alias" || true
+      fi
+    done
+  fi
+}
+
+function listCachedImages() {
+  log_info "Cached LXD images:"
+  local upstream_fp
+  upstream_fp=$(lxc image info "ubuntu:${UBUNTU_RELEASEVER}" --format=json 2>/dev/null \
+    | jq -r '.fingerprint // ""')
+  for role in "${CACHEABLE_ROLES[@]}"; do
+    local alias="${role}-cached"
+    local info
+    info=$(lxc image info "$alias" --format=json 2>/dev/null || echo "")
+    if [ -z "$info" ]; then
+      log_kv "  $alias" "(missing — will fill on launch)" 2 3
+      continue
+    fi
+    local fp uploaded stamped match
+    fp=$(echo "$info" | jq -r '.fingerprint' | cut -c1-12)
+    uploaded=$(echo "$info" | jq -r '.uploaded_at // "unknown"')
+    stamped=$(echo "$info" | jq -r '.properties.ubuntu_base // ""')
+    if [ -z "$upstream_fp" ]; then
+      match="upstream unreachable"
+    elif [ -z "$stamped" ]; then
+      match="ubuntu_base not stamped"
+    elif [ "$stamped" = "$upstream_fp" ]; then
+      match="ubuntu fresh"
+    else
+      match="ubuntu STALE — will rebuild"
+    fi
+    log_kv "  $alias" "$fp ($uploaded) — $match" 2 5
+  done
+}
+
+function ensureCacheFilled() {
+  local needs_fill=()
+  local upstream_fp
+  upstream_fp=$(lxc image info "ubuntu:${UBUNTU_RELEASEVER}" --format=json 2>/dev/null \
+    | jq -r '.fingerprint // ""')
+  for role in "${CACHEABLE_ROLES[@]}"; do
+    local alias="${role}-cached"
+    if ! lxc image info "$alias" >/dev/null 2>&1; then
+      needs_fill+=("$role")
+      continue
+    fi
+    if [ -n "$upstream_fp" ]; then
+      local stamped
+      stamped=$(lxc image info "$alias" --format=json 2>/dev/null \
+        | jq -r '.properties.ubuntu_base // ""')
+      if [ "$stamped" != "$upstream_fp" ]; then
+        log_info "Cached image $alias is stale (Ubuntu base drifted) — rebuilding"
+        lxc image delete "$alias" || true
+        needs_fill+=("$role")
+      fi
+    fi
+  done
+
+  if [ ${#needs_fill[@]} -eq 0 ]; then
+    log_info "All cached images present and fresh"
+    return
+  fi
+
+  local targets
+  targets=$(IFS=,; echo "${needs_fill[*]}")
+  log_info "Filling cache for: ${needs_fill[*]}"
+
+  local extra_vars=("-e" "onMacOs=$onMacOs" "-e" "cache_targets=$targets")
+  if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [[ -n "$XROAD_MIRROR_TOKEN" ]]; then
+    extra_vars+=("-e" "package_mirror_url=$XROAD_MIRROR_UBUNTU_URL")
+    extra_vars+=("-e" "package_mirror_user=$XROAD_MIRROR_USERNAME")
+    extra_vars+=("-e" "package_mirror_token=$XROAD_MIRROR_TOKEN")
+  fi
+
+  ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
+    ../../development/ansible/xroad_cache_images.yml \
+    --forks 2 \
+    "${extra_vars[@]}" \
+    -vv
+}
+
 function handleAnsible() {
   # Use XROAD_MIRROR_* env vars directly (no resolve script needed)
   local extra_vars=("-e" "onMacOs=$onMacOs")
@@ -106,12 +202,26 @@ function handleAnsible() {
     extra_vars+=("-e" "package_mirror_token=$XROAD_MIRROR_TOKEN")
   fi
 
+  # Netdata host-level monitoring on the LXD host: ON by default.
+  # Set ENABLE_NETDATA=false (or 0/no) to skip the netdata role for a run.
+  if [[ "${ENABLE_NETDATA:-true}" =~ ^(false|0|no|NO|FALSE)$ ]]; then
+    extra_vars+=("-e" "enable_netdata=false")
+    log_info "Netdata host monitoring disabled for this run"
+  else
+    log_info "Netdata host monitoring will be installed (port 3999)"
+  fi
+
   ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
     ../../development/ansible/xroad_dev.yml \
-    --forks 10 \
+    --forks 5 \
     --skip-tags compile,build-packages \
     "${extra_vars[@]}" \
     -vv
+}
+
+function applyMacNet() {
+  [[ $(uname) != "Darwin" ]] && return 0
+  ./scripts/setup-mac-net.sh apply
 }
 
 function handleBuild() {
@@ -145,8 +255,12 @@ function main() {
     handlePrepare
   fi
   handleRecreate
+  handleBustCache
   handleBuild
+  listCachedImages
+  ensureCacheFilled
   handleAnsible
+  applyMacNet
   handleInitialize
 }
 
