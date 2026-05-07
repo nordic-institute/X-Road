@@ -76,9 +76,24 @@ else
 fi
 
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
-if [ -f $CLIENT_TOKEN_FILE ]; then
-  echo "X-Road client token already exists"
-else
+
+regenerate_client_token=true
+if [ -f "$CLIENT_TOKEN_FILE" ]; then
+  EXISTING_TOKEN=$(cat "$CLIENT_TOKEN_FILE")
+  http_status=$(curl -s -k -o /dev/null -w "%{http_code}" \
+    --connect-timeout 5 --retry 3 --retry-delay 2 \
+    -H "X-Vault-Token: $EXISTING_TOKEN" \
+    "$BAO_ADDR/v1/auth/token/lookup-self")
+  if [ "$http_status" = "200" ]; then
+    echo "X-Road client token is valid"
+    regenerate_client_token=false
+  else
+    echo "Existing X-Road client token is invalid (HTTP $http_status), regenerating"
+    rm -f "$CLIENT_TOKEN_FILE"
+  fi
+fi
+
+if [ "$regenerate_client_token" = "true" ]; then
   echo "Generating X-Road client token.."
   # Use custom token ID if provided via environment variable (useful for dev/test)
   XROAD_SECRET_STORE_TOKEN_OVERRIDE="${XROAD_SECRET_STORE_TOKEN_OVERRIDE:-}"
@@ -87,9 +102,9 @@ else
     echo " Failed to create X-Road client token" >&2
     exit 1
   fi
-  echo "$CLIENT_TOKEN" > $CLIENT_TOKEN_FILE
-  chmod 640 $CLIENT_TOKEN_FILE
-  chown xroad:xroad $CLIENT_TOKEN_FILE
+  echo "$CLIENT_TOKEN" > "$CLIENT_TOKEN_FILE"
+  chmod 640 "$CLIENT_TOKEN_FILE"
+  chown xroad:xroad "$CLIENT_TOKEN_FILE"
 fi
 
 echo "OpenBao initialization completed successfully"
