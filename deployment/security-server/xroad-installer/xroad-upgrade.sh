@@ -184,18 +184,22 @@ main() {
     "Security Server packages upgraded to 8.0" \
     "Package upgrade failed. V8 repo is active but packages are still at V7. Restore V7 repo backup and investigate before retrying."
 
-  # Step 9: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
+  # Step 9: Migrate V7 on-disk TLS certificates/keys to the local secret store (KV xrd-secret/tls/*).
+  run_step "migrate_tls_to_secret_store.sh" \
+    "TLS certificates migrated to secret store" \
+    "TLS-to-secret-store migration failed. X-Road services are still stopped. Verify xroad-secret-store-local is installed and OpenBao is reachable, then re-run the wizard."
+
+  # Step 10: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
   run_step "run_migration_cli.sh" \
     "Migration-CLI steps completed" \
     "Migration failed. X-Road services are stopped. V7 repo is still active. Fix the issue and re-run the wizard to resume from checkpoint."
 
-
-  # Step 10: Start X-Road services, is-active polling.
+  # Step 11: Start X-Road services, is-active polling.
   run_step "start_xroad_services.sh" \
     "X-Road services started" \
     "Service start failed after successful upgrade. Run: systemctl status <service> to diagnose."
 
-  # Step 11: Delete /etc/xroad/db.properties.bak (operator-confirmed; unattended deletes by default — set XROAD_DELETE_DB_PROPS_BAK=no to keep).
+  # Step 12: Delete /etc/xroad/db.properties.bak (operator-confirmed; unattended deletes by default — set XROAD_DELETE_DB_PROPS_BAK=no to keep).
   run_step "cleanup_db_properties_backup.sh" \
     "db.properties backup cleanup completed" \
     "Backup cleanup step failed. Upgrade succeeded; remove /etc/xroad/db.properties.bak manually if no longer needed."
