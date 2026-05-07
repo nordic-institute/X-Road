@@ -24,31 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.admin;
+package org.niis.xroad.common.healthcheck;
 
-
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 
-@RequiredArgsConstructor
+/**
+ * Computes the current heap-memory snapshot, combining live JVM signals with the
+ * shared {@code xroad.health-check.memory.threshold-percent} configuration.
+ */
 @ApplicationScoped
-public class ProxyMemoryStatusService {
-    private final ProxyProperties proxyProperties;
+@RequiredArgsConstructor
+public class HeapMemoryStatusService {
 
-    public ProxyMemory getMemoryStatus() {
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long usedMemory = totalMemory - freeMemory;
-        Long threshold = proxyProperties.memoryUsageThreshold().orElse(null);
-        long usedPercent = (usedMemory * 100) / maxMemory;
-        return new ProxyMemory(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
+    private final HealthCheckProperties healthCheckProperties;
+
+    public HeapMemoryStatus getMemoryStatus() {
+        MemoryUsage heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+        long maxMemory = heap.getMax();
+        long totalMemory = heap.getCommitted();
+        long usedMemory = heap.getUsed();
+        long freeMemory = totalMemory - usedMemory;
+        Integer threshold = healthCheckProperties.memory().thresholdPercent().orElse(null);
+        long usedPercent = maxMemory > 0 ? (usedMemory * 100) / maxMemory : 0;
+        return new HeapMemoryStatus(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
     }
-
 
 }

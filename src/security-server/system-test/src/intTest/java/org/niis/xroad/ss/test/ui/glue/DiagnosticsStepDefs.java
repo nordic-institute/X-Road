@@ -185,7 +185,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                 .scrollIntoView(false)
                 .shouldHave(partialText("ok"));
         diagnosticsPage.proxyMemoryUsageMax().shouldHave(matchText("\\d{3}\\.\\dMB"));
-        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("Not set"));
+        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("77%"));
     }
 
     @Step("download diagnostic report button is clicked")

@@ -1,0 +1,48 @@
+---
+# Install and configure Netdata on the LXD host (Lima VM on macOS,
+# native Linux otherwise). Netdata auto-discovers all xrd-* containers
+# via cgroups; no agent is installed inside containers.
+#
+# Installed from Ubuntu's universe repo (apt). The upstream `netdata`
+# snap was removed from the Snap Store; the vendor kickstart script
+# requires fetching code over the network at install time which the
+# dev env doesn't allow. Universe ships a usable, slightly older build.
+
+- name: Install Netdata via apt
+  ansible.builtin.apt:
+    name: netdata
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  notify: Restart Netdata
+  tags:
+    - netdata
+
+- name: Ensure Netdata config directory exists
+  ansible.builtin.file:
+    path: "{{ netdata_config_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - netdata
+
+- name: Render Netdata main configuration
+  ansible.builtin.template:
+    src: netdata.conf.j2
+    dest: "{{ netdata_config_path }}"
+    owner: root
+    group: netdata
+    mode: "0640"
+  notify: Restart Netdata
+  tags:
+    - netdata
+
+- name: Ensure Netdata service is enabled and running
+  ansible.builtin.systemd:
+    name: netdata
+    state: started
+    enabled: true
+  tags:
+    - netdata
