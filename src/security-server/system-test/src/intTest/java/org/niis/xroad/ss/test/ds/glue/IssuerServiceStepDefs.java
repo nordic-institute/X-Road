@@ -33,9 +33,6 @@ import org.niis.xroad.ss.test.ds.api.FeignIssuerServiceAdminApi;
 import org.niis.xroad.ss.test.ds.api.FeignIssuerServiceIdentityApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Base64;
-
-import static org.niis.xroad.ss.test.ui.container.Port.DS_ISSUER_SERVICE_ISSUANCE;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -72,8 +69,8 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                         }
                     }
                 }
-                """.formatted(DS_ISSUER_SERVICE_ISSUANCE, Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
-                did, participantId, did, did, privateKeyAlias);
+                """.formatted(
+                participantId, did, participantId, did, did, privateKeyAlias);
 
         var response = issuerServiceIdentityApi.createParticipant(AuthTokens.PROVISIONER, request);
         validate(response)
@@ -96,8 +93,7 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
 
         var response = issuerServiceAdminApi.createHolder(
                 AuthTokens.PARTICIPANT,
-                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
-                Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
+                participantId,
                 request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))
@@ -116,8 +112,7 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
 
         var response = issuerServiceAdminApi.createAttestationDefinition(
                 AuthTokens.PARTICIPANT,
-                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
-                Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
+                participantId,
                 request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))
@@ -150,8 +145,7 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
 
         var response = issuerServiceAdminApi.createCredentialDefinition(
                 AuthTokens.PARTICIPANT,
-                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
-                Base64.getUrlEncoder().encodeToString(participantId.getBytes()),
+                participantId,
                 request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))

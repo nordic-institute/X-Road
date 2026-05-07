@@ -55,7 +55,7 @@ public class FeignClientConfiguration {
 
     private String getControlPlaneManagementBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT);
-        return "http://%s:%d/api/mgmt/v4alpha/participants".formatted(container.host(), container.port());
+        return "http://%s:%d/api/management/v5beta/participants".formatted(container.host(), container.port());
     }
 
     @Bean
@@ -67,7 +67,7 @@ public class FeignClientConfiguration {
 
     private String getControlPlaneSecretsBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT);
-        return "http://%s:%d/api/mgmt/v3/secrets".formatted(container.host(), container.port());
+        return "http://%s:%d/api/management/v3/secrets".formatted(container.host(), container.port());
     }
 
     @Bean

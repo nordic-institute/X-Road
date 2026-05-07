@@ -106,7 +106,7 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                      "@type": "ParticipantContextConfig",
                      "entries": {
                          "edc.participant.id": "%s",
-                         "edc.iam.issuer.id": "%s",
+                         "edc.participant.did": "%s",
                          "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:%s/api/sts/token",
                          "edc.iam.sts.oauth.client.id": "%s",
                          "edc.iam.sts.oauth.client.secret.alias": "%s-sts-client-secret"

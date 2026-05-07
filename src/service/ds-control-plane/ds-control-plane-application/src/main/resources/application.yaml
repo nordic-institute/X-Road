@@ -35,8 +35,18 @@ web:
     protocol:
       port: 8183
       path: /api/dsp
+      virtual: true
     control:
       port: 8184
+      path: /api/v1/control
+    signaling:
+      port: 8185
+
+xroad:
+  db:
+    serverconf:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${quarkus.application.name}
 
 edc:
   hostname: ${HOSTNAME:localhost}
@@ -66,6 +76,8 @@ edc:
   sql:
     schema:
       autocreate: true
+  participant:
+    did: "did:web:${HOSTNAME:localhost}%3A10100"
   iam:
     issuer:
       id: "did:web:${HOSTNAME:localhost}%3A7183"
@@ -86,4 +98,4 @@ edc:
         membership:
           id: "membership-scope"
           type: "DEFAULT"
-          value: "org.eclipse.edc.vc.type:MembershipCredential:read"
+          value: "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"

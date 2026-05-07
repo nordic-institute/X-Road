@@ -1,3 +1,26 @@
 ---
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
+
+# Point ds-issuer-service at the shared dev mock JWKS server (hosted on CS).
+# The server itself is provisioned by the xroad-mock-jwks-server role.
+- name: create ds-issuer-service systemd override directory
+  file:
+    path: /etc/systemd/system/xroad-ds-issuer-service.service.d
+    state: directory
+    mode: "0755"
+
+- name: configure ds-issuer-service JWKS URL (shared mock-jwks)
+  copy:
+    dest: /etc/systemd/system/xroad-ds-issuer-service.service.d/jwks.conf
+    mode: "0644"
+    content: |
+      [Service]
+      Environment=EDC_IAM_OAUTH2_JWKS_URL=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
+      Environment=XROAD_DS_ISSUER_SERVICE_PARAMS=-Dedc.iam.oauth2.jwks.url=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
+
+- name: restart ds-issuer-service to pick up JWKS config
+  systemd:
+    name: xroad-ds-issuer-service
+    state: restarted
+    daemon_reload: yes

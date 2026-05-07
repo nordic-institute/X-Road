@@ -47,6 +47,8 @@ import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequest;
+import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -100,6 +102,7 @@ public class ClientSoapMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
+    private final DspRequestProcessor dspSubProcessor;
     private final IdentifierValidationService identifierValidationService;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
@@ -207,7 +210,10 @@ public class ClientSoapMessageProcessor {
     private ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                                         String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("processRequest()");
-
+        // Acquire DSP asset access before sending the SOAP request (return discarded in Phase 9;
+        // Phase 10 pipes endpoint + auth into the HttpSender).
+        dspSubProcessor.execute(new DspRequest(
+                decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer()));
         ProxyMessage response;
         try (HttpSender httpSender = httpSenderProvider.createClientHttpSender()) {
             sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData);

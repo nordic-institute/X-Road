@@ -40,3 +40,51 @@
     option: "update-interval"
     value: "{{ xroad_configuration_update_interval }}"
   when: xroad_configuration_update_interval is defined
+
+# Point ds-control-plane at the shared dev mock JWKS server (hosted on CS).
+# The server itself is provisioned by the xroad-mock-jwks-server role.
+- name: create ds-control-plane systemd override directory
+  file:
+    path: /etc/systemd/system/xroad-ds-control-plane.service.d
+    state: directory
+    mode: "0755"
+
+- name: configure ds-control-plane JWKS URL (shared mock-jwks)
+  copy:
+    dest: /etc/systemd/system/xroad-ds-control-plane.service.d/jwks.conf
+    mode: "0644"
+    content: |
+      [Service]
+      Environment=EDC_IAM_OAUTH2_JWKS_URL=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
+      Environment=XROAD_DS_CONTROL_PLANE_PARAMS=-Dedc.iam.oauth2.jwks.url=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
+
+- name: restart ds-control-plane to pick up JWKS config
+  systemd:
+    name: xroad-ds-control-plane
+    state: restarted
+    daemon_reload: yes
+
+# DSP proxy configuration for LXD environment.
+# Phase 11 (XRDDEV-3153) renamed the keys this file sets:
+#   control-plane-url        -> control-plane-endpoint    (ProxyDspProperties)
+#   counter-party-address    -> split into 3 fields       (AssetAccessClientProperties)
+#                                counter-party-url-scheme + counter-party-port
+#                                + counter-party-base-path
+# The provider host portion of counter-party is now derived per-service from
+# serverconf at request time (DspSubProcessor#buildCounterPartyAddress), so it
+# is no longer set here. Strict SmallRye config validation refuses to start
+# xroad-proxy if the old keys are left in place.
+- name: configure DSP control plane URLs for LXD
+  copy:
+    dest: /etc/xroad/conf.d/local-dsp.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      xroad:
+        proxy:
+          dsp:
+            control-plane-endpoint: "http://127.0.0.1:8184/api/v1/control"
+            counter-party-url-scheme: "http"
+            counter-party-port: 8183
+            counter-party-base-path: "/api/dsp"

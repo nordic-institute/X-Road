@@ -58,6 +58,13 @@ spec:
 Deployment template
 */}}
 {{- define "xroad.deployment" -}}
+{{- $replicas := 1 -}}
+{{- if hasKey .config "replicas" -}}{{- $replicas = .config.replicas | int -}}{{- end -}}
+{{- if gt $replicas 0 -}}
+{{- if not .config.image -}}
+{{- $_ := required (printf "services.%s.imageName required when replicas>0 (unless services.%s.image is set)" .service .service) .config.imageName -}}
+{{- end -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -66,7 +73,7 @@ metadata:
     {{- include "xroad.labels" .root | nindent 4 }}
     app: xroad-{{ .service }}
 spec:
-  replicas: 1
+  replicas: {{ $replicas | int }}
   selector:
     matchLabels:
       app: xroad-{{ .service }}
@@ -75,6 +82,10 @@ spec:
       labels:
         {{- include "xroad.labels" .root | nindent 8 }}
         app: xroad-{{ .service }}
+      {{- with .root.Values.global.extraPodAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       securityContext:
         {{- toYaml .root.Values.securityContext.pod | nindent 8 }}
@@ -91,10 +102,20 @@ spec:
         - name: {{ . }}
         {{- end }}
       {{- end }}
+      {{- if .config.initContainers }}
+      initContainers:
+        {{- range .config.initContainers }}
+        {{- . | nindent 8 }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: {{ .service }}
-          image: {{ .root.Values.global.image.registry }}/{{ .config.imageName }}:{{ .root.Values.global.image.tag }}
+          image: {{ if .config.image }}{{ .config.image | quote }}{{ else }}{{ printf "%s/%s:%s" .root.Values.global.image.registry .config.imageName .root.Values.global.image.tag | quote }}{{ end }}
           imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
+          {{- if .config.command }}
+          command:
+            {{- toYaml .config.command | nindent 12 }}
+          {{- end }}
           securityContext:
             {{- toYaml .root.Values.securityContext.container | nindent 12 }}
           ports:
@@ -125,7 +146,7 @@ spec:
             - name: {{ .name }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .secretName }}
+                  name: {{ if .releaseNamePrefix }}{{ $.root.Release.Name }}-{{ .secretName }}{{ else }}{{ .secretName }}{{ end }}
                   key: {{ .key }}
             {{- end }}
           volumeMounts:

@@ -4,6 +4,7 @@ After=network.target xroad-base.service xroad-secret-store-local.service xroad-s
 Requires=xroad-base.service
 Wants=postgresql.service xroad-secret-store-local.service xroad-secret-store-remote.service
 Wants=xroad-signer.service xroad-confclient.service
+Wants=xroad-ds-control-plane.service
 
 [Service]
 AmbientCapabilities=CAP_NET_BIND_SERVICE

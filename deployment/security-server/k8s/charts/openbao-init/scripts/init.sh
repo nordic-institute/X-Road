@@ -47,10 +47,15 @@ fi
 # node while other nodes remain sealed (e.g. after a pod restart).
 SEALED_NODES=""
 for NODE in $BAO_NODES; do
-  if is_sealed "$NODE"; then
+  sealed_rc=0
+  is_sealed "$NODE" || sealed_rc=$?
+  if [ $sealed_rc -eq 0 ]; then
     SEALED_NODES="$SEALED_NODES $NODE"
-  else
+  elif [ $sealed_rc -eq 1 ]; then
     echo "[UNSEAL] Node $NODE is already unsealed"
+  else
+    echo "[UNSEAL] Cannot determine seal status of $NODE — assuming sealed" >&2
+    SEALED_NODES="$SEALED_NODES $NODE"
   fi
 done
 
@@ -84,9 +89,14 @@ else
         exit 1
       fi
 
-      if ! is_sealed "$NODE"; then
+      sealed_rc=0
+      is_sealed "$NODE" || sealed_rc=$?
+      if [ $sealed_rc -eq 1 ]; then
         echo "[UNSEAL] Successfully unsealed OpenBao node: $NODE"
         break
+      elif [ $sealed_rc -eq 2 ]; then
+        echo "[UNSEAL] Transient seal-status failure on $NODE — applying next key" >&2
+        continue
       fi
     done
   done
@@ -129,10 +139,25 @@ else
   }
 fi
 
-if k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${XROAD_TOKEN_SECRET_NAME}" "" "Retrieving X-Road client token"; then
-  echo "[SETUP] X-Road client token already exists"
-else
-  # Create client token
+NEEDS_NEW_TOKEN=true
+if EXISTING_SECRET=$(k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${XROAD_TOKEN_SECRET_NAME}" "" "Retrieving X-Road client token") && [ -n "$EXISTING_SECRET" ]; then
+  EXISTING_TOKEN=$(echo "$EXISTING_SECRET" | jq -r '.data.XROAD_SECRET_STORE_TOKEN // empty' | base64 -d 2>/dev/null)
+  if [ -n "$EXISTING_TOKEN" ]; then
+    # Validate the existing token is still recognised by OpenBao
+    TOKEN_STATUS=$(curl -s -k -o /dev/null -w "%{http_code}" \
+      -H "X-Vault-Token: $ROOT_TOKEN" \
+      -X POST -d "{\"token\":\"$EXISTING_TOKEN\"}" \
+      "$BAO_ADDR/v1/auth/token/lookup")
+    if [ "$TOKEN_STATUS" = "200" ]; then
+      echo "[SETUP] X-Road client token already exists and is valid"
+      NEEDS_NEW_TOKEN=false
+    else
+      echo "[SETUP] X-Road client token exists in k8s but is invalid in OpenBao (status $TOKEN_STATUS) — rotating"
+    fi
+  fi
+fi
+
+if [ "$NEEDS_NEW_TOKEN" = "true" ]; then
   echo "[SETUP] Creating X-Road client token..."
   # Use custom token ID if provided via environment variable (useful for dev/test)
   XROAD_SECRET_STORE_TOKEN_OVERRIDE="${XROAD_SECRET_STORE_TOKEN_OVERRIDE:-}"
@@ -142,7 +167,7 @@ else
     exit 1
   fi
 
-  # Store client token
+  # Store or overwrite client token
   TOKEN_SECRET=$(cat <<EOF
 {
     "apiVersion": "v1",
@@ -157,8 +182,15 @@ else
 EOF
 )
 
-  k8s_api "POST" "/api/v1/namespaces/${NAMESPACE}/secrets" \
-    "$TOKEN_SECRET" "Creating X-Road client token secret"
+  # Use PUT (create-or-update) so the secret is written whether or not it already exists
+  if ! k8s_api "POST" "/api/v1/namespaces/${NAMESPACE}/secrets" \
+      "$TOKEN_SECRET" "Creating X-Road client token secret"; then
+    k8s_api "PUT" "/api/v1/namespaces/${NAMESPACE}/secrets/${XROAD_TOKEN_SECRET_NAME}" \
+      "$TOKEN_SECRET" "Updating X-Road client token secret" || {
+      echo "[SETUP] Failed to store client token secret"
+      exit 1
+    }
+  fi
 fi
 
 echo "[SETUP] Configuration complete"

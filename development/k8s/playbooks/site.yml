@@ -52,3 +52,8 @@
       ansible.builtin.include_role:
         name: prometheus
       when: deploy_prometheus | default(false) | bool
+
+    - name: Deploy Netdata (when enabled)
+      ansible.builtin.include_role:
+        name: netdata
+      when: deploy_netdata | default(true) | bool

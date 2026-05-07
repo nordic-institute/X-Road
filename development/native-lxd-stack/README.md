@@ -93,8 +93,7 @@ Common URLs after a successful start:
 
 ### Monitoring
 
-Host-level monitoring is provided by [Netdata](https://www.netdata.cloud/), installed
-via snap on the LXD host (the Lima VM on macOS, or the Linux host directly). Netdata
+Host-level monitoring is provided by [Netdata](https://www.netdata.cloud/). Netdata
 auto-discovers every `xrd-*` container as a cgroup — no agent runs inside the X-Road
 containers.
 

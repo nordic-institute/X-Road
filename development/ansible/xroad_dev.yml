@@ -73,6 +73,7 @@
   become: true
   strategy: free
   roles:
+    - xroad-mock-jwks-server
     - xroad-cs
   tags:
     - cs

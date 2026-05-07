@@ -20,3 +20,6 @@ argument_specs:
       serverconf_db: {type: dict, required: true}
       messagelog_db: {type: dict, required: true}
       opmonitor_db: {type: dict, required: true}
+      ds_control_plane_db: {type: dict, required: true}
+      ds_identity_hub_db: {type: dict, required: true}
+      ds_issuer_service_db: {type: dict, required: true}
