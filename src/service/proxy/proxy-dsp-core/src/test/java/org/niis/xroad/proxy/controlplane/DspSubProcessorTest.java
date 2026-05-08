@@ -62,8 +62,8 @@ class DspSubProcessorTest {
     private static final String HOST_B = "xrd-ss1";
     private static final String DID_A = "did:web:xrd-ss0%3A7183";
     private static final String DID_B = "did:web:xrd-ss1%3A7183";
-    private static final String URL_A = "https://xrd-ss0:8183/api/dsp";
-    private static final String URL_B = "https://xrd-ss1:8183/api/dsp";
+    private static final String URL_A = "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1";
+    private static final String URL_B = "https://xrd-ss1:8183/api/dsp/xrd-ss1/2025-1";
     private static final String UNKNOWN_HOST = "unknown.example.com";
 
     @Mock

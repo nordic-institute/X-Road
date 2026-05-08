@@ -56,14 +56,24 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      * compose ({@code ss0/1}). Keys are the values returned by globalconf for each
      * provider security-server host-address.
      *
+     * <p>The {@code counterPartyAddress} bakes in BOTH the provider's local participant
+     * context id AND the DSP protocol version segment ({@code /2025-1}) because the
+     * EDC v2025/1 catalog/negotiation/transfer APIs are scoped under
+     * {@code /api/dsp/<participantContextId>/2025-1/...} and the {@code DspHttpDispatcherV2025}
+     * does not auto-prepend either segment — it concatenates the per-message subpath
+     * (e.g. {@code /catalog/request}) onto whatever address it is given. Verified against
+     * a running provider: unversioned/unscoped paths return 404, the scoped path returns
+     * 401 (handler reached). Two provider participant context ids in dev align with the
+     * SS hostname, so the segment appears twice in the URL.
+     *
      * @return immutable map keyed by host-address
      */
     public static Map<String, CounterPartyTarget> defaultMap() {
         return Map.of(
-                "xrd-ss0", new CounterPartyTarget("did:web:xrd-ss0%3A7183", "https://xrd-ss0:8183/api/dsp"),
-                "xrd-ss1", new CounterPartyTarget("did:web:xrd-ss1%3A7183", "https://xrd-ss1:8183/api/dsp"),
-                "xrd-ss2", new CounterPartyTarget("did:web:xrd-ss2%3A7183", "https://xrd-ss2:8183/api/dsp"),
-                "ss0", new CounterPartyTarget("did:web:ss0%3A7183", "https://ss0:8183/api/dsp"),
-                "ss1", new CounterPartyTarget("did:web:ss1%3A7183", "https://ss1:8183/api/dsp"));
+                "xrd-ss0", new CounterPartyTarget("did:web:xrd-ss0%3A7183", "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1"),
+                "xrd-ss1", new CounterPartyTarget("did:web:xrd-ss1%3A7183", "https://xrd-ss1:8183/api/dsp/xrd-ss1/2025-1"),
+                "xrd-ss2", new CounterPartyTarget("did:web:xrd-ss2%3A7183", "https://xrd-ss2:8183/api/dsp/xrd-ss2/2025-1"),
+                "ss0", new CounterPartyTarget("did:web:ss0%3A7183", "https://ss0:8183/api/dsp/ss0/2025-1"),
+                "ss1", new CounterPartyTarget("did:web:ss1%3A7183", "https://ss1:8183/api/dsp/ss1/2025-1"));
     }
 }
