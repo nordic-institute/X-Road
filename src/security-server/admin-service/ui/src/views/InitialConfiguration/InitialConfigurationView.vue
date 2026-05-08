@@ -29,6 +29,12 @@
     <XrdWizard v-model="currentStep">
       <!-- Headers -->
       <template #header-items>
+        <template v-if="adminUserStep">
+          <v-stepper-item :complete="currentStep > adminUserStep" :value="adminUserStep">
+            {{ $t('initialConfiguration.adminUser.title') }}
+          </v-stepper-item>
+          <v-divider></v-divider>
+        </template>
         <template v-if="anchorStep">
           <v-stepper-item :complete="currentStep > anchorStep" :value="anchorStep">
             {{ $t('initialConfiguration.anchor.title') }}
@@ -44,6 +50,9 @@
         </v-stepper-item>
       </template>
       <template #default="{ nextStep, previousStep }">
+        <v-stepper-window-item v-if="adminUserStep" :value="adminUserStep">
+          <AdminUserStep :save-busy="adminUserSaveBusy" @done="adminUserReady" />
+        </v-stepper-window-item>
         <v-stepper-window-item :value="anchorStep">
           <ConfigurationAnchorStep v-if="anchorStep" :value="anchorStep" @done="nextStep" />
         </v-stepper-window-item>
@@ -80,6 +89,7 @@ import { useAlerts } from '@/store/modules/alerts';
 import { useInitializeServer } from '@/store/modules/initializeServer';
 import { useUser } from '@/store/modules/user';
 
+import AdminUserStep from './AdminUserStep.vue';
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import TokenPinStep from './TokenPinStep.vue';
@@ -88,6 +98,7 @@ import { useMainTabs } from '@/store/modules/main-tabs';
 
 export default defineComponent({
   components: {
+    AdminUserStep,
     TokenPinStep,
     ConfigurationAnchorStep,
     OwnerMemberStep,
@@ -102,6 +113,7 @@ export default defineComponent({
   data() {
     return {
       currentStep: 1 as number,
+      adminUserSaveBusy: false as boolean,
       pinSaveBusy: false as boolean,
       warningInfo: [] as CodeWithDetails[],
       confirmInitWarning: false as boolean,
@@ -111,28 +123,59 @@ export default defineComponent({
   computed: {
     ...mapState(useMainTabs, ['firstAllowedTab']),
     ...mapState(useUser, ['isAnchorImported', 'isServerOwnerInitialized', 'isServerCodeInitialized']),
-    ...mapState(useInitializeServer, ['initServerSSCode', 'initServerMemberClass', 'initServerMemberCode']),
+    ...mapState(useInitializeServer, ['initServerSSCode', 'initServerMemberClass', 'initServerMemberCode', 'initialAdminUserRequired']),
 
-    anchorStep() {
-      return this.isAnchorImported ? 0 : 1;
+    adminUserStep(): number {
+      return this.initialAdminUserRequired ? 1 : 0;
     },
-    memberStep() {
-      return this.anchorStep + 1;
+    anchorStep(): number {
+      if (this.isAnchorImported) {
+        return 0;
+      }
+      return this.adminUserStep + 1;
     },
-    pinStep() {
+    memberStep(): number {
+      return Math.max(this.adminUserStep, this.anchorStep) + 1;
+    },
+    pinStep(): number {
       return this.memberStep + 1;
     },
   },
 
   created() {
+    if (this.initialAdminUserRequired) {
+      // Status endpoint requires auth; defer until after admin creation + login
+      return;
+    }
     this.fetchInitializationStatus().catch((error) => {
       this.addError(error);
     });
   },
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
-    ...mapActions(useUser, ['setInitializationStatus', 'fetchInitializationStatus', 'fetchCurrentSecurityServer']),
-    ...mapActions(useInitializeServer, ['initializeServer']),
+    ...mapActions(useUser, [
+      'setInitializationStatus',
+      'fetchInitializationStatus',
+      'fetchCurrentSecurityServer',
+      'fetchUserData',
+      'loginUser',
+    ]),
+    ...mapActions(useInitializeServer, ['initializeServer', 'createInitialAdminUser']),
+
+    async adminUserReady(payload: { username: string; password: string }) {
+      this.adminUserSaveBusy = true;
+      try {
+        await this.createInitialAdminUser(payload);
+        await this.loginUser({ username: payload.username, password: payload.password });
+        await this.fetchUserData();
+        await this.fetchInitializationStatus();
+        this.currentStep = this.anchorStep || this.memberStep;
+      } catch (error) {
+        this.addError(error as Error);
+      } finally {
+        this.adminUserSaveBusy = false;
+      }
+    },
     tokenPinReady(pin: string): void {
       this.pinSaveBusy = true;
 

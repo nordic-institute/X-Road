@@ -27,9 +27,12 @@
 import { createXrdRouter } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
+import { useInitializeServer } from '@/store/modules/initializeServer';
 import { useUser } from '@/store/modules/user';
 
 import routes from './routes';
+
+let initialAdminProbed = false;
 
 export default createXrdRouter({
   forbiddenRouteName: RouteName.Forbidden,
@@ -43,6 +46,22 @@ export default createXrdRouter({
   },
   isServerInitialized(): boolean {
     return !useUser().needsInitialization;
+  },
+  async isUnauthenticatedRouteAllowed(to) {
+    if (to.name !== RouteName.InitialConfiguration) {
+      return false;
+    }
+    const initStore = useInitializeServer();
+    if (!initialAdminProbed) {
+      initialAdminProbed = true;
+      try {
+        await initStore.fetchInitialAdminUserStatus();
+      } catch {
+        // unreachable bootstrap probe -> fall back to authenticated flow
+        return false;
+      }
+    }
+    return initStore.initialAdminUserRequired;
   },
   routes,
 });

@@ -44,7 +44,7 @@ import { useUser } from '@/store/modules/user';
 
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import AppToolbar from '@/layouts/AppToolbar.vue';
-import { POLL_SESSION_TIMEOUT, useAppState } from "@niis/shared-ui";
+import { POLL_SESSION_TIMEOUT, useAppState } from '@niis/shared-ui';
 
 const { isSessionAlive } = useAppState();
 const userStore = useUser();
@@ -62,7 +62,7 @@ async function pollSessionStatus() {
     })
     .finally(() => {
       if (isSessionAlive()) {
-        window.setTimeout(pollSessionStatus, POLL_SESSION_TIMEOUT)
+        window.setTimeout(pollSessionStatus, POLL_SESSION_TIMEOUT);
       }
     });
 }

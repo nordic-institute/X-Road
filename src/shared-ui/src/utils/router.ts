@@ -37,6 +37,11 @@ interface Config {
   isAuthenticated: () => boolean;
   isServerInitialized: () => boolean;
   hasAnyOfPermissions: (permissions: string[]) => boolean;
+  /**
+   * Optional escape hatch for routes that should be reachable without authentication
+   * (e.g. initial admin user creation during a fresh server bootstrap). Defaults to false.
+   */
+  isUnauthenticatedRouteAllowed?: (to: XrdLocation) => boolean | Promise<boolean>;
   routes: XrdRoute[];
 }
 
@@ -56,6 +61,11 @@ export function createXrdRouter(config: Config): Router {
   router.beforeEach(async (to: XrdLocation, from: RouteLocationNormalized) => {
     // Going to login
     if (to.name === config.loginRouteName) {
+      return;
+    }
+
+    // Allow specific routes without authentication (e.g. initial admin bootstrap)
+    if (config.isUnauthenticatedRouteAllowed && (await config.isUnauthenticatedRouteAllowed(to))) {
       return;
     }
 
