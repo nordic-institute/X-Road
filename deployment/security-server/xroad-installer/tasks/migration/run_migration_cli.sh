@@ -57,25 +57,34 @@ confirm_step() {
 # Run a single migration-CLI step with sentinel-based idempotency and
 # per-step operator confirmation.
 #
-# Usage: run_migration_step <step> [arg1] [arg2] ...
+# Usage: run_migration_step <step> [--id <sentinel-id>] [arg1] [arg2] ...
+#   --id <sentinel-id>  Override the sentinel filename so the same CLI command
+#                       can be invoked multiple times with distinct sentinels
+#                       (e.g. file-to-db --id file-to-db-acme).
 run_migration_step() {
   local step="$1"
   shift
+  local sentinel="$step"
+  if [[ "${1:-}" == "--id" ]]; then
+    shift
+    sentinel="$1"
+    shift
+  fi
   local -a args=("$@")
 
-  if is_step_done "$step"; then
-    log_info "Step '$step' already completed (sentinel found) — skipping"
+  if is_step_done "$sentinel"; then
+    log_info "Step '$sentinel' already completed (sentinel found) — skipping"
     return 0
   fi
 
-  confirm_step "$step" "Run migration CLI step: $step"
+  confirm_step "$sentinel" "Run migration CLI step: $step"
 
   log_message "Running: java -jar $MIGRATION_CLI_JAR $step ${args[*]}"
   local tmpout
   tmpout=$(mktemp)
   if ! java -jar "$MIGRATION_CLI_JAR" "$step" "${args[@]}" 2>&1 | tee "$tmpout"; then
     rm -f "$tmpout"
-    log_die "Migration CLI step '$step' failed (non-zero exit). Sentinel not written."
+    log_die "Migration CLI step '$sentinel' failed (non-zero exit). Sentinel not written."
   fi
   # Migration-CLI sometimes returns 0 even after an internal exception. Scan
   # output for stack traces / error markers and fail if we see any.
@@ -83,11 +92,11 @@ run_migration_step() {
     local firstline
     firstline=$(grep -m1 -E '^(Error |Caused by:|Exception in |[[:alpha:].]+Exception:)' "$tmpout")
     rm -f "$tmpout"
-    log_die "Migration CLI step '$step' reported an error: $firstline"
+    log_die "Migration CLI step '$sentinel' reported an error: $firstline"
   fi
   rm -f "$tmpout"
 
-  mark_step_done "$step"
+  mark_step_done "$sentinel"
 }
 
 main() {
@@ -145,6 +154,27 @@ main() {
     run_migration_step "signer-token-pins"
   else
     log_info "xroad-autologin not installed — skipping signer-token-pins migration"
+  fi
+
+  # file-to-db (acme): stores the entire contents of acme.yml under property
+  # key xroad.acme (scope: proxy-ui-api). Distinct sentinel id so it doesn't
+  # collide with the mail file-to-db sentinel below.
+  local acme_yml="/etc/xroad/conf.d/acme.yml"
+  if [[ -f "$acme_yml" ]]; then
+    run_migration_step "file-to-db" --id "file-to-db-acme" \
+      "$acme_yml" "/etc/xroad/db.properties" "xroad.acme" "proxy-ui-api"
+  else
+    log_info "ACME configuration file not found at $acme_yml — skipping file-to-db (acme) migration"
+  fi
+
+  # file-to-db (mail): stores the entire contents of mail.yml under property
+  # key xroad.mail-notification (scope: proxy-ui-api).
+  local mail_yml="/etc/xroad/conf.d/mail.yml"
+  if [[ -f "$mail_yml" ]]; then
+    run_migration_step "file-to-db" --id "file-to-db-mail" \
+      "$mail_yml" "/etc/xroad/db.properties" "xroad.mail-notification" "proxy-ui-api"
+  else
+    log_info "Mail notification configuration file not found at $mail_yml — skipping file-to-db (mail) migration"
   fi
 
   log_message ""
