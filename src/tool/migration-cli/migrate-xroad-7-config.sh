@@ -7,8 +7,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIGRATION_CLI_JAR_PATH="${MIGRATION_CLI_JAR_PATH:-$SCRIPT_DIR/build/libs/migration-cli-1.0.jar}"
 
 SSL_PROPERTIES_FILE=$(crudini --get /etc/xroad/conf.d/local.ini proxy-ui-api ssl-properties 2>/dev/null || echo "/etc/xroad/ssl.properties")
-CONF_ANCHOR_FILE=$(crudini --get /etc/xroad/conf.d/local.ini proxy configuration-anchor-file 2>/dev/null || echo "/etc/xroad/configuration-anchor.xml")
-DEVICES_INI_FILE=$(crudini --get /etc/xroad/conf.d/local.ini signer device-configuration-file 2>/dev/null || echo "/etc/xroad/devices.ini")
 ACME_CONFIG_FILE="/etc/xroad/conf.d/acme.yml"
 MAIL_CONFIG_FILE="/etc/xroad/conf.d/mail.yml"
 
@@ -71,8 +69,6 @@ for cfg in "${CONFIG_FILES[@]}"; do
 done
 
 migrate_file "$SSL_PROPERTIES_FILE" PropertiesToDbMigrator "SSL properties file" "proxy-ui-api"
-migrate_file "$CONF_ANCHOR_FILE" ConfigurationAnchorMigrator "Configuration anchor file"
-migrate_file "$DEVICES_INI_FILE" DevicesIniToDbMigrator "Signer devices configuration file"
 migrate_file "$ACME_CONFIG_FILE" FileToDbPropertyMigrator "ACME configuration file" "proxy-ui-api" "xroad.acme"
 migrate_file "$MAIL_CONFIG_FILE" FileToDbPropertyMigrator "Mail notification configuration file" "proxy-ui-api" "xroad.mail-notification"
 

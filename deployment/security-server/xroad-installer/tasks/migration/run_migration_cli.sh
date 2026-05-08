@@ -119,7 +119,21 @@ main() {
     log_info "Configuration anchor file not found at $conf_anchor_file — skipping configuration-anchor migration"
   fi
 
+  # signer-devices migrates HSM/signer module declarations from devices.ini into
+  # the configuration database under the "signer" scope. The devices.ini path is
+  # configured in local.ini (signer.device-configuration-file); fall back to the
+  # canonical default.
+  local devices_ini_file
+  devices_ini_file=$(crudini --get /etc/xroad/conf.d/local.ini signer device-configuration-file 2>/dev/null \
+    || echo "/etc/xroad/devices.ini")
+  if [[ -f "$devices_ini_file" ]]; then
+    run_migration_step "signer-devices" "$devices_ini_file" "/etc/xroad/db.properties"
+  else
+    log_info "Signer devices file not found at $devices_ini_file — skipping signer-devices migration"
+  fi
+
   run_migration_step "config" "/etc/xroad/conf.d/local.ini" "/etc/xroad/conf.d/local.yaml"
+
   run_migration_step "keyconf" "/etc/xroad/signer" "/etc/xroad/db.properties"
 
   # signer-token-pins migrates token PINs from xroad-autologin scripts to OpenBao.

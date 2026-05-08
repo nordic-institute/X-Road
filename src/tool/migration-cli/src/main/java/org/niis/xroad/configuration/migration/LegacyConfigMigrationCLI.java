@@ -61,6 +61,7 @@ public class LegacyConfigMigrationCLI {
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
         SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
+        SIGNER_DEVICES("signer-devices", "Migrate signer devices.ini to DB"),
         CONFIGURATION_ANCHOR("configuration-anchor", "Migrate configuration anchor file to DB"),
         HELP("help", "Show this help message");
 
@@ -80,6 +81,7 @@ public class LegacyConfigMigrationCLI {
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
                 case "keyconf" -> KEYCONF;
                 case "signer-token-pins" -> SIGNER_TOKEN_PINS;
+                case "signer-devices" -> SIGNER_DEVICES;
                 case "configuration-anchor" -> CONFIGURATION_ANCHOR;
                 case "help", "-h", "--help" -> HELP;
                 default -> null;
@@ -108,6 +110,7 @@ public class LegacyConfigMigrationCLI {
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
                 case KEYCONF -> migrateKeyConf(shiftArgs(args));
                 case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
+                case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
                 case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
                 default -> showHelp();
             }
@@ -139,6 +142,7 @@ public class LegacyConfigMigrationCLI {
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
                   keyconf                        Migrate signer key configuration to DB
                   signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
+                  signer-devices                 Migrate signer devices.ini to DB
                   configuration-anchor           Migrate configuration anchor file to DB
                   help                           Show this help message
 
@@ -172,6 +176,13 @@ public class LegacyConfigMigrationCLI {
                       <anchor-file>        Path to configuration anchor XML file
                       <db.properties path> Path to database properties file
 
+                Signer Devices Migration:
+                  migration-cli signer-devices <devices.ini> <db.properties path>
+                    Migrates signer devices configuration from devices.ini to the database.
+                    Arguments:
+                      <devices.ini>        Path to signer devices.ini file
+                      <db.properties path> Path to database properties file (signer)
+
                 Signer Token PINs Migration:
                   migration-cli signer-token-pins [<script-path>]
                     Migrates token PINs from autologin scripts to Vault.
@@ -191,6 +202,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
+                  migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
                   migration-cli signer-token-pins
                   migration-cli signer-token-pins /usr/share/xroad/autologin/custom-fetch-pin.sh
                 """);
@@ -281,6 +293,30 @@ public class LegacyConfigMigrationCLI {
             log.error("Error while migrating Signer keyconf", e);
         }
 
+    }
+
+    private static void migrateSignerDevices(String[] args) {
+        if (args.length != 2) {
+            log.error("Signer devices migration requires 2 arguments");
+            log.error("Usage: migration-cli signer-devices <devices.ini> <db.properties path>");
+            log.error("  <devices.ini>        Path to signer devices.ini file");
+            log.error("  <db.properties path> Path to database properties file (signer)");
+            System.exit(1);
+        }
+
+        String devicesIniPath = args[0];
+        String dbPropertiesPath = args[1];
+
+        validateFilePath(devicesIniPath, "devices.ini");
+        validateFilePath(dbPropertiesPath, "database properties");
+
+        if (!new File(devicesIniPath).exists()) {
+            log.error("Signer devices file does not exist: {}", devicesIniPath);
+            System.exit(1);
+        }
+
+        log.info("Starting signer devices migration from: {}", devicesIniPath);
+        new DevicesIniToDbMigrator().migrate(devicesIniPath, dbPropertiesPath, "signer");
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
