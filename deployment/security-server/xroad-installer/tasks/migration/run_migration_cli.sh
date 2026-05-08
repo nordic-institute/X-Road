@@ -154,7 +154,25 @@ main() {
     log_info "Signer devices file not found at $devices_ini_file — skipping signer-devices migration"
   fi
 
-  run_migration_step "config" "/etc/xroad/conf.d/local.ini" "/etc/xroad/conf.d/local.yaml"
+  # ini-to-db: migrate INI configuration files into the configuration database.
+  # Order mirrors src/tool/migration-cli/migrate-xroad-7-config.sh CONFIG_FILES:
+  # alphabetical override-*.ini first, then local.ini. nullglob is toggled
+  # locally so the override-*.ini glob expands to zero entries (instead of the
+  # literal pattern) when no overrides are present. The ${arr[@]+"${arr[@]}"}
+  # form is the set -u-safe expansion for a possibly-empty array.
+  local ini_basename
+  shopt -s nullglob
+  local -a override_ini_files=(/etc/xroad/conf.d/override-*.ini)
+  shopt -u nullglob
+  for ini_file in ${override_ini_files[@]+"${override_ini_files[@]}"} /etc/xroad/conf.d/local.ini; do
+    if [[ ! -f "$ini_file" ]]; then
+      log_info "INI file not found at $ini_file — skipping ini-to-db migration"
+      continue
+    fi
+    ini_basename=$(basename "$ini_file" .ini)
+    run_migration_step "ini-to-db" --id "ini-to-db-${ini_basename}" \
+      "$ini_file" "/etc/xroad/db.properties"
+  done
 
   run_migration_step "keyconf" "/etc/xroad/signer" "/etc/xroad/db.properties"
 
