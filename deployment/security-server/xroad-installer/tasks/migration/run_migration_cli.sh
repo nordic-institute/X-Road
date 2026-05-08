@@ -57,19 +57,30 @@ confirm_step() {
 # Run a single migration-CLI step with sentinel-based idempotency and
 # per-step operator confirmation.
 #
-# Usage: run_migration_step <step> [--id <sentinel-id>] [arg1] [arg2] ...
+# Usage: run_migration_step <step> [--id <sentinel-id>] [--no-confirm] [arg1] [arg2] ...
 #   --id <sentinel-id>  Override the sentinel filename so the same CLI command
 #                       can be invoked multiple times with distinct sentinels
 #                       (e.g. file-to-db --id file-to-db-acme).
+#   --no-confirm        Skip the generic confirm_step prompt — used when the
+#                       caller has already collected explicit operator intent
+#                       via its own dialog (e.g. opt-in steps).
 run_migration_step() {
   local step="$1"
   shift
   local sentinel="$step"
-  if [[ "${1:-}" == "--id" ]]; then
-    shift
-    sentinel="$1"
-    shift
-  fi
+  local skip_confirm=false
+  while true; do
+    if [[ "${1:-}" == "--id" ]]; then
+      shift
+      sentinel="$1"
+      shift
+    elif [[ "${1:-}" == "--no-confirm" ]]; then
+      shift
+      skip_confirm=true
+    else
+      break
+    fi
+  done
   local -a args=("$@")
 
   if is_step_done "$sentinel"; then
@@ -77,7 +88,9 @@ run_migration_step() {
     return 0
   fi
 
-  confirm_step "$sentinel" "Run migration CLI step: $step"
+  if [[ "$skip_confirm" != "true" ]]; then
+    confirm_step "$sentinel" "Run migration CLI step: $step"
+  fi
 
   log_message "Running: java -jar $MIGRATION_CLI_JAR $step ${args[*]}"
   local tmpout
@@ -175,6 +188,27 @@ main() {
       "$mail_yml" "/etc/xroad/db.properties" "xroad.mail-notification" "proxy-ui-api"
   else
     log_info "Mail notification configuration file not found at $mail_yml — skipping file-to-db (mail) migration"
+  fi
+
+  # batch-signing: optional opt-in to preserve the X-Road 7 behavior of having
+  # batch signing enabled. X-Road 8 disables it by default. When the operator
+  # opts in we set xroad.proxy.batch-signing-enabled=true via set-property;
+  # otherwise the default (disabled) stands. The sentinel is written either
+  # way so reruns don't re-prompt.
+  local batch_sentinel="batch-signing-prompt"
+  if is_step_done "$batch_sentinel"; then
+    log_info "Step '$batch_sentinel' already completed (sentinel found) — skipping"
+  elif [[ "${XROAD_MIGRATION_UNATTENDED:-}" == "true" ]]; then
+    log_info "Unattended mode: leaving batch signing at X-Road 8 default (disabled)"
+    mark_step_done "$batch_sentinel"
+  elif whiptail --title "Migration Step: batch-signing" --defaultno \
+    --yesno "Keep batch signing enabled?\n\nBatch signing is disabled by default in X-Road 8. Select Yes to preserve the X-Road 7 behavior of batch signing being enabled." 12 60; then
+    log_info "Operator opted to enable batch signing"
+    run_migration_step "set-property" --id "$batch_sentinel" --no-confirm \
+      "/etc/xroad/db.properties" "xroad.proxy.batch-signing-enabled" "true"
+  else
+    log_info "Operator opted to leave batch signing at X-Road 8 default (disabled)"
+    mark_step_done "$batch_sentinel"
   fi
 
   log_message ""

@@ -37,25 +37,6 @@ migrate_file() {
   fi
 }
 
-save_value_to_db() {
-  echo "Saving $1 = $2 (scope:'${3:-}') to database."
-  java -cp "$MIGRATION_CLI_JAR_PATH" org.niis.xroad.configuration.migration.SinglePropertySetter  \
-                  "$DB_PROPERTIES_FILE" "$1" "$2" ${3:+$3}
-}
-
-
-keep_batch_signatures() {
-  read -p "Keep batch signing enabled (disabled by default)? [y/N] " confirm
-  case "$confirm" in
-    [yY][eE][sS]|[yY])
-      save_value_to_db "xroad.proxy.batch-signing-enabled" "true"
-      ;;
-    *)
-      echo "Batch signing disabled."
-      ;;
-  esac
-}
-
 echo "Using database properties: $DB_PROPERTIES_FILE"
 echo "Starting configuration files migration..."
 
@@ -67,6 +48,3 @@ for cfg in "${CONFIG_FILES[@]}"; do
 done
 
 migrate_file "$SSL_PROPERTIES_FILE" PropertiesToDbMigrator "SSL properties file" "proxy-ui-api"
-
-keep_batch_signatures
-
