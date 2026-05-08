@@ -25,9 +25,9 @@
   },
   "devDependencies": {
     "@pinia/testing": "^1.0.3",
-    "@typescript-eslint/eslint-plugin": "~8.58.0",
-    "@typescript-eslint/parser": "~8.58.0",
-    "@vue/test-utils": "^2.4.6",
+    "@typescript-eslint/eslint-plugin": "~8.59.2",
+    "@typescript-eslint/parser": "~8.59.2",
+    "@vue/test-utils": "^2.4.10",
     "eslint-plugin-vue-scoped-css": "^3.0.0",
     "resize-observer-polyfill": "^1.5.1"
   },
