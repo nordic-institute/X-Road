@@ -28,6 +28,7 @@ package org.niis.xroad.configuration.migration;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
 import org.niis.xroad.migration.pgp.PgpKeyMigrator;
@@ -63,6 +64,7 @@ public class LegacyConfigMigrationCLI {
         SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
         SIGNER_DEVICES("signer-devices", "Migrate signer devices.ini to DB"),
         CONFIGURATION_ANCHOR("configuration-anchor", "Migrate configuration anchor file to DB"),
+        FILE_TO_DB("file-to-db", "Migrate file contents into a single DB property"),
         HELP("help", "Show this help message");
 
         private final String name;
@@ -83,6 +85,7 @@ public class LegacyConfigMigrationCLI {
                 case "signer-token-pins" -> SIGNER_TOKEN_PINS;
                 case "signer-devices" -> SIGNER_DEVICES;
                 case "configuration-anchor" -> CONFIGURATION_ANCHOR;
+                case "file-to-db" -> FILE_TO_DB;
                 case "help", "-h", "--help" -> HELP;
                 default -> null;
             };
@@ -112,6 +115,7 @@ public class LegacyConfigMigrationCLI {
                 case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
                 case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
                 case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
+                case FILE_TO_DB -> migrateFileToDb(shiftArgs(args));
                 default -> showHelp();
             }
         } catch (Exception e) {
@@ -144,6 +148,7 @@ public class LegacyConfigMigrationCLI {
                   signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
                   signer-devices                 Migrate signer devices.ini to DB
                   configuration-anchor           Migrate configuration anchor file to DB
+                  file-to-db                     Migrate file contents into a single DB property
                   help                           Show this help message
 
                 Configuration Migration:
@@ -183,6 +188,15 @@ public class LegacyConfigMigrationCLI {
                       <devices.ini>        Path to signer devices.ini file
                       <db.properties path> Path to database properties file (signer)
 
+                File-to-DB Migration:
+                  migration-cli file-to-db <input-file> <db.properties path> <property key> [scope]
+                    Migrates the entire contents of a file as a single property value into the DB.
+                    Arguments:
+                      <input-file>         Path to file whose contents will be stored as a property value
+                      <db.properties path> Path to database properties file
+                      <property key>       Property key under which the file contents will be stored
+                      [scope]              Optional scope for the property
+
                 Signer Token PINs Migration:
                   migration-cli signer-token-pins [<script-path>]
                     Migrates token PINs from autologin scripts to Vault.
@@ -203,6 +217,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
+                  migration-cli file-to-db /etc/xroad/conf.d/acme.yml /etc/xroad/db.properties xroad.acme proxy-ui-api
                   migration-cli signer-token-pins
                   migration-cli signer-token-pins /usr/share/xroad/autologin/custom-fetch-pin.sh
                 """);
@@ -342,6 +357,41 @@ public class LegacyConfigMigrationCLI {
 
         log.info("Starting configuration anchor migration from: {}", anchorFilePath);
         new ConfigurationAnchorMigrator().migrate(anchorFilePath, dbPropertiesPath);
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static void migrateFileToDb(String[] args) {
+        if (args.length != 3 && args.length != 4) {
+            log.error("File-to-DB migration requires 3 or 4 arguments");
+            log.error("Usage: migration-cli file-to-db <input-file> <db.properties path> <property key> [scope]");
+            log.error("  <input-file>         Path to file whose contents will be stored as a property value");
+            log.error("  <db.properties path> Path to database properties file");
+            log.error("  <property key>       Property key under which the file contents will be stored");
+            log.error("  [scope]              Optional scope for the property");
+            System.exit(1);
+        }
+
+        String inputFilePath = args[0];
+        String dbPropertiesPath = args[1];
+        String propertyKey = args[2];
+        String scope = args.length == 4 ? args[3] : null;
+
+        validateFilePath(inputFilePath, "input");
+        validateFilePath(dbPropertiesPath, "database properties");
+
+        if (StringUtils.isBlank(propertyKey)) {
+            log.error("Property key cannot be empty");
+            System.exit(1);
+        }
+
+        if (!new File(inputFilePath).exists()) {
+            log.error("Input file does not exist: {}", inputFilePath);
+            System.exit(1);
+        }
+
+        log.info("Starting file-to-db migration from: {} (property key={}, scope={})",
+                inputFilePath, propertyKey, scope == null ? "" : scope);
+        new FileToDbPropertyMigrator(propertyKey).migrate(inputFilePath, dbPropertiesPath, scope);
     }
 
     private static void migrateSignerTokenPins(String[] args) throws IOException {
