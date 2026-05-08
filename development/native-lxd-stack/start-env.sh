@@ -7,7 +7,9 @@ SKIP_COMPILE=false
 SKIP_TESTS=false
 SKIP_BUILD=false
 SKIP_INITIALIZE=false
+SKIP_MAC_NETWORKING=false
 BUST_CACHE=false
+SNAPSHOT_EMPTY=false
 INVENTORY_PATH="config/ansible_hosts.txt"
 
 CACHEABLE_ROLES=(xroad-is xroad-ca)
@@ -21,7 +23,9 @@ function parse_arguments() {
     --skip-tests) SKIP_TESTS=true ;;
     --skip-build) SKIP_BUILD=true ;;
     --skip-init) SKIP_INITIALIZE=true ;;
+    --skip-mac-networking) SKIP_MAC_NETWORKING=true ;;
     --bust-cache) BUST_CACHE=true ;;
+    --snapshot-empty-containers) SNAPSHOT_EMPTY=true ;;
     --custom-inventory=*)
       INVENTORY_PATH="${1#*=}"
       if [ ! -f "$INVENTORY_PATH" ]; then
@@ -50,7 +54,9 @@ function parse_arguments() {
   log_kv "Skip tests" "$SKIP_TESTS" 2 5
   log_kv "Skip build" "$SKIP_BUILD" 2 5
   log_kv "Skip Initialize with Hurl" "$SKIP_INITIALIZE" 2 5
+  log_kv "Skip macOS networking apply" "$SKIP_MAC_NETWORKING" 2 5
   log_kv "Bust cached images" "$BUST_CACHE" 2 5
+  log_kv "Snapshot empty containers" "$SNAPSHOT_EMPTY" 2 5
   log_kv "Using inventory" "$INVENTORY_PATH" 2 5
 }
 
@@ -62,7 +68,9 @@ usage() {
   echo " --skip-build               Skip both compilation and package building"
   echo " --recreate                Recreate containers"
   echo " --initialize              Initialize with Hurl"
+  echo " --skip-mac-networking     Skip setup-mac-net.sh apply (no sudo password prompt)"
   echo " --bust-cache              Delete cached LXD images and refill"
+  echo " --snapshot-empty-containers  Take 'empty' snapshot of all containers before hurl init"
   echo " --custom-inventory=PATH   Use custom inventory file instead of default"
   echo " -h, --help                This help text."
   exit 1
@@ -147,6 +155,70 @@ function listCachedImages() {
   done
 }
 
+SNAPSHOT_CONTAINERS=(xrd-ss0 xrd-ss1 xrd-cs)
+
+function listSnapshots() {
+  log_info "LXD container snapshots:"
+  for container in "${SNAPSHOT_CONTAINERS[@]}"; do
+    if ! lxc info "$container" >/dev/null 2>&1; then
+      continue
+    fi
+
+    # Determine the storage pool for this container
+    local pool
+    pool=$(lxc query "/1.0/instances/${container}" 2>/dev/null \
+      | jq -r '.expanded_devices.root.pool // ""')
+
+    # Enumerate snapshots via API; filter to empty/custom only
+    local snaps_json
+    snaps_json=$(lxc query "/1.0/instances/${container}/snapshots" 2>/dev/null || echo "[]")
+
+    local found=false
+    local snap_names
+    # Extract just the snapshot name from each URL path element
+    mapfile -t snap_names < <(echo "$snaps_json" | jq -r '.[]' 2>/dev/null \
+      | sed 's|.*/||')
+
+    for snap in "${snap_names[@]}"; do
+      [[ "$snap" == "empty" || "$snap" == "custom" ]] || continue
+      found=true
+
+      # Get creation timestamp from snapshot detail
+      local snap_detail created_at size_str
+      snap_detail=$(lxc query "/1.0/instances/${container}/snapshots/${snap}" 2>/dev/null || echo "{}")
+      created_at=$(echo "$snap_detail" | jq -r '.created_at // "unknown"' 2>/dev/null || echo "unknown")
+
+      # Attempt size lookup via storage pool state endpoint
+      size_str="—"
+      if [ -n "$pool" ]; then
+        local size_bytes
+        size_bytes=$(lxc query \
+          "/1.0/storage-pools/${pool}/volumes/container/${container}/snapshots/${snap}/state" \
+          2>/dev/null | jq -r '.usage // empty' 2>/dev/null || true)
+        if [ -n "$size_bytes" ] && [ "$size_bytes" != "null" ]; then
+          if command -v numfmt >/dev/null 2>&1; then
+            size_str=$(numfmt --to=iec "$size_bytes" 2>/dev/null || echo "${size_bytes}B")
+          else
+            size_str="${size_bytes}B"
+          fi
+        fi
+      fi
+
+      log_kv "  ${container}/${snap}" "${created_at} — ${size_str}" 2 5
+    done
+
+    if [ "$found" = false ]; then
+      log_kv "  $container" "(no snapshots)" 2 3
+    fi
+  done
+}
+
+function handleSnapshotEmpty() {
+  if [ "$SNAPSHOT_EMPTY" = true ]; then
+    ./scripts/snapshot-containers.sh --name=empty
+  fi
+}
+
 function ensureCacheFilled() {
   local needs_fill=()
   local upstream_fp
@@ -221,6 +293,10 @@ function handleAnsible() {
 
 function applyMacNet() {
   [[ $(uname) != "Darwin" ]] && return 0
+  if [ "$SKIP_MAC_NETWORKING" = true ]; then
+    log_info "Skipping setup-mac-net.sh apply (--skip-mac-networking)"
+    return 0
+  fi
   ./scripts/setup-mac-net.sh apply
 }
 
@@ -259,8 +335,10 @@ function main() {
   handleBuild
   listCachedImages
   ensureCacheFilled
+  listSnapshots
   handleAnsible
   applyMacNet
+  handleSnapshotEmpty
   handleInitialize
 }
 
