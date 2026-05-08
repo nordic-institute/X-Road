@@ -5,7 +5,7 @@
 # Usage:
 #   restore-containers.sh --name=empty
 #   restore-containers.sh --name=custom --containers="xrd-ss0 xrd-cs"
-set -euo pipefail
+set -e
 
 source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
 

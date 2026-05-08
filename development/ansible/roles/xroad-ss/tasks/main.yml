@@ -41,39 +41,109 @@
     value: "{{ xroad_configuration_update_interval }}"
   when: xroad_configuration_update_interval is defined
 
-# Point ds-control-plane at the shared dev mock JWKS server (hosted on CS).
-# The server itself is provisioned by the xroad-mock-jwks-server role.
-- name: create ds-control-plane systemd override directory
-  file:
-    path: /etc/systemd/system/xroad-ds-control-plane.service.d
-    state: directory
-    mode: "0755"
+# WIP / DEV: ds-* services pick up environment-specific config from per-service
+# YAML files loaded via quarkus.config.locations declared in their
+# application.yaml. systemd Environment= and `-D` system properties are NOT
+# enough — EDC's QuarkusConfigBridge eagerly snapshots only enumerable SmallRye
+# sources (yaml/properties files), so env-vars never reach EDC's @Setting code.
+#
+# HTTPS: each service points at the shared ds-https.p12 keystore provisioned by
+# ds-https-keystore.yml. EDC's JettyService applies one keystore globally to
+# all ports (identity, did, sts, credentials, mgmt, dsp, control) — switching
+# this on flips every ds-* port to TLS, and callers must use https://.
+#
+# Production replacement plan (per file):
+#   - jwks.url            -> identity provider JWKS endpoint
+#   - trusted-issuer.*    -> issuer DIDs registered via CS admin onboarding
+#   - sts.oauth.token.url -> production STS endpoint (per-host)
+#   - keystore lifecycle  -> real PKI, not dev xrd-pki
 
-- name: configure ds-control-plane JWKS URL (shared mock-jwks)
+- include_tasks: ds-https-keystore.yml
+
+- name: configure ds-identity-hub runtime overrides
   copy:
-    dest: /etc/systemd/system/xroad-ds-control-plane.service.d/jwks.conf
-    mode: "0644"
+    dest: /etc/xroad/conf.d/local-ds-identity-hub.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
     content: |
-      [Service]
-      Environment=EDC_IAM_OAUTH2_JWKS_URL=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
-      Environment=XROAD_DS_CONTROL_PLANE_PARAMS=-Dedc.iam.oauth2.jwks.url=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
+      edc:
+        iam:
+          oauth2:
+            jwks:
+              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
+        web:
+          https:
+            keystore:
+              path: "/etc/xroad/ssl/ds-https.p12"
+              type: "PKCS12"
+              password: "changeit"
+            keymanager:
+              password: "changeit"
 
-- name: restart ds-control-plane to pick up JWKS config
+- name: configure ds-control-plane runtime overrides
+  copy:
+    dest: /etc/xroad/conf.d/local-ds-control-plane.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      edc:
+        iam:
+          oauth2:
+            jwks:
+              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
+          trusted-issuer:
+            issuer:
+              id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
+          sts:
+            oauth:
+              token:
+                url: "https://{{ inventory_hostname }}:7184/api/sts/token"
+        web:
+          https:
+            keystore:
+              path: "/etc/xroad/ssl/ds-https.p12"
+              type: "PKCS12"
+              password: "changeit"
+            keymanager:
+              password: "changeit"
+
+- name: drop legacy ds-control-plane systemd override (now in YAML)
+  file:
+    path: /etc/systemd/system/xroad-ds-control-plane.service.d/jwks.conf
+    state: absent
+
+- name: restart ds-identity-hub to pick up runtime overrides
+  systemd:
+    name: xroad-ds-identity-hub
+    state: restarted
+    daemon_reload: yes
+
+- name: restart ds-control-plane to pick up runtime overrides
   systemd:
     name: xroad-ds-control-plane
     state: restarted
     daemon_reload: yes
 
 # DSP proxy configuration for LXD environment.
-# Phase 11 (XRDDEV-3153) renamed the keys this file sets:
-#   control-plane-url        -> control-plane-endpoint    (ProxyDspProperties)
-#   counter-party-address    -> split into 3 fields       (AssetAccessClientProperties)
-#                                counter-party-url-scheme + counter-party-port
-#                                + counter-party-base-path
-# The provider host portion of counter-party is now derived per-service from
-# serverconf at request time (DspSubProcessor#buildCounterPartyAddress), so it
-# is no longer set here. Strict SmallRye config validation refuses to start
-# xroad-proxy if the old keys are left in place.
+# Key history:
+#   Phase 11 (XRDDEV-3153): renamed control-plane-url -> control-plane-endpoint
+#                           and split counter-party-address into 3 fields.
+#   Phase 12 (DSP cleanup):  removed counter-party-url-scheme/port/base-path
+#                           in favour of a hardcoded host->target map inside
+#                           DspSubProcessor (CounterPartyTarget#defaultMap);
+#                           added per-SS participant-context-id (= inventory
+#                           hostname). Strict SmallRye refuses to start the
+#                           proxy if participant-context-id is missing or
+#                           the removed counter-party-* keys are left in.
+#
+# Scheme of the local control-plane endpoint is https because ds-https-keystore.yml
+# provisions an xrd-ca-signed keystore for ds-control-plane and EDC JettyService
+# applies it globally to every ds-* port (identity / did / sts / issuance /
+# admin / control / proto). xrd-ca is installed into the system trust store
+# earlier in this role, so the JVM (Quarkus xroad-proxy here, ds-control-plane
+# on the counterparty) trusts the cert chain.
 - name: configure DSP control plane URLs for LXD
   copy:
     dest: /etc/xroad/conf.d/local-dsp.yaml
@@ -84,7 +154,5 @@
       xroad:
         proxy:
           dsp:
-            control-plane-endpoint: "http://127.0.0.1:8184/api/v1/control"
-            counter-party-url-scheme: "http"
-            counter-party-port: 8183
-            counter-party-base-path: "/api/dsp"
+            participant-context-id: "{{ inventory_hostname }}"
+            control-plane-endpoint: "https://127.0.0.1:8184/api/v1/control"

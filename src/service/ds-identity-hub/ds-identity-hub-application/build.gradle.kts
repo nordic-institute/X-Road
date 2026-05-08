@@ -18,6 +18,7 @@ dependencies {
   runtimeOnly(libs.edc.core.participantcontext.config)
 
   runtimeOnly(libs.edc.vault.hashicorp)
+  runtimeOnly(libs.edc.encryption.aes)
 
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
 }

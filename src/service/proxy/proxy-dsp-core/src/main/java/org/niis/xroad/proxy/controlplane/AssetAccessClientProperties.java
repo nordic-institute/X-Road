@@ -39,10 +39,15 @@ public interface AssetAccessClientProperties {
     /**
      * The participant context ID used when calling the control plane asset access endpoint.
      *
+     * <p>Per-SS local routing label that must match the {@code @id} used when seeding the
+     * Control Plane {@code ParticipantContext} on this SS. Convention: equal to the SS hostname
+     * (e.g. {@code xrd-ss0}, {@code xrd-ss1}). No default — must be set explicitly per SS via
+     * local config so a misconfigured deployment fails fast at startup rather than silently
+     * routing through a shared placeholder.
+     *
      * @return participant context ID
      */
     @WithName("participant-context-id")
-    @WithDefault("test-part-ctx")
     String participantContextId();
 
     /**
@@ -52,44 +57,4 @@ public interface AssetAccessClientProperties {
      */
     @WithDefault("dataspace-protocol-http:2025-1")
     String protocol();
-
-    /**
-     * URL scheme for the provider DSP endpoint.
-     *
-     * <p>Defaults to {@code http} matching the dev-time Control Plane
-     * {@code application.yaml}. A TLS-fronted deployment should override to {@code https}
-     * via {@code xroad.proxy.dsp.counter-party-url-scheme=https}.
-     *
-     * @return URL scheme (e.g. {@code "http"} or {@code "https"})
-     */
-    @WithName("counter-party-url-scheme")
-    @WithDefault("http")
-    String counterPartyUrlScheme();
-
-    /**
-     * Port where the provider Control Plane listens for DSP protocol traffic.
-     *
-     * <p>Defaults to {@code 8183} matching the dev-time Control Plane
-     * {@code web.http.protocol.port} setting in
-     * {@code ds-control-plane-application/src/main/resources/application.yaml}.
-     *
-     * @return DSP port number
-     */
-    @WithName("counter-party-port")
-    @WithDefault("8183")
-    int counterPartyPort();
-
-    /**
-     * Base path for the DSP protocol endpoint on the provider Control Plane.
-     *
-     * <p>Defaults to {@code /api/dsp} matching the dev-time Control Plane
-     * {@code web.http.protocol.path} setting. EDC appends the protocol version path
-     * ({@code /2025-1}) and per-message subpath ({@code /catalog/request}, etc.) at
-     * dispatch time — consumers supply ONLY this base prefix.
-     *
-     * @return DSP base path prefix (starts with {@code /})
-     */
-    @WithName("counter-party-base-path")
-    @WithDefault("/api/dsp")
-    String counterPartyBasePath();
 }

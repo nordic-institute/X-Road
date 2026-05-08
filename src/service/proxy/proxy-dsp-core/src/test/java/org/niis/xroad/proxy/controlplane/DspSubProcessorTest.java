@@ -49,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,27 +58,26 @@ import static org.mockito.Mockito.when;
 class DspSubProcessorTest {
 
     private static final String INSTANCE = "DEV";
-    private static final String HOST_A = "ss-a.example.com";
-    private static final String HOST_B = "ss-b.example.com";
+    private static final String HOST_A = "xrd-ss0";
+    private static final String HOST_B = "xrd-ss1";
+    private static final String DID_A = "did:web:xrd-ss0%3A7183";
+    private static final String DID_B = "did:web:xrd-ss1%3A7183";
+    private static final String URL_A = "https://xrd-ss0:8183/api/dsp";
+    private static final String URL_B = "https://xrd-ss1:8183/api/dsp";
+    private static final String UNKNOWN_HOST = "unknown.example.com";
 
     @Mock
     private ControlPlaneNegotiationService controlPlaneNegotiationService;
     @Mock
     private ProviderSecurityServerResolver providerSecurityServerResolver;
-    @Mock
-    private AssetAccessClientProperties clientProperties;
 
     private DspSubProcessor processor;
     private ServiceId serviceId;
 
     @BeforeEach
     void setUp() {
-        processor = new DspSubProcessor(controlPlaneNegotiationService,
-                providerSecurityServerResolver, clientProperties);
+        processor = new DspSubProcessor(controlPlaneNegotiationService, providerSecurityServerResolver);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
-        lenient().when(clientProperties.counterPartyUrlScheme()).thenReturn("http");
-        lenient().when(clientProperties.counterPartyPort()).thenReturn(8183);
-        lenient().when(clientProperties.counterPartyBasePath()).thenReturn("/api/dsp");
     }
 
     @Test
@@ -108,11 +106,10 @@ class DspSubProcessorTest {
         var assetIdCaptor = ArgumentCaptor.forClass(String.class);
         verify(controlPlaneNegotiationService).acquireAssetAccess(assetIdCaptor.capture(), any(), any());
         assertThat(assetIdCaptor.getValue()).isEqualTo(serviceId.asEncodedId());
-        assertThat(assetIdCaptor.getValue()).doesNotContain("test-asset");
     }
 
     @Test
-    void counterPartyIdDerivedFromServiceClientId() {
+    void counterPartyIdAndAddressLookedUpFromTargetMap() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
@@ -120,10 +117,11 @@ class DspSubProcessorTest {
 
         processor.execute(new DspRequest(serviceId, null));
 
-        var counterPartyIdCaptor = ArgumentCaptor.forClass(String.class);
-        verify(controlPlaneNegotiationService).acquireAssetAccess(any(), counterPartyIdCaptor.capture(), any());
-        assertThat(counterPartyIdCaptor.getValue()).isEqualTo(serviceId.getClientId().asEncodedId());
-        assertThat(counterPartyIdCaptor.getValue()).doesNotContain("counter-party-id");
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(controlPlaneNegotiationService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
     }
 
     @Test
@@ -133,17 +131,13 @@ class DspSubProcessorTest {
                 .thenReturn(List.of(new ProviderAddress(hint, HOST_A)));
         var expected = new AssetAccessResponse("http://dp/e", null);
         when(controlPlaneNegotiationService.acquireAssetAccess(
-                eq(serviceId.asEncodedId()),
-                eq(serviceId.getClientId().asEncodedId()),
-                eq("http://" + HOST_A + ":8183/api/dsp"))).thenReturn(expected);
+                eq(serviceId.asEncodedId()), eq(DID_A), eq(URL_A))).thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, hint));
 
         assertThat(result).isSameAs(expected);
         verify(controlPlaneNegotiationService).acquireAssetAccess(
-                eq(serviceId.asEncodedId()),
-                eq(serviceId.getClientId().asEncodedId()),
-                eq("http://" + HOST_A + ":8183/api/dsp"));
+                eq(serviceId.asEncodedId()), eq(DID_A), eq(URL_A));
     }
 
     @Test
@@ -176,20 +170,20 @@ class DspSubProcessorTest {
     }
 
     @Test
-    void firstSecurityServerFailsSecondSucceeds() {
+    void oneCandidateFailsOtherSucceeds() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
         var expected = new AssetAccessResponse("http://dp.b/e", "token-b");
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
-                .thenThrow(new RuntimeException("SS A unreachable"))
+        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(new RuntimeException("SS A unreachable"));
+        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
                 .thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, null));
 
         assertThat(result).isSameAs(expected);
-        verify(controlPlaneNegotiationService, times(2)).acquireAssetAccess(any(), any(), any());
     }
 
     @Test
@@ -200,8 +194,9 @@ class DspSubProcessorTest {
                         new ProviderAddress(null, HOST_B)));
         var firstFailure = new RuntimeException("SS A unreachable");
         var lastFailure = new RuntimeException("SS B unreachable");
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
-                .thenThrow(firstFailure)
+        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(firstFailure);
+        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
                 .thenThrow(lastFailure);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null)))
@@ -210,5 +205,35 @@ class DspSubProcessorTest {
                         .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
                 .hasMessageContaining("candidate security servers failed")
                 .hasRootCause(lastFailure);
+    }
+
+    @Test
+    void unmappedHostAddressIsSkippedAndOtherCandidateUsed() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, UNKNOWN_HOST),
+                        new ProviderAddress(null, HOST_A)));
+        var expected = new AssetAccessResponse("http://dp.a/e", null);
+        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenReturn(expected);
+
+        var result = processor.execute(new DspRequest(serviceId, null));
+
+        assertThat(result).isSameAs(expected);
+        verify(controlPlaneNegotiationService, times(1)).acquireAssetAccess(any(), any(), any());
+    }
+
+    @Test
+    void allCandidatesUnmappedThrowsNetworkError() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
+                .hasMessageContaining("candidate security servers failed");
+
+        verify(controlPlaneNegotiationService, never()).acquireAssetAccess(any(), any(), any());
     }
 }

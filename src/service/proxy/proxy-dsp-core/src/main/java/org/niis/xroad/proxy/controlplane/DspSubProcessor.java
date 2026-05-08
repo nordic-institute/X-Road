@@ -38,28 +38,31 @@ import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
- * Default DSP sub-processor. Derives asset-access parameters from the typed
- * {@link DspRequest} and invokes {@link ControlPlaneNegotiationService#acquireAssetAccess}
- * against each candidate security server in shuffled order, returning the first successful
- * {@link AssetAccessResponse}.
+ * Default DSP sub-processor. Resolves candidate provider security servers via
+ * {@link ProviderSecurityServerResolver}, looks each up in the hardcoded
+ * {@link CounterPartyTarget} map, and invokes
+ * {@link ControlPlaneNegotiationService#acquireAssetAccess} in shuffled order until one succeeds.
  *
- * <p>ID construction (per phase 9 decisions):
+ * <p>ID construction:
  * <ul>
- *   <li>{@code assetId = serviceId.asEncodedId()} (D-05; symmetric with provider
- *       {@code AssetMapper.encodeAssetId})</li>
- *   <li>{@code counterPartyId = serviceId.getClientId().asEncodedId()} (D-06; DSP participant =
- *       provider subsystem identity, not hosting SS)</li>
- *   <li>{@code counterPartyAddress = scheme://host:port/basePath} from
- *       {@link AssetAccessClientProperties} (D-08); EDC appends version + message subpath at
- *       dispatch time</li>
+ *   <li>{@code assetId = serviceId.asEncodedId()} — symmetric with provider
+ *       {@code AssetMapper.encodeAssetId} (Phase 9 D-05).</li>
+ *   <li>{@code counterPartyId} + {@code counterPartyAddress} — looked up by candidate
+ *       host-address in {@link CounterPartyTarget#defaultMap()}. Lookup miss is a hard
+ *       error (fail fast; no silent fallback). See
+ *       {@code .scratch/dsp-counterparty-cleanup/PRD.md} D2/D3 and
+ *       {@code findings.md} for why this replaced the prior
+ *       {@code serviceId.getClientId().asEncodedId()} derivation.</li>
  * </ul>
  *
- * <p>Exhaustion of all candidates ends in {@link org.niis.xroad.common.core.exception.ErrorCode#NETWORK_ERROR}
- * with the last thrown exception chained (D-19).
+ * <p>Exhaustion of all candidates ends in
+ * {@link org.niis.xroad.common.core.exception.ErrorCode#NETWORK_ERROR} with the last thrown
+ * exception chained (Phase 9 D-19).
  */
 @Slf4j
 @ApplicationScoped
@@ -68,7 +71,8 @@ public class DspSubProcessor implements DspRequestProcessor {
 
     private final ControlPlaneNegotiationService controlPlaneNegotiationService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
-    private final AssetAccessClientProperties clientProperties;
+
+    private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
 
     @Override
     public AssetAccessResponse execute(DspRequest request) {
@@ -76,20 +80,27 @@ public class DspSubProcessor implements DspRequestProcessor {
 
         var serviceId = request.serviceId();
         var assetId = serviceId.asEncodedId();
-        var counterPartyId = serviceId.getClientId().asEncodedId();
 
         var candidates = new ArrayList<>(
                 providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer()));
         Collections.shuffle(candidates);
-        log.debug("processing DSP request for service {}, asset {}, counterPartId {}. Got {} possible targets",
-                serviceId, assetId, counterPartyId, candidates.size());
+        log.debug("processing DSP request for service {}, asset {}. Got {} possible targets",
+                serviceId, assetId, candidates.size());
 
         RuntimeException last = null;
         for (var candidate : candidates) {
-            var counterPartyAddress = buildCounterPartyAddress(candidate.hostAddress());
+            var target = counterPartyTargets.get(candidate.hostAddress());
+            if (target == null) {
+                last = XrdRuntimeException.systemException(NETWORK_ERROR,
+                        "No DSP counter-party target configured for provider host-address \"%s\"",
+                        candidate.hostAddress());
+                log.warn("No counter-party target for SS {} (address {}), trying next",
+                        candidate.serverId(), candidate.hostAddress(), last);
+                continue;
+            }
             try {
                 return controlPlaneNegotiationService.acquireAssetAccess(
-                        assetId, counterPartyId, counterPartyAddress);
+                        assetId, target.counterPartyId(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
@@ -100,13 +111,5 @@ public class DspSubProcessor implements DspRequestProcessor {
         throw XrdRuntimeException.systemException(NETWORK_ERROR, last,
                 "All %d candidate security servers failed to acquire asset access for service %s",
                 candidates.size(), serviceId);
-    }
-
-    private String buildCounterPartyAddress(String host) {
-        return "%s://%s:%d%s".formatted(
-                clientProperties.counterPartyUrlScheme(),
-                host,
-                clientProperties.counterPartyPort(),
-                clientProperties.counterPartyBasePath());
     }
 }

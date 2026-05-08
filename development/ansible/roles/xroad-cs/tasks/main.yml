@@ -2,25 +2,85 @@
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
 
-# Point ds-issuer-service at the shared dev mock JWKS server (hosted on CS).
-# The server itself is provisioned by the xroad-mock-jwks-server role.
-- name: create ds-issuer-service systemd override directory
-  file:
-    path: /etc/systemd/system/xroad-ds-issuer-service.service.d
-    state: directory
-    mode: "0755"
+- include_tasks: ds-https-keystore.yml
 
-- name: configure ds-issuer-service JWKS URL (shared mock-jwks)
+# WIP / DEV: ds-issuer-service runtime overrides. Loaded via
+# quarkus.config.locations declared in application.yaml.
+#
+# Why YAML, not systemd Environment=: EDC's QuarkusConfigBridge eagerly snapshots
+# only enumerable SmallRye config sources (yaml/properties files). Env-vars and
+# `-D` system-properties reach SmallRye lazily and never reach EDC's @Setting
+# resolution — services fail to boot with "configuration setting required".
+#
+# HTTPS: edc.web.https.keystore.* points EDC's Jetty at the shared keystore
+# provisioned by ds-https-keystore.yml. Enabling the keystore lights up TLS on
+# every ds-* port (identity, did, sts, issuance, admin) — there's no per-port
+# choice in EDC's stock JettyService.
+#
+# Production: replace mock JWKS with the actual identity provider's JWKS URL;
+# manage keystore lifecycle via real PKI rotation, not the dev xrd-pki mock.
+- name: configure ds-issuer-service runtime overrides
   copy:
-    dest: /etc/systemd/system/xroad-ds-issuer-service.service.d/jwks.conf
-    mode: "0644"
+    dest: /etc/xroad/conf.d/local-ds-issuer-service.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
     content: |
-      [Service]
-      Environment=EDC_IAM_OAUTH2_JWKS_URL=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
-      Environment=XROAD_DS_ISSUER_SERVICE_PARAMS=-Dedc.iam.oauth2.jwks.url=http://{{ groups['cs_servers'] | first }}:8099/jwks.json
+      edc:
+        iam:
+          oauth2:
+            jwks:
+              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
+        web:
+          https:
+            keystore:
+              path: "/etc/xroad/ssl/ds-https.p12"
+              type: "PKCS12"
+              password: "changeit"
+            keymanager:
+              password: "changeit"
 
-- name: restart ds-issuer-service to pick up JWKS config
+- name: drop legacy ds-issuer-service systemd override (now in YAML)
+  file:
+    path: /etc/systemd/system/xroad-ds-issuer-service.service.d/jwks.conf
+    state: absent
+
+- name: restart ds-issuer-service to pick up runtime overrides
   systemd:
     name: xroad-ds-issuer-service
     state: restarted
     daemon_reload: yes
+
+# TEMPORARY FIX — race in ManagementServiceSslBundleRegistrar
+# (core/src/common/common-management-service/.../ManagementServiceSslBundleRegistrar.java).
+# Both xroad-center-management-service and xroad-center-registration-service share
+# the vault path `tls/management-service` and each calls `ensureTlsKeyPresent()`
+# at startup. On a clean install the path is empty, so BOTH services provision a
+# fresh keypair via `vaultKeyClient.provisionNewCerts()` and `createManagementServiceTlsCredentials`
+# overwrites whichever wrote first. The losing service stays in memory with cert A
+# while vault (and the second service) hold cert B; admin-service's globalconf-generator
+# (PrivateParametersLoader.java:73) then publishes cert B as authCertRegServiceCert
+# while port 4001 (registration-service) actually presents cert A → SS auth-cert
+# registration fails with "Central server TLS certificate does not match in global conf".
+#
+# The proper fix is to make ensureTlsKeyPresent idempotent across services
+# (one writer, others read-only) — see ManagementServiceSslBundleRegistrar.
+# Until then: restart registration-service AFTER both have settled. The restarted
+# instance will read the now-populated vault entry and serve whichever cert
+# management-service wrote (also what globalconf advertises). One sync point is
+# enough — vault state is then stable.
+- name: wait for management & registration services to be active (race resolution prerequisite)
+  systemd:
+    name: "{{ item }}"
+  register: cs_mgmt_reg_state
+  until: cs_mgmt_reg_state.status.ActiveState == "active"
+  retries: 30
+  delay: 2
+  loop:
+    - xroad-center-management-service
+    - xroad-center-registration-service
+
+- name: restart xroad-center-registration-service so its TLS bundle reloads from vault
+  systemd:
+    name: xroad-center-registration-service
+    state: restarted
