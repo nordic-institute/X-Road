@@ -105,6 +105,20 @@ main() {
   ensure_sentinel_dir
 
   run_migration_step "validate"
+
+  # configuration-anchor migrates the configuration anchor XML contents into
+  # the configuration database. The anchor path is configured in local.ini
+  # (proxy.configuration-anchor-file); fall back to the canonical default.
+  # crudini is a guaranteed prerequisite (installed by setup_prerequisites.sh).
+  local conf_anchor_file
+  conf_anchor_file=$(crudini --get /etc/xroad/conf.d/local.ini proxy configuration-anchor-file 2>/dev/null \
+    || echo "/etc/xroad/configuration-anchor.xml")
+  if [[ -f "$conf_anchor_file" ]]; then
+    run_migration_step "configuration-anchor" "$conf_anchor_file" "/etc/xroad/db.properties"
+  else
+    log_info "Configuration anchor file not found at $conf_anchor_file — skipping configuration-anchor migration"
+  fi
+
   run_migration_step "config" "/etc/xroad/conf.d/local.ini" "/etc/xroad/conf.d/local.yaml"
   run_migration_step "keyconf" "/etc/xroad/signer" "/etc/xroad/db.properties"
 
