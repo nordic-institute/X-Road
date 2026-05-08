@@ -26,7 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import { InitialServerConf } from '@/openapi-types';
+import { InitialAdminUser, InitialAdminUserStatus, InitialServerConf } from '@/openapi-types';
 import * as api from '@/util/api';
 
 export const useInitializeServer = defineStore('initializeServer', {
@@ -35,6 +35,7 @@ export const useInitializeServer = defineStore('initializeServer', {
       memberClass: undefined as string | undefined,
       memberCode: undefined as string | undefined,
       securityServerCode: undefined as string | undefined,
+      initialAdminUserRequired: false as boolean,
     };
   },
   getters: {
@@ -65,6 +66,15 @@ export const useInitializeServer = defineStore('initializeServer', {
     },
     async initializeServer(payload: InitialServerConf) {
       return api.post('/initialization', payload);
+    },
+    async fetchInitialAdminUserStatus() {
+      const resp = await api.get<InitialAdminUserStatus>('/initialization/admin-user/status');
+      this.initialAdminUserRequired = resp.data.admin_user_creation_required;
+      return this.initialAdminUserRequired;
+    },
+    async createInitialAdminUser(payload: InitialAdminUser) {
+      await api.post('/initialization/admin-user', payload);
+      this.initialAdminUserRequired = false;
     },
   },
 });

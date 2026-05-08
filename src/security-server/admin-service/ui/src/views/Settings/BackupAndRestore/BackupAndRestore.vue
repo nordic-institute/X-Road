@@ -55,7 +55,6 @@ import { BackupHandler, useNotifications, XrdBackupsDataTable, XrdView } from '@
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 import { useBackups } from '@/store/modules/backups';
 
-
 const { addError } = useNotifications();
 const backupStore = useBackups();
 const { hasPermission } = useUser();
@@ -72,7 +71,6 @@ const backupHandler: BackupHandler = {
   download: backupStore.downloadBackup,
   restore: backupStore.restoreBackup,
 };
-
 
 async function fetchData() {
   loadingBackups.value = true;

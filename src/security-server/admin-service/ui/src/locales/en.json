@@ -660,6 +660,14 @@
     "softTokenPinNotEntered": "Please enter soft token PIN"
   },
   "initialConfiguration": {
+    "adminUser": {
+      "confirmPassword": "Confirm password",
+      "info": "Create the initial administrator account that will be used to manage this Security Server.",
+      "password": "Password",
+      "passwordMatchError": "Password confirmation does not match",
+      "title": "Administrator Account",
+      "username": "Username"
+    },
     "anchor": {
       "generated": "Generated",
       "hash": "Hash (SHA-224)",
