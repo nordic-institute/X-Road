@@ -6,6 +6,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$SCRIPT_DIR/../../lib/common.sh"
 
+# Source secret-store-local.conf to export XROAD_SECRET_STORE_{HOST,PORT,SCHEME,TOKEN}.
+# Guarded with [ -f ... ] so the wrapper continues on hosts without xroad-secret-store-local.
+# Java side (MigrationVaultClient.createAndPreflight) per-subcommand validates these vars.
+[ -f /etc/xroad/services/secret-store-local.conf ] && source /etc/xroad/services/secret-store-local.conf
+
 XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 
 # This constant must match the destination set in download_migration_cli.sh.

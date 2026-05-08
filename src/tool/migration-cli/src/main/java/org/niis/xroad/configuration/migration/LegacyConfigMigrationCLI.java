@@ -28,12 +28,20 @@ package org.niis.xroad.configuration.migration;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
+import org.niis.xroad.migration.pgp.PgpKeyMigrator;
 import org.niis.xroad.migration.signer.KeyConfMigrator;
+import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
+import org.niis.xroad.migration.tokenpin.TokenPinMigrator;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Unified CLI for X-Road migrations.
@@ -180,7 +188,7 @@ public class LegacyConfigMigrationCLI {
         new EnvironmentValidator().run();
     }
 
-    private static void migratePgpKeys(String[] args) {
+    private static void migratePgpKeys(String[] args) throws IOException {
         if (args.length < 1) {
             log.error("PGP key migration requires configuration file");
             log.error("Usage: migration-cli pgp-keys <ini-config-file>");
@@ -195,26 +203,15 @@ public class LegacyConfigMigrationCLI {
             throw new IllegalArgumentException("Configuration file does not exist: " + configFile);
         }
 
-        log.info("Starting PGP key migration");
-        log.info("  INI config: {}", configFile);
-
-        log.warn("PGP key migration requires Vault configuration");
-        log.info("Configuration file validated: {}", configFile);
-        log.info("To complete migration, ensure Vault is configured and accessible");
-
-        //TODO provide vault configuration
-
-        // Note: PGP key migration requires Vault configuration and is not yet implemented in CLI
-        // Example of how this would work with proper vault client:
-        // VaultClient vaultClient = createVaultClient();
-        // PgpKeyMigrator migrator = new PgpKeyMigrator(vaultClient);
-        // MigrationResult result = migrator.migrateFromConfig(Paths.get(configFile));
-        // log.info("Migration result: {}", result);
-        // log.info("Keys stored in Vault");
+        log.info("Starting PGP key migration from config: {}", configFile);
+        var vaultClient = MigrationVaultClient.createAndPreflight();
+        var migrator = new PgpKeyMigrator(vaultClient);
+        var result = migrator.migrateFromConfig(Paths.get(configFile));
+        log.info("PGP key migration result: {}", result);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private static void migrateMessageLogKeys(String[] args) {
+    private static void migrateMessageLogKeys(String[] args) throws IOException {
         if (args.length < 3) {
             log.error("Message log database encryption key migration requires 3 arguments");
             log.error("Usage: migration-cli messagelog-db-encryption-keys <keystore.p12> <password> <key-id>");
@@ -235,26 +232,14 @@ public class LegacyConfigMigrationCLI {
         }
 
         log.info("Starting message log database encryption key migration");
-        log.info("  Keystore: {}", keystorePath);
-        log.info("  Key ID: {}", keyId);
-
-        log.warn("Message log database encryption key migration requires Vault configuration");
-        log.info("Keystore file validated: {}", keystorePath);
-        log.info("To complete migration, ensure Vault is configured and accessible");
-
-        //TODO provide vault configuration
-
-        // Note: Message log database encryption key migration requires Vault configuration
-        // Example of how this would work with proper vault client:
-        // VaultClient vaultClient = createVaultClient();
-        // MessageLogKeyMigrator migrator = new MessageLogKeyMigrator(vaultClient);
-        // MessageLogKeyMigrationResult result = migrator.migrateFromKeystore(
-        //     Paths.get(keystorePath),
-        //     password.toCharArray(),
-        //     keyId
-        // );
-        // log.info("Migration result: {}", result);
-        // log.info("Key stored in Vault");
+        var vaultClient = MigrationVaultClient.createAndPreflight();
+        var migrator = new MessageLogKeyMigrator(vaultClient);
+        var result = migrator.migrateFromKeystore(
+                Paths.get(keystorePath),
+                password.toCharArray(),
+                keyId
+        );
+        log.info("Message log encryption key migration result: {}", result);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -286,7 +271,7 @@ public class LegacyConfigMigrationCLI {
 
     }
 
-    private static void migrateSignerTokenPins(String[] args) {
+    private static void migrateSignerTokenPins(String[] args) throws IOException {
         // Determine script path
         Path scriptPath;
         if (args.length > 0) {
@@ -305,29 +290,27 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        //TODO provide vault configuration
-
-        // Example of how this would work with proper vault client:
-        // VaultClient vaultClient = createVaultClient();
-        // AutoLoginScriptExecutor executor = new AutoLoginScriptExecutor();
-        // TokenPinMigrator migrator = new TokenPinMigrator(vaultClient, executor);
-        //
-        // TokenPinMigrationResult result = migrator.migrateFromScript(scriptPath);
-        //
-        // System.out.println("Migration Status: " + result.status());
-        // System.out.println("Message: " + result.message());
-        //
-        // if (!result.successfulTokens().isEmpty()) {
-        //     System.out.println("Migrated tokens: " + String.join(", ", result.successfulTokens()));
-        // }
-        // if (!result.skippedTokens().isEmpty()) {
-        //     System.out.println("Skipped tokens (already exist): " + String.join(", ", result.skippedTokens()));
-        // }
-        // if (!result.failedTokens().isEmpty()) {
-        //     System.out.println("Failed tokens:");
-        //     result.failedTokens().forEach((token, error) ->
-        //         System.out.println("  - " + token + ": " + error));
-        // }
+        log.info("Starting signer token PIN migration from script: {}", scriptPath);
+        var vaultClient = MigrationVaultClient.createAndPreflight();
+        var executor = new AutoLoginScriptExecutor();
+        var migrator = new TokenPinMigrator(vaultClient, executor);
+        var result = migrator.migrateFromScript(scriptPath);
+        log.info("Token PIN migration status: {}", result.status());
+        log.info("Message: {}", result.message());
+        if (!result.successfulTokens().isEmpty()) {
+            log.info("Migrated tokens: {}", String.join(", ", result.successfulTokens()));
+        }
+        if (!result.skippedTokens().isEmpty()) {
+            log.info("Skipped tokens (already exist): {}", String.join(", ", result.skippedTokens()));
+        }
+        if (!result.failedTokens().isEmpty()) {
+            log.warn("Failed tokens: {}", result.failedTokens());
+        }
+        if (!result.isSuccessful()) {
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR,
+                    "Signer token PIN migration did not succeed (status=%s, failed=%s)",
+                    result.status(), result.failedTokens());
+        }
     }
 
     private static void migrateConfiguration(String[] args) {
