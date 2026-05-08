@@ -31,14 +31,24 @@ concurrency:
 jobs:
   BuildAndPackageWithUnitTests:
     name: Build, test and package code
+    # Skip Build on dependabot/gradle/* branches for any event sent by
+    # Dependabot itself (open, recreate, rebase — all fire pull_request with
+    # sender.login == 'dependabot[bot]'). The dependabot-gradle-metadata.yml
+    # workflow regenerates verification-metadata.xml and force-pushes as
+    # github-actions[bot]; that sync event has sender.login ==
+    # 'github-actions[bot]' and runs Build on the fixed commit.
+    # See development/docs/gradle-dependency-verification.md.
+    if: >
+      !(startsWith(github.head_ref, 'dependabot/gradle/')
+        && github.event.sender.login == 'dependabot[bot]')
     runs-on: ubuntu-22.04
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
       - name: Ensure required packages
@@ -46,25 +56,25 @@ jobs:
           DEBIAN_FRONTEND: noninteractive # Less output to log
         run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@18f1c6724d5bcb313b5c5ef536430a31e5c5b455 # v4.4.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Build, test and package code setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Build environment setup'
@@ -77,7 +87,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: success() || failure()
         with:
           name: Unit and integration tests
@@ -86,12 +96,12 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
       - name: Build, test and package code execution measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Build, unit tests and packaging'
       - name: Store files for arm packaging
-        uses: pyTooling/upload-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/upload-artifact@f768f30e80e9f27b3fd61f4405facadf6ddc31ea # v4
         with:
           name: workspace-for-arm
           include-hidden-files: true
@@ -124,18 +134,18 @@ jobs:
           DEBFULLNAME: 'NIIS'
         run: ./src/packages/build-deb.sh noble -release
       - name: Store deb files for system tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Packaging and upload artifacts measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Packaging and upload artifacts'
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: display-results
           pr-comment: true
@@ -145,7 +155,7 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: start-measurement
           label: 'Packaging for arm architecture'
@@ -154,23 +164,23 @@ jobs:
           DEBIAN_FRONTEND: noninteractive # Less output to log
         run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@18f1c6724d5bcb313b5c5ef536430a31e5c5b455 # v4.4.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Download workspace
-        uses: pyTooling/download-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        uses: pyTooling/download-artifact@e20e40f1bdf018e52108faaadd8b04a4dfffae92 # v4
         with:
           name: workspace-for-arm
       - name: Set up measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Set up arm packaging'
@@ -192,18 +202,18 @@ jobs:
           DEBFULLNAME: 'NIIS'
         run: ./src/packages/build-deb.sh noble -release
       - name: Store deb files for Docker dev images
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: debian-packages-arm
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
       - name: Measurement for arm packaging
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Packaging for arm architecture'
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: display-results
           pr-comment: true
@@ -218,36 +228,36 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: start-measurement
           label: 'Central Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@18f1c6724d5bcb313b5c5ef536430a31e5c5b455 # v4.4.0
         with:
           cache-read-only: true
       - name: Initialize docker setup
         working-directory: ./Docker/centralserver
         run: ./init_context.sh
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
         with:
           driver-opts: network=host
       - name: Download debian packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
       - name: List docker build files
         run: ls -lah ./Docker/centralserver/build
       - name: Build CS docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ./Docker/centralserver/
           push: true
@@ -255,7 +265,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Central Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
@@ -265,14 +275,14 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test Central Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Test Central Server'
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: success() || failure()
         with:
           name: Central Server system test
@@ -280,24 +290,24 @@ jobs:
           reporter: java-junit
       - name: Upload CS screenshots
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
       - name: Upload CS report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: CS System Test report
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: display-results
           pr-comment: true
       - name: Upload GMT jsons
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: CS System Test GMT jsons
           path: |
@@ -314,34 +324,34 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: start-measurement
           label: 'Security Server system tests'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@18f1c6724d5bcb313b5c5ef536430a31e5c5b455 # v4.4.0
         with:
           cache-read-only: true
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
         with:
           driver-opts: network=host
       - name: Initialize docker setup
         working-directory: ./Docker/securityserver
         run: ./init_context.sh
       - name: Download debian packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: debian-packages
           path: ./Docker/securityserver/build/packages/
       - name: Build SS docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ./Docker/securityserver/
           push: true
@@ -349,7 +359,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Security Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Set up Security Server tests'
@@ -357,14 +367,14 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test Security Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Test Security Server'
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: success() || failure()
         with:
           name: Security Server system tests
@@ -374,7 +384,7 @@ jobs:
         run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
         if: failure()
       - name: Upload SS report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: SS System Test report
@@ -384,7 +394,7 @@ jobs:
             src/security-server/system-test/build/ca-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: display-results
           pr-comment: true
@@ -399,13 +409,13 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: start-measurement
           label: 'E2E tests'
       # Setup
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # main
         with:
           android: true
           tool-cache: false
@@ -414,18 +424,18 @@ jobs:
           large-packages: false
           docker-images: false
           swap-storage: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@18f1c6724d5bcb313b5c5ef536430a31e5c5b455 # v4.4.0
         with:
           cache-read-only: true
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
         with:
           driver-opts: network=host
       # Build Central Server
@@ -433,12 +443,12 @@ jobs:
         working-directory: ./Docker/centralserver
         run: ./init_context.sh
       - name: Download debian packages for CS
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
       - name: Build CS docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ./Docker/centralserver/
           push: true
@@ -452,7 +462,7 @@ jobs:
       - name: Copy debian packages for SS
         run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
       - name: Build SS docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ./Docker/securityserver/
           push: true
@@ -460,7 +470,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'Set up E2E tests'
@@ -472,28 +482,28 @@ jobs:
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
           -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: get-measurement
           label: 'E2E tests'
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: success() || failure()
         with:
           name: E2E tests
           path: src/security-server/e2e-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
       - name: Upload E2E report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: E2E report
           path: |
             src/security-server/e2e-test/build/allure-report/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        uses: green-coding-solutions/eco-ci-energy-estimation@173a7c84b6d28fc44a6c2ac4985a60ed4b5b3661 # v4.7
         with:
           task: display-results
           pr-comment: true

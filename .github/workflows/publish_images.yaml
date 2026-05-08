@@ -23,13 +23,13 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Initialize docker setup
         working-directory: ${{ github.workspace }}/Docker/centralserver
         run: ./init_context.sh
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
       - name: Download Debian packages
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -51,13 +51,13 @@ jobs:
       - name: Unzip Debian packages
         run: mkdir -p ${{ github.workspace }}/Docker/centralserver/build/packages && unzip -d ${{ github.workspace }}/Docker/centralserver/build/packages debian-packages.zip
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ${{ github.workspace }}/Docker/centralserver
           build-args: |
@@ -79,13 +79,13 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Initialize docker setup
         working-directory: ${{ github.workspace }}/Docker/securityserver
         run: ./init_context.sh
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
       - name: Download Debian packages
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -107,13 +107,13 @@ jobs:
       - name: Unzip Debian packages
         run: mkdir -p ${{ github.workspace }}/Docker/securityserver/build/packages && unzip -d ${{ github.workspace }}/Docker/securityserver/build/packages debian-packages.zip
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ${{ github.workspace }}/Docker/securityserver
           build-args: |
@@ -129,7 +129,7 @@ jobs:
       packages: write
     steps:
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -141,7 +141,7 @@ jobs:
             --amend ghcr.io/nordic-institute/xrddev-central-server:arm-latest
           docker manifest push ghcr.io/nordic-institute/xrddev-central-server:latest
       - name: Clean old CS images
-        uses: snok/container-retention-policy@v2
+        uses: snok/container-retention-policy@b56f4ff7539c1f94f01e5dc726671cd619aa8072 # v2
         with:
           image-names: xrddev-central-server
           cut-off: 1 week ago UTC
@@ -160,7 +160,7 @@ jobs:
       packages: write
     steps:
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -172,7 +172,7 @@ jobs:
             --amend ghcr.io/nordic-institute/xrddev-security-server:arm-latest
           docker manifest push ghcr.io/nordic-institute/xrddev-security-server:latest
       - name: Clean old SS images
-        uses: snok/container-retention-policy@v2
+        uses: snok/container-retention-policy@b56f4ff7539c1f94f01e5dc726671cd619aa8072 # v2
         with:
           image-names: xrddev-security-server
           cut-off: 1 week ago UTC
