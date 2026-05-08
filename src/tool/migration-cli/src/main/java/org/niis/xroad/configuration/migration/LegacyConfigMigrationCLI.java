@@ -61,6 +61,7 @@ public class LegacyConfigMigrationCLI {
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
         SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
+        CONFIGURATION_ANCHOR("configuration-anchor", "Migrate configuration anchor file to DB"),
         HELP("help", "Show this help message");
 
         private final String name;
@@ -79,6 +80,7 @@ public class LegacyConfigMigrationCLI {
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
                 case "keyconf" -> KEYCONF;
                 case "signer-token-pins" -> SIGNER_TOKEN_PINS;
+                case "configuration-anchor" -> CONFIGURATION_ANCHOR;
                 case "help", "-h", "--help" -> HELP;
                 default -> null;
             };
@@ -106,6 +108,7 @@ public class LegacyConfigMigrationCLI {
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
                 case KEYCONF -> migrateKeyConf(shiftArgs(args));
                 case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
+                case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
                 default -> showHelp();
             }
         } catch (Exception e) {
@@ -136,6 +139,7 @@ public class LegacyConfigMigrationCLI {
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
                   keyconf                        Migrate signer key configuration to DB
                   signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
+                  configuration-anchor           Migrate configuration anchor file to DB
                   help                           Show this help message
 
                 Configuration Migration:
@@ -161,6 +165,13 @@ public class LegacyConfigMigrationCLI {
                     <keyconf path>       Path to directory containing keyconf.xml and softtoken keys
                     <db.properties path> Path to database properties file (serverconf)
 
+                Configuration Anchor Migration:
+                  migration-cli configuration-anchor <anchor-file> <db.properties path>
+                    Migrates the configuration anchor file contents into the configuration database.
+                    Arguments:
+                      <anchor-file>        Path to configuration anchor XML file
+                      <db.properties path> Path to database properties file
+
                 Signer Token PINs Migration:
                   migration-cli signer-token-pins [<script-path>]
                     Migrates token PINs from autologin scripts to Vault.
@@ -179,6 +190,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli pgp-keys /etc/xroad/conf.d/local.ini
                   migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
+                  migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli signer-token-pins
                   migration-cli signer-token-pins /usr/share/xroad/autologin/custom-fetch-pin.sh
                 """);
@@ -269,6 +281,31 @@ public class LegacyConfigMigrationCLI {
             log.error("Error while migrating Signer keyconf", e);
         }
 
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static void migrateConfigurationAnchor(String[] args) {
+        if (args.length != 2) {
+            log.error("Configuration anchor migration requires 2 arguments");
+            log.error("Usage: migration-cli configuration-anchor <anchor-file> <db.properties path>");
+            log.error("  <anchor-file>        Path to configuration anchor XML file");
+            log.error("  <db.properties path> Path to database properties file");
+            System.exit(1);
+        }
+
+        String anchorFilePath = args[0];
+        String dbPropertiesPath = args[1];
+
+        validateFilePath(anchorFilePath, "configuration anchor");
+        validateFilePath(dbPropertiesPath, "database properties");
+
+        if (!new File(anchorFilePath).exists()) {
+            log.error("Configuration anchor file does not exist: {}", anchorFilePath);
+            System.exit(1);
+        }
+
+        log.info("Starting configuration anchor migration from: {}", anchorFilePath);
+        new ConfigurationAnchorMigrator().migrate(anchorFilePath, dbPropertiesPath);
     }
 
     private static void migrateSignerTokenPins(String[] args) throws IOException {
