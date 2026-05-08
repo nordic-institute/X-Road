@@ -66,6 +66,7 @@ public class LegacyConfigMigrationCLI {
         CONFIGURATION_ANCHOR("configuration-anchor", "Migrate configuration anchor file to DB"),
         FILE_TO_DB("file-to-db", "Migrate file contents into a single DB property"),
         INI_TO_DB("ini-to-db", "Migrate INI configuration file to DB"),
+        SET_PROPERTY("set-property", "Set a single property in the configuration DB"),
         HELP("help", "Show this help message");
 
         private final String name;
@@ -88,6 +89,7 @@ public class LegacyConfigMigrationCLI {
                 case "configuration-anchor" -> CONFIGURATION_ANCHOR;
                 case "file-to-db" -> FILE_TO_DB;
                 case "ini-to-db" -> INI_TO_DB;
+                case "set-property" -> SET_PROPERTY;
                 case "help", "-h", "--help" -> HELP;
                 default -> null;
             };
@@ -119,6 +121,7 @@ public class LegacyConfigMigrationCLI {
                 case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
                 case FILE_TO_DB -> migrateFileToDb(shiftArgs(args));
                 case INI_TO_DB -> migrateIniToDb(shiftArgs(args));
+                case SET_PROPERTY -> setProperty(shiftArgs(args));
                 default -> showHelp();
             }
         } catch (Exception e) {
@@ -153,6 +156,7 @@ public class LegacyConfigMigrationCLI {
                   configuration-anchor           Migrate configuration anchor file to DB
                   file-to-db                     Migrate file contents into a single DB property
                   ini-to-db                      Migrate INI configuration file to DB
+                  set-property                   Set a single property in the configuration DB
                   help                           Show this help message
 
                 Configuration Migration:
@@ -208,6 +212,15 @@ public class LegacyConfigMigrationCLI {
                       <input.ini>          Path to INI input file
                       <db.properties path> Path to database properties file
 
+                Set Property:
+                  migration-cli set-property <db.properties path> <property key> <property value> [scope]
+                    Sets a single property value in the configuration database.
+                    Arguments:
+                      <db.properties path> Path to database properties file
+                      <property key>       Property key to set
+                      <property value>     Property value to store
+                      [scope]              Optional scope for the property
+
                 Signer Token PINs Migration:
                   migration-cli signer-token-pins [<script-path>]
                     Migrates token PINs from autologin scripts to Vault.
@@ -230,6 +243,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
                   migration-cli file-to-db /etc/xroad/conf.d/acme.yml /etc/xroad/db.properties xroad.acme proxy-ui-api
                   migration-cli ini-to-db /etc/xroad/conf.d/local.ini /etc/xroad/db.properties
+                  migration-cli set-property /etc/xroad/db.properties xroad.proxy.batch-signing-enabled true
                   migration-cli signer-token-pins
                   migration-cli signer-token-pins /usr/share/xroad/autologin/custom-fetch-pin.sh
                 """);
@@ -404,6 +418,34 @@ public class LegacyConfigMigrationCLI {
         log.info("Starting file-to-db migration from: {} (property key={}, scope={})",
                 inputFilePath, propertyKey, scope == null ? "" : scope);
         new FileToDbPropertyMigrator(propertyKey).migrate(inputFilePath, dbPropertiesPath, scope);
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static void setProperty(String[] args) {
+        if (args.length != 3 && args.length != 4) {
+            log.error("set-property requires 3 or 4 arguments");
+            log.error("Usage: migration-cli set-property <db.properties path> <property key> <property value> [scope]");
+            log.error("  <db.properties path> Path to database properties file");
+            log.error("  <property key>       Property key to set");
+            log.error("  <property value>     Property value to store");
+            log.error("  [scope]              Optional scope for the property");
+            System.exit(1);
+        }
+
+        String dbPropertiesPath = args[0];
+        String propertyKey = args[1];
+        String propertyValue = args[2];
+        String scope = args.length == 4 ? args[3] : null;
+
+        validateFilePath(dbPropertiesPath, "database properties");
+
+        if (StringUtils.isAnyBlank(propertyKey, propertyValue)) {
+            log.error("Property key and value cannot be empty");
+            System.exit(1);
+        }
+
+        log.info("Setting property {} in DB (scope={})", propertyKey, scope == null ? "" : scope);
+        new SinglePropertySetter(propertyKey, propertyValue).migrate("cmdline", dbPropertiesPath, scope);
     }
 
     private static void migrateIniToDb(String[] args) {
