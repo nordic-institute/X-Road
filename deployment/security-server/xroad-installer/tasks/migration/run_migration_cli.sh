@@ -174,6 +174,20 @@ main() {
       "$ini_file" "/etc/xroad/db.properties"
   done
 
+  # properties-to-db (ssl): migrate the SSL properties file under the
+  # proxy-ui-api scope. Path is configured in local.ini
+  # (proxy-ui-api.ssl-properties); fall back to the canonical default.
+  # Distinct sentinel id so future properties-to-db steps don't collide.
+  local ssl_properties_file
+  ssl_properties_file=$(crudini --get /etc/xroad/conf.d/local.ini proxy-ui-api ssl-properties 2>/dev/null \
+    || echo "/etc/xroad/ssl.properties")
+  if [[ -f "$ssl_properties_file" ]]; then
+    run_migration_step "properties-to-db" --id "properties-to-db-ssl" \
+      "$ssl_properties_file" "/etc/xroad/db.properties" "proxy-ui-api"
+  else
+    log_info "SSL properties file not found at $ssl_properties_file — skipping properties-to-db (ssl) migration"
+  fi
+
   run_migration_step "keyconf" "/etc/xroad/signer" "/etc/xroad/db.properties"
 
   # signer-token-pins migrates token PINs from xroad-autologin scripts to OpenBao.
