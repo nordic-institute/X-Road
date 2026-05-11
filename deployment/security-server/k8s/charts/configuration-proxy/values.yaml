@@ -69,7 +69,6 @@ services:
       XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE: "0"
       XROAD_SIGNER_AUTOLOGIN_ENABLED: "true"
-      XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN: "4321"
       DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
       DB_CONFIG_SOURCE_USERNAME: "confproxy"
@@ -83,6 +82,9 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-confproxy"
         key: "password"
+      - name: "XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN"
+        secretName: "xroad-soft-token-pin"
+        key: "pin"
 
   configuration-proxy:
     imageName: configuration-proxy
@@ -124,7 +126,6 @@ services:
       XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
       XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_USERNAME: "confproxy"
       XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      XROAD_CONFIGURATION_PROXY_AUTO_INIT_SOFT_TOKEN: "4321"
       XROAD_CONFIGURATION_PROXY_ADDRESS: "configuration-proxy"
       DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
@@ -139,6 +140,9 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-confproxy"
         key: "password"
+      - name: "XROAD_CONFIGURATION_PROXY_AUTO_INIT_SOFT_TOKEN"
+        secretName: "xroad-soft-token-pin"
+        key: "pin"
     extraVolumeMounts:
       - mountPath: /etc/xroad/confproxy
         name: confproxy-config

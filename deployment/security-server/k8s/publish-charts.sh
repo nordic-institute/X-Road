@@ -25,6 +25,7 @@ CHARTS:
     openbao-init           OpenBao initialization chart
     external-service-bridge External service bridge chart
     configuration-proxy     Configuration Proxy chart
+    xroad-common            Shared helpers library chart
 
 OPTIONS:
     --version VERSION      Chart version (defaults to xroadVersion-xroadBuildType)
@@ -76,7 +77,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Always build all charts
-CHARTS=("security-server" "openbao-init" "external-service-bridge" "configuration-proxy")
+CHARTS=("xroad-common" "security-server" "openbao-init" "external-service-bridge" "configuration-proxy")
 
 # Determine registry and defaults
 REGISTRY="${HELM_REGISTRY:-localhost:5555/helm}"

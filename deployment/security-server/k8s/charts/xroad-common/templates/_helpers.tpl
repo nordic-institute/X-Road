@@ -1,10 +1,3 @@
-{{/*
-TODO: extract these helpers into a shared `xroad-common` library chart and depend on it
-from both security-server and configuration-proxy charts. Currently a copy of
-deployment/security-server/k8s/charts/security-server/templates/_helpers.tpl with
-sidecar/replicas/strategy support added.
-*/}}
-
 {{- define "xroad.labels" -}}
 app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}

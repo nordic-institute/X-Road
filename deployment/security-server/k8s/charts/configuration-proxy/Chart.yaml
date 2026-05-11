@@ -3,3 +3,7 @@ name: configuration-proxy
 description: X-Road Configuration Proxy
 version: 0.1.0
 appVersion: 1.0.0
+dependencies:
+  - name: xroad-common
+    version: 0.1.0
+    repository: "file://../xroad-common"
