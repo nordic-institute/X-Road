@@ -79,7 +79,7 @@ confirm_step() {
   fi
 
   if whiptail --title "Migration Step: $step" \
-    --yesno "$description\n\nProceed?" 12 60; then
+    --yesno "$description\n\nProceed?" 16 78; then
     log_info "Operator confirmed step: $step"
   else
     log_warn_exit "Migration step '$step' cancelled by operator"
@@ -89,22 +89,31 @@ confirm_step() {
 # Run a single migration-CLI step with sentinel-based idempotency and
 # per-step operator confirmation.
 #
-# Usage: run_migration_step <step> [--id <sentinel-id>] [--no-confirm] [arg1] [arg2] ...
-#   --id <sentinel-id>  Override the sentinel filename so the same CLI command
-#                       can be invoked multiple times with distinct sentinels
-#                       (e.g. file-to-db --id file-to-db-acme).
-#   --no-confirm        Skip the generic confirm_step prompt — used when the
-#                       caller has already collected explicit operator intent
-#                       via its own dialog (e.g. opt-in steps).
+# Usage: run_migration_step <step> [--id <sentinel-id>] [--description <text>] [--no-confirm] [arg1] [arg2] ...
+#   --id <sentinel-id>      Override the sentinel filename so the same CLI command
+#                           can be invoked multiple times with distinct sentinels
+#                           (e.g. file-to-db --id file-to-db-acme).
+#   --description <text>    Operator-facing body shown in the whiptail confirmation
+#                           dialog. Use this to explain what the step migrates and
+#                           from/to where — important when the same CLI subcommand
+#                           is invoked multiple times for different inputs.
+#   --no-confirm            Skip the generic confirm_step prompt — used when the
+#                           caller has already collected explicit operator intent
+#                           via its own dialog (e.g. opt-in steps).
 run_migration_step() {
   local step="$1"
   shift
   local sentinel="$step"
   local skip_confirm=false
+  local description=""
   while true; do
     if [[ "${1:-}" == "--id" ]]; then
       shift
       sentinel="$1"
+      shift
+    elif [[ "${1:-}" == "--description" ]]; then
+      shift
+      description="$1"
       shift
     elif [[ "${1:-}" == "--no-confirm" ]]; then
       shift
@@ -121,7 +130,7 @@ run_migration_step() {
   fi
 
   if [[ "$skip_confirm" != "true" ]]; then
-    confirm_step "$sentinel" "Run migration CLI step: $step"
+    confirm_step "$sentinel" "${description:-Run migration CLI step: $step}"
   fi
 
   log_message "Running: java -jar $MIGRATION_CLI_JAR $step ${args[*]}"
@@ -158,7 +167,8 @@ main() {
 
   ensure_sentinel_dir
 
-  run_migration_step "validate"
+  run_migration_step "validate" \
+    --description "Validate prerequisites and connectivity to the configuration database before running any migration steps. This is a read-only check; no data is written."
 
   # configuration-anchor migrates the configuration anchor XML contents into
   # the configuration database. The anchor path is configured in local.ini
@@ -168,7 +178,9 @@ main() {
   conf_anchor_file=$(crudini --get /etc/xroad/conf.d/local.ini proxy configuration-anchor-file 2>/dev/null \
     || echo "/etc/xroad/configuration-anchor.xml")
   if [[ -f "$conf_anchor_file" ]]; then
-    run_migration_step "configuration-anchor" "$conf_anchor_file" "/etc/xroad/db.properties"
+    run_migration_step "configuration-anchor" \
+      --description "Import the X-Road configuration anchor XML\n  from: $conf_anchor_file\n  into: configuration database" \
+      "$conf_anchor_file" "/etc/xroad/db.properties"
   else
     log_info "Configuration anchor file not found at $conf_anchor_file — skipping configuration-anchor migration"
   fi
@@ -181,7 +193,9 @@ main() {
   devices_ini_file=$(crudini --get /etc/xroad/conf.d/local.ini signer device-configuration-file 2>/dev/null \
     || echo "/etc/xroad/devices.ini")
   if [[ -f "$devices_ini_file" ]]; then
-    run_migration_step "signer-devices" "$devices_ini_file" "/etc/xroad/db.properties"
+    run_migration_step "signer-devices" \
+      --description "Migrate HSM/signer module declarations\n  from: $devices_ini_file\n  into: configuration database (signer scope)" \
+      "$devices_ini_file" "/etc/xroad/db.properties"
   else
     log_info "Signer devices file not found at $devices_ini_file — skipping signer-devices migration"
   fi
@@ -203,6 +217,7 @@ main() {
     fi
     ini_basename=$(basename "$ini_file" .ini)
     run_migration_step "ini-to-db" --id "ini-to-db-${ini_basename}" \
+      --description "Migrate INI configuration\n  from: $ini_file\n  into: configuration database\n\nThis step runs once per INI file (override-*.ini and local.ini)." \
       "$ini_file" "/etc/xroad/db.properties"
   done
 
@@ -215,6 +230,7 @@ main() {
     || echo "/etc/xroad/ssl.properties")
   if [[ -f "$ssl_properties_file" ]]; then
     run_migration_step "properties-to-db" --id "properties-to-db-ssl" \
+      --description "Migrate SSL properties\n  from: $ssl_properties_file\n  into: configuration database (proxy-ui-api scope)" \
       "$ssl_properties_file" "/etc/xroad/db.properties" "proxy-ui-api"
   else
     log_info "SSL properties file not found at $ssl_properties_file — skipping properties-to-db (ssl) migration"
@@ -223,7 +239,9 @@ main() {
   if ! is_step_done "keyconf"; then
     prompt_for_softtoken_pin "/etc/xroad/signer"
   fi
-  run_migration_step "keyconf" "/etc/xroad/signer" "/etc/xroad/db.properties"
+  run_migration_step "keyconf" \
+    --description "Migrate the signer keyconf (keys, certificates, soft token credentials)\n  from: /etc/xroad/signer\n  into: configuration database\n\nUses the soft token PIN entered earlier (if a soft token is present)." \
+    "/etc/xroad/signer" "/etc/xroad/db.properties"
   unset XROAD_MIGRATION_SOFTTOKEN_PIN
 
   # signer-token-pins migrates token PINs from xroad-autologin scripts to OpenBao.
@@ -232,7 +250,8 @@ main() {
   local autologin_custom="/usr/share/xroad/autologin/custom-fetch-pin.sh"
   local autologin_default="/usr/share/xroad/autologin/default-fetch-pin.sh"
   if [[ -f "$autologin_custom" || -f "$autologin_default" ]]; then
-    run_migration_step "signer-token-pins"
+    run_migration_step "signer-token-pins" \
+      --description "Migrate signer token PINs\n  from: xroad-autologin fetch-pin scripts\n  into: OpenBao secret store"
   else
     log_info "xroad-autologin not installed — skipping signer-token-pins migration"
   fi
@@ -243,6 +262,7 @@ main() {
   local acme_yml="/etc/xroad/conf.d/acme.yml"
   if [[ -f "$acme_yml" ]]; then
     run_migration_step "file-to-db" --id "file-to-db-acme" \
+      --description "Migrate ACME configuration (full file contents)\n  from: $acme_yml\n  into: configuration database\n  key:  xroad.acme (proxy-ui-api scope)" \
       "$acme_yml" "/etc/xroad/db.properties" "xroad.acme" "proxy-ui-api"
   else
     log_info "ACME configuration file not found at $acme_yml — skipping file-to-db (acme) migration"
@@ -253,6 +273,7 @@ main() {
   local mail_yml="/etc/xroad/conf.d/mail.yml"
   if [[ -f "$mail_yml" ]]; then
     run_migration_step "file-to-db" --id "file-to-db-mail" \
+      --description "Migrate mail notification configuration (full file contents)\n  from: $mail_yml\n  into: configuration database\n  key:  xroad.mail-notification (proxy-ui-api scope)" \
       "$mail_yml" "/etc/xroad/db.properties" "xroad.mail-notification" "proxy-ui-api"
   else
     log_info "Mail notification configuration file not found at $mail_yml — skipping file-to-db (mail) migration"
