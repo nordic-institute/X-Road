@@ -16,7 +16,7 @@ IMAGE_TAG="${IMAGE_TAG:-latest}"
 BUILD_PLATFORMS="${BUILD_PLATFORMS:-}"  # Empty = host platform only
 
 # Available releases
-ALL_RELEASES=(deb-jammy deb-noble rpm-el9 rpm-el10)
+ALL_RELEASES=(deb-resolute deb-noble rpm-el9 rpm-el10)
 
 # Parse arguments
 FORCE_BUILD=false
@@ -118,7 +118,7 @@ if [[ -z "$RELEASE" ]]; then
   echo "  --no-cache      Build without using cache" >&2
   echo "" >&2
   echo "Examples:" >&2
-  echo "  $0 deb-noble              # Prepare single image (pull or build)" >&2
+  echo "  $0 deb-resolute              # Prepare single image (pull or build)" >&2
   echo "  $0 all                    # Prepare all images" >&2
   echo "  $0 -f all                 # Force rebuild all images" >&2
   echo "  $0 -f --no-cache rpm-el9  # Force rebuild without cache" >&2

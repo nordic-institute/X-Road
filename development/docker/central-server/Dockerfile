@@ -4,7 +4,7 @@
 ARG PACKAGE_SOURCE=internal
 
 ARG DOCKER_REGISTRY=""
-FROM ${DOCKER_REGISTRY}ubuntu:24.04 AS base
+FROM ${DOCKER_REGISTRY}ubuntu:26.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG XROAD_MIRROR_URL
@@ -28,7 +28,7 @@ RUN apt-get -qq update \
 
 # Xroad CS from external packages
 FROM base AS centralserver-external
-ARG DIST=jammy-snapshot
+ARG DIST=resolute-snapshot
 ARG REPO=https://artifactory.niis.org/xroad-snapshot-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
@@ -45,10 +45,10 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   # Do not exclude man pages & other documentation
   && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
   # Install
-  && pg_ctlcluster 16 main start \
+  && pg_ctlcluster 18 main start \
   && apt-get -qq update \
   && apt-get -qq install xroad-centralserver \
-  && pg_ctlcluster 16 main stop \
+  && pg_ctlcluster 18 main stop \
   # Clean up
   && rm -rf /tmp/repo \
   && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
@@ -69,10 +69,10 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
   # Do not exclude man pages & other documentation
   && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
   # Install
-  && pg_ctlcluster 16 main start \
+  && pg_ctlcluster 18 main start \
   && apt-get -qq update \
   && apt-get -qq install xroad-centralserver \
-  && pg_ctlcluster 16 main stop \
+  && pg_ctlcluster 18 main stop \
   # Clean up
   && rm -rf /tmp/repo \
   && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
@@ -114,12 +114,12 @@ RUN --mount=type=secret,id=user_passwd \
 COPY --chown=xroad:xroad files/etc /etc/
 
 # Copy PostgreSQL performance configuration
-COPY --from=perf --chown=postgres:postgres postgresql-performance.conf /etc/postgresql/16/main/postgresql-performance.conf
+COPY --from=perf --chown=postgres:postgres postgresql-performance.conf /etc/postgresql/18/main/postgresql-performance.conf
 
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chmod=755 files/wait-for-secret-store.sh /usr/share/xroad/scripts/wait-for-secret-store.sh
 CMD ["/root/entrypoint.sh"]
 
-VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/"]
+VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/18/main/"]
 EXPOSE 4000

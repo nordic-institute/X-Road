@@ -11,7 +11,7 @@ BUST_CACHE=false
 INVENTORY_PATH="config/ansible_hosts.txt"
 
 CACHEABLE_ROLES=(xroad-is xroad-ca)
-UBUNTU_RELEASEVER="${UBUNTU_RELEASEVER:-noble}"
+UBUNTU_RELEASEVER="${UBUNTU_RELEASEVER:-resolute}"
 
 function parse_arguments() {
   while [[ "$#" -gt 0 ]]; do
@@ -238,7 +238,7 @@ function handleBuild() {
       build_args+="--skip-tests "
     fi
 
-    ./../../src/build_packages.sh -r noble -r rpm-el9 $build_args
+    ./../../src/build_packages.sh -r resolute -r rpm-el9 $build_args
   fi
 }
 

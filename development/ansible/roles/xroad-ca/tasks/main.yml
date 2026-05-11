@@ -26,21 +26,13 @@
       - "uwsgi-plugin-python3"
   when: not cache_marker.stat.exists
 
-- name: download acme2certifier (jammy only)
+- name: download acme2certifier
   get_url:
     url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
     dest: "/tmp/acme2certifier_{{ a2c_ver }}-1_all.deb"
   when:
     - not cache_marker.stat.exists
-    - ansible_facts['distribution_release'] == "jammy"
-
-- name: download acme2certifier (noble only)
-  get_url:
-    url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
-    dest: "/tmp/acme2certifier_{{ a2c_ver }}-1_all.deb"
-  when:
-    - not cache_marker.stat.exists
-    - ansible_facts['distribution_release'] == "noble"
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: group ca
   group:
@@ -194,7 +186,7 @@
   when:
     - not cache_marker.stat.exists
     - stat_result.stat.exists is defined and not stat_result.stat.exists
-    - (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: copy acme2certifier conf
   copy:
@@ -206,7 +198,7 @@
     - "acme_srv.cfg"
   when:
     - not cache_marker.stat.exists
-    - (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: copy acme2certifier external account binding conf
   copy:
@@ -218,7 +210,7 @@
     - "kid_profiles.json"
   when:
     - not cache_marker.stat.exists
-    - (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: copy acme2certifier openssl handler
   copy:
@@ -230,7 +222,7 @@
     - "openssl_ca_handler.py"
   when:
     - not cache_marker.stat.exists
-    - (ansible_facts['distribution_release'] == "jammy" or ansible_facts['distribution_release'] == "noble")
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: remove obsolete files
   file:

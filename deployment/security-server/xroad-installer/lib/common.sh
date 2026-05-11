@@ -140,7 +140,7 @@ handle_os_not_supported() {
 
   log_error "Unsupported OS: $os_name $os_version"
   log_message "Supported versions are:"
-  log_message "  - Ubuntu 22.04/24.04"
+  log_message "  - Ubuntu 24.04/26.04"
   log_message "  - RHEL 9/10"
   exit $EXIT_ERROR
 }

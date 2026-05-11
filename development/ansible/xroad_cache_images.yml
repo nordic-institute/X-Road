@@ -23,22 +23,34 @@
     - name: Read upstream Ubuntu fingerprint
       shell: |
         set -o pipefail
-        lxc image info ubuntu:{{ ubuntu_releasever }} | awk '/^Fingerprint:/ {print $2; exit}'
+        lxc image info ubuntu:{{ hostvars['xrd-is'].ubuntu_releasever }} | awk '/^Fingerprint:/ {print $2; exit}'
       args:
         executable: /bin/bash
-      register: ubuntu_upstream_fp_raw
+      register: ubuntu_is_upstream_fp_raw
+      changed_when: false
+      failed_when: false
+
+    - name: Read upstream Ubuntu fingerprint (CA)
+      shell: |
+        set -o pipefail
+        lxc image info ubuntu:{{ hostvars['xrd-ca'].ubuntu_releasever }} | awk '/^Fingerprint:/ {print $2; exit}'
+      args:
+        executable: /bin/bash
+      register: ubuntu_ca_upstream_fp_raw
       changed_when: false
       failed_when: false
 
     - name: Set Ubuntu fingerprint fact
       set_fact:
-        ubuntu_base_fingerprint: "{{ (ubuntu_upstream_fp_raw.stdout | trim) if ubuntu_upstream_fp_raw.rc == 0 else '' }}"
+        ubuntu_is_base_fingerprint: "{{ ubuntu_is_upstream_fp_raw.stdout | trim }}"
+        ubuntu_ca_base_fingerprint: "{{ ubuntu_ca_upstream_fp_raw.stdout | trim }}"
 
     - name: Show cache-fill plan
       debug:
         msg:
           - "Cache-fill targets: {{ cache_target_list }}"
-          - "Ubuntu base fingerprint: {{ ubuntu_base_fingerprint | default('(unknown)') }}"
+          - "Ubuntu IS base fingerprint: {{ ubuntu_is_base_fingerprint }}"
+          - "Ubuntu CA base fingerprint: {{ ubuntu_ca_base_fingerprint }}"
 
     - name: Prepare xroad-is cache-fill container
       when: "'xroad-is' in cache_target_list"
@@ -59,7 +71,7 @@
               mode: pull
               server: https://cloud-images.ubuntu.com/releases
               protocol: simplestreams
-              alias: "{{ ubuntu_releasever }}"
+              alias: "{{ hostvars['xrd-is'].ubuntu_releasever }}"
             profiles: ["default"]
             wait_for_ipv4_addresses: true
             timeout: 600
@@ -77,7 +89,46 @@
             ansible_connection: lxd
             groups: cache_fill_is
             cache_target_role: xroad-is
-            ubuntu_base_fingerprint: "{{ ubuntu_base_fingerprint }}"
+            ubuntu_base_fingerprint: "{{ ubuntu_is_base_fingerprint }}"
+
+    - name: Prepare xroad-ca cache-fill container
+      when: "'xroad-ca' in cache_target_list"
+      block:
+        - name: Remove leftover xroad-ca cache-fill container
+          community.general.lxd_container:
+            name: xroad-ca-cache-fill
+            state: absent
+            url: "{{ lxd_url | default(omit) }}"
+
+        - name: Launch fresh xroad-ca cache-fill container
+          community.general.lxd_container:
+            name: xroad-ca-cache-fill
+            url: "{{ lxd_url | default(omit) }}"
+            state: started
+            source:
+              type: image
+              mode: pull
+              server: https://cloud-images.ubuntu.com/releases
+              protocol: simplestreams
+              alias: "{{ hostvars['xrd-ca'].ubuntu_releasever }}"
+            profiles: ["default"]
+            wait_for_ipv4_addresses: true
+            timeout: 600
+
+        - name: Force IPv4 for APT in xroad-ca cache-fill
+          raw: echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+          delegate_to: xroad-ca-cache-fill
+          vars:
+            ansible_connection: lxd
+          become: false
+
+        - name: Register xroad-ca cache-fill host
+          add_host:
+            name: xroad-ca-cache-fill
+            ansible_connection: lxd
+            groups: cache_fill_ca
+            cache_target_role: xroad-ca
+            ubuntu_base_fingerprint: "{{ ubuntu_ca_base_fingerprint }}"
 
 - name: Cache-fill — provision xroad-is
   hosts: cache_fill_is
@@ -95,7 +146,24 @@
           ubuntu_base={{ ubuntu_base_fingerprint }}
           filled_at={{ ansible_date_time.iso8601 }}
 
-- name: Cache-fill — publish xroad-is, launch xroad-ca
+- name: Cache-fill — provision xroad-ca
+  hosts: cache_fill_ca
+  become: true
+  gather_facts: true
+  roles:
+    - role: xroad-ca
+  post_tasks:
+    - name: Write cache marker
+      copy:
+        dest: /etc/xroad-cached-image
+        mode: "0644"
+        content: |
+          role={{ cache_target_role }}
+          ubuntu_base={{ ubuntu_base_fingerprint }}
+          a2c_ver={{ a2c_ver | default('') }}
+          filled_at={{ ansible_date_time.iso8601 }}
+
+- name: Cache-fill — publish xroad-is, xroad-ca
   hosts: lxd_servers
   become: "{{ onMacOs | default(true) }}"
   gather_facts: false
@@ -120,8 +188,8 @@
           command: lxc publish xroad-is-cache-fill --alias xroad-is-cached
 
         - name: Stamp xroad-is-cached ubuntu_base property
-          command: lxc image set-property xroad-is-cached ubuntu_base {{ ubuntu_base_fingerprint }}
-          when: ubuntu_base_fingerprint | length > 0
+          command: lxc image set-property xroad-is-cached ubuntu_base {{ ubuntu_is_base_fingerprint }}
+          when: ubuntu_is_base_fingerprint | length > 0
 
         - name: Delete xroad-is cache-fill container
           community.general.lxd_container:
@@ -129,67 +197,6 @@
             url: "{{ lxd_url | default(omit) }}"
             state: absent
 
-    - name: Prepare xroad-ca cache-fill container
-      when: "'xroad-ca' in cache_target_list"
-      block:
-        - name: Remove leftover xroad-ca cache-fill container
-          community.general.lxd_container:
-            name: xroad-ca-cache-fill
-            state: absent
-            url: "{{ lxd_url | default(omit) }}"
-
-        - name: Launch fresh xroad-ca cache-fill container
-          community.general.lxd_container:
-            name: xroad-ca-cache-fill
-            url: "{{ lxd_url | default(omit) }}"
-            state: started
-            source:
-              type: image
-              mode: pull
-              server: https://cloud-images.ubuntu.com/releases
-              protocol: simplestreams
-              alias: "{{ ubuntu_releasever }}"
-            profiles: ["default"]
-            wait_for_ipv4_addresses: true
-            timeout: 600
-
-        - name: Force IPv4 for APT in xroad-ca cache-fill
-          raw: echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
-          delegate_to: xroad-ca-cache-fill
-          vars:
-            ansible_connection: lxd
-          become: false
-
-        - name: Register xroad-ca cache-fill host
-          add_host:
-            name: xroad-ca-cache-fill
-            ansible_connection: lxd
-            groups: cache_fill_ca
-            cache_target_role: xroad-ca
-            ubuntu_base_fingerprint: "{{ ubuntu_base_fingerprint }}"
-
-- name: Cache-fill — provision xroad-ca
-  hosts: cache_fill_ca
-  become: true
-  gather_facts: true
-  roles:
-    - role: xroad-ca
-  post_tasks:
-    - name: Write cache marker
-      copy:
-        dest: /etc/xroad-cached-image
-        mode: "0644"
-        content: |
-          role={{ cache_target_role }}
-          ubuntu_base={{ ubuntu_base_fingerprint }}
-          a2c_ver={{ a2c_ver | default('') }}
-          filled_at={{ ansible_date_time.iso8601 }}
-
-- name: Cache-fill — publish xroad-ca
-  hosts: lxd_servers
-  become: "{{ onMacOs | default(true) }}"
-  gather_facts: false
-  tasks:
     - name: Publish xroad-ca cached image
       when: "'xroad-ca' in cache_target_list"
       block:
@@ -210,8 +217,8 @@
           command: lxc publish xroad-ca-cache-fill --alias xroad-ca-cached
 
         - name: Stamp xroad-ca-cached ubuntu_base property
-          command: lxc image set-property xroad-ca-cached ubuntu_base {{ ubuntu_base_fingerprint }}
-          when: ubuntu_base_fingerprint | length > 0
+          command: lxc image set-property xroad-ca-cached ubuntu_base {{ ubuntu_ca_base_fingerprint }}
+          when: ubuntu_ca_base_fingerprint | length > 0
 
         - name: Delete xroad-ca cache-fill container
           community.general.lxd_container:

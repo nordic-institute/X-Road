@@ -67,8 +67,8 @@ jobs:
           - x-road/central-server-dev
           # Package builder images
     # TODO: these require different behaviour as they're rarely updated.
-    #          - x-road/package-builder-deb-jammy
     #          - x-road/package-builder-deb-noble
+    #          - x-road/package-builder-deb-resolute
     #          - x-road/package-builder-rpm-el8
     #          - x-road/package-builder-rpm-el9
     steps:

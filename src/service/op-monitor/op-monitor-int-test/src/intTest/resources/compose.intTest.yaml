@@ -49,7 +49,7 @@ services:
     volumes:
       - ./container-files/etc/xroad:/etc/xroad
   db-opmonitor:
-    image: postgres:17
+    image: postgres:18
     environment:
       - POSTGRES_DB=op-monitor
       - POSTGRES_PASSWORD=secret
