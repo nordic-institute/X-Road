@@ -210,7 +210,7 @@ main() {
   log_message ""
   log_message "Next steps:"
   log_message "  - Review the log file: $XROAD_INSTALLER_LOG_FILE"
-  log_message "  - Verify services: systemctl status xroad-proxy xroad-signer"
+  log_message "  - Verify services: systemctl list-units 'xroad-*'"
   log_message ""
 }
 
