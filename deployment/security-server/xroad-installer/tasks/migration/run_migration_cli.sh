@@ -167,6 +167,13 @@ main() {
 
   ensure_sentinel_dir
 
+  # Suppress the migration-cli's stdin [y/N] confirmation for properties-to-db /
+  # ini-to-db / file-to-db / etc. The wrapper already collects per-step operator
+  # intent via confirm_step (whiptail), so the Java-layer prompt would ask the
+  # same question twice — and stdin is piped through `tee` below, which breaks
+  # interactive reads anyway.
+  export XROAD_MIGRATION_AUTO_CONFIRM=true
+
   run_migration_step "validate" \
     --description "Validate prerequisites and connectivity to the configuration database before running any migration steps. This is a read-only check; no data is written."
 
