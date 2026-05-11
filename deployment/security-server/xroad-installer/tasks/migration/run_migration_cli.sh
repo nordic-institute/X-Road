@@ -36,6 +36,38 @@ mark_step_done() {
   log_info "Sentinel written: $SENTINEL_DIR/step-${1}.done"
 }
 
+# Prompt the operator for the soft token PIN before the keyconf migration step.
+# The migration-CLI keyconf step reads the PIN from XROAD_MIGRATION_SOFTTOKEN_PIN
+prompt_for_softtoken_pin() {
+  local signer_dir="$1"
+  local softtoken_p12="$signer_dir/softtoken/.softtoken.p12"
+
+  if [[ ! -f "$softtoken_p12" ]]; then
+    log_info "Soft token keystore not found at $softtoken_p12 — keyconf migration will not need a PIN"
+    return 0
+  fi
+
+  if [[ -n "${XROAD_MIGRATION_SOFTTOKEN_PIN:-}" ]]; then
+    log_info "XROAD_MIGRATION_SOFTTOKEN_PIN already set — reusing provided PIN for keyconf migration"
+    return 0
+  fi
+
+  if [[ "${XROAD_MIGRATION_UNATTENDED:-}" == "true" ]]; then
+    log_die "Unattended mode: export XROAD_MIGRATION_SOFTTOKEN_PIN before running the migration (required by the keyconf step)."
+  fi
+
+  local pin
+  pin=$(whiptail --title "Migration Step: keyconf" --passwordbox \
+    "Enter the soft token PIN.\n\nThe PIN is needed once to hash and store the existing soft token credential during the keyconf migration." \
+    12 60 3>&1 1>&2 2>&3) || log_warn_exit "Soft token PIN entry cancelled by operator"
+
+  if [[ -z "$pin" ]]; then
+    log_die "Empty soft token PIN provided. Aborting keyconf migration."
+  fi
+
+  export XROAD_MIGRATION_SOFTTOKEN_PIN="$pin"
+}
+
 # Show a whiptail confirmation dialog before each migration step.
 confirm_step() {
   local step="$1"
@@ -188,7 +220,11 @@ main() {
     log_info "SSL properties file not found at $ssl_properties_file — skipping properties-to-db (ssl) migration"
   fi
 
+  if ! is_step_done "keyconf"; then
+    prompt_for_softtoken_pin "/etc/xroad/signer"
+  fi
   run_migration_step "keyconf" "/etc/xroad/signer" "/etc/xroad/db.properties"
+  unset XROAD_MIGRATION_SOFTTOKEN_PIN
 
   # signer-token-pins migrates token PINs from xroad-autologin scripts to OpenBao.
   # Only meaningful when xroad-autologin is installed — detect by script presence
