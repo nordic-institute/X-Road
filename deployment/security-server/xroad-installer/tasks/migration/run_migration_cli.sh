@@ -236,13 +236,17 @@ main() {
     log_info "SSL properties file not found at $ssl_properties_file — skipping properties-to-db (ssl) migration"
   fi
 
+  # keyconf is special: the soft token PIN must be collected from the operator
+  # before invoking migration-cli. We confirm the step FIRST so an operator who
+  # cancels at the confirmation dialog is never asked for the PIN. Then, since
+  # confirmation has already been collected explicitly, run_migration_step is
+  # invoked with --no-confirm to avoid a duplicate dialog.
   if ! is_step_done "keyconf"; then
+    confirm_step "keyconf" "Migrate the signer keyconf (keys, certificates, soft token credentials)\n  from: /etc/xroad/signer\n  into: configuration database\n\nYou will be prompted for the soft token PIN next."
     prompt_for_softtoken_pin "/etc/xroad/signer"
+    run_migration_step "keyconf" --no-confirm "/etc/xroad/signer" "/etc/xroad/db.properties"
+    unset XROAD_MIGRATION_SOFTTOKEN_PIN
   fi
-  run_migration_step "keyconf" \
-    --description "Migrate the signer keyconf (keys, certificates, soft token credentials)\n  from: /etc/xroad/signer\n  into: configuration database\n\nUses the soft token PIN entered earlier (if a soft token is present)." \
-    "/etc/xroad/signer" "/etc/xroad/db.properties"
-  unset XROAD_MIGRATION_SOFTTOKEN_PIN
 
   # signer-token-pins migrates token PINs from xroad-autologin scripts to OpenBao.
   # Only meaningful when xroad-autologin is installed — detect by script presence

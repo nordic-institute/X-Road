@@ -59,11 +59,11 @@ public abstract class BasePropertiesToDbMigrator {
     }
 
     boolean confirmProceed(Map<String, String> properties) {
-        System.out.println("The following properties will be migrated to database (if value exists it will be OVERRIDDEN):");
-        properties.forEach((k, v) -> System.out.printf(" - %s%n", k));
+        log.info("The following properties will be migrated to database (if value exists it will be OVERRIDDEN):");
+        properties.forEach((k, _) -> log.info(" - {}", k));
 
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Proceed with migration? [y/N] ");
+        log.info("Proceed with migration? [y/N] ");
         String input = scanner.nextLine().trim();
         return "y".equalsIgnoreCase(input) || "yes".equalsIgnoreCase(input);
     }
