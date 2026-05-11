@@ -39,8 +39,7 @@ xroad:
     rate-limit-cache-size: 10_000
     rate-limit-expire-after-access-minutes: 2
     api-base-url: https://127.0.0.1:4000/api/v1
-    tls:
-      certificate-provisioning:
-        common-name: ${XROAD_HOST:localhost}
-        ip-subject-alt-names:
-          - 127.0.0.1
+    vault-retry:
+      retry-max-attempts: 5
+      retry-delay: 2s
+      retry-exponential-backoff-multiplier: 2.0
