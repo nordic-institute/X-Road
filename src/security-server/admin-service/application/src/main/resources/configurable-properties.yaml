@@ -205,6 +205,10 @@ configurableProperties:
     defaultValue: "false"
     scope: "proxy"
 
+  - propertyName: "xroad.proxy.strict-identifier-checks"
+    defaultValue: "true"
+    scope: "proxy"
+
   - propertyName: "xroad.proxy.client-proxy.connector-host"
     defaultValue: "0.0.0.0"
     scope: "proxy"

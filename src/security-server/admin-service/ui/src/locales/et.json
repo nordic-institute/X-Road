@@ -1069,6 +1069,7 @@
             "server-port": "Sihtkoha TCP port väljuvatele päringutele teenuse kliendi turvaserveris.",
             "xroad-tls-ciphers": "TLS šifrid (komaga eraldatud loend eelistatud järjekorras), mida aktsepteeritakse turvaserverite vahelistel päringustel ning operatsiooni jälgimise deemoni ja kliendi vahel. (alates versioonist 6.20)",
             "batch-signing-enabled": "Kui lubatud, allkirjastatakse mitu sõnumit ühe pakettoperatsiooniga.",
+            "strict-identifier-checks": "Seadistab identifikaatorite sisendi valideerimise (liikme kood, alamsüsteemi kood jne). Väärtused: true - identifikaatorid peavad vastama mustrile ^[a-zA-Z0-9'()+,-.=?]* ja mittevastavad väärtused lükatakse tagasi. false - identifikaatoreid valideeritakse mustri alusel; mittevastavaid väärtusi ei lükata tagasi, kuid logitakse hoiatus.",
             "client-proxy": {
               "connector-host": "IP-aadress, millel teenuse kliendi turvaserver kuulab klientrakenduste ühendusi. Väärtus 0.0.0.0 lubab kuulata kõigil IPv4 liidestel. Väärtus 127.0.0.1 lubab kuulata ainult kohalikul masinal. NB! Selle väärtuse muutmine võib muuta teie turvaserveri väliselt ligipääsetavaks, mistõttu tuleks esmalt rakendada tulemüüri reeglid, et piirata juurdepääsu usaldusväärsetele hostidele.",
               "client-http-port": "TCP port, millel teenuse kliendi turvaserver kuulab klientrakenduste HTTP päringuid.",

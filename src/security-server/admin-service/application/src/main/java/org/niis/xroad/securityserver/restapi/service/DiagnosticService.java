@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -182,9 +182,9 @@ public class DiagnosticService {
     /**
      * Query proxy memory usage from admin port over HTTP.
      *
-     * @return ProxyMemory
+     * @return HeapMemoryStatus
      */
-    public ProxyMemory queryProxyMemoryUsage() {
+    public HeapMemoryStatus queryProxyMemoryUsage() {
         try {
             return proxyRpcClient.getProxyMemoryStatus();
         } catch (Exception e) {

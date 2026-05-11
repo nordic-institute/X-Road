@@ -35,7 +35,7 @@
     variant="flat"
     color="inverse-surface"
     min-height="68"
-    :transition="transitionName"
+    transition="v-fade-transition"
     :timeout="snackbarTimeout(notification.timeout)"
     :close-on-back="false"
     @update:model-value="remove(notification.id)"
@@ -48,23 +48,15 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-
 import { useNotifications } from '../composables';
 import XrdBtn from './XrdBtn.vue';
 
-declare global {
-  interface Window {
-    e2eTestingMode?: boolean;
-  }
-}
-
 const { successes, remove } = useNotifications();
 
-const transitionName = computed(() => (window.e2eTestingMode === true ? 'no-transition' : 'v-fade-transition'));
+const e2eTestingMode = () => document.body.classList.contains('e2e-testing-mode');
 
 // Check global window value to see if e2e testing mode should be enabled
 function snackbarTimeout(timeout: number) {
-  return window.e2eTestingMode === true ? -1 : timeout;
+  return e2eTestingMode() ? -1 : timeout;
 }
 </script>

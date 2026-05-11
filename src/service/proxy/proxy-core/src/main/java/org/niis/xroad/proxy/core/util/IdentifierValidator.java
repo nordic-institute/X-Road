@@ -24,31 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import com.google.common.base.CharMatcher;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.google.common.base.CharMatcher.anyOf;
+import static com.google.common.base.CharMatcher.inRange;
 
 @Slf4j
 @UtilityClass
 public class IdentifierValidator {
 
-    /**
-     * Logs a warning if identifier contains invalid characters.
-     */
-    public static boolean checkIdentifier(final XRoadId id) {
+    private static final CharMatcher VALID_CHARS =
+            inRange('a', 'z')
+                    .or(inRange('A', 'Z'))
+                    .or(inRange('0', '9'))
+                    .or(anyOf("'()+,-.=?"));
+
+    public static boolean isValid(XRoadId id) {
         if (id != null) {
-            if (!validateIdentifierField(id.getXRoadInstance())) {
-                log.warn("Invalid character(s) in identifier {}", id);
+            if (!isIdentifierFieldValid(id.getXRoadInstance())) {
                 return false;
             }
 
             for (String f : id.getFieldsForStringFormat()) {
-                if (f != null && !validateIdentifierField(f)) {
-                    log.warn("Invalid character(s) in identifier {}", id);
+                if (!isIdentifierFieldValid(f)) {
                     return false;
                 }
             }
@@ -56,20 +60,11 @@ public class IdentifierValidator {
         return true;
     }
 
-    private static boolean validateIdentifierField(final CharSequence field) {
-        for (int i = 0; i < field.length(); i++) {
-            final char c = field.charAt(i);
-            //ISO control char
-            if (c <= '\u001f' || (c >= '\u007f' && c <= '\u009f')) {
-                return false;
-            }
-            //Forbidden chars
-            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\' || c == '\u200b' || c == '\ufeff') {
-                return false;
-            }
-            //"normalized path" check is redundant since path separators (/,\) are forbidden
+    private static boolean isIdentifierFieldValid(String field) {
+        if (field == null) {
+            return true;
         }
-        return true;
+        return VALID_CHARS.matchesAllOf(field);
     }
 
 }

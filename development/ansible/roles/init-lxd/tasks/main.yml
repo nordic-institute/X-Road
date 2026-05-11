@@ -1,17 +1,87 @@
 ---
-- name: Ready all Ubuntu {{ubuntu_releasever}} containers
+- name: Resolve cached image and Ubuntu freshness state
+  become: "{{ onMacOs | default(true) }}"
+  run_once: true
+  block:
+    - name: Read upstream Ubuntu fingerprint
+      shell: |
+        set -o pipefail
+        lxc image info ubuntu:{{ ubuntu_releasever }} | awk '/^Fingerprint:/ {print $2; exit}'
+      args:
+        executable: /bin/bash
+      register: ubuntu_upstream_fp_raw
+      changed_when: false
+      failed_when: false
+
+    - name: Read xroad-is-cached image properties
+      command: lxc image show xroad-is-cached
+      register: xroad_is_cached_show
+      changed_when: false
+      failed_when: false
+
+    - name: Read xroad-ca-cached image properties
+      command: lxc image show xroad-ca-cached
+      register: xroad_ca_cached_show
+      changed_when: false
+      failed_when: false
+
+    - name: Compute cached image usability
+      set_fact:
+        ubuntu_upstream_fp: "{{ (ubuntu_upstream_fp_raw.stdout | trim) if ubuntu_upstream_fp_raw.rc == 0 else '' }}"
+        xroad_is_cached_props: >-
+          {{ (xroad_is_cached_show.stdout | from_yaml).properties | default({})
+             if xroad_is_cached_show.rc == 0 else {} }}
+        xroad_ca_cached_props: >-
+          {{ (xroad_ca_cached_show.stdout | from_yaml).properties | default({})
+             if xroad_ca_cached_show.rc == 0 else {} }}
+
+    - name: Decide xroad-is cache usability
+      set_fact:
+        xroad_is_cache_usable: >-
+          {{ (xroad_is_cached_show.rc | default(1)) == 0
+             and (ubuntu_upstream_fp == ''
+                  or xroad_is_cached_props.ubuntu_base | default('') == ubuntu_upstream_fp) }}
+        xroad_ca_cache_usable: >-
+          {{ (xroad_ca_cached_show.rc | default(1)) == 0
+             and (ubuntu_upstream_fp == ''
+                  or xroad_ca_cached_props.ubuntu_base | default('') == ubuntu_upstream_fp) }}
+
+    - name: Build per-container image source map
+      set_fact:
+        container_image_alias_map: >-
+          {{
+            ({'xrd-is': 'xroad-is-cached'} if xroad_is_cache_usable else {})
+            | combine({'xrd-ca': 'xroad-ca-cached'} if xroad_ca_cache_usable else {})
+          }}
+
+    - name: Show cached image decisions
+      debug:
+        msg:
+          - "xrd-is source: {{ container_image_alias_map['xrd-is'] | default(ubuntu_releasever ~ ' (upstream)') }}"
+          - "xrd-ca source: {{ container_image_alias_map['xrd-ca'] | default(ubuntu_releasever ~ ' (upstream)') }}"
+
+- name: Ready all Ubuntu {{ ubuntu_releasever }} containers
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
   become: "{{ onMacOs | default(true) }}"
   community.general.lxd_container:
-    name: "{{item}}"
+    name: "{{ item }}"
     url: "{{ lxd_url | default(omit) }}"
     state: started
-    source:
-      type: image
-      mode: pull
-      server: https://cloud-images.ubuntu.com/releases
-      protocol: simplestreams
-      alias: "{{ ubuntu_releasever }}"
+    source: "{{
+      {
+        'type': 'image',
+        'mode': 'pull',
+        'alias': container_image_alias_map[item]
+      }
+      if container_image_alias_map[item] is defined
+      else {
+        'type': 'image',
+        'mode': 'pull',
+        'server': 'https://cloud-images.ubuntu.com/releases',
+        'protocol': 'simplestreams',
+        'alias': ubuntu_releasever
+      }
+    }}"
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     devices: "{{ hostvars[item].container_ports | default({}) }}"

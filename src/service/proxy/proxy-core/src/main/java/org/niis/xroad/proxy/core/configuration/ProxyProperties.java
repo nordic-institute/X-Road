@@ -62,24 +62,26 @@ public interface ProxyProperties {
 
     @WithName("health-check-port")
     @WithDefault("5588")
+    // referenced in application.yaml
     @SuppressWarnings("unused")
-        // referenced in application.yaml
     int healthCheckPort();
 
     @WithName("health-check-interface")
     @WithDefault("0.0.0.0")
+    // referenced in application.yaml
     @SuppressWarnings("unused")
-        // referenced in application.yaml
     String healthCheckInterface();
 
     @WithName("hsm-health-check-enabled")
     @WithDefault("false")
+    // referenced in application.yaml
     @SuppressWarnings("unused")
-        // referenced in application.yaml
     boolean hsmHealthCheckEnabled();
 
     @WithName("memory-usage-threshold")
-    Optional<Long> memoryUsageThreshold();
+    // referenced in application.yaml
+    @SuppressWarnings("unused")
+    Optional<Integer> memoryUsageThreshold();
 
     @WithName("message-sign-digest-name")
     @WithDefault("SHA-512")
@@ -108,6 +110,10 @@ public interface ProxyProperties {
     @WithName("batch-signing-enabled")
     @WithDefault("false")
     boolean batchSigningEnabled();
+
+    @WithName("strict-identifier-checks")
+    @WithDefault("true")
+    boolean strictIdentifierChecks();
 
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {

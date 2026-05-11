@@ -45,8 +45,16 @@ public final class SeleniumUtils {
         return element;
     }
 
+    public static void preparePage() {
+        Selenide.executeJavaScript("""
+                document.body.classList.add('e2e-testing-mode');
+                """
+        );
+    }
+
     private static boolean isMacOsBrowser() {
         return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }
+
 
 }

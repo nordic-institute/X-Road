@@ -5,6 +5,7 @@
     state: present
     update_cache: true
     install_recommends: false
+  when: not cache_marker.stat.exists
 
 - name: Configure Nginx for mock service
   template:
@@ -23,8 +24,8 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
-- name: restart ca
+- name: ensure nginx running
   service:
     name: nginx
-    state: restarted
+    state: "{{ 'restarted' if not cache_marker.stat.exists else 'started' }}"
     enabled: true

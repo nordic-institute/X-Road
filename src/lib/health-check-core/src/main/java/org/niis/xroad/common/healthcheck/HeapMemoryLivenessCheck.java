@@ -27,49 +27,38 @@
 package org.niis.xroad.common.healthcheck;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import org.eclipse.microprofile.health.Liveness;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
 
 @Liveness
 @ApplicationScoped
+@RequiredArgsConstructor
 public class HeapMemoryLivenessCheck implements HealthCheck {
     private static final String NAME = "HEAP_MEMORY_CHECK";
-    private static final int THRESHOLD_PERCENT = 95;
+
+    private final HeapMemoryStatusService heapMemoryStatusService;
 
     @Override
     public HealthCheckResponse call() {
-        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
-        MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
 
-        long used = heapUsage.getUsed();
-        long max = heapUsage.getMax();
+        var memory = heapMemoryStatusService.getMemoryStatus();
 
-        if (max <= 0) {
-            return HealthCheckResponse.up(NAME);
+        HealthCheckResponseBuilder response = HealthCheckResponse.named(NAME)
+                .withData("total_memory", memory.totalMemory())
+                .withData("free_memory", memory.freeMemory())
+                .withData("used_percent", memory.usedPercent())
+                .withData("used_bytes", memory.usedMemory())
+                .withData("max_bytes", memory.maxMemory());
+
+        if (memory.threshold() != null) {
+            response.withData("threshold_percent", memory.threshold());
+        } else {
+            response.withData("threshold_configured", false);
         }
-
-        long usedPercent = used * 100 / max;
-
-        if (usedPercent >= THRESHOLD_PERCENT) {
-            return HealthCheckResponse.named(NAME)
-                    .down()
-                    .withData("used_percent", usedPercent)
-                    .withData("threshold_percent", THRESHOLD_PERCENT)
-                    .withData("used_bytes", used)
-                    .withData("max_bytes", max)
-                    .build();
-        }
-
-        return HealthCheckResponse.named(NAME)
-                .up()
-                .withData("used_percent", usedPercent)
-                .withData("threshold_percent", THRESHOLD_PERCENT)
-                .build();
+        return memory.isUsedAboveThreshold() ? response.down().build() : response.up().build();
     }
 
 }

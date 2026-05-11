@@ -121,6 +121,21 @@ public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
         });
     }
 
+    @Step("Proxy healthcheck check {string} data {string} is {int}")
+    public void validateHealthcheckCheckDataInt(String checkName, String dataKey, int expected) {
+        assertWithWait(() -> {
+            HealthResponse response = getHealthcheckResponse();
+
+            var match = response.checks().stream()
+                    .filter(check -> checkName.equals(check.name()))
+                    .findFirst();
+            assertThat(match).as("check '%s' not found in healthcheck response", checkName).isPresent();
+            assertThat(match.get().data())
+                    .as("data of check '%s'", checkName)
+                    .containsEntry(dataKey, expected);
+        });
+    }
+
     private HealthResponse getHealthcheckResponse() {
         try {
             return healthcheckApi.getHealthcheck().getBody();

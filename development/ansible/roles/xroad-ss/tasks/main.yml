@@ -5,6 +5,9 @@
 - include_tasks: rhel.yml
   when: ansible_facts['os_family'] == "RedHat"
 
+- include_tasks: postgres_remote_dev.yml
+  when: enable_postgres_remote_access | default(false) | bool
+
 # configuration tweaks
 - name: enable health check
   ini_file:
