@@ -311,6 +311,14 @@ main() {
     mark_step_done "$batch_sentinel"
   fi
 
+  # strict-identifier-checks: X-Road 7's migrate-xroad-7-config.sh disabled
+  # this unconditionally (disable_strict_identifier_checks). X-Road 8 defaults
+  # it to true (stricter), so without this step upgraded servers would silently
+  # change behavior. Replicate the legacy unconditional write.
+  run_migration_step "set-property" --id "disable-strict-identifier-checks" \
+    --description "Disable strict identifier checks\n  property: xroad.proxy.strict-identifier-checks\n  value:    false\n\nPreserves the X-Road 7 behavior. The X-Road 8 default is true (stricter)." \
+    "/etc/xroad/db.properties" "xroad.proxy.strict-identifier-checks" "false"
+
   log_message ""
   log_info "Migration CLI steps completed."
 }
