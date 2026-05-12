@@ -65,4 +65,6 @@ edc:
       issuer: test-issuer
   controlplane:
     control:
-      url: http://localhost:8184/api/control
+      # https + edc.hostname so the cert's SAN matches; ds-https-keystore.yml enables
+      # TLS on port 8184 in any deployment that provisions the keystore (LXD today).
+      url: https://${edc.hostname}:8184/api/control

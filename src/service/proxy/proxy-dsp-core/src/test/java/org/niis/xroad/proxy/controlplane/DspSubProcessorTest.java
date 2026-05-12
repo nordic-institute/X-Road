@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -176,7 +177,11 @@ class DspSubProcessorTest {
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
         var expected = new AssetAccessResponse("http://dp.b/e", "token-b");
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+        // DspSubProcessor#execute shuffles candidates, so A may be tried before or after B.
+        // A always fails, B always succeeds — result is `expected` regardless of order.
+        // A's stub is lenient so when shuffle picks B first (and A is never tried) the
+        // strict-stubbing check doesn't fire.
+        lenient().when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenThrow(new RuntimeException("SS A unreachable"));
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
                 .thenReturn(expected);
@@ -192,19 +197,21 @@ class DspSubProcessorTest {
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
-        var firstFailure = new RuntimeException("SS A unreachable");
-        var lastFailure = new RuntimeException("SS B unreachable");
+        var failureA = new RuntimeException("SS A unreachable");
+        var failureB = new RuntimeException("SS B unreachable");
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
-                .thenThrow(firstFailure);
+                .thenThrow(failureA);
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
-                .thenThrow(lastFailure);
+                .thenThrow(failureB);
 
+        // Candidate order is shuffled, so the chained root cause is whichever was iterated
+        // last — either A or B.
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
                 .hasMessageContaining("candidate security servers failed")
-                .hasRootCause(lastFailure);
+                .satisfies(ex -> assertThat(ex.getCause()).isIn(failureA, failureB));
     }
 
     @Test

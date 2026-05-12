@@ -37,6 +37,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -115,6 +116,10 @@ public class DataPlaneServer {
      */
     public void registerJaxRsResource(String contextPath, Object resource) {
         var resourceConfig = new ResourceConfig();
+        // JSON-P feature wires the MessageBodyReader/Writer for jakarta.json.JsonObject
+        // (used by every signaling controller method). Without it Jersey returns 415 for
+        // application/json bodies that need to bind to JsonObject parameters.
+        resourceConfig.register(JsonProcessingFeature.class);
         resourceConfig.register(resource);
 
         var servletContextHandler = new ServletContextHandler(contextPath);

@@ -36,13 +36,14 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 
+import static org.niis.xroad.edc.extension.catalog.XRoadPolicyNamespace.XROAD_CLIENT_ID;
 import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
 public class XRoadClientIdConstraintFunction<C extends ParticipantAgentPolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
-    static final String KEY = "xroad:clientId";
+    static final String KEY = XROAD_CLIENT_ID;
     private final Monitor monitor;
 
     @Override

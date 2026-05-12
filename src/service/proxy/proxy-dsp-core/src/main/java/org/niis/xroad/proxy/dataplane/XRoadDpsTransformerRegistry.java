@@ -41,6 +41,9 @@ import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlow
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -101,6 +104,18 @@ public class XRoadDpsTransformerRegistry {
         registry.register(new JsonObjectFromDataPlaneInstanceTransformer(factory, typeManager, JSON_LD));
 
         return registry;
+    }
+
+    /**
+     * Produces a {@link JsonLd} service used by the signaling controller to expand inbound
+     * compacted JSON-LD bodies before delegating to the to-transformers (which expect expanded form).
+     * EDC's own runtime does this expansion via {@code JerseyJsonLdInterceptor}, but the proxy
+     * data-plane Jetty doesn't register it — so we apply the expansion inline at the controller.
+     */
+    @Produces
+    @ApplicationScoped
+    public JsonLd jsonLd() {
+        return new TitaniumJsonLd(new Monitor() { });
     }
 
     /**

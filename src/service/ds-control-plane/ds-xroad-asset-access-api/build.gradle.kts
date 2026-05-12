@@ -21,4 +21,6 @@ dependencies {
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.awaitility)
+  // Provides RuntimeDelegate impl so JtiReplayExceptionMapperTest can build jakarta.ws.rs Response objects.
+  testRuntimeOnly(libs.jersey.common)
 }

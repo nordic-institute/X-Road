@@ -46,7 +46,7 @@ import static org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextHe
 public class XRoadLocalGroupMemberConstraintFunction<C extends DataPlaneTransferPolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
-    public static final String KEY = "xroad:localGroupMember";
+    public static final String KEY = "https://x-road.eu/edc/v1/localGroupMember";
 
     private final ServerConfProvider serverConfProvider;
 

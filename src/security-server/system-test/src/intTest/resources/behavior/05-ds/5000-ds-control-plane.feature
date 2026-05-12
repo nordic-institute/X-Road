@@ -4,7 +4,7 @@ Feature: 5000 - DS control plane tests
 
   Scenario: Issuer Service is provisioned
     Given Issuer Service participant context "issuer" with DID "did:web:ds-issuer-service%3A6183:issuer" is initialized and keypair is generated with private key alias "issuer-key"
-    And Holder "did:web:ds-identity-hub%3A7183" with DID "did:web:ds-identity-hub%3A7183" is created in issuer service participant "issuer"
+    And Holder "did:web:ds-identity-hub%3A7183" with DID "did:web:ds-identity-hub%3A7183" and member identifier "DEV:COM:1234" is created in issuer service participant "issuer"
     And Attestation definition "xroad-membership-attestation-definition" of type "holder" is created in issuer service participant "issuer"
     And Credential definition "xroad-membership-credential-definition" of type "MembershipCredential" with format "VC1_0_JWT" is created in issuer service participant "issuer" with attestation "xroad-membership-attestation-definition"
 

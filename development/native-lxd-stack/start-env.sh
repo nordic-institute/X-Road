@@ -12,7 +12,7 @@ BUST_CACHE=false
 SNAPSHOT_EMPTY=false
 INVENTORY_PATH="config/ansible_hosts.txt"
 
-CACHEABLE_ROLES=(xroad-is xroad-ca)
+CACHEABLE_ROLES=(xroad-is xroad-ca xroad-repo)
 UBUNTU_RELEASEVER="${UBUNTU_RELEASEVER:-noble}"
 
 function parse_arguments() {

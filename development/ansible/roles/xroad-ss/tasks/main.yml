@@ -1,4 +1,36 @@
 ---
+# Preseed DSP proxy config BEFORE the xroad-proxy package install. The package's
+# postinst auto-starts xroad-proxy, and strict SmallRye validation aborts startup
+# when xroad.proxy.dsp.participant-context-id is missing. systemd then trips
+# StartLimitBurst (10 retries / 10s) and the unit stays 'failed' — `systemctl
+# restart` is a no-op until reset-failed clears it. Dropping the file here lets
+# the very first package-driven start come up clean.
+#
+# /etc/xroad/conf.d/ doesn't exist yet (xroad-common creates it), so we create
+# it as root:root and write the file root-owned mode 0644 — proxy runs as xroad
+# and just needs read access. The dpkg unpack will leave our pre-existing dir
+# and file intact (conffile semantics).
+- name: ensure /etc/xroad/conf.d exists for preseeded configs
+  file:
+    path: /etc/xroad/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: preseed DSP control plane config (must precede xroad-proxy package install)
+  copy:
+    dest: /etc/xroad/conf.d/local-dsp.yaml
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      xroad:
+        proxy:
+          dsp:
+            participant-context-id: "{{ inventory_hostname }}"
+            control-plane-endpoint: "https://127.0.0.1:8184/api/v1/control"
+
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
 
@@ -89,6 +121,15 @@
     mode: "0640"
     content: |
       edc:
+        # TODO: EDC's DspApiBaseConfigurationExtension.defaultWebhookAddress() hardcodes
+        # http:// and uses Hostname.get() — which is "localhost" inside the systemd unit
+        # because HOSTNAME isn't exported to the JVM. Both defects need to be addressed
+        # properly (upstream patch or proper hostname propagation + scheme override).
+        # For now pin the callback address explicitly so contract-agreement POSTs go to
+        # the right host over TLS.
+        dsp:
+          callback:
+            address: "https://{{ inventory_hostname }}:8183/api/dsp/%s"
         iam:
           oauth2:
             jwks:
@@ -108,6 +149,9 @@
               password: "changeit"
             keymanager:
               password: "changeit"
+      xroad:
+        dsp:
+          participant-context-id: "{{ inventory_hostname }}"
 
 - name: drop legacy ds-control-plane systemd override (now in YAML)
   file:
@@ -144,15 +188,8 @@
 # admin / control / proto). xrd-ca is installed into the system trust store
 # earlier in this role, so the JVM (Quarkus xroad-proxy here, ds-control-plane
 # on the counterparty) trusts the cert chain.
-- name: configure DSP control plane URLs for LXD
-  copy:
-    dest: /etc/xroad/conf.d/local-dsp.yaml
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    content: |
-      xroad:
-        proxy:
-          dsp:
-            participant-context-id: "{{ inventory_hostname }}"
-            control-plane-endpoint: "https://127.0.0.1:8184/api/v1/control"
+#
+# The actual file is preseeded at the top of this role (before package install)
+# so xroad-proxy's postinst-driven first start finds the config and avoids the
+# StartLimitBurst trap. Re-running the role updates the file in place; xroad-proxy
+# picks the new values up on its next restart.

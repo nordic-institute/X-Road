@@ -37,6 +37,9 @@ localhost ansible_connection=local
 [hurl_servers]
 xrd-hurl ansible_connection=lxd
 
+[repo_servers]
+xrd-repo ansible_connection=lxd
+
 ### vars ###
 
 [ss_servers:vars]

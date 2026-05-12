@@ -61,6 +61,7 @@ import static org.mockito.Mockito.verify;
 class ProxyDataPlaneRegistryTest {
 
     private static final String DATA_FLOW_ENDPOINT = "http://127.0.0.1:5590/full/api/v1/dataflows";
+    private static final String TEST_PARTICIPANT_CONTEXT_ID = "xrd-ss0";
     private static final String REGISTRATION_PATH = "/api/v1/control/v1/dataplanes";
     private static final String EDC_NAMESPACE = "https://w3id.org/edc/v0.0.1/ns/";
 
@@ -114,7 +115,7 @@ class ProxyDataPlaneRegistryTest {
 
         wireMock.verify(postRequestedFor(urlEqualTo(REGISTRATION_PATH))
                 .withHeader("Content-Type", equalTo("application/json"))
-                .withRequestBody(containing("\"@id\":\"xroad-proxy-xroad-provider\""))
+                .withRequestBody(containing("\"@id\":\"xroad-proxy-" + TEST_PARTICIPANT_CONTEXT_ID + "\""))
                 .withRequestBody(containing("@context"))
                 .withRequestBody(containing(EDC_NAMESPACE)));
         assertThat(registry.isRegistered()).isTrue();
@@ -163,6 +164,25 @@ class ProxyDataPlaneRegistryTest {
     }
 
     // -----------------------------------------------------------------------
+    // Case 4b: heartbeat re-registers after CP restart (idempotent upsert)
+    // -----------------------------------------------------------------------
+
+    @Test
+    void retryControlPlaneRegistration_resendsHeartbeatWhileRegistered() throws Exception {
+        stubProperties();
+        stubRegistrationOk();
+
+        var registry = createRegistry();
+        registry.initialize();
+        assertThat(registry.isRegistered()).isTrue();
+
+        registry.retryControlPlaneRegistration();
+        registry.retryControlPlaneRegistration();
+
+        wireMock.verify(3, postRequestedFor(urlEqualTo(REGISTRATION_PATH)));
+    }
+
+    // -----------------------------------------------------------------------
     // Case 5: JSON body carries correct Xrd-PULL / http / url values
     // -----------------------------------------------------------------------
 
@@ -204,6 +224,7 @@ class ProxyDataPlaneRegistryTest {
         lenient().when(dspProperties.dataFlowEndpoint()).thenReturn(DATA_FLOW_ENDPOINT);
         lenient().when(dspProperties.controlPlaneEndpoint())
                 .thenReturn("http://localhost:" + wireMock.port() + "/api/v1/control");
+        lenient().when(dspProperties.participantContextId()).thenReturn(TEST_PARTICIPANT_CONTEXT_ID);
     }
 
     private void stubRegistrationOk() {

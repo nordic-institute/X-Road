@@ -44,7 +44,7 @@ import static org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextHe
 public class XRoadClientIdConstraintFunction<C extends DataPlaneTransferPolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
-    public static final String KEY = "xroad:clientId";
+    public static final String KEY = "https://x-road.eu/edc/v1/clientId";
 
     private final GlobalConfProvider globalConfProvider;
     private final Monitor monitor;

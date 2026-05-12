@@ -149,24 +149,24 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements ControlPl
                 counterPartyId,
                 counterPartyAddress,
                 clientProperties.protocol());
-        var cached = cache.getIfPresent(cacheKey);
-        if (cached != null) {
-            return cached.response();
-        }
+        // cache.get(key, loader) serializes concurrent loads on the same key inside Caffeine,
+        // collapsing N parallel proxy threads into a single gRPC round-trip per cache miss.
+        return cache.get(cacheKey, this::loadAssetAccess).response();
+    }
 
+    private CachedEntry loadAssetAccess(CacheKey cacheKey) {
         var request = AcquireAssetAccessReq.newBuilder()
-                .setParticipantContextId(clientProperties.participantContextId())
-                .setAssetId(assetId)
-                .setCounterPartyId(counterPartyId)
-                .setCounterPartyAddress(counterPartyAddress)
-                .setProtocol(clientProperties.protocol())
+                .setParticipantContextId(cacheKey.participantContextId())
+                .setAssetId(cacheKey.assetId())
+                .setCounterPartyId(cacheKey.counterPartyId())
+                .setCounterPartyAddress(cacheKey.counterPartyAddress())
+                .setProtocol(cacheKey.protocol())
                 .build();
         var response = exec(() -> accessServiceBlockingStub.acquire(request));
         long expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
         var assetAccessResponse = new AssetAccessResponse(
                 response.getEndpoint(),
                 response.hasAuthorization() ? response.getAuthorization() : null);
-        cache.put(cacheKey, new CachedEntry(assetAccessResponse, expiresAt));
-        return assetAccessResponse;
+        return new CachedEntry(assetAccessResponse, expiresAt);
     }
 }

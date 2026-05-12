@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyCo
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -44,13 +45,19 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import static org.eclipse.edc.jsonld.spi.JsonLd.DEFAULT_SCOPE;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_SCOPE_V_2025_1;
+import static org.niis.xroad.edc.extension.catalog.XRoadPolicyNamespace.XROAD_NAMESPACE;
 import static org.niis.xroad.edc.extension.policy.controlplane.XRoadControlPlanePolicyExtension.EXTENSION_NAME;
 
 @Extension(value = EXTENSION_NAME)
 public class XRoadControlPlanePolicyExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Control Plane Policy extension";
+
+    @Inject
+    private JsonLd jsonLd;
 
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
@@ -77,6 +84,9 @@ public class XRoadControlPlanePolicyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        jsonLd.registerNamespace("xroad", XROAD_NAMESPACE, DSP_SCOPE_V_2025_1);
+        jsonLd.registerNamespace("xroad", XROAD_NAMESPACE, DEFAULT_SCOPE);
+
         var monitor = context.getMonitor();
 
         bindPermissionFunction(

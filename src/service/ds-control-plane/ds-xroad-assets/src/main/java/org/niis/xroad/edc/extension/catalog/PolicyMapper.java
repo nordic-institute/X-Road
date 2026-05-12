@@ -59,10 +59,10 @@ import java.util.Map;
 @Slf4j
 class PolicyMapper {
 
-    static final String XROAD_CLIENT_ID_CONSTRAINT = "xroad:clientId";
-    static final String XROAD_GLOBALGROUP_CONSTRAINT = "xroad:globalGroupMember";
-    static final String XROAD_LOCALGROUP_CONSTRAINT = "xroad:localGroupMember";
-    static final String XROAD_DATAPATH_CONSTRAINT = "xroad:datapath";
+    static final String XROAD_CLIENT_ID_CONSTRAINT = XRoadPolicyNamespace.XROAD_CLIENT_ID;
+    static final String XROAD_GLOBALGROUP_CONSTRAINT = XRoadPolicyNamespace.XROAD_GLOBAL_GROUP;
+    static final String XROAD_LOCALGROUP_CONSTRAINT = XRoadPolicyNamespace.XROAD_LOCAL_GROUP;
+    static final String XROAD_DATAPATH_CONSTRAINT = XRoadPolicyNamespace.XROAD_DATAPATH;
     private static final String ODRL_USE_ACTION = "http://www.w3.org/ns/odrl/2/use";
 
     private final ObjectMapper objectMapper = new ObjectMapper();

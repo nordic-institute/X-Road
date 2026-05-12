@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ServerConfBackedAssetIndexTest {
 
-    private static final String PARTICIPANT_CONTEXT_ID = XrdServerConfCatalogExtension.PARTICIPANT_CONTEXT_ID;
+    private static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
 
     @Mock
     private ServerConfProvider serverConfProvider;
@@ -105,10 +105,10 @@ class ServerConfBackedAssetIndexTest {
         assertThat(asset.getId()).isEqualTo(SERVICE_1.asEncodedId());
         assertThat(asset.getParticipantContextId()).isEqualTo("xroad-provider");
         assertThat(asset.getProperty(EDC_NAMESPACE + "name")).isEqualTo("getRecords");
-        assertThat(asset.getProperty("dcterms:title")).isEqualTo("getRecords:v1");
-        assertThat((String) asset.getProperty("dcterms:description"))
+        assertThat(asset.getProperty("http://purl.org/dc/terms/title")).isEqualTo("getRecords:v1");
+        assertThat((String) asset.getProperty("http://purl.org/dc/terms/description"))
                 .startsWith("X-Road service getRecords:v1 provided by 1111/SubsystemA");
-        assertThat((List<String>) asset.getProperty("dcat:keyword"))
+        assertThat((List<String>) asset.getProperty("http://www.w3.org/ns/dcat#keyword"))
                 .contains("GOV", "SubsystemA");
     }
 

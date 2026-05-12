@@ -3,8 +3,8 @@ Feature: 0300 - Data spaces baseline
 
   Scenario: Issuer service is provisioned
     Given Issuer Service participant context "issuer" with DID "did:web:ds-issuer-service%3A6183:issuer" and issuer service endpoint "http://ds-issuer-service:6185/api/issuance/v1alpha/participants/issuer" is created on "aux"
-    And Holder for DID "did:web:ss0-ds-identity-hub%3A7183" is created for "issuer" on "aux"
-    And Holder for DID "did:web:ss1-ds-identity-hub%3A7183" is created for "issuer" on "aux"
+    And Holder for DID "did:web:ss0-ds-identity-hub%3A7183" with member identifier "DEV:COM:1234" is created for "issuer" on "aux"
+    And Holder for DID "did:web:ss1-ds-identity-hub%3A7183" with member identifier "DEV:COM:4321" is created for "issuer" on "aux"
     And "xroad-membership" attestation definition is created for "issuer" on "aux"
     And "xroad-membership" credential definition is created for "issuer" on "aux"
 

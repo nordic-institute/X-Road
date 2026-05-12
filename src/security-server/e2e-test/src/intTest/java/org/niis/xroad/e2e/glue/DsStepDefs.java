@@ -99,18 +99,19 @@ public class DsStepDefs extends BaseE2EStepDefs {
         sendRequest(POST, url, IssuerServiceAuthTokens.PROVISIONER, request, HttpStatus.SC_OK);
     }
 
-    @Step("Holder for DID {string} is created for {string} on {string}")
-    public void createHolderFor(String did, String issuerParticipantContext, String env) {
+    @Step("Holder for DID {string} with member identifier {string} is created for {string} on {string}")
+    public void createHolderFor(String did, String memberIdentifier, String issuerParticipantContext, String env) {
         String request = """
                 {
                     "did": "%s",
                     "holderId": "%s",
                     "name": "Test Holder",
                     "properties": {
-                        "membershipType": "X-Road"
+                        "membershipType": "X-Road",
+                        "xrdMemberIdentifier": "%s"
                     }
                 }
-                """.formatted(did, did);
+                """.formatted(did, did, memberIdentifier);
 
         var mapping = envSetup.getContainerMapping(env, DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
         String url = IS_ADMIN_BASE_URL.formatted(mapping.host(), mapping.port()) + "/participants/%s/holders"
@@ -147,6 +148,11 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         {
                             "input": "membershipType",
                             "output": "credentialSubject.membershipType",
+                            "required": "true"
+                        },
+                        {
+                            "input": "xrdMemberIdentifier",
+                            "output": "credentialSubject.xrdMemberIdentifier",
                             "required": "true"
                         }
                     ],

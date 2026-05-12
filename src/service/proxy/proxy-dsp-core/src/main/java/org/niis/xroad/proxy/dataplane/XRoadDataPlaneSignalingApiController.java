@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.dataplane.api.controller.v1.DataPlaneSignalingApi;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
@@ -74,6 +75,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class XRoadDataPlaneSignalingApiController implements DataPlaneSignalingApi {
 
     private final TypeTransformerRegistry typeTransformerRegistry;
+    private final JsonLd jsonLd;
     private final XRoadDataPlaneManager manager;
 
     /**
@@ -179,7 +181,12 @@ public class XRoadDataPlaneSignalingApiController implements DataPlaneSignalingA
     }
 
     private <T> T transformIn(JsonObject message, Class<T> type) {
-        return typeTransformerRegistry.transform(message, type)
+        // EDC's signaling client compacts JSON-LD before serializing; the to-transformers expect
+        // the expanded form (full IRI keys). EDC's own runtime auto-expands via JerseyJsonLdInterceptor,
+        // which we don't register on the proxy data-plane Jetty. Expand inline to keep parity.
+        log.info("transformIn target={} body={}", type.getSimpleName(), message);
+        return jsonLd.expand(message)
+                .compose(expanded -> typeTransformerRegistry.transform(expanded, type))
                 .orElseThrow(f -> XrdRuntimeException.systemException(ErrorCode.INVALID_REQUEST,
                         "Failed to transform incoming %s: %s".formatted(type.getSimpleName(), f.getFailureDetail())));
     }

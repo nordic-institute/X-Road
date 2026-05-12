@@ -17,6 +17,14 @@
 # every ds-* port (identity, did, sts, issuance, admin) — there's no per-port
 # choice in EDC's stock JettyService.
 #
+# edc.statuslist.callback.address: full external URL baked into every VC's
+# credentialStatus.statusListCredential. EDC's LocalStatusListCredentialPublisher
+# otherwise composes "http://${edc.hostname}:6187/statuslist" — and edc.hostname
+# (templated as ${HOSTNAME} in application.yaml) doesn't resolve because the
+# systemd unit doesn't export HOSTNAME to the JVM, so EDC defaults to localhost.
+# The URL must be reachable from any consumer SS's Identity Hub during VP
+# validation; we point at the cs host directly.
+#
 # Production: replace mock JWKS with the actual identity provider's JWKS URL;
 # manage keystore lifecycle via real PKI rotation, not the dev xrd-pki mock.
 - name: configure ds-issuer-service runtime overrides
@@ -27,6 +35,12 @@
     mode: "0640"
     content: |
       edc:
+        hostname: "{{ groups['cs_servers'] | first }}"
+        statuslist:
+          callback:
+            # https because ds-https-keystore.yml enables TLS on every ds-* port —
+            # plain http here surfaces as "unexpected end of stream" on the IH side.
+            address: "https://{{ groups['cs_servers'] | first }}:6187/statuslist"
         iam:
           oauth2:
             jwks:

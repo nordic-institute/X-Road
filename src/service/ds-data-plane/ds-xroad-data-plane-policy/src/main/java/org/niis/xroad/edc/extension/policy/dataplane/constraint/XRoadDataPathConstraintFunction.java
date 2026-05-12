@@ -43,7 +43,7 @@ import java.util.Set;
 public class XRoadDataPathConstraintFunction<C extends DataPlaneTransferPolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
-    public static final String KEY = "xroad:datapath";
+    public static final String KEY = "https://x-road.eu/edc/v1/datapath";
 
     private static final String ANY_METHOD = "*";
     private static final String ANY_PATH = "**";

@@ -78,18 +78,19 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("Holder {string} with DID {string} is created in issuer service participant {string}")
-    public void holderIsCreated(String holderId, String holderDid, String participantId) {
+    @Step("Holder {string} with DID {string} and member identifier {string} is created in issuer service participant {string}")
+    public void holderIsCreated(String holderId, String holderDid, String memberIdentifier, String participantId) {
         String request = """
                 {
                     "did": "%s",
                     "holderId": "%s",
                     "name": "Test Holder",
                     "properties": {
-                        "membershipType": "X-Road"
+                        "membershipType": "X-Road",
+                        "xrdMemberIdentifier": "%s"
                     }
                 }
-                """.formatted(holderDid, holderId);
+                """.formatted(holderDid, holderId, memberIdentifier);
 
         var response = issuerServiceAdminApi.createHolder(
                 AuthTokens.PARTICIPANT,
@@ -134,6 +135,11 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                         {
                             "input": "membershipType",
                             "output": "credentialSubject.membershipType",
+                            "required": "true"
+                        },
+                        {
+                            "input": "xrdMemberIdentifier",
+                            "output": "credentialSubject.xrdMemberIdentifier",
                             "required": "true"
                         }
                     ],

@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.dataplane;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
@@ -61,13 +62,19 @@ class XRoadDataPlaneSignalingApiControllerTest {
     @Mock
     private TypeTransformerRegistry transformerRegistry;
     @Mock
+    private JsonLd jsonLd;
+    @Mock
     private XRoadDataPlaneManager manager;
 
     private XRoadDataPlaneSignalingApiController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new XRoadDataPlaneSignalingApiController(transformerRegistry, manager);
+        // Pass-through expand: keep the input JsonObject as-is so existing mock matchers on
+        // transformerRegistry.transform(JsonObject.class, ...) still apply.
+        org.mockito.Mockito.lenient().when(jsonLd.expand(isA(JsonObject.class)))
+                .thenAnswer(inv -> Result.success(inv.getArgument(0)));
+        controller = new XRoadDataPlaneSignalingApiController(transformerRegistry, jsonLd, manager);
     }
 
     @Test

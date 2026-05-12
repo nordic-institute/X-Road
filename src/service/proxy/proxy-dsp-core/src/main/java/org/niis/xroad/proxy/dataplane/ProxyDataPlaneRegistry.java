@@ -72,8 +72,6 @@ public class ProxyDataPlaneRegistry {
 
     /** Stable instance id — re-register is an idempotent upsert on CP. */
     private static final String INSTANCE_ID_PREFIX = "xroad-proxy-";
-    /** Mirrors {@code XrdServerConfCatalogExtension.PARTICIPANT_CONTEXT_ID}. */
-    private static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
     private static final String SOURCE_TYPE = "http";
     private static final String TRANSFER_TYPE = "Xrd-PULL";
     private static final int HTTP_CLIENT_CONNECT_TIMEOUT_SECONDS = 5;
@@ -109,12 +107,16 @@ public class ProxyDataPlaneRegistry {
         attemptControlPlaneRegistration();
     }
 
-    /** Retries control-plane registration every 30 s until {@link #isRegistered()} returns {@code true}. */
+    /**
+     * Re-registers with the control plane every 30 s as an idempotent upsert heartbeat.
+     * The CP-side {@code ServerConfBackedDataPlaneInstanceStore} is in-memory, so any CP restart wipes
+     * the instance — without a heartbeat the catalog ends up with empty distributions until the next
+     * proxy restart. {@link #isRegistered()} stays {@code true} once the first POST succeeds so the
+     * Quarkus readiness probe doesn't flap on transient CP unavailability.
+     */
     @Scheduled(every = "30s", delayed = "30s")
     void retryControlPlaneRegistration() {
-        if (!registered) {
-            attemptControlPlaneRegistration();
-        }
+        attemptControlPlaneRegistration();
     }
 
     /**
@@ -151,7 +153,7 @@ public class ProxyDataPlaneRegistry {
 
     private DataPlaneInstance buildInstance() {
         return DataPlaneInstance.Builder.newInstance()
-                .id(INSTANCE_ID_PREFIX + PARTICIPANT_CONTEXT_ID)
+                .id(INSTANCE_ID_PREFIX + dspProperties.participantContextId())
                 .url(dspProperties.dataFlowEndpoint())
                 .allowedSourceType(SOURCE_TYPE)
                 .allowedTransferType(TRANSFER_TYPE)

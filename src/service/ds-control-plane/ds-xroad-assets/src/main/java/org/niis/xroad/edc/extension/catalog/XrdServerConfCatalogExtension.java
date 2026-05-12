@@ -37,6 +37,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -52,25 +53,24 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     static final String NAME = "X-Road ServerConf Catalog";
 
     /**
-     * Provider-side participant context identifier used when registering catalog assets.
+     * EDC config key for the participant context ID used when tagging catalog assets.
      *
-     * <p><b>Intentional asymmetry with client-sent {@code counterPartyId}:</b> the proxy
-     * DSP client sends {@code counterPartyId = ClientId.asEncodedId()} (e.g. {@code "DEV/COM/1234/TestClient"}),
-     * which does NOT match the constant {@code "xroad-provider"} used here.
+     * <p>Each ds-control-plane instance must tag its catalog entities with the
+     * {@code participantContextId} that matches the {@code ParticipantContext} registered in the
+     * Identity Hub for this Security Server. The registered context is the SS hostname (e.g.
+     * {@code xrd-ss0}), so this setting should be set to the SS hostname in
+     * {@code local-ds-control-plane.yaml} for native deployments.
      *
-     * <p>This is tolerated today ONLY because the active IAM bundle is {@code edc-iam-mock}
-     * (see {@code core/src/gradle/libs.versions.toml} lines 353-361 — {@code edc-iam-dcp-core}
-     * is commented out). Under {@code iam-mock}, EDC's {@code catalogService.requestCatalog}
-     * does NOT verify {@code counterPartyId} against the provider's own {@code ParticipantContext.participantContextId};
-     * see Phase 9 research ({@code .planning/phases/09-core-proxy-wiring/09-RESEARCH.md}, Q1 / D-14).
+     * <p>Default resolves to {@code edc.hostname} (which itself defaults to the {@code HOSTNAME}
+     * environment variable or {@code "localhost"}), matching the Identity Hub bootstrap convention.
      *
-     * <p><b>DCP migration trigger:</b> uncommenting {@code edc-iam-dcp-core} in
-     * {@code libs.versions.toml} makes {@code counterPartyId} identity-significant via DCP
-     * holder/issuer claim checks. At that point CFG-01 (per-subsystem configurable
-     * {@code participantContextId}) in {@code REQUIREMENTS.md} becomes a hard prerequisite
-     * and this constant must be replaced by request-scoped resolution.
+     * <p><b>Historical note:</b> prior to DCP migration this was hardcoded to {@code "xroad-provider"}.
+     * Under {@code edc-iam-mock} the mismatch was silently tolerated. Under {@code edc-iam-dcp-core}
+     * EDC's catalog endpoint filters the {@code ContractDefinitionStore} by
+     * {@code participantContextId = <routed-context>}, causing all definitions to be excluded and
+     * the catalog to return zero datasets (CFG-01).
      */
-    public static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
+    static final String SETTING_PARTICIPANT_CONTEXT_ID = "xroad.dsp.participant-context-id";
 
     @Inject
     private ServerConfProvider serverConfProvider;
@@ -78,9 +78,18 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     @Inject
     private GlobalConfProvider globalConfProvider;
 
+    private String participantContextId;
+
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var defaultContextId = context.getSetting("edc.hostname", "localhost");
+        participantContextId = context.getSetting(SETTING_PARTICIPANT_CONTEXT_ID, defaultContextId);
+        log.info("Participant context ID for catalog assets: {}", participantContextId);
     }
 
     /**
@@ -100,7 +109,7 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public AssetIndex assetIndex() {
         log.trace("Providing AssetIndex backed by ServerConf");
-        return new ServerConfBackedAssetIndex(serverConfProvider, PARTICIPANT_CONTEXT_ID);
+        return new ServerConfBackedAssetIndex(serverConfProvider, participantContextId);
     }
 
     /**
@@ -119,7 +128,7 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public PolicyDefinitionStore policyDefinitionStore() {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
-        return new ServerConfBackedPolicyDefinitionStore(serverConfProvider, new PolicyMapper(), PARTICIPANT_CONTEXT_ID);
+        return new ServerConfBackedPolicyDefinitionStore(serverConfProvider, new PolicyMapper(), participantContextId);
     }
 
     /**
@@ -131,7 +140,7 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
         return new ServerConfBackedContractDefinitionStore(
                 serverConfProvider,
                 new ContractDefinitionMapper(),
-                PARTICIPANT_CONTEXT_ID
+                participantContextId
         );
     }
 }

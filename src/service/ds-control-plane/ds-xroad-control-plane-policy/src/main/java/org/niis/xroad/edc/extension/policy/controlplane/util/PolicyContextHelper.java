@@ -30,25 +30,40 @@ package org.niis.xroad.edc.extension.policy.controlplane.util;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 
 import java.util.Optional;
 
+@Slf4j
 @UtilityClass
 public class PolicyContextHelper {
+
+    /**
+     * Participant-agent attribute key used by X-Road constraint functions to read the consumer's
+     * encoded X-Road member identifier ({@code INSTANCE:CLASS:CODE}).
+     * Populated by {@code XRoadMemberIdAttributes} from the {@code MembershipCredential} VC claim
+     * {@code xrdMemberIdentifier}.
+     */
+    public static final String XRD_MEMBER_IDENTIFIER_ATTRIBUTE = "xrd:memberIdentifier";
+
     private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     public static Optional<ClientId> findMemberIdFromContext(ParticipantAgentPolicyContext context) {
         var participantAgent = context.participantAgent();
 
         if (participantAgent != null) {
-            var memberIdentifierString = participantAgent.getAttributes().get("xrd:memberIdentifier");
+            var attributes = participantAgent.getAttributes();
+            var memberIdentifierString = attributes.get(XRD_MEMBER_IDENTIFIER_ATTRIBUTE);
+            log.debug("findMemberIdFromContext: participantAgent.identity={} attributes={} memberIdentifier={}",
+                    participantAgent.getIdentity(), attributes.keySet(), memberIdentifierString);
             if (!clientIdConverter.isEncodedMemberId(memberIdentifierString)) {
                 throw new IllegalStateException("Invalid member identifier: " + memberIdentifierString);
             }
             return Optional.ofNullable(parseClientId(memberIdentifierString));
         }
+        log.debug("findMemberIdFromContext: participantAgent is null, returning empty");
         return Optional.empty();
     }
 

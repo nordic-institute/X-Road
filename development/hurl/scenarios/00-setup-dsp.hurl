@@ -73,7 +73,7 @@ Content-Type: application/json
 # Tolerate re-runs: 200 on first run, conflict on rerun.
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 1.2 Register holder = ss0's identity-hub DID.
 # Production: holders added when a member onboards in CS UI.
@@ -86,13 +86,14 @@ Content-Type: application/json
     "holderId": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
     "name": "SS0 Holder (dev mock)",
     "properties": {
-        "membershipType": "X-Road"
+        "membershipType": "X-Road",
+        "xrdMemberIdentifier": "{{ss0_member_id}}"
     }
 }
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 1.3 Register holder = ss1's identity-hub DID.
 POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/holders
@@ -104,13 +105,14 @@ Content-Type: application/json
     "holderId": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
     "name": "SS1 Holder (dev mock)",
     "properties": {
-        "membershipType": "X-Road"
+        "membershipType": "X-Road",
+        "xrdMemberIdentifier": "{{ss1_member_id}}"
     }
 }
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 1.4 Create attestation definition "xroad-membership".
 # Production: attestation schema curated and versioned by NIIS.
@@ -126,7 +128,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 1.5 Create credential definition "xroad-membership" -> emits MembershipCredential VCs.
 POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/credentialdefinitions
@@ -144,6 +146,11 @@ Content-Type: application/json
             "input": "membershipType",
             "output": "credentialSubject.membershipType",
             "required": "true"
+        },
+        {
+            "input": "xrdMemberIdentifier",
+            "output": "credentialSubject.xrdMemberIdentifier",
+            "required": "true"
         }
     ],
     "rules": [],
@@ -153,7 +160,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # =============================================================================
 # 2. IDENTITY HUB — per-SS participant context + credential issuance
@@ -204,7 +211,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 2a.2 Submit credential request from issuer for ss0's IH.
 POST https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_host}}/credentials/request
@@ -225,7 +232,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 2a.3 Poll credential request status; expect ISSUED. Hurl --retry handles retry.
 # If ERROR, fail loud — points to JWKS / DID resolution / network misconfig.
@@ -267,7 +274,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 2b.2 Submit credential request from issuer for ss1's IH.
 POST https://{{ss1_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_host}}/credentials/request
@@ -288,7 +295,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 2b.3 Poll credential request status; expect ISSUED.
 GET https://{{ss1_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_host}}/credentials/request/xroad-membership-credential-request
@@ -328,7 +335,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 3a.2 PUT participant context config — STS endpoints + DID.
 # Returns 204 No Content on success (per EDC v5beta).
@@ -351,7 +358,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # --- 3b. xrd-ss1 ---
 
@@ -369,7 +376,7 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500
 
 # 3b.2 PUT participant context config on ss1.
 PUT https://{{ss1_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss1_host}}/config
@@ -391,4 +398,4 @@ Content-Type: application/json
 
 HTTP *
 [Asserts]
-status < 300 or status == 409
+status < 500

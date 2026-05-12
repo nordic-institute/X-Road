@@ -52,6 +52,10 @@ import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,6 +82,7 @@ class AssetAccessRpcClientTest {
     private final AtomicInteger requestCount = new AtomicInteger();
     private AcquireAssetAccessResp configuredResponse;
     private StatusRuntimeException configuredError;
+    private CountDownLatch holdLatch;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -86,6 +91,15 @@ class AssetAccessRpcClientTest {
             public void acquire(AcquireAssetAccessReq request, StreamObserver<AcquireAssetAccessResp> responseObserver) {
                 capturedRequest.set(request);
                 requestCount.incrementAndGet();
+                if (holdLatch != null) {
+                    try {
+                        holdLatch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        responseObserver.onError(Status.CANCELLED.asRuntimeException());
+                        return;
+                    }
+                }
                 if (configuredError != null) {
                     responseObserver.onError(configuredError);
                 } else {
@@ -236,6 +250,43 @@ class AssetAccessRpcClientTest {
 
         assertThat(result1.endpoint()).isEqualTo("http://provider/api/data");
         assertThat(result2.endpoint()).isEqualTo("http://provider/api/data");
+        assertThat(requestCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void acquireSuccess_concurrentCallsForSameKeyCollapseToSingleGrpcRoundTrip() throws Exception {
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setAuthorization("token-x")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .build();
+        holdLatch = new CountDownLatch(1);
+
+        int threadCount = 8;
+        var executor = Executors.newFixedThreadPool(threadCount);
+        var startGate = new CountDownLatch(1);
+        var futures = new ArrayList<Future<?>>();
+
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                futures.add(executor.submit(() -> {
+                    startGate.await();
+                    return client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+                }));
+            }
+            startGate.countDown();
+            // Allow worker threads to pile up at Caffeine's per-key loader lock — only one
+            // is permitted to call the gRPC loader, the rest must wait for its result.
+            Thread.sleep(200);
+            holdLatch.countDown();
+
+            for (var future : futures) {
+                future.get(5, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
         assertThat(requestCount.get()).isEqualTo(1);
     }
 

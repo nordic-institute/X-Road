@@ -39,12 +39,13 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.edc.extension.catalog.XRoadPolicyNamespace.XROAD_LOCAL_GROUP;
 
 @RequiredArgsConstructor
 public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
-    static final String KEY = "xroad:localGroupMember";
+    static final String KEY = XROAD_LOCAL_GROUP;
 
     private final ServerConfProvider serverConfProvider;
 

@@ -119,9 +119,14 @@ final class AssetMapper {
                 .id(assetId)
                 .participantContextId(participantContextId)
                 .property(EDC_NAMESPACE + "name", serviceId.getServiceCode())
-                .property("dcterms:title", title)
-                .property("dcterms:description", description)
-                .property("dcat:keyword", keywords)
+                // Full IRIs (with authority) so Titanium JSON-LD compaction doesn't trip
+                // IRI_CONFUSED_WITH_PREFIX. dcat is a registered prefix in the DSP context
+                // (dspace-v2025-1.jsonld); emitting raw "dcat:keyword" as a property key gives
+                // Titanium a scheme-only URI it parses as a confusable CURIE. Titanium re-shortens
+                // the full IRI back to dcat:keyword / dct:title on the wire.
+                .property("http://purl.org/dc/terms/title", title)
+                .property("http://purl.org/dc/terms/description", description)
+                .property("http://www.w3.org/ns/dcat#keyword", keywords)
                 .build();
     }
 

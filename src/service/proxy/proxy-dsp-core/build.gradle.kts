@@ -29,6 +29,7 @@ dependencies {
   implementation(libs.edc.dataplane.signaling.transform)
   implementation(libs.jersey.container.servlet)
   implementation(libs.jersey.inject.hk2)
+  implementation(libs.jersey.media.json.processing)
   implementation(libs.jetty.ee11.servlet)
 
   testImplementation(project(":service:op-monitor:op-monitor-api"))

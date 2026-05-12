@@ -56,17 +56,18 @@
   tags:
     - netdata
 
-- name: Configure local repositories
-  hosts: ss_servers, cs_servers, cp_servers
+- name: Build local package repository (single shared, served over HTTP)
+  hosts: repo_servers
+  become: true
   strategy: free
   pre_tasks:
     - name: Check host connectivity
       ping:
-    - name: Show target hosts
-      debug:
-        msg: "Target hosts in group: {{ groups['ss_servers'] + groups['cs_servers'] + groups['cp_servers'] }}"
   roles:
-    - packages-to-local-repo
+    - xroad-repo
+  tags:
+    - repo
+    - install
 
 # CA installs first because xroad-cs and xroad-ss both need xrd-ca's signing
 # endpoint up to provision ds-https TLS keystores (see ds-https-keystore.yml).

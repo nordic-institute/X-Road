@@ -62,4 +62,16 @@ public interface ProxyDspProperties {
     @WithDefault("http://127.0.0.1:5590/full/api/v1/dataflows")
     String dataFlowEndpoint();
 
+    /**
+     * The participant context ID used when registering this proxy as a data-plane instance on the control plane.
+     *
+     * <p>Must match the {@code ParticipantContext} registered in the Identity Hub for this
+     * Security Server (e.g. {@code xrd-ss0}). Set via {@code local-dsp.yaml} in native deployments.
+     * No default — must be set explicitly so a misconfigured deployment fails fast.
+     *
+     * @return participant context ID
+     */
+    @WithName("participant-context-id")
+    String participantContextId();
+
 }
