@@ -35,10 +35,9 @@ import { mapActions, mapState } from 'pinia';
 
 import axios, { AxiosError } from 'axios';
 
-import { XrdAppLogin, useNotifications } from '@niis/shared-ui';
+import { useNotifications, XrdAppLogin } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
-import { useInitializeServer } from '@/store/modules/initializeServer';
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
 import { useMainTabs } from '@/store/modules/main-tabs';
@@ -65,17 +64,6 @@ export default defineComponent({
   computed: {
     ...mapState(useMainTabs, ['firstAllowedTab']),
     ...mapState(useUser, ['hasPermission', 'hasInitState', 'needsInitialization']),
-  },
-  async created() {
-    try {
-      const initStore = useInitializeServer();
-      const required = await initStore.fetchInitialAdminUserStatus();
-      if (required) {
-        await this.$router.replace({ name: RouteName.InitialConfiguration });
-      }
-    } catch {
-      // probe not reachable -> stay on login screen
-    }
   },
   methods: {
     ...mapActions(useUser, [

@@ -65,6 +65,7 @@ public class InitialAdminUserService {
 
     private final UserAuthenticationConfig userAuthenticationConfig;
     private final AdminUserService adminUserService;
+    private final SystemService systemService;
     private final ServerConfService serverConfService;
     private final TokenService tokenService;
 
@@ -79,7 +80,6 @@ public class InitialAdminUserService {
      * Creates the very first admin user. Re-checks bootstrap state inside the transaction so
      * concurrent callers cannot create more than one bootstrap user, and assigns the default
      * full-admin role set that mirrors the PAM <code>xroad-admin</code> Linux user.
-     *
      * @throws InitialAdminUserNotAllowedException when bootstrap state no longer holds
      */
     public void createInitialAdminUser(String username, char[] password) {
@@ -98,7 +98,8 @@ public class InitialAdminUserService {
     }
 
     private boolean isServerFullyInitialized() {
-        return serverConfService.isServerCodeInitialized()
+        return systemService.isAnchorImported()
+                && serverConfService.isServerCodeInitialized()
                 && serverConfService.isServerOwnerInitialized()
                 && tokenService.isSoftwareTokenInitialized();
     }

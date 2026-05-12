@@ -187,8 +187,6 @@ helm install security-server oci://artifactory.niis.org/xroad8-snapshot-helm/sec
   --namespace security-server \
   --wait \
   --set init.serverconf.dbUsername=serverconf \
-  --set init.serverconf.proxyUiSuperuser=<proxy_ui_superuser> \
-  --set init.serverconf.proxyUiSuperuserPassword=<proxy_ui_superuser_password> \
   --set init.messagelog.dbUsername=messagelog \
   --set init.opmonitor.dbUsername=opmonitor \
   --set services.configuration-client.env.QUARKUS_VAULT_TLS_CA_CERT=/etc/xroad/ssl/openbao.crt \
@@ -242,8 +240,6 @@ helm install security-server oci://artifactory.niis.org/xroad8-snapshot-helm/sec
   --set 'services.op-monitor.extraVolumeMounts[0].mountPath=/etc/xroad/ssl/openbao.crt' \
   --set 'services.op-monitor.extraVolumeMounts[0].subPath=openbao.crt' \
   --set 'services.op-monitor.extraVolumeMounts[0].name=op-monitor-openbao-tls-certificate' \
-  --set services.auxiliary-service.env.SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER=\"true\" \
-  --set services.auxiliary-service.env.PROXY_UI_SUPERUSER=<proxy_ui_superuser> \
   --set services.auxiliary-service.env.QUARKUS_VAULT_TLS_CA_CERT=/etc/xroad/ssl/openbao.crt \
   --set 'services.auxiliary-service.extraVolumes[0].name=auxiliary-service-openbao-tls-certificate' \
   --set 'services.auxiliary-service.extraVolumes[0].secret.secretName=openbao-server-tls' \
@@ -256,11 +252,7 @@ helm install security-server oci://artifactory.niis.org/xroad8-snapshot-helm/sec
 
 **Note:** The installation of the `security-server` chart may take up to several minutes to complete.
 
->**Note:**
->* `proxyUiSuperuser` s the default administrative user (with full privileges) that can be used to log in to the Proxy UI admin web application.
->* The value of `init.serverconf.proxyUiSuperuserPassword` must be provided in Argon2 hash format.
->* Proxy UI relies on [Spring Security's default Argon2 parameters](https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/crypto/argon2/Argon2PasswordEncoder.html#defaultsForSpringSecurity_v5_8()) for password hashing, so the hash must conform to these settings.
->* You can generate an Argon2 hash using https://argon2.online. For example, a valid Argon2 hash of the password `secret` would be: `$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0`.
+>**Note:** On a fresh deployment the Security Server has no admin user. Open the Proxy UI in a browser to create the initial administrator account through the unauthenticated initialisation wizard before completing the rest of the configuration.
 
 ### Appendix
 

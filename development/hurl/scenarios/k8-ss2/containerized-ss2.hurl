@@ -22,6 +22,15 @@ HTTP 200
 GET https://{{ss2_host}}:4000
 HTTP 200
 
+# Bootstrap the initial admin user (no-op once one exists)
+POST https://{{ss2_host}}:4000/api/v1/initialization/admin-user
+Content-Type: application/json
+{
+  "username": "xrd",
+  "password": "secret"
+}
+HTTP *
+
 # Log in to the Security Server
 POST https://{{ss2_host}}:4000/login
 [FormParams]

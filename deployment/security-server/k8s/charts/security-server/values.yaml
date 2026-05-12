@@ -14,8 +14,6 @@ init:
     database: "serverconf"
     username: "serverconf"
     schema: "public"
-    proxyUiSuperuser: "xrd"
-#    proxyUiSuperuserPassword:
   messagelog:
     host: "db-messagelog"
     port: "5432"
@@ -384,8 +382,6 @@ services:
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
       SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-init:8.0.0-beta2"
-      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
-      PROXY_UI_SUPERUSER: "xrd"
       DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"

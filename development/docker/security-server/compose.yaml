@@ -112,8 +112,6 @@ services:
       - CHANGELOG=serverconf
       - DEFAULT_SCHEMA_NAME=public
       - PROP_DB_USER=serverconf
-      - PROP_PROXY_UI_SUPERUSER=xrd
-      - PROP_PROXY_UI_SUPERUSER_PASSWORD=$$argon2id$$v=19$$m=16384,t=2,p=1$$YXF3YXN6eHh6c2F3cQ$$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0
     depends_on:
       db-serverconf:
         condition: service_healthy
