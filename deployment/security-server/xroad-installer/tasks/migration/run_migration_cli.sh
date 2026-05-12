@@ -313,11 +313,26 @@ main() {
 
   # strict-identifier-checks: X-Road 7's migrate-xroad-7-config.sh disabled
   # this unconditionally (disable_strict_identifier_checks). X-Road 8 defaults
-  # it to true (stricter), so without this step upgraded servers would silently
-  # change behavior. Replicate the legacy unconditional write.
-  run_migration_step "set-property" --id "disable-strict-identifier-checks" \
-    --description "Disable strict identifier checks\n  property: xroad.proxy.strict-identifier-checks\n  value:    false\n\nPreserves the X-Road 7 behavior. The X-Road 8 default is true (stricter)." \
-    "/etc/xroad/db.properties" "xroad.proxy.strict-identifier-checks" "false"
+  # it to true (stricter), so an upgraded server would silently start enforcing
+  # stricter checks. Ask the operator whether to preserve the X-Road 7 behavior
+  # (disabled) or accept the X-Road 8 default (enabled). Neither choice cancels
+  # the migration — the sentinel is written either way.
+  local strict_sentinel="strict-identifier-checks-prompt"
+  if is_step_done "$strict_sentinel"; then
+    log_info "Step '$strict_sentinel' already completed (sentinel found) — skipping"
+  elif [[ "${XROAD_MIGRATION_UNATTENDED:-}" == "true" ]]; then
+    log_info "Unattended mode: preserving X-Road 7 behavior (strict identifier checks disabled)"
+    run_migration_step "set-property" --id "$strict_sentinel" --no-confirm \
+      "/etc/xroad/db.properties" "xroad.proxy.strict-identifier-checks" "false"
+  elif whiptail --title "Migration Step: strict-identifier-checks" \
+    --yesno "Keep strict identifier checks disabled?\n\nStrict identifier checks were disabled in X-Road 7 and are enabled by default in X-Road 8.\n\nSelect Yes to preserve the X-Road 7 behavior (disabled).\nSelect No to use the X-Road 8 default (enabled)." 14 70; then
+    log_info "Operator opted to keep strict identifier checks disabled (X-Road 7 behavior)"
+    run_migration_step "set-property" --id "$strict_sentinel" --no-confirm \
+      "/etc/xroad/db.properties" "xroad.proxy.strict-identifier-checks" "false"
+  else
+    log_info "Operator opted to enable strict identifier checks (X-Road 8 default)"
+    mark_step_done "$strict_sentinel"
+  fi
 
   log_message ""
   log_info "Migration CLI steps completed."
