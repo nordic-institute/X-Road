@@ -5,20 +5,13 @@
 # attached by init-lxd). nginx aliases serve DEB/RPM straight from the
 # mount — no copy. dpkg-scanpackages and createrepo_c run in-place on
 # every fresh env so rebuilt packages are picked up immediately.
-#
-# Two phases:
-#   - Cache-fill (baked into xroad-repo-cached): install tooling, write
-#     nginx site config. Skipped at runtime when /etc/xroad-cached-image
-#     exists.
-#   - Runtime (always, unless cache_fill_mode): regenerate Packages /
-#     repodata in mounted dirs, ensure nginx running.
 
 - name: Detect cached-image marker
   stat:
     path: /etc/xroad-cached-image
   register: cached_image_marker
 
-# ---- baked-in steps (cache-fill only) ----
+# ---- baked-in apt installs (skip when cached image already has them) ----
 
 - name: Install repo tooling
   apt:
@@ -28,11 +21,13 @@
     install_recommends: false
   when: not cached_image_marker.stat.exists
 
+# ---- nginx site config (always written so stale baked configs get refreshed) ----
+
 - name: Remove default nginx site
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent
-  when: not cached_image_marker.stat.exists
+  notify: reload nginx
 
 - name: Configure nginx site
   copy:
@@ -50,14 +45,14 @@
           autoindex on;
         }
       }
-  when: not cached_image_marker.stat.exists
+  notify: reload nginx
 
 - name: Enable xrd-repo nginx site
   file:
     src: /etc/nginx/sites-available/xrd-repo
     dest: /etc/nginx/sites-enabled/xrd-repo
     state: link
-  when: not cached_image_marker.stat.exists
+  notify: reload nginx
 
 # ---- runtime steps (skipped during cache-fill) ----
 
@@ -77,3 +72,6 @@
     state: started
     enabled: true
   when: not cache_fill_mode | default(false)
+
+- name: Force pending nginx reloads now (before downstream roles hit the repo)
+  meta: flush_handlers
