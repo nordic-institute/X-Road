@@ -1,0 +1,9 @@
+---
+# TEMPORARY (dataspaces dev): post-install safety net. Same reasoning as
+# xroad-ss/tasks/post-ss-install.yml — `state: started` recovers any DS unit
+# left `inactive` by a prior StartLimitBurst from before the preseed existed.
+# Idempotent; not `restarted`. Remove once the env is stable.
+- name: ensure DS units are running after install (idempotent — no restart)
+  systemd:
+    name: xroad-ds-issuer-service
+    state: started

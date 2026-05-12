@@ -38,33 +38,28 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.dataplane.api.controller.v1.DataPlaneSignalingApi;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
+import java.util.Map;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
- * JAX-RS controller implementing EDC's {@link DataPlaneSignalingApi} interface for the X-Road proxy.
+ * JAX-RS controller for the X-Road proxy data-plane signaling API.
  * <p>
  * Mounted at {@code /full/api/} context path (via {@link DataPlaneServer}) so that the full
  * URL matches the {@code ProxyDspProperties.dataFlowEndpoint()} default
  * {@code http://127.0.0.1:5590/full/api/v1/dataflows}.
  * <p>
- * All wire-shape POJOs come from {@code org.eclipse.edc:core-spi}. JSON-LD ↔ POJO conversion
- * is delegated to the {@link TypeTransformerRegistry} produced by {@link XRoadDpsTransformerRegistry}.
- * Business logic is delegated to {@link XRoadDataPlaneManager}.
- * <p>
- * Implements {@code DataPlaneSignalingApi} for compile-time coupling: any signature change
- * in the EDC SPI interface breaks this class immediately.
+ * Accepts plain Jackson-serialized POJOs from EDC's {@code DataPlaneSignalingClient}
+ * ({@code data-plane-signaling-core}). No JSON-LD expansion is performed — Jersey + Jackson
+ * deserialize request bodies directly into the new {@code org.eclipse.edc.signaling.domain.*}
+ * types. Business logic is delegated to {@link XRoadDataPlaneManager}.
  */
 @Slf4j
 @ApplicationScoped
@@ -72,96 +67,86 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/v1/dataflows")
-public class XRoadDataPlaneSignalingApiController implements DataPlaneSignalingApi {
+public class XRoadDataPlaneSignalingApiController {
 
-    private final TypeTransformerRegistry typeTransformerRegistry;
-    private final JsonLd jsonLd;
     private final XRoadDataPlaneManager manager;
 
     /**
      * Prepares a data flow (consumer-side provision).
      * For Xrd-PULL, preparation is immediate — responds with the proxy endpoint address.
      *
-     * @param message JSON-LD encoded {@code DataFlowProvisionMessage}
-     * @return JSON-LD encoded {@code DataFlowResponseMessage}
+     * @param message plain-JSON {@code DataFlowPrepareMessage}
+     * @return {@code DataFlowStatusMessage} with {@code dataAddress.endpoint}
      */
     @POST
     @Path("/prepare")
-    @Override
-    public JsonObject prepare(JsonObject message) {
-        var provisionMessage = transformIn(message, DataFlowProvisionMessage.class);
-        var response = manager.prepare(provisionMessage);
-        return transformOut(response);
+    public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
+        return manager.prepare(message);
     }
 
     /**
      * Starts a new data flow (provider-side).
      *
-     * @param message JSON-LD encoded {@code DataFlowStartMessage}
-     * @return JSON-LD encoded {@code DataFlowResponseMessage} with {@code dataAddress.endpoint}
+     * @param message plain-JSON {@code DataFlowStartMessage}
+     * @return {@code DataFlowStatusMessage} with {@code dataAddress.endpoint}
      */
     @POST
     @Path("/start")
-    @Override
-    public JsonObject start(JsonObject message) {
-        return startFlow(message);
+    public DataFlowStatusMessage start(DataFlowStartMessage message) {
+        return manager.start(message);
     }
 
     /**
-     * Starts an existing data flow identified by {@code dataFlowId} (provider-side).
+     * Starts an existing data flow identified by {@code dataFlowId}.
      * The path parameter is advisory; the process ID from the message body takes precedence.
      *
      * @param dataFlowId flow identifier from the URL path
-     * @param message    JSON-LD encoded {@code DataFlowStartMessage}
-     * @return JSON-LD encoded {@code DataFlowResponseMessage}
+     * @param message    plain-JSON {@code DataFlowStartMessage}
+     * @return {@code DataFlowStatusMessage} with {@code dataAddress.endpoint}
      */
     @POST
     @Path("/{id}/start")
-    @Override
-    public JsonObject start(@PathParam("id") String dataFlowId, JsonObject message) {
-        return startFlow(message);
+    public DataFlowStatusMessage start(@PathParam("id") String dataFlowId, DataFlowStartMessage message) {
+        return manager.start(message);
     }
 
     /**
      * Returns the current state of a data flow.
+     * Debug endpoint — returns a minimal JSON-LD-shaped state object.
      *
      * @param dataFlowId process ID of the flow to query
-     * @return JSON-LD object with {@code DataFlowState} type and {@code state} property
+     * @return JSON object with {@code DataFlowState} type and {@code state} property
      */
     @GET
     @Path("/{id}/state")
-    @Override
     public JsonObject getTransferState(@PathParam("id") String dataFlowId) {
         DataFlowStates state = manager.state(dataFlowId);
         return buildStateResponse(state);
     }
 
     /**
-     * Terminates a data flow.
+     * Terminates a data flow. The new {@code DataPlaneSignalingClient} sends an empty map body.
      *
-     * @param dataFlowId         process ID of the flow to terminate
-     * @param terminationMessage JSON-LD encoded {@code DataFlowTerminateMessage}
+     * @param dataFlowId process ID of the flow to terminate
+     * @param body       ignored — empty map on the wire
      */
     @POST
     @Path("/{id}/terminate")
-    @Override
-    public void terminate(@PathParam("id") String dataFlowId, JsonObject terminationMessage) {
-        var msg = transformIn(terminationMessage, DataFlowTerminateMessage.class);
-        manager.terminate(dataFlowId, msg);
+    public void terminate(@PathParam("id") String dataFlowId, Map<String, Object> body) {
+        manager.terminate(dataFlowId);
     }
 
     /**
-     * Suspends a data flow.
+     * Suspends a data flow. The new {@code DataPlaneSignalingClient} sends a built
+     * {@code DataFlowSuspendMessage} (legacy type, may carry an optional reason).
      *
-     * @param dataFlowId   process ID of the flow to suspend
-     * @param suspendMessage JSON-LD encoded {@code DataFlowSuspendMessage}
+     * @param dataFlowId    process ID of the flow to suspend
+     * @param suspendMessage suspend message (reason is extracted if present)
      */
     @POST
     @Path("/{id}/suspend")
-    @Override
-    public void suspend(@PathParam("id") String dataFlowId, JsonObject suspendMessage) {
-        var msg = transformIn(suspendMessage, DataFlowSuspendMessage.class);
-        manager.suspend(dataFlowId, msg);
+    public void suspend(@PathParam("id") String dataFlowId, DataFlowSuspendMessage suspendMessage) {
+        manager.suspend(dataFlowId, suspendMessage != null ? suspendMessage.getReason() : null);
     }
 
     /**
@@ -169,32 +154,8 @@ public class XRoadDataPlaneSignalingApiController implements DataPlaneSignalingA
      */
     @GET
     @Path("/check")
-    @Override
     public void checkAvailability() {
         // no-op — Jetty returns 204 by default for void methods
-    }
-
-    private JsonObject startFlow(JsonObject message) {
-        var startMessage = transformIn(message, DataFlowStartMessage.class);
-        var response = manager.start(startMessage);
-        return transformOut(response);
-    }
-
-    private <T> T transformIn(JsonObject message, Class<T> type) {
-        // EDC's signaling client compacts JSON-LD before serializing; the to-transformers expect
-        // the expanded form (full IRI keys). EDC's own runtime auto-expands via JerseyJsonLdInterceptor,
-        // which we don't register on the proxy data-plane Jetty. Expand inline to keep parity.
-        log.info("transformIn target={} body={}", type.getSimpleName(), message);
-        return jsonLd.expand(message)
-                .compose(expanded -> typeTransformerRegistry.transform(expanded, type))
-                .orElseThrow(f -> XrdRuntimeException.systemException(ErrorCode.INVALID_REQUEST,
-                        "Failed to transform incoming %s: %s".formatted(type.getSimpleName(), f.getFailureDetail())));
-    }
-
-    private JsonObject transformOut(Object value) {
-        return typeTransformerRegistry.transform(value, JsonObject.class)
-                .orElseThrow(f -> XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR,
-                        "Failed to transform outgoing response: %s".formatted(f.getFailureDetail())));
     }
 
     private JsonObject buildStateResponse(DataFlowStates state) {

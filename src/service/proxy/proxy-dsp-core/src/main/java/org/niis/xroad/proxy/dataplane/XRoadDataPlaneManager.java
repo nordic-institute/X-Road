@@ -30,12 +30,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
+import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
+import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -45,8 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * In-memory manager for active data flows in the X-Road proxy data plane.
  * <p>
  * Encapsulates the {@code Xrd-PULL} semantics: when a {@link DataFlowStartMessage} arrives,
- * the proxy fabricates a {@link DataAddress} pointing to its own signaling endpoint and
- * returns it wrapped in a {@link DataFlowResponseMessage}. No real data pipeline is started —
+ * the proxy fabricates a {@link DspDataAddress} pointing to its own signaling endpoint and
+ * returns it wrapped in a {@link DataFlowStatusMessage}. No real data pipeline is started —
  * the proxy itself serves data on subsequent HTTP calls.
  * <p>
  * Flow state is tracked in-memory via a {@link ConcurrentHashMap}. The CP terminates flows
@@ -57,56 +55,48 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class XRoadDataPlaneManager {
 
-    /** Transfer type destination for Xrd-PULL flows. */
-    static final String XRD_PULL_DESTINATION = "Xrd";
+    /** Full transfer-type string for Xrd-PULL flows (matches the wire value). */
+    static final String XRD_PULL_TRANSFER_TYPE = "Xrd-PULL";
 
     private final ProxyDspProperties dspProperties;
     private final ConcurrentHashMap<String, DataFlowStates> activeFlows = new ConcurrentHashMap<>();
 
     /**
-     * Handles a provision request. For {@code Xrd-PULL} there is no async provisioning —
-     * the response is built immediately using the same logic as {@link #start}.
+     * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning —
+     * the response is built immediately using the proxy data-flow endpoint.
      *
-     * @param message incoming provision message
-     * @return response with {@code dataAddress.endpoint} set to the proxy data flow endpoint
+     * @param message incoming prepare message
+     * @return status message with {@code dataAddress.endpoint} set to the proxy data flow endpoint
      */
-    public DataFlowResponseMessage prepare(DataFlowProvisionMessage message) {
+    public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
         log.info("Preparing data flow for process {}", message.getProcessId());
-        var dataAddress = buildXrdPullDataAddress();
         storeState(message.getProcessId(), DataFlowStates.PROVISIONED);
-        return DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(dataAddress)
-                .build();
+        return buildStatusMessage(DataFlowStates.PROVISIONED);
     }
 
     /**
-     * Handles a start request, preserving {@code Xrd-PULL} semantics from the legacy
-     * {@code ProxyDataPlaneRegistry.DataplaneOnStart}: validates the transfer type,
-     * fabricates a {@code DataAddress(type=http, endpoint=dataFlowEndpoint)}, and returns
-     * it wrapped in a {@link DataFlowResponseMessage}.
+     * Handles a start request, preserving {@code Xrd-PULL} semantics: validates the transfer type,
+     * fabricates a {@link DspDataAddress} pointing to {@code dataFlowEndpoint}, and returns it
+     * wrapped in a {@link DataFlowStatusMessage}.
      *
      * @param message incoming start message
-     * @return response with {@code dataAddress.endpoint} set to the proxy data flow endpoint
+     * @return status message with {@code dataAddress.endpoint} set to the proxy data flow endpoint
      * @throws XrdRuntimeException if the transfer type is not {@code Xrd-PULL}
      */
-    public DataFlowResponseMessage start(DataFlowStartMessage message) {
+    public DataFlowStatusMessage start(DataFlowStartMessage message) {
         validateXrdPull(message);
         log.info("Starting Xrd-PULL data flow for process {}", message.getProcessId());
-        var dataAddress = buildXrdPullDataAddress();
         storeState(message.getProcessId(), DataFlowStates.STARTED);
-        return DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(dataAddress)
-                .build();
+        return buildStatusMessage(DataFlowStates.STARTED);
     }
 
     /**
      * Terminates an active data flow, transitioning it to {@link DataFlowStates#TERMINATED}.
      *
-     * @param flowId  process ID of the flow to terminate
-     * @param message termination message (reason is logged)
+     * @param flowId process ID of the flow to terminate
      */
-    public void terminate(String flowId, DataFlowTerminateMessage message) {
-        log.info("Terminating data flow {} — reason: {}", flowId, message.getReason());
+    public void terminate(String flowId) {
+        log.info("Terminating data flow {}", flowId);
         storeState(flowId, DataFlowStates.TERMINATED);
     }
 
@@ -114,10 +104,10 @@ public class XRoadDataPlaneManager {
      * Suspends an active data flow, transitioning it to {@link DataFlowStates#SUSPENDED}.
      *
      * @param flowId  process ID of the flow to suspend
-     * @param message suspend message (reason is logged)
+     * @param reason  optional suspend reason (may be null)
      */
-    public void suspend(String flowId, DataFlowSuspendMessage message) {
-        log.info("Suspending data flow {} — reason: {}", flowId, message.getReason());
+    public void suspend(String flowId, String reason) {
+        log.info("Suspending data flow {} — reason: {}", flowId, reason);
         storeState(flowId, DataFlowStates.SUSPENDED);
     }
 
@@ -133,17 +123,20 @@ public class XRoadDataPlaneManager {
 
     private void validateXrdPull(DataFlowStartMessage message) {
         var transferType = message.getTransferType();
-        if (transferType == null || !XRD_PULL_DESTINATION.equals(transferType.destinationType())) {
-            var actual = transferType != null ? transferType.asString() : "null";
+        if (!XRD_PULL_TRANSFER_TYPE.equals(transferType)) {
             throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR,
-                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(actual));
+                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(transferType));
         }
     }
 
-    private DataAddress buildXrdPullDataAddress() {
-        return DataAddress.Builder.newInstance()
-                .type("http")
-                .property("endpoint", dspProperties.dataFlowEndpoint())
+    private DataFlowStatusMessage buildStatusMessage(DataFlowStates state) {
+        var dataAddress = DspDataAddress.Builder.newInstance()
+                .endpointType("http")
+                .endpoint(dspProperties.dataFlowEndpoint())
+                .build();
+        return DataFlowStatusMessage.Builder.newInstance()
+                .dataAddress(dataAddress)
+                .state(state.toString())
                 .build();
     }
 

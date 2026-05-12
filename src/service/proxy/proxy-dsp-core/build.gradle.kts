@@ -25,11 +25,11 @@ dependencies {
   implementation(libs.edc.spi.dataplane.selector)
   implementation(libs.edc.lib.transform)
   implementation(libs.edc.lib.jsonld)
-  implementation(libs.edc.dataplane.signaling.api)
-  implementation(libs.edc.dataplane.signaling.transform)
+  implementation(libs.edc.core.dps)
   implementation(libs.jersey.container.servlet)
   implementation(libs.jersey.inject.hk2)
   implementation(libs.jersey.media.json.processing)
+  implementation(libs.jersey.media.json.jackson)
   implementation(libs.jetty.ee11.servlet)
 
   testImplementation(project(":service:op-monitor:op-monitor-api"))

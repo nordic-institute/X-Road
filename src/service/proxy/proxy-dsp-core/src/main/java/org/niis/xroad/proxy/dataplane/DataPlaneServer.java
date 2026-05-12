@@ -25,10 +25,14 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Provider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
@@ -37,6 +41,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -116,10 +121,14 @@ public class DataPlaneServer {
      */
     public void registerJaxRsResource(String contextPath, Object resource) {
         var resourceConfig = new ResourceConfig();
-        // JSON-P feature wires the MessageBodyReader/Writer for jakarta.json.JsonObject
-        // (used by every signaling controller method). Without it Jersey returns 415 for
-        // application/json bodies that need to bind to JsonObject parameters.
+        // Jackson handles application/json bodies for the signaling POJO types.
+        // JSON-P handles the jakarta.json.JsonObject debug-state probe.
+        // The lenient ObjectMapper context resolver is needed because EDC's DspDataAddress
+        // emits @type with no matching builder setter; without FAIL_ON_UNKNOWN_PROPERTIES=false
+        // Jackson 400s the /start body.
+        resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(JsonProcessingFeature.class);
+        resourceConfig.register(new LenientObjectMapperResolver());
         resourceConfig.register(resource);
 
         var servletContextHandler = new ServletContextHandler(contextPath);
@@ -127,6 +136,17 @@ public class DataPlaneServer {
         servletContextHandler.addServlet(new ServletHolder(jerseyServlet), "/*");
 
         this.jaxRsHandler = servletContextHandler;
+    }
+
+    @Provider
+    static final class LenientObjectMapperResolver implements ContextResolver<ObjectMapper> {
+        private final ObjectMapper mapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        @Override
+        public ObjectMapper getContext(Class<?> type) {
+            return mapper;
+        }
     }
 
     private void registerHandler() {

@@ -34,22 +34,10 @@ import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.json.Json;
-import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
-import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowSuspendMessageTransformer;
-import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowTerminateMessageTransformer;
-import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowProvisionMessageTransformer;
-import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowStartMessageTransformer;
-import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
-import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataPlaneInstanceTransformer;
-import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -58,24 +46,19 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
  * CDI producer that creates a standalone {@link TypeTransformerRegistry} pre-configured with
- * all Data Plane Signaling (DPS) JSON-LD transformers needed by the proxy controller.
+ * the single Data Plane Signaling (DPS) JSON-LD transformer still needed by the proxy.
  * <p>
  * The registry is instantiated directly via {@code new TypeTransformerRegistryImpl()} — no
- * EDC {@code BaseRuntime} or {@code ServiceExtensionContext} is required. This follows the
- * pattern used in EDC's own test code (DataPlaneSignalingClientTest.java) and provides
- * compile-time coupling: if EDC changes a transformer constructor signature, this class
- * fails to compile immediately.
+ * EDC {@code BaseRuntime} or {@code ServiceExtensionContext} is required.
  */
 @ApplicationScoped
 public class XRoadDpsTransformerRegistry {
 
     /**
-     * Produces a fully configured {@link TypeTransformerRegistry} containing all DPS transformers.
+     * Produces a {@link TypeTransformerRegistry} containing the outbound registration transformer.
      * <p>
-     * Handles JSON-LD ↔ POJO conversion for incoming {@code DataFlowStartMessage},
-     * {@code DataFlowProvisionMessage}, {@code DataFlowSuspendMessage}, {@code DataFlowTerminateMessage}
-     * requests and outgoing {@code DataFlowResponseMessage} responses. Also provides
-     * {@code DataPlaneInstance → JsonObject} for outbound control-plane registration POSTs.
+     * Provides {@code DataPlaneInstance → JsonObject} for outbound control-plane
+     * registration POSTs ({@code POST /v1/dataplanes}).
      *
      * @return configured transformer registry singleton
      */
@@ -87,19 +70,6 @@ public class XRoadDpsTransformerRegistry {
         var typeManager = new DelegatingTypeManager(objectMapper);
         var registry = new TypeTransformerRegistryImpl();
 
-        // JsonObject → POJO (incoming requests)
-        registry.register(new JsonObjectToDataFlowStartMessageTransformer());
-        registry.register(new JsonObjectToDataFlowProvisionMessageTransformer());
-        registry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
-        registry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
-        registry.register(new JsonObjectToDataAddressTransformer());
-
-        // POJO → JsonObject (outgoing responses)
-        registry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
-        registry.register(new JsonObjectFromDataAddressTransformer(factory, typeManager, "default"));
-        registry.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
-        registry.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
-
         // Registration: DataPlaneInstance → JsonObject (outbound POST to /v1/dataplanes)
         registry.register(new JsonObjectFromDataPlaneInstanceTransformer(factory, typeManager, JSON_LD));
 
@@ -107,21 +77,9 @@ public class XRoadDpsTransformerRegistry {
     }
 
     /**
-     * Produces a {@link JsonLd} service used by the signaling controller to expand inbound
-     * compacted JSON-LD bodies before delegating to the to-transformers (which expect expanded form).
-     * EDC's own runtime does this expansion via {@code JerseyJsonLdInterceptor}, but the proxy
-     * data-plane Jetty doesn't register it — so we apply the expansion inline at the controller.
-     */
-    @Produces
-    @ApplicationScoped
-    public JsonLd jsonLd() {
-        return new TitaniumJsonLd(new Monitor() { });
-    }
-
-    /**
      * Minimal {@link TypeManager} implementation that delegates all object mapping
      * to a single shared Jackson {@link ObjectMapper}.
-     * Used only to satisfy the {@link JsonObjectFromDataAddressTransformer} constructor —
+     * Used only to satisfy the {@link JsonObjectFromDataPlaneInstanceTransformer} constructor —
      * the mapper is only invoked to convert simple property values (strings, maps) to JSON.
      */
     static final class DelegatingTypeManager implements TypeManager {

@@ -26,31 +26,22 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
+import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
-import org.eclipse.edc.spi.types.domain.transfer.TransferType;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,96 +51,78 @@ class XRoadDataPlaneSignalingApiControllerTest {
     private static final String DATA_FLOW_ENDPOINT = "http://127.0.0.1:5590/full/api/v1/dataflows";
 
     @Mock
-    private TypeTransformerRegistry transformerRegistry;
-    @Mock
-    private JsonLd jsonLd;
-    @Mock
     private XRoadDataPlaneManager manager;
 
     private XRoadDataPlaneSignalingApiController controller;
 
     @BeforeEach
     void setUp() {
-        // Pass-through expand: keep the input JsonObject as-is so existing mock matchers on
-        // transformerRegistry.transform(JsonObject.class, ...) still apply.
-        org.mockito.Mockito.lenient().when(jsonLd.expand(isA(JsonObject.class)))
-                .thenAnswer(inv -> Result.success(inv.getArgument(0)));
-        controller = new XRoadDataPlaneSignalingApiController(transformerRegistry, jsonLd, manager);
+        controller = new XRoadDataPlaneSignalingApiController(manager);
     }
 
     @Test
-    void start_returnsResponseWithProxyEndpoint() {
-        var startMessage = buildStartMessage("flow-1", "Xrd", FlowType.PULL);
-        var responseAddress = DataAddress.Builder.newInstance()
-                .type("http")
-                .property("endpoint", DATA_FLOW_ENDPOINT)
+    void prepare_delegatesToManagerAndReturnsStatusMessage() {
+        var prepareMessage = DataFlowPrepareMessage.Builder.newInstance()
+                .processId("flow-6")
+                .transferType("Xrd-PULL")
                 .build();
-        var flowResponse = DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(responseAddress)
-                .build();
-        var responseJson = Json.createObjectBuilder().add("response", "ok").build();
+        var statusMessage = buildStatusMessage(DataFlowStates.PROVISIONED);
 
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
-                .thenReturn(Result.success(startMessage));
-        when(manager.start(startMessage)).thenReturn(flowResponse);
-        when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.success(responseJson));
+        when(manager.prepare(prepareMessage)).thenReturn(statusMessage);
 
-        var result = controller.start(Json.createObjectBuilder().build());
+        var result = controller.prepare(prepareMessage);
 
-        assertThat(result).isEqualTo(responseJson);
+        assertThat(result).isSameAs(statusMessage);
+        verify(manager).prepare(prepareMessage);
+    }
+
+    @Test
+    void start_returnsStatusMessageWithProxyEndpoint() {
+        var startMessage = buildStartMessage("flow-1");
+        var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
+
+        when(manager.start(startMessage)).thenReturn(statusMessage);
+
+        var result = controller.start(startMessage);
+
+        assertThat(result).isSameAs(statusMessage);
         verify(manager).start(startMessage);
     }
 
     @Test
-    void start_withFlowId_delegatesToSameStartFlow() {
-        var startMessage = buildStartMessage("flow-2", "Xrd", FlowType.PULL);
-        var flowResponse = DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(DataAddress.Builder.newInstance().type("http").build())
-                .build();
-        var responseJson = Json.createObjectBuilder().add("ok", true).build();
+    void start_withFlowId_delegatesToManagerStart() {
+        var startMessage = buildStartMessage("flow-2");
+        var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
 
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
-                .thenReturn(Result.success(startMessage));
-        when(manager.start(startMessage)).thenReturn(flowResponse);
-        when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.success(responseJson));
+        when(manager.start(startMessage)).thenReturn(statusMessage);
 
-        var result = controller.start("flow-2", Json.createObjectBuilder().build());
+        var result = controller.start("flow-2", startMessage);
 
-        assertThat(result).isEqualTo(responseJson);
+        assertThat(result).isSameAs(statusMessage);
         verify(manager).start(startMessage);
     }
 
     @Test
-    void start_transformationFailure_throwsXrdRuntimeException() {
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
-                .thenReturn(Result.failure("bad JSON-LD"));
+    void terminate_delegatesToManagerTerminate() {
+        controller.terminate("flow-3", Map.of());
 
-        assertThatThrownBy(() -> controller.start(Json.createObjectBuilder().build()))
-                .isInstanceOf(XrdRuntimeException.class);
+        verify(manager).terminate("flow-3");
     }
 
     @Test
-    void terminate_transitionsStateToTerminated() {
-        var terminateMessage = DataFlowTerminateMessage.Builder.newInstance().reason("test-reason").build();
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowTerminateMessage.class)))
-                .thenReturn(Result.success(terminateMessage));
-
-        controller.terminate("flow-3", Json.createObjectBuilder().build());
-
-        verify(manager).terminate("flow-3", terminateMessage);
-    }
-
-    @Test
-    void suspend_transitionsStateToSuspended() {
+    void suspend_delegatesToManagerSuspend() {
         var suspendMessage = DataFlowSuspendMessage.Builder.newInstance().reason("pause").build();
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowSuspendMessage.class)))
-                .thenReturn(Result.success(suspendMessage));
 
-        controller.suspend("flow-4", Json.createObjectBuilder().build());
+        controller.suspend("flow-4", suspendMessage);
 
-        verify(manager).suspend("flow-4", suspendMessage);
+        verify(manager).suspend("flow-4", "pause");
+    }
+
+    @Test
+    void suspend_withNullMessage_passesNullReason() {
+        controller.suspend("flow-4", null);
+
+        verify(manager).suspend("flow-4", null);
     }
 
     @Test
@@ -177,64 +150,23 @@ class XRoadDataPlaneSignalingApiControllerTest {
         controller.checkAvailability();
     }
 
-    @Test
-    void prepare_delegatesToManagerPrepare() {
-        var provisionMessage = org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage.Builder.newInstance()
-                .processId("flow-6")
-                .build();
-        var flowResponse = DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(DataAddress.Builder.newInstance().type("http").build())
-                .build();
-        var responseJson = Json.createObjectBuilder().add("prepared", true).build();
-
-        when(transformerRegistry.transform(isA(JsonObject.class),
-                eq(org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage.class)))
-                .thenReturn(Result.success(provisionMessage));
-        when(manager.prepare(provisionMessage)).thenReturn(flowResponse);
-        when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
-                .thenReturn(Result.success(responseJson));
-
-        var result = controller.prepare(Json.createObjectBuilder().build());
-
-        assertThat(result).isEqualTo(responseJson);
-        verify(manager).prepare(provisionMessage);
-    }
-
-    @Test
-    void transformerRegistry_roundTripWithRealRegistry() {
-        // Validates transformer wiring: build a DataFlowStartMessage using EDC SPI,
-        // transform it to JsonObject using XRoadDpsTransformerRegistry, then back.
-        var registry = new XRoadDpsTransformerRegistry().registry();
-
-        var startMessage = buildStartMessage("flow-rt", "Xrd", FlowType.PULL);
-        var responseAddress = DataAddress.Builder.newInstance()
-                .type("http")
-                .property("endpoint", DATA_FLOW_ENDPOINT)
-                .build();
-        var response = DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(responseAddress)
-                .build();
-
-        // Transform outgoing DataFlowResponseMessage → JsonObject
-        var jsonResult = registry.transform(response, JsonObject.class);
-        assertThat(jsonResult.succeeded()).isTrue();
-
-        var json = jsonResult.getContent();
-        assertThat(json).isNotNull();
-        // Response type should be present in expanded JSON-LD
-        assertThat(json.getString("@type"))
-                .contains("DataFlowResponseMessage");
-    }
-
-    private DataFlowStartMessage buildStartMessage(String processId, String destination, FlowType flowType) {
+    private DataFlowStartMessage buildStartMessage(String processId) {
         return DataFlowStartMessage.Builder.newInstance()
                 .processId(processId)
-                .transferType(new TransferType(destination, flowType))
+                .transferType("Xrd-PULL")
                 .agreementId("agreement-1")
-                .assetId("asset-1")
-                .participantId("participant-1")
-                .callbackAddress(java.net.URI.create("http://callback.example"))
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("http").build())
+                .datasetId("dataset-1")
+                .build();
+    }
+
+    private DataFlowStatusMessage buildStatusMessage(DataFlowStates state) {
+        var dataAddress = DspDataAddress.Builder.newInstance()
+                .endpointType("http")
+                .endpoint(DATA_FLOW_ENDPOINT)
+                .build();
+        return DataFlowStatusMessage.Builder.newInstance()
+                .dataAddress(dataAddress)
+                .state(state.toString())
                 .build();
     }
 }

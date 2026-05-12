@@ -1,0 +1,139 @@
+---
+# TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
+# that xroad-* packages auto-start EDC systemd units (ds-identity-hub,
+# ds-control-plane, xroad-proxy) before their runtime configs and TLS keystore
+# are on disk, causing crash-loop / StartLimitBurst. Pre-seeding here lets every
+# service boot exactly once, cleanly.
+#
+# Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
+# once upstream packaging ships debconf preseeds or cloud-init hooks for:
+#   - ds-control-plane:  participant-context-id, control-plane-endpoint
+#   - ds-identity-hub:   jwks.url, keystore path
+#   - xroad-proxy:       dsp.participant-context-id, dsp.control-plane-endpoint
+# AND the packages no longer start the units unconditionally during postinst.
+
+# xroad user/group are already created by the xroad-base role (meta dependency
+# of xroad-ss) before this file runs, so keystore tasks below can `chown
+# xroad:xroad` without pre-creating anything.
+
+# ---------------------------------------------------------------------------
+# 1. /etc/xroad/conf.d — config dir. xroad-common creates this during install;
+#    we need it earlier so we can drop YAML preseed files before any package
+#    auto-starts a unit. dpkg leaves pre-existing dirs intact (not a conffile).
+#
+# TEMPORARY (dataspaces dev): remove once packages ship the config stubs.
+# ---------------------------------------------------------------------------
+- name: ensure /etc/xroad/conf.d exists for preseeded configs
+  file:
+    path: /etc/xroad/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+# ---------------------------------------------------------------------------
+# 3. Preseed DSP proxy config. xroad-proxy postinst starts the proxy; strict
+#    SmallRye validation aborts startup when dsp.participant-context-id is
+#    missing. Dropping the file here lets the first package-driven start succeed.
+#
+# TEMPORARY (dataspaces dev): remove once xroad-proxy debconf ships
+#   participant-context-id and control-plane-endpoint as answerable questions.
+# ---------------------------------------------------------------------------
+- name: preseed DSP control plane config (must precede xroad-proxy package install)
+  copy:
+    dest: /etc/xroad/conf.d/local-dsp.yaml
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      xroad:
+        proxy:
+          dsp:
+            participant-context-id: "{{ inventory_hostname }}"
+            control-plane-endpoint: "https://127.0.0.1:8184/api/v1/control"
+
+# ---------------------------------------------------------------------------
+# 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
+#    enumerable SmallRye sources (yaml/properties files); env-vars never reach
+#    EDC's @Setting resolution. These must exist before the unit's first start.
+#
+# TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
+#   edc.iam.oauth2.jwks.url and keystore config as answerable questions.
+# ---------------------------------------------------------------------------
+- name: preseed ds-identity-hub runtime overrides
+  copy:
+    dest: /etc/xroad/conf.d/local-ds-identity-hub.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      edc:
+        iam:
+          oauth2:
+            jwks:
+              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
+        web:
+          https:
+            keystore:
+              path: "/etc/xroad/ssl/ds-https.p12"
+              type: "PKCS12"
+              password: "changeit"
+            keymanager:
+              password: "changeit"
+
+# ---------------------------------------------------------------------------
+# 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
+#
+# TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
+#   participant-context-id, jwks.url, trusted-issuer.id, sts.oauth.token.url,
+#   dsp.callback.address, and keystore config.
+# ---------------------------------------------------------------------------
+- name: preseed ds-control-plane runtime overrides
+  copy:
+    dest: /etc/xroad/conf.d/local-ds-control-plane.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      edc:
+        # TODO: EDC's DspApiBaseConfigurationExtension.defaultWebhookAddress() hardcodes
+        # http:// and uses Hostname.get() — which is "localhost" inside the systemd unit
+        # because HOSTNAME isn't exported to the JVM. Both defects need to be addressed
+        # properly (upstream patch or proper hostname propagation + scheme override).
+        # For now pin the callback address explicitly so contract-agreement POSTs go to
+        # the right host over TLS.
+        dsp:
+          callback:
+            address: "https://{{ inventory_hostname }}:8183/api/dsp/%s"
+        iam:
+          oauth2:
+            jwks:
+              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
+          trusted-issuer:
+            issuer:
+              id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
+          sts:
+            oauth:
+              token:
+                url: "https://{{ inventory_hostname }}:7184/api/sts/token"
+        web:
+          https:
+            keystore:
+              path: "/etc/xroad/ssl/ds-https.p12"
+              type: "PKCS12"
+              password: "changeit"
+            keymanager:
+              password: "changeit"
+      xroad:
+        dsp:
+          participant-context-id: "{{ inventory_hostname }}"
+
+# ---------------------------------------------------------------------------
+# 6. TLS keystore for DS services. Must be on disk before ds-* units start.
+#    Also installs xrd-ca into the system trust store so the JVM (xroad-proxy,
+#    Quarkus ds-* services) can verify peer certs at first boot.
+#
+# TEMPORARY (dataspaces dev): remove once packages handle TLS bootstrap via
+#   real PKI (replace xrd-ca with federation CA, rotate via PKI lifecycle).
+# ---------------------------------------------------------------------------
+- include_tasks: ds-https-keystore.yml
