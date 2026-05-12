@@ -42,7 +42,6 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.io.IOException;
@@ -83,7 +82,7 @@ public final class CertHashBasedOcspResponderClient {
      * @return list of OCSP response objects
      */
     public List<OCSPResp> getOcspResponsesFromServer(String providerAddress, List<X509Certificate> certificates)
-            throws CertificateEncodingException, URISyntaxException, IOException, OperatorCreationException, OCSPException {
+            throws CertificateEncodingException, URISyntaxException, IOException, OCSPException {
         URL url = createUrl(providerAddress, certificates);
         return getOcspResponsesFromServer(url);
     }
@@ -140,8 +139,8 @@ public final class CertHashBasedOcspResponderClient {
         return responses;
     }
 
-    private URL createUrl(String providerAddress, List<X509Certificate> certificates)
-            throws URISyntaxException, IOException, CertificateEncodingException, OperatorCreationException {
+    URL createUrl(String providerAddress, List<X509Certificate> certificates)
+            throws URISyntaxException, IOException, CertificateEncodingException {
         String[] sha256Hashes = CertUtils.getHashes(certificates);
         String[] sha1Hashes = getSha1Hashes(certificates);
 
