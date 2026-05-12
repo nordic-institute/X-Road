@@ -32,11 +32,10 @@ import { useUser } from '@/store/modules/user';
 
 import routes from './routes';
 
-let initialAdminProbed = false;
-
 export default createXrdRouter({
   forbiddenRouteName: RouteName.Forbidden,
   initialisationRouteName: RouteName.InitialConfiguration,
+  initAdminRouteName: RouteName.InitialAdminUser,
   loginRouteName: RouteName.Login,
   hasAnyOfPermissions(permissions: string[]): boolean {
     return useUser().hasAnyOfPermissions(permissions);
@@ -47,21 +46,9 @@ export default createXrdRouter({
   isServerInitialized(): boolean {
     return !useUser().needsInitialization;
   },
-  async isUnauthenticatedRouteAllowed(to) {
-    if (to.name !== RouteName.InitialConfiguration) {
-      return false;
-    }
-    const initStore = useInitializeServer();
-    if (!initialAdminProbed) {
-      initialAdminProbed = true;
-      try {
-        await initStore.fetchInitialAdminUserStatus();
-      } catch {
-        // unreachable bootstrap probe -> fall back to authenticated flow
-        return false;
-      }
-    }
-    return initStore.initialAdminUserRequired;
+  async isAdminUserCreationRequired() {
+    return useInitializeServer().fetchInitialAdminUserStatus()
+      .then((resp) => resp.admin_user_creation_required);
   },
   routes,
 });

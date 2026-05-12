@@ -35,7 +35,6 @@ export const useInitializeServer = defineStore('initializeServer', {
       memberClass: undefined as string | undefined,
       memberCode: undefined as string | undefined,
       securityServerCode: undefined as string | undefined,
-      initialAdminUserRequired: false as boolean,
     };
   },
   getters: {
@@ -68,13 +67,11 @@ export const useInitializeServer = defineStore('initializeServer', {
       return api.post('/initialization', payload);
     },
     async fetchInitialAdminUserStatus() {
-      const resp = await api.get<InitialAdminUserStatus>('/initialization/admin-user/status');
-      this.initialAdminUserRequired = resp.data.admin_user_creation_required;
-      return this.initialAdminUserRequired;
+      return api.get<InitialAdminUserStatus>('/initialization/admin-user/status')
+        .then((resp) => resp.data);
     },
     async createInitialAdminUser(payload: InitialAdminUser) {
       await api.post('/initialization/admin-user', payload);
-      this.initialAdminUserRequired = false;
     },
   },
 });

@@ -62,7 +62,7 @@ public class InitializationApiController implements InitializationApi {
     private final InitialAdminUserService initialAdminUserService;
 
     @Override
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("permitAll")
     public ResponseEntity<InitialAdminUserStatusDto> getInitialAdminUserStatus() {
         var dto = new InitialAdminUserStatusDto();
         dto.setAdminUserCreationRequired(initialAdminUserService.isInitialAdminUserRequired());
@@ -70,7 +70,7 @@ public class InitializationApiController implements InitializationApi {
     }
 
     @Override
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("permitAll")
     @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_ADD)
     public synchronized ResponseEntity<Void> createInitialAdminUser(InitialAdminUserDto initialAdminUserDto) {
         char[] password = initialAdminUserDto.getPassword().toCharArray();
