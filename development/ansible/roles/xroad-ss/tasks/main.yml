@@ -1,35 +1,10 @@
 ---
-# Preseed DSP proxy config BEFORE the xroad-proxy package install. The package's
-# postinst auto-starts xroad-proxy, and strict SmallRye validation aborts startup
-# when xroad.proxy.dsp.participant-context-id is missing. systemd then trips
-# StartLimitBurst (10 retries / 10s) and the unit stays 'failed' — `systemctl
-# restart` is a no-op until reset-failed clears it. Dropping the file here lets
-# the very first package-driven start come up clean.
-#
-# /etc/xroad/conf.d/ doesn't exist yet (xroad-common creates it), so we create
-# it as root:root and write the file root-owned mode 0644 — proxy runs as xroad
-# and just needs read access. The dpkg unpack will leave our pre-existing dir
-# and file intact (conffile semantics).
-- name: ensure /etc/xroad/conf.d exists for preseeded configs
-  file:
-    path: /etc/xroad/conf.d
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: preseed DSP control plane config (must precede xroad-proxy package install)
-  copy:
-    dest: /etc/xroad/conf.d/local-dsp.yaml
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      xroad:
-        proxy:
-          dsp:
-            participant-context-id: "{{ inventory_hostname }}"
-            control-plane-endpoint: "https://127.0.0.1:8184/api/v1/control"
+# TEMPORARY (dataspaces dev): pre-install preseed runs before any xroad-*
+# package starts a systemd unit. Puts DS runtime configs, TLS keystore, and
+# xrd-ca in the system trust store on disk BEFORE the package postinst fires.
+# Remove this include (and pre-ss-install.yml) once upstream packaging ships
+# debconf preseeds for ds-* services and stops auto-starting units in postinst.
+- include_tasks: pre-ss-install.yml
 
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
@@ -73,102 +48,16 @@
     value: "{{ xroad_configuration_update_interval }}"
   when: xroad_configuration_update_interval is defined
 
-# WIP / DEV: ds-* services pick up environment-specific config from per-service
-# YAML files loaded via quarkus.config.locations declared in their
-# application.yaml. systemd Environment= and `-D` system properties are NOT
-# enough — EDC's QuarkusConfigBridge eagerly snapshots only enumerable SmallRye
-# sources (yaml/properties files), so env-vars never reach EDC's @Setting code.
-#
-# HTTPS: each service points at the shared ds-https.p12 keystore provisioned by
-# ds-https-keystore.yml. EDC's JettyService applies one keystore globally to
-# all ports (identity, did, sts, credentials, mgmt, dsp, control) — switching
-# this on flips every ds-* port to TLS, and callers must use https://.
-#
-# Production replacement plan (per file):
-#   - jwks.url            -> identity provider JWKS endpoint
-#   - trusted-issuer.*    -> issuer DIDs registered via CS admin onboarding
-#   - sts.oauth.token.url -> production STS endpoint (per-host)
-#   - keystore lifecycle  -> real PKI, not dev xrd-pki
-
-- include_tasks: ds-https-keystore.yml
-
-- name: configure ds-identity-hub runtime overrides
-  copy:
-    dest: /etc/xroad/conf.d/local-ds-identity-hub.yaml
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    content: |
-      edc:
-        iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
-
-- name: configure ds-control-plane runtime overrides
-  copy:
-    dest: /etc/xroad/conf.d/local-ds-control-plane.yaml
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    content: |
-      edc:
-        # TODO: EDC's DspApiBaseConfigurationExtension.defaultWebhookAddress() hardcodes
-        # http:// and uses Hostname.get() — which is "localhost" inside the systemd unit
-        # because HOSTNAME isn't exported to the JVM. Both defects need to be addressed
-        # properly (upstream patch or proper hostname propagation + scheme override).
-        # For now pin the callback address explicitly so contract-agreement POSTs go to
-        # the right host over TLS.
-        dsp:
-          callback:
-            address: "https://{{ inventory_hostname }}:8183/api/dsp/%s"
-        iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
-          trusted-issuer:
-            issuer:
-              id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
-          sts:
-            oauth:
-              token:
-                url: "https://{{ inventory_hostname }}:7184/api/sts/token"
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
-      xroad:
-        dsp:
-          participant-context-id: "{{ inventory_hostname }}"
-
+# TEMPORARY (dataspaces dev): remove stale systemd drop-in that set jwks.url
+# via Environment= (superseded by local-ds-control-plane.yaml placed by
+# pre-ss-install.yml). The drop-in dir is created by the package, so this
+# must run after install. Remove once the packages never shipped this drop-in.
 - name: drop legacy ds-control-plane systemd override (now in YAML)
   file:
     path: /etc/systemd/system/xroad-ds-control-plane.service.d/jwks.conf
     state: absent
 
-- name: restart ds-identity-hub to pick up runtime overrides
-  systemd:
-    name: xroad-ds-identity-hub
-    state: restarted
-    daemon_reload: yes
-
-- name: restart ds-control-plane to pick up runtime overrides
-  systemd:
-    name: xroad-ds-control-plane
-    state: restarted
-    daemon_reload: yes
+- include_tasks: post-ss-install.yml
 
 # DSP proxy configuration for LXD environment.
 # Key history:
@@ -189,7 +78,7 @@
 # earlier in this role, so the JVM (Quarkus xroad-proxy here, ds-control-plane
 # on the counterparty) trusts the cert chain.
 #
-# The actual file is preseeded at the top of this role (before package install)
+# The actual file is preseeded by pre-ss-install.yml (before package install)
 # so xroad-proxy's postinst-driven first start finds the config and avoids the
 # StartLimitBurst trap. Re-running the role updates the file in place; xroad-proxy
 # picks the new values up on its next restart.

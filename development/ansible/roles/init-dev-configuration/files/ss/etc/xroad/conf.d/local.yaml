@@ -1,4 +1,13 @@
 ---
+quarkus:
+  log:
+    level: DEBUG
+    category:
+      "org.niis.xroad":
+        level: DEBUG
+      "io.quarkus":
+        level: INFO
+
 xroad:
   common-global-conf:
     source: REMOTE
@@ -27,12 +36,3 @@ xroad:
     password: testpassword
     contacts:
       'DEV:COM:1234': member1@example.org
-
-quarkus:
-  log:
-    level: DEBUG
-    category:
-      "org.niis.xroad":
-        level: DEBUG
-      "io.quarkus":
-        level: INFO

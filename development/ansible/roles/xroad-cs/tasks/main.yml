@@ -1,69 +1,24 @@
 ---
+# TEMPORARY (dataspaces dev): pre-install preseed runs before any xroad-*
+# package starts a systemd unit. Puts DS runtime configs, TLS keystore, and
+# xrd-ca in the system trust store on disk BEFORE the package postinst fires.
+# Remove this include (and pre-cs-install.yml) once upstream packaging ships
+# debconf preseeds for ds-issuer-service and stops auto-starting units in postinst.
+- include_tasks: pre-cs-install.yml
+
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
 
-- include_tasks: ds-https-keystore.yml
-
-# WIP / DEV: ds-issuer-service runtime overrides. Loaded via
-# quarkus.config.locations declared in application.yaml.
-#
-# Why YAML, not systemd Environment=: EDC's QuarkusConfigBridge eagerly snapshots
-# only enumerable SmallRye config sources (yaml/properties files). Env-vars and
-# `-D` system-properties reach SmallRye lazily and never reach EDC's @Setting
-# resolution — services fail to boot with "configuration setting required".
-#
-# HTTPS: edc.web.https.keystore.* points EDC's Jetty at the shared keystore
-# provisioned by ds-https-keystore.yml. Enabling the keystore lights up TLS on
-# every ds-* port (identity, did, sts, issuance, admin) — there's no per-port
-# choice in EDC's stock JettyService.
-#
-# edc.statuslist.callback.address: full external URL baked into every VC's
-# credentialStatus.statusListCredential. EDC's LocalStatusListCredentialPublisher
-# otherwise composes "http://${edc.hostname}:6187/statuslist" — and edc.hostname
-# (templated as ${HOSTNAME} in application.yaml) doesn't resolve because the
-# systemd unit doesn't export HOSTNAME to the JVM, so EDC defaults to localhost.
-# The URL must be reachable from any consumer SS's Identity Hub during VP
-# validation; we point at the cs host directly.
-#
-# Production: replace mock JWKS with the actual identity provider's JWKS URL;
-# manage keystore lifecycle via real PKI rotation, not the dev xrd-pki mock.
-- name: configure ds-issuer-service runtime overrides
-  copy:
-    dest: /etc/xroad/conf.d/local-ds-issuer-service.yaml
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    content: |
-      edc:
-        hostname: "{{ groups['cs_servers'] | first }}"
-        statuslist:
-          callback:
-            # https because ds-https-keystore.yml enables TLS on every ds-* port —
-            # plain http here surfaces as "unexpected end of stream" on the IH side.
-            address: "https://{{ groups['cs_servers'] | first }}:6187/statuslist"
-        iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
-
+# TEMPORARY (dataspaces dev): remove stale systemd drop-in that set jwks.url
+# via Environment= (superseded by local-ds-issuer-service.yaml placed by
+# pre-cs-install.yml). The drop-in dir is created by the package, so this
+# must run after install. Remove once the packages never shipped this drop-in.
 - name: drop legacy ds-issuer-service systemd override (now in YAML)
   file:
     path: /etc/systemd/system/xroad-ds-issuer-service.service.d/jwks.conf
     state: absent
 
-- name: restart ds-issuer-service to pick up runtime overrides
-  systemd:
-    name: xroad-ds-issuer-service
-    state: restarted
-    daemon_reload: yes
+- include_tasks: post-cs-install.yml
 
 # TEMPORARY FIX — race in ManagementServiceSslBundleRegistrar
 # (core/src/common/common-management-service/.../ManagementServiceSslBundleRegistrar.java).
