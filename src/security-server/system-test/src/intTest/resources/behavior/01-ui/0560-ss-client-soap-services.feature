@@ -6,7 +6,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password
     And Clients tab is selected
 
   Scenario: Client WSDL service is configured

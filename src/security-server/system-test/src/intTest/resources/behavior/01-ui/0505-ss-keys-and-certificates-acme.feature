@@ -6,7 +6,7 @@ Feature: 0505 - SS: ACME
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password
 
   Scenario Outline: New key is added certificate ordered and imported
     Given Keys and certificates tab is selected
