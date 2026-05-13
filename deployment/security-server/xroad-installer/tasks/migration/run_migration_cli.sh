@@ -81,8 +81,10 @@ confirm_step() {
   if whiptail --title "Migration Step: $step" \
     --yesno "$description\n\nProceed?" 16 78; then
     log_info "Operator confirmed step: $step"
+    return 0
   else
-    log_warn_exit "Migration step '$step' cancelled by operator"
+    log_info "Operator declined step '$step' — skipping and continuing"
+    return 1
   fi
 }
 
@@ -130,7 +132,9 @@ run_migration_step() {
   fi
 
   if [[ "$skip_confirm" != "true" ]]; then
-    confirm_step "$sentinel" "${description:-Run migration CLI step: $step}"
+    if ! confirm_step "$sentinel" "${description:-Run migration CLI step: $step}"; then
+      return 0
+    fi
   fi
 
   log_message "Running: java -jar $MIGRATION_CLI_JAR $step ${args[*]}"
@@ -249,10 +253,11 @@ main() {
   # confirmation has already been collected explicitly, run_migration_step is
   # invoked with --no-confirm to avoid a duplicate dialog.
   if ! is_step_done "keyconf"; then
-    confirm_step "keyconf" "Migrate the signer keyconf (keys, certificates, soft token credentials)\n  from: /etc/xroad/signer\n  into: configuration database\n\nYou will be prompted for the soft token PIN next."
-    prompt_for_softtoken_pin "/etc/xroad/signer"
-    run_migration_step "keyconf" --no-confirm "/etc/xroad/signer" "/etc/xroad/db.properties"
-    unset XROAD_MIGRATION_SOFTTOKEN_PIN
+    if confirm_step "keyconf" "Migrate the signer keyconf (keys, certificates, soft token credentials)\n  from: /etc/xroad/signer\n  into: configuration database\n\nYou will be prompted for the soft token PIN next."; then
+      prompt_for_softtoken_pin "/etc/xroad/signer"
+      run_migration_step "keyconf" --no-confirm "/etc/xroad/signer" "/etc/xroad/db.properties"
+      unset XROAD_MIGRATION_SOFTTOKEN_PIN
+    fi
   fi
 
   # signer-token-pins migrates token PINs from xroad-autologin scripts to OpenBao.

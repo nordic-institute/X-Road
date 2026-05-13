@@ -63,11 +63,11 @@ OPTIONS:
     -h, --help                  Show this help message
 
 EXAMPLES:
-    sudo ./xroad-upgrade.sh
-    sudo ./xroad-upgrade.sh --config-file /path/to/xroad-upgrade.conf
+    sudo ./xroad-upgrader.sh
+    sudo ./xroad-upgrader.sh --config-file /path/to/xroad-upgrade.conf
 
     # Unattended (Ansible) — set XROAD_UPGRADE_UNATTENDED=true in the config file or env.
-    sudo XROAD_UPGRADE_UNATTENDED=true ./xroad-upgrade.sh --config-file xroad-upgrade.conf
+    sudo XROAD_UPGRADE_UNATTENDED=true ./xroad-upgrader.sh --config-file xroad-upgrade.conf
 
 EOF
 }
