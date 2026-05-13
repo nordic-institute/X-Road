@@ -295,6 +295,19 @@ main() {
     log_info "Mail notification configuration file not found at $mail_yml — skipping file-to-db (mail) migration"
   fi
 
+  # pgp-keys: migrate PGP keys used for message log archive encryption from the
+  # GPG home directory (configured in local.ini under
+  # message-log.archive-gpg-home-directory, default /etc/xroad/gpghome) into the
+  # OpenBao secret store.
+  local local_ini="/etc/xroad/conf.d/local.ini"
+  if [[ -f "$local_ini" ]]; then
+    run_migration_step "pgp-keys" \
+      --description "Migrate message log archive PGP keys\n  from: GPG home directory (per message-log.archive-gpg-home-directory in $local_ini)\n  into: OpenBao secret store" \
+      "$local_ini"
+  else
+    log_info "local.ini not found at $local_ini — skipping pgp-keys migration"
+  fi
+
   # batch-signing: optional opt-in to preserve the X-Road 7 behavior of having
   # batch signing enabled. X-Road 8 disables it by default. When the operator
   # opts in we set xroad.proxy.batch-signing-enabled=true via set-property;
