@@ -13,20 +13,20 @@ Feature: 0800 - SS: Authentication
     And Login form is visible
 
   Scenario: Invalid username is rejected
-    When User INVALID tries to log in to SecurityServer with password secret
+    When User INVALID tries to log in to SecurityServer with password
     Then Error message for incorrect credentials is shown
     And Login form is visible
 
   Scenario: User is able to log out from security server
     Given Login form is visible
-    When User xrd logs in to SecurityServer with password secret
+    When User xrd logs in to SecurityServer with password
     And Clients Tab is present
     When logout button is being clicked
     Then SecurityServer login page is open
 
   Scenario: Automatic logout happens when timeout passes
     Given Login form is visible
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password
     When User becomes idle
     Then after 120 seconds, session timeout popup appears
     When OK is clicked on timeout notification popup

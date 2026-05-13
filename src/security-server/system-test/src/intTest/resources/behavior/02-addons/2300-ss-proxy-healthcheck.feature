@@ -7,7 +7,7 @@ Feature: 2300 - SS Proxy: healthcheck
 
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password
     And Keys and certificates tab is selected
     When Token: softToken-0 edit page is opened
     And Change the pin section is expanded
