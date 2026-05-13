@@ -84,7 +84,7 @@ export function createXrdRouter(config: Config): Router {
     // user to be redirected to a view that contains api calls (s)he is not allowed.
     if (appState.isSessionAlive() && config.isAuthenticated()) {
       // Server is not initialized
-      if (!config.isServerInitialized() && to.name != config.initialisationRouteName && from.name != config.initialisationRouteName) {
+      if (!config.isServerInitialized() && to.name != config.initialisationRouteName) {
         return {
           name: config.initialisationRouteName,
         };
