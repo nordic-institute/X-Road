@@ -105,6 +105,7 @@ public class InitializationService {
      * 4. software token initialization status - whether or not a software token exists AND
      * it's status != TokenStatusInfo.NOT_INITIALIZED. If an exception is thrown when querying signer, software token
      * init status will be UNKNOWN
+     *
      * @return
      */
     public InitializationStatus getSecurityServerInitializationStatus() {
@@ -134,6 +135,7 @@ public class InitializationService {
      * Initialize a new Security Server with the provided parameters. Supports partial initialization which means
      * that if e.g. software token has already been initialized, it will not get initialized again, therefore the
      * parameter <code>String softwareTokenPin</code> can be <code>null</code>.
+     *
      * @param securityServerCode server code for the new Security Server
      * @param ownerMemberClass   member class of the new owner member
      * @param ownerMemberCode    member code of the new owner member
@@ -200,6 +202,7 @@ public class InitializationService {
      * Verify that when initializing a new security server, all required parameters are provided.
      * If old values DO NOT exist -> new values must be provided.
      * If old values DO exists -> new values are not allowed
+     *
      * @param securityServerCode
      * @param ownerMemberClass
      * @param ownerMemberCode
@@ -275,6 +278,7 @@ public class InitializationService {
 
     /**
      * Helper to create a software token
+     *
      * @param softwareTokenPin the pin of the token
      * @throws InvalidCharactersException if the pin includes characters outside of ascii (range 32 - 126)
      * @throws WeakPinException           if the pin does not meet the requirements set in {@link PasswordPolicy}
@@ -295,6 +299,7 @@ public class InitializationService {
     /**
      * Helper to create the initial server conf with a new server code and owner. If an existing server conf is found
      * and it already has a server code or an owner -> the existing values will not be overridden
+     *
      * @param ownerClientId      ownerClientId
      * @param securityServerCode securityServerCode
      * @return ServerConfEntity
@@ -320,6 +325,7 @@ public class InitializationService {
      * - if software token has already been initialized
      * - if trying to add unregistered member as an owner
      * - if the provided server id already exists in global conf
+     *
      * @param ownerClientId
      * @param securityServerCode
      * @throws UnhandledWarningsException
@@ -360,6 +366,7 @@ public class InitializationService {
 
     /**
      * Helper to create an initial client
+     *
      * @param clientId
      * @param serverConf
      * @return

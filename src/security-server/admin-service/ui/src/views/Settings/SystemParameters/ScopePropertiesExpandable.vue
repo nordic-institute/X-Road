@@ -25,30 +25,37 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdExpandable :data-test="`configurable-properties-panel-${scope}`" :is-open="isOpen" @open="emit('open', $event)">
+  <XrdExpandable
+    :data-test="`configurable-properties-panel-${scope}`"
+    :is-open="isOpen"
+    @open="emit('open', $event)"
+  >
     <template #link="{ toggle }">
       <span
         class="cursor-pointer font-weight-medium text-capitalize"
         :data-test="`configurable-properties-panel-title-${scope}`"
         @click="toggle"
-        >{{ scope }}</span
-      >
+        >{{ scope }}</span>
     </template>
 
     <template #content>
       <div class="pr-4 pb-4 pl-4">
         <v-table class="xrd configurable-properties-table">
           <thead>
-            <tr>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.propertyName') }}</th>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.currentValue') }}</th>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.defaultValue') }}</th>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.description') }}</th>
-              <th></th>
-            </tr>
+          <tr>
+            <th>{{ $t('systemParameters.configurableProperties.table.header.propertyName') }}</th>
+            <th>{{ $t('systemParameters.configurableProperties.table.header.currentValue') }}</th>
+            <th>{{ $t('systemParameters.configurableProperties.table.header.defaultValue') }}</th>
+            <th>{{ $t('systemParameters.configurableProperties.table.header.description') }}</th>
+            <th></th>
+          </tr>
           </thead>
           <tbody :data-test="`configurable-properties-table-body-${scope}`">
-            <tr v-for="prop in properties" :key="prop.property_name" data-test="configurable-property-row">
+            <tr
+              v-for="prop in properties"
+              :key="prop.property_name"
+              data-test="configurable-property-row"
+            >
               <td class="property-name-cell">{{ prop.property_name }}</td>
               <td class="property-value-cell">{{ prop.current_value ?? '-' }}</td>
               <td class="property-value-cell">{{ prop.default_value || '-' }}</td>

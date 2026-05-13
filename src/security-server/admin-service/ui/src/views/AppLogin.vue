@@ -35,7 +35,7 @@ import { mapActions, mapState } from 'pinia';
 
 import axios, { AxiosError } from 'axios';
 
-import { useNotifications, XrdAppLogin } from '@niis/shared-ui';
+import { XrdAppLogin, useNotifications } from '@niis/shared-ui';
 
 import { Permissions, RouteName } from '@/global';
 import { useSystem } from '@/store/modules/system';

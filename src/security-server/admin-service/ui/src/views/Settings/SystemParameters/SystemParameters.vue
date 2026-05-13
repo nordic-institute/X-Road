@@ -301,8 +301,7 @@
             v-model="propertySearch"
             data-test="configurable-properties-search"
             autofocus
-            :label="$t('systemParameters.configurableProperties.search')"
-          />
+            :label="$t('systemParameters.configurableProperties.search')" />
         </div>
 
         <XrdEmptyPlaceholder
@@ -313,7 +312,11 @@
           :no-items-text="$t('noData.noConfigurableProperties')"
         />
 
-        <div v-if="!loadingProperties && filteredScopeKeys.length > 0" class="mt-3 mx-4 mb-4" data-test="configurable-properties-panels">
+        <div
+          v-if="!loadingProperties && filteredScopeKeys.length > 0"
+          class="mt-3 mx-4 mb-4"
+          data-test="configurable-properties-panels"
+        >
           <ScopePropertiesExpandable
             v-for="(scope, index) in filteredScopeKeys"
             :key="scope"
@@ -360,13 +363,7 @@ import {
   XrdSubView,
   XrdView,
 } from '@niis/shared-ui';
-import type {
-  Anchor,
-  CertificateAuthority,
-  SecurityServerConfigurableProperty,
-  ServicePrioritizationStrategy,
-  TimestampingService,
-} from '@/openapi-types';
+import type { Anchor, CertificateAuthority, SecurityServerConfigurableProperty, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
@@ -447,10 +444,14 @@ const filteredPropertiesByScope = computed<Record<string, SecurityServerConfigur
 });
 
 const filteredScopeKeys = computed(() =>
-  Object.keys(filteredPropertiesByScope.value).sort((a, b) => (a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b))),
+  Object.keys(filteredPropertiesByScope.value).sort((a, b) =>
+    a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b),
+  ),
 );
 
-const hasAnyOpenScope = computed(() => filteredScopeKeys.value.some((scope) => openScopes.value[scope]));
+const hasAnyOpenScope = computed(() =>
+  filteredScopeKeys.value.some((scope) => openScopes.value[scope]),
+);
 
 watch(filteredPropertiesByScope, (filtered) => {
   if (!propertySearch.value.trim()) return;
