@@ -38,18 +38,12 @@ import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.service.AdminUserService;
 import org.niis.xroad.securityserver.restapi.service.InitialAdminUserService.InitialAdminUserNotAllowedException;
-import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.EnumSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -111,6 +105,7 @@ public class InitialAdminUserServiceTest {
     public void notRequiredWhenServerFullyInitialized() {
         when(userAuthenticationConfig.getAuthenticationProvider()).thenReturn(AuthenticationProviderType.DATABASE);
         when(adminUserService.count()).thenReturn(0L);
+        stubServerFullyInitialized();
 
         assertThat(service.isInitialAdminUserRequired()).isFalse();
     }
@@ -152,6 +147,7 @@ public class InitialAdminUserServiceTest {
     public void createRejectedWhenServerFullyInitialized() {
         when(userAuthenticationConfig.getAuthenticationProvider()).thenReturn(AuthenticationProviderType.DATABASE);
         when(adminUserService.count()).thenReturn(0L);
+        stubServerFullyInitialized();
 
         assertThatThrownBy(() -> service.createInitialAdminUser(USERNAME, PASSWORD))
                 .isInstanceOf(InitialAdminUserNotAllowedException.class);
@@ -163,17 +159,10 @@ public class InitialAdminUserServiceTest {
         when(adminUserService.count()).thenReturn(0L);
     }
 
-    private static ServerConfEntity fullyInitializedServerConf() {
-        ServerConfEntity entity = new ServerConfEntity();
-        entity.setServerCode("SS3");
-        entity.setOwner(mock(ClientEntity.class));
-        return entity;
-    }
-
-    private static TokenInfo softwareToken(TokenStatusInfo status) {
-        return new TokenTestUtils.TokenInfoBuilder()
-                .id(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)
-                .status(status)
-                .build();
+    private void stubServerFullyInitialized() {
+        when(systemService.isAnchorImported()).thenReturn(true);
+        when(serverConfService.isServerCodeInitialized()).thenReturn(true);
+        when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
+        when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
     }
 }
