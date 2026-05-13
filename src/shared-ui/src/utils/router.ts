@@ -75,11 +75,6 @@ export function createXrdRouter(config: Config): Router {
       return;
     }
 
-    // Allow specific routes without authentication (e.g. initial admin bootstrap)
-    if (to.name === config.initAdminRouteName && config.isAdminUserCreationRequired && (await config.isAdminUserCreationRequired())) {
-      return;
-    }
-
     // Pinia stores
     const notifications = useNotifications();
     const appState = useAppState();
@@ -111,6 +106,8 @@ export function createXrdRouter(config: Config): Router {
           };
         }
       }
+    } else if (to.name === config.initAdminRouteName && config.isAdminUserCreationRequired && (await config.isAdminUserCreationRequired())) {
+      return;
     } else {
       return {
         name: config.loginRouteName,
