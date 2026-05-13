@@ -36,9 +36,9 @@ import {
   POLL_SESSION_DELAY_ON_RESTART,
   POLL_SESSION_TIMEOUT_ON_RESTART,
   saveResponseAsFile,
-  useAppState,
+  useAppState
 } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+import { useUser } from "@/store/modules/user";
 
 function pollSessionStatus(delay = POLL_SESSION_TIMEOUT_ON_RESTART) {
   window.setTimeout(() => {
@@ -84,11 +84,12 @@ export const useBackups = defineStore('backups', {
         .then((resp) => saveResponseAsFile(resp, fileName));
     },
     async restoreBackup(fileName: string) {
-      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {}).then((resp) => {
-        useAppState().restarting('backup.restoreFromBackup.restarting.message');
-        pollSessionStatus(POLL_SESSION_DELAY_ON_RESTART);
-        return resp;
-      });
+      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {})
+        .then((resp) => {
+          useAppState().restarting("backup.restoreFromBackup.restarting.message");
+          pollSessionStatus(POLL_SESSION_DELAY_ON_RESTART)
+          return resp;
+        });
     },
     async uploadBackup(backupFile: File, ignoreWarnings = false) {
       return api
