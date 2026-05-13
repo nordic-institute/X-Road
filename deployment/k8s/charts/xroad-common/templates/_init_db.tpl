@@ -1,0 +1,69 @@
+{{- define "xroad.db.init.job" -}}
+{{- $name := .name }}
+{{- $config := .config }}
+{{- $root := .root }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}-db-init
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      securityContext:
+        {{- toYaml .root.Values.securityContext.pod | nindent 8 }}
+      {{- with .root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ $name }}-db-init
+          image: {{ .root.Values.global.image.registry }}/{{ .root.Values.init.imageName }}:{{ .root.Values.global.image.tag }}
+          imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .root.Values.init.securityContext | nindent 12 }}
+          resources:
+            requests:
+              memory: "128Mi"
+            limits:
+              memory: "512Mi"
+          env:
+            - name: JDBC_URL
+              value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
+            - name: JDBC_USER
+              value: "postgres"
+            - name: JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-{{ $name }}
+                  key: postgres-password
+            - name: CHANGELOG
+              value: {{ ($config.changelogName | default $name) | quote }}
+            - name: DEFAULT_SCHEMA_NAME
+              value: {{ $config.schema | quote }}
+            - name: PROP_DB_USER
+              value: {{ $config.username | quote }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+      initContainers:
+        - name: check-db-ready
+          image: "postgres:17"
+          securityContext:
+            {{- toYaml .root.Values.securityContext.container | nindent 12 }}
+          command: ['sh', '-c',
+                    'until pg_isready -h {{ $config.host }} -p {{ $config.port }}; do echo waiting for database; sleep 1; done;']
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+      restartPolicy: Never
+{{- end }}
