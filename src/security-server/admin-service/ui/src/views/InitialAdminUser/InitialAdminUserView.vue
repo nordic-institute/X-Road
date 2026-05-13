@@ -74,9 +74,8 @@
 </template>
 
 <script lang="ts" setup>
-import { defineComponent, ref } from 'vue';
+import { ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { mapActions } from 'pinia';
 
 import {
   useNotifications,
@@ -90,10 +89,9 @@ import {
 
 import { RouteName } from '@/global';
 import { useInitializeServer } from '@/store/modules/initializeServer';
-import { useUser } from '@/store/modules/user';
 import { useRouter } from "vue-router";
 
-const { addError, addSuccessMessage } = useNotifications();
+const { addError } = useNotifications();
 const router = useRouter();
 const { createInitialAdminUser } = useInitializeServer();
 const { meta, values, defineField } = useForm({
