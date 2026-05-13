@@ -42,4 +42,8 @@ public class CommonModuleEndpointPaths {
     public String getApiKeysPath() {
         return getBasePath() + "/api-keys";
     }
+
+    public String getAdminUsersPath() {
+        return getBasePath() + "/users";
+    }
 }
