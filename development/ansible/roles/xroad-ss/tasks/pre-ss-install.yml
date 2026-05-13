@@ -51,6 +51,8 @@
           dsp:
             participant-context-id: "{{ inventory_hostname }}"
             control-plane-endpoint: "https://127.0.0.1:8184/api/v1/control"
+            cache:
+              enabled: false
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees

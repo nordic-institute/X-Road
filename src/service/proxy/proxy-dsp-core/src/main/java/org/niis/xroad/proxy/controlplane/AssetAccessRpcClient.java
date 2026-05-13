@@ -55,8 +55,6 @@ import java.util.concurrent.TimeUnit;
 @ApplicationScoped
 public class AssetAccessRpcClient extends AbstractRpcClient implements ControlPlaneNegotiationService {
 
-    private static final long DEFAULT_TTL_SECONDS = 300;
-
     private final RpcChannelFactory rpcChannelFactory;
     private final AssetAccessRpcChannelProperties channelProperties;
     private final AssetAccessClientProperties clientProperties;
@@ -64,28 +62,8 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements ControlPl
     private ManagedChannel channel;
     private AssetAccessServiceGrpc.AssetAccessServiceBlockingStub accessServiceBlockingStub;
 
-    private final Cache<CacheKey, CachedEntry> cache = Caffeine.newBuilder()
-            .expireAfter(new Expiry<CacheKey, CachedEntry>() {
-                @Override
-                public long expireAfterCreate(CacheKey key, CachedEntry value, long currentTime) {
-                    if (value.expiresAtEpochSeconds() <= 0) {
-                        return TimeUnit.SECONDS.toNanos(DEFAULT_TTL_SECONDS);
-                    }
-                    long ttlSeconds = value.expiresAtEpochSeconds() - Instant.now().getEpochSecond();
-                    return TimeUnit.SECONDS.toNanos(Math.max(ttlSeconds, 0));
-                }
-
-                @Override
-                public long expireAfterUpdate(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
-                    return currentDuration;
-                }
-
-                @Override
-                public long expireAfterRead(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
-                    return currentDuration;
-                }
-            })
-            .build();
+    // Null when caching is disabled via configuration; acquireAssetAccess() bypasses to a direct gRPC call.
+    private Cache<CacheKey, CachedEntry> cache;
 
     /**
      * Cache key for acquired asset access responses.
@@ -131,6 +109,39 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements ControlPl
         // Deadline is applied at channel level by RpcChannelFactory#timeoutInterceptor;
         // per-stub interceptors are therefore unnecessary here.
         accessServiceBlockingStub = AssetAccessServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        cache = buildCache();
+    }
+
+    private Cache<CacheKey, CachedEntry> buildCache() {
+        var cacheProps = clientProperties.cache();
+        if (!cacheProps.enabled()) {
+            log.info("AssetAccess cache disabled by configuration");
+            return null;
+        }
+        long defaultTtlNanos = cacheProps.defaultTtl().toNanos();
+        return Caffeine.newBuilder()
+                .maximumSize(cacheProps.maximumSize())
+                .expireAfter(new Expiry<CacheKey, CachedEntry>() {
+                    @Override
+                    public long expireAfterCreate(CacheKey key, CachedEntry value, long currentTime) {
+                        if (value.expiresAtEpochSeconds() <= 0) {
+                            return defaultTtlNanos;
+                        }
+                        long ttlSeconds = value.expiresAtEpochSeconds() - Instant.now().getEpochSecond();
+                        return TimeUnit.SECONDS.toNanos(Math.max(ttlSeconds, 0));
+                    }
+
+                    @Override
+                    public long expireAfterUpdate(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
+                        return currentDuration;
+                    }
+
+                    @Override
+                    public long expireAfterRead(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
+                        return currentDuration;
+                    }
+                })
+                .build();
     }
 
     @Override
@@ -149,6 +160,9 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements ControlPl
                 counterPartyId,
                 counterPartyAddress,
                 clientProperties.protocol());
+        if (cache == null) {
+            return loadAssetAccess(cacheKey).response();
+        }
         // cache.get(key, loader) serializes concurrent loads on the same key inside Caffeine,
         // collapsing N parallel proxy threads into a single gRPC round-trip per cache miss.
         return cache.get(cacheKey, this::loadAssetAccess).response();

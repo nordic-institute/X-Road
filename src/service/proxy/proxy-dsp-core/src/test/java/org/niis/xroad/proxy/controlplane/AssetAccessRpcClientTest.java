@@ -51,6 +51,7 @@ import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -73,6 +74,8 @@ class AssetAccessRpcClientTest {
     private AssetAccessRpcChannelProperties channelProperties;
     @Mock
     private AssetAccessClientProperties clientProperties;
+    @Mock
+    private AssetAccessClientProperties.Cache cacheProperties;
 
     private Server server;
     private ManagedChannel channel;
@@ -123,6 +126,10 @@ class AssetAccessRpcClientTest {
         when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
         when(clientProperties.participantContextId()).thenReturn("test-participant-ctx");
         when(clientProperties.protocol()).thenReturn("dataspace-protocol-http:2025-1");
+        when(clientProperties.cache()).thenReturn(cacheProperties);
+        when(cacheProperties.enabled()).thenReturn(true);
+        when(cacheProperties.defaultTtl()).thenReturn(Duration.ofMinutes(5));
+        when(cacheProperties.maximumSize()).thenReturn(10_000L);
 
         client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
         client.init();
@@ -288,6 +295,33 @@ class AssetAccessRpcClientTest {
         }
 
         assertThat(requestCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void acquireSuccess_cacheDisabledBypassesCache() {
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .build();
+
+        // Rebuild client with cache disabled. Tear down original channel and stub a fresh one so init() succeeds.
+        client.close();
+        channel.shutdownNow();
+        var freshChannel = ManagedChannelBuilder.forAddress("localhost", server.getPort())
+                .usePlaintext()
+                .build();
+        channel = freshChannel;
+        Mockito.reset(rpcChannelFactory);
+        when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(freshChannel);
+        when(cacheProperties.enabled()).thenReturn(false);
+
+        client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
+        client.init();
+
+        client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+        client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+
+        assertThat(requestCount.get()).isEqualTo(2);
     }
 
     @Test

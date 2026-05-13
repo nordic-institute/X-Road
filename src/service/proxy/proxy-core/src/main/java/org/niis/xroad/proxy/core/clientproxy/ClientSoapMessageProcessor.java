@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
@@ -201,6 +202,10 @@ public class ClientSoapMessageProcessor {
         }
     }
 
+    boolean isManagementRequest(ServiceId serviceId) {
+        return serviceId.getClientId().equals(globalConfProvider.getManagementRequestService());
+    }
+
     private void checkRequestIdentifiers(SoapRequestDecoder decoder) {
         identifierValidationService.checkIdentifier(decoder.getRequestSoap().getClient());
         identifierValidationService.checkIdentifier(decoder.getRequestSoap().getService());
@@ -211,9 +216,12 @@ public class ClientSoapMessageProcessor {
                                         String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("processRequest()");
         // Acquire DSP asset access before sending the SOAP request (return discarded in Phase 9;
-        // Phase 10 pipes endpoint + auth into the HttpSender).
-        dspSubProcessor.execute(new DspRequest(
-                decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer()));
+        // Phase 10 pipes endpoint + auth into the HttpSender). Management requests bypass DSP and
+        // fall through to the legacy direct-SOAP path via clientRequestPreparationService.
+        if (!isManagementRequest(decoder.getServiceId())) {
+            dspSubProcessor.execute(new DspRequest(
+                    decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer()));
+        }
         ProxyMessage response;
         try (HttpSender httpSender = httpSenderProvider.createClientHttpSender()) {
             sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData);

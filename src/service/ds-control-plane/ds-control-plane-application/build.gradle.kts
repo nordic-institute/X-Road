@@ -25,6 +25,15 @@ dependencies {
 
   runtimeOnly(libs.edc.core.controlplane) {
     exclude("org.eclipse.edc", "transfer-data-plane-signaling") // deprecated
+    // EDC 0.17 ships two mutually-exclusive state-machine drivers: classic Manager
+    // (control-plane-{contract,transfer}-manager) and task-based (control-plane-
+    // {contract,transfer}-task-executor). control-plane-core transitively pulls
+    // the Manager modules. We use the task-based driver (TaskPollExecutor below),
+    // so the Manager modules are excluded to prevent dual state-machine execution
+    // (duplicate state transitions, duplicate protocol message sends, 409s on
+    // verification/finalization). See .scratch/dsp-rest-integration/issues/02.
+    exclude("org.eclipse.edc", "control-plane-contract-manager")
+    exclude("org.eclipse.edc", "control-plane-transfer-manager")
   }
   runtimeOnly(libs.edc.core.controlplane.contract.tasks)
   runtimeOnly(libs.edc.core.controlplane.transfer.tasks)

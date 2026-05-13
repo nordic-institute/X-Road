@@ -30,6 +30,8 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.time.Duration;
+
 /**
  * Business configuration for DSP asset access requests.
  */
@@ -57,4 +59,46 @@ public interface AssetAccessClientProperties {
      */
     @WithDefault("dataspace-protocol-http:2025-1")
     String protocol();
+
+    /**
+     * Asset access response cache configuration.
+     *
+     * @return cache configuration
+     */
+    Cache cache();
+
+    /**
+     * Cache configuration for acquired asset access responses.
+     */
+    interface Cache {
+
+        /**
+         * Whether the cache is enabled. When disabled, every {@code acquireAssetAccess} call
+         * results in a fresh gRPC round-trip to the control plane.
+         *
+         * @return {@code true} if caching is enabled
+         */
+        @WithDefault("true")
+        boolean enabled();
+
+        /**
+         * Default TTL applied to a cached entry when the control plane response does not
+         * carry an explicit {@code expiresAtEpochSeconds}.
+         *
+         * @return default TTL duration
+         */
+        @WithName("default-ttl")
+        @WithDefault("PT5M")
+        Duration defaultTtl();
+
+        /**
+         * Maximum number of entries kept in the cache. Once exceeded, entries are evicted
+         * by Caffeine's size-based policy.
+         *
+         * @return maximum number of cache entries
+         */
+        @WithName("maximum-size")
+        @WithDefault("10000")
+        long maximumSize();
+    }
 }
