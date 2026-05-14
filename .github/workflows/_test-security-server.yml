@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@9fcdc7c7225cc2cbeead14d114a61a461bd37e66 # v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: start-measurement
           label: 'ss-system-test'
@@ -55,7 +55,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@9fcdc7c7225cc2cbeead14d114a61a461bd37e66 # v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
           label: 'ss-system-test setup'
@@ -71,7 +71,7 @@ jobs:
           show-docker-images: 'true'
 
       - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@9fcdc7c7225cc2cbeead14d114a61a461bd37e66 # v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
           label: 'ss-system-test'
@@ -87,7 +87,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload ss-system-test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: ss-system-test-report-${{ github.run_number }}
@@ -98,7 +98,7 @@ jobs:
             test-framework-working-dir/selenide-failures/*.png
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@9fcdc7c7225cc2cbeead14d114a61a461bd37e66 # v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: display-results
           display-badge: false
