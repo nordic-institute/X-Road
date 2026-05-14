@@ -1,7 +1,8 @@
 [Unit]
 Description=X-Road Central Server Registration Service
-After=network.target xroad-base.service
+After=network.target xroad-base.service xroad-center-management-service.service
 Requires=xroad-base.service
+Wants=xroad-center-management-service.service
 StartLimitBurst=5
 StartLimitIntervalSec=40
 
