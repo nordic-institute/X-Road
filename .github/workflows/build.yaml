@@ -51,8 +51,13 @@ jobs:
     uses: ./.github/workflows/_build-and-package.yml
     secrets: inherit
     with:
-      ref: ${{ github.ref }}
-      sha: ${{ github.sha }}
+      ref: ${{ github.event_name == 'workflow_run'
+        && format('refs/heads/{0}', github.event.workflow_run.head_branch)
+        || github.ref }}
+
+      sha: ${{ github.event_name == 'workflow_run'
+        && github.event.workflow_run.head_sha
+        || github.sha }}
 
   test-central-server:
     name: cs-system-tests
