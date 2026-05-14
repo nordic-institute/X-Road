@@ -45,10 +45,9 @@ jobs:
             -q
 
       # Always amend + force-push (even when metadata unchanged) so the PR
-      # head moves, pull_request.synchronize fires, and the Build workflow
-      # runs exactly once on a known-good commit. The Build workflow is
-      # configured to skip the initial `opened` event on dependabot/gradle/*
-      # branches — it relies on this sync to run.
+      # head moves to the final metadata-verified commit SHA. Dependabot
+      # pull_request events skip Build directly; the Build workflow is
+      # triggered afterwards via workflow_run when this workflow completes.
       - name: Amend Dependabot commit and force-push
         run: |
           git config user.name "github-actions[bot]"
