@@ -82,7 +82,6 @@ jobs:
 
       - name: Backend audit
         id: backend
-        if: steps.check-backend.outputs.available == 'true'
         working-directory: ./src
         continue-on-error: true
         run: ./gradlew dependencyAuditBackend -PnvdAutoUpdate=false --no-daemon
@@ -109,7 +108,6 @@ jobs:
 
           FRONTEND_STATUS="${{ steps.frontend.outcome }}"
           BACKEND_STATUS="${{ steps.backend.outcome }}"
-          BACKEND_AVAILABLE="${{ steps.check-backend.outputs.available }}"
 
           # Track job failures
           if [ "$FRONTEND_STATUS" = "failure" ]; then
@@ -118,7 +116,7 @@ jobs:
               ERRORS="${ERRORS}:x: Frontend audit task failed\n"
             fi
           fi
-          if [ "$BACKEND_AVAILABLE" = "true" ] && [ "$BACKEND_STATUS" = "failure" ]; then
+          if [ "$BACKEND_STATUS" = "failure" ]; then
             if [ ! -f "build/reports/dependency-check-report.json" ]; then
               ERRORS="${ERRORS}:x: Backend audit task failed\n"
             fi
