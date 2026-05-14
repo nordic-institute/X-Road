@@ -13,7 +13,7 @@ Feature: 0800 - SS: Authentication
     And Login form is visible
 
   Scenario: Invalid username is rejected
-    When User INVALID tries to log in to SecurityServer with password
+    When User INVALID tries to log in to SecurityServer with password secret123!
     Then Error message for incorrect credentials is shown
     And Login form is visible
 
