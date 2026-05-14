@@ -72,10 +72,10 @@ dependencyCheck {
 
   nvd.apiKey = System.getenv("NVD_API_KEY") ?: ""
 
-  analyzers.nodeEnabled = false
-  analyzers.ossIndexEnabled = false
+  analyzers.ossIndex.enabled = false
   analyzers.nodeAudit.enabled = false
   analyzers.nodeAudit.pnpmEnabled = false
+  analyzers.assemblyEnabled = false
 }
 
 tasks.register("dependencyAuditBackend") {
