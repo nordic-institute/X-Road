@@ -24,21 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.managementservice;
+package org.niis.xroad.cs.management.core.configuration;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
-import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
-import org.springframework.boot.ssl.SslBundle;
-import org.springframework.boot.ssl.SslBundleRegistry;
-import org.springframework.boot.ssl.SslStoreBundle;
 
 import java.io.IOException;
-import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -49,41 +45,25 @@ import static java.util.Arrays.stream;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ManagementServiceSslBundleRegistrar implements SslBundleRegistrar {
-    public static final String BUNDLE_NAME = "management-service";
-
+public class ManagementServiceSslBundleRegistrar extends AbstractManagementServiceSslBundleRegistrar {
     private final VaultKeyClient vaultKeyClient;
     private final VaultClient vaultClient;
 
     @Override
-    public void registerBundles(SslBundleRegistry registry) {
-        log.info("Registering '{}' SSL Bundle", BUNDLE_NAME);
+    protected InternalSSLKey resolveTlsCredentials() throws IOException, CertificateException,
+            NoSuchAlgorithmException, InvalidKeySpecException {
         try {
-            ensureTlsKeyPresent();
-            var tlsCredentials = vaultClient.getManagementServicesTlsCredentials();
-
-            KeyStore keystore = KeyStore.getInstance("PKCS12");
-            keystore.load(null, null);
-            keystore.setKeyEntry(BUNDLE_NAME, tlsCredentials.getKey(), null, tlsCredentials.getCertChain());
-            SslStoreBundle storeBundle = SslStoreBundle.of(keystore, null, null);
-            SslBundle sslBundle = SslBundle.of(storeBundle);
-            registry.registerBundle(BUNDLE_NAME, sslBundle);
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to register '%s' SSL bundle".formatted(BUNDLE_NAME), e);
-        }
-    }
-
-    private void ensureTlsKeyPresent() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        try {
-            vaultClient.getManagementServicesTlsCredentials();
+            return vaultClient.getManagementServicesTlsCredentials();
         } catch (Exception e) {
             log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", BUNDLE_NAME, e);
             var vaultKeyData = vaultKeyClient.provisionNewCerts();
             var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
                     .toArray(X509Certificate[]::new);
-            var tlCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createManagementServiceTlsCredentials(tlCredentials);
+            var tlsCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createManagementServiceTlsCredentials(tlsCredentials);
             log.info("Successfully created '{}' TLS credentials", BUNDLE_NAME);
+            return tlsCredentials;
         }
     }
+
 }

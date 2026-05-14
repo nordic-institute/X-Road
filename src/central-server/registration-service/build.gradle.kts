@@ -49,6 +49,7 @@ dependencies {
   implementation(libs.jakarta.validationApi)
   implementation(libs.bucket4j.core)
   implementation(libs.logback.classic)
+  implementation(libs.resilience4j.retry)
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":common:common-management-request")))
