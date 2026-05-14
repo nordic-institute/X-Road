@@ -114,14 +114,14 @@ Feature: 0250 - SS: Admin Users
 
   Scenario: Too weak password is not accepted when changing own password
     When Change password button is being clicked
-    And Old password is entered
+    And Old password secret123! is entered
     And New password t0pSecret is entered
     And New password's confirmation t0pSecret is entered
     Then Change password dialog's Save button is clicked and error: "The provided password was too weak" is displayed
 
   Scenario: Password containing illegal characters is not accepted when changing own password
     When Change password button is being clicked
-    And Old password is entered
+    And Old password secret123! is entered
     And New password t0pSecretä is entered
     And New password's confirmation t0pSecretä is entered
     Then Change password dialog's Save button is clicked and error: "The provided password contains invalid characters" is displayed
