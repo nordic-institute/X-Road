@@ -28,13 +28,14 @@
 package org.niis.xroad.proxy.core.admin;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.healthcheck.HeapMemoryStatusService;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
@@ -64,7 +65,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final ServerConfProvider serverConfProvider;
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
     private final TimestampStatusHandler timestampStatusHandler;
-    private final ProxyMemoryStatusService proxyMemoryStatusService;
+    private final HeapMemoryStatusService heapMemoryStatusService;
     private final EncryptionConfigProvider encryptionConfigProvider;
     private final ProxyMessageLogProperties messageLogProperties;
     private final MessageLogEncryptionProperties messageLogEncryptionProperties;
@@ -141,7 +142,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     private ProxyMemoryStatusResp handleProxyMemoryStatus() {
-        ProxyMemory proxyMemory = proxyMemoryStatusService.getMemoryStatus();
+        HeapMemoryStatus proxyMemory = heapMemoryStatusService.getMemoryStatus();
         var responseBuilder = ProxyMemoryStatusResp.newBuilder()
                 .setFreeMemory(proxyMemory.freeMemory())
                 .setTotalMemory(proxyMemory.totalMemory())

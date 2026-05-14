@@ -55,7 +55,7 @@ echo ""
 log_info "Step 3: Verifying charts in registry..."
 echo ""
 
-CHARTS=("security-server" "openbao-init" "external-service-bridge")
+CHARTS=("xroad-common" "security-server" "openbao-init" "external-service-bridge" "configuration-proxy")
 
 for chart in "${CHARTS[@]}"; do
     log_info "Checking: helm/${chart}"

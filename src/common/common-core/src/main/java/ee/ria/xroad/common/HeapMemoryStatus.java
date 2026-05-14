@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,41 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.healthcheck;
+package ee.ria.xroad.common;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
-import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
-import org.eclipse.microprofile.health.Liveness;
-
-@Liveness
-@ApplicationScoped
-@RequiredArgsConstructor
-public class HeapMemoryLivenessCheck implements HealthCheck {
-    private static final String NAME = "HEAP_MEMORY_CHECK";
-
-    private final HeapMemoryStatusService heapMemoryStatusService;
-
-    @Override
-    public HealthCheckResponse call() {
-
-        var memory = heapMemoryStatusService.getMemoryStatus();
-
-        HealthCheckResponseBuilder response = HealthCheckResponse.named(NAME)
-                .withData("total_memory", memory.totalMemory())
-                .withData("free_memory", memory.freeMemory())
-                .withData("used_percent", memory.usedPercent())
-                .withData("used_bytes", memory.usedMemory())
-                .withData("max_bytes", memory.maxMemory());
-
-        if (memory.threshold() != null) {
-            response.withData("threshold_percent", memory.threshold());
-        } else {
-            response.withData("threshold_configured", false);
-        }
-        return memory.isUsedAboveThreshold() ? response.down().build() : response.up().build();
+public record HeapMemoryStatus(long totalMemory, long freeMemory, long maxMemory, long usedMemory, Integer threshold, long usedPercent) {
+    public boolean isUsedAboveThreshold() {
+        return threshold != null && usedPercent > threshold;
     }
-
 }

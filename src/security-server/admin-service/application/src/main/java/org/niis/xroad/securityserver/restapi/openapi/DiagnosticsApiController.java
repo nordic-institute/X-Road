@@ -29,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -170,7 +170,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<ProxyMemoryUsageStatusDto> getProxyMemoryUsage() {
-        ProxyMemory proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
+        HeapMemoryStatus proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
         return new ResponseEntity<>(proxyMemoryUsageStatusConverter.convert(proxyMemoryUsage), HttpStatus.OK);
     }
 

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,10 +24,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.common.healthcheck;
 
-public record ProxyMemory(long totalMemory, long freeMemory, long maxMemory, long usedMemory, Long threshold, long usedPercent) {
-    public boolean isUsedAboveThreshold() {
-        return threshold != null && usedPercent > threshold;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+
+import java.util.Optional;
+
+/**
+ * Shared health-check configuration (@ConfigMapping at prefix "xroad.health-check").
+ * <p>
+ * Currently exposes a single {@link Memory} sub-group for heap-memory liveness check
+ * tuning.
+ */
+@ConfigMapping(prefix = "xroad.health-check")
+public interface HealthCheckProperties {
+
+    /**
+     * Heap-memory liveness check tuning. See {@link Memory#thresholdPercent()}.
+     */
+    Memory memory();
+
+    /**
+     * Heap-memory liveness check tuning.
+     * <p>
+     * The threshold is intentionally {@link Optional} so an operator can disable the
+     * check (always-UP) by configuring an empty value in any source — typically via a
+     * YAML alias from a service-specific legacy key. When unset across all sources, the
+     * default value of 95 is applied.
+     */
+    interface Memory {
+        /**
+         * Heap-usage percentage above which the liveness probe reports DOWN. When absent
+         * (e.g. an explicit empty override), the bean reports UP unconditionally.
+         * Default: 95.
+         *
+         * @return the configured threshold percent or empty when explicitly disabled.
+         */
+        @WithName("threshold-percent")
+        @WithDefault("95")
+        Optional<Integer> thresholdPercent();
     }
 }

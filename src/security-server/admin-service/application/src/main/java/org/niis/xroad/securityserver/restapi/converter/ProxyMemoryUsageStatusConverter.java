@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 
 import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
 import org.springframework.stereotype.Component;
@@ -36,7 +36,7 @@ import java.math.BigDecimal;
 public class ProxyMemoryUsageStatusConverter {
 
     public ProxyMemoryUsageStatusDto convert(
-            ProxyMemory proxyMemory) {
+            HeapMemoryStatus proxyMemory) {
         ProxyMemoryUsageStatusDto proxyMemoryUsageStatus = new ProxyMemoryUsageStatusDto()
                 .maxMemory(BigDecimal.valueOf(proxyMemory.maxMemory()))
                 .totalMemory(BigDecimal.valueOf(proxyMemory.totalMemory()))
