@@ -62,7 +62,7 @@ public class ApiSecurityCheckStepDefs extends BaseUiStepDefs {
             "FeignXRoadSoapRequestsApi", Set.of("getXRoadSoapResponse", "getXRoadSoapResponseAsBytes"),
             "FeignXRoadRestRequestsApi", Set.of("s3c2", "s4c2", "testOas31"),
             "FeignHealthcheckApi", Set.of("getHealthcheck"),
-            "FeignInitializationApi", Set.of("initWithHeader", "initSecurityServer"),
+            "FeignInitializationApi", Set.of("initWithHeader", "initSecurityServer", "getInitialAdminUserStatus", "createInitialAdminUser"),
             "FeignBackupsApi", Set.of("uploadBackup"));
 
     @Autowired
