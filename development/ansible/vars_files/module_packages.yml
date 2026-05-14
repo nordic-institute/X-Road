@@ -23,5 +23,4 @@ ss_packages:
   backup-manager: xroad-backup-manager
   proxy-ui-api: xroad-proxy-ui-api
   ds-control-plane: xroad-ds-control-plane
-  ds-data-plane: xroad-ds-data-plane
   ds-identity-hub: xroad-ds-identity-hub

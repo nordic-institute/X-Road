@@ -44,7 +44,6 @@ shadowPlugin = "9.4.1"
 owaspDependencyCheck = "12.2.2"
 jersey = "4.0.2"
 edc = "0.17.0"
-dataplane-sdk = "0.0.10-SNAPSHOT"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -381,8 +380,6 @@ edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", versi
 edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
 edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }
 edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
-
-edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version.ref = "dataplane-sdk" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "5.0.1" }

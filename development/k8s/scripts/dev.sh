@@ -16,7 +16,6 @@ SUPPORTED_SERVICES=(
   auxiliary-service
   softtoken-signer
   ds-control-plane
-  ds-data-plane
   ds-identity-hub
   ds-issuer-service
 )
