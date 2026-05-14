@@ -19,14 +19,14 @@ Feature: 0800 - SS: Authentication
 
   Scenario: User is able to log out from security server
     Given Login form is visible
-    When User xrd logs in to SecurityServer with password
+    When User xrd logs in to SecurityServer with password secret123!
     And Clients Tab is present
     When logout button is being clicked
     Then SecurityServer login page is open
 
   Scenario: Automatic logout happens when timeout passes
     Given Login form is visible
-    And User xrd logs in to SecurityServer with password
+    And User xrd logs in to SecurityServer with password secret123!
     When User becomes idle
     Then after 120 seconds, session timeout popup appears
     When OK is clicked on timeout notification popup

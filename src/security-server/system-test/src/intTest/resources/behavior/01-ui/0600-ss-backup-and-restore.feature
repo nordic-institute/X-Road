@@ -6,7 +6,7 @@ Feature: 0600 - SS: Backup and Restore
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password
+    And User xrd logs in to SecurityServer with password secret123!
     And Settings tab is selected
     And Backup and Restore sub-tab is selected
 
@@ -49,7 +49,7 @@ Feature: 0600 - SS: Backup and Restore
     Then Configuration can be successfully restored from backup
     And Service restarting dialog is displayed
     And Login page is displayed after service restart
-    When User xrd logs in to SecurityServer with password
+    When User xrd logs in to SecurityServer with password secret123!
     And Settings tab is selected
     And Backup and Restore sub-tab is selected
     When Configuration backup is created
