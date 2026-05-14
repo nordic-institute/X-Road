@@ -6,7 +6,7 @@ Feature: 0250 - SS: Admin Users
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password
+    And User xrd logs in to SecurityServer with password secret123!
     And Settings tab is selected
     And Admin Users sub-tab is selected
 
