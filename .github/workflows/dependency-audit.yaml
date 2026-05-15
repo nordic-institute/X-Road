@@ -34,7 +34,7 @@ jobs:
           free-disk-space: false
 
       - name: Restore NVD cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: ~/.gradle/dependency-check-data/
           key: nvd-db
@@ -69,7 +69,7 @@ jobs:
           free-disk-space: false
 
       - name: Restore NVD cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: ~/.gradle/dependency-check-data/
           key: nvd-db
@@ -82,14 +82,13 @@ jobs:
 
       - name: Backend audit
         id: backend
-        if: steps.check-backend.outputs.available == 'true'
         working-directory: ./src
         continue-on-error: true
         run: ./gradlew dependencyAuditBackend -PnvdAutoUpdate=false --no-daemon
 
       - name: Upload audit reports
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: audit-reports-${{ matrix.branch }}
           path: |
@@ -109,7 +108,6 @@ jobs:
 
           FRONTEND_STATUS="${{ steps.frontend.outcome }}"
           BACKEND_STATUS="${{ steps.backend.outcome }}"
-          BACKEND_AVAILABLE="${{ steps.check-backend.outputs.available }}"
 
           # Track job failures
           if [ "$FRONTEND_STATUS" = "failure" ]; then
@@ -118,7 +116,7 @@ jobs:
               ERRORS="${ERRORS}:x: Frontend audit task failed\n"
             fi
           fi
-          if [ "$BACKEND_AVAILABLE" = "true" ] && [ "$BACKEND_STATUS" = "failure" ]; then
+          if [ "$BACKEND_STATUS" = "failure" ]; then
             if [ ! -f "build/reports/dependency-check-report.json" ]; then
               ERRORS="${ERRORS}:x: Backend audit task failed\n"
             fi

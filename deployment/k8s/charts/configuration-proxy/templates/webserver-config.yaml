@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configuration-proxy-nginx
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+    app: xroad-configuration-proxy
+data:
+  cp-web.conf: |
+{{ .Values.nginx.config | indent 4 }}

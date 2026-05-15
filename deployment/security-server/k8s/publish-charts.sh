@@ -10,7 +10,7 @@ source "${ROOT_DIR}/.scripts/base-script.sh"
 # Additional paths
 SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
-CHARTS_DIR="${ROOT_DIR}/deployment/security-server/k8s/charts"
+CHARTS_BASE_DIR="${ROOT_DIR}/deployment"
 
 # Show help
 show_help() {
@@ -24,6 +24,8 @@ CHARTS:
     security-server         Security Server chart
     openbao-init           OpenBao initialization chart
     external-service-bridge External service bridge chart
+    configuration-proxy     Configuration Proxy chart
+    xroad-common            Shared helpers library chart
 
 OPTIONS:
     --version VERSION      Chart version (defaults to xroadVersion-xroadBuildType)
@@ -75,7 +77,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Always build all charts
-CHARTS=("security-server" "openbao-init" "external-service-bridge")
+CHARTS=(
+    "security-server/k8s/charts/security-server"
+    "security-server/k8s/charts/openbao-init"
+    "security-server/k8s/charts/external-service-bridge"
+    "k8s/charts/xroad-common"
+    "k8s/charts/configuration-proxy"
+)
 
 # Determine registry and defaults
 REGISTRY="${HELM_REGISTRY:-localhost:5555/helm}"
@@ -163,9 +171,10 @@ SUCCESSFUL_CHARTS=0
 FAILED_CHARTS=0
 
 # Process each chart
-for chart in "${CHARTS[@]}"; do
-    CHART_PATH="${CHARTS_DIR}/${chart}"
-    
+for chart_rel_path in "${CHARTS[@]}"; do
+    CHART_PATH="${CHARTS_BASE_DIR}/${chart_rel_path}"
+    chart="$(basename "$chart_rel_path")"
+
     log_info "Processing chart: $chart"
     
     if [[ ! -d "$CHART_PATH" ]]; then

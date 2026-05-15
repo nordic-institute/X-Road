@@ -44,7 +44,7 @@ jobs:
     name: build & package
     if: >
       !(startsWith(github.head_ref, 'dependabot/gradle/')
-        && github.actor == 'dependabot[bot]')
+        && github.event.sender.login == 'dependabot[bot]')
     uses: ./.github/workflows/_build-and-package.yml
     secrets: inherit
     with:

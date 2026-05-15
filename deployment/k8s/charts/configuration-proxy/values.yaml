@@ -1,0 +1,237 @@
+global:
+  image:
+    registry: artifactory.niis.org/xroad8-snapshot-image
+    tag: 8.0.0-beta2-SNAPSHOT
+    pullPolicy: IfNotPresent
+
+init:
+  imageName: ss-db-init
+  securityContext:
+    runAsUser: 1001
+  confproxy:
+    host: "db-confproxy"
+    port: "5432"
+    database: "confproxy"
+    username: "confproxy"
+    schema: "public"
+    changelogName: "confproxy"
+
+imagePullSecrets: []
+
+securityContext:
+  pod:
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+  container:
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+writablePaths:
+  - /var/log/xroad
+  - /var/lib/xroad
+  - /var/tmp/xroad
+  - /var/cache/xroad
+  - /etc/xroad
+
+services:
+  signer:
+    imageName: ss-signer
+    replicas: 1
+    resources:
+      requests:
+        memory: 192Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 5560
+        name: grpc
+    readinessProbe:
+      path: "/q/health/ready"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      JAVA_OPTS: -Xmx64m -XX:MaxMetaspaceSize=128m
+      XROAD_HOST: "signer"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
+      XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_USERNAME: "confproxy"
+      XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE: "0"
+      XROAD_SIGNER_AUTOLOGIN_ENABLED: "true"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
+      DB_CONFIG_SOURCE_USERNAME: "confproxy"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-confproxy"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-confproxy"
+        key: "password"
+      - name: "XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN"
+        secretName: "xroad-soft-token-pin"
+        key: "pin"
+
+  configuration-proxy:
+    imageName: configuration-proxy
+    replicas: 1
+    strategy:
+      type: Recreate
+    resources:
+      requests:
+        memory: 192Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 4000
+        name: https
+      # Served by nginx sidecar; skipContainerPort avoids duplicate containerPort on the main container.
+      - port: 80
+        name: distribution
+        skipContainerPort: true
+    readinessProbe:
+      path: "/q/health/ready"
+      port: 4099
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
+      port: 4099
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    skipDefaultMounts:
+      - /var/lib/xroad
+      - /etc/xroad
+    env:
+      JAVA_OPTS: -Xmx128m -XX:MaxMetaspaceSize=128m
+      XROAD_HOST: "configuration-proxy"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
+      XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
+      XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_USERNAME: "confproxy"
+      XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      XROAD_CONFIGURATION_PROXY_ADDRESS: "configuration-proxy"
+      DB_CONFIG_SOURCE_ENABLED: "true"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
+      DB_CONFIG_SOURCE_USERNAME: "confproxy"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-confproxy"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-confproxy"
+        key: "password"
+      - name: "XROAD_CONFIGURATION_PROXY_AUTO_INIT_SOFT_TOKEN"
+        secretName: "xroad-soft-token-pin"
+        key: "pin"
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/confproxy
+        name: confproxy-config
+      - mountPath: /var/lib/xroad/public
+        name: public-distribution
+    extraVolumes:
+      - name: confproxy-config
+        persistentVolumeClaim:
+          claimName: confproxy-config-pvc
+      - name: public-distribution
+        persistentVolumeClaim:
+          claimName: public-distribution-pvc
+      - name: nginx-config
+        configMap:
+          name: configuration-proxy-nginx
+      - name: nginx-cache
+        emptyDir: { }
+      - name: nginx-run
+        emptyDir: { }
+    sidecars:
+      - name: nginx
+        image: nginx:1.27-alpine
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 101
+          runAsGroup: 101
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        ports:
+          - containerPort: 80
+            name: distribution
+        resources:
+          requests:
+            memory: 16Mi
+          limits:
+            memory: 64Mi
+        volumeMounts:
+          - mountPath: /var/lib/xroad/public
+            name: public-distribution
+            readOnly: true
+          - mountPath: /etc/nginx/conf.d/cp-web.conf
+            name: nginx-config
+            subPath: cp-web.conf
+            readOnly: true
+          - mountPath: /var/cache/nginx
+            name: nginx-cache
+          - mountPath: /var/run
+            name: nginx-run
+          - mountPath: /tmp
+            name: tmp-volume
+
+persistentVolumeClaims:
+  confproxy-config-pvc:
+    accessMode: ReadWriteOnce
+    storage: 256Mi
+  public-distribution-pvc:
+    accessMode: ReadWriteOnce
+    storage: 1Gi
+
+# Plain-HTTP nginx config served at "/<instance>/conf?version=N" -> /<instance>/conf-vN
+nginx:
+  config: |
+    map $args $version {
+        default                         "2";
+        "~(^|&)version=(?P<V>\d+)(&|$)" $V;
+    }
+
+    server {
+        listen 80;
+        listen [::]:80;
+
+        root /var/lib/xroad/public;
+
+        location ~ ^/.+/conf$ {
+            try_files $uri-v$version =404;
+            expires -1;
+        }
+    }
+
+jvmMetrics:
+  enabled: false
+  jmxExporter:
+    port: 9801
+    config: |
+      lowercaseOutputName: true
+      lowercaseOutputLabelNames: true
+      rules:
+        - pattern: ".*"
