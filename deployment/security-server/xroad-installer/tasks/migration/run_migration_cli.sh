@@ -325,6 +325,35 @@ main() {
       "$mapping_ini_file" "/etc/xroad/db.properties"
   fi
 
+  # messagelog-db-encryption-keys: migrate the X-Road 7 message log database
+  # encryption key from a PKCS#12 keystore into the OpenBao secret store. The
+  # keystore path, password, and key-id are read from /etc/xroad/conf.d/local.ini
+  # under [message-log] (messagelog-keystore / messagelog-keystore-password /
+  # messagelog-key-id). The step is skipped when the keystore setting is absent,
+  # the keystore file is missing, or the key-id is not configured.
+  local keystore_path keystore_password key_id
+  keystore_path=$(crudini --get /etc/xroad/conf.d/local.ini message-log messagelog-keystore 2>/dev/null || echo "")
+  if [[ -z "$keystore_path" ]]; then
+    log_info "message-log.messagelog-keystore not set in local.ini — skipping messagelog-db-encryption-keys migration"
+  elif [[ ! -f "$keystore_path" ]]; then
+    log_info "Message log keystore configured but not present at $keystore_path — skipping messagelog-db-encryption-keys migration"
+  else
+    keystore_password=$(crudini --get /etc/xroad/conf.d/local.ini message-log messagelog-keystore-password 2>/dev/null || echo "")
+    key_id=$(crudini --get /etc/xroad/conf.d/local.ini message-log messagelog-key-id 2>/dev/null || echo "")
+    if [[ -z "$key_id" ]]; then
+      log_info "message-log.messagelog-key-id not set in local.ini — skipping messagelog-db-encryption-keys migration (CLI requires a key-id)"
+    else
+      # Pass the keystore password via env var (mirrors XROAD_MIGRATION_SOFTTOKEN_PIN
+      # for the keyconf step) so it does not land in the migration log line nor in
+      # `ps` output. Unset immediately after the step.
+      export XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD="$keystore_password"
+      run_migration_step "messagelog-db-encryption-keys" \
+        --description "Migrate message log database encryption key\n  from: $keystore_path (key-id: $key_id)\n  into: OpenBao secret store" \
+        "$keystore_path" "$key_id"
+      unset XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD
+    fi
+  fi
+
   # batch-signing: optional opt-in to preserve the X-Road 7 behavior of having
   # batch signing enabled. X-Road 8 disables it by default. When the operator
   # opts in we set xroad.proxy.batch-signing-enabled=true via set-property;

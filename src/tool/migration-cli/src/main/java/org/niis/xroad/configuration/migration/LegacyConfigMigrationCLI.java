@@ -176,12 +176,13 @@ public class LegacyConfigMigrationCLI {
                     Migrates PGP keys from GPG home directory (specified in config) to Vault.
 
                 Message Log Database Encryption Keys Migration:
-                  migration-cli messagelog-db-encryption-keys <keystore.p12> <password> <key-id>
+                  migration-cli messagelog-db-encryption-keys <keystore.p12> <key-id>
                     Migrates the specified database encryption key from P12 keystore to Vault.
                     Arguments:
                       <keystore.p12>  Path to PKCS12 keystore file
-                      <password>      Keystore password
                       <key-id>        Key alias/ID to migrate (from messagelog-key-id config)
+                    Env vars:
+                      XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD  Keystore password (required; may be empty)
 
                 Message Log Key Mappings Migration:
                   migration-cli messagelog-key-mappings <messagelog-mapping.ini> <db.properties path>
@@ -260,7 +261,8 @@ public class LegacyConfigMigrationCLI {
                 Examples:
                   migration-cli config /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/local.yaml
                   migration-cli pgp-keys /etc/xroad/conf.d/local.ini
-                  migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
+                  XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD=secret \\
+                    migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 key1
                   migration-cli messagelog-key-mappings /etc/xroad/messagelog/archive-encryption-mapping.ini /etc/xroad/db.properties
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
@@ -300,20 +302,28 @@ public class LegacyConfigMigrationCLI {
         log.info("PGP key migration result: {}", result);
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
+    private static final String MESSAGELOG_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD";
+
     private static void migrateMessageLogKeys(String[] args) throws IOException {
-        if (args.length < 3) {
-            log.error("Message log database encryption key migration requires 3 arguments");
-            log.error("Usage: migration-cli messagelog-db-encryption-keys <keystore.p12> <password> <key-id>");
+        if (args.length != 2) {
+            log.error("Message log database encryption key migration requires 2 arguments");
+            log.error("Usage: migration-cli messagelog-db-encryption-keys <keystore.p12> <key-id>");
             log.error("  <keystore.p12>  Path to PKCS12 keystore file");
-            log.error("  <password>      Keystore password");
             log.error("  <key-id>        Key alias/ID to migrate (from messagelog-key-id config)");
+            log.error("Env vars:");
+            log.error("  {}  Keystore password (required; may be empty)", MESSAGELOG_KEYSTORE_PASSWORD_ENV);
             System.exit(1);
         }
 
         String keystorePath = args[0];
-        String password = args[1];
-        String keyId = args[2];
+        String keyId = args[1];
+
+        String password = System.getenv(MESSAGELOG_KEYSTORE_PASSWORD_ENV);
+        if (password == null) {
+            throw new IllegalStateException(
+                    "Keystore password not provided. Export " + MESSAGELOG_KEYSTORE_PASSWORD_ENV
+                            + " before running the messagelog-db-encryption-keys migration step.");
+        }
 
         validateFilePath(keystorePath, "keystore");
 
