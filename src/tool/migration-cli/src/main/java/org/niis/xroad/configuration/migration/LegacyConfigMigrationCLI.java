@@ -60,6 +60,7 @@ public class LegacyConfigMigrationCLI {
         CONFIG("config", "Migrate configuration files (INI/properties to DB)"),
         PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
+        MESSAGELOG_KEY_MAPPINGS("messagelog-key-mappings", "Migrate message log key-mapping INI file to DB"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
         SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
         SIGNER_DEVICES("signer-devices", "Migrate signer devices.ini to DB"),
@@ -84,6 +85,7 @@ public class LegacyConfigMigrationCLI {
                 case "config" -> CONFIG;
                 case "pgp-keys" -> PGP_KEYS;
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
+                case "messagelog-key-mappings" -> MESSAGELOG_KEY_MAPPINGS;
                 case "keyconf" -> KEYCONF;
                 case "signer-token-pins" -> SIGNER_TOKEN_PINS;
                 case "signer-devices" -> SIGNER_DEVICES;
@@ -117,6 +119,7 @@ public class LegacyConfigMigrationCLI {
                 case CONFIG -> migrateConfiguration(shiftArgs(args));
                 case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
+                case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(shiftArgs(args));
                 case KEYCONF -> migrateKeyConf(shiftArgs(args));
                 case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
                 case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
@@ -153,6 +156,7 @@ public class LegacyConfigMigrationCLI {
                   config                         Migrate configuration files (INI/properties to DB)
                   pgp-keys                       Migrate PGP keys from GPG to Vault
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
+                  messagelog-key-mappings        Migrate message log key-mapping INI file to DB
                   keyconf                        Migrate signer key configuration to DB
                   signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
                   signer-devices                 Migrate signer devices.ini to DB
@@ -178,6 +182,13 @@ public class LegacyConfigMigrationCLI {
                       <keystore.p12>  Path to PKCS12 keystore file
                       <password>      Keystore password
                       <key-id>        Key alias/ID to migrate (from messagelog-key-id config)
+
+                Message Log Key Mappings Migration:
+                  migration-cli messagelog-key-mappings <messagelog-mapping.ini> <db.properties path>
+                    Migrates message log archive grouping key mappings from INI file to the configuration database.
+                    Arguments:
+                      <messagelog-mapping.ini> Path to message log archive encryption mapping INI file
+                      <db.properties path>     Path to database properties file
 
                 Signer keyconf migration:
                   migration-cli keyconf <keyconf path> <db.properties path>
@@ -250,6 +261,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli config /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/local.yaml
                   migration-cli pgp-keys /etc/xroad/conf.d/local.ini
                   migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 secret key1
+                  migration-cli messagelog-key-mappings /etc/xroad/messagelog/archive-encryption-mapping.ini /etc/xroad/db.properties
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
@@ -318,6 +330,30 @@ public class LegacyConfigMigrationCLI {
                 keyId
         );
         log.info("Message log encryption key migration result: {}", result);
+    }
+
+    private static void migrateMessageLogKeyMappings(String[] args) {
+        if (args.length != 2) {
+            log.error("Message log key mappings migration requires 2 arguments");
+            log.error("Usage: migration-cli messagelog-key-mappings <messagelog-mapping.ini> <db.properties path>");
+            log.error("  <messagelog-mapping.ini> Path to message log archive encryption mapping INI file");
+            log.error("  <db.properties path>     Path to database properties file");
+            System.exit(1);
+        }
+
+        String mappingIniPath = args[0];
+        String dbPropertiesPath = args[1];
+
+        validateFilePath(mappingIniPath, "message log mapping INI");
+        validateFilePath(dbPropertiesPath, "database properties");
+
+        if (!new File(mappingIniPath).exists()) {
+            log.error("Message log mapping INI file does not exist: {}", mappingIniPath);
+            System.exit(1);
+        }
+
+        log.info("Starting message log key mappings migration from: {}", mappingIniPath);
+        new MessageLogIniToDbMigrator().migrate(mappingIniPath, dbPropertiesPath, null);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

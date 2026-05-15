@@ -308,6 +308,23 @@ main() {
     log_info "local.ini not found at $local_ini — skipping pgp-keys migration"
   fi
 
+  # messagelog-key-mappings: migrate the message log archive encryption key
+  # mapping INI file into the configuration database. The mapping file path is
+  # configured in local.ini under message-log.archive-encryption-keys-config;
+  # there is no canonical default — when the setting is absent (or the file it
+  # points to is missing) this step is skipped.
+  local mapping_ini_file
+  mapping_ini_file=$(crudini --get /etc/xroad/conf.d/local.ini message-log archive-encryption-keys-config 2>/dev/null || echo "")
+  if [[ -z "$mapping_ini_file" ]]; then
+    log_info "message-log.archive-encryption-keys-config not set in local.ini — skipping messagelog-key-mappings migration"
+  elif [[ ! -f "$mapping_ini_file" ]]; then
+    log_info "Message log key mapping file configured but not present at $mapping_ini_file — skipping messagelog-key-mappings migration"
+  else
+    run_migration_step "messagelog-key-mappings" \
+      --description "Migrate message log archive encryption key mappings\n  from: $mapping_ini_file\n  into: configuration database" \
+      "$mapping_ini_file" "/etc/xroad/db.properties"
+  fi
+
   # batch-signing: optional opt-in to preserve the X-Road 7 behavior of having
   # batch signing enabled. X-Road 8 disables it by default. When the operator
   # opts in we set xroad.proxy.batch-signing-enabled=true via set-property;
