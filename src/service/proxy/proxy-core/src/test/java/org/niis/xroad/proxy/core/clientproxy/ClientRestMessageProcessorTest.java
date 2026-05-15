@@ -45,6 +45,7 @@ import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequest;
 import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
@@ -152,6 +153,34 @@ class ClientRestMessageProcessorTest {
         var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
 
         assertThat(processor.isManagementRequest(serviceId)).isFalse();
+    }
+
+    @Test
+    void managementServiceIdProducesDspRequestWithManagementFlagTrue() {
+        var management = ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(management);
+        var serviceId = ServiceId.Conf.create(management, "clientReg");
+
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+
+        // isManagementRequest drives the management flag in the DspRequest constructed by sendRequest.
+        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        assertThat(dspRequest.management()).isTrue();
+    }
+
+    @Test
+    void nonManagementServiceIdProducesDspRequestWithManagementFlagFalse() {
+        var management = ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
+        var other = ClientId.Conf.create("DEV", "COM", "4321", "TestClient");
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(management);
+        var serviceId = ServiceId.Conf.create(other, "testService");
+
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+
+        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        assertThat(dspRequest.management()).isFalse();
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {

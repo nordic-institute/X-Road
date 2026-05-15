@@ -203,11 +203,10 @@ public class ClientRestMessageProcessor {
         log.trace("sendRequest()");
 
         // Acquire DSP asset access before sending the REST request (return discarded — Phase 10
-        // will pipe endpoint + auth into the HttpSender). Management requests bypass DSP and fall
-        // through to the legacy direct-REST path via clientRequestPreparationService.
-        if (!isManagementRequest(requestServiceId)) {
-            dspSubProcessor.execute(new DspRequest(requestServiceId, restRequest.getTargetSecurityServer()));
-        }
+        // will pipe endpoint + auth into the HttpSender).
+        // MANAGEMENT requests target the mgmt participant context; all others use the host context.
+        dspSubProcessor.execute(new DspRequest(requestServiceId, restRequest.getTargetSecurityServer(),
+                isManagementRequest(requestServiceId)));
 
         final URI[] addresses = clientRequestPreparationService.prepareRequest(
                 httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);

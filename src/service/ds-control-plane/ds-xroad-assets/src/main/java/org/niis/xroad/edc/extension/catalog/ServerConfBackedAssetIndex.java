@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -35,6 +37,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -53,12 +56,30 @@ import java.util.stream.Stream;
 class ServerConfBackedAssetIndex implements AssetIndex {
 
     private final ServerConfProvider serverConfProvider;
+    private final GlobalConfProvider globalConfProvider;
     private final String participantContextId;
+    private final String managementParticipantContextId;
     private final ServerConfQueryEvaluator queryEvaluator = new ServerConfQueryEvaluator();
 
-    ServerConfBackedAssetIndex(ServerConfProvider serverConfProvider, String participantContextId) {
+    ServerConfBackedAssetIndex(ServerConfProvider serverConfProvider,
+                               GlobalConfProvider globalConfProvider,
+                               String participantContextId,
+                               String managementParticipantContextId) {
         this.serverConfProvider = serverConfProvider;
+        this.globalConfProvider = globalConfProvider;
         this.participantContextId = participantContextId;
+        this.managementParticipantContextId = managementParticipantContextId;
+    }
+
+    /**
+     * Chooses the participant context ID for a given serviceId.
+     * MANAGEMENT subsystem must own a distinct DSP identity; see PRD dsp-mgmt-dual-context.
+     */
+    private String resolveContextId(ServiceId serviceId) {
+        var mgmtService = globalConfProvider.getManagementRequestService();
+        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
+                ? managementParticipantContextId
+                : participantContextId;
     }
 
     /**
@@ -78,7 +99,7 @@ class ServerConfBackedAssetIndex implements AssetIndex {
                 if (serverConfProvider.getDisabledNotice(serviceId) != null) {
                     continue;
                 }
-                assets.add(AssetMapper.toAsset(serviceId, participantContextId));
+                assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
             }
         }
         if (log.isTraceEnabled()) {
@@ -118,7 +139,7 @@ class ServerConfBackedAssetIndex implements AssetIndex {
             return null;
         }
         log.trace("findById assetId={} found", assetId);
-        return AssetMapper.toAsset(serviceId, participantContextId);
+        return AssetMapper.toAsset(serviceId, resolveContextId(serviceId));
     }
 
     /**

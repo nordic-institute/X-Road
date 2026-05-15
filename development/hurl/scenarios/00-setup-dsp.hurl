@@ -9,11 +9,18 @@
 #
 # What this seeds (mirrors e2e 0300-ds-baseline.feature, minus assets):
 #   1. Issuer Service (on xrd-cs)        — issuer participant ctx, holders for
-#                                          ss0/ss1 DIDs, attestation +
-#                                          credential definitions.
+#                                          ss0/ss1 DIDs (+ ss0-mgmt holder for
+#                                          the MANAGEMENT-subsystem dual ctx),
+#                                          attestation + credential definitions.
 #   2. Identity Hub  (on xrd-ss0/xrd-ss1)— participant ctx, credential request
 #                                          from issuer; polled until ISSUED.
+#                                          ss0 additionally gets a second ctx
+#                                          (`<ss0_host>-mgmt`) that owns the
+#                                          MANAGEMENT-subsystem DSP identity —
+#                                          see PRD dsp-mgmt-dual-context.
 #   3. Control Plane (on xrd-ss0/xrd-ss1)— participant ctx + STS-bound config.
+#                                          ss0 also gets a second CP ctx for
+#                                          the mgmt DID, mirroring the IH side.
 #
 # What this DOES NOT seed:
 #   - Asset / policy / contract definitions. Production behaviour: assets are
@@ -25,6 +32,9 @@
 #   - IH credential issuance triggered by member registration on CS.
 #   - CP participant context auto-created on SS first start, STS secrets
 #     drawn from OpenBao instead of pre-shared aliases.
+#   - Mgmt-subsystem dual ctx auto-provisioned when an SS first hosts the
+#     MANAGEMENT subsystem (CS-side trigger). Today it is seeded only here
+#     for the central-server-collocated SS (ss0).
 #   - Permissions: replace lax `policy-allow-all` with role/membership-bound
 #     ODRL policies issued per data-product.
 #
@@ -107,6 +117,27 @@ Content-Type: application/json
     "properties": {
         "membershipType": "X-Road",
         "xrdMemberIdentifier": "{{ss1_member_id}}"
+    }
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 1.3a Register holder = ss0's MANAGEMENT-subsystem DID (dual-ctx; see PRD
+# dsp-mgmt-dual-context). Same xrdMemberIdentifier as the ss0 host holder —
+# the mgmt ctx represents the same X-Road member but a distinct DSP identity.
+POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/holders
+Authorization: Bearer {{is_participant_token}}
+Content-Type: application/json
+
+{
+    "did": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+    "holderId": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+    "name": "SS0 Mgmt Holder (dev mock)",
+    "properties": {
+        "membershipType": "X-Road",
+        "xrdMemberIdentifier": "{{ss0_member_id}}"
     }
 }
 
@@ -244,6 +275,81 @@ HTTP 200
 jsonpath "$.status" != "ERROR"
 jsonpath "$.status" == "ISSUED"
 
+# 2a.4 Create IH participant context on ss0 for the MANAGEMENT-subsystem ctx.
+# Path-form DID `did:web:<ss0_host>%3A<ih_did_port>:mgmt` — same pattern as the
+# issuer ctx (`did:web:<is_host>%3A<is_did_port>:issuer`). Resolves over
+# https://<ss0_host>:<ih_did_port>/mgmt/did.json. CustomParticipantContextExtension
+# already supports multiple ctx per IH instance; no code change needed.
+# `StsAccountProvisioner` on the IH auto-seeds the `<participantContextId>-sts-client-secret`
+# vault entry on create — that is the alias consumed by 3a.4 below.
+POST https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
+Authorization: Bearer {{ih_provisioner_token}}
+Content-Type: application/json
+
+{
+    "roles": [],
+    "serviceEndpoints": [
+        {
+            "type": "CredentialService",
+            "serviceEndpoint": "https://{{ss0_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss0_host}}-mgmt",
+            "id": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt-credential-service"
+        }
+    ],
+    "active": true,
+    "participantContextId": "{{ss0_host}}-mgmt",
+    "did": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+    "key": {
+        "keyId": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt#key-1",
+        "privateKeyAlias": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt-key",
+        "keyGeneratorParams": {
+            "algorithm": "EdDSA"
+        }
+    }
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 2a.5 Submit credential request from issuer for ss0's mgmt ctx.
+# Separate holder from the ss0 host ctx (registered in 1.3a) — same member,
+# distinct DID. Cannot share the host holder's credential because the
+# verifiable credential is bound to the holder DID and the mgmt ctx
+# authenticates with the mgmt DID.
+#
+# `holderPid` MUST differ from the host-ctx request (2a.2). IH treats
+# `holderPid` as instance-unique, not per-ctx — reusing it makes the POST
+# silently re-target the existing host row (verified: 201 returned, row's
+# participant_context_id unchanged, no mgmt VC ever issued).
+POST https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_host}}-mgmt/credentials/request
+Authorization: Bearer {{ih_admin_token}}
+Content-Type: application/json
+
+{
+    "issuerDid": "did:web:{{is_host}}%3A{{is_did_port}}:issuer",
+    "holderPid": "xroad-membership-mgmt-credential-request",
+    "credentials": [
+        {
+            "format": "VC1_0_JWT",
+            "type": "MembershipCredential",
+            "id": "xroad-membership-credential-definition"
+        }
+    ]
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 2a.6 Poll mgmt-ctx credential request status; expect ISSUED.
+GET https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_host}}-mgmt/credentials/request/xroad-membership-mgmt-credential-request
+Authorization: Bearer {{ih_admin_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.status" != "ERROR"
+jsonpath "$.status" == "ISSUED"
+
 # --- 2b. xrd-ss1 ---
 
 # 2b.1 Create IH participant context on ss1.
@@ -352,6 +458,50 @@ Content-Type: application/json
         "edc.iam.sts.oauth.token.url": "https://{{ss0_host}}:{{ih_sts_port}}/api/sts/token",
         "edc.iam.sts.oauth.client.id": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
         "edc.iam.sts.oauth.client.secret.alias": "{{ss0_host}}-sts-client-secret"
+    },
+    "privateEntries": {}
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 3a.3 Create CP participant context on ss0 for the MANAGEMENT subsystem.
+# Distinct DSP identity from 3a.1 — see PRD dsp-mgmt-dual-context. Two ctx on
+# the same CP → two `participantContextId` columns on edc_contract_negotiation
+# rows → self-negotiation no longer collides on the unique constraint.
+POST https://{{ss0_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
+Authorization: Bearer {{cp_provisioner_token}}
+Content-Type: application/json
+
+{
+    "@context": ["https://w3id.org/edc/connector/management/v2"],
+    "@type": "ParticipantContext",
+    "identity": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+    "@id": "{{ss0_host}}-mgmt"
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 3a.4 PUT mgmt-ctx config on ss0 CP. STS client + secret alias must match
+# what the IH provisioned in 2a.4 (`<participantContextId>-sts-client-secret`,
+# i.e. `<ss0_host>-mgmt-sts-client-secret`). No separate vault seed step —
+# `StsAccountProvisioner` (IH side) writes the alias on participant create.
+PUT https://{{ss0_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss0_host}}-mgmt/config
+Authorization: Bearer {{cp_provisioner_token}}
+Content-Type: application/json
+
+{
+    "@context": ["https://w3id.org/edc/connector/management/v2"],
+    "@type": "ParticipantContextConfig",
+    "entries": {
+        "edc.participant.id": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.participant.did": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.iam.sts.oauth.token.url": "https://{{ss0_host}}:{{ih_sts_port}}/api/sts/token",
+        "edc.iam.sts.oauth.client.id": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.iam.sts.oauth.client.secret.alias": "{{ss0_host}}-mgmt-sts-client-secret"
     },
     "privateEntries": {}
 }

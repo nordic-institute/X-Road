@@ -74,4 +74,17 @@ public interface ProxyDspProperties {
     @WithName("participant-context-id")
     String participantContextId();
 
+    /**
+     * The participant context ID for the MANAGEMENT subsystem's DSP context.
+     *
+     * <p>Defaults to {@code <participantContextId>-mgmt} (e.g. {@code xrd-ss0-mgmt}).
+     * Override in {@code local-dsp.yaml} only when the mgmt context is provisioned under a
+     * non-standard ID.
+     *
+     * @return management participant context ID
+     */
+    @WithName("management-participant-context-id")
+    @WithDefault("${xroad.proxy.dsp.participant-context-id}-mgmt")
+    String managementParticipantContextId();
+
 }

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -75,5 +76,31 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
                 "xrd-ss2", new CounterPartyTarget("did:web:xrd-ss2%3A7183", "https://xrd-ss2:8183/api/dsp/xrd-ss2/2025-1"),
                 "ss0", new CounterPartyTarget("did:web:ss0%3A7183", "https://ss0:8183/api/dsp/ss0/2025-1"),
                 "ss1", new CounterPartyTarget("did:web:ss1%3A7183", "https://ss1:8183/api/dsp/ss1/2025-1"));
+    }
+
+    /**
+     * Management-context variant of {@link #defaultMap()}.
+     *
+     * <p>Each entry is derived from the host-ctx entry by appending {@code -mgmt} to the
+     * participant context ID in both the URL path and the DID path segment. No new hosts
+     * are introduced — the map keys are identical to those in {@link #defaultMap()}.
+     *
+     * <p>DID convention: {@code did:web:<host>%3A<port>:mgmt} — path-form DID, same
+     * resolution base as the host ctx but scoped to the {@code :mgmt} sub-path.
+     *
+     * @return immutable map keyed by host-address, targeting the mgmt participant context
+     */
+    public static Map<String, CounterPartyTarget> managementMap() {
+        var base = defaultMap();
+        var result = new HashMap<String, CounterPartyTarget>(base.size() * 2);
+        for (var entry : base.entrySet()) {
+            var host = entry.getKey();
+            var hostTarget = entry.getValue();
+            // Append ":mgmt" to the DID path and "-mgmt" to the ctx ID path in the URL.
+            var mgmtDid = hostTarget.counterPartyId() + ":mgmt";
+            var mgmtUrl = hostTarget.counterPartyAddress().replaceFirst("/" + host + "/", "/" + host + "-mgmt/");
+            result.put(host, new CounterPartyTarget(mgmtDid, mgmtUrl));
+        }
+        return Map.copyOf(result);
     }
 }

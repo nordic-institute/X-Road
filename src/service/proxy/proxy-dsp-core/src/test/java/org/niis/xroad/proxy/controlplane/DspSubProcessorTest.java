@@ -65,6 +65,8 @@ class DspSubProcessorTest {
     private static final String DID_B = "did:web:xrd-ss1%3A7183";
     private static final String URL_A = "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1";
     private static final String URL_B = "https://xrd-ss1:8183/api/dsp/xrd-ss1/2025-1";
+    private static final String MGMT_DID_A = "did:web:xrd-ss0%3A7183:mgmt";
+    private static final String MGMT_URL_A = "https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/2025-1";
     private static final String UNKNOWN_HOST = "unknown.example.com";
 
     @Mock
@@ -88,7 +90,7 @@ class DspSubProcessorTest {
         var expected = new AssetAccessResponse("http://dp.example.com/endpoint", "token-abc");
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any())).thenReturn(expected);
 
-        var result = processor.execute(new DspRequest(serviceId, null));
+        var result = processor.execute(new DspRequest(serviceId, null, false));
 
         assertThat(result).isSameAs(expected);
         assertThat(result.endpoint()).isEqualTo("http://dp.example.com/endpoint");
@@ -102,7 +104,7 @@ class DspSubProcessorTest {
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
-        processor.execute(new DspRequest(serviceId, null));
+        processor.execute(new DspRequest(serviceId, null, false));
 
         var assetIdCaptor = ArgumentCaptor.forClass(String.class);
         verify(controlPlaneNegotiationService).acquireAssetAccess(assetIdCaptor.capture(), any(), any());
@@ -116,7 +118,7 @@ class DspSubProcessorTest {
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
-        processor.execute(new DspRequest(serviceId, null));
+        processor.execute(new DspRequest(serviceId, null, false));
 
         var idCaptor = ArgumentCaptor.forClass(String.class);
         var addrCaptor = ArgumentCaptor.forClass(String.class);
@@ -134,7 +136,7 @@ class DspSubProcessorTest {
         when(controlPlaneNegotiationService.acquireAssetAccess(
                 eq(serviceId.asEncodedId()), eq(DID_A), eq(URL_A))).thenReturn(expected);
 
-        var result = processor.execute(new DspRequest(serviceId, hint));
+        var result = processor.execute(new DspRequest(serviceId, hint, false));
 
         assertThat(result).isSameAs(expected);
         verify(controlPlaneNegotiationService).acquireAssetAccess(
@@ -148,7 +150,7 @@ class DspSubProcessorTest {
                 .thenThrow(XrdRuntimeException.systemException(
                         ErrorCode.INVALID_SECURITY_SERVER, "Invalid security server \"%s\"".formatted(hint)));
 
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, hint)))
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, hint, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.INVALID_SECURITY_SERVER.code()));
@@ -162,7 +164,7 @@ class DspSubProcessorTest {
                 .thenThrow(XrdRuntimeException.systemException(
                         ErrorCode.UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"".formatted(serviceId)));
 
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null)))
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
@@ -186,7 +188,7 @@ class DspSubProcessorTest {
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
                 .thenReturn(expected);
 
-        var result = processor.execute(new DspRequest(serviceId, null));
+        var result = processor.execute(new DspRequest(serviceId, null, false));
 
         assertThat(result).isSameAs(expected);
     }
@@ -206,7 +208,7 @@ class DspSubProcessorTest {
 
         // Candidate order is shuffled, so the chained root cause is whichever was iterated
         // last — either A or B.
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null)))
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
@@ -224,7 +226,7 @@ class DspSubProcessorTest {
         when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenReturn(expected);
 
-        var result = processor.execute(new DspRequest(serviceId, null));
+        var result = processor.execute(new DspRequest(serviceId, null, false));
 
         assertThat(result).isSameAs(expected);
         verify(controlPlaneNegotiationService, times(1)).acquireAssetAccess(any(), any(), any());
@@ -235,12 +237,44 @@ class DspSubProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
 
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null)))
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
                 .hasMessageContaining("candidate security servers failed");
 
         verify(controlPlaneNegotiationService, never()).acquireAssetAccess(any(), any(), any());
+    }
+
+    @Test
+    void managementRequestTargetsMgmtCtxDidAndUrl() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(serviceId, null, true));
+
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(controlPlaneNegotiationService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
+    }
+
+    @Test
+    void nonManagementRequestTargetsHostCtxDidAndUrl() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(serviceId, null, false));
+
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(controlPlaneNegotiationService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
     }
 }

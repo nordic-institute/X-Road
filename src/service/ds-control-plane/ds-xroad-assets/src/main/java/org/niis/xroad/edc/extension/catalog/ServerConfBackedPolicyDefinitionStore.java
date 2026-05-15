@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 
@@ -53,16 +54,33 @@ import java.util.stream.Stream;
 class ServerConfBackedPolicyDefinitionStore implements PolicyDefinitionStore {
 
     private final ServerConfProvider serverConfProvider;
+    private final GlobalConfProvider globalConfProvider;
     private final PolicyMapper policyMapper;
     private final String participantContextId;
+    private final String managementParticipantContextId;
     private final PolicyQueryEvaluator queryEvaluator = new PolicyQueryEvaluator();
 
     ServerConfBackedPolicyDefinitionStore(ServerConfProvider serverConfProvider,
+                                          GlobalConfProvider globalConfProvider,
                                           PolicyMapper policyMapper,
-                                          String participantContextId) {
+                                          String participantContextId,
+                                          String managementParticipantContextId) {
         this.serverConfProvider = serverConfProvider;
+        this.globalConfProvider = globalConfProvider;
         this.policyMapper = policyMapper;
         this.participantContextId = participantContextId;
+        this.managementParticipantContextId = managementParticipantContextId;
+    }
+
+    /**
+     * Chooses the participant context ID for a given serviceId.
+     * MANAGEMENT subsystem must own a distinct DSP identity; see PRD dsp-mgmt-dual-context.
+     */
+    private String resolveContextId(ServiceId serviceId) {
+        var mgmtService = globalConfProvider.getManagementRequestService();
+        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
+                ? managementParticipantContextId
+                : participantContextId;
     }
 
     /**
@@ -179,7 +197,7 @@ class ServerConfBackedPolicyDefinitionStore implements PolicyDefinitionStore {
                 .toList();
 
         return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(),
-                endpoints, participantContextId);
+                endpoints, resolveContextId(serviceId));
     }
 
     /**
@@ -205,7 +223,7 @@ class ServerConfBackedPolicyDefinitionStore implements PolicyDefinitionStore {
                     .toList();
 
             policies.add(policyMapper.toPolicyDefinition(compoundPolicyId,
-                    subjectAccessRights.getFirst().getSubjectId(), endpoints, participantContextId));
+                    subjectAccessRights.getFirst().getSubjectId(), endpoints, resolveContextId(serviceId)));
         }
     }
 

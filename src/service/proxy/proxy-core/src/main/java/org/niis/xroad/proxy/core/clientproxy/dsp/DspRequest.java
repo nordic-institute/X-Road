@@ -38,6 +38,8 @@ import jakarta.annotation.Nullable;
  * @param serviceId            the target service's identifier (non-null after SOAP/REST decoding)
  * @param targetSecurityServer optional caller-sent security-server hint; when non-null the
  *                             resolver restricts provider candidates to this exact SS
+ * @param management           {@code true} when the request targets the MANAGEMENT subsystem;
+ *                             causes the processor to select the mgmt participant context target
  */
-public record DspRequest(ServiceId serviceId, @Nullable SecurityServerId targetSecurityServer) {
+public record DspRequest(ServiceId serviceId, @Nullable SecurityServerId targetSecurityServer, boolean management) {
 }

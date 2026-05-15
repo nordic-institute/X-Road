@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.annotation.Nullable;
@@ -35,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -51,16 +53,33 @@ import java.util.stream.Stream;
 class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore {
 
     private final ServerConfProvider serverConfProvider;
+    private final GlobalConfProvider globalConfProvider;
     private final ContractDefinitionMapper contractDefinitionMapper;
     private final String participantContextId;
+    private final String managementParticipantContextId;
     private final ContractQueryEvaluator queryEvaluator = new ContractQueryEvaluator();
 
     ServerConfBackedContractDefinitionStore(ServerConfProvider serverConfProvider,
+                                            GlobalConfProvider globalConfProvider,
                                             ContractDefinitionMapper contractDefinitionMapper,
-                                            String participantContextId) {
+                                            String participantContextId,
+                                            String managementParticipantContextId) {
         this.serverConfProvider = serverConfProvider;
+        this.globalConfProvider = globalConfProvider;
         this.contractDefinitionMapper = contractDefinitionMapper;
         this.participantContextId = participantContextId;
+        this.managementParticipantContextId = managementParticipantContextId;
+    }
+
+    /**
+     * Chooses the participant context ID for a given serviceId.
+     * MANAGEMENT subsystem must own a distinct DSP identity; see PRD dsp-mgmt-dual-context.
+     */
+    private String resolveContextId(ServiceId serviceId) {
+        var mgmtService = globalConfProvider.getManagementRequestService();
+        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
+                ? managementParticipantContextId
+                : participantContextId;
     }
 
     /**
@@ -176,13 +195,13 @@ class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore
             return null;
         }
         return contractDefinitionMapper.toContractDefinition(serviceId,
-                matchedEntries.getFirst().getSubjectId(), participantContextId);
+                matchedEntries.getFirst().getSubjectId(), resolveContextId(serviceId));
     }
 
     /**
      * Collects all ContractDefinitions for a given service by grouping access rights by subject.
      */
-    private void collectContractDefinitionsForService(ee.ria.xroad.common.identifier.ServiceId serviceId,
+    private void collectContractDefinitionsForService(ServiceId serviceId,
                                                       List<ContractDefinition> definitions) {
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
@@ -194,7 +213,7 @@ class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();
             definitions.add(contractDefinitionMapper.toContractDefinition(serviceId,
-                    subjectAccessRights.getFirst().getSubjectId(), participantContextId));
+                    subjectAccessRights.getFirst().getSubjectId(), resolveContextId(serviceId)));
         }
     }
 

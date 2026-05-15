@@ -72,6 +72,19 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
      */
     static final String SETTING_PARTICIPANT_CONTEXT_ID = "xroad.dsp.participant-context-id";
 
+    /**
+     * EDC config key for the participant context ID used when tagging MANAGEMENT-subsystem entities.
+     *
+     * <p>MANAGEMENT subsystem must own a distinct DSP identity so that self-negotiation (SS hosting
+     * MANAGEMENT locally) produces two distinct {@code participantContextId} values — one per side of
+     * the contract negotiation — avoiding the {@code edc_contract_negotiation} unique-constraint
+     * collision documented in PRD dsp-mgmt-dual-context.
+     *
+     * <p>Defaults to {@code ${xroad.dsp.participant-context-id}-mgmt}, resolved by Smallrye Config
+     * expression chaining.
+     */
+    static final String SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID = "xroad.dsp.management-participant-context-id";
+
     @Inject
     private ServerConfProvider serverConfProvider;
 
@@ -79,6 +92,7 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     private GlobalConfProvider globalConfProvider;
 
     private String participantContextId;
+    private String managementParticipantContextId;
 
     @Override
     public String name() {
@@ -89,7 +103,10 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var defaultContextId = context.getSetting("edc.hostname", "localhost");
         participantContextId = context.getSetting(SETTING_PARTICIPANT_CONTEXT_ID, defaultContextId);
+        managementParticipantContextId = context.getSetting(
+                SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + "-mgmt");
         log.info("Participant context ID for catalog assets: {}", participantContextId);
+        log.info("Management participant context ID for catalog assets: {}", managementParticipantContextId);
     }
 
     /**
@@ -109,7 +126,8 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public AssetIndex assetIndex() {
         log.trace("Providing AssetIndex backed by ServerConf");
-        return new ServerConfBackedAssetIndex(serverConfProvider, participantContextId);
+        return new ServerConfBackedAssetIndex(
+                serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId);
     }
 
     /**
@@ -128,7 +146,9 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public PolicyDefinitionStore policyDefinitionStore() {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
-        return new ServerConfBackedPolicyDefinitionStore(serverConfProvider, new PolicyMapper(), participantContextId);
+        return new ServerConfBackedPolicyDefinitionStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(),
+                participantContextId, managementParticipantContextId);
     }
 
     /**
@@ -138,9 +158,9 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
     public ContractDefinitionStore contractDefinitionStore() {
         log.trace("Providing ContractDefinitionStore backed by ServerConf");
         return new ServerConfBackedContractDefinitionStore(
-                serverConfProvider,
+                serverConfProvider, globalConfProvider,
                 new ContractDefinitionMapper(),
-                participantContextId
+                participantContextId, managementParticipantContextId
         );
     }
 }

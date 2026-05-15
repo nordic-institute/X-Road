@@ -50,6 +50,7 @@ xroad:
         hikari.dataSource.ApplicationName: ${quarkus.application.name}
   dsp:
     participant-context-id: ${HOSTNAME:localhost}
+    management-participant-context-id: ${xroad.dsp.participant-context-id}-mgmt
 
 edc:
   hostname: ${HOSTNAME:localhost}

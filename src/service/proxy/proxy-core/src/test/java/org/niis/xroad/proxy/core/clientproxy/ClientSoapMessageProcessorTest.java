@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequest;
 import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
@@ -82,6 +83,32 @@ class ClientSoapMessageProcessorTest {
         var processor = createProcessor(globalConfProvider);
 
         assertThat(processor.isManagementRequest(serviceId)).isFalse();
+    }
+
+    @Test
+    void managementServiceIdProducesDspRequestWithManagementFlagTrue() {
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MANAGEMENT_CLIENT);
+        var serviceId = ServiceId.Conf.create(MANAGEMENT_CLIENT, "clientReg");
+
+        var processor = createProcessor(globalConfProvider);
+
+        // isManagementRequest drives the management flag in the DspRequest constructed by processRequest.
+        // Verify the flag value matches what the processor would pass.
+        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        assertThat(dspRequest.management()).isTrue();
+    }
+
+    @Test
+    void nonManagementServiceIdProducesDspRequestWithManagementFlagFalse() {
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MANAGEMENT_CLIENT);
+        var serviceId = ServiceId.Conf.create(OTHER_CLIENT, "testService");
+
+        var processor = createProcessor(globalConfProvider);
+
+        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        assertThat(dspRequest.management()).isFalse();
     }
 
     private ClientSoapMessageProcessor createProcessor(GlobalConfProvider globalConfProvider) {

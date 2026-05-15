@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.Endpoint;
@@ -54,24 +55,31 @@ import static org.mockito.Mockito.when;
 class ServerConfBackedPolicyDefinitionStoreTest {
 
     private static final String PARTICIPANT_CTX = "xroad-provider";
+    private static final String MGMT_PARTICIPANT_CTX = "xroad-provider-mgmt";
 
     @Mock
     private ServerConfProvider serverConfProvider;
+
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private ServerConfBackedPolicyDefinitionStore store;
 
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1234", "SubSys");
     private static final ClientId.Conf MEMBER_2 = ClientId.Conf.create("DEV", "GOV", "5678", "SubSys");
+    private static final ClientId.Conf MGMT_CLIENT = ClientId.Conf.create("DEV", "COM", "3333", "MANAGEMENT");
 
     private static final ServiceId.Conf SERVICE_1 = ServiceId.Conf.create("DEV", "GOV", "1234", "SubSys", "svc1", "v1");
     private static final ServiceId.Conf SERVICE_2 = ServiceId.Conf.create("DEV", "GOV", "5678", "SubSys", "svc2");
+    private static final ServiceId.Conf MGMT_SERVICE = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg");
 
     private static final ClientId.Conf SUBJECT_CLIENT = ClientId.Conf.create("DEV", "GOV", "9999", "Consumer");
     private static final GlobalGroupId SUBJECT_GROUP = GlobalGroupId.Conf.create("DEV", "sec-owners");
 
     @BeforeEach
     void setUp() {
-        store = new ServerConfBackedPolicyDefinitionStore(serverConfProvider, new PolicyMapper(), PARTICIPANT_CTX);
+        store = new ServerConfBackedPolicyDefinitionStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX);
     }
 
     @Test
@@ -220,6 +228,66 @@ class ServerConfBackedPolicyDefinitionStoreTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureDetail()).contains("Read-only");
+    }
+
+    @Test
+    void findAllMgmtServiceTaggedWithMgmtCtx() {
+        var ep = new Endpoint("clientReg", "*", "**", true);
+        var arMgmt = createAccessRight(SUBJECT_CLIENT, ep);
+        var epSvc1 = new Endpoint("svc1", "GET", "/api/data", false);
+        var arSvc1 = createAccessRight(SUBJECT_CLIENT, epSvc1);
+
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MGMT_CLIENT));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(arSvc1));
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+
+        var result = store.findAll(QuerySpec.none()).toList();
+
+        assertThat(result).hasSize(2);
+        var mgmtPolicy = result.stream()
+                .filter(p -> p.getId().startsWith(MGMT_SERVICE.asEncodedId()))
+                .findFirst().orElseThrow();
+        var hostPolicy = result.stream()
+                .filter(p -> p.getId().startsWith(SERVICE_1.asEncodedId()))
+                .findFirst().orElseThrow();
+        assertThat(mgmtPolicy.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+        assertThat(hostPolicy.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findAllWithMgmtCtxFilterReturnsMgmtPoliciesOnly() {
+        var ep = new Endpoint("clientReg", "*", "**", true);
+        var arMgmt = createAccessRight(SUBJECT_CLIENT, ep);
+        var epSvc1 = new Endpoint("svc1", "GET", "/api/data", false);
+        var arSvc1 = createAccessRight(SUBJECT_CLIENT, epSvc1);
+
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MGMT_CLIENT));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(arSvc1));
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+
+        var mgmtSpec = QuerySpec.Builder.newInstance()
+                .filter(new Criterion("participantContextId", "=", MGMT_PARTICIPANT_CTX))
+                .build();
+        var mgmtResult = store.findAll(mgmtSpec).toList();
+        assertThat(mgmtResult).hasSize(1);
+        assertThat(mgmtResult.getFirst().getId()).startsWith(MGMT_SERVICE.asEncodedId());
+
+        var hostSpec = QuerySpec.Builder.newInstance()
+                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
+                .build();
+        var hostResult = store.findAll(hostSpec).toList();
+        assertThat(hostResult).hasSize(1);
+        assertThat(hostResult.getFirst().getId()).startsWith(SERVICE_1.asEncodedId());
     }
 
     private static AccessRight createAccessRight(ee.ria.xroad.common.identifier.XRoadId subjectId, Endpoint endpoint) {

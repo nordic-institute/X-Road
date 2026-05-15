@@ -53,7 +53,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
  *   <li>{@code assetId = serviceId.asEncodedId()} — symmetric with provider
  *       {@code AssetMapper.encodeAssetId} (Phase 9 D-05).</li>
  *   <li>{@code counterPartyId} + {@code counterPartyAddress} — looked up by candidate
- *       host-address in {@link CounterPartyTarget#defaultMap()}. Lookup miss is a hard
+ *       host-address in {@link CounterPartyTarget#defaultMap()} for normal requests or
+ *       {@link CounterPartyTarget#managementMap()} for MANAGEMENT requests. Lookup miss is a hard
  *       error (fail fast; no silent fallback). See
  *       {@code .scratch/dsp-counterparty-cleanup/PRD.md} D2/D3 and
  *       {@code findings.md} for why this replaced the prior
@@ -73,6 +74,8 @@ public class DspSubProcessor implements DspRequestProcessor {
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
 
     private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
+    // Mgmt-ctx variant: same host keys, but URL and DID reference the mgmt participant context.
+    private final Map<String, CounterPartyTarget> mgmtCounterPartyTargets = CounterPartyTarget.managementMap();
 
     @Override
     public AssetAccessResponse execute(DspRequest request) {
@@ -80,16 +83,17 @@ public class DspSubProcessor implements DspRequestProcessor {
 
         var serviceId = request.serviceId();
         var assetId = serviceId.asEncodedId();
+        var targets = request.management() ? mgmtCounterPartyTargets : counterPartyTargets;
 
         var candidates = new ArrayList<>(
                 providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer()));
         Collections.shuffle(candidates);
-        log.debug("processing DSP request for service {}, asset {}. Got {} possible targets",
-                serviceId, assetId, candidates.size());
+        log.debug("processing DSP request for service {}, asset {}, management={}. Got {} possible targets",
+                serviceId, assetId, request.management(), candidates.size());
 
         RuntimeException last = null;
         for (var candidate : candidates) {
-            var target = counterPartyTargets.get(candidate.hostAddress());
+            var target = targets.get(candidate.hostAddress());
             if (target == null) {
                 last = XrdRuntimeException.systemException(NETWORK_ERROR,
                         "No DSP counter-party target configured for provider host-address \"%s\"",
