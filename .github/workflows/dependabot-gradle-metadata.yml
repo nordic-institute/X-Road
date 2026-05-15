@@ -44,15 +44,23 @@ jobs:
             --parallel \
             -q
 
-      # Always amend + force-push (even when metadata unchanged) so the PR
-      # head moves, pull_request.synchronize fires, and the Build workflow
-      # runs exactly once on a known-good commit. The Build workflow is
-      # configured to skip the initial `opened` event on dependabot/gradle/*
-      # branches — it relies on this sync to run.
+      - name: Detect metadata changes
+        id: metadata_changes
+        run: |
+          if git diff --quiet -- src/gradle/verification-metadata.xml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Only amend + force-push when verification metadata actually changed.
+      # Avoid rewriting the PR head SHA unnecessarily, because that detaches
+      # running Build checks from the latest commit.
       - name: Amend Dependabot commit and force-push
+        if: steps.metadata_changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/gradle/verification-metadata.xml
-          git commit --amend --no-edit --allow-empty
+          git commit --amend --no-edit
           git push --force-with-lease
