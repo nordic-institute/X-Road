@@ -201,11 +201,20 @@ HTTP 200
 GET https://{{ss0_host}}:4000
 HTTP 200
 
+# Bootstrap the initial admin user (no-op once one exists)
+POST https://{{ss0_host}}:4000/api/v1/initialization/admin-user
+Content-Type: application/json
+{
+  "username": "xrd",
+  "password": "secret123!"
+}
+HTTP *
+
 # Log in to the Security Server
 POST https://{{ss0_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -557,11 +566,20 @@ HTTP 201
 GET https://{{ss1_host}}:4000
 HTTP 200
 
+# Bootstrap the initial admin user (no-op once one exists)
+POST https://{{ss1_host}}:4000/api/v1/initialization/admin-user
+Content-Type: application/json
+{
+  "username": "xrd",
+  "password": "secret123!"
+}
+HTTP *
+
 # Log in to the Security Server
 POST https://{{ss1_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
