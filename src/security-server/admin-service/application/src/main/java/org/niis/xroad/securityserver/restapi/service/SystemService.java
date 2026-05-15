@@ -276,7 +276,6 @@ public class SystemService {
     /**
      * Is global conf initialized -> it is if whe can find a Configuration anchor
      */
-    @PreAuthorize("permitAll()")
     public boolean isAnchorImported() {
         try {
             return getAnchorFile() != null;

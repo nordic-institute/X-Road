@@ -28,19 +28,33 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig.AuthenticationProviderType;
 import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.service.AdminUserService;
+import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
+import static java.util.function.Predicate.not;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_FETCH_FAILED;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INITIAL_ADMIN_USER_NOT_ALLOWED;
 
 /**
@@ -65,9 +79,9 @@ public class InitialAdminUserService {
 
     private final UserAuthenticationConfig userAuthenticationConfig;
     private final AdminUserService adminUserService;
-    private final SystemService systemService;
-    private final ServerConfService serverConfService;
-    private final TokenService tokenService;
+    private final ServerConfRepository serverConfRepository;
+    private final ConfClientRpcClient confClientRpcClient;
+    private final SignerRpcClient signerRpcClient;
 
     /**
      * @return true when the unauthenticated initial admin user creation flow should be offered
@@ -86,7 +100,13 @@ public class InitialAdminUserService {
         if (!isInitialAdminUserRequired()) {
             throw new InitialAdminUserNotAllowedException();
         }
-        adminUserService.create(new AdminUser(null, username, password, BOOTSTRAP_ADMIN_ROLES));
+        try {
+            adminUserService.create(new AdminUser(null, username, password, BOOTSTRAP_ADMIN_ROLES));
+        } catch (DataIntegrityViolationException e) {
+            // Concurrent bootstrap from another replica won the race; surface the same 409 the
+            // in-JVM serialised check produces so both callers see consistent semantics.
+            throw new InitialAdminUserNotAllowedException();
+        }
     }
 
     private boolean isDatabaseAuthentication() {
@@ -98,10 +118,63 @@ public class InitialAdminUserService {
     }
 
     private boolean isServerFullyInitialized() {
-        return systemService.isAnchorImported()
-                && serverConfService.isServerCodeInitialized()
-                && serverConfService.isServerOwnerInitialized()
-                && tokenService.isSoftwareTokenInitialized();
+        return isAnchorImported()
+                && isServerCodeAndOwnerInitialized()
+                && isSoftwareTokenInitialized();
+    }
+
+    private boolean isSoftwareTokenInitialized() {
+        List<TokenInfo> tokens = getAllTokens();
+        return tokens.stream()
+                .filter(tokenInfo -> tokenInfo.getId().equals(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID))
+                .findFirst()
+                .map(TokenInfo::getStatus)
+                .filter(not(TokenStatusInfo.NOT_INITIALIZED::equals))
+                .isPresent();
+    }
+
+    private List<TokenInfo> getAllTokens() {
+        try {
+            return signerRpcClient.getTokens();
+        } catch (Exception e) {
+            throw new InternalServerErrorException(e, TOKEN_FETCH_FAILED.build());
+        }
+    }
+
+    private boolean isAnchorImported() {
+        try {
+            byte[] anchorBytes = confClientRpcClient.getConfigurationAnchor();
+            return anchorBytes != null && anchorBytes.length > 0;
+        } catch (Exception e) {
+            log.debug("Configuration anchor not yet available", e);
+            return false;
+        }
+    }
+
+    private boolean isServerCodeAndOwnerInitialized() {
+        ServerConfEntity serverConfEntity = getServerConfGracefully();
+        if (serverConfEntity != null) {
+            return !ObjectUtils.isEmpty(serverConfEntity.getServerCode()) && serverConfEntity.getOwner() != null;
+        }
+        return false;
+    }
+
+
+    private ServerConfEntity getServerConfGracefully() {
+        try {
+            return getServerConfEntity();
+        } catch (XrdRuntimeException ce) {
+            log.info("ServerConfService#isServerConfInitialized: XrdRuntimeException thrown when getting Server Conf", ce);
+            if (ce.getErrorCode().equals(MALFORMED_SERVERCONF.code())) {
+                return null;
+            } else {
+                throw ce;
+            }
+        }
+    }
+
+    private ServerConfEntity getServerConfEntity() {
+        return serverConfRepository.getServerConf();
     }
 
     /**

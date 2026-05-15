@@ -122,7 +122,6 @@ public class ServerConfService {
      * Is server code initialized
      * @return boolean
      */
-    @PreAuthorize("permitAll()")
     public boolean isServerCodeInitialized() {
         ServerConfEntity serverConfEntity = getServerConfGracefully();
         if (serverConfEntity != null) {
@@ -135,7 +134,6 @@ public class ServerConfService {
      * Is server owner initialized
      * @return boolean
      */
-    @PreAuthorize("permitAll()")
     public boolean isServerOwnerInitialized() {
         ServerConfEntity serverConfEntity = getServerConfGracefully();
         if (serverConfEntity != null) {

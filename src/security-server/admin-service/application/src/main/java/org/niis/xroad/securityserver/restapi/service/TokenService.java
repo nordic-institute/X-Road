@@ -279,7 +279,6 @@ public class TokenService {
      *
      * @return true/false
      */
-    @PreAuthorize("permitAll()")
     public boolean isSoftwareTokenInitialized() {
         boolean isSoftwareTokenInitialized = false;
         List<TokenInfo> tokens = getAllTokens();

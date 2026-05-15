@@ -32,14 +32,23 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig.AuthenticationProviderType;
 import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.service.AdminUserService;
+import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.service.InitialAdminUserService.InitialAdminUserNotAllowedException;
+import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,6 +62,8 @@ public class InitialAdminUserServiceTest {
 
     private static final String USERNAME = "admin";
     private static final char[] PASSWORD = "TopSecret123!".toCharArray();
+    private static final byte[] ANCHOR_BYTES = new byte[]{1, 2, 3};
+    private static final String SOFTWARE_TOKEN_ID = PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
     private static final Set<Role> EXPECTED_ROLES = EnumSet.of(
             Role.XROAD_SECURITY_OFFICER,
@@ -66,17 +77,18 @@ public class InitialAdminUserServiceTest {
     @Mock
     private AdminUserService adminUserService;
     @Mock
-    private ServerConfService serverConfService;
+    private ServerConfRepository serverConfRepository;
     @Mock
-    private SystemService systemService;
+    private ConfClientRpcClient confClientRpcClient;
     @Mock
-    private TokenService tokenService;
+    private SignerRpcClient signerRpcClient;
 
     private InitialAdminUserService service;
 
     @Before
     public void setUp() {
-        service = new InitialAdminUserService(userAuthenticationConfig, adminUserService, systemService, serverConfService, tokenService);
+        service = new InitialAdminUserService(userAuthenticationConfig, adminUserService,
+                serverConfRepository, confClientRpcClient, signerRpcClient);
     }
 
     @Test
@@ -102,7 +114,7 @@ public class InitialAdminUserServiceTest {
     }
 
     @Test
-    public void notRequiredWhenServerFullyInitialized() {
+    public void notRequiredWhenServerFullyInitialized() throws Exception {
         when(userAuthenticationConfig.getAuthenticationProvider()).thenReturn(AuthenticationProviderType.DATABASE);
         when(adminUserService.count()).thenReturn(0L);
         stubServerFullyInitialized();
@@ -144,7 +156,7 @@ public class InitialAdminUserServiceTest {
     }
 
     @Test
-    public void createRejectedWhenServerFullyInitialized() {
+    public void createRejectedWhenServerFullyInitialized() throws Exception {
         when(userAuthenticationConfig.getAuthenticationProvider()).thenReturn(AuthenticationProviderType.DATABASE);
         when(adminUserService.count()).thenReturn(0L);
         stubServerFullyInitialized();
@@ -159,10 +171,18 @@ public class InitialAdminUserServiceTest {
         when(adminUserService.count()).thenReturn(0L);
     }
 
-    private void stubServerFullyInitialized() {
-        when(systemService.isAnchorImported()).thenReturn(true);
-        when(serverConfService.isServerCodeInitialized()).thenReturn(true);
-        when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
-        when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
+    private void stubServerFullyInitialized() throws Exception {
+        when(confClientRpcClient.getConfigurationAnchor()).thenReturn(ANCHOR_BYTES);
+
+        ServerConfEntity serverConf = new ServerConfEntity();
+        serverConf.setServerCode("SS1");
+        serverConf.setOwner(new ClientEntity());
+        when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+
+        TokenInfo softwareToken = new TokenTestUtils.TokenInfoBuilder()
+                .id(SOFTWARE_TOKEN_ID)
+                .status(TokenStatusInfo.OK)
+                .build();
+        when(signerRpcClient.getTokens()).thenReturn(List.of(softwareToken));
     }
 }
