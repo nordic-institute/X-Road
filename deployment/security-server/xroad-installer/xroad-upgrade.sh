@@ -149,30 +149,30 @@ main() {
     "Version gate passed" \
     "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
 
-  # Step 2: Snapshot /etc/xroad to a timestamped tar.gz inside /etc/xroad — must run before the first on-disk mutation (Step 3).
+  # Step 2: Download migration-CLI JAR — must exist before stopping services.
+  run_step "download_migration_cli.sh" \
+    "Migration-CLI downloaded" \
+    "Migration CLI download failed. No services stopped yet. Check XROAD_MIGRATION_CLI_URL and network connectivity."
+
+  # Step 3: Snapshot /etc/xroad to a timestamped tar.gz inside /etc/xroad — must run before the first on-disk mutation (Step 4).
   run_step "backup_etc_xroad.sh" \
     "/etc/xroad backup created" \
     "Backup of /etc/xroad failed. No further changes have been made. Free up disk space or fix permissions on /etc/xroad and re-run the wizard."
 
-  # Step 3: Migrate db.properties to V8 format — add xroad.db.* prefix, backup original.
+  # Step 4: Migrate db.properties to V8 format — add xroad.db.* prefix, backup original.
   run_step "migrate_db_properties.sh" \
     "db.properties migrated to V8 format" \
     "db.properties migration failed. Original file is preserved at /etc/xroad/db.properties.bak (if a backup was written). Restore it and re-run the wizard."
 
-  # Step 4: PostgreSQL pre-flight — parse db.properties and verify PG >= 15.
+  # Step 5: PostgreSQL pre-flight — parse db.properties and verify PG >= 15.
   run_step "check_pg_preflight.sh" \
     "PostgreSQL pre-flight passed" \
     "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
 
-  # Step 5: OpenBao repository setup — required before stopping services.
+  # Step 6: OpenBao repository setup — required before stopping services.
   run_step "setup_openbao_repo.sh" \
     "OpenBao repository configured" \
     "OpenBao repository setup failed. No destructive steps executed. Check network and OPENBAO_MIRROR settings."
-
-  # Step 6: Download migration-CLI JAR — must exist before stopping services.
-  run_step "download_migration_cli.sh" \
-    "Migration-CLI downloaded" \
-    "Migration CLI download failed. No services stopped yet. Check XROAD_MIGRATION_CLI_URL and network connectivity."
 
   # Step 7: Stop X-Road services — dynamic discovery, polling wait.
   run_step "stop_xroad_services.sh" \
