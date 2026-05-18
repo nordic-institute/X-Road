@@ -41,7 +41,8 @@
     <include file="centerui/202510141700-tsa-ocsp-cost-type.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202511031700-ca-csr-format.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202511271200-ca-csr-nullable.xml" relativeToChangelogFile="true"/>
-    <include file="centerui/202603301200-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/>
+    <!-- TODO: Uncomment after the fix script is added in XRDDEV-3154 -->
+    <!-- <include file="centerui/202603301200-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/> -->
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
