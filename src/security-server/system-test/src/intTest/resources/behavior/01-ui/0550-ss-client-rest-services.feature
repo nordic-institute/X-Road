@@ -6,7 +6,7 @@ Feature: 0550 - SS: Client REST with base path services
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
     And Clients tab is selected
 
   Scenario: Client service with Base Path is configured

@@ -7,7 +7,7 @@ Feature: 0100 - SS: Initialization
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
 
   Scenario: Security server is initialized
     Given Proxy healthcheck check "PROXY_GLOBALCONF_READINESS_CHECK" is "UP" with status "UNINITIALIZED"

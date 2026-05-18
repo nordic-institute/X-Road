@@ -4,6 +4,10 @@ global:
   tlsDisable: false
 {% endif %}
 server:
+  # Parallel so openbao-1 is created alongside openbao-0; OrderedReady deadlocks
+  # because pods only become Ready after the init Job unseals them, and the
+  # init Job needs every BAO_NODES DNS record to resolve before it runs.
+  podManagementPolicy: "Parallel"
   ha:
     enabled: true
     replicas: {{ openbao_ha_replicas }}

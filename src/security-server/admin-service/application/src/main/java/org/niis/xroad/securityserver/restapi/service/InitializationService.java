@@ -285,7 +285,7 @@ public class InitializationService {
      * @throws SoftwareTokenInitException if token init fails
      */
     private void initializeSoftwareToken(String softwareTokenPin) throws InvalidCharactersException, WeakPinException,
-            SoftwareTokenInitException {
+                                                                         SoftwareTokenInitException {
         char[] pin = softwareTokenPin.toCharArray();
         tokenPinValidator.validateSoftwareTokenPin(pin);
         try {

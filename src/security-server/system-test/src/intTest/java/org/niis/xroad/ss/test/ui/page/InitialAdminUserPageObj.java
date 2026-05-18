@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dao;
+package org.niis.xroad.ss.test.ui.page;
 
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.niis.xroad.restapi.entity.AdminUserEntity;
+import com.codeborne.selenide.SelenideElement;
 
-import java.util.List;
-import java.util.Optional;
+import static com.codeborne.selenide.Selenide.$x;
 
-public class AdminUserDAOImpl {
+public class InitialAdminUserPageObj {
 
-    public Optional<AdminUserEntity> findByUsername(Session session, String username) {
-        Query<AdminUserEntity> query = session.createQuery(
-                "FROM " + AdminUserEntity.class.getName() + " WHERE username = :username", AdminUserEntity.class);
-        query.setParameter("username", username);
-        return query.uniqueResultOptional();
+    public SelenideElement view() {
+        return $x("//span[@data-test='view-header-title' and contains(text(), 'Create Administrator Account')]");
     }
 
-    public List<AdminUserEntity> findAll(Session session) {
-        Query<AdminUserEntity> query = session.createQuery("from " + AdminUserEntity.class.getName(), AdminUserEntity.class);
-        return query.list();
+    public SelenideElement inputUsername() {
+        return $x("//div[@data-test='admin-username-input']");
     }
 
-    public long count(Session session) {
-        return session.createQuery("select count(u) from " + AdminUserEntity.class.getName() + " u", Long.class)
-                .getSingleResult();
+    public SelenideElement inputPassword() {
+        return $x("//div[@data-test='admin-password-input']");
     }
 
+    public SelenideElement inputConfirmPassword() {
+        return $x("//div[@data-test='admin-confirm-password-input']");
+    }
+
+    public SelenideElement btnSubmit() {
+        return $x("//button[@data-test='admin-user-save-button']");
+    }
 }

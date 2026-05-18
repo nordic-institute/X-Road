@@ -6,7 +6,7 @@ Feature: 0350 - SS: API Keys
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
     And Keys and certificates tab is selected
     And API Keys sub-tab is selected
 
