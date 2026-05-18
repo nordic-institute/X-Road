@@ -4,7 +4,7 @@ Feature: 0900 - CS: Management Requests
 
   Background:
     Given CentralServer login page is open
-    Then User xrd logs in to CentralServer with password secret
+    Then User xrd logs in to CentralServer with password secret123!
     # API key creation
     When CentralServer Settings tab is selected
     And API Keys sub-tab is selected
