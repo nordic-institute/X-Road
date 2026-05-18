@@ -11,6 +11,7 @@ XROAD_SERVICES=(
   "xroad-proxy"
   "xroad-opmonitor"
   "xroad-monitor"
+  "xroad-proxy-ui-api"
 )
 
 wait_for_service_active() {
@@ -51,6 +52,8 @@ main() {
   log_message ""
 
   require_root
+
+  unmask_xroad_units
 
   start_xroad_services
 

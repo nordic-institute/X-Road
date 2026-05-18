@@ -236,7 +236,7 @@ prepare_certificates_settings() {
     db_go
 
     db_get xroad-common/admin-subject
-    subj="$RET"
+    subj="${RET#/CN=}"
     db_get xroad-common/admin-altsubject
     altn="$RET"
 
@@ -272,7 +272,7 @@ prepare_certificates_settings() {
     db_go
 
     db_get xroad-common/service-subject
-    subj="$RET"
+    subj="${RET#/CN=}"
     db_get xroad-common/service-altsubject
     altn="$RET"
 

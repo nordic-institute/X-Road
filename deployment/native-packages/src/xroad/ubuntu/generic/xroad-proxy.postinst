@@ -16,7 +16,7 @@ prepare_tls_settings() {
     log "Preparing proxy internal TLS settings"
 
     db_get xroad-common/service-subject
-    cn="$RET"
+    cn="${RET#/CN=}"
     db_get xroad-common/service-altsubject
     altn="$RET"
 

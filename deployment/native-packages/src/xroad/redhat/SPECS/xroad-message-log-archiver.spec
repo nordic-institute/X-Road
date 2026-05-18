@@ -12,6 +12,7 @@ Summary:            X-Road message log archiver
 Group:              Applications/Internet
 License:            MIT
 Requires:           xroad-base = %version-%release
+Obsoletes:          xroad-addon-messagelog < 8.0.0
 
 %define src %{_topdir}/..
 
@@ -31,12 +32,17 @@ cp -a * %{buildroot}
 mkdir -p %{buildroot}/usr/share/xroad/jlib
 mkdir -p %{buildroot}/usr/share/xroad/jlib/message-log-archiver
 mkdir -p %{buildroot}/usr/share/xroad/bin
+mkdir -p %{buildroot}/usr/share/xroad/scripts
 mkdir -p %{buildroot}/usr/share/doc/%{name}
+mkdir -p %{buildroot}/usr/share/doc/xroad/archive-server
 
 cp -p -r %{srcdir}/../../../../src/service/message-log-archiver/message-log-archiver-cli/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/message-log-archiver
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
+
+cp -p %{srcdir}/../../../../src/service/message-log-archiver/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
+cp -p %{srcdir}/../../../../src/service/message-log-archiver/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad/archive-server/
 
 ln -s /usr/share/xroad/jlib/message-log-archiver/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/message-log-archiver.jar
 
@@ -55,6 +61,8 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
+/usr/share/xroad/scripts/archive-http-transporter.sh
+/usr/share/doc/xroad/archive-server/demo-upload.pl
 
 %pre -p /bin/bash
 %upgrade_check

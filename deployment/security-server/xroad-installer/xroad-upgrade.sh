@@ -21,11 +21,14 @@ XROAD_MIGRATION_CLI_URL="${XROAD_MIGRATION_CLI_URL:-}"
 XROAD_REPO_BASE_URL="${XROAD_REPO_BASE_URL:-}"
 XROAD_REPO_MAIN="${XROAD_REPO_MAIN:-}"
 XROAD_REPO_GPG_KEY_URL="${XROAD_REPO_GPG_KEY_URL:-}"
+XROAD_REPO_URL_OVERRIDE="${XROAD_REPO_URL_OVERRIDE:-}"
 
 OPENBAO_MIRROR="${OPENBAO_MIRROR:-}"
 OPENBAO_MIRROR_USER="${OPENBAO_MIRROR_USER:-}"
 
 XROAD_SS_PACKAGE="${XROAD_SS_PACKAGE:-}"
+
+XROAD_DELETE_OBSOLETE_FILES="${XROAD_DELETE_OBSOLETE_FILES:-}"
 
 parse_args() {
   while [[ $# -gt 0 ]]; do
@@ -135,54 +138,76 @@ main() {
   export XROAD_REPO_BASE_URL
   export XROAD_REPO_MAIN
   export XROAD_REPO_GPG_KEY_URL
+  export XROAD_REPO_URL_OVERRIDE
   export OPENBAO_MIRROR
   export OPENBAO_MIRROR_USER
   export XROAD_SS_PACKAGE
+  export XROAD_DELETE_OBSOLETE_FILES
 
   # Step 1: Version gate — fail fast if not 7.8.x.
   run_step "check_version_gate.sh" \
     "Version gate passed" \
     "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
 
-  # Step 2: PostgreSQL pre-flight — parse db.properties and verify PG >= 15.
-  run_step "check_pg_preflight.sh" \
-    "PostgreSQL pre-flight passed" \
-    "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
-
-  # Step 3: OpenBao repository setup — required before stopping services.
-  run_step "setup_openbao_repo.sh" \
-    "OpenBao repository configured" \
-    "OpenBao repository setup failed. No destructive steps executed. Check network and OPENBAO_MIRROR settings."
-
-  # Step 4: Download migration-CLI JAR — must exist before stopping services.
+  # Step 2: Download migration-CLI JAR — must exist before stopping services.
   run_step "download_migration_cli.sh" \
     "Migration-CLI downloaded" \
     "Migration CLI download failed. No services stopped yet. Check XROAD_MIGRATION_CLI_URL and network connectivity."
 
-  # Step 5: Stop X-Road services — dynamic discovery, polling wait.
+  # Step 3: Snapshot /etc/xroad to a timestamped tar.gz inside /etc/xroad — must run before the first on-disk mutation (Step 4).
+  run_step "backup_etc_xroad.sh" \
+    "/etc/xroad backup created" \
+    "Backup of /etc/xroad failed. No further changes have been made. Free up disk space or fix permissions on /etc/xroad and re-run the wizard."
+
+  # Step 4: Migrate db.properties to V8 format — add xroad.db.* prefix, backup original.
+  run_step "migrate_db_properties.sh" \
+    "db.properties migrated to V8 format" \
+    "db.properties migration failed. Original file is preserved at /etc/xroad/db.properties.bak (if a backup was written). Restore it and re-run the wizard."
+
+  # Step 5: PostgreSQL pre-flight — parse db.properties and verify PG >= 15.
+  run_step "check_pg_preflight.sh" \
+    "PostgreSQL pre-flight passed" \
+    "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
+
+  # Step 6: OpenBao repository setup — required before stopping services.
+  run_step "setup_openbao_repo.sh" \
+    "OpenBao repository configured" \
+    "OpenBao repository setup failed. No destructive steps executed. Check network and OPENBAO_MIRROR settings."
+
+  # Step 7: Stop X-Road services — dynamic discovery, polling wait.
   run_step "stop_xroad_services.sh" \
     "X-Road services stopped" \
     "Service stop failed. Some services may still be running. Check: systemctl status xroad-proxy xroad-signer"
 
-  # Step 6: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
-  run_step "run_migration_cli.sh" \
-    "Migration-CLI steps completed" \
-    "Migration failed. X-Road services are stopped. V7 repo is still active. Fix the issue and re-run the wizard to resume from checkpoint."
-
-  # Step 7: Switch to V8 repository — backup V7 repo file, write V8 repo.
+  # Step 8: Switch to V8 repository — backup V7 repo file, write V8 repo.
   run_step "switch_v8_repository.sh" \
     "V8 repository activated" \
     "Repository switch failed. Services are stopped. Restore V7 repo from: /etc/apt/sources.list.d/xroad.list.v7.bak.* (DEB) or /etc/yum.repos.d/ (RPM)"
 
-  # Step 8: Upgrade packages — apt-get install / yum update -y for xroad-securityserver.
+  # Step 9: Upgrade packages — apt-get install / yum update -y for xroad-securityserver.
   run_step "upgrade_packages.sh" \
     "Security Server packages upgraded to 8.0" \
     "Package upgrade failed. V8 repo is active but packages are still at V7. Restore V7 repo backup and investigate before retrying."
 
-  # Step 9: Start X-Road services, is-active polling.
+  # Step 10: Migrate V7 on-disk TLS certificates/keys to the local secret store (KV xrd-secret/tls/*).
+  run_step "migrate_tls_to_secret_store.sh" \
+    "TLS certificates migrated to secret store" \
+    "TLS-to-secret-store migration failed. X-Road services are still stopped. Verify xroad-secret-store-local is installed and OpenBao is reachable, then re-run the wizard."
+
+  # Step 11: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
+  run_step "run_migration_cli.sh" \
+    "Migration-CLI steps completed" \
+    "Migration failed. X-Road services are stopped. V7 repo is still active. Fix the issue and re-run the wizard to resume from checkpoint."
+
+  # Step 12: Start X-Road services, is-active polling.
   run_step "start_xroad_services.sh" \
     "X-Road services started" \
     "Service start failed after successful upgrade. Run: systemctl status <service> to diagnose."
+
+  # Step 13: Remove obsolete V7 config files (operator-confirmed; unattended deletes by default — set XROAD_DELETE_OBSOLETE_FILES=no to keep).
+  run_step "cleanup_obsolete_files.sh" \
+    "Obsolete V7 config files cleanup completed" \
+    "Obsolete files cleanup step failed. Upgrade succeeded; review /etc/xroad/conf.d and /etc/xroad/signer manually."
 
   log_message "========================================"
   log_info "X-Road 8.0 upgrade completed successfully!"
@@ -190,7 +215,7 @@ main() {
   log_message ""
   log_message "Next steps:"
   log_message "  - Review the log file: $XROAD_INSTALLER_LOG_FILE"
-  log_message "  - Verify services: systemctl status xroad-proxy xroad-signer"
+  log_message "  - Verify services: systemctl list-units 'xroad-*'"
   log_message ""
 }
 
