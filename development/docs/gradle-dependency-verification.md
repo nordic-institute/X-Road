@@ -34,3 +34,18 @@ Dependabot auto-updates run `.github/workflows/dependabot-gradle-metadata.yml`, 
 ## Further Reading
 
 - https://docs.gradle.org/current/userguide/dependency_verification.html
+
+## Manual Build Trigger for Dependabot PRs
+
+If the metadata workflow has already generated correct verification-metadata.xml entries, but the Build workflow is still skipped or missing from the PR checks, a maintainer can manually trigger the Build workflow with a small commit.
+
+Sync the local branch with the latest Dependabot PR state:
+```bash
+git fetch origin
+git checkout <dependabot-branch>
+git reset --hard origin/<dependabot-branch>
+git commit --allow-empty -m "chore: trigger build"
+git push
+```
+
+The manual commit triggers the Build workflow as a normal user push instead of a Dependabot-triggered event.
