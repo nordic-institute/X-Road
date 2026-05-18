@@ -3,6 +3,9 @@ set -euo pipefail
 
 # Helper script to publish X-Road installer (plus migration-cli) to an Artifactory repository.
 # Requirements: curl, tar, md5sum, sha1sum, sha256sum, JDK + gradlew (for migration-cli build)
+#
+# All staging (helper-file copies, sed rewrites, tar creation) happens under build/ so the
+# tracked xroad-installer/ source tree stays clean — `git status` is empty after a run.
 
 : "${ARTIFACTORY_BASE_URL:=https://artifactory.niis.org}"
 : "${ARTIFACTORY_REPO:=xroad-scripts}"
@@ -33,7 +36,11 @@ fi
 FOLDER="$1"
 TARGET_BASE="${ARTIFACTORY_BASE_URL}/${ARTIFACTORY_REPO}/${FOLDER}"
 
-PACKAGE_DIR="xroad-installer"
+# Source tree (read-only) and disposable staging tree (under build/).
+SRC_PACKAGE_DIR="xroad-installer"
+BUILD_DIR="build"
+STAGE_DIR="${BUILD_DIR}/xroad-installer"
+PACKAGE_DIR="${STAGE_DIR}"
 PACKAGE_NAME="xroad-installer.tar.gz"
 GET_XROAD_SCRIPT="${PACKAGE_DIR}/get-xroad.sh"
 UPGRADE_XROAD_SCRIPT="${PACKAGE_DIR}/upgrade-xroad.sh"
@@ -63,6 +70,11 @@ BASE_URL="${TARGET_BASE}/"
 
 # ===== Build phase =====
 
+echo "Step 0: Preparing clean staging area under ${BUILD_DIR}/..."
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+cp -R "${SRC_PACKAGE_DIR}" "${STAGE_DIR}"
+
 echo "Step 1: Building migration-cli (./gradlew :tool:migration-cli:shadowJar)..."
 (cd "${REPO_ROOT}/src" && ./gradlew :tool:migration-cli:shadowJar)
 
@@ -82,7 +94,7 @@ echo "Step 2: Rewriting XROAD_MIGRATION_CLI_URL in ${DOWNLOAD_MIGRATION_CLI_SCRI
 sed -i.bak "s|XROAD_MIGRATION_CLI_URL=\"\${XROAD_MIGRATION_CLI_URL:-.*}\"|XROAD_MIGRATION_CLI_URL=\"\${XROAD_MIGRATION_CLI_URL:-${MIGRATION_CLI_URL}}\"|" "$DOWNLOAD_MIGRATION_CLI_SCRIPT"
 
 echo "Step 3: Preparing installer files and creating tarball of ${PACKAGE_DIR}..."
-# Copy required scripts from repo root to installer lib
+# Copy required scripts from repo root to staged installer lib
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/base/usr/share/xroad/scripts/_setup_memory.sh" "${PACKAGE_DIR}/lib/"
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/proxy/usr/share/xroad/scripts/proxy_memory_helper.sh" "${PACKAGE_DIR}/lib/"
 cp "${REPO_ROOT}/deployment/native-packages/src/xroad/common/helper-scripts/yaml_helper.sh" "${PACKAGE_DIR}/lib/"
@@ -91,13 +103,14 @@ cp "${REPO_ROOT}/deployment/.scripts/configure-mirror-openbao-deb.sh" "${PACKAGE
 cp "${REPO_ROOT}/deployment/.scripts/configure-mirror-openbao-rpm.sh" "${PACKAGE_DIR}/lib/"
 
 # Exclude bootstrap scripts (uploaded separately), macOS metadata, extended attributes, and sed .bak files.
-COPYFILE_DISABLE=1 tar -czf "$PACKAGE_NAME" --no-xattrs \
+# Run tar with -C build so entries inside the archive keep the xroad-installer/ prefix
+# (downstream get-xroad.sh / upgrade-xroad.sh extract that directory by name).
+COPYFILE_DISABLE=1 tar -C "${BUILD_DIR}" -czf "${BUILD_DIR}/${PACKAGE_NAME}" --no-xattrs \
     --exclude="get-xroad.sh" \
     --exclude="upgrade-xroad.sh" \
     --exclude="._*" \
-    --exclude=".gitignore" \
     --exclude="*.bak" \
-    "$PACKAGE_DIR/"
+    "xroad-installer/"
 
 echo "Step 4: Rewriting INSTALLER_URL in ${GET_XROAD_SCRIPT}..."
 sed -i.bak "s|INSTALLER_URL=\"\${INSTALLER_URL:-.*}\"|INSTALLER_URL=\"\${INSTALLER_URL:-${BASE_URL}}\"|" "$GET_XROAD_SCRIPT"
@@ -108,7 +121,7 @@ sed -i.bak "s|INSTALLER_URL=\"\${INSTALLER_URL:-.*}\"|INSTALLER_URL=\"\${INSTALL
 # ===== Publish phase =====
 
 echo "Step 6: Uploading ${PACKAGE_NAME} to ${TARGET_BASE}/..."
-upload_to_artifactory "$PACKAGE_NAME" "$PACKAGE_NAME"
+upload_to_artifactory "${BUILD_DIR}/${PACKAGE_NAME}" "${PACKAGE_NAME}"
 
 echo "Step 7: Uploading ${GET_XROAD_SCRIPT} to ${TARGET_BASE}/..."
 upload_to_artifactory "$GET_XROAD_SCRIPT" "get-xroad.sh"
@@ -138,6 +151,3 @@ echo ""
 echo "Users can upgrade X-Road (7.8.x -> 8.0) using:"
 echo "sudo bash -c \"\$(curl -sSfL ${UPGRADE_LINK})\" --"
 echo "----------------------------------------------------------"
-
-# Cleanup
-rm -f "${GET_XROAD_SCRIPT}.bak" "${UPGRADE_XROAD_SCRIPT}.bak" "${DOWNLOAD_MIGRATION_CLI_SCRIPT}.bak"
