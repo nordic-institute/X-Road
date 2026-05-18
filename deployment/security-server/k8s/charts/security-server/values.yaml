@@ -79,7 +79,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=100m
+      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=128m
       XROAD_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "60"
@@ -120,7 +120,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx64m -XX:MaxMetaspaceSize=128m
+      JAVA_OPTS: -Xmx64m -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "signer"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
@@ -169,7 +169,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx512m -XX:MaxMetaspaceSize=140m
+      JAVA_OPTS: -Xmx512m -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "proxy"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
@@ -215,7 +215,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx256m -XX:MaxMetaspaceSize=200m
+      JAVA_OPTS: -Xmx256m -XX:MaxMetaspaceSize=240m
       DEBUG_PORT: "9999"
       XROAD_HOST: "proxy-ui-api"
       XROAD_SECRET_STORE_HOST: "openbao"
@@ -267,7 +267,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx128m -XX:MaxMetaspaceSize=120m
+      JAVA_OPTS: -Xmx128m -XX:MaxMetaspaceSize=160m
       DEBUG_PORT: "9999"
       XROAD_HOST: "monitor"
       XROAD_SECRET_STORE_HOST: "openbao"
@@ -369,7 +369,7 @@ services:
     skipDefaultMounts:
       - /var/lib/xroad
     env:
-      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=70m
+      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=128m
       XROAD_HOST: "auxiliary-service"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
@@ -473,3 +473,12 @@ jvmMetrics:
       lowercaseOutputLabelNames: true
       rules:
         - pattern: ".*"
+
+otel:
+  enabled: false
+  # OTLP gRPC endpoint, e.g. http://otel-collector.observability:4317
+  endpoint: ""
+  sampler: parentbased_always_on
+  resourceAttributes:
+    serviceNamespace: xroad
+    deploymentEnvironment: k8s-dev

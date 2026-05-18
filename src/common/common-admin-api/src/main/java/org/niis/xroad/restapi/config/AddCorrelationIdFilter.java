@@ -25,41 +25,32 @@
  */
 package org.niis.xroad.restapi.config;
 
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
+import io.opentelemetry.api.trace.Span;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
- * Adds correlation id (sleuth trace id) to response header
+ * Adds correlation id (OpenTelemetry trace id) to response header.
+ * Trace context is provided by the OTel Java agent attached at JVM startup.
  */
 @Component
 @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER)
-@RequiredArgsConstructor
 public class AddCorrelationIdFilter implements Filter {
     public static final int CORRELATION_ID_FILTER_ORDER = Ordered.HIGHEST_PRECEDENCE + 2;
     public static final String CORRELATION_ID_HEADER_NAME = "x-road-ui-correlation-id";
 
-    private final Tracer tracer;
-
     public String getCorrelationId() {
-        return Optional.ofNullable(tracer)
-                .map(Tracer::currentSpan)
-                .map(Span::context)
-                .map(TraceContext::traceId)
-                .orElse(null);
+        var ctx = Span.current().getSpanContext();
+        return ctx.isValid() ? ctx.getTraceId() : null;
     }
 
     @Override

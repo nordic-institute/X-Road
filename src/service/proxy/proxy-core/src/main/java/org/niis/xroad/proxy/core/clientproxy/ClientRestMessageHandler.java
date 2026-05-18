@@ -34,7 +34,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.api.trace.Span;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
@@ -94,9 +94,9 @@ public class ClientRestMessageHandler extends HandlerBase {
     private final OpMonitoringDataHelper opMonitoringDataHelper;
 
     @Override
-    @WithSpan
     @SuppressWarnings({"java:S3776"})
     public boolean handle(Request request, Response response, Callback callback) throws IOException {
+        Span.current().updateName("ClientProxy REST");
         boolean handled = false;
         long start = ProxyMessageUtils.logPerformanceBegin(request);
         OpMonitoringData opMonitoringData = new OpMonitoringData(CLIENT, start);

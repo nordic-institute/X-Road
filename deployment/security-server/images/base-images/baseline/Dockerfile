@@ -15,11 +15,14 @@ RUN mkdir /var/log/xroad && \
     mkdir /var/cache/xroad && \
     mkdir -p /etc/xroad/ssl && \
     mkdir -p /etc/xroad/globalconf && \
+    mkdir -p /usr/share/xroad/lib && \
     chown -R xroad:xroad /var/log/xroad && \
     chown -R xroad:xroad /var/lib/xroad && \
     chown -R xroad:xroad /var/tmp/xroad && \
     chown -R xroad:xroad /var/cache/xroad && \
     chown -R xroad:xroad /etc/xroad
+
+COPY --from=build --chown=xroad:xroad /opentelemetry-javaagent.jar /usr/share/xroad/lib/opentelemetry-javaagent.jar
 
 ENV DEBIAN_FRONTEND=noninteractive
 

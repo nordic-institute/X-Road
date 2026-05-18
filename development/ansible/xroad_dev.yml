@@ -46,6 +46,16 @@
   roles:
     - init-dev-configuration
 
+- name: Provision Jaeger tracing backend (xrd-jaeger LXD container)
+  hosts: lxd_servers
+  become: "{{ onMacOs | default(true) }}"
+  strategy: free
+  roles:
+    - role: jaeger
+      when: enable_jaeger | default(true) | bool
+  tags:
+    - jaeger
+
 - name: Install host-level monitoring (Netdata)
   hosts: lxd_servers
   become: true

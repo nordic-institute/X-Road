@@ -45,6 +45,7 @@ owaspDependencyCheck = "12.2.2"
 edc = "0.16.0"
 edc-v = "0.16.0-20260323-1-SNAPSHOT"
 dataplane-sdk = "0.0.7-SNAPSHOT"
+opentelemetry-javaagent = "2.27.0"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -71,8 +72,6 @@ springBoot-starterWebmvcTest = { module = "org.springframework.boot:spring-boot-
 springBoot-starterValidation = { module = "org.springframework.boot:spring-boot-starter-validation", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-webmvc", version.ref = "springBoot" }
 springBoot-starterWebfluxTest = { module = "org.springframework.boot:spring-boot-starter-webflux-test", version.ref = "springBoot" }
-springBoot-micrometerTracingBrave = { module = "org.springframework.boot:spring-boot-micrometer-tracing-brave", version.ref = "springBoot" }
-springBoot-micrometerTracingTest = { module = "org.springframework.boot:spring-boot-micrometer-tracing-test", version.ref = "springBoot" }
 
 springFramework-context = { module = "org.springframework:spring-context", version.ref = "springFramework" }
 springFramework-web = { module = "org.springframework:spring-web", version.ref = "springFramework" }
@@ -238,7 +237,8 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.25.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry-javaagent" }
+opentelemetry-javaagent = { module = "io.opentelemetry.javaagent:opentelemetry-javaagent", version.ref = "opentelemetry-javaagent" }
 
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }

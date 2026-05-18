@@ -29,7 +29,7 @@ import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.api.trace.Span;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
@@ -66,9 +66,9 @@ public class ServerProxyHandler extends HandlerBase {
     private final OpMonitoringBuffer opMonitoringBuffer;
 
     @Override
-    @WithSpan
     @ArchUnitSuppressed("NoVanillaExceptions")
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
+        Span.current().updateName("ServerProxy");
         OpMonitoringData opMonitoringData = new OpMonitoringData(PRODUCER, getEpochMillisecond());
 
         long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
@@ -92,10 +92,12 @@ public class ServerProxyHandler extends HandlerBase {
             var jResponse = ResponseWrapper.of(response);
 
             if (VALUE_MESSAGE_TYPE_REST.equals(jRequest.getHeaders().get(HEADER_MESSAGE_TYPE))) {
+                Span.current().updateName("ServerProxy REST");
                 var ctx = new RestRequestContext(jRequest, jResponse, opMonitoringData);
                 boolean success = serverRestMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);
             } else {
+                Span.current().updateName("ServerProxy SOAP");
                 var ctx = new ServerSoapRequestContext(jRequest, jResponse, opMonitoringData);
                 boolean success = serverSoapMessageProcessor.process(ctx);
                 opMonitoringData.setSucceeded(success);
