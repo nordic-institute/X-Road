@@ -4,20 +4,12 @@ set -euo pipefail
 # --- Configuration ---
 # URL for X-Road upgrade package
 # This can be overridden by setting the INSTALLER_URL environment variable
-INSTALLER_URL="${INSTALLER_URL:-https://niis-xroad-development.s3.amazonaws.com/js-test/xroad-installer-20260512-123042/}"
+INSTALLER_URL="${INSTALLER_URL:-https://niis-xroad-development.s3.amazonaws.com/js-test/xroad-installer-20260518-091327/}"
 PACKAGE_NAME="xroad-installer.tar.gz"
 DOWNLOAD_URL="${INSTALLER_URL%/}/${PACKAGE_NAME}"
 
 # Create a temporary directory for extraction
 TMP_DIR=$(mktemp -d -t xroad-upgrade-XXXXXX)
-
-# Ensure cleanup on exit todo?
-#cleanup() {
-#    local exit_code=$?
-#    rm -rf "$TMP_DIR"
-#    exit $exit_code
-#}
-#trap cleanup EXIT
 
 echo "----------------------------------------------------------"
 echo " X-Road Security Server Upgrade Bootstrapper"
@@ -58,4 +50,4 @@ cd "${TMP_DIR}"
 # We use sudo here as the upgrade requires root privileges for setup and repo configuration.
 # Forward all arguments (like --config-file) to the upgrade script.
 TIMESTAMP=$(date '+%Y-%m-%d_%H%M%S')
-sudo XROAD_INSTALLER_LOG_FILE="${CALL_DIR}/xroad-upgrade-${TIMESTAMP}.log" bash xroad-upgrader.sh "$@"
+sudo XROAD_INSTALLER_LOG_FILE="${CALL_DIR}/xroad-upgrade-${TIMESTAMP}.log" bash xroad-upgrade.sh "$@"

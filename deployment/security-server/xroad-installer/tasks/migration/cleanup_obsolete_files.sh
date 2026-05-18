@@ -15,7 +15,10 @@ OBSOLETE_PATHS=(
   "/etc/xroad/devices.ini"
   "/etc/xroad/configuration-anchor.xml"
   "/etc/xroad/signer"
-  "/etc/xroad/conf.d/*-logback.xml"
+  "/etc/xroad/conf.d/*-logback*.xml"
+  "/etc/xroad/conf.d/acme.yml"
+  "/etc/xroad/conf.d/mail.yml"
+  "/etc/xroad/db.properties.bak"
 )
 
 # Resolve OBSOLETE_PATHS into concrete existing paths (no-match returns empty).
