@@ -51,6 +51,7 @@ mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../../src/tool/liquibase-executor/build/libs/liquibase-executor.jar %{buildroot}/usr/share/xroad/db/liquibase-executor.jar
+cp -p %{srcdir}/../../../../src/tool/otel-javaagent-dist/build/libs/opentelemetry-javaagent.jar %{buildroot}/usr/share/xroad/lib/opentelemetry-javaagent.jar
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
@@ -93,6 +94,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/migrations/*
 /usr/share/xroad/db/liquibase-executor.jar
 /usr/share/xroad/db/liquibase.sh
+/usr/share/xroad/lib/opentelemetry-javaagent.jar
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md

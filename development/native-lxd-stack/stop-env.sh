@@ -2,9 +2,14 @@
 set -e
 source "${BASH_SOURCE%/*}/../../.scripts/base-script.sh"
 
-if [[ $(uname) == "Darwin" ]]; then
-  "${BASH_SOURCE%/*}/scripts/setup-mac-net.sh" cleanup || log_info "setup-mac-net.sh cleanup failed (continuing)"
-fi
+case "$(uname)" in
+  Darwin)
+    "${BASH_SOURCE%/*}/scripts/setup-mac-net.sh" cleanup || log_info "setup-mac-net.sh cleanup failed (continuing)"
+    ;;
+  Linux)
+    "${BASH_SOURCE%/*}/scripts/setup-linux-net.sh" cleanup || log_info "setup-linux-net.sh cleanup failed (continuing)"
+    ;;
+esac
 
 if limactl list | grep -q '^xroad-lxd'; then
     # Check current status

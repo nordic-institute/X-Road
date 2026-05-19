@@ -17,10 +17,20 @@ if [ "${DEBUG:-false}" = "true" ]; then
   DEBUG_OPTS="$DEBUG_AGENT $JMX_OPTS"
 fi
 
+OTEL_OPTS=""
+OTEL_AGENT="/usr/share/xroad/lib/opentelemetry-javaagent.jar"
+# OTel agent attaches only when an operator explicitly enables tracing
+# (OTEL_SDK_DISABLED=false). Default OFF — zero baseline cost.
+if [ "${OTEL_SDK_DISABLED:-true}" = "false" ] && [ -f "$OTEL_AGENT" ]; then
+  log "OpenTelemetry enabled - attaching javaagent ($OTEL_AGENT)"
+  OTEL_OPTS="-javaagent:$OTEL_AGENT"
+fi
+
 exec java \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
   -Djava.library.path=/usr/share/xroad/lib \
   -Dquarkus.profile=containerized \
   $DEBUG_OPTS \
+  $OTEL_OPTS \
   $JAVA_OPTS \
   -jar /opt/app/quarkus-run.jar

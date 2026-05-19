@@ -32,6 +32,8 @@ data:
                   -jar /opt/app/quarkus-run.jar
                   __CLI_ARGS__
               env:
+                - name: JAVA_TOOL_OPTIONS
+                  value: "-XX:MaxRAMPercentage={{ .Values.jvmHeap.maxRAMPercentage }}"
               {{- range $name, $value := $archiver.env }}
                 - name: {{ $name }}
                   value: {{ $value | quote }}
