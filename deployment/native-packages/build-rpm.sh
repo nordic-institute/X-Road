@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=8.0.0.beta1
+VERSION=8.0.0.beta2
 LAST_SUPPORTED_VERSION=7.8.0
 
 # Global variable to determine if text coloring is enabled
