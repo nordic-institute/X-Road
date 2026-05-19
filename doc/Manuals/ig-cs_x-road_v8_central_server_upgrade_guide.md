@@ -38,7 +38,7 @@ This guide walks you through upgrading an existing X-Road 7.8 Central Server to 
 
 ### What this guide covers
 
-- Single-node Central Server instances installed from native packages (DEB on Ubuntu, RPM on RHEL)
+- Single-node Central Server instances installed from native packages (DEB on Ubuntu)
 - Step-by-step manual procedure
 - Post-upgrade verification
 - Rollback options
@@ -47,7 +47,6 @@ This guide walks you through upgrading an existing X-Road 7.8 Central Server to 
 
 - **Security Server upgrades** — see [Security Server Upgrade Guide](ig-ss_x-road_v8_security_server_upgrade_guide.md)
 - **Central Server HA (cluster) upgrades** — see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md) for the existing cluster topology; the X-Road 8 HA upgrade workflow is **not yet documented for beta 2**. A clustered Central Server requires shared-database coordination during upgrade — running this single-node procedure independently on every node would conflict with the replicated `centerui` database.
-- **Container or Kubernetes deployments** — covered in a separate document
 - Upgrade from X-Road versions older than 7.8.x — must first be brought to 7.8.x
 
 ### Disclaimer
@@ -58,7 +57,7 @@ This document applies to X-Road 8 Beta 2. Pre-release software may behave differ
 
 | Requirement | Notes |
 |---|---|
-| Operating system | Ubuntu Server 22.04 / 24.04 LTS, or RHEL 9 / 10 |
+| Operating system | Ubuntu Server 22.04 / 24.04 LTS |
 | Current X-Road version | 7.8.x (any patch level). Earlier versions must first be upgraded to 7.8.x. |
 | PostgreSQL major version | 15 or newer for the `centerui` database |
 | Java | Java 25 must be installable from the OS package repositories (the X-Road 8 packages depend on it) |
@@ -69,10 +68,7 @@ This document applies to X-Road 8 Beta 2. Pre-release software may behave differ
 Verify the current version:
 
 ```bash
-# Ubuntu
 dpkg-query -W -f='${Version}\n' xroad-center
-# RHEL
-rpm -q --queryformat '%{VERSION}\n' xroad-center
 ```
 
 The output must begin with `7.8.`.
@@ -97,10 +93,7 @@ Run all commands as root.
 **1. Verify version.**
 
 ```bash
-# Ubuntu
 dpkg-query -W -f='${Version}\n' xroad-center
-# RHEL
-rpm -q --queryformat '%{VERSION}\n' xroad-center
 ```
 
 Confirm the output begins with `7.8.`. Stop here if it does not.
@@ -135,24 +128,11 @@ The numeric server version divided by 10000 must be ≥ 15.
 **5. Configure the OpenBao package repository.**
 
 ```bash
-# Ubuntu
 curl -fsSL https://openbao.org/assets/openbao-gpg-pub-20240618.asc \
   -o /usr/share/keyrings/openbao-keyring.asc
 echo "deb [signed-by=/usr/share/keyrings/openbao-keyring.asc] https://pkgs.openbao.org/deb stable main" \
   > /etc/apt/sources.list.d/openbao.list
 apt-get update
-
-# RHEL
-rpm --import https://openbao.org/assets/openbao-gpg-pub-20240618.asc
-tee /etc/yum.repos.d/openbao.repo <<'EOF'
-[openbao]
-name=OpenBao
-baseurl=https://pkgs.openbao.org/rpm
-enabled=1
-gpgcheck=1
-gpgkey=https://openbao.org/assets/openbao-gpg-pub-20240618.asc
-EOF
-dnf makecache
 ```
 
 **6. Stop all Central Server services.**
@@ -166,12 +146,11 @@ for s in "${SERVICES[@]}"; do
 done
 ```
 
-The Central Server service set typically includes `xroad-center`, `xroad-center-management-service`, `xroad-center-registration-service`, `xroad-signer`, `xroad-monitor`, and optionally `xroad-opmonitor`.
+The Central Server service set typically includes `xroad-center`, `xroad-center-management-service`, `xroad-center-registration-service`, `xroad-signer` and `xroad-nginx`.
 
 **7. Switch the X-Road package repository from V7 to V8.**
 
 ```bash
-# Ubuntu
 TS=$(date +%Y%m%d-%H%M%S)
 mv /etc/apt/sources.list.d/xroad.list /etc/apt/sources.list.d/xroad.list.v7.bak."$TS"
 curl -fsSL https://artifactory.niis.org/api/gpg/key/public \
@@ -180,33 +159,18 @@ CODENAME=$(lsb_release -sc)
 echo "deb [signed-by=/usr/share/keyrings/xroad-keyring.asc] https://artifactory.niis.org/xroad8-snapshot-deb ${CODENAME}-current main" \
   > /etc/apt/sources.list.d/xroad.list
 apt-get update
-
-# RHEL
-TS=$(date +%Y%m%d-%H%M%S)
-for repo in /etc/yum.repos.d/xroad*.repo; do
-  [ -f "$repo" ] && mv "$repo" "${repo}.v7.bak.${TS}"
-done
-yum-config-manager --add-repo "https://artifactory.niis.org/xroad8-snapshot-rpm"
-rpm --import https://artifactory.niis.org/api/gpg/key/public
-yum makecache
 ```
 
 **8. Upgrade the Central Server packages.**
 
 ```bash
-# Ubuntu
 DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-centralserver
-# RHEL
-dnf install -y xroad-centralserver
 ```
 
 Verify the version actually changed:
 
 ```bash
-# Ubuntu
 dpkg-query -W -f='${Version}\n' xroad-center
-# RHEL
-rpm -q --queryformat '%{VERSION}\n' xroad-center
 ```
 
 The output must now begin with `8.`.
@@ -275,10 +239,7 @@ Expect: `xroad-signer`, `xroad-center`, `xroad-center-management-service`, `xroa
 **2. Confirm the package version:**
 
 ```bash
-# Ubuntu
 dpkg-query -W -f='${Package} ${Version}\n' 'xroad-*'
-# RHEL
-rpm -qa 'xroad-*'
 ```
 
 Every X-Road package should be on `8.x`.

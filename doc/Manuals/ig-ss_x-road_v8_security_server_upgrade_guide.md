@@ -58,7 +58,7 @@ This guide walks you through upgrading an existing X-Road 7.8 Security Server to
 
 - **Central Server upgrades** — see [Central Server Upgrade Guide](ig-cs_x-road_v8_central_server_upgrade_guide.md)
 - **Security Server cluster upgrades** — see chapter 7 "Upgrading a clustered X-Road Security Server installation" of the [External Load Balancer Installation Guide](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md). A clustered installation requires pausing replication between primary and secondaries, upgrading the primary first, then each secondary — running this single-host wizard on every node would conflict with the replicated `serverconf` database and the rsynced `/etc/xroad/signer/*`.
-- **Container or Kubernetes deployments** — see [Security Server Kubernetes Upgrade Guide](ig-ss-xroad_v8_security_server_kubernetes_upgrade_guide.md)
+- **Container or Kubernetes deployments** — out of scope for beta 2
 - Upgrade from X-Road versions older than 7.8.x — must first be brought to 7.8.x
 
 ### Disclaimer
@@ -245,14 +245,14 @@ Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for ea
 **Batch signing** (`xroad.proxy.batch-signing-enabled`).
 
 - X-Road 7 behavior: enabled. The signer batches multiple message signatures into a single signing operation.
-- X-Road 8 default: disabled.
+- X-Road 8 default: disabled. Each message is signed separately.
 - Interactive prompt default: disabled (X-Road 8 default).
 - Unattended default: disabled (X-Road 8 default).
 - Choose "Yes" only if you intentionally rely on the X-Road 7 batching behavior.
 
 **Strict identifier checks** (`xroad.proxy.strict-identifier-checks`).
 
-- What it gates: validation of X-Road identifier fields (instance, member class, member code, subsystem, etc.). The allowed character set is `A-Z`, `a-z`, `0-9`, and `'()+,-.=?`. Any other character (including spaces, slashes, brackets, accented characters) makes the identifier invalid.
+- What it validates: X-Road identifier fields (instance, member class, member code, subsystem, etc.). The allowed character set consists of `A–Z`, `a–z`, `0–9`, and the following characters: '()+,-.=?. Any other character (including spaces, slashes, brackets, or accented characters) makes the identifier invalid.
 - X-Road 7 behavior: disabled. Invalid characters produce a warning in the proxy log; the request continues.
 - X-Road 8 default: enabled. Invalid characters cause the request to fail with `INVALID_CLIENT_IDENTIFIER`.
 - Interactive prompt default: keep disabled (preserve X-Road 7 behavior). Choose "No" to opt into the stricter X-Road 8 default.
