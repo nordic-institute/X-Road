@@ -11,8 +11,6 @@ global:
 init:
   serverconf:
     dbUsername: {{ serverconf_db.username }}
-    proxyUiSuperuser: {{ proxy_ui_superuser }}
-    proxyUiSuperuserPassword: "{{ proxy_ui_superuser_password }}"
   messagelog:
     dbUsername: {{ messagelog_db.username }}
   opmonitor:
@@ -80,8 +78,6 @@ services:
 {% if serverconf_init_image | length > 0 %}
       SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
 {% endif %}
-      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
-      PROXY_UI_SUPERUSER: {{ proxy_ui_superuser }}
       QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
     extraVolumes:
       - name: auxiliary-service-openbao-tls-certificate

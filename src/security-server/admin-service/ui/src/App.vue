@@ -26,7 +26,7 @@
  -->
 <!-- This is the root component of the Vue app -->
 <template>
-  <XrdApp :login-view="loginView" @logout="logout">
+  <XrdApp :login-view="loginView" :initial-user-view="initialUserView" @logout="logout">
     <router-view />
   </XrdApp>
 </template>
@@ -47,6 +47,9 @@ const userStore = useUser();
 
 const loginView = computed(() => {
   return route.name === RouteName.Login;
+});
+const initialUserView = computed(() => {
+  return route.name === RouteName.InitialAdminUser;
 });
 
 function logout() {

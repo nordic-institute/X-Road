@@ -110,7 +110,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       https: true,
-      port: 8080,
+      port: 8888,
       host: 'localhost',
       proxy: {
         '/api': proxyCfg,

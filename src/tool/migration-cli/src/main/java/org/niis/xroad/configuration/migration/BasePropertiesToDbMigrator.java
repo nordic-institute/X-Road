@@ -36,6 +36,8 @@ import java.util.TreeMap;
 @Slf4j
 public abstract class BasePropertiesToDbMigrator {
 
+    static final String AUTO_CONFIRM_ENV = "XROAD_MIGRATION_AUTO_CONFIRM";
+
     abstract Map<String, String> loadProperties(String filePath);
 
     public void migrate(String filePath, String dbPropertiesPath) {
@@ -59,13 +61,22 @@ public abstract class BasePropertiesToDbMigrator {
     }
 
     boolean confirmProceed(Map<String, String> properties) {
-        System.out.println("The following properties will be migrated to database (if value exists it will be OVERRIDDEN):");
-        properties.forEach((k, v) -> System.out.printf(" - %s%n", k));
+        log.info("The following properties will be migrated to database (if value exists it will be OVERRIDDEN):");
+        properties.forEach((k, _) -> log.info(" - {}", k));
+
+        if ("true".equalsIgnoreCase(readEnv(AUTO_CONFIRM_ENV))) {
+            log.info("Auto-confirm enabled ({}=true) — proceeding without interactive prompt", AUTO_CONFIRM_ENV);
+            return true;
+        }
 
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Proceed with migration? [y/N] ");
+        log.info("Proceed with migration? [y/N] ");
         String input = scanner.nextLine().trim();
         return "y".equalsIgnoreCase(input) || "yes".equalsIgnoreCase(input);
+    }
+
+    String readEnv(String name) {
+        return System.getenv(name);
     }
 
     void saveToDb(Map<String, String> properties, String dbPropertiesPath, String scope) {

@@ -216,3 +216,47 @@ execute_by_os() {
 
   "$fn"
 }
+
+# X-Road units that must NOT auto-start during package upgrade.
+# xroad-secret-store-local is intentionally absent — its postinst fresh-install
+# branch starts OpenBao + the secret-store init service, which step 9 (TLS
+# migration) needs.
+XROAD_MASK_UNITS=(
+  xroad-base.service
+  xroad-signer.service
+  xroad-confclient.service
+  xroad-confproxy.service
+  xroad-proxy.service
+  xroad-proxy-ui-api.service
+  xroad-monitor.service
+  xroad-opmonitor.service
+  xroad-auxiliary-service.service
+)
+
+mask_xroad_units() {
+  log_message "Masking X-Road units to suppress auto-start during package upgrade:"
+  for unit in "${XROAD_MASK_UNITS[@]}"; do
+    log_message "  - $unit"
+    systemctl mask "$unit" >/dev/null 2>&1 || true
+  done
+  log_info "X-Road units masked (xroad-secret-store-local left unmasked)"
+}
+
+unmask_xroad_units() {
+  log_message "Unmasking X-Road units before service start:"
+  for unit in "${XROAD_MASK_UNITS[@]}"; do
+    log_message "  - $unit"
+    systemctl unmask "$unit" >/dev/null 2>&1 || true
+  done
+  systemctl daemon-reload
+
+  # On RHEL, %systemd_post's `systemctl preset` was blocked by the mask for
+  # fresh-install V8 units (xroad-ds-*, xroad-auxiliary-service). Apply preset
+  # now so they pick up their default enabled-on-boot state. Idempotent for
+  # upgraded V7 units (preset is a no-op when the unit is already enabled).
+  for unit in "${XROAD_MASK_UNITS[@]}"; do
+    systemctl preset "$unit" >/dev/null 2>&1 || true
+  done
+
+  log_info "X-Road units unmasked"
+}

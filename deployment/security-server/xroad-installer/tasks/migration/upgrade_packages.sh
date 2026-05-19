@@ -80,6 +80,8 @@ main() {
 
   require_root
 
+  mask_xroad_units
+
   execute_by_os upgrade_packages_ubuntu upgrade_packages_rhel
 
   log_message ""

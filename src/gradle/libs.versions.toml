@@ -6,15 +6,15 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.38"
-jetty = "12.1.8"
-jaxb = "4.0.7"
-hibernate = "7.2.6.Final"
+jetty = "12.1.9"
+jaxb = "4.0.8"
+hibernate = "7.3.4.Final"
 mapstruct = "1.6.3"
-jackson = "3.1.1"
+jackson = "3.1.3"
 jacksonAnnotations = "2.21"
 mockito = "5.23.0"
-springBoot = "4.0.5"
-springFramework = "7.0.6"
+springBoot = "4.0.6"
+springFramework = "7.0.7"
 junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
@@ -22,7 +22,7 @@ bouncyCastle = "1.84"
 slf4j = "2.0.17"
 protoc = "4.34.1"
 grpc = "1.80.0"
-swaggerParser = "2.1.39"
+swaggerParser = "2.1.42"
 logback = "1.5.32"
 logbackAccess = "2.0.12"
 apacheCxf = "4.2.0"
@@ -33,13 +33,13 @@ jacoco = "0.8.14"
 resilience4j = "2.4.0"
 quarkus = "3.32.4"
 quarkus-vault = "4.7.0"
-smallryeConfig = "3.16.0"
-microprofile = "3.1"
-feign = "13.11"
+smallryeConfig = "3.17.2"
+microprofile = "3.1.1"
+feign = "13.12"
 testCucumber = "7.34.3"
-testContainers = "2.0.4"
-testAllure = "2.33.0"
-testSelenide = "7.15.0"
+testContainers = "2.0.5"
+testAllure = "2.34.0"
+testSelenide = "7.16.1"
 shadowPlugin = "9.4.1"
 owaspDependencyCheck = "12.2.2"
 edc = "0.16.0"
@@ -179,7 +179,7 @@ mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.28.0" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.15.0" }
-apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.13.0" }
+apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.14.0" }
 apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.13.1" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
@@ -192,9 +192,9 @@ apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5",
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.11.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.21.0" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.22.0" }
 commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1" }
-commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
+commons-io = { module = "commons-io:commons-io", version = "2.22.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swaggerParser" }
@@ -204,7 +204,7 @@ openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
 openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
 openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
 
-lombok = { module = "org.projectlombok:lombok", version = "1.18.44" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.46" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -217,8 +217,8 @@ postgresql = { module = "org.postgresql:postgresql", version = "42.7.11" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 h2database = { module = "com.h2database:h2", version = "2.4.240" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
-guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.45" }
+guava = { module = "com.google.guava:guava", version = "33.6.0-jre" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.50" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -227,7 +227,7 @@ wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
 hikariCP = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
-saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" }
+saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.5" }
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.2" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
@@ -236,7 +236,7 @@ systemStubs = { module = "uk.org.webcompere:system-stubs-jupiter", version = "2.
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
-jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
+jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "5.1.1" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry-javaagent" }
 opentelemetry-javaagent = { module = "io.opentelemetry.javaagent:opentelemetry-javaagent", version.ref = "opentelemetry-javaagent" }
 
@@ -370,8 +370,8 @@ quarkus-containerized = [
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.21.0" }
-sonarqube = { id = "org.sonarqube", version = "7.2.2.6593" }
+openapi-generator = { id = "org.openapi.generator", version = "7.22.0" }
+sonarqube = { id = "org.sonarqube", version = "7.3.0.8198" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }

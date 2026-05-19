@@ -53,6 +53,7 @@ import SubsystemView from '@/views/Clients/SubsystemView.vue';
 import ClientTlsCertificateView from '@/views/Clients/InternalServers/TlsCertificate/ClientTlsCertificateView.vue';
 import DiagnosticsView from '@/views/Diagnostics/DiagnosticsView.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
+import InitialAdminUserView from '@/views/InitialAdminUser/InitialAdminUserView.vue';
 import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationView.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
@@ -103,6 +104,14 @@ const routes: RouteRecordRaw[] = [
           navigation: XrdMainNavigationContainer,
         },
         meta: { permissions: [Permissions.INIT_CONFIG] },
+      },
+      {
+        name: RouteName.InitialAdminUser,
+        path: '/initial-admin-user',
+        components: {
+          default: InitialAdminUserView,
+          navigation: XrdMainNavigationContainer,
+        },
       },
       {
         name: RouteName.Keys,

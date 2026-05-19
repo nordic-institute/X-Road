@@ -225,14 +225,28 @@ create_token() {
   local addr="${1:-$BAO_ADDR}"
   local token="${2:-$BAO_TOKEN}"
   local policy="${3:-xroad-policy}"
-  local ttl="${4:-0}" # 0 means use default TTL
+  # ttl="0" creates a periodic token (renewable indefinitely while the client
+  # renews within the period); any other value is a fixed TTL.
+  local ttl="${4:-0}"
   local display_name="${5:-xroad-client}"
   local token_id="${6:-}" # Optional: custom token ID
 
   echo "[OPENBAO] Creating new token with policy: $policy" >&2
 
-  # Build JSON payload with optional id field
-  local payload_json="{\"policies\":[\"$policy\"], \"ttl\":\"${ttl}\", \"display_name\":\"${display_name}\"}"
+  local payload_json
+  if [ "$ttl" = "0" ]; then
+    payload_json=$(jq -n \
+      --arg policy "$policy" \
+      --arg display_name "$display_name" \
+      '{policies:[$policy], period:"768h", renewable:true, display_name:$display_name}')
+  else
+    payload_json=$(jq -n \
+      --arg policy "$policy" \
+      --arg display_name "$display_name" \
+      --arg ttl "$ttl" \
+      '{policies:[$policy], ttl:$ttl, renewable:true, display_name:$display_name}')
+  fi
+
   if [ -n "$token_id" ]; then
     payload_json=$(echo "$payload_json" | jq --arg id "$token_id" '. + {id: $id}')
     echo "[OPENBAO] Using custom token ID: $token_id" >&2

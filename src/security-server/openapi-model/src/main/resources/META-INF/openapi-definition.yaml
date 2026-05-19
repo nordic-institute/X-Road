@@ -2731,6 +2731,59 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /initialization/admin-user:
+    post:
+      tags:
+        - initialization
+      summary: Create the initial admin user during Security Server initialization
+      operationId: createInitialAdminUser
+      description:
+        <h3>Creates the initial admin user when database-based authentication is enabled and the
+        Security Server has not yet been initialized. This endpoint is unauthenticated and only
+        usable while no admin user exists. Roles are assigned server-side to mirror the default PAM
+        admin set.</h3>
+      requestBody:
+        description: initial admin user credentials
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitialAdminUser'
+      responses:
+        '201':
+          description: initial admin user created
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        '409':
+          description: initial admin user creation is not allowed in current state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        '500':
+          description: internal server error
+  /initialization/admin-user/status:
+    get:
+      tags:
+        - initialization
+      summary: Check whether the initial admin user needs to be created
+      operationId: getInitialAdminUserStatus
+      description:
+        <h3>Returns whether the unauthenticated initial admin user creation flow should be offered.
+        True only when database-based authentication is enabled, no admin user exists, and the
+        Security Server has not yet been fully initialized.</h3>
+      responses:
+        '200':
+          description: initial admin user creation status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitialAdminUserStatus'
+        '500':
+          description: internal server error
   /local-groups/{group_id}:
     get:
       tags:
@@ -7402,6 +7455,34 @@ components:
         enforce_token_pin_policy:
           type: boolean
           description: whether the token pin policy is enforced or not
+    InitialAdminUser:
+      type: object
+      description: Credentials for the initial admin user created during Security Server initialization
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Admin user name
+          minLength: 3
+          maxLength: 30
+        password:
+          type: string
+          description: Admin user password
+          minLength: 6
+          maxLength: 255
+    InitialAdminUserStatus:
+      type: object
+      description: Whether the initial admin user creation flow should be offered
+      required:
+        - admin_user_creation_required
+      properties:
+        admin_user_creation_required:
+          type: boolean
+          description:
+            true when database-based authentication is enabled, no admin user exists yet, and the
+            Security Server has not been fully initialized
     KeyWithCertificateSigningRequestId:
       type: object
       description: Key and TokenCertificateSigningRequest id

@@ -27,6 +27,7 @@
 import { createXrdRouter } from '@niis/shared-ui';
 
 import { RouteName } from '@/global';
+import { useInitializeServer } from '@/store/modules/initializeServer';
 import { useUser } from '@/store/modules/user';
 
 import routes from './routes';
@@ -34,6 +35,7 @@ import routes from './routes';
 export default createXrdRouter({
   forbiddenRouteName: RouteName.Forbidden,
   initialisationRouteName: RouteName.InitialConfiguration,
+  initAdminRouteName: RouteName.InitialAdminUser,
   loginRouteName: RouteName.Login,
   hasAnyOfPermissions(permissions: string[]): boolean {
     return useUser().hasAnyOfPermissions(permissions);
@@ -43,6 +45,10 @@ export default createXrdRouter({
   },
   isServerInitialized(): boolean {
     return !useUser().needsInitialization;
+  },
+  async isAdminUserCreationRequired() {
+    return useInitializeServer().fetchInitialAdminUserStatus()
+      .then((resp) => resp.admin_user_creation_required);
   },
   routes,
 });

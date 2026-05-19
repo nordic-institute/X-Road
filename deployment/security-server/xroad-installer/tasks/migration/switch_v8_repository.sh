@@ -64,7 +64,8 @@ switch_v8_repository_ubuntu() {
 
   local codename
   codename=$(lsb_release -sc)
-  local repo_line="deb [signed-by=${xroad_keyring_path}] ${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN} ${codename}-current main"
+  local repo_url="${XROAD_REPO_URL_OVERRIDE:-${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN} ${codename}-current main}"
+  local repo_line="deb [signed-by=${xroad_keyring_path}] ${repo_url}"
 
   log_message "Writing V8 repository configuration"
   log_message "  Target: $sources_file"
@@ -125,7 +126,7 @@ switch_v8_repository_rhel() {
   fi
 
   # Step 2: Add the V8 repo via yum-config-manager --add-repo
-  local repo_url="${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN}"
+  local repo_url="${XROAD_REPO_URL_OVERRIDE:-${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN}}"
   log_message "Adding V8 X-Road repository: $repo_url"
   if yum-config-manager --add-repo "$repo_url"; then
     log_info "V8 X-Road repository added successfully"

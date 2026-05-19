@@ -40,7 +40,6 @@ import {
 } from '@niis/shared-ui';
 import { useUser } from "@/store/modules/user";
 
-
 function pollSessionStatus(delay = POLL_SESSION_TIMEOUT_ON_RESTART) {
   window.setTimeout(() => {
     let status = 0;
@@ -53,9 +52,9 @@ function pollSessionStatus(delay = POLL_SESSION_TIMEOUT_ON_RESTART) {
         if (status === 401) {
           useAppState().started();
         } else {
-          pollSessionStatus()
+          pollSessionStatus();
         }
-      })
+      });
   }, delay);
 }
 

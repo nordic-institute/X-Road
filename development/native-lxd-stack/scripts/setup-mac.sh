@@ -109,7 +109,6 @@ function main() {
   parse_arguments "$@"
   check_macos
   check_prerequisites
-  check_prerequisites
   setup_socket_vmnet
   handle_existing_vm
   create_and_start_vm
