@@ -43,7 +43,7 @@ testSelenide = "7.16.1"
 shadowPlugin = "9.4.1"
 owaspDependencyCheck = "12.2.2"
 edc = "0.16.0"
-edc-v = "0.16.0-20260323-1-SNAPSHOT"
+edc-v = "0.17.0-20230423-SNAPSHOT"
 dataplane-sdk = "0.0.7-SNAPSHOT"
 opentelemetry-javaagent = "2.27.0"
 
