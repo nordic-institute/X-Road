@@ -37,10 +37,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
- * Adds correlation id (OpenTelemetry trace id) to response header.
- * Trace context is provided by the OTel Java agent attached at JVM startup.
+ * Adds a correlation id to the response header. Based on OpenTelemetry
+ * trace id, falls back to a locally-generated id so requests are still uniquely
+ * identifiable in logs and bug reports.
  */
 @Component
 @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER)
@@ -50,7 +52,11 @@ public class AddCorrelationIdFilter implements Filter {
 
     public String getCorrelationId() {
         var ctx = Span.current().getSpanContext();
-        return ctx.isValid() ? ctx.getTraceId() : null;
+        if (ctx.isValid()) {
+            return ctx.getTraceId();
+        }
+        // 32-char hex — same shape as an OTel traceId for downstream parsers.
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     @Override
