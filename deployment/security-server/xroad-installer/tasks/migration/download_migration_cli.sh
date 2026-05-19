@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 # Required: Artifactory download URL for the migration-cli fat JAR.
 # Example: export XROAD_MIGRATION_CLI_URL=https://artifactory.example.com/migration-cli-1.0.0.jar
-XROAD_MIGRATION_CLI_URL="${XROAD_MIGRATION_CLI_URL:-}"
+XROAD_MIGRATION_CLI_URL="${XROAD_MIGRATION_CLI_URL:-https://artifactory.niis.org/artifactory/xroad-scripts/0.0.1-beta/migration-cli.jar}"
 
 # run_migration_cli.sh must reference the same path.
 MIGRATION_CLI_JAR="/var/tmp/migration-cli.jar"

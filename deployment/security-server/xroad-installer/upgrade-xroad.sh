@@ -4,7 +4,7 @@ set -euo pipefail
 # --- Configuration ---
 # URL for X-Road upgrade package
 # This can be overridden by setting the INSTALLER_URL environment variable
-INSTALLER_URL="${INSTALLER_URL:-https://niis-xroad-development.s3.amazonaws.com/js-test/xroad-installer-20260518-091327/}"
+INSTALLER_URL="${INSTALLER_URL:-https://artifactory.niis.org/xroad-scripts/0.0.1-beta/}"
 PACKAGE_NAME="xroad-installer.tar.gz"
 DOWNLOAD_URL="${INSTALLER_URL%/}/${PACKAGE_NAME}"
 
