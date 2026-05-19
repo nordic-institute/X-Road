@@ -219,9 +219,12 @@ function handleAnsible() {
     -vv
 }
 
-function applyMacNet() {
-  [[ $(uname) != "Darwin" ]] && return 0
-  ./scripts/setup-mac-net.sh apply
+function applyHostNet() {
+  case "$(uname)" in
+    Darwin) ./scripts/setup-mac-net.sh apply ;;
+    Linux)  ./scripts/setup-linux-net.sh apply ;;
+    *)      return 0 ;;
+  esac
 }
 
 function handleBuild() {
@@ -260,7 +263,7 @@ function main() {
   listCachedImages
   ensureCacheFilled
   handleAnsible
-  applyMacNet
+  applyHostNet
   handleInitialize
 }
 

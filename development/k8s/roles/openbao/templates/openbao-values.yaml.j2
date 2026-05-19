@@ -4,6 +4,12 @@ global:
   tlsDisable: false
 {% endif %}
 server:
+  # Postgres-backed HA uses Postgres advisory locks for leader election, not Raft,
+  # so ordered pod bringup is unnecessary. Parallel lets the init Job reach every
+  # pod (each sealed but responsive) in a single pass and unseal them together —
+  # OrderedReady would deadlock because subsequent pods are only created after
+  # the previous one becomes Ready, and Ready requires unseal first.
+  podManagementPolicy: Parallel
   ha:
     enabled: true
     replicas: {{ openbao_ha_replicas }}

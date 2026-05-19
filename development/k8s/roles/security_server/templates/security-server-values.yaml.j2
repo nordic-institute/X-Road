@@ -103,3 +103,15 @@ messageLogArchiver:
 jvmMetrics:
   enabled: true
 {% endif %}
+
+{% if otel_enabled | default(false) | bool %}
+otel:
+  enabled: true
+  nodeId: "{{ otel_node_id | default('') }}"
+  endpoint: {{ otel_endpoint }}
+  protocol: "{{ otel_protocol | default('grpc') }}"
+  sampler: {{ otel_sampler }}
+  resourceAttributes:
+    serviceNamespace: xroad
+    deploymentEnvironment: {{ otel_deployment_environment }}
+{% endif %}

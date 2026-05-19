@@ -9,6 +9,16 @@
   tags:
     - init
 
+- name: Install lima0 DHCP recovery timer (mac/lima only; no-op elsewhere)
+  hosts: lxd_servers
+  become: "{{ onMacOs | default(true) }}"
+  strategy: free
+  roles:
+    - lima-net-recover
+  tags:
+    - init
+    - lima-net-recover
+
 - name: Perform RHEL support check
   hosts: ss_servers
   become: true

@@ -1,0 +1,21 @@
+### Test that random service works (originating from ss2)
+### Requires the k8s dev env running with port-forwards live
+### (core/development/k8s/scripts/start-env.sh). Select the `ss2` env.
+POST http://{{host}}:{{proxy_port}}/r1/DEV/COM/1234/TestService/mock1
+Content-Type: application/json
+X-Road-Client: DEV/ORG/SS2-Member/ss2-subsystem
+
+{
+  "data": 1.0,
+  "service": "random"
+}
+
+> {%
+    client.test("Response status is 200", function () {
+        client.assert(response.status === 200, "Expected 200, got " + response.status);
+    });
+    client.test("Response contains greeting message", function () {
+        client.assert(response.body.message === "Hello, world from POST service!",
+            "Expected greeting message, got: " + response.body.message);
+    });
+%}

@@ -61,6 +61,23 @@ external_service_bridges:
     ports:
       - {name: proxy, port: 5500, targetPort: 3230}
       - {name: proxy-ocsp, port: 5577, targetPort: 3240}
+  - name: xrd-jaeger
+    # Jaeger runs as its own LXD container (xrd-jaeger.lxd, 10.10.10.x) on the same
+    # LXD bridge that the kind worker can route to. host.docker.internal would point
+    # at the lima VM eth0 where nothing listens on these ports — resolver Job inside
+    # the cluster CAN resolve xrd-jaeger.lxd via lima's inherited LXD DNS.
+    external_host: "xrd-jaeger.lxd"
+    ports:
+      - {name: otlp-grpc, port: 4317, targetPort: 4317}
+      - {name: otlp-http, port: 4318, targetPort: 4318}
+      - {name: ui, port: 80, targetPort: 80}
+      - {name: healthcheck, port: 13133, targetPort: 13133}
+
+otel_enabled: true
+otel_node_id: "ss2"
+otel_endpoint: "http://xrd-jaeger.{{ security_server_namespace }}.svc.cluster.local:4317"
+otel_sampler: "parentbased_always_on"
+otel_deployment_environment: "k8s-dev"
 
 deploy_prometheus: true
 
