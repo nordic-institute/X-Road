@@ -1,9 +1,5 @@
 ---
 # Provision the xrd-jaeger LXD container and install Jaeger v2 inside it.
-# Per project D-5: Jaeger lives in its own container, NOT on the LXD host
-# like netdata. Sits on the same LXD bridge as the xrd-* containers so they
-# reach it as xrd-jaeger:4317 directly.
-
 - name: Launch xrd-jaeger LXD container
   community.general.lxd_container:
     name: "{{ jaeger_container_name }}"
