@@ -19,14 +19,14 @@ junitJupiter = "6.0.3"
 junitPlatform = "6.0.3"
 xmlUnit = "2.11.0"
 bouncyCastle = "1.84"
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 protoc = "4.34.1"
 grpc = "1.80.0"
 swaggerParser = "2.1.42"
 logback = "1.5.32"
 logbackAccess = "2.0.12"
 apacheCxf = "4.2.0"
-liquibase = "5.0.2"
+liquibase = "5.0.3"
 protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.14"
@@ -179,7 +179,7 @@ mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.28.0" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.15.0" }
-apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.14.0" }
+apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.15.0" }
 apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.13.1" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
