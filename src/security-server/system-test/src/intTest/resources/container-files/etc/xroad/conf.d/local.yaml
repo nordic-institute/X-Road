@@ -38,7 +38,7 @@ xroad:
   proxy-ui-api:
     rate-limit-enabled: true
     rate-limit-requests-per-second: 10000
-    rate-limit-requests-per-minute: 10000
+    rate-limit-requests-per-minute: 20000
     acme-challenge-port-enabled: true
     automatic-activate-acme-sign-certificate: true
   message-log-encryption:
