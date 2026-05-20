@@ -70,12 +70,18 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      * @return immutable map keyed by host-address
      */
     public static Map<String, CounterPartyTarget> defaultMap() {
-        return Map.of(
-                "xrd-ss0", new CounterPartyTarget("did:web:xrd-ss0%3A7183", "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1"),
-                "xrd-ss1", new CounterPartyTarget("did:web:xrd-ss1%3A7183", "https://xrd-ss1:8183/api/dsp/xrd-ss1/2025-1"),
-                "xrd-ss2", new CounterPartyTarget("did:web:xrd-ss2%3A7183", "https://xrd-ss2:8183/api/dsp/xrd-ss2/2025-1"),
-                "ss0", new CounterPartyTarget("did:web:ss0%3A7183", "https://ss0:8183/api/dsp/ss0/2025-1"),
-                "ss1", new CounterPartyTarget("did:web:ss1%3A7183", "https://ss1:8183/api/dsp/ss1/2025-1"));
+        return Map.ofEntries(
+                Map.entry("xrd-ss0", new CounterPartyTarget("did:web:xrd-ss0%3A7183", "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1")),
+                Map.entry("xrd-ss1", new CounterPartyTarget("did:web:xrd-ss1%3A7183", "https://xrd-ss1:8183/api/dsp/xrd-ss1/2025-1")),
+                Map.entry("xrd-ss2", new CounterPartyTarget("did:web:xrd-ss2%3A7183", "https://xrd-ss2:8183/api/dsp/xrd-ss2/2025-1")),
+                Map.entry("xrd-ss0.lxd",
+                        new CounterPartyTarget("did:web:xrd-ss0.lxd%3A7183", "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd/2025-1")),
+                Map.entry("xrd-ss1.lxd",
+                        new CounterPartyTarget("did:web:xrd-ss1.lxd%3A7183", "https://xrd-ss1.lxd:8183/api/dsp/xrd-ss1.lxd/2025-1")),
+                Map.entry("xrd-ss2.lxd",
+                        new CounterPartyTarget("did:web:xrd-ss2.lxd%3A7183", "https://xrd-ss2.lxd:8183/api/dsp/xrd-ss2.lxd/2025-1")),
+                Map.entry("ss0", new CounterPartyTarget("did:web:ss0%3A7183", "https://ss0:8183/api/dsp/ss0/2025-1")),
+                Map.entry("ss1", new CounterPartyTarget("did:web:ss1%3A7183", "https://ss1:8183/api/dsp/ss1/2025-1")));
     }
 
     /**
@@ -96,9 +102,9 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
         for (var entry : base.entrySet()) {
             var host = entry.getKey();
             var hostTarget = entry.getValue();
-            // Append ":mgmt" to the DID path and "-mgmt" to the ctx ID path in the URL.
             var mgmtDid = hostTarget.counterPartyId() + ":mgmt";
-            var mgmtUrl = hostTarget.counterPartyAddress().replaceFirst("/" + host + "/", "/" + host + "-mgmt/");
+            var mgmtUrl = hostTarget.counterPartyAddress()
+                    .replaceFirst("/api/dsp/([^/]+)/2025-1", "/api/dsp/$1-mgmt/2025-1");
             result.put(host, new CounterPartyTarget(mgmtDid, mgmtUrl));
         }
         return Map.copyOf(result);

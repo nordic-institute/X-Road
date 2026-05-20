@@ -49,8 +49,8 @@
       xroad:
         proxy:
           dsp:
-            participant-context-id: "{{ inventory_hostname }}"
-            control-plane-endpoint: "https://127.0.0.1:8184/api/v1/control"
+            participant-context-id: "{{ inventory_hostname }}.lxd"
+            control-plane-endpoint: "https://localhost:8184/api/v1/control"
             cache:
               enabled: false
 
@@ -106,7 +106,7 @@
         # the right host over TLS.
         dsp:
           callback:
-            address: "https://{{ inventory_hostname }}:8183/api/dsp/%s"
+            address: "https://{{ inventory_hostname }}.lxd:8183/api/dsp/%s"
         iam:
           oauth2:
             jwks:
@@ -117,7 +117,7 @@
           sts:
             oauth:
               token:
-                url: "https://{{ inventory_hostname }}:7184/api/sts/token"
+                url: "https://{{ inventory_hostname }}.lxd:7184/api/sts/token"
         web:
           https:
             keystore:
@@ -128,7 +128,7 @@
               password: "changeit"
       xroad:
         dsp:
-          participant-context-id: "{{ inventory_hostname }}"
+          participant-context-id: "{{ inventory_hostname }}.lxd"
 
 # ---------------------------------------------------------------------------
 # 6. TLS keystore for DS services. Must be on disk before ds-* units start.
