@@ -71,12 +71,11 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
     private List<URI> resolveFromGlobalConf(ServiceId serviceProvider, SecurityServerId serverId) {
         log.trace("resolveFromGlobalConf({}, {})", serviceProvider, serverId);
 
-        // Delegate candidate SS selection to the shared helper (D-15 / D-16).
         var candidates = providerSecurityServerResolver.resolve(serviceProvider, serverId);
 
-        // Preserve hint-path maintenance-mode semantics — the helper is maintenance-unaware
-        // per 09-RESEARCH.md §"Open Questions (RESOLVED)" Q2. For the hint-absent path,
-        // maintenance-mode is still applied by the per-host loop below (unchanged).
+        // Maintenance-mode filtering for the hint path is applied here because
+        // ProviderSecurityServerResolver is intentionally maintenance-unaware.
+        // For the hint-absent path it is applied by the per-host loop below.
         if (serverId != null) {
             var hintHost = candidates.get(0).hostAddress();
             globalConfProvider.getMaintenanceMode(serverId)

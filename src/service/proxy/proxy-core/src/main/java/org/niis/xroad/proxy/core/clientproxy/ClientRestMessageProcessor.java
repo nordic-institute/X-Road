@@ -202,8 +202,6 @@ public class ClientRestMessageProcessor {
                                String xRequestId, ProxyRequestContext ctx) throws Exception {
         log.trace("sendRequest()");
 
-        // Acquire DSP asset access before sending the REST request (return discarded — Phase 10
-        // will pipe endpoint + auth into the HttpSender).
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getTargetSecurityServer(),
                 isManagementRequest(requestServiceId)));

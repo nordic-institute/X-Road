@@ -92,14 +92,12 @@ public class AssetAccessAcquisitionService {
     public CompletableFuture<ServiceResult<DataAddress>> acquireAssetAccess(ParticipantContext participantContext,
                                                                             AssetAccessRequest request) {
         var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + request.counterPartyId();
-        // Site 1: Entry — info level (CP-01 D-10 #1)
         monitor.info("%s acquireAssetAccess entered: counterPartyAddress=%s protocol=%s"
                 .formatted(key, request.counterPartyAddress(), request.protocolOrDefault()));
         return inFlightRequests.computeIfAbsent(key, k -> {
             var existingAgreement = agreementRegistry.get(key);
             CompletableFuture<ServiceResult<DataAddress>> future;
             if (existingAgreement != null) {
-                // Site 2: Cached-agreement fast path — info level (CP-01 D-10 #2)
                 monitor.info("%s cached-agreement fast path: agreementId=%s transferType=%s"
                         .formatted(key, existingAgreement.agreement().getId(), existingAgreement.transferType()));
                 future = transferAndAwaitDataAddress(key, participantContext, existingAgreement.agreement(),
@@ -128,18 +126,15 @@ public class AssetAccessAcquisitionService {
     }
 
     private CompletableFuture<Catalog> fetchCatalog(String key, ParticipantContext participantContext, AssetAccessRequest request) {
-        // Site 3: Catalog fetch started — info level (CP-01 D-10 #3)
         monitor.info("%s catalog fetch started".formatted(key));
         return catalogService.requestCatalog(participantContext, request.counterPartyId(), request.counterPartyAddress(),
                         request.protocolOrDefault(), QuerySpec.none())
                 .thenApply(result -> {
                     if (result.failed()) {
-                        // Site 4b: Catalog fetch failure — warning level (CP-01 D-10 #4 failure path)
                         monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
                         throw new EdcException("Failed to fetch catalog: %s".formatted(result.getFailureDetail()));
                     }
                     var catalog = parseCatalog(key, result.getContent());
-                    // Site 4a: Catalog fetch succeeded — debug level (CP-01 D-10 #4 success path)
                     monitor.debug("%s catalog fetch succeeded: datasets=%d"
                             .formatted(key, catalog.getDatasets().size()));
                     return catalog;
@@ -153,12 +148,10 @@ public class AssetAccessAcquisitionService {
             return jsonLd.expand(catalogJsonObject)
                     .compose(expanded -> transformerRegistry.transform(expanded, Catalog.class))
                     .orElseThrow(failure -> {
-                        // Site 4b: Catalog parse failure — warning level (CP-01 D-10 #4 failure path)
                         monitor.warning("%s catalog parse failed: %s".formatted(key, failure.getFailureDetail()));
                         return new EdcException("Failed to parse catalog: %s".formatted(failure.getFailureDetail()));
                     });
         } catch (Exception e) {
-            // Site 4b: Catalog parse failure with cause — warning level (CP-01 D-10 #4 failure path)
             monitor.warning("%s catalog parse failed".formatted(key), e);
             throw new EdcException("Error parsing catalog response", e);
         }
@@ -183,7 +176,6 @@ public class AssetAccessAcquisitionService {
                 .findFirst()
                 .orElseThrow(() -> new EdcException("No PULL distribution found for asset ID: %s".formatted(assetId)));
 
-        // Site 5: Offer found — info level (CP-01 D-10 #5)
         monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s"
                 .formatted(key, assetId, firstOffer.getKey(), transferType));
         return new OfferContext(firstOffer.getKey(), firstOffer.getValue(), dataset, transferType);
@@ -215,7 +207,6 @@ public class AssetAccessAcquisitionService {
             var negotiationId = negotiationResult
                     .map(Entity::getId)
                     .orElseThrow(exceptionMapper(ContractNegotiation.class, null));
-            // Site 6: Negotiation initiated — info level (CP-01 D-10 #6)
             monitor.info("%s negotiation initiated: negotiationId=%s".formatted(key, negotiationId));
 
             var future = new CompletableFuture<ContractAgreement>();
@@ -226,17 +217,14 @@ public class AssetAccessAcquisitionService {
                     .whenComplete((result, throwable) -> {
                         negotiationListener.deregister(negotiationId);
                         if (throwable != null) {
-                            // Site 7-failure: Negotiation failed/timed out — warning level (CP-01 D-10 #7 failure)
-                            monitor.warning("%s negotiation failed: negotiationId=%s"
+                                monitor.warning("%s negotiation failed: negotiationId=%s"
                                     .formatted(key, negotiationId), throwable);
                         } else if (result != null) {
-                            // Site 7-success: Agreement received — info level (CP-01 D-10 #7)
-                            monitor.info("%s agreement received: agreementId=%s"
+                                monitor.info("%s agreement received: agreementId=%s"
                                     .formatted(key, result.getId()));
                         }
                     });
         } catch (Exception e) {
-            // Site 7-failure: Negotiation initiation threw — warning level (CP-01 D-10 #7 failure)
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
             return CompletableFuture.failedFuture(e);
         }
@@ -259,14 +247,12 @@ public class AssetAccessAcquisitionService {
 
         var result = transferProcessService.initiateTransfer(participantContext, transferRequest);
         if (result.failed()) {
-            // Site 8-failure: Transfer initiate failed — warning level (CP-01 D-10 #8 failure)
             monitor.warning("%s transfer initiate failed: %s".formatted(key, result.getFailureDetail()));
             return CompletableFuture.failedFuture(
                     new EdcException("Could not start transfer process: %s".formatted(result.getFailureDetail())));
         }
 
         var transferProcessId = result.getContent().getId();
-        // Site 8-init: Transfer initiated — info level (CP-01 D-10 #8)
         monitor.info("%s transfer initiated: transferProcessId=%s".formatted(key, transferProcessId));
         var future = new CompletableFuture<DataAddress>();
         transferListener.register(transferProcessId, future);
@@ -276,14 +262,12 @@ public class AssetAccessAcquisitionService {
                 .whenComplete((dataAddress, throwable) -> {
                     transferListener.deregister(transferProcessId);
                     if (throwable != null) {
-                        // Site 9-failure: Transfer failed/timed out — warning level
                         monitor.warning("%s transfer failed: transferProcessId=%s"
                                 .formatted(key, transferProcessId), throwable);
                     } else if (dataAddress != null) {
-                        // Site 9-info: Transfer completed (endpoint type only — token-safety per T-08-03-01)
+                        // Log endpoint type only at info level; full DataAddress may carry a bearer token.
                         monitor.info("%s transfer completed: endpointType=%s"
                                 .formatted(key, dataAddress.getType()));
-                        // Site 9-debug: Full DataAddress contents — debug only (may carry bearer token)
                         monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
                     }
                 });

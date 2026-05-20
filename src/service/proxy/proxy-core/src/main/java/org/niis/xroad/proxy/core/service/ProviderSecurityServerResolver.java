@@ -55,8 +55,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
  * stay in one place.
  *
  * <p>Maintenance-mode filtering is intentionally NOT performed here — it remains a
- * {@link DefaultServiceAddressResolver}-only concern per research D-15 /
- * 09-RESEARCH.md §"Open Questions (RESOLVED)" Q2.
+ * {@link DefaultServiceAddressResolver}-only concern.
  */
 @Slf4j
 @ApplicationScoped

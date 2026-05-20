@@ -37,7 +37,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-class XrdServerConfCatalogExtensionTest {
+class XRoadServerConfCatalogExtensionTest {
 
     @Mock
     private ServerConfProvider serverConfProvider;
@@ -45,11 +45,11 @@ class XrdServerConfCatalogExtensionTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
-    private XrdServerConfCatalogExtension extension;
+    private XRoadServerConfCatalogExtension extension;
 
     @BeforeEach
     void setUp() throws Exception {
-        extension = new XrdServerConfCatalogExtension();
+        extension = new XRoadServerConfCatalogExtension();
 
         setField(extension, "serverConfProvider", serverConfProvider);
         setField(extension, "globalConfProvider", globalConfProvider);

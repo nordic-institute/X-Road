@@ -73,7 +73,7 @@ class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore
 
     /**
      * Chooses the participant context ID for a given serviceId.
-     * MANAGEMENT subsystem must own a distinct DSP identity; see PRD dsp-mgmt-dual-context.
+     * MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations.
      */
     private String resolveContextId(ServiceId serviceId) {
         var mgmtService = globalConfProvider.getManagementRequestService();

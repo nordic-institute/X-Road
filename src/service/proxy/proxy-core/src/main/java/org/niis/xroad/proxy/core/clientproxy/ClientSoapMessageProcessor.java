@@ -215,8 +215,6 @@ public class ClientSoapMessageProcessor {
     private ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                                         String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("processRequest()");
-        // Acquire DSP asset access before sending the SOAP request (return discarded in Phase 9;
-        // Phase 10 pipes endpoint + auth into the HttpSender).
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         consumerSideDspProcessor.execute(new DspRequest(
                 decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),

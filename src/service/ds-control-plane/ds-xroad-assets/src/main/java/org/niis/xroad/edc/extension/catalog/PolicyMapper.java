@@ -161,8 +161,6 @@ class PolicyMapper {
                 .rightExpression(new LiteralExpression(endpoint.getMethod() + " " + endpoint.getPath()))
                 .build());
 
-        // Structural placeholder per D-09: Endpoint model has no additionalCondition field yet.
-        // When the field is added, call parseAdditionalConditions here.
         pathConstraints.addAll(parseAdditionalConditions(null, endpoint.getMethod(),
                 endpoint.getPath(), serviceContext));
 
@@ -175,7 +173,7 @@ class PolicyMapper {
     }
 
     /**
-     * Parses additional conditions from a JSON string. Structural placeholder per D-09 resolution.
+     * Parses additional conditions from a JSON string.
      * The current Endpoint model has no additionalCondition field, so this is invoked with null.
      * When the field is added, the caller will pass the actual JSON string.
      *

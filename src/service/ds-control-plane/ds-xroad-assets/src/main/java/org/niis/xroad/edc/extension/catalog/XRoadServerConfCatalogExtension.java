@@ -47,8 +47,8 @@ import org.niis.xroad.serverconf.ServerConfProvider;
  * by live ServerConf reads.
  */
 @Slf4j
-@Extension(XrdServerConfCatalogExtension.NAME)
-public class XrdServerConfCatalogExtension implements ServiceExtension {
+@Extension(XRoadServerConfCatalogExtension.NAME)
+public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
     static final String NAME = "X-Road ServerConf Catalog";
 
@@ -63,12 +63,8 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
      *
      * <p>Default resolves to {@code edc.hostname} (which itself defaults to the {@code HOSTNAME}
      * environment variable or {@code "localhost"}), matching the Identity Hub bootstrap convention.
-     *
-     * <p><b>Historical note:</b> prior to DCP migration this was hardcoded to {@code "xroad-provider"}.
-     * Under {@code edc-iam-mock} the mismatch was silently tolerated. Under {@code edc-iam-dcp-core}
-     * EDC's catalog endpoint filters the {@code ContractDefinitionStore} by
-     * {@code participantContextId = <routed-context>}, causing all definitions to be excluded and
-     * the catalog to return zero datasets (CFG-01).
+     * Under {@code edc-iam-dcp-core}, EDC's catalog endpoint filters the {@code ContractDefinitionStore}
+     * by {@code participantContextId = <routed-context>}, so this value must match exactly.
      */
     static final String SETTING_PARTICIPANT_CONTEXT_ID = "xroad.dsp.participant-context-id";
 
@@ -77,8 +73,7 @@ public class XrdServerConfCatalogExtension implements ServiceExtension {
      *
      * <p>MANAGEMENT subsystem must own a distinct DSP identity so that self-negotiation (SS hosting
      * MANAGEMENT locally) produces two distinct {@code participantContextId} values — one per side of
-     * the contract negotiation — avoiding the {@code edc_contract_negotiation} unique-constraint
-     * collision documented in PRD dsp-mgmt-dual-context.
+     * the contract negotiation — avoiding the {@code edc_contract_negotiation} unique-constraint collision.
      *
      * <p>Defaults to {@code ${xroad.dsp.participant-context-id}-mgmt}, resolved by Smallrye Config
      * expression chaining.

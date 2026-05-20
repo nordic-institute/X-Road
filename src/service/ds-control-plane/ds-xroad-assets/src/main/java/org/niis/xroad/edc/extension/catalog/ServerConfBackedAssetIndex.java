@@ -73,7 +73,7 @@ class ServerConfBackedAssetIndex implements AssetIndex {
 
     /**
      * Chooses the participant context ID for a given serviceId.
-     * MANAGEMENT subsystem must own a distinct DSP identity; see PRD dsp-mgmt-dual-context.
+     * MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations.
      */
     private String resolveContextId(ServiceId serviceId) {
         var mgmtService = globalConfProvider.getManagementRequestService();
@@ -84,8 +84,8 @@ class ServerConfBackedAssetIndex implements AssetIndex {
 
     /**
      * Returns one {@link Asset} per enabled service across all members.
-     * Disabled services (non-null {@code getDisabledNotice}) are excluded per D-12.
-     * Results are filtered and paged by {@link ServerConfQueryEvaluator} per D-05/D-06.
+     * Disabled services (non-null {@code getDisabledNotice}) are excluded.
+     * Results are filtered and paged by {@link ServerConfQueryEvaluator}.
      */
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
