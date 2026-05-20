@@ -28,10 +28,13 @@ package org.niis.xroad.edc.extension.assetaccess.grpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.grpc.stub.StreamObserver;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.EdcException;
+import org.niis.xroad.common.core.telemetry.SpanAttributes;
+import org.niis.xroad.common.core.telemetry.XrdSpanAttrs;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
@@ -62,9 +65,19 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     private final RpcResponseHandler responseHandler;
 
     @Override
+    @WithSpan("dsp-asset-acquire")
     public void acquire(AcquireAssetAccessReq request,
                         StreamObserver<AcquireAssetAccessResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> {
+
+            SpanAttributes.onCurrent()
+                    .set(XrdSpanAttrs.AssetAccess.PARTICIPANT_CONTEXT_ID, request.getParticipantContextId())
+                    .set(XrdSpanAttrs.AssetAccess.ASSET_ID, request.getAssetId())
+                    .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ID, request.getCounterPartyId())
+                    .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ADDRESS, request.getCounterPartyAddress())
+                    .set(XrdSpanAttrs.AssetAccess.PROTOCOL, request.getProtocol().isEmpty() ? null : request.getProtocol())
+                    .apply();
+
             var participantResult = participantContextService
                     .getParticipantContext(request.getParticipantContextId());
             if (participantResult.failed()) {

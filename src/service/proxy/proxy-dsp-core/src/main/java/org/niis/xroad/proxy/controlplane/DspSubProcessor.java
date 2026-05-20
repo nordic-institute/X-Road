@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,7 @@ public class DspSubProcessor implements DspRequestProcessor {
     private final Map<String, CounterPartyTarget> mgmtCounterPartyTargets = CounterPartyTarget.managementMap();
 
     @Override
+    @WithSpan("dsp-execute")
     public AssetAccessResponse execute(DspRequest request) {
         log.trace("execute({})", request);
 

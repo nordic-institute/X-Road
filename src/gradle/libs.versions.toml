@@ -45,6 +45,7 @@ owaspDependencyCheck = "12.2.2"
 jersey = "4.0.2"
 edc = "0.17.0"
 opentelemetry-javaagent = "2.27.0"
+opentelemetry-sdk-testing = "1.61.0"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -246,6 +247,7 @@ acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "5.1.1" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry-javaagent" }
 opentelemetry-javaagent = { module = "io.opentelemetry.javaagent:opentelemetry-javaagent", version.ref = "opentelemetry-javaagent" }
+opentelemetry-sdk-testing = { module = "io.opentelemetry:opentelemetry-sdk-testing", version.ref = "opentelemetry-sdk-testing" }
 
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
