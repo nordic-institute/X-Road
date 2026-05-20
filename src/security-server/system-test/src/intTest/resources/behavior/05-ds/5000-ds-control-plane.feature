@@ -21,5 +21,5 @@ Feature: 5000 - DS control plane tests
     And Asset is created in participant context "test-part-ctx"
     And Policy definition is created in participant context "test-part-ctx"
     And Contract definition is created in participant context "test-part-ctx"
-    Then Catalog can be retrieved from participant context "test-part-ctx" with DID "did:web:ds-identity-hub%3A7183"
+    Then Catalog can be retrieved using participant context "test-part-ctx" with DID "did:web:ds-identity-hub%3A7183"
     And Participant context "test-part-ctx" can be retrieved
