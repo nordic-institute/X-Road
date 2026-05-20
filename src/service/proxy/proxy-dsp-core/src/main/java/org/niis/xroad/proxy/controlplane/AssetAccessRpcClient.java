@@ -37,17 +37,17 @@ import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
-import org.niis.xroad.proxy.core.clientproxy.dsp.AssetAccessResponse;
-import org.niis.xroad.proxy.core.clientproxy.dsp.ControlPlaneNegotiationService;
+import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
+import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 /**
- * gRPC-based implementation of {@link ControlPlaneNegotiationService} that calls
+ * gRPC-based implementation of {@link AssetAccessAcquisitionService} that calls
  * the ds-control-plane AssetAccessService to acquire asset access responses.
  */
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
-public class AssetAccessRpcClient extends AbstractRpcClient implements ControlPlaneNegotiationService {
+public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAccessAcquisitionService {
 
     private final RpcChannelFactory rpcChannelFactory;
     private final AssetAccessRpcChannelProperties channelProperties;

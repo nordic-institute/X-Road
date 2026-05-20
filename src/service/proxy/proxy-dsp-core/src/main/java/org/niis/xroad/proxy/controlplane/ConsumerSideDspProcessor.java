@@ -31,10 +31,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.proxy.core.clientproxy.dsp.AssetAccessResponse;
-import org.niis.xroad.proxy.core.clientproxy.dsp.ControlPlaneNegotiationService;
-import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequest;
-import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequestProcessor;
+import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
+import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspRequest;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
  * Consumer-side implementation of {@link DspRequestProcessor}. Resolves candidate provider security
  * servers via {@link ProviderSecurityServerResolver}, looks each up in the hardcoded
  * {@link CounterPartyTarget} map, and invokes
- * {@link ControlPlaneNegotiationService#acquireAssetAccess} in shuffled order until one succeeds.
+ * {@link AssetAccessAcquisitionService#acquireAssetAccess} in shuffled order until one succeeds.
  *
  * <p>ID construction:
  * <ul>
@@ -68,7 +68,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 @RequiredArgsConstructor
 public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
-    private final ControlPlaneNegotiationService controlPlaneNegotiationService;
+    private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
 
     @SuppressWarnings("deprecation")
@@ -103,7 +103,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 continue;
             }
             try {
-                return controlPlaneNegotiationService.acquireAssetAccess(
+                return assetAccessAcquisitionService.acquireAssetAccess(
                         assetId, target.counterPartyId(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",

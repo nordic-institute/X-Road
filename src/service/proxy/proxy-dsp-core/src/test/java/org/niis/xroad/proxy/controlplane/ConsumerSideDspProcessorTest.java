@@ -37,9 +37,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.proxy.core.clientproxy.dsp.AssetAccessResponse;
-import org.niis.xroad.proxy.core.clientproxy.dsp.ControlPlaneNegotiationService;
-import org.niis.xroad.proxy.core.clientproxy.dsp.DspRequest;
+import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
+import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
@@ -70,7 +70,7 @@ class ConsumerSideDspProcessorTest {
     private static final String UNKNOWN_HOST = "unknown.example.com";
 
     @Mock
-    private ControlPlaneNegotiationService controlPlaneNegotiationService;
+    private AssetAccessAcquisitionService assetAccessAcquisitionService;
     @Mock
     private ProviderSecurityServerResolver providerSecurityServerResolver;
 
@@ -79,7 +79,7 @@ class ConsumerSideDspProcessorTest {
 
     @BeforeEach
     void setUp() {
-        processor = new ConsumerSideDspProcessor(controlPlaneNegotiationService, providerSecurityServerResolver);
+        processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 
@@ -88,7 +88,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var expected = new AssetAccessResponse("http://dp.example.com/endpoint", "token-abc");
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any())).thenReturn(expected);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any())).thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, null, false));
 
@@ -101,13 +101,13 @@ class ConsumerSideDspProcessorTest {
     void assetIdDerivedFromServiceIdEncoding() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
         processor.execute(new DspRequest(serviceId, null, false));
 
         var assetIdCaptor = ArgumentCaptor.forClass(String.class);
-        verify(controlPlaneNegotiationService).acquireAssetAccess(assetIdCaptor.capture(), any(), any());
+        verify(assetAccessAcquisitionService).acquireAssetAccess(assetIdCaptor.capture(), any(), any());
         assertThat(assetIdCaptor.getValue()).isEqualTo(serviceId.asEncodedId());
     }
 
@@ -115,14 +115,14 @@ class ConsumerSideDspProcessorTest {
     void counterPartyIdAndAddressLookedUpFromTargetMap() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
         processor.execute(new DspRequest(serviceId, null, false));
 
         var idCaptor = ArgumentCaptor.forClass(String.class);
         var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(controlPlaneNegotiationService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
         assertThat(idCaptor.getValue()).isEqualTo(DID_A);
         assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
     }
@@ -133,13 +133,13 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, hint))
                 .thenReturn(List.of(new ProviderAddress(hint, HOST_A)));
         var expected = new AssetAccessResponse("http://dp/e", null);
-        when(controlPlaneNegotiationService.acquireAssetAccess(
+        when(assetAccessAcquisitionService.acquireAssetAccess(
                 eq(serviceId.asEncodedId()), eq(DID_A), eq(URL_A))).thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, hint, false));
 
         assertThat(result).isSameAs(expected);
-        verify(controlPlaneNegotiationService).acquireAssetAccess(
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
                 eq(serviceId.asEncodedId()), eq(DID_A), eq(URL_A));
     }
 
@@ -155,7 +155,7 @@ class ConsumerSideDspProcessorTest {
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.INVALID_SECURITY_SERVER.code()));
 
-        verify(controlPlaneNegotiationService, never()).acquireAssetAccess(any(), any(), any());
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
     }
 
     @Test
@@ -169,7 +169,7 @@ class ConsumerSideDspProcessorTest {
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
 
-        verify(controlPlaneNegotiationService, never()).acquireAssetAccess(any(), any(), any());
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
     }
 
     @Test
@@ -183,9 +183,9 @@ class ConsumerSideDspProcessorTest {
         // A always fails, B always succeeds — result is `expected` regardless of order.
         // A's stub is lenient so when shuffle picks B first (and A is never tried) the
         // strict-stubbing check doesn't fire.
-        lenient().when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+        lenient().when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenThrow(new RuntimeException("SS A unreachable"));
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
                 .thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, null, false));
@@ -201,9 +201,9 @@ class ConsumerSideDspProcessorTest {
                         new ProviderAddress(null, HOST_B)));
         var failureA = new RuntimeException("SS A unreachable");
         var failureB = new RuntimeException("SS B unreachable");
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenThrow(failureA);
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
                 .thenThrow(failureB);
 
         // Candidate order is shuffled, so the chained root cause is whichever was iterated
@@ -223,13 +223,13 @@ class ConsumerSideDspProcessorTest {
                         new ProviderAddress(null, UNKNOWN_HOST),
                         new ProviderAddress(null, HOST_A)));
         var expected = new AssetAccessResponse("http://dp.a/e", null);
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, null, false));
 
         assertThat(result).isSameAs(expected);
-        verify(controlPlaneNegotiationService, times(1)).acquireAssetAccess(any(), any(), any());
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any());
     }
 
     @Test
@@ -243,21 +243,21 @@ class ConsumerSideDspProcessorTest {
                         .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
                 .hasMessageContaining("candidate security servers failed");
 
-        verify(controlPlaneNegotiationService, never()).acquireAssetAccess(any(), any(), any());
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
     }
 
     @Test
     void managementRequestTargetsMgmtCtxDidAndUrl() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
         processor.execute(new DspRequest(serviceId, null, true));
 
         var idCaptor = ArgumentCaptor.forClass(String.class);
         var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(controlPlaneNegotiationService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
         assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
         assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
     }
@@ -266,14 +266,14 @@ class ConsumerSideDspProcessorTest {
     void nonManagementRequestTargetsHostCtxDidAndUrl() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        when(controlPlaneNegotiationService.acquireAssetAccess(any(), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
         processor.execute(new DspRequest(serviceId, null, false));
 
         var idCaptor = ArgumentCaptor.forClass(String.class);
         var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(controlPlaneNegotiationService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
         assertThat(idCaptor.getValue()).isEqualTo(DID_A);
         assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
     }

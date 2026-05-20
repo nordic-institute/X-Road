@@ -29,7 +29,7 @@ package org.niis.xroad.proxy.controlplane;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
-import org.niis.xroad.proxy.core.clientproxy.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;

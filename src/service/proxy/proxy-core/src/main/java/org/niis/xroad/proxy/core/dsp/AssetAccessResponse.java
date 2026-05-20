@@ -24,22 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.clientproxy.dsp;
-
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
+package org.niis.xroad.proxy.core.dsp;
 
 import jakarta.annotation.Nullable;
 
 /**
- * DSP sub-processing request. Carries the per-request context that
- * {@link DspRequestProcessor} needs to resolve asset access from the control plane.
+ * Asset access response from the control plane.
  *
- * @param serviceId            the target service's identifier (non-null after SOAP/REST decoding)
- * @param targetSecurityServer optional caller-sent security-server hint; when non-null the
- *                             resolver restricts provider candidates to this exact SS
- * @param management           {@code true} when the request targets the MANAGEMENT subsystem;
- *                             causes the processor to select the mgmt participant context target
+ * @param endpoint      the dataplane endpoint URL where the transfer request should be sent
+ * @param authorization optional authorization credential for the dataplane (may be null)
  */
-public record DspRequest(ServiceId serviceId, @Nullable SecurityServerId targetSecurityServer, boolean management) {
+public record AssetAccessResponse(String endpoint, @Nullable String authorization) {
 }

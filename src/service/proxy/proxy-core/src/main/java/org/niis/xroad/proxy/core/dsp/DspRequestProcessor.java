@@ -24,15 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.clientproxy.dsp;
-
-import jakarta.annotation.Nullable;
+package org.niis.xroad.proxy.core.dsp;
 
 /**
- * Asset access response from the control plane.
- *
- * @param endpoint      the dataplane endpoint URL where the transfer request should be sent
- * @param authorization optional authorization credential for the dataplane (may be null)
+ * Processes DSP (Data Space Protocol) requests within the proxy request pipeline.
+ * Implementations perform asset access acquisition via the control plane.
  */
-public record AssetAccessResponse(String endpoint, @Nullable String authorization) {
+public interface DspRequestProcessor {
+
+    /**
+     * Executes DSP processing for the given request and returns the asset access details
+     * (endpoint + optional authorization) resolved from the control plane.
+     *
+     * @param request the DSP request carrying the target service identifier and an optional
+     *                caller-sent security-server hint
+     * @return the asset access response containing the dataplane endpoint and optional authorization
+     */
+    AssetAccessResponse execute(DspRequest request);
 }

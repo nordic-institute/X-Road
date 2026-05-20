@@ -24,21 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.clientproxy.dsp;
+package org.niis.xroad.proxy.core.dsp;
+
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
+
+import jakarta.annotation.Nullable;
 
 /**
- * Processes DSP (Data Space Protocol) sub-requests within the proxy request pipeline.
- * Implementations perform asset access acquisition via the control plane.
+ * DSP request. Carries the per-request context that
+ * {@link DspRequestProcessor} needs to resolve asset access from the control plane.
+ *
+ * @param serviceId            the target service's identifier (non-null after SOAP/REST decoding)
+ * @param targetSecurityServer optional caller-sent security-server hint; when non-null the
+ *                             resolver restricts provider candidates to this exact SS
+ * @param management           {@code true} when the request targets the MANAGEMENT subsystem;
+ *                             causes the processor to select the mgmt participant context target
  */
-public interface DspRequestProcessor {
-
-    /**
-     * Executes DSP sub-processing for the given request and returns the asset access details
-     * (endpoint + optional authorization) resolved from the control plane.
-     *
-     * @param request the DSP sub-request carrying the target service identifier and an optional
-     *                caller-sent security-server hint
-     * @return the asset access response containing the dataplane endpoint and optional authorization
-     */
-    AssetAccessResponse execute(DspRequest request);
+public record DspRequest(ServiceId serviceId, @Nullable SecurityServerId targetSecurityServer, boolean management) {
 }

@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.clientproxy.dsp;
+package org.niis.xroad.proxy.core.dsp;
 
 /**
  * Acquires asset access responses from the DSP control plane.
@@ -32,7 +32,7 @@ package org.niis.xroad.proxy.core.clientproxy.dsp;
  * The control plane orchestrates the full negotiation internally (catalog, contract, transfer)
  * and returns an asset access response containing the dataplane endpoint URL and optional authorization credentials.
  */
-public interface ControlPlaneNegotiationService {
+public interface AssetAccessAcquisitionService {
 
     /**
      * Acquires an asset access response from the control plane for the given asset and provider.
