@@ -1,0 +1,23 @@
+---
+# Full URL of the bootstrapper script (REQUIRED — asserted in main.yml).
+# Example: https://artifactory.niis.org/artifactory/xroad-scripts/0.0.1-beta/get-xroad.sh
+bootstrapper_url: ""
+
+# Optional: override the package repo the installer points apt/dnf at.
+# Leave empty to let the installer use its built-in defaults
+# (artifactory.niis.org xroad8-snapshot-{deb,rpm}).
+xroad_repo_url_override: ""
+xroad_repo_gpg_key_url: ""
+
+# Installer config values — mapped 1:1 onto XROAD_* keys in the .conf file.
+xroad_admin_username: xrd
+xroad_admin_password: secret123!
+xroad_db_type: local
+xroad_secret_store_type: local
+xroad_ss_package: xroad-securityserver
+xroad_tls_hostname: "{{ inventory_hostname }}"
+xroad_tls_alt_names: "IP:127.0.0.1,DNS:localhost,DNS:{{ inventory_hostname }}"
+xroad_proxy_mem_setting: "d"
+
+# Pass --skip-requirements-check to the installer (OS/RAM/CPU bypass).
+skip_requirements_check: false
