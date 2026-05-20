@@ -7,9 +7,7 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":service:ds-control-plane:ds-control-plane-db")) {
-    exclude("org.eclipse.edc", "transfer-data-plane-signaling") // deprecated
-  }
+  implementation(project(":service:ds-control-plane:ds-control-plane-db"))
 
   implementation(project(":service:ds-control-plane:ds-ext-sample"))
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-api"))
@@ -24,7 +22,6 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
 
   runtimeOnly(libs.edc.core.controlplane) {
-    exclude("org.eclipse.edc", "transfer-data-plane-signaling") // deprecated
     // EDC 0.17 ships two mutually-exclusive state-machine drivers: classic Manager
     // (control-plane-{contract,transfer}-manager) and task-based (control-plane-
     // {contract,transfer}-task-executor). control-plane-core transitively pulls
