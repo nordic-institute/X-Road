@@ -1,0 +1,14 @@
+{% set node = inventory_hostname | regex_replace('^xrd-', '') %}
+# LXD dev-env tracing — sourced by /etc/xroad/services/global.conf.
+# Sends traces directly to xrd-jaeger on the LXD bridge.
+# Rendered per-host so Jaeger UI can distinguish nodes:
+#   - XROAD_NODE_ID suffixes OTEL_SERVICE_NAME in per-service .conf files
+#     (e.g. xroad-proxy-ss0) for at-a-glance distinction in trace timeline.
+#   - service.namespace resource attr still set for service-map grouping.
+export XROAD_NODE_ID={{ node }}
+export OTEL_SDK_DISABLED=false
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://xrd-jaeger.lxd:4317
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+export OTEL_LOGS_EXPORTER=none
+export OTEL_METRICS_EXPORTER=none
+export OTEL_RESOURCE_ATTRIBUTES=service.namespace={{ node }},service.instance.id={{ inventory_hostname }},host.name={{ inventory_hostname }},deployment.environment=lxd-dev

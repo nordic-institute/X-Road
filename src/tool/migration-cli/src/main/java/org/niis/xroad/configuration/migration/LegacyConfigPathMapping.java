@@ -128,7 +128,7 @@ public class LegacyConfigPathMapping {
 
         // message-log - archive encryption/grouping properties (moved to archiver sub-section and renamed)
         addMapping("message-log.archive-encryption-enabled", "message-log-encryption.archive.encryption-enabled");
-        addMapping("message-log.archive-default-encryption-key", "pmessage-log-encryption.archive.default-key-id");
+        addMapping("message-log.archive-default-encryption-key", "message-log-encryption.archive.default-key-id");
         addMapping("message-log.archive-grouping", "message-log-encryption.archive.grouping-strategy");
         addMapping("message-log.archive-encryption-keys-config", "message-log-encryption.archive.grouping-keys");
 

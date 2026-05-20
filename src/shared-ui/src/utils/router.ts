@@ -32,11 +32,17 @@ import { XrdLocation, XrdRoute } from '../types';
 
 interface Config {
   loginRouteName: string;
+  initAdminRouteName?: string;
   initialisationRouteName: string;
   forbiddenRouteName: string;
   isAuthenticated: () => boolean;
   isServerInitialized: () => boolean;
+  isAdminUserCreationRequired?: () => Promise<boolean>;
   hasAnyOfPermissions: (permissions: string[]) => boolean;
+  /**
+   * Optional escape hatch for routes that should be reachable without authentication
+   * (e.g. initial admin user creation during a fresh server bootstrap). Defaults to false.
+   */
   routes: XrdRoute[];
 }
 
@@ -56,6 +62,16 @@ export function createXrdRouter(config: Config): Router {
   router.beforeEach(async (to: XrdLocation, from: RouteLocationNormalized) => {
     // Going to login
     if (to.name === config.loginRouteName) {
+
+      if (config.initAdminRouteName && config.isAdminUserCreationRequired) {
+        const creationRequired = await config.isAdminUserCreationRequired();
+
+        if (creationRequired) {
+          return {
+            name: config.initAdminRouteName,
+          }
+        }
+      }
       return;
     }
 
@@ -68,7 +84,7 @@ export function createXrdRouter(config: Config): Router {
     // user to be redirected to a view that contains api calls (s)he is not allowed.
     if (appState.isSessionAlive() && config.isAuthenticated()) {
       // Server is not initialized
-      if (!config.isServerInitialized() && to.name != config.initialisationRouteName && from.name != config.initialisationRouteName) {
+      if (!config.isServerInitialized() && to.name != config.initialisationRouteName) {
         return {
           name: config.initialisationRouteName,
         };
@@ -90,6 +106,8 @@ export function createXrdRouter(config: Config): Router {
           };
         }
       }
+    } else if (to.name === config.initAdminRouteName && config.isAdminUserCreationRequired && (await config.isAdminUserCreationRequired())) {
+      return;
     } else {
       return {
         name: config.loginRouteName,

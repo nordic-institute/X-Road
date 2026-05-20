@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.api.trace.Span;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -86,9 +86,9 @@ public class ClientSoapMessageHandler extends HandlerBase {
     }
 
     @Override
-    @WithSpan
     @SuppressWarnings({"java:S3776"})
     public boolean handle(Request request, Response response, Callback callback) throws IOException {
+        Span.current().updateName("ClientProxy SOAP");
         boolean handled = false;
         long start = ProxyMessageUtils.logPerformanceBegin(request);
         OpMonitoringData opMonitoringData = new OpMonitoringData(CLIENT, start);

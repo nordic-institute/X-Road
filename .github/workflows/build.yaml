@@ -18,12 +18,6 @@ on:
       - 'deployment/**'
       - 'development/**'
 
-  # Run Build after Dependabot metadata regeneration completes.
-  workflow_run:
-    workflows: ["Update Gradle Metadata (Dependabot)"]
-    types:
-      - completed
-
 permissions:
   contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
   pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
@@ -39,25 +33,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Skip Build for dependabot/gradle/* pull_request events. Dependabot
-  # dependency updates first run the metadata regeneration workflow, and
-  # Build is triggered afterwards via workflow_run on the final metadata
-  # commit SHA.
+  # Skip Build on dependabot/gradle/* branches for any event sent by
+  # Dependabot itself (open, recreate, rebase — all fire pull_request with
+  # sender.login == 'dependabot[bot]'). The dependabot-gradle-metadata.yml
+  # workflow regenerates verification-metadata.xml and force-pushes as
+  # github-actions[bot]; that sync event has sender.login ==
+  # 'github-actions[bot]' and runs Build on the fixed commit.
+  # See gradle-dependency-verification.md.
   build-and-package:
     name: build & package
     if: >
-      github.event_name == 'workflow_run'
-      || !startsWith(github.head_ref, 'dependabot/gradle/')
+      !(startsWith(github.head_ref, 'dependabot/gradle/')
+        && github.event.sender.login == 'dependabot[bot]')
     uses: ./.github/workflows/_build-and-package.yml
     secrets: inherit
     with:
-      ref: ${{ github.event_name == 'workflow_run'
-        && format('refs/heads/{0}', github.event.workflow_run.head_branch)
-        || github.ref }}
-
-      sha: ${{ github.event_name == 'workflow_run'
-        && github.event.workflow_run.head_sha
-        || github.sha }}
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
 
   test-central-server:
     name: cs-system-tests

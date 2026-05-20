@@ -6,7 +6,7 @@ Feature: 0530 - SS: Client internal servers
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
     And Clients tab is selected
 
   Scenario: Client Internal server connection type is changed

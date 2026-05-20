@@ -124,18 +124,7 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
               - name: PROP_DB_USER
                 value: "${db_user}"
 EOF
-
-  if [[ "$SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER" == "true" ]]; then
-    cat <<EOF
-              - name: PROP_PROXY_UI_SUPERUSER
-                value: "${PROXY_UI_SUPERUSER}"
-              - name: PROP_PROXY_UI_SUPERUSER_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: serverconf-db-init-secret
-                    key: proxy_ui_superuser_password
-EOF
-  fi) | kubectl apply -f -
+) | kubectl apply -f -
 
   if [ $? -ne 0 ]; then
     abort "Failed to trigger Liquibase migration job."

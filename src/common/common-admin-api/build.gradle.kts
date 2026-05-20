@@ -28,8 +28,6 @@ dependencies {
     implementation(libs.springBoot.starterCache)
     implementation(libs.springBoot.starterValidation)
     implementation(libs.springBoot.starterActuator)
-    implementation(libs.springBoot.micrometerTracingBrave)
-    implementation("io.micrometer:micrometer-tracing-bridge-brave")
     implementation(libs.libpam4j)
     implementation(libs.swagger.parserV3)
     implementation(libs.swagger.annotations)
@@ -41,7 +39,6 @@ dependencies {
     api("com.github.ben-manes.caffeine:caffeine")
 
     testImplementation(project(":common:common-test"))
-    testImplementation(libs.springBoot.micrometerTracingTest)
     testImplementation(libs.springBoot.starterSecurityTest)
     testImplementation(libs.springBoot.starterJdbcTest)
     testImplementation(libs.springBoot.starterWebmvcTest)

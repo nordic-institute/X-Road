@@ -6,18 +6,6 @@ Common DB init job template
 {{- $config := .config }}
 {{- $root := .root }}
 
-{{- if and (eq $name "serverconf") (hasKey $config "proxyUiSuperuserPassword") }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ $name }}-db-init-secret
-  annotations:
-      "helm.sh/hook": pre-install,pre-upgrade
-      "helm.sh/hook-weight": "-10"  # Lower weight execution than db-init job, as it depends on given secret being present
-data:
-  proxy_ui_superuser_password: {{ $config.proxyUiSuperuserPassword | b64enc | quote }}
-{{- end }}
----
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -65,15 +53,6 @@ spec:
               value: {{ $config.schema | quote }}
             - name: PROP_DB_USER
               value: {{ $config.username | quote }}
-            {{- if and (eq $name "serverconf") (hasKey $config "proxyUiSuperuserPassword") }}
-            - name: PROP_PROXY_UI_SUPERUSER
-              value: {{ $config.proxyUiSuperuser | quote }}
-            - name: PROP_PROXY_UI_SUPERUSER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $name }}-db-init-secret
-                  key: proxy_ui_superuser_password
-            {{- end }}
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume

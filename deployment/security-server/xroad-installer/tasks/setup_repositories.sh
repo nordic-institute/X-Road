@@ -66,9 +66,11 @@ setup_repositories_ubuntu() {
 
   local repo_url="${XROAD_REPO_URL_OVERRIDE:-$XROAD_REPO_BASE_URL/$XROAD_REPO_MAIN $codename-current main}"
 
-  echo "deb [signed-by=${xroad_keyring_path}] ${repo_url}" > "$sources_file"
-
   log_message "  Main repository: $repo_url"
+
+  echo "deb [signed-by=$xroad_keyring_path] $repo_url" > "$sources_file" \
+      || log_die "Failed to write $sources_file"
+
   log_info "Repository configuration added to $sources_file"
   log_message ""
 

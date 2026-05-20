@@ -291,13 +291,12 @@ function handleAnsible() {
     -vv
 }
 
-function applyMacNet() {
-  [[ $(uname) != "Darwin" ]] && return 0
-  if [ "$SKIP_MAC_NETWORKING" = true ]; then
-    log_info "Skipping setup-mac-net.sh apply (--skip-mac-networking)"
-    return 0
-  fi
-  ./scripts/setup-mac-net.sh apply
+function applyHostNet() {
+  case "$(uname)" in
+    Darwin) ./scripts/setup-mac-net.sh apply ;;
+    Linux)  ./scripts/setup-linux-net.sh apply ;;
+    *)      return 0 ;;
+  esac
 }
 
 function handleBuild() {
@@ -337,8 +336,7 @@ function main() {
   ensureCacheFilled
   listSnapshots
   handleAnsible
-  applyMacNet
-  handleSnapshotEmpty
+  applyHostNet
   handleInitialize
 }
 

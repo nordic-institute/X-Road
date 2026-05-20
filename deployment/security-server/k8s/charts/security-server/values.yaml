@@ -18,8 +18,6 @@ init:
     database: "serverconf"
     username: "serverconf"
     schema: "public"
-    proxyUiSuperuser: "xrd"
-#    proxyUiSuperuserPassword:
   messagelog:
     host: "db-messagelog"
     port: "5432"
@@ -63,6 +61,7 @@ serviceAccount:
 
 services:
   configuration-client:
+    otelServiceName: xroad-confclient
     imageName: ss-configuration-client
     resources:
       requests:
@@ -83,7 +82,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=100m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=128m
       XROAD_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "60"
@@ -104,6 +103,7 @@ services:
         key: "password"
 
   signer:
+    otelServiceName: xroad-signer
     imageName: ss-signer
     resources:
       requests:
@@ -124,7 +124,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx64m -XX:MaxMetaspaceSize=128m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "signer"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
@@ -145,6 +145,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   proxy:
+    otelServiceName: xroad-proxy
     imageName: ss-proxy
     resources:
       requests:
@@ -174,7 +175,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx512m -XX:MaxMetaspaceSize=140m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "proxy"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
@@ -206,6 +207,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   proxy-ui-api:
+    otelServiceName: xroad-ss-admin-service
     imageName: ss-proxy-ui-api
     resources:
       requests:
@@ -222,7 +224,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx256m -XX:MaxMetaspaceSize=200m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=240m
       DEBUG_PORT: "9999"
       XROAD_HOST: "proxy-ui-api"
       XROAD_SECRET_STORE_HOST: "openbao"
@@ -255,6 +257,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   monitor:
+    otelServiceName: xroad-monitor
     imageName: ss-monitor
     resources:
       requests:
@@ -274,7 +277,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx128m -XX:MaxMetaspaceSize=120m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=160m
       DEBUG_PORT: "9999"
       XROAD_HOST: "monitor"
       XROAD_SECRET_STORE_HOST: "openbao"
@@ -300,6 +303,7 @@ services:
         key: "password"
   op-monitor:
     enabled: false
+    otelServiceName: xroad-opmonitor
     imageName: ss-op-monitor
     resources:
       requests:
@@ -321,7 +325,7 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx350m -XX:MaxMetaspaceSize=120m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=120m
       DEBUG_PORT: "9999"
       XROAD_HOST: "op-monitor"
       XROAD_OP_MONITOR_LISTEN_ADDRESS: 0.0.0.0
@@ -345,6 +349,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   auxiliary-service:
+    otelServiceName: xroad-auxiliary
     imageName: ss-auxiliary-service
     resources:
       requests:
@@ -376,7 +381,7 @@ services:
     skipDefaultMounts:
       - /var/lib/xroad
     env:
-      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=70m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=128m
       XROAD_HOST: "auxiliary-service"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
@@ -391,8 +396,6 @@ services:
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
       SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-init:8.0.0-beta2"
-      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
-      PROXY_UI_SUPERUSER: "xrd"
       DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
@@ -687,7 +690,7 @@ messageLogArchiver:
   ttlSecondsAfterFinished: 172800 # 48 hours
   imageName: ss-message-log-archiver
   env:
-    JAVA_OPTS: "-Xmx200m -XX:MaxMetaspaceSize=90m -XX:+ExitOnOutOfMemoryError"
+    JAVA_OPTS: "-XX:MaxMetaspaceSize=90m -XX:+ExitOnOutOfMemoryError"
     XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog:5432/messagelog"
     XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
     XROAD_SECRET_STORE_HOST: "openbao"
@@ -723,6 +726,9 @@ persistentVolumeClaims:
     accessMode: ReadWriteOnce
     storage: 1Gi
 
+jvmHeap:
+  maxRAMPercentage: 60.0
+
 jvmMetrics:
   enabled: false
   jmxExporter:
@@ -732,6 +738,18 @@ jvmMetrics:
       lowercaseOutputLabelNames: true
       rules:
         - pattern: ".*"
+
+otel:
+  enabled: false
+  # Optional node suffix for dev environments where multiple SS instances share one Jaeger backend (e.g. ss2).
+  nodeId: ""
+  # OTLP endpoint. Must match `protocol`: gRPC defaults to :4317, http/protobuf to :4318.
+  endpoint: ""
+  protocol: grpc
+  sampler: parentbased_always_on
+  resourceAttributes:
+    serviceNamespace: xroad
+    deploymentEnvironment: k8s-dev
 
 # PostgreSQL image used by DSP wait-gate initContainers (`xroad.dsp.wait.*`
 # helpers shell into this image for `pg_isready` / `psql`). The DB clusters

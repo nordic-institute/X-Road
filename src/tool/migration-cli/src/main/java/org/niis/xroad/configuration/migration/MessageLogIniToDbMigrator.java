@@ -50,15 +50,15 @@ import java.util.Set;
  *
  * <p>Output format (database properties for Quarkus):
  * <pre>
- * xroad.common.messagelog.archive-grouping-keys."TEST/GOV/1234"[0] = B2343D46FF3C40F6
- * xroad.common.messagelog.archive-grouping-keys."TEST/GOV/1234"[1] = 92DA25CD74A678B1
- * xroad.common.messagelog.archive-grouping-keys."TEST/COM/5678"[0] = D014E1D708695CB7
+ * xroad.message-log-encryption.archive.grouping-keys."TEST/GOV/1234"[0] = B2343D46FF3C40F6
+ * xroad.message-log-encryption.archive.grouping-keys."TEST/GOV/1234"[1] = 92DA25CD74A678B1
+ * xroad.message-log-encryption.archive.grouping-keys."TEST/COM/5678"[0] = D014E1D708695CB7
  * </pre>
  */
 @Slf4j
 public class MessageLogIniToDbMigrator extends BasePropertiesToDbMigrator {
 
-    private static final String PROPERTY_PREFIX = "xroad.common.messagelog.archive-grouping-keys";
+    private static final String PROPERTY_PREFIX = "xroad.message-log-encryption.archive.grouping-keys";
 
     @Override
     Map<String, String> loadProperties(String filePath) {
@@ -96,9 +96,9 @@ public class MessageLogIniToDbMigrator extends BasePropertiesToDbMigrator {
         return properties;
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         validateParams(args);
-        new MessageLogIniToDbMigrator().migrate(args[0], args[1], "messagelog");
+        new MessageLogIniToDbMigrator().migrate(args[0], args[1], null);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

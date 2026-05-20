@@ -30,12 +30,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.TokenInitStatusMapping;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusDto;
+import org.niis.xroad.securityserver.restapi.service.InitialAdminUserService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +59,28 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_
 @RequiredArgsConstructor
 public class InitializationApiController implements InitializationApi {
     private final InitializationService initializationService;
+    private final InitialAdminUserService initialAdminUserService;
+
+    @Override
+    @PreAuthorize("permitAll")
+    public ResponseEntity<InitialAdminUserStatusDto> getInitialAdminUserStatus() {
+        var dto = new InitialAdminUserStatusDto();
+        dto.setAdminUserCreationRequired(initialAdminUserService.isInitialAdminUserRequired());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("permitAll")
+    @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_ADD)
+    public synchronized ResponseEntity<Void> createInitialAdminUser(InitialAdminUserDto initialAdminUserDto) {
+        char[] password = initialAdminUserDto.getPassword().toCharArray();
+        try {
+            initialAdminUserService.createInitialAdminUser(initialAdminUserDto.getUsername(), password);
+        } finally {
+            java.util.Arrays.fill(password, '\0');
+        }
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 
     @Override
     @PreAuthorize("isAuthenticated()")

@@ -33,7 +33,7 @@ jobs:
       # avoid the Develocity / dependency-graph init scripts that would themselves
       # fail verification on a fresh runner.
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
 
       - name: Regenerate verification metadata
         run: |
@@ -44,14 +44,23 @@ jobs:
             --parallel \
             -q
 
-      # Always amend + force-push (even when metadata unchanged) so the PR
-      # head moves to the final metadata-verified commit SHA. Dependabot
-      # pull_request events skip Build directly; the Build workflow is
-      # triggered afterwards via workflow_run when this workflow completes.
+      - name: Detect metadata changes
+        id: metadata_changes
+        run: |
+          if git diff --quiet -- src/gradle/verification-metadata.xml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Only amend + force-push when verification metadata actually changed.
+      # Avoid rewriting the PR head SHA unnecessarily, because that detaches
+      # running Build checks from the latest commit.
       - name: Amend Dependabot commit and force-push
+        if: steps.metadata_changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/gradle/verification-metadata.xml
-          git commit --amend --no-edit --allow-empty
+          git commit --amend --no-edit
           git push --force-with-lease

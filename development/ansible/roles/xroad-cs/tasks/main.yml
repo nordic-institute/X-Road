@@ -9,6 +9,9 @@
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
 
+- include_tasks: postgres_remote_dev.yml
+  when: enable_postgres_remote_access | default(false) | bool
+
 # TEMPORARY (dataspaces dev): remove stale systemd drop-in that set jwks.url
 # via Environment= (superseded by local-ds-issuer-service.yaml placed by
 # pre-cs-install.yml). The drop-in dir is created by the package, so this

@@ -1,0 +1,152 @@
+---
+# Provision the xrd-jaeger LXD container and install Jaeger v2 inside it.
+- name: Launch xrd-jaeger LXD container
+  community.general.lxd_container:
+    name: "{{ jaeger_container_name }}"
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://cloud-images.ubuntu.com/releases
+      protocol: simplestreams
+      alias: "{{ ubuntu_releasever }}"
+    profiles: ["default"]
+    wait_for_ipv4_addresses: true
+    timeout: 300
+    url: "{{ lxd_url | default(omit) }}"
+  tags:
+    - jaeger
+
+- name: Force IPv4 for APT inside xrd-jaeger
+  raw: echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  tags:
+    - jaeger
+
+- name: Install dependencies inside xrd-jaeger
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.raw: |
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends ca-certificates curl tar
+  tags:
+    - jaeger
+
+- name: Create jaeger system user inside xrd-jaeger
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.user:
+    name: jaeger
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+  tags:
+    - jaeger
+
+- name: Ensure Jaeger directories inside xrd-jaeger
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: jaeger
+    group: jaeger
+    mode: "0755"
+  loop:
+    - "{{ jaeger_install_dir }}"
+    - "{{ jaeger_config_path | dirname }}"
+    - "{{ jaeger_storage_path }}"
+    - "{{ jaeger_storage_path }}/keys"
+    - "{{ jaeger_storage_path }}/values"
+  tags:
+    - jaeger
+
+- name: Resolve Jaeger binary architecture
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.set_fact:
+    jaeger_arch: "{{ jaeger_arch_map[ansible_architecture] | default('amd64') }}"
+  tags:
+    - jaeger
+
+- name: Download + extract Jaeger v2 binary
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.unarchive:
+    src: "https://github.com/jaegertracing/jaeger/releases/download/v{{ jaeger_version }}/jaeger-{{ jaeger_version }}-linux-{{ jaeger_arch }}.tar.gz"
+    dest: "{{ jaeger_install_dir }}"
+    remote_src: true
+    extra_opts: ["--strip-components=1"]
+    owner: jaeger
+    group: jaeger
+    creates: "{{ jaeger_install_dir }}/jaeger"
+  tags:
+    - jaeger
+
+- name: Render Jaeger configuration
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.template:
+    src: jaeger-config.yaml.j2
+    dest: "{{ jaeger_config_path }}"
+    owner: jaeger
+    group: jaeger
+    mode: "0644"
+  notify: restart jaeger
+  tags:
+    - jaeger
+
+- name: Install Jaeger systemd unit
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/jaeger.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Jaeger v2
+      Documentation=https://www.jaegertracing.io/docs/
+      After=network.target
+
+      [Service]
+      User=jaeger
+      Group=jaeger
+      ExecStart={{ jaeger_install_dir }}/jaeger --config {{ jaeger_config_path }}
+      AmbientCapabilities=CAP_NET_BIND_SERVICE
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: restart jaeger
+  tags:
+    - jaeger
+
+- name: Enable and start Jaeger
+  delegate_to: "{{ jaeger_container_name }}"
+  vars:
+    ansible_connection: lxd
+  become: false
+  ansible.builtin.systemd:
+    name: jaeger
+    enabled: true
+    state: started
+    daemon_reload: true
+  tags:
+    - jaeger

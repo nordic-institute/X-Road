@@ -8,6 +8,13 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 DB_PROPS="/etc/xroad/db.properties"
 
+get_db_prop() {
+  local pattern="$1"
+  grep -m1 "$pattern" "$DB_PROPS" 2>/dev/null \
+    | sed -E 's/^[^=]*=[[:space:]]*//' \
+    | sed -E 's/[[:space:]]+$//'
+}
+
 parse_and_check_pg() {
   if [[ ! -f "$DB_PROPS" ]]; then
     log_warn "$DB_PROPS not found, skipping PostgreSQL pre-flight check"
@@ -15,10 +22,9 @@ parse_and_check_pg() {
   fi
 
   # Extract JDBC URL for serverconf database.
-  # Key format on 7.8.x: xroad.db.serverconf.hibernate.connection.url = jdbc:postgresql://host[:port]/dbname
+  # Key format on 7.8.x: serverconf.hibernate.connection.url = jdbc:postgresql://host[:port]/dbname
   local jdbc_url
-  jdbc_url=$(grep -m1 'serverconf.*hibernate\.connection\.url' "$DB_PROPS" \
-    | sed 's/^[^=]*=\s*//' | tr -d ' ')
+  jdbc_url=$(get_db_prop 'serverconf.*hibernate\.connection\.url' | tr -d ' ')
 
   if [[ -z "$jdbc_url" ]]; then
     log_warn "serverconf JDBC URL not found in $DB_PROPS, skipping PG version check"
@@ -36,9 +42,15 @@ parse_and_check_pg() {
     pg_port="5432"
   fi
 
-  log_message "PostgreSQL pre-flight: host=$pg_host port=$pg_port"
+  local pg_user pg_pass
+  pg_user=$(get_db_prop 'serverconf\.hibernate\.connection\.username')
+  pg_pass=$(get_db_prop 'serverconf\.hibernate\.connection\.password')
+  # connection.username may be of the form user@host (Azure-style) — strip suffix
+  pg_user="${pg_user%%@*}"
 
-  check_pg_version "$pg_host" "$pg_port" "postgres" ""
+  log_message "PostgreSQL pre-flight: host=$pg_host port=$pg_port user=$pg_user"
+
+  check_pg_version "$pg_host" "$pg_port" "$pg_user" "$pg_pass"
 }
 
 main() {

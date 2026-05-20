@@ -19,8 +19,6 @@ global:
 init:
   serverconf:
     dbUsername: {{ serverconf_db.username }}
-    proxyUiSuperuser: {{ proxy_ui_superuser }}
-    proxyUiSuperuserPassword: "{{ proxy_ui_superuser_password }}"
   messagelog:
     dbUsername: {{ messagelog_db.username }}
   opmonitor:
@@ -112,8 +110,6 @@ services:
 {% if serverconf_init_image | length > 0 %}
       SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
 {% endif %}
-      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "true"
-      PROXY_UI_SUPERUSER: {{ proxy_ui_superuser }}
       QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
     extraVolumes:
       - name: auxiliary-service-openbao-tls-certificate
@@ -134,6 +130,18 @@ messageLogArchiver:
 {% if jvm_metrics_enabled %}
 jvmMetrics:
   enabled: true
+{% endif %}
+
+{% if otel_enabled | default(false) | bool %}
+otel:
+  enabled: true
+  nodeId: "{{ otel_node_id | default('') }}"
+  endpoint: {{ otel_endpoint }}
+  protocol: "{{ otel_protocol | default('grpc') }}"
+  sampler: {{ otel_sampler }}
+  resourceAttributes:
+    serviceNamespace: xroad
+    deploymentEnvironment: {{ otel_deployment_environment }}
 {% endif %}
 
 # Postgres image used by DSP wait-gate initContainers. The DB clusters
