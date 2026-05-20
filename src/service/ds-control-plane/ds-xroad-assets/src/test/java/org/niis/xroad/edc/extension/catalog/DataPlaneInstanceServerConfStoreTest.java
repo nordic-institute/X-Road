@@ -32,16 +32,16 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ServerConfBackedDataPlaneInstanceStoreTest {
+class DataPlaneInstanceServerConfStoreTest {
 
     private static final String INSTANCE_ID = "xroad-provider-dataplane";
     private static final String INSTANCE_URL = "http://localhost:19195/api/signaling/v1/dataflows";
 
-    private ServerConfBackedDataPlaneInstanceStore store;
+    private DataPlaneInstanceServerConfStore store;
 
     @BeforeEach
     void setUp() {
-        store = new ServerConfBackedDataPlaneInstanceStore();
+        store = new DataPlaneInstanceServerConfStore();
     }
 
     @Test

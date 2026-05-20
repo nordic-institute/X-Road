@@ -56,24 +56,24 @@ class XRoadServerConfCatalogExtensionTest {
     }
 
     @Test
-    void assetIndexReturnsServerConfBackedInstance() {
-        assertThat(extension.assetIndex()).isInstanceOf(ServerConfBackedAssetIndex.class);
+    void assetIndexReturnsCorrectInstance() {
+        assertThat(extension.assetIndex()).isInstanceOf(AssetIndexServerConfStore.class);
     }
 
     @Test
-    void dataPlaneInstanceStoreReturnsServerConfBackedInstance() {
+    void dataPlaneInstanceStoreReturnsCorrectInstance() {
         assertThat(extension.dataPlaneInstanceStore())
-                .isInstanceOf(ServerConfBackedDataPlaneInstanceStore.class);
+                .isInstanceOf(DataPlaneInstanceServerConfStore.class);
     }
 
     @Test
-    void policyDefinitionStoreReturnsServerConfBackedInstance() {
-        assertThat(extension.policyDefinitionStore()).isInstanceOf(ServerConfBackedPolicyDefinitionStore.class);
+    void policyDefinitionStoreReturnsCorrectInstance() {
+        assertThat(extension.policyDefinitionStore()).isInstanceOf(PolicyDefinitionServerConfStore.class);
     }
 
     @Test
-    void contractDefinitionStoreReturnsServerConfBackedInstance() {
-        assertThat(extension.contractDefinitionStore()).isInstanceOf(ServerConfBackedContractDefinitionStore.class);
+    void contractDefinitionStoreReturnsCorrectInstance() {
+        assertThat(extension.contractDefinitionStore()).isInstanceOf(ContractDefinitionServerConfStore.class);
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {

@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * State machine methods (nextNotLeased) are not used by control-plane routing and return empty results.
  */
 @Slf4j
-class ServerConfBackedDataPlaneInstanceStore implements DataPlaneInstanceStore {
+class DataPlaneInstanceServerConfStore implements DataPlaneInstanceStore {
 
     private final ConcurrentHashMap<String, DataPlaneInstance> store = new ConcurrentHashMap<>();
 

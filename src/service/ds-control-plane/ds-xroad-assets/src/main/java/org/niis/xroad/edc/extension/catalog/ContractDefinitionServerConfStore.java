@@ -46,24 +46,25 @@ import java.util.stream.Stream;
 
 /**
  * ServerConf-backed {@link ContractDefinitionStore}.
- * Enumerates one {@link ContractDefinition} per (asset, subject) pair with disambiguated IDs per CD-02.
- * Write operations return {@link StoreResult} failures (read-only store, per D-09).
+ * Enumerates one {@link ContractDefinition} per (asset, subject) pair with disambiguated IDs.
+ * Write operations return {@link StoreResult} failures (read-only store).
  */
 @Slf4j
-class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore {
+class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final ContractDefinitionMapper contractDefinitionMapper;
     private final String participantContextId;
     private final String managementParticipantContextId;
-    private final ContractQueryEvaluator queryEvaluator = new ContractQueryEvaluator();
+    private final QueryEvaluator<ContractDefinition> queryEvaluator =
+            new QueryEvaluator<>(ContractDefinition::getId, ContractDefinition::getParticipantContextId);
 
-    ServerConfBackedContractDefinitionStore(ServerConfProvider serverConfProvider,
-                                            GlobalConfProvider globalConfProvider,
-                                            ContractDefinitionMapper contractDefinitionMapper,
-                                            String participantContextId,
-                                            String managementParticipantContextId) {
+    ContractDefinitionServerConfStore(ServerConfProvider serverConfProvider,
+                                      GlobalConfProvider globalConfProvider,
+                                      ContractDefinitionMapper contractDefinitionMapper,
+                                      String participantContextId,
+                                      String managementParticipantContextId) {
         this.serverConfProvider = serverConfProvider;
         this.globalConfProvider = globalConfProvider;
         this.contractDefinitionMapper = contractDefinitionMapper;
@@ -85,7 +86,7 @@ class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore
     /**
      * Finds a ContractDefinition by compound definitionId ({assetId}:{subjectId}-contract-definition).
      * Strips the suffix to recover policyId, then decodes the ServiceId portion (6 or 5 parts)
-     * and matches the subject from the service's access rights per D-03 and D-11.
+     * and matches the subject from the service's access rights.
      *
      * @return the ContractDefinition, or null if not found or malformed
      */
@@ -112,7 +113,6 @@ class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore
             log.trace("findById definitionId={} too few parts={}, returning null", definitionId, parts.length);
             return null;
         }
-        // Try 6-part ServiceId first (with version), then 5-part (without version) per D-11
         var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, definitionId);
         if (result != null) {
             log.trace("findById definitionId={} found (6-part serviceId)", definitionId);
@@ -125,7 +125,7 @@ class ServerConfBackedContractDefinitionStore implements ContractDefinitionStore
 
     /**
      * Returns all ContractDefinitions across all enabled services and their access rights.
-     * Iterates members x services, groups access rights by subject per D-01.
+     * Iterates members x services, groups access rights by subject.
      */
     @Override
     @NotNull

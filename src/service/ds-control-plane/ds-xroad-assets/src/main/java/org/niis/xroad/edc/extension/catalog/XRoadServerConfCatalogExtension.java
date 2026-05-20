@@ -111,7 +111,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public DataPlaneInstanceStore dataPlaneInstanceStore() {
         log.trace("Providing DataPlaneInstanceStore backed by in-memory store");
-        return new ServerConfBackedDataPlaneInstanceStore();
+        return new DataPlaneInstanceServerConfStore();
     }
 
     /**
@@ -121,7 +121,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public AssetIndex assetIndex() {
         log.trace("Providing AssetIndex backed by ServerConf");
-        return new ServerConfBackedAssetIndex(
+        return new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId);
     }
 
@@ -141,7 +141,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public PolicyDefinitionStore policyDefinitionStore() {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
-        return new ServerConfBackedPolicyDefinitionStore(
+        return new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(),
                 participantContextId, managementParticipantContextId);
     }
@@ -152,7 +152,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     @Provider
     public ContractDefinitionStore contractDefinitionStore() {
         log.trace("Providing ContractDefinitionStore backed by ServerConf");
-        return new ServerConfBackedContractDefinitionStore(
+        return new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider,
                 new ContractDefinitionMapper(),
                 participantContextId, managementParticipantContextId

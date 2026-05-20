@@ -26,67 +26,72 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * Evaluates {@link QuerySpec} against a stream of {@link ContractDefinition} instances.
+ * Evaluates {@link QuerySpec} against a stream of entities of type {@code T}.
  * Supports {@code id =} and {@code participantContextId =} criteria (AND-combined).
- * Unsupported criteria are skipped with WARN log per D-08.
- * Package-private per D-08.
+ * Paging (offset + limit) is applied after filtering.
+ * Unsupported criteria are skipped with a WARN log. Sort requests are ignored with a one-shot WARN.
  */
 @Slf4j
-class ContractQueryEvaluator {
+@RequiredArgsConstructor
+class QueryEvaluator<T> {
 
     private static final String CRITERION_ID = "id";
     private static final String CRITERION_PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final String OPERATOR_EQUALS = "=";
 
+    private final Function<T, String> idAccessor;
+    private final Function<T, String> participantContextIdAccessor;
+
     private boolean sortWarningLogged = false;
 
     /**
-     * Evaluates a QuerySpec against a stream of ContractDefinitions.
+     * Evaluates a QuerySpec against the given stream.
      * Applies criterion filters (AND-combined), then paging (offset + limit).
      */
-    Stream<ContractDefinition> evaluate(Stream<ContractDefinition> definitions, QuerySpec querySpec) {
+    Stream<T> evaluate(Stream<T> source, QuerySpec querySpec) {
         if (log.isTraceEnabled()) {
             log.trace("evaluate criteria={} offset={} limit={}",
                     querySpec.getFilterExpression(), querySpec.getOffset(), querySpec.getLimit());
         }
-        var filtered = definitions;
+        var filtered = source;
         for (var criterion : querySpec.getFilterExpression()) {
             filtered = applyCriterion(filtered, criterion);
         }
         if (querySpec.getSortField() != null && !sortWarningLogged) {
-            log.warn("Sort not supported for ContractDefinition queries, ignoring sortField={}, sortOrder={}",
+            log.warn("Sort not supported, ignoring sortField={}, sortOrder={}",
                     querySpec.getSortField(), querySpec.getSortOrder());
             sortWarningLogged = true;
         }
         return filtered.skip(querySpec.getOffset()).limit(querySpec.getLimit());
     }
 
-    private Stream<ContractDefinition> applyCriterion(Stream<ContractDefinition> definitions, Criterion criterion) {
+    private Stream<T> applyCriterion(Stream<T> source, Criterion criterion) {
         var left = String.valueOf(criterion.getOperandLeft());
         var operator = criterion.getOperator();
 
         if (!OPERATOR_EQUALS.equals(operator)) {
             log.warn("Unsupported operator '{}' for criterion '{}', skipping", operator, left);
-            return definitions;
+            return source;
         }
 
         var right = criterion.getOperandRight();
         log.trace("applyCriterion left={} operator={} right={}", left, operator, right);
         return switch (left) {
-            case CRITERION_ID -> definitions.filter(d -> d.getId().equals(String.valueOf(right)));
-            case CRITERION_PARTICIPANT_CONTEXT_ID -> definitions.filter(d ->
-                    String.valueOf(right).equals(d.getParticipantContextId()));
+            case CRITERION_ID -> source.filter(e -> idAccessor.apply(e).equals(String.valueOf(right)));
+            case CRITERION_PARTICIPANT_CONTEXT_ID -> source.filter(e ->
+                    String.valueOf(right).equals(participantContextIdAccessor.apply(e)));
             default -> {
                 log.warn("Unsupported criterion operand '{}', skipping", left);
-                yield definitions;
+                yield source;
             }
         };
     }

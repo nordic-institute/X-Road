@@ -46,7 +46,7 @@ class ContractDefinitionMapper {
 
     /**
      * Returns the contract definition ID suffix used by this mapper.
-     * Used by {@link ServerConfBackedContractDefinitionStore#findById(String)} to strip the suffix.
+     * Used by {@link ContractDefinitionServerConfStore#findById(String)} to strip the suffix.
      */
     static String getContractDefinitionSuffix() {
         return CONTRACT_DEFINITION_SUFFIX;

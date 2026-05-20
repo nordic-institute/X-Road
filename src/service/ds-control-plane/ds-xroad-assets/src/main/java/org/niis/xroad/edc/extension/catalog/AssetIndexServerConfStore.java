@@ -46,25 +46,25 @@ import java.util.stream.Stream;
 
 /**
  * ServerConf-backed {@link AssetIndex} that reads members and services live from
- * {@link ServerConfProvider} on each call (D-02). Disabled services are excluded (D-12).
- * Write operations return {@link StoreResult} failures (read-only store, D-15).
+ * {@link ServerConfProvider} on each call. Disabled services are excluded.
+ * Write operations return {@link StoreResult} failures (read-only store).
  *
  * <p>{@code AssetIndex} extends {@code DataAddressResolver} in EDC 0.16, so this class
  * implements both interfaces via the single {@code AssetIndex} contract.
  */
 @Slf4j
-class ServerConfBackedAssetIndex implements AssetIndex {
+class AssetIndexServerConfStore implements AssetIndex {
 
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final String participantContextId;
     private final String managementParticipantContextId;
-    private final ServerConfQueryEvaluator queryEvaluator = new ServerConfQueryEvaluator();
+    private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
 
-    ServerConfBackedAssetIndex(ServerConfProvider serverConfProvider,
-                               GlobalConfProvider globalConfProvider,
-                               String participantContextId,
-                               String managementParticipantContextId) {
+    AssetIndexServerConfStore(ServerConfProvider serverConfProvider,
+                              GlobalConfProvider globalConfProvider,
+                              String participantContextId,
+                              String managementParticipantContextId) {
         this.serverConfProvider = serverConfProvider;
         this.globalConfProvider = globalConfProvider;
         this.participantContextId = participantContextId;
@@ -85,7 +85,7 @@ class ServerConfBackedAssetIndex implements AssetIndex {
     /**
      * Returns one {@link Asset} per enabled service across all members.
      * Disabled services (non-null {@code getDisabledNotice}) are excluded.
-     * Results are filtered and paged by {@link ServerConfQueryEvaluator}.
+     * Results are filtered and paged by {@link QueryEvaluator}.
      */
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
@@ -110,7 +110,7 @@ class ServerConfBackedAssetIndex implements AssetIndex {
 
     /**
      * Decodes the asset ID, verifies the service exists and is enabled, returns the {@link Asset}.
-     * Returns {@code null} for malformed IDs, disabled services, or missing services per D-02/D-07/D-12.
+     * Returns {@code null} for malformed IDs, disabled services, or missing services.
      */
     @Override
     @Nullable
@@ -144,7 +144,7 @@ class ServerConfBackedAssetIndex implements AssetIndex {
 
     /**
      * Builds an {@link HttpDataAddress} for the given asset with proxy flags enabled.
-     * Returns {@code null} on decode failure, disabled service, or missing address per D-11.
+     * Returns {@code null} on decode failure, disabled service, or missing address.
      */
     @Override
     @Nullable

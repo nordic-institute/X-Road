@@ -47,7 +47,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ServerConfBackedAssetIndexTest {
+class AssetIndexServerConfStoreTest {
 
     private static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
     private static final String MGMT_PARTICIPANT_CONTEXT_ID = "xroad-provider-mgmt";
@@ -58,7 +58,7 @@ class ServerConfBackedAssetIndexTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
-    private ServerConfBackedAssetIndex assetIndex;
+    private AssetIndexServerConfStore assetIndex;
 
     // Test data: 2 members, member1 has 2 services (1 disabled), member2 has 1 service
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
@@ -77,7 +77,7 @@ class ServerConfBackedAssetIndexTest {
 
     @BeforeEach
     void setUp() {
-        assetIndex = new ServerConfBackedAssetIndex(
+        assetIndex = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID);
     }
 

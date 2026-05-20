@@ -46,25 +46,26 @@ import java.util.stream.Stream;
 
 /**
  * ServerConf-backed {@link PolicyDefinitionStore} that builds ODRL {@link PolicyDefinition} objects
- * from live ServerConf access rights data per D-10.
- * Each (service, subject) pair produces one PolicyDefinition with compound ID per D-01.
- * Write operations return {@link StoreResult} failures (read-only store, D-13).
+ * from live ServerConf access rights data.
+ * Each (service, subject) pair produces one PolicyDefinition with compound ID.
+ * Write operations return {@link StoreResult} failures (read-only store).
  */
 @Slf4j
-class ServerConfBackedPolicyDefinitionStore implements PolicyDefinitionStore {
+class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final PolicyMapper policyMapper;
     private final String participantContextId;
     private final String managementParticipantContextId;
-    private final PolicyQueryEvaluator queryEvaluator = new PolicyQueryEvaluator();
+    private final QueryEvaluator<PolicyDefinition> queryEvaluator =
+            new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
 
-    ServerConfBackedPolicyDefinitionStore(ServerConfProvider serverConfProvider,
-                                          GlobalConfProvider globalConfProvider,
-                                          PolicyMapper policyMapper,
-                                          String participantContextId,
-                                          String managementParticipantContextId) {
+    PolicyDefinitionServerConfStore(ServerConfProvider serverConfProvider,
+                                    GlobalConfProvider globalConfProvider,
+                                    PolicyMapper policyMapper,
+                                    String participantContextId,
+                                    String managementParticipantContextId) {
         this.serverConfProvider = serverConfProvider;
         this.globalConfProvider = globalConfProvider;
         this.policyMapper = policyMapper;
@@ -86,7 +87,7 @@ class ServerConfBackedPolicyDefinitionStore implements PolicyDefinitionStore {
     /**
      * Finds a PolicyDefinition by compound policyId ({assetId}:{subjectId}).
      * Decodes the ServiceId portion (5 or 6 parts), then matches the subject
-     * from the service's access rights per D-02.
+     * from the service's access rights.
      *
      * @return the PolicyDefinition, or null if not found or malformed
      */
@@ -105,7 +106,6 @@ class ServerConfBackedPolicyDefinitionStore implements PolicyDefinitionStore {
             return null;
         }
 
-        // Try 6-part ServiceId first, then 5-part per D-02
         var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, policyId);
         if (result != null) {
             log.trace("findById policyId={} found (6-part serviceId)", policyId);
@@ -118,7 +118,7 @@ class ServerConfBackedPolicyDefinitionStore implements PolicyDefinitionStore {
 
     /**
      * Returns all PolicyDefinitions across all enabled services and their access rights.
-     * Iterates members x services, groups access rights by subject per D-04.
+     * Iterates members x services, groups access rights by subject.
      */
     @Override
     public Stream<PolicyDefinition> findAll(QuerySpec spec) {
