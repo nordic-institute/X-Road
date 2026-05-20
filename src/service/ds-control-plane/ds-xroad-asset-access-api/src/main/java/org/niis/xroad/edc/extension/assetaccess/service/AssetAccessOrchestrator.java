@@ -55,9 +55,9 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
+import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -71,12 +71,11 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
  * O(1) event dispatch via ConcurrentHashMap and eliminates the TOCTOU race condition.
  */
 @RequiredArgsConstructor
-public class AssetAccessAcquisitionService {
+public class AssetAccessOrchestrator {
 
     private static final long TIMEOUT_SECONDS = 60;
 
-    private final ConcurrentHashMap<String, CompletableFuture<ServiceResult<DataAddress>>> inFlightRequests = new ConcurrentHashMap<>();
-
+    private final AssetAccessStateStore stateStore;
     private final CatalogService catalogService;
     private final ContractNegotiationService contractNegotiationService;
     private final TransferProcessService transferProcessService;
@@ -87,27 +86,29 @@ public class AssetAccessAcquisitionService {
     private final ObjectMapper objectMapper;
     private final Monitor monitor;
 
-    private final ConcurrentHashMap<String, AgreementContext> agreementRegistry = new ConcurrentHashMap<>();
-
+    /**
+     * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+counterparty key.
+     */
     public CompletableFuture<ServiceResult<DataAddress>> acquireAssetAccess(ParticipantContext participantContext,
                                                                             AssetAccessRequest request) {
         var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + request.counterPartyId();
         monitor.info("%s acquireAssetAccess entered: counterPartyAddress=%s protocol=%s"
                 .formatted(key, request.counterPartyAddress(), request.protocolOrDefault()));
-        return inFlightRequests.computeIfAbsent(key, k -> {
-            var existingAgreement = agreementRegistry.get(key);
-            CompletableFuture<ServiceResult<DataAddress>> future;
-            if (existingAgreement != null) {
-                monitor.info("%s cached-agreement fast path: agreementId=%s transferType=%s"
-                        .formatted(key, existingAgreement.agreement().getId(), existingAgreement.transferType()));
-                future = transferAndAwaitDataAddress(key, participantContext, existingAgreement.agreement(),
-                        existingAgreement.transferType(), request.counterPartyAddress(), request.protocolOrDefault())
-                        .thenApply(ServiceResult::success);
-            } else {
-                future = executeAcquisition(participantContext, request, key);
-            }
-            return future.whenComplete((result, throwable) -> inFlightRequests.remove(key));
-        });
+        return stateStore.loadOrStartInFlight(key, () -> buildAcquisitionFuture(key, participantContext, request));
+    }
+
+    private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(String key,
+                                                                                  ParticipantContext participantContext,
+                                                                                  AssetAccessRequest request) {
+        var existingAgreement = stateStore.getAgreement(key);
+        if (existingAgreement != null) {
+            monitor.info("%s cached-agreement fast path: agreementId=%s transferType=%s"
+                    .formatted(key, existingAgreement.agreement().getId(), existingAgreement.transferType()));
+            return transferAndAwaitDataAddress(key, participantContext, existingAgreement.agreement(),
+                    existingAgreement.transferType(), request.counterPartyAddress(), request.protocolOrDefault())
+                    .thenApply(ServiceResult::success);
+        }
+        return executeAcquisition(participantContext, request, key);
     }
 
     private CompletableFuture<ServiceResult<DataAddress>> executeAcquisition(ParticipantContext participantContext,
@@ -116,9 +117,8 @@ public class AssetAccessAcquisitionService {
                 .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId()))
                 .thenCompose(offer -> negotiateContract(registryKey, participantContext, request, offer)
                         .thenApply(agreement -> {
-                            var ctx = new AgreementContext(agreement, offer.transferType());
-                            agreementRegistry.put(registryKey, ctx);
-                            return ctx;
+                            stateStore.recordAgreement(registryKey, agreement, offer.transferType());
+                            return new AgreementContext(agreement, offer.transferType());
                         }))
                 .thenCompose(ctx -> transferAndAwaitDataAddress(registryKey, participantContext, ctx.agreement(),
                         ctx.transferType(), request.counterPartyAddress(), request.protocolOrDefault()))
@@ -189,20 +189,7 @@ public class AssetAccessAcquisitionService {
     private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,
                                                                    AssetAccessRequest request, OfferContext offer) {
         try {
-            var contractRequest = ContractRequest.Builder.newInstance()
-                    .protocol(request.protocolOrDefault())
-                    .counterPartyAddress(request.counterPartyAddress())
-                    .contractOffer(ContractOffer.Builder.newInstance()
-                            .id(offer.offerId())
-                            .assetId(offer.dataset().getId())
-                            .policy(offer.policy().toBuilder()
-                                    .target(offer.dataset().getId())
-                                    .assigner(request.counterPartyId())
-                                    .type(PolicyType.OFFER)
-                                    .build())
-                            .build())
-                    .build();
-
+            var contractRequest = buildContractRequest(request, offer);
             var negotiationResult = contractNegotiationService.initiateNegotiation(participantContext, contractRequest);
             var negotiationId = negotiationResult
                     .map(Entity::getId)
@@ -214,19 +201,35 @@ public class AssetAccessAcquisitionService {
 
             return future
                     .orTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                    .whenComplete((result, throwable) -> {
-                        negotiationListener.deregister(negotiationId);
-                        if (throwable != null) {
-                                monitor.warning("%s negotiation failed: negotiationId=%s"
-                                    .formatted(key, negotiationId), throwable);
-                        } else if (result != null) {
-                                monitor.info("%s agreement received: agreementId=%s"
-                                    .formatted(key, result.getId()));
-                        }
-                    });
+                    .whenComplete((result, throwable) -> onNegotiationComplete(key, negotiationId, result, throwable));
         } catch (Exception e) {
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
             return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private ContractRequest buildContractRequest(AssetAccessRequest request, OfferContext offer) {
+        return ContractRequest.Builder.newInstance()
+                .protocol(request.protocolOrDefault())
+                .counterPartyAddress(request.counterPartyAddress())
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(offer.offerId())
+                        .assetId(offer.dataset().getId())
+                        .policy(offer.policy().toBuilder()
+                                .target(offer.dataset().getId())
+                                .assigner(request.counterPartyId())
+                                .type(PolicyType.OFFER)
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private void onNegotiationComplete(String key, String negotiationId, ContractAgreement result, Throwable throwable) {
+        negotiationListener.deregister(negotiationId);
+        if (throwable != null) {
+            monitor.warning("%s negotiation failed: negotiationId=%s".formatted(key, negotiationId), throwable);
+        } else if (result != null) {
+            monitor.info("%s agreement received: agreementId=%s".formatted(key, result.getId()));
         }
     }
 
@@ -259,23 +262,20 @@ public class AssetAccessAcquisitionService {
 
         return future
                 .orTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .whenComplete((dataAddress, throwable) -> {
-                    transferListener.deregister(transferProcessId);
-                    if (throwable != null) {
-                        monitor.warning("%s transfer failed: transferProcessId=%s"
-                                .formatted(key, transferProcessId), throwable);
-                    } else if (dataAddress != null) {
-                        // Log endpoint type only at info level; full DataAddress may carry a bearer token.
-                        monitor.info("%s transfer completed: endpointType=%s"
-                                .formatted(key, dataAddress.getType()));
-                        monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
-                    }
-                });
+                .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
+    }
+
+    private void onTransferComplete(String key, String transferProcessId, DataAddress dataAddress, Throwable throwable) {
+        transferListener.deregister(transferProcessId);
+        if (throwable != null) {
+            monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
+        } else if (dataAddress != null) {
+            // Log endpoint type only at info level; full DataAddress may carry a bearer token.
+            monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
+            monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
+        }
     }
 
     private record OfferContext(String offerId, Policy policy, Dataset dataset, String transferType) {
-    }
-
-    private record AgreementContext(ContractAgreement agreement, String transferType) {
     }
 }

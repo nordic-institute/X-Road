@@ -77,7 +77,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AssetAccessAcquisitionServiceTest {
+class AssetAccessOrchestratorTest {
 
     @Mock
     CatalogService catalogService;
@@ -97,13 +97,13 @@ class AssetAccessAcquisitionServiceTest {
     NegotiationCompletionListener negotiationListener;
     TransferCompletionListener transferListener;
 
-    AssetAccessAcquisitionService service;
+    AssetAccessOrchestrator orchestrator;
 
     @BeforeEach
     void setUp() {
         negotiationListener = new NegotiationCompletionListener();
         transferListener = new TransferCompletionListener();
-        service = new AssetAccessAcquisitionService(catalogService, contractNegotiationService,
+        orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), catalogService, contractNegotiationService,
                 transferProcessService, negotiationListener, transferListener,
                 jsonLd, transformerRegistry, objectMapper, monitor);
     }
@@ -113,7 +113,6 @@ class AssetAccessAcquisitionServiceTest {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
-        // --- First call: full flow (catalog → negotiate → transfer) ---
         stubCatalogAndTransformChain("asset-1");
 
         var negotiation = ContractNegotiation.Builder.newInstance()
@@ -128,9 +127,8 @@ class AssetAccessAcquisitionServiceTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess1));
 
-        var future1 = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future1 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
-        // Drive negotiation to finalized
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
@@ -141,7 +139,6 @@ class AssetAccessAcquisitionServiceTest {
                 .build();
         negotiationListener.finalized(finalizedNegotiation);
 
-        // Drive transfer to started
         var dataAddress1 = DataAddress.Builder.newInstance().type("HttpData")
                 .property("endpoint", "http://provider/data").build();
         var startedData1 = TransferProcessStartedData.Builder.newInstance()
@@ -151,14 +148,12 @@ class AssetAccessAcquisitionServiceTest {
         var result1 = future1.get(5, TimeUnit.SECONDS);
         assertThat(result1.succeeded()).isTrue();
 
-        // --- Second call: agreement registry hit — skips catalog + negotiation ---
         var transferProcess2 = TransferProcess.Builder.newInstance().id("tp-2").build();
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess2));
 
-        var future2 = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future2 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
-        // Drive only the transfer listener for the second call
         var dataAddress2 = DataAddress.Builder.newInstance().type("HttpData")
                 .property("endpoint", "http://provider/data-refreshed").build();
         var startedData2 = TransferProcessStartedData.Builder.newInstance()
@@ -169,7 +164,6 @@ class AssetAccessAcquisitionServiceTest {
         assertThat(result2.succeeded()).isTrue();
         assertThat(result2.getContent()).isSameAs(dataAddress2);
 
-        // Verify: catalog and negotiation called only once, transfer called twice
         verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
         verify(transferProcessService, times(2)).initiateTransfer(any(), any());
@@ -195,7 +189,7 @@ class AssetAccessAcquisitionServiceTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
@@ -225,7 +219,6 @@ class AssetAccessAcquisitionServiceTest {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
-        // "JSON-PULL" matches the old .contains("PULL") predicate but MUST NOT match "Xrd-PULL".equals(f).
         var catalog = buildCatalog("asset-1", "offer-1", "JSON-PULL");
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(StatusResult.success(new byte[0])));
@@ -233,7 +226,7 @@ class AssetAccessAcquisitionServiceTest {
         when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
         when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
@@ -250,7 +243,7 @@ class AssetAccessAcquisitionServiceTest {
                 .thenReturn(CompletableFuture.completedFuture(
                         StatusResult.failure(ResponseStatus.FATAL_ERROR, "catalog unavailable")));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
@@ -264,7 +257,7 @@ class AssetAccessAcquisitionServiceTest {
 
         stubCatalogAndTransformChain("other-asset");
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
@@ -286,7 +279,7 @@ class AssetAccessAcquisitionServiceTest {
                 .build();
         when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         var terminatedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
@@ -320,7 +313,7 @@ class AssetAccessAcquisitionServiceTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.unexpected("transfer failed"));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
@@ -357,7 +350,7 @@ class AssetAccessAcquisitionServiceTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
@@ -400,7 +393,7 @@ class AssetAccessAcquisitionServiceTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
@@ -438,13 +431,11 @@ class AssetAccessAcquisitionServiceTest {
         when(contractNegotiationService.initiateNegotiation(any(), any()))
                 .thenReturn(ServiceResult.success(negotiation));
 
-        var future1 = service.acquireAssetAccess(participantContext, assetAccessRequest);
-        var future2 = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future1 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future2 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
-        // Both must return the same CompletableFuture instance (deduplication)
         assertThat(future1).isSameAs(future2);
 
-        // Drive to completion to avoid Mockito strict stub failures
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess));
@@ -487,7 +478,7 @@ class AssetAccessAcquisitionServiceTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess));
 
-        var future = service.acquireAssetAccess(participantContext, assetAccessRequest);
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()

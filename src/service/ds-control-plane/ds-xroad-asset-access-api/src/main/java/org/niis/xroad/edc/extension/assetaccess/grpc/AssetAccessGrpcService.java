@@ -40,7 +40,7 @@ import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
-import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessAcquisitionService;
+import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 
 import java.util.Base64;
 import java.util.concurrent.ExecutionException;
@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * gRPC service implementation that delegates to {@link AssetAccessAcquisitionService}.
+ * gRPC service implementation that delegates to {@link AssetAccessOrchestrator}.
  * Bridges the async {@code CompletableFuture<ServiceResult<DataAddress>>} to gRPC's
  * sync {@code StreamObserver} pattern using {@link RpcResponseHandler#handleRequest}.
  */
@@ -60,7 +60,7 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     private static final String EDC_NS = "https://w3id.org/edc/v0.0.1/ns/";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final AssetAccessAcquisitionService assetAccessAcquisitionService;
+    private final AssetAccessOrchestrator assetAccessOrchestrator;
     private final ParticipantContextService participantContextService;
     private final RpcResponseHandler responseHandler;
 
@@ -92,7 +92,7 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                     request.getCounterPartyAddress(),
                     request.getProtocol().isEmpty() ? null : request.getProtocol());
 
-            var serviceResult = awaitResult(assetAccessAcquisitionService
+            var serviceResult = awaitResult(assetAccessOrchestrator
                     .acquireAssetAccess(participantContext, assetAccessRequest));
 
             if (serviceResult.failed()) {

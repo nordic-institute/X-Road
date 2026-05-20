@@ -47,7 +47,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
-import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessAcquisitionService;
+import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore;
 import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToCatalogTransformer;
 import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDataServiceTransformer;
 import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDatasetTransformer;
@@ -55,7 +56,7 @@ import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDistributi
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
-@Provides({AssetAccessAcquisitionService.class})
+@Provides({AssetAccessOrchestrator.class})
 @Extension(value = XRoadAssetAccessApiExtension.EXTENSION_NAME)
 public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
@@ -94,7 +95,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     @Inject
     private ParticipantIdMapper participantIdMapper;
 
-    private AssetAccessAcquisitionService assetAccessAcquisitionService;
+    private AssetAccessOrchestrator assetAccessOrchestrator;
     private NegotiationCompletionListener negotiationCompletionListener;
     private TransferCompletionListener transferCompletionListener;
     private TypeTransformerRegistry assetAccessTransformerRegistry;
@@ -124,10 +125,11 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     }
 
     @Provider
-    public AssetAccessAcquisitionService assetAccessAcquisitionService() {
+    public AssetAccessOrchestrator assetAccessOrchestrator() {
         var objectMapper = typeManager.getMapper(JSON_LD);
 
-        assetAccessAcquisitionService = new AssetAccessAcquisitionService(
+        assetAccessOrchestrator = new AssetAccessOrchestrator(
+                new AssetAccessStateStore(),
                 catalogService,
                 contractNegotiationService,
                 transferProcessService,
@@ -138,6 +140,6 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                 objectMapper,
                 monitor
         );
-        return assetAccessAcquisitionService;
+        return assetAccessOrchestrator;
     }
 }

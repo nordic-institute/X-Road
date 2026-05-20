@@ -47,7 +47,7 @@ import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
-import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessAcquisitionService;
+import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -64,7 +64,7 @@ class AssetAccessGrpcServiceTest {
     private static final String EDC_NS = "https://w3id.org/edc/v0.0.1/ns/";
 
     @Mock
-    AssetAccessAcquisitionService assetAccessAcquisitionService;
+    AssetAccessOrchestrator assetAccessOrchestrator;
     @Mock
     ParticipantContextService participantContextService;
 
@@ -76,7 +76,7 @@ class AssetAccessGrpcServiceTest {
     void setUp() throws Exception {
         var responseHandler = new RpcResponseHandler();
         var grpcService = new AssetAccessGrpcService(
-                assetAccessAcquisitionService, participantContextService, responseHandler);
+                assetAccessOrchestrator, participantContextService, responseHandler);
         server = ServerBuilder.forPort(0)
                 .addService(grpcService)
                 .build()
@@ -106,7 +106,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "endpoint", "http://provider/api/data")
                 .property(EDC_NS + "authorization", "token-abc-123")
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(
+        when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
 
@@ -127,7 +127,7 @@ class AssetAccessGrpcServiceTest {
     void acquireFailureThrowsStatusRuntimeException() {
         stubParticipantContext();
 
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(
                         new RuntimeException("upstream catalog fetch failed")));
 
@@ -151,7 +151,7 @@ class AssetAccessGrpcServiceTest {
                 .type("HttpData")
                 .property(EDC_NS + "endpoint", "http://provider/api/data")
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(
+        when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
 
@@ -177,7 +177,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "endpoint", "http://provider/api/data")
                 .property(EDC_NS + "authorization", jwtToken)
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(
+        when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
 
@@ -203,7 +203,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "endpoint", "http://provider/api/data")
                 .property(EDC_NS + "authorization", "opaque-token-abc")
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(
+        when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
 

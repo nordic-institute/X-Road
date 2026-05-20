@@ -41,7 +41,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessAcquisitionService;
+import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 
 import java.io.IOException;
 import java.util.function.Supplier;
@@ -63,7 +63,7 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     private String rpcHost;
 
     @Inject
-    private AssetAccessAcquisitionService assetAccessAcquisitionService;
+    private AssetAccessOrchestrator assetAccessOrchestrator;
 
     @Inject
     private ParticipantContextService participantContextService;
@@ -83,7 +83,7 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext extensionContext) {
         var responseHandler = new RpcResponseHandler();
         grpcService = new AssetAccessGrpcService(
-                assetAccessAcquisitionService, participantContextService, responseHandler);
+                assetAccessOrchestrator, participantContextService, responseHandler);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }
 
