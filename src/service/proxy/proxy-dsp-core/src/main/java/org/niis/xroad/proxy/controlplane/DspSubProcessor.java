@@ -74,6 +74,7 @@ public class DspSubProcessor implements DspRequestProcessor {
     private final ControlPlaneNegotiationService controlPlaneNegotiationService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
 
+    @SuppressWarnings("deprecation")
     private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
     // Mgmt-ctx variant: same host keys, but URL and DID reference the mgmt participant context.
     private final Map<String, CounterPartyTarget> mgmtCounterPartyTargets = CounterPartyTarget.managementMap();

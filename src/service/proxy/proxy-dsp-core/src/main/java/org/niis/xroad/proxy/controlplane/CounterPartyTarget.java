@@ -68,7 +68,10 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      * SS hostname, so the segment appears twice in the URL.
      *
      * @return immutable map keyed by host-address
+     * @deprecated Hardcoded map; will be replaced by config-driven counter-party resolution
+     *     (see {@code .scratch/dsp-counterparty-cleanup/}).
      */
+    @Deprecated(forRemoval = true, since = "edc17")
     public static Map<String, CounterPartyTarget> defaultMap() {
         return Map.ofEntries(
                 Map.entry("xrd-ss0", new CounterPartyTarget("did:web:xrd-ss0%3A7183", "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1")),
@@ -96,6 +99,7 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      *
      * @return immutable map keyed by host-address, targeting the mgmt participant context
      */
+    @SuppressWarnings("deprecation")
     public static Map<String, CounterPartyTarget> managementMap() {
         var base = defaultMap();
         var result = new HashMap<String, CounterPartyTarget>(base.size() * 2);

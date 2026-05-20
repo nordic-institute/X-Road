@@ -1,3 +1,2 @@
 org.niis.xroad.edc.extension.assetaccess.XRoadAssetAccessApiExtension
 org.niis.xroad.edc.extension.assetaccess.grpc.AssetAccessGrpcExtension
-org.niis.xroad.edc.extension.assetaccess.dsperror.XRoadDspErrorMappingExtension
