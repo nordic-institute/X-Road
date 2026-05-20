@@ -287,19 +287,19 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 .extract().body().asString());
     }
 
-    @Step("EDR is retrieved on {string}")
-    public void edrIsRetrieved(String consumerEnv) {
+    @Step("Asset access response is retrieved on {string}")
+    public void assetAccessResponseIsRetrieved(String consumerEnv) {
         var mapping = envSetup.getContainerMapping(consumerEnv, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         String url = "http://%s:%d/api/management/v4beta/edrs/%s/dataaddress"
                 .formatted(mapping.host(), mapping.port(), transferProcessId);
         var response = sendGetRequest(url, ControlPlaneAuthTokens.PARTICIPANT, HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
-        assertNotNull(body.get("endpoint"), "EDR should contain an endpoint");
+        assertNotNull(body.get("endpoint"), "Asset access response should contain an endpoint");
     }
 
-    @Step("EDR is acquired via xroad-edr-api for context {string} on {string} from {string} on {string} for asset {string}")
-    public void edrIsAcquiredViaXRoadEdrApi(
+    @Step("Asset access is acquired via control plane API for context {string} on {string} from {string} on {string} for asset {string}")
+    public void assetAccessIsAcquiredViaControlPlaneApi(
             String participantContext, String consumerEnv, String providerDid, String providerEnv, String assetId) {
         String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
         String request = """
@@ -313,7 +313,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
         Map<String, Object> body = response.extract().body().as(Map.class);
-        assertNotNull(body.get("https://w3id.org/edc/v0.0.1/ns/endpoint"), "EDR should contain an endpoint");
+        assertNotNull(body.get("https://w3id.org/edc/v0.0.1/ns/endpoint"), "Asset access response should contain an endpoint");
     }
 
     // --- HTTP helpers ---

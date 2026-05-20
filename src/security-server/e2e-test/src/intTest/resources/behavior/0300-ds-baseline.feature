@@ -12,7 +12,7 @@ Feature: 0300 - Data spaces baseline
     And Contract negotiation state is "FINALIZED" using participant context "test-part-ctx" on "ss0"
     And Transfer process is started using participant context "test-part-ctx" on "ss0" with provider "did:web:ss1-ds-identity-hub%3A7183" on "ss1"
     And Transfer process is in state "STARTED" using participant context "test-part-ctx" on "ss0"
-    Then EDR is retrieved on "ss0"
+    Then Asset access response is retrieved on "ss0"
 
-  Scenario: Consumer acquires EDR via xroad-edr-api endpoint
-    Then EDR is acquired via xroad-edr-api for context "test-part-ctx" on "ss0" from "did:web:ss1-ds-identity-hub%3A7183" on "ss1" for asset "asset-1"
+  Scenario: Consumer acquires asset access via control plane API
+    Then Asset access is acquired via control plane API for context "test-part-ctx" on "ss0" from "did:web:ss1-ds-identity-hub%3A7183" on "ss1" for asset "asset-1"
