@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
@@ -44,21 +43,16 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
 
 /**
- * Unit tests for {@link ProxyDataPlaneRegistry}.
- *
- * <p>Cases 2–5 use WireMock to assert the actual HTTP wire shape sent to the control plane.
+ * Unit tests for {@link ControlPlaneRegistrar}.
+ * Uses WireMock to assert the HTTP wire shape sent to the control plane.
  * The {@link TypeTransformerRegistry} is the production instance from
  * {@link XRoadDpsTransformerRegistry#registry()} for parity with runtime behaviour.
  */
 @ExtendWith(MockitoExtension.class)
-class ProxyDataPlaneRegistryTest {
+class ControlPlaneRegistrarTest {
 
     private static final String DATA_FLOW_ENDPOINT = "http://127.0.0.1:5590/full/api/v1/dataflows";
     private static final String TEST_PARTICIPANT_CONTEXT_ID = "xrd-ss0";
@@ -66,20 +60,18 @@ class ProxyDataPlaneRegistryTest {
     private static final String EDC_NAMESPACE = "https://w3id.org/edc/v0.0.1/ns/";
 
     @Mock
-    private DataPlaneServer dataPlaneServer;
-    @Mock
-    private XRoadDataPlaneSignalingApiController signalingApiController;
-    @Mock
     private DataPlaneServerProperties dspProperties;
 
     private WireMockServer wireMock;
     private TypeTransformerRegistry transformerRegistry;
+    private DataPlaneReadinessState readinessState;
 
     @BeforeEach
     void setUp() {
         wireMock = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
         wireMock.start();
         transformerRegistry = new XRoadDpsTransformerRegistry().registry();
+        readinessState = new DataPlaneReadinessState();
     }
 
     @AfterEach
@@ -87,64 +79,57 @@ class ProxyDataPlaneRegistryTest {
         wireMock.stop();
     }
 
-    // -----------------------------------------------------------------------
-    // Case 1: initialize registers the signaling controller at the correct path
-    // -----------------------------------------------------------------------
-
     @Test
-    void initialize_registersJaxRsResourceWithApiContextPath() throws Exception {
+    void initialize_postsToControlPlaneRegistrationEndpoint() {
         stubProperties();
         stubRegistrationOk();
 
-        createRegistry().initialize();
-
-        verify(dataPlaneServer).registerJaxRsResource(eq("/full/api/"), eq(signalingApiController));
-    }
-
-    // -----------------------------------------------------------------------
-    // Case 2: initialize POSTs to /v1/dataplanes with correct JSON-LD body
-    // -----------------------------------------------------------------------
-
-    @Test
-    void initialize_postsToControlPlaneRegistrationEndpoint() throws Exception {
-        stubProperties();
-        stubRegistrationOk();
-
-        var registry = createRegistry();
-        registry.initialize();
+        createRegistrar().initialize();
 
         wireMock.verify(postRequestedFor(urlEqualTo(REGISTRATION_PATH))
                 .withHeader("Content-Type", equalTo("application/json"))
                 .withRequestBody(containing("\"@id\":\"xroad-proxy-" + TEST_PARTICIPANT_CONTEXT_ID + "\""))
                 .withRequestBody(containing("@context"))
                 .withRequestBody(containing(EDC_NAMESPACE)));
-        assertThat(registry.isRegistered()).isTrue();
+        assertThat(readinessState.isRegistered()).isTrue();
     }
 
-    // -----------------------------------------------------------------------
-    // Case 3: 4xx response — isRegistered stays false
-    // -----------------------------------------------------------------------
-
     @Test
-    void initialize_http4xxResponse_doesNotMarkRegistered() throws Exception {
+    void initialize_http4xxResponse_callsMarkNotRegistered() {
         stubProperties();
         wireMock.stubFor(post(urlEqualTo(REGISTRATION_PATH))
                 .willReturn(aResponse().withStatus(400).withBody("{\"error\":\"bad request\"}")));
 
-        var registry = createRegistry();
-        registry.initialize();
+        createRegistrar().initialize();
 
-        assertThat(registry.isRegistered()).isFalse();
+        assertThat(readinessState.isRegistered()).isFalse();
     }
 
-    // -----------------------------------------------------------------------
-    // Case 4: retry succeeds after initial failure
-    // -----------------------------------------------------------------------
+    @Test
+    void attemptRegistration_successPath_callsMarkRegistered() {
+        stubProperties();
+        stubRegistrationOk();
+
+        var registrar = createRegistrar();
+        registrar.attemptControlPlaneRegistration();
+
+        assertThat(readinessState.isRegistered()).isTrue();
+    }
 
     @Test
-    void retryControlPlaneRegistration_succeedsAfterInitialFailure() throws Exception {
+    void attemptRegistration_failurePath_callsMarkNotRegistered() {
         stubProperties();
-        // First call returns 500, second returns 200
+        wireMock.stubFor(post(urlEqualTo(REGISTRATION_PATH))
+                .willReturn(aResponse().withStatus(500)));
+
+        createRegistrar().attemptControlPlaneRegistration();
+
+        assertThat(readinessState.isRegistered()).isFalse();
+    }
+
+    @Test
+    void retryControlPlaneRegistration_succeedsAfterInitialFailure() {
+        stubProperties();
         wireMock.stubFor(post(urlEqualTo(REGISTRATION_PATH))
                 .inScenario("retry")
                 .whenScenarioStateIs("Started")
@@ -155,43 +140,35 @@ class ProxyDataPlaneRegistryTest {
                 .whenScenarioStateIs("second")
                 .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        var registry = createRegistry();
-        registry.initialize();
-        assertThat(registry.isRegistered()).isFalse();
+        var registrar = createRegistrar();
+        registrar.initialize();
+        assertThat(readinessState.isRegistered()).isFalse();
 
-        registry.retryControlPlaneRegistration();
-        assertThat(registry.isRegistered()).isTrue();
+        registrar.retryControlPlaneRegistration();
+        assertThat(readinessState.isRegistered()).isTrue();
     }
 
-    // -----------------------------------------------------------------------
-    // Case 4b: heartbeat re-registers after CP restart (idempotent upsert)
-    // -----------------------------------------------------------------------
-
     @Test
-    void retryControlPlaneRegistration_resendsHeartbeatWhileRegistered() throws Exception {
+    void retryControlPlaneRegistration_resendsHeartbeatWhileRegistered() {
         stubProperties();
         stubRegistrationOk();
 
-        var registry = createRegistry();
-        registry.initialize();
-        assertThat(registry.isRegistered()).isTrue();
+        var registrar = createRegistrar();
+        registrar.initialize();
+        assertThat(readinessState.isRegistered()).isTrue();
 
-        registry.retryControlPlaneRegistration();
-        registry.retryControlPlaneRegistration();
+        registrar.retryControlPlaneRegistration();
+        registrar.retryControlPlaneRegistration();
 
         wireMock.verify(3, postRequestedFor(urlEqualTo(REGISTRATION_PATH)));
     }
 
-    // -----------------------------------------------------------------------
-    // Case 5: JSON body carries correct Xrd-PULL / http / url values
-    // -----------------------------------------------------------------------
-
     @Test
-    void initialize_bodyCarriesCorrectTransferTypeSourceTypeAndUrl() throws Exception {
+    void initialize_bodyCarriesCorrectTransferTypeSourceTypeAndUrl() {
         stubProperties();
         stubRegistrationOk();
 
-        createRegistry().initialize();
+        createRegistrar().initialize();
 
         wireMock.verify(postRequestedFor(urlEqualTo(REGISTRATION_PATH))
                 .withRequestBody(containing("Xrd-PULL"))
@@ -199,25 +176,8 @@ class ProxyDataPlaneRegistryTest {
                 .withRequestBody(containing(DATA_FLOW_ENDPOINT)));
     }
 
-    // -----------------------------------------------------------------------
-    // Additional: server start failure propagates as XrdRuntimeException
-    // -----------------------------------------------------------------------
-
-    @Test
-    void initialize_serverStartFailure_throwsXrdRuntimeException() throws Exception {
-        stubProperties();
-        doThrow(new RuntimeException("Port in use")).when(dataPlaneServer).start();
-
-        assertThatThrownBy(() -> createRegistry().initialize())
-                .isInstanceOf(XrdRuntimeException.class);
-    }
-
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
-    private ProxyDataPlaneRegistry createRegistry() {
-        return new ProxyDataPlaneRegistry(dspProperties, dataPlaneServer, signalingApiController, transformerRegistry);
+    private ControlPlaneRegistrar createRegistrar() {
+        return new ControlPlaneRegistrar(dspProperties, transformerRegistry, readinessState);
     }
 
     private void stubProperties() {

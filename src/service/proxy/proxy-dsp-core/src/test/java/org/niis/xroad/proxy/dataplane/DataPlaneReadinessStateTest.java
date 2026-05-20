@@ -24,31 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.proxy.dataplane;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
-import org.eclipse.microprofile.health.Readiness;
+import org.junit.jupiter.api.Test;
 
-/**
- * Readiness check that reports DOWN until the data plane has registered with the control plane.
- */
-@Readiness
-@ApplicationScoped
-@RequiredArgsConstructor
-public class DataPlaneRegistrationReadinessCheck implements HealthCheck {
-    static final String NAME = "dataplane-registration";
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private final DataPlaneReadinessState readinessState;
+class DataPlaneReadinessStateTest {
 
-    @Override
-    public HealthCheckResponse call() {
-        if (readinessState.isRegistered()) {
-            return HealthCheckResponse.up(NAME);
-        }
-        return HealthCheckResponse.down(NAME);
+    @Test
+    void initialState_isNotRegistered() {
+        var state = new DataPlaneReadinessState();
+        assertThat(state.isRegistered()).isFalse();
+    }
+
+    @Test
+    void markRegistered_setsRegisteredTrue() {
+        var state = new DataPlaneReadinessState();
+        state.markRegistered();
+        assertThat(state.isRegistered()).isTrue();
+    }
+
+    @Test
+    void markNotRegistered_afterRegistered_setsRegisteredFalse() {
+        var state = new DataPlaneReadinessState();
+        state.markRegistered();
+        state.markNotRegistered();
+        assertThat(state.isRegistered()).isFalse();
+    }
+
+    @Test
+    void markRegistered_isIdempotent() {
+        var state = new DataPlaneReadinessState();
+        state.markRegistered();
+        state.markRegistered();
+        assertThat(state.isRegistered()).isTrue();
     }
 }

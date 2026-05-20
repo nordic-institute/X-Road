@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.proxy.dataplane;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
-import org.eclipse.microprofile.health.Readiness;
 
 /**
- * Readiness check that reports DOWN until the data plane has registered with the control plane.
+ * Single source of truth for the data-plane readiness flag.
+ * Set by {@link ControlPlaneRegistrar}; read by {@link DataPlaneRegistrationReadinessCheck}.
  */
-@Readiness
 @ApplicationScoped
-@RequiredArgsConstructor
-public class DataPlaneRegistrationReadinessCheck implements HealthCheck {
-    static final String NAME = "dataplane-registration";
+public class DataPlaneReadinessState {
 
-    private final DataPlaneReadinessState readinessState;
+    @SuppressWarnings("java:S5164")
+    private volatile boolean registered = false;
 
-    @Override
-    public HealthCheckResponse call() {
-        if (readinessState.isRegistered()) {
-            return HealthCheckResponse.up(NAME);
-        }
-        return HealthCheckResponse.down(NAME);
+    /**
+     * Marks the data plane as successfully registered with the control plane.
+     */
+    public void markRegistered() {
+        registered = true;
+    }
+
+    /**
+     * Marks the data plane as not registered with the control plane.
+     */
+    public void markNotRegistered() {
+        registered = false;
+    }
+
+    /**
+     * Returns {@code true} once the data plane has successfully registered with the control plane.
+     */
+    public boolean isRegistered() {
+        return registered;
     }
 }

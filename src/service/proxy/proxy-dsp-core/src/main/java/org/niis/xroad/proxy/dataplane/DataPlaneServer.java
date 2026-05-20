@@ -27,9 +27,6 @@ package org.niis.xroad.proxy.dataplane;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quarkus.runtime.Startup;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.ws.rs.ext.Provider;
@@ -51,12 +48,12 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
  * CDI bean that owns a separate Jetty Server instance for the data-plane listener.
  * Starts on the configured data-plane port (default 5590) with plain HTTP on localhost.
  * <p>
- * Lifecycle: {@link #init()} creates the server and connector; {@link #start()} must be
- * called after all JAX-RS resources are registered via {@link #registerJaxRsResource}.
+ * Lifecycle is driven by {@link DataPlaneServerLifecycle}: {@link #init()} creates the server
+ * and connector; {@link #start()} must be called after all JAX-RS resources are registered
+ * via {@link #registerJaxRsResource}; {@link #destroy()} stops the server.
  */
 @Slf4j
 @ApplicationScoped
-@Startup
 @RequiredArgsConstructor
 @ArchUnitSuppressed("NoVanillaExceptions")
 public class DataPlaneServer {
@@ -70,7 +67,6 @@ public class DataPlaneServer {
      * Creates the dataplane Jetty server and connector. Does not start the server.
      * Call {@link #registerJaxRsResource} followed by {@link #start()} to complete initialization.
      */
-    @PostConstruct
     public void init() {
         log.info("Initializing full-data-plane Jetty server..");
         server = createServer(dataplaneProperties);
@@ -92,7 +88,6 @@ public class DataPlaneServer {
     /**
      * Stops the dataplane Jetty server.
      */
-    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
     }
