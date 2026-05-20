@@ -6,7 +6,7 @@ Feature: 0970 - CS: Settings -> System Settings -> Management Services
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And CentralServer Settings tab is selected
     And System settings sub-tab is selected
 

@@ -6,7 +6,7 @@ Feature: 0810 - CS: Global configuration: Internal configuration: Configuration 
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Global configuration tab is selected
     And Internal configuration sub-tab is selected
 

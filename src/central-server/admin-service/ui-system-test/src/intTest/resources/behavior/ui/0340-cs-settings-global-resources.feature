@@ -7,7 +7,7 @@ Feature: 0340 - CS: Settings -> Global Resources
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And CentralServer Settings tab is selected
     And Global Resources sub-tab is selected
 

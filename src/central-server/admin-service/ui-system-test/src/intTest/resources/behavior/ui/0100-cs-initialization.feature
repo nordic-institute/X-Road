@@ -6,7 +6,7 @@ Feature: 0100 - CS: Initialization
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
 
   Scenario: Central server repeat PIN field shows check-mark only when it matches with PIN prompt
     Given Initial Configuration form is visible

@@ -5,7 +5,7 @@ Feature: 0850 - CS: Global configuration: Trusted Anchors
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Global configuration tab is selected
     And Trusted Anchors sub-tab is selected
 

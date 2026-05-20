@@ -2,7 +2,7 @@
 POST https://{{cs_host}}:{{cs_port}}/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
