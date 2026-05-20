@@ -103,3 +103,25 @@ container traffic:
   → expect a version string and `false` (Netdata Cloud is disabled — no telemetry leaves the host).
 
 Footprint is roughly 100–200 MB RSS at a 2 s scrape interval.
+
+### Tracing (Jaeger)
+
+Jaeger v2 runs in its own `xrd-jaeger` LXD container, collecting OTLP traces
+emitted by X-Road services. Membership is controlled via the inventory rather
+than a role flag.
+
+**Enabled by default.** To disable, comment out the host in your inventory
+(`config/ansible_hosts.txt` or your custom inventory):
+
+```ini
+# [jaeger_servers]
+# xrd-jaeger ansible_connection=lxd
+```
+
+When the group is empty, the jaeger play is a no-op and `init-lxd` will not
+provision the container. Note: `init-dev-configuration` still writes an
+`otel.conf` pointing at `xrd-jaeger.lxd`; with the container absent, the
+endpoint is unreachable and trace export silently fails — services keep
+running.
+
+Jaeger UI: <http://xrd-jaeger.lxd/>

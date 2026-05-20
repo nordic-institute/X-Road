@@ -57,12 +57,10 @@
     - init-dev-configuration
 
 - name: Provision Jaeger tracing backend (xrd-jaeger LXD container)
-  hosts: lxd_servers
-  become: "{{ onMacOs | default(true) }}"
+  hosts: jaeger_servers
   strategy: free
   roles:
-    - role: jaeger
-      when: enable_jaeger | default(true) | bool
+    - jaeger
   tags:
     - jaeger
 

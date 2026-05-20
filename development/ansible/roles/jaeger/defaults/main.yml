@@ -1,6 +1,4 @@
 ---
-enable_jaeger: true
-jaeger_container_name: xrd-jaeger
 jaeger_version: "2.18.0"
 jaeger_arch_map:
   x86_64: amd64
