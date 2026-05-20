@@ -30,6 +30,8 @@ Content-Type: application/json
   "password": "secret123!"
 }
 HTTP *
+[Asserts]
+status toString matches "^(201|409)$"
 
 # Log in to the Security Server
 POST https://{{ss2_host}}:4000/login
