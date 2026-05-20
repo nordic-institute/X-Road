@@ -49,7 +49,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
  *
  * <p>Shared between the traditional proxy routing path
  * ({@link DefaultServiceAddressResolver}) and the DSP acquire path
- * ({@code DspSubProcessor}, plan 09-04) so that hint semantics and error codes
+ * ({@code ConsumerSideDspProcessor}) so that hint semantics and error codes
  * ({@link org.niis.xroad.common.core.exception.ErrorCode#UNKNOWN_MEMBER} /
  * {@link org.niis.xroad.common.core.exception.ErrorCode#INVALID_SECURITY_SERVER})
  * stay in one place.

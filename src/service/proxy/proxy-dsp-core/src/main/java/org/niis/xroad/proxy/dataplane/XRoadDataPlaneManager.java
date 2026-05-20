@@ -58,7 +58,7 @@ public class XRoadDataPlaneManager {
     /** Full transfer-type string for Xrd-PULL flows (matches the wire value). */
     static final String XRD_PULL_TRANSFER_TYPE = "Xrd-PULL";
 
-    private final ProxyDspProperties dspProperties;
+    private final DataPlaneServerProperties dspProperties;
     private final ConcurrentHashMap<String, DataFlowStates> activeFlows = new ConcurrentHashMap<>();
 
     /**

@@ -48,8 +48,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 
 /**
- * CDI bean that owns a separate Jetty Server instance for the dataplane listener.
- * Starts on the configured dataplane port (default 5590) with plain HTTP on localhost.
+ * CDI bean that owns a separate Jetty Server instance for the data-plane listener.
+ * Starts on the configured data-plane port (default 5590) with plain HTTP on localhost.
  * <p>
  * Lifecycle: {@link #init()} creates the server and connector; {@link #start()} must be
  * called after all JAX-RS resources are registered via {@link #registerJaxRsResource}.
@@ -61,7 +61,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 @ArchUnitSuppressed("NoVanillaExceptions")
 public class DataPlaneServer {
 
-    private final ProxyDspProperties dataplaneProperties;
+    private final DataPlaneServerProperties dataplaneProperties;
 
     private Server server;
     private Handler jaxRsHandler;
@@ -86,7 +86,7 @@ public class DataPlaneServer {
     public void start() throws Exception {
         registerHandler();
         server.start();
-        log.info("Dataplane Jetty server started on port {}", dataplaneProperties.listenPort());
+        log.info("DataPlane Jetty server started on port {}", dataplaneProperties.listenPort());
     }
 
     /**
@@ -97,7 +97,7 @@ public class DataPlaneServer {
         server.stop();
     }
 
-    private static Server createServer(ProxyDspProperties properties) {
+    private static Server createServer(DataPlaneServerProperties properties) {
         var threadPool = new QueuedThreadPool(properties.threadPoolMax(), properties.threadPoolMin());
         threadPool.setIdleTimeout(properties.threadPoolIdleTimeout());
         threadPool.setDetailedDump(false);
@@ -106,7 +106,7 @@ public class DataPlaneServer {
 
     private void createConnector() {
         var connector = new ServerConnector(server);
-        connector.setName("DataplaneConnector");
+        connector.setName("DataPlaneConnector");
         connector.setPort(dataplaneProperties.listenPort());
         connector.setHost(dataplaneProperties.listenAddress());
         server.addConnector(connector);

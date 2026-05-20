@@ -78,7 +78,7 @@ public class ProxyDataPlaneRegistry {
     private static final int HTTP_STATUS_2XX_MIN = 200;
     private static final int HTTP_STATUS_2XX_MAX = 300;
 
-    private final ProxyDspProperties dspProperties;
+    private final DataPlaneServerProperties dspProperties;
     private final DataPlaneServer dataPlaneServer;
     private final XRoadDataPlaneSignalingApiController signalingApiController;
     private final TypeTransformerRegistry typeTransformerRegistry;
@@ -102,7 +102,7 @@ public class ProxyDataPlaneRegistry {
         try {
             dataPlaneServer.start();
         } catch (Exception e) {
-            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR, "Failed to start dataplane server", e);
+            throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR, "Failed to start data-plane server", e);
         }
         attemptControlPlaneRegistration();
     }
@@ -121,7 +121,7 @@ public class ProxyDataPlaneRegistry {
 
     /**
      * Returns {@code true} once the proxy has successfully registered itself on the control plane.
-     * Read by {@code DataplaneRegistrationReadinessCheck}.
+     * Read by {@code DataPlaneRegistrationReadinessCheck}.
      */
     public boolean isRegistered() {
         return registered;
@@ -144,10 +144,10 @@ public class ProxyDataPlaneRegistry {
                 log.info("X-Road data plane registered on control plane.");
                 registered = true;
             } else {
-                log.warn("Cannot register dataplane on controlplane — HTTP {}: {}", response.statusCode(), response.body());
+                log.warn("Cannot register data-plane on control-plane — HTTP {}: {}", response.statusCode(), response.body());
             }
         } catch (Exception e) {
-            log.warn("Cannot register dataplane on controlplane — will retry.", e);
+            log.warn("Cannot register data-plane on control-plane — will retry.", e);
         }
     }
 

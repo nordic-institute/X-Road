@@ -34,12 +34,12 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
 
 /**
- * Readiness check that reports DOWN until the dataplane has registered with the control plane.
+ * Readiness check that reports DOWN until the data plane has registered with the control plane.
  */
 @Readiness
 @ApplicationScoped
 @RequiredArgsConstructor
-public class DataplaneRegistrationReadinessCheck implements HealthCheck {
+public class DataPlaneRegistrationReadinessCheck implements HealthCheck {
     static final String NAME = "dataplane-registration";
 
     private final ProxyDataPlaneRegistry registry;

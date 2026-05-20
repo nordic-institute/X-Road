@@ -70,7 +70,7 @@ class ProxyDataPlaneRegistryTest {
     @Mock
     private XRoadDataPlaneSignalingApiController signalingApiController;
     @Mock
-    private ProxyDspProperties dspProperties;
+    private DataPlaneServerProperties dspProperties;
 
     private WireMockServer wireMock;
     private TypeTransformerRegistry transformerRegistry;

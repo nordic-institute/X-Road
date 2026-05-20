@@ -44,32 +44,29 @@ import java.util.Map;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
- * Default DSP sub-processor. Resolves candidate provider security servers via
- * {@link ProviderSecurityServerResolver}, looks each up in the hardcoded
+ * Consumer-side implementation of {@link DspRequestProcessor}. Resolves candidate provider security
+ * servers via {@link ProviderSecurityServerResolver}, looks each up in the hardcoded
  * {@link CounterPartyTarget} map, and invokes
  * {@link ControlPlaneNegotiationService#acquireAssetAccess} in shuffled order until one succeeds.
  *
  * <p>ID construction:
  * <ul>
  *   <li>{@code assetId = serviceId.asEncodedId()} — symmetric with provider
- *       {@code AssetMapper.encodeAssetId} (Phase 9 D-05).</li>
+ *       {@code AssetMapper.encodeAssetId}.</li>
  *   <li>{@code counterPartyId} + {@code counterPartyAddress} — looked up by candidate
  *       host-address in {@link CounterPartyTarget#defaultMap()} for normal requests or
  *       {@link CounterPartyTarget#managementMap()} for MANAGEMENT requests. Lookup miss is a hard
- *       error (fail fast; no silent fallback). See
- *       {@code .scratch/dsp-counterparty-cleanup/PRD.md} D2/D3 and
- *       {@code findings.md} for why this replaced the prior
- *       {@code serviceId.getClientId().asEncodedId()} derivation.</li>
+ *       error (fail fast; no silent fallback).</li>
  * </ul>
  *
  * <p>Exhaustion of all candidates ends in
  * {@link org.niis.xroad.common.core.exception.ErrorCode#NETWORK_ERROR} with the last thrown
- * exception chained (Phase 9 D-19).
+ * exception chained.
  */
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
-public class DspSubProcessor implements DspRequestProcessor {
+public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private final ControlPlaneNegotiationService controlPlaneNegotiationService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;

@@ -56,7 +56,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DspSubProcessorTest {
+class ConsumerSideDspProcessorTest {
 
     private static final String INSTANCE = "DEV";
     private static final String HOST_A = "xrd-ss0";
@@ -74,12 +74,12 @@ class DspSubProcessorTest {
     @Mock
     private ProviderSecurityServerResolver providerSecurityServerResolver;
 
-    private DspSubProcessor processor;
+    private ConsumerSideDspProcessor processor;
     private ServiceId serviceId;
 
     @BeforeEach
     void setUp() {
-        processor = new DspSubProcessor(controlPlaneNegotiationService, providerSecurityServerResolver);
+        processor = new ConsumerSideDspProcessor(controlPlaneNegotiationService, providerSecurityServerResolver);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 
@@ -179,7 +179,7 @@ class DspSubProcessorTest {
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
         var expected = new AssetAccessResponse("http://dp.b/e", "token-b");
-        // DspSubProcessor#execute shuffles candidates, so A may be tried before or after B.
+        // ConsumerSideDspProcessor#execute shuffles candidates, so A may be tried before or after B.
         // A always fails, B always succeeds — result is `expected` regardless of order.
         // A's stub is lenient so when shuffle picks B first (and A is never tried) the
         // strict-stubbing check doesn't fire.

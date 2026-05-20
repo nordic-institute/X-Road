@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 class DataPlaneServerTest {
 
     @Mock
-    private ProxyDspProperties properties;
+    private DataPlaneServerProperties properties;
 
     private DataPlaneServer server;
 

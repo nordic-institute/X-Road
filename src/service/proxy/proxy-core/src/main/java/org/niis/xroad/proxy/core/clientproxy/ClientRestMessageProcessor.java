@@ -111,7 +111,7 @@ public class ClientRestMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
-    private final DspRequestProcessor dspSubProcessor;
+    private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
 
     /**
@@ -205,7 +205,7 @@ public class ClientRestMessageProcessor {
         // Acquire DSP asset access before sending the REST request (return discarded — Phase 10
         // will pipe endpoint + auth into the HttpSender).
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
-        dspSubProcessor.execute(new DspRequest(requestServiceId, restRequest.getTargetSecurityServer(),
+        consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getTargetSecurityServer(),
                 isManagementRequest(requestServiceId)));
 
         final URI[] addresses = clientRequestPreparationService.prepareRequest(

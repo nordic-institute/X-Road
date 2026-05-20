@@ -30,10 +30,10 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 /**
- * Configuration mapping for the dataplane listener.
+ * Configuration mapping for the data-plane listener.
  */
 @ConfigMapping(prefix = "xroad.proxy.dsp")
-public interface ProxyDspProperties {
+public interface DataPlaneServerProperties {
 
     @WithName("listen-address")
     @WithDefault("127.0.0.1")

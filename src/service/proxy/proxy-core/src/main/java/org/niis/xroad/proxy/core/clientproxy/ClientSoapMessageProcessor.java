@@ -103,7 +103,7 @@ public class ClientSoapMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
-    private final DspRequestProcessor dspSubProcessor;
+    private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
@@ -218,7 +218,7 @@ public class ClientSoapMessageProcessor {
         // Acquire DSP asset access before sending the SOAP request (return discarded in Phase 9;
         // Phase 10 pipes endpoint + auth into the HttpSender).
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
-        dspSubProcessor.execute(new DspRequest(
+        consumerSideDspProcessor.execute(new DspRequest(
                 decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
                 isManagementRequest(decoder.getServiceId())));
         ProxyMessage response;
