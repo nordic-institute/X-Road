@@ -83,13 +83,13 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
         var serviceId = request.serviceId();
         var assetId = serviceId.asEncodedId();
-        var targets = request.management() ? mgmtCounterPartyTargets : counterPartyTargets;
+        var targets = request.managementSubsystem() ? mgmtCounterPartyTargets : counterPartyTargets;
 
         var candidates = new ArrayList<>(
                 providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer()));
         Collections.shuffle(candidates);
         log.debug("processing DSP request for service {}, asset {}, management={}. Got {} possible targets",
-                serviceId, assetId, request.management(), candidates.size());
+                serviceId, assetId, request.managementSubsystem(), candidates.size());
 
         RuntimeException last = null;
         for (var candidate : candidates) {

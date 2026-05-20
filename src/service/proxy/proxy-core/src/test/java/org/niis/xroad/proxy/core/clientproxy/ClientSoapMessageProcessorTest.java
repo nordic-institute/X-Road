@@ -96,7 +96,7 @@ class ClientSoapMessageProcessorTest {
         // isManagementRequest drives the management flag in the DspRequest constructed by processRequest.
         // Verify the flag value matches what the processor would pass.
         var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
-        assertThat(dspRequest.management()).isTrue();
+        assertThat(dspRequest.managementSubsystem()).isTrue();
     }
 
     @Test
@@ -108,7 +108,7 @@ class ClientSoapMessageProcessorTest {
         var processor = createProcessor(globalConfProvider);
 
         var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
-        assertThat(dspRequest.management()).isFalse();
+        assertThat(dspRequest.managementSubsystem()).isFalse();
     }
 
     private ClientSoapMessageProcessor createProcessor(GlobalConfProvider globalConfProvider) {
