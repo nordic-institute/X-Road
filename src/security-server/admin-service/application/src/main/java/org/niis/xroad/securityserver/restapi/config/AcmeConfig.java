@@ -92,11 +92,15 @@ public class AcmeConfig {
     public static class IsAcmeCertRenewalJobsActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            boolean isActive = SystemProperties.isAcmeCertificateRenewalActive();
-            if (!isActive) {
+            if (!SystemProperties.isAcmeCertificateRenewalActive()) {
                 log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
+                return false;
             }
-            return isActive;
+            if (SystemProperties.NodeType.SLAVE.equals(SystemProperties.getServerNodeType())) {
+                log.info("This is a secondary cluster node, ACME certificate renewal job auto-scheduling disabled");
+                return false;
+            }
+            return true;
         }
     }
 
