@@ -29,7 +29,7 @@ PACKAGES_PATH=""
 PLATFORMS=""  # Empty by default = build for host platform only
 BUILD_START_TIME=$(date +%s)
 # Set default password for build secrets if not provided
-export USER_PASSWD="${USER_PASSWD:-secret}"
+export USER_PASSWD="${USER_PASSWD:-secret123!}"
 
 # Help function
 show_help() {

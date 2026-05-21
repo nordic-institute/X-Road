@@ -5,7 +5,7 @@ Feature: 1020 - CS: Security server: Certificates
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Security Servers tab is selected
     And user opens security server details for "E2E-SS1"
     And navigates to security server authentication certificates tab

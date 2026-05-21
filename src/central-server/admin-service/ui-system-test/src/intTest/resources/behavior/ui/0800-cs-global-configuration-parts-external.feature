@@ -7,7 +7,7 @@ Feature: 0800 - CS: Global configuration: External configuration: Configuration 
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Global configuration tab is selected
     And External configuration sub-tab is selected
 
