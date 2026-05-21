@@ -41,7 +41,7 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.niis.xroad.edc.extension.catalog.XRoadPolicyNamespace.XROAD_GLOBAL_GROUP;
+import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_GLOBAL_GROUP;
 
 
 @Slf4j

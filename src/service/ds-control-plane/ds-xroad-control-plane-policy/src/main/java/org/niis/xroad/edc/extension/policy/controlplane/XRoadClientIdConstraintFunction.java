@@ -36,7 +36,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 
-import static org.niis.xroad.edc.extension.catalog.XRoadPolicyNamespace.XROAD_CLIENT_ID;
+import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_CLIENT_ID;
 import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor

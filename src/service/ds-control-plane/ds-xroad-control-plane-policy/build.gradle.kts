@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":lib:globalconf-core"))
     implementation(project(":lib:serverconf-core"))
     implementation(project(":common:common-domain"))
-    implementation(project(":service:ds-control-plane:ds-xroad-assets"))
 
     testImplementation(libs.assertj.core)
     testImplementation(libs.mockito.jupiter)

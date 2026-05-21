@@ -24,31 +24,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.edc.extension.catalog;
 
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.system.ServiceExtension;
+
 /**
- * X-Road EDC JSON-LD namespace and canonical left-operand IRIs for X-Road ODRL policy constraints.
- * All EDC extensions that register or evaluate X-Road policies must use these constants so that
- * the {@code xroad} prefix resolves consistently during JSON-LD compaction (e.g. DSP catalog responses).
+ * EDC ServiceExtension that provides an in-memory {@link DataPlaneInstanceStore} implementation.
+ * Overrides the default SQL store on the classpath.
+ * Starts empty; receives the proxy data plane instance via DPS registerOn() at proxy boot.
  */
-public final class XRoadPolicyNamespace {
+@Slf4j
+@Extension(XRoadDataPlaneSelectorExtension.NAME)
+public class XRoadDataPlaneSelectorExtension implements ServiceExtension {
 
-    /** Canonical X-Road EDC JSON-LD namespace IRI. Registered as prefix {@code xroad} in every JSON-LD scope. */
-    public static final String XROAD_NAMESPACE = "https://x-road.eu/edc/v1/";
+    static final String NAME = "X-Road DataPlane Selector";
 
-    /** Left-operand IRI for ClientId-based access control. */
-    public static final String XROAD_CLIENT_ID = XROAD_NAMESPACE + "clientId";
+    @Override
+    public String name() {
+        return NAME;
+    }
 
-    /** Left-operand IRI for global group membership access control. */
-    public static final String XROAD_GLOBAL_GROUP = XROAD_NAMESPACE + "globalGroupMember";
-
-    /** Left-operand IRI for local group membership access control. */
-    public static final String XROAD_LOCAL_GROUP = XROAD_NAMESPACE + "localGroupMember";
-
-    /** Left-operand IRI for data-path access control. */
-    public static final String XROAD_DATAPATH = XROAD_NAMESPACE + "datapath";
-
-    private XRoadPolicyNamespace() {
+    /**
+     * Provides an in-memory {@link DataPlaneInstanceStore} that overrides the SQL store on classpath.
+     */
+    @Provider
+    public DataPlaneInstanceStore dataPlaneInstanceStore() {
+        log.trace("Providing DataPlaneInstanceStore backed by in-memory store");
+        return new DataPlaneInstanceServerConfStore();
     }
 }
