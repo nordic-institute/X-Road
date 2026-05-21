@@ -61,12 +61,6 @@ class XRoadServerConfCatalogExtensionTest {
     }
 
     @Test
-    void dataPlaneInstanceStoreReturnsCorrectInstance() {
-        assertThat(extension.dataPlaneInstanceStore())
-                .isInstanceOf(DataPlaneInstanceServerConfStore.class);
-    }
-
-    @Test
     void policyDefinitionStoreReturnsCorrectInstance() {
         assertThat(extension.policyDefinitionStore()).isInstanceOf(PolicyDefinitionServerConfStore.class);
     }

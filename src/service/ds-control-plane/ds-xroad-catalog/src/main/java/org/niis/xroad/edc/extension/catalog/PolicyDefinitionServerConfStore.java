@@ -29,6 +29,8 @@ package org.niis.xroad.edc.extension.catalog;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -93,7 +95,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
      */
     @Override
     @Nullable
-    public PolicyDefinition findById(String policyId) {
+    @WithSpan("dsp-find-acl")
+    public PolicyDefinition findById(@SpanAttribute String policyId) {
         log.trace("findById policyId={}", policyId);
         if (policyId == null || policyId.isBlank()) {
             log.trace("findById policyId blank, returning null");

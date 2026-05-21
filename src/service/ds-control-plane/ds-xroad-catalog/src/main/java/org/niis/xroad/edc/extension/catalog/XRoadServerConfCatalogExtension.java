@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -102,16 +101,6 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + "-mgmt");
         log.info("Participant context ID for catalog assets: {}", participantContextId);
         log.info("Management participant context ID for catalog assets: {}", managementParticipantContextId);
-    }
-
-    /**
-     * Provides an in-memory {@link DataPlaneInstanceStore} that overrides the SQL store on classpath.
-     * Starts empty; receives the proxy data plane instance via DPS registerOn() at proxy boot.
-     */
-    @Provider
-    public DataPlaneInstanceStore dataPlaneInstanceStore() {
-        log.trace("Providing DataPlaneInstanceStore backed by in-memory store");
-        return new DataPlaneInstanceServerConfStore();
     }
 
     /**

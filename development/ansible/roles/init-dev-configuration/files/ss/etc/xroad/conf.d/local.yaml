@@ -1,7 +1,7 @@
 ---
 quarkus:
   log:
-    level: DEBUG
+    level: INFO
     category:
       "org.niis.xroad":
         level: DEBUG
