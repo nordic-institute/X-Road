@@ -30,21 +30,30 @@ import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
 
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE_TIMESTAMP;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DESTINATION_PROVISION_TYPES;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -68,7 +77,6 @@ public class ControlPlaneRegistrar {
     private static final int HTTP_STATUS_2XX_MAX = 300;
 
     private final DataPlaneServerProperties dspProperties;
-    private final TypeTransformerRegistry typeTransformerRegistry;
     private final DataPlaneReadinessState readinessState;
 
     @SuppressWarnings("java:S5164")
@@ -140,11 +148,23 @@ public class ControlPlaneRegistrar {
     }
 
     private String renderJsonLd(DataPlaneInstance instance) {
-        JsonObject jo = typeTransformerRegistry.transform(instance, JsonObject.class)
-                .orElseThrow(f -> XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR, f.getFailureDetail()));
-        JsonObject wrapped = Json.createObjectBuilder(jo)
-                .add(CONTEXT, Json.createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .build();
-        return wrapped.toString();
+        var factory = Json.createBuilderFactory(Map.of());
+        var state = Optional.ofNullable(DataPlaneInstanceStates.from(instance.getState()))
+                .map(Enum::name)
+                .orElse(null);
+        var builder = factory.createObjectBuilder()
+                .add(CONTEXT, factory.createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(ID, instance.getId())
+                .add(TYPE, DATAPLANE_INSTANCE_TYPE)
+                .add(URL, instance.getUrl().toString())
+                .add(LAST_ACTIVE, instance.getLastActive())
+                .add(DATAPLANE_INSTANCE_STATE_TIMESTAMP, instance.getStateTimestamp())
+                .add(ALLOWED_SOURCE_TYPES, factory.createArrayBuilder(instance.getAllowedSourceTypes()))
+                .add(ALLOWED_TRANSFER_TYPES, factory.createArrayBuilder(instance.getAllowedTransferTypes()))
+                .add(DESTINATION_PROVISION_TYPES, factory.createArrayBuilder(instance.getDestinationProvisionTypes()));
+        if (state != null) {
+            builder.add(DATAPLANE_INSTANCE_STATE, state);
+        }
+        return builder.build().toString();
     }
 }

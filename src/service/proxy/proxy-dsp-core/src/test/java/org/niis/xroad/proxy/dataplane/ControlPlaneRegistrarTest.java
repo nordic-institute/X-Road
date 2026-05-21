@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.dataplane;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,8 +47,6 @@ import static org.mockito.Mockito.lenient;
 /**
  * Unit tests for {@link ControlPlaneRegistrar}.
  * Uses WireMock to assert the HTTP wire shape sent to the control plane.
- * The {@link TypeTransformerRegistry} is the production instance from
- * {@link XRoadDpsTransformerRegistry#registry()} for parity with runtime behaviour.
  */
 @ExtendWith(MockitoExtension.class)
 class ControlPlaneRegistrarTest {
@@ -63,14 +60,12 @@ class ControlPlaneRegistrarTest {
     private DataPlaneServerProperties dspProperties;
 
     private WireMockServer wireMock;
-    private TypeTransformerRegistry transformerRegistry;
     private DataPlaneReadinessState readinessState;
 
     @BeforeEach
     void setUp() {
         wireMock = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
         wireMock.start();
-        transformerRegistry = new XRoadDpsTransformerRegistry().registry();
         readinessState = new DataPlaneReadinessState();
     }
 
@@ -177,7 +172,7 @@ class ControlPlaneRegistrarTest {
     }
 
     private ControlPlaneRegistrar createRegistrar() {
-        return new ControlPlaneRegistrar(dspProperties, transformerRegistry, readinessState);
+        return new ControlPlaneRegistrar(dspProperties, readinessState);
     }
 
     private void stubProperties() {
