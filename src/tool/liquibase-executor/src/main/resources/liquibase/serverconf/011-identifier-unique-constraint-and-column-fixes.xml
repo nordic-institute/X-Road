@@ -23,7 +23,6 @@
                                member_class,
                                member_code,
                                subsystem_code,
-                               server_code,
                                group_code
                     )
                 NULLS NOT DISTINCT

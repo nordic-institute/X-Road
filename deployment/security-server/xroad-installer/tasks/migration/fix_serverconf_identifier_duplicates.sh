@@ -131,8 +131,7 @@ SELECT
     memberclass,
     membercode,
     subsystemcode,
-    groupcode,
-    servercode
+    groupcode
 FROM serverconf.identifier
 WHERE "type" IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP')
 GROUP BY
@@ -141,8 +140,7 @@ GROUP BY
     memberclass,
     membercode,
     subsystemcode,
-    groupcode,
-    servercode
+    groupcode
 HAVING COUNT(*) > 1;
 
 DROP TABLE IF EXISTS tmp_identifier_dedup_map;
@@ -191,13 +189,11 @@ BEGIN
         FROM serverconf.identifier
         WHERE "type" IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP')
         GROUP BY
-            "type",
             xroadinstance,
             memberclass,
             membercode,
             subsystemcode,
-            groupcode,
-            servercode
+            groupcode
         HAVING COUNT(*) > 1
     ) d;
 
