@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.e2e;
 
-import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ContainerNetwork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -53,9 +52,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 public class EnvSetup extends BaseComposeSetup {
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
-    private static final String COMPOSE_DS_HTTPS_FILE = "compose.ds-https.yaml";
     private static final String DS_HTTPS_KEYSTORE_VOLUME = "e2e-ds-https-keystore";
-    private static final String DS_HTTPS_KEYSTORE_INIT = "ds-https-keystore-init";
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
     private static final String COMPOSE_SS_E2E_DS_FILE = "compose.e2e.ds.yaml";
@@ -85,7 +82,6 @@ public class EnvSetup extends BaseComposeSetup {
     private ComposeContainer envSs0;
     private ComposeContainer envSs1;
     private ComposeContainer envAux;
-    private ComposeContainer envDsHttps;
 
     public EnvSetup(TestFrameworkCoreProperties coreProperties) {
         super(coreProperties);
@@ -95,23 +91,13 @@ public class EnvSetup extends BaseComposeSetup {
     public void init() {
         ensureDsHttpsKeystoreVolume();
 
-        envDsHttps = new ComposeContainer("dshttps-", getComposeFilePath(COMPOSE_DS_HTTPS_FILE));
-        envDsHttps.start();
-        await().atMost(Duration.ofMinutes(2)).until(() -> envDsHttps.getContainerByServiceName(DS_HTTPS_KEYSTORE_INIT)
-                .map(c -> !c.isRunning())
-                .orElse(false));
-
-        envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER));
-
-        envSs1 = createSSEnvironment("ss1", Set.of(Feature.HSM, Feature.MESSAGE_LOG_ENCRYPTION));
-
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_ADMIN, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_IDENTITY, forListeningPort())
-                .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
+                .withEnv("PROXY_UI_0", "ss0-ui")
                 .withEnv("PROXY_0", "xrd-ss0")
-                .withEnv("PROXY_UI_1", getContainerName(envSs1, UI))
+                .withEnv("PROXY_UI_1", "ss1-ui")
                 .withEnv("PROXY_1", "xrd-ss1")
                 .withEnv("IH_HOST_0", "ss0-ds-identity-hub")
                 .withEnv("IH_HOST_1", "ss1-ds-identity-hub")
@@ -125,6 +111,10 @@ public class EnvSetup extends BaseComposeSetup {
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 
+        envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER));
+
+        envSs1 = createSSEnvironment("ss1", Set.of(Feature.HSM, Feature.MESSAGE_LOG_ENCRYPTION));
+
         waitForHurl();
     }
 
@@ -135,14 +125,8 @@ public class EnvSetup extends BaseComposeSetup {
 
     private void ensureDsHttpsKeystoreVolume() {
         var dockerClient = DockerClientFactory.lazyClient();
-        try {
-            dockerClient.removeVolumeCmd(DS_HTTPS_KEYSTORE_VOLUME).exec();
-            log.info("Removed stale {} volume", DS_HTTPS_KEYSTORE_VOLUME);
-        } catch (NotFoundException ignored) {
-            // first run
-        }
         dockerClient.createVolumeCmd().withName(DS_HTTPS_KEYSTORE_VOLUME).exec();
-        log.info("Created external docker volume {}", DS_HTTPS_KEYSTORE_VOLUME);
+        log.info("Ensured external docker volume {} exists", DS_HTTPS_KEYSTORE_VOLUME);
     }
 
     private void connectToExternalNetwork(ComposeContainer env, List<String> serviceNames, String envName) {
@@ -204,8 +188,7 @@ public class EnvSetup extends BaseComposeSetup {
 
         env.start();
 
-        List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER,
-                DS_CONTROL_PLANE, DS_IDENTITY_HUB));
+        List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER));
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             services.add(SOFTTOKEN_SIGNER);
         }
@@ -266,9 +249,6 @@ public class EnvSetup extends BaseComposeSetup {
         }
         if (envAux != null) {
             envAux.stop();
-        }
-        if (envDsHttps != null) {
-            envDsHttps.stop();
         }
     }
 

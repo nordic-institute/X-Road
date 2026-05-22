@@ -1,4 +1,22 @@
 services:
+  ds-https-keystore-wait:
+    image: alpine:3.20
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        set -u
+        until [ -f /etc/xroad/ssl/ds-https.p12 ] && [ -f /etc/xroad/ssl/cacerts ]; do
+          sleep 1
+        done
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 8M
+        limits:
+          memory: 32M
+
   db-serverconf-ds-control-plane-config-seed:
     image: ${POSTGRES_DEV_IMG:-postgres-dev}
     pull_policy: always
@@ -98,7 +116,10 @@ services:
       retries: 40
       test: [ "CMD", "curl", "-f", "http://localhost:4099/q/health" ]
     networks:
-      - xrd-ss-network
+      xrd-ss-network: {}
+      xroad-network:
+        aliases:
+          - ${ENV_PREFIX:-}ds-control-plane
     ports:
       - "0:8181"
       - "0:8182" # management, /api/management
@@ -120,6 +141,8 @@ services:
         condition: service_completed_successfully
       configuration-client:
         condition: service_healthy
+      ds-https-keystore-wait:
+        condition: service_completed_successfully
 
   ds-identity-hub:
     image: ${DS_IDENTITY_HUB_IMG}
@@ -148,7 +171,10 @@ services:
       retries: 40
       test: [ "CMD", "curl", "-fk", "https://localhost:7181/api/check/health" ]
     networks:
-      - xrd-ss-network
+      xrd-ss-network: {}
+      xroad-network:
+        aliases:
+          - ${ENV_PREFIX:-}ds-identity-hub
     ports:
       - "0:7182" # identity API
       - "0:7183" # DID resolution
@@ -165,8 +191,15 @@ services:
     depends_on:
       db-ds-identity-hub:
         condition: service_healthy
+      ds-https-keystore-wait:
+        condition: service_completed_successfully
 
 volumes:
   ds-https-keystore:
     external: true
     name: e2e-ds-https-keystore
+
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true
