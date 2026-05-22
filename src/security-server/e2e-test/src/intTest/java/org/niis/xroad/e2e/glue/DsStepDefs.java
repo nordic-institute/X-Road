@@ -140,14 +140,29 @@ public class DsStepDefs extends BaseE2EStepDefs {
         String request = """
                 {
                     "attestations": ["%s-attestation-definition"],
-                    "credentialType": "MembershipCredential",
+                    "credentialType": "XRoadMembershipCredential",
                     "id": "%s-credential-definition",
                     "jsonSchema": "{}",
-                    "jsonSchemaUrl": "https://example.com/schema/MembershipCredential.json",
+                    "jsonSchemaUrl": "https://example.com/schema/XRoadMembershipCredential.json",
                     "mappings": [
                         {
-                            "input": "membershipType",
-                            "output": "credentialSubject.membershipType",
+                            "input": "xRoadInstance",
+                            "output": "credentialSubject.xRoadInstance",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberClass",
+                            "output": "credentialSubject.memberClass",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberCode",
+                            "output": "credentialSubject.memberCode",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberId",
+                            "output": "credentialSubject.memberId",
                             "required": "true"
                         }
                     ],
@@ -165,8 +180,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     // --- Identity Hub provisioning ---
 
-    @Step("Identity Hub participant context {string} with DID {string} and credential service endpoint {string} is created on {string}")
-    public void createIdentityHubParticipantContext(String participantContext, String did, String credentialServiceEndpoint, String env) {
+    @Step("Identity Hub participant context {string} with DID {string} and credential service endpoint {string}"
+            + " for X-Road member {string} is created on {string}")
+    public void createIdentityHubParticipantContext(String participantContext, String did,
+                                                    String credentialServiceEndpoint, String memberId, String env) {
         String request = """
                 {
                     "roles": [],
@@ -180,6 +197,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     "active": true,
                     "participantContextId": "%s",
                     "did": "%s",
+                    "additionalProperties": {
+                        "xroadMemberId": "%s"
+                    },
                     "key": {
                         "keyId": "%s#key-1",
                         "privateKeyAlias": "%s-key",
@@ -188,7 +208,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         }
                     }
                 }
-                """.formatted(credentialServiceEndpoint, did, participantContext, did, did, participantContext);
+                """.formatted(credentialServiceEndpoint, did, participantContext, did, memberId, did, participantContext);
 
         var mapping = envSetup.getContainerMapping(env, DS_IDENTITY_HUB, EnvSetup.Port.IDENTITY_HUB_IDENTITY);
         String url = IH_BASE_URL.formatted(mapping.host(), mapping.port());
@@ -204,7 +224,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     "credentials": [
                         {
                             "format": "VC1_0_JWT",
-                            "type": "MembershipCredential",
+                            "type": "XRoadMembershipCredential",
                             "id": "%s-credential-definition"
                         }
                     ]
@@ -312,29 +332,30 @@ public class DsStepDefs extends BaseE2EStepDefs {
         sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
     }
 
-    @Step("Policy definition allowing only {string} is created in participant context {string} on {string}")
-    public void policyDefinitionIsCreated(String consumerDid, String participantContext, String server) {
+    @Step("Policy definition allowing only X-Road member {string} is created in participant context {string} on {string}")
+    public void policyDefinitionIsCreated(String allowedMemberId, String participantContext, String server) {
         var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
 
-        // Register a CEL expression that checks the consumer's DID
+        String celExpression = "ctx.agent.claims['vc']"
+                + ".filter(c, 'XRoadMembershipCredential' in c.type)[0]"
+                + ".credentialSubject[0].memberId == '%s'".formatted(allowedMemberId);
         String celRequest = """
                 {
                     "@context": [
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "CelExpression",
-                    "@id": "allowed-consumer-cel",
-                    "leftOperand": "allowed-consumer",
-                    "description": "Only allows the specified consumer participant",
+                    "@id": "xroad-member-id-cel",
+                    "leftOperand": "xroad-member-id",
+                    "description": "True iff verified XRoadMembershipCredential carries memberId '%s'",
                     "scopes": ["catalog", "contract.negotiation", "transfer.process"],
                     "actions": ["use"],
-                    "expression": "ctx.agent.id == '%s'"
+                    "expression": "%s"
                 }
-                """.formatted(consumerDid);
+                """.formatted(allowedMemberId, celExpression);
         String celUrl = "http://%s:%d/api/mgmt/v4alpha/celexpressions".formatted(mapping.host(), mapping.port());
         sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
 
-        // Create policy with constraint referencing the CEL expression
         String request = """
                 {
                     "@context": [
@@ -350,7 +371,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                                 "action": "use",
                                 "constraint": [
                                     {
-                                        "leftOperand": "allowed-consumer",
+                                        "leftOperand": "xroad-member-id",
                                         "operator": "eq",
                                         "rightOperand": "true"
                                     }

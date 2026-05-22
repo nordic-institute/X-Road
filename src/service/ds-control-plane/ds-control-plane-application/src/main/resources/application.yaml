@@ -9,7 +9,7 @@ quarkus:
     level: INFO
     category:
       "EDC-MONITOR":
-        level: DEBUG
+        level: TRACE
 
 "%native":
   quarkus:
@@ -86,4 +86,4 @@ edc:
         membership:
           id: "membership-scope"
           type: "DEFAULT"
-          value: "org.eclipse.edc.vc.type:MembershipCredential:read"
+          value: "org.eclipse.edc.vc.type:XRoadMembershipCredential:read"

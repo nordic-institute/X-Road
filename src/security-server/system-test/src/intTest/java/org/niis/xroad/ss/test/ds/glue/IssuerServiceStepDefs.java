@@ -137,8 +137,23 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                     "jsonSchemaUrl": "https://example.com/schema/%s.json",
                     "mappings": [
                         {
-                            "input": "membershipType",
-                            "output": "credentialSubject.membershipType",
+                            "input": "xRoadInstance",
+                            "output": "credentialSubject.xRoadInstance",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberClass",
+                            "output": "credentialSubject.memberClass",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberCode",
+                            "output": "credentialSubject.memberCode",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberId",
+                            "output": "credentialSubject.memberId",
                             "required": "true"
                         }
                     ],

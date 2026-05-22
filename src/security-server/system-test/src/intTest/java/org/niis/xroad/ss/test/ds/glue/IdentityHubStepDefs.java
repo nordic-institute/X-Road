@@ -48,6 +48,13 @@ public class IdentityHubStepDefs extends BaseStepDefs {
     @Step("Identity Hub participant context {string} with DID {string} is initialized "
             + "and keypair is generated with private key alias {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias) {
+        identityHubParticipantContextWithMemberIsInitialized(participantId, did, null, privateKeyAlias);
+    }
+
+    @Step("Identity Hub participant context {string} with DID {string} is initialized for X-Road member {string}"
+            + " and keypair is generated with private key alias {string}")
+    public void identityHubParticipantContextWithMemberIsInitialized(
+            String participantId, String did, String memberId, String privateKeyAlias) {
         var credentialServiceUrl = "http://ds-identity-hub:" + Port.DS_IDENTITY_HUB_CREDENTIALS + "/api/credentials/v1/participants/"
                 + Base64.getEncoder().encodeToString(participantId.getBytes());
 
@@ -64,6 +71,9 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                     "active": true,
                     "participantContextId": "%s",
                     "did": "%s",
+                    "additionalProperties": {
+                        "xroadMemberId": "%s"
+                    },
                     "key": {
                         "keyId": "%s#key-1",
                         "privateKeyAlias": "%s",
@@ -72,7 +82,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                         }
                     }
                 }
-                """.formatted(credentialServiceUrl, did, participantId, did, did, privateKeyAlias);
+                """.formatted(credentialServiceUrl, did, participantId, did, memberId, did, privateKeyAlias);
 
         var ihResponse = feignIdentityHubManagementApi.createParticipant(AuthTokens.PROVISIONER, createParticipantRequest);
         validate(ihResponse)
@@ -80,9 +90,10 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("Identity Hub participant context {string} with DID {string} is initialized "
-            + "with existing private key in vault with alias {string} and public key {string}")
-    public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias, String publicKey) {
+    @Step("Identity Hub participant context {string} with DID {string} is initialized for X-Road member {string}"
+            + " with existing private key in vault with alias {string} and public key {string}")
+    public void identityHubParticipantContextIsInitialized(
+            String participantId, String did, String memberId, String privateKeyAlias, String publicKey) {
         var credentialServiceUrl = "http://ds-identity-hub:" + Port.DS_IDENTITY_HUB_CREDENTIALS + "/api/credentials/v1/participants/"
                 + Base64.getEncoder().encodeToString(participantId.getBytes());
 
@@ -99,13 +110,16 @@ public class IdentityHubStepDefs extends BaseStepDefs {
                     "active": true,
                     "participantContextId": "%s",
                     "did": "%s",
+                    "additionalProperties": {
+                        "xroadMemberId": "%s"
+                    },
                     "key": {
                         "keyId": "%s#key-1",
                         "privateKeyAlias": "%s",
                         "publicKeyPem": "%s"
                     }
                 }
-                """.formatted(credentialServiceUrl, did, participantId, did, did, privateKeyAlias, publicKey);
+                """.formatted(credentialServiceUrl, did, participantId, did, did, memberId, privateKeyAlias, publicKey);
 
         var ihResponse = feignIdentityHubManagementApi.createParticipant(AuthTokens.PROVISIONER, createParticipantRequest);
         validate(ihResponse)

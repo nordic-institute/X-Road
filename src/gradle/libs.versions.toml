@@ -300,6 +300,8 @@ edc-spi-edr = { module = "org.eclipse.edc:edr-store-spi", version.ref = "edc" }
 edc-spi-auth = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 edc-spi-identityhub-participantcontext = { module = "org.eclipse.edc:participant-context-spi", version.ref = "edc" }
 edc-ih-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
+edc-spi-identityhub = { module = "org.eclipse.edc:identity-hub-spi", version.ref = "edc" }
+edc-spi-identityhub-dcp = { module = "org.eclipse.edc:dcp-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
 edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 
@@ -327,6 +329,8 @@ edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", versi
 edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
 edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }
 edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
+edc-issuerservice-issuance-spi = { module = "org.eclipse.edc:issuerservice-issuance-spi", version.ref = "edc" }
+edc-issuerservice-holder-spi = { module = "org.eclipse.edc:issuerservice-holder-spi", version.ref = "edc" }
 
 edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version.ref = "dataplane-sdk" }
 

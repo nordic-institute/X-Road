@@ -9,7 +9,7 @@ quarkus:
     level: INFO
     category:
       "EDC-MONITOR":
-        level: DEBUG
+        level: TRACE
 
 "%native":
   quarkus:

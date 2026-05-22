@@ -167,6 +167,7 @@ include("service:ds-identity-hub:ds-identity-hub-db")
 include("service:ds-identity-hub:ds-identity-hub-customization")
 include("service:ds-issuer-service")
 include("service:ds-issuer-service:ds-issuer-service-application")
+include("service:ds-issuer-service:ds-issuer-service-customization")
 
 // Tool projects
 include("tool")
