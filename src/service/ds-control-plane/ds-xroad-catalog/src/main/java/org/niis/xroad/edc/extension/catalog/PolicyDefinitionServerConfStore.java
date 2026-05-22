@@ -114,6 +114,20 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             return toBuiltinPolicyDefinition(policyId);
         }
 
+        if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+            var assetIdStr = policyId.substring(0,
+                    policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
+            var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
+            if (ownerOnlyServiceId == null
+                    || !serverConfProvider.serviceExists(ownerOnlyServiceId)
+                    || !serverConfProvider.getServiceAccessRights(ownerOnlyServiceId).isEmpty()) {
+                log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
+                return null;
+            }
+            return policyMapper.toOwnerOnlyPolicyDefinition(policyId,
+                    ownerOnlyServiceId.getClientId(), resolveContextId(ownerOnlyServiceId));
+        }
+
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
             log.trace("findById policyId={} too few parts={}, returning null", policyId, parts.length);
@@ -219,11 +233,21 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     }
 
     /**
-     * Collects all PolicyDefinitions for a given service by grouping access rights by subject.
+     * Collects all PolicyDefinitions for a given service.
+     * <ul>
+     *   <li>Non-empty ACL: one PolicyDefinition per subject.</li>
+     *   <li>Empty ACL: a single owner-only PolicyDefinition. The ContractDefinition emitted
+     *       by {@link ContractDefinitionServerConfStore} references this policy as its
+     *       accessPolicy; EDC pre-evaluates it at catalog time and filters the
+     *       ContractDefinition out for non-owner consumers.</li>
+     * </ul>
      */
     private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies) {
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
+            var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
+            policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
+                    serviceId.getClientId(), resolveContextId(serviceId)));
             return;
         }
 

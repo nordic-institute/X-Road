@@ -118,6 +118,19 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findById definitionId={} matched builtin", definitionId);
             return toBuiltinContractDefinition(builtinServiceId);
         }
+        if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+            var assetIdStr = policyId.substring(0,
+                    policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
+            var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
+            if (ownerOnlyServiceId == null
+                    || !serverConfProvider.serviceExists(ownerOnlyServiceId)
+                    || !serverConfProvider.getServiceAccessRights(ownerOnlyServiceId).isEmpty()) {
+                log.trace("findById definitionId={} owner-only candidate did not resolve", definitionId);
+                return null;
+            }
+            return contractDefinitionMapper.toOwnerOnlyContractDefinition(
+                    ownerOnlyServiceId, resolveContextId(ownerOnlyServiceId));
+        }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
             log.trace("findById definitionId={} too few parts={}, returning null", definitionId, parts.length);
@@ -212,12 +225,22 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     }
 
     /**
-     * Collects all ContractDefinitions for a given service by grouping access rights by subject.
+     * Collects all ContractDefinitions for a given service.
+     * <ul>
+     *   <li>Non-empty ACL: one ContractDefinition per subject (legacy per-subject emission).</li>
+     *   <li>Empty ACL: a single owner-only ContractDefinition referencing an owner-only
+     *       accessPolicy. EDC's ContractDefinitionResolverImpl pre-evaluates the access
+     *       policy at catalog time and hides the definition from non-owner peers, so the
+     *       service stays invisible to external consumers while remaining reachable for
+     *       the owning member's self-call (legacy proxy behaviour).</li>
+     * </ul>
      */
     private void collectContractDefinitionsForService(ServiceId serviceId,
                                                       List<ContractDefinition> definitions) {
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
+            definitions.add(contractDefinitionMapper.toOwnerOnlyContractDefinition(
+                    serviceId, resolveContextId(serviceId)));
             return;
         }
         var grouped = accessRights.stream()

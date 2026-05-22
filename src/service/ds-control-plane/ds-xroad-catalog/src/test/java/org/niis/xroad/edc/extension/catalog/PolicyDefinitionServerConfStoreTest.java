@@ -372,6 +372,52 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findAllEmptyAclEmitsOwnerOnlyPolicyDefinition() {
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
+
+        var result = store.findAll(QuerySpec.none()).toList();
+
+        assertThat(result).hasSize(1);
+        var policy = result.getFirst();
+        assertThat(policy.getId())
+                .isEqualTo(AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
+        assertThat(policy.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(policy.getPolicy().getPermissions()).hasSize(1);
+    }
+
+    @Test
+    void findByIdEmptyAclResolvesOwnerOnlyPolicyDefinition() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
+
+        var policyId = AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX;
+
+        var result = store.findById(policyId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(policyId);
+        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result.getPolicy().getPermissions()).hasSize(1);
+    }
+
+    @Test
+    void findByIdOwnerOnlyReturnsNullWhenServiceHasAcl() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+
+        var policyId = AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX;
+
+        var result = store.findById(policyId);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     void findAllBuiltinPoliciesHavePermissivePolicy() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,

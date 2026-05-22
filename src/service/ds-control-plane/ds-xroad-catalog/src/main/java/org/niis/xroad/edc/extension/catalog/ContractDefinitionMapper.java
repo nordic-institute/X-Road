@@ -79,4 +79,41 @@ class ContractDefinitionMapper {
                 .participantContextId(participantContextId)
                 .build();
     }
+
+    /**
+     * Suffix used on the owner-only policy/contract IDs to keep them disjoint from
+     * regular per-subject (assetId:subjectId) IDs.
+     */
+    static final String OWNER_ONLY_SUFFIX = "-owner-only";
+
+    /**
+     * Builds the owner-only policyId for a service. Disjoint from per-subject policyId
+     * format (which uses {assetId}:{subjectId}) so the lookup paths in
+     * {@link ContractDefinitionServerConfStore#findById} and
+     * {@link PolicyDefinitionServerConfStore#findById} never collide.
+     */
+    static String ownerOnlyPolicyId(ServiceId serviceId) {
+        return AssetMapper.encodeAssetId(serviceId) + OWNER_ONLY_SUFFIX;
+    }
+
+    /**
+     * Builds an owner-only ContractDefinition for a service with no explicit ACL.
+     * Tagged with the supplied participantContextId (host ctx for user services).
+     * The accessPolicy referenced here is emitted in tandem by
+     * {@link PolicyMapper#toOwnerOnlyPolicyDefinition}; EDC's
+     * ContractDefinitionResolverImpl pre-evaluates that policy at catalog time and
+     * hides the ContractDefinition from non-owner peers.
+     */
+    ContractDefinition toOwnerOnlyContractDefinition(ServiceId serviceId, String participantContextId) {
+        var assetId = AssetMapper.encodeAssetId(serviceId);
+        var policyId = ownerOnlyPolicyId(serviceId);
+        var contractId = policyId + CONTRACT_DEFINITION_SUFFIX;
+        return ContractDefinition.Builder.newInstance()
+                .id(contractId)
+                .accessPolicyId(policyId)
+                .contractPolicyId(policyId)
+                .assetsSelectorCriterion(new Criterion(EDC_NAMESPACE + "id", "=", assetId))
+                .participantContextId(participantContextId)
+                .build();
+    }
 }

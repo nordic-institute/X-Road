@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -117,6 +118,43 @@ class PolicyMapper {
             log.trace("toPolicyDefinition policyId={} built constraints={} specificEndpoints={}",
                     policyId, constraints.size(), specificEndpoints.size());
         }
+        return PolicyDefinition.Builder.newInstance()
+                .id(policyId)
+                .policy(policy)
+                .participantContextId(participantContextId)
+                .build();
+    }
+
+    /**
+     * Builds an owner-only PolicyDefinition for services with no explicit ACL.
+     * The single Permission requires the consumer clientId to match the service owner
+     * member ({@link XRoadClientIdConstraintFunction#evaluate} performs memberEquals).
+     * EDC's ContractDefinitionResolverImpl pre-evaluates this policy at catalog time;
+     * non-owner consumers see the ContractDefinition filtered out (datasets shrink),
+     * preserving the legacy ACL semantics where empty-ACL meant "no external access".
+     */
+    PolicyDefinition toOwnerOnlyPolicyDefinition(String policyId, ClientId ownerMemberId,
+                                                 String participantContextId) {
+        if (log.isTraceEnabled()) {
+            log.trace("toOwnerOnlyPolicyDefinition policyId={} ownerMember={}",
+                    policyId, ownerMemberId.asEncodedId());
+        }
+        var clientConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XROAD_CLIENT_ID_CONSTRAINT))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(ownerMemberId.asEncodedId()))
+                .build();
+
+        var permission = Permission.Builder.newInstance()
+                .action(Action.Builder.newInstance().type(ODRL_USE_ACTION).build())
+                .constraint(clientConstraint)
+                .build();
+
+        var policy = Policy.Builder.newInstance()
+                .type(PolicyType.SET)
+                .permission(permission)
+                .build();
+
         return PolicyDefinition.Builder.newInstance()
                 .id(policyId)
                 .policy(policy)

@@ -410,6 +410,57 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findAllEmptyAclEmitsOwnerOnlyContractDefinition() {
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
+
+        var result = store.findAll(QuerySpec.max()).toList();
+
+        assertThat(result).hasSize(1);
+        var def = result.getFirst();
+        assertThat(def.getId()).endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX
+                + ContractDefinitionMapper.getContractDefinitionSuffix());
+        assertThat(def.getAccessPolicyId())
+                .isEqualTo(AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
+        assertThat(def.getContractPolicyId()).isEqualTo(def.getAccessPolicyId());
+        assertThat(def.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findByIdEmptyAclResolvesOwnerOnlyContractDefinition() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
+
+        var contractId = AssetMapper.encodeAssetId(SERVICE_1)
+                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+
+        var result = store.findById(contractId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(contractId);
+        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findByIdOwnerOnlyReturnsNullWhenServiceHasAcl() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+
+        var contractId = AssetMapper.encodeAssetId(SERVICE_1)
+                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+
+        var result = store.findById(contractId);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     void findAllBuiltinDefinitionsHaveAcceptAllPolicyId() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
