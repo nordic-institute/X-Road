@@ -49,6 +49,10 @@ public class AdminUserRepository {
         return new AdminUserDAOImpl().findAll(persistenceUtils.getCurrentSession());
     }
 
+    public long count() {
+        return new AdminUserDAOImpl().count(persistenceUtils.getCurrentSession());
+    }
+
     public void create(AdminUserEntity adminUser) {
         persistenceUtils.getCurrentSession().persist(adminUser);
     }

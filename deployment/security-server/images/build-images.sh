@@ -267,6 +267,14 @@ mkdir -p "$BUILD_DIR"
 cp "${ROOT_DIR}/LICENSE" "$BUILD_DIR/LICENSE.txt"
 cp "${ROOT_DIR}/src/3RD-PARTY-NOTICES.txt" "$BUILD_DIR/"
 
+OTEL_AGENT_JAR="${SRC_DIR}/tool/otel-javaagent-dist/build/libs/opentelemetry-javaagent.jar"
+if [[ ! -f "$OTEL_AGENT_JAR" ]]; then
+  log_error "OTel agent jar not found: $OTEL_AGENT_JAR"
+  log_error "Run: ./gradlew :tool:otel-javaagent-dist:assemble"
+  exit 1
+fi
+cp "$OTEL_AGENT_JAR" "$BUILD_DIR/opentelemetry-javaagent.jar"
+
 # PKCS#11 wrapper (for signer)
 PKCS11_DIR="${SRC_DIR}/libs/pkcs11wrapper"
 

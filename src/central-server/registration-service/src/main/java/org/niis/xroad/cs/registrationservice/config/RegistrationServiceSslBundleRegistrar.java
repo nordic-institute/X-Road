@@ -26,16 +26,38 @@
  */
 package org.niis.xroad.cs.registrationservice.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.niis.xroad.common.vault.spring.config.SpringCertificateProvisioningProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 
-@Configuration
-@Getter
-@Setter
-@ConfigurationProperties(prefix = "xroad.registration-service.tls")
-public class RegistrationServiceTlsProperties {
-    private SpringCertificateProvisioningProperties certificateProvisioning;
+import io.github.resilience4j.retry.Retry;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
+import org.niis.xroad.common.vault.VaultClient;
+
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+@Slf4j
+public class RegistrationServiceSslBundleRegistrar extends AbstractManagementServiceSslBundleRegistrar {
+
+    private final VaultClient vaultClient;
+    private final Retry retryInstance;
+
+    public RegistrationServiceSslBundleRegistrar(VaultClient vaultClient, Retry retryInstance) {
+        this.vaultClient = vaultClient;
+        this.retryInstance = retryInstance;
+
+        retryInstance.getEventPublisher().onRetry(event -> log.warn("Retrying resolving tls credentials. Event: {}", event));
+    }
+
+    @Override
+    protected InternalSSLKey resolveTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        try {
+            return retryInstance.executeCheckedSupplier(vaultClient::getManagementServicesTlsCredentials);
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            throw ex;
+        } catch (Throwable ex) {
+            throw new IllegalStateException("Unexpected exception when resolving tls credentials", ex);
+        }
+    }
 }

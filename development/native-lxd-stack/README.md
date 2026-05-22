@@ -37,9 +37,6 @@ and then:
 1. Create new inventory in `config/custom`
 3. Run `./start-env.sh --custom-inventory=config/custom/my-inventory.txt`
 
-On Linux the host reaches `lxdbr0` (`10.10.10.0/24`) without any extra setup —
-`setup-mac-net.sh` is a macOS-only no-op there.
-
 ### Usage within other hosts
 
 It is assumed that LXD host is available on `127.0.0.1:28443`
@@ -57,32 +54,9 @@ Default hosts assume presence of Lima, but you can specify your own custom inven
 ./start-env.sh --custom-inventory=config/custom/my-inventory.txt
 ```
 
-### Direct host → container networking
-
-There are **no LXD proxy devices** any more. The host (mac or Linux) reaches
-every container directly over `10.10.10.0/24` via `lxdbr0`, on whatever port
-the container is listening on. No more `localhost:30XX` mappings.
-
-How the mac side is wired (handled automatically by `setup-mac-net.sh`):
-
-- Static route `10.10.10.0/24` → lima VM IP on `lima0` (socket_vmnet).
-- `/etc/resolver/lxd` pointing at LXD's dnsmasq at `10.10.10.1`, so
-  `*.lxd` names (e.g. `xrd-cs.lxd`) resolve via the bridge.
-- Two `nft` accept rules inserted at the top of LXD's `in.lxdbr0` chain so
-  DNS queries from `192.168.105.0/24` (mac side of socket_vmnet) reach
-  dnsmasq on `10.10.10.1:53`. Without these the LXD ruleset would `drop`
-  any DNS not arriving via `lxdbr0` or `lo`.
-
-```bash
-# subcommands
-./scripts/setup-mac-net.sh status      # read-only diagnostic
-./scripts/setup-mac-net.sh apply       # idempotent; only prompts sudo if state changes
-./scripts/setup-mac-net.sh cleanup     # remove route, resolver file, nft rules
-```
-
-`stop-env.sh` and `scripts/delete-env.sh` call `setup-mac-net.sh cleanup`
-automatically before stopping/deleting, so the route and resolver don't
-linger pointing at a stopped lima VM.
+`start-env.sh` picks the right script by OS via its `applyHostNet` helper;
+`stop-env.sh` and `scripts/delete-env.sh` call the matching `cleanup` so
+the host's resolver doesn't linger pointing at a stopped bridge.
 
 Common URLs after a successful start:
 

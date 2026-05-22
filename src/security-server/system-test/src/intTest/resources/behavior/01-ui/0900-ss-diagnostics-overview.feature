@@ -7,7 +7,7 @@ Feature: 0900 - SS:Diagnostics - Overview
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
 
   Scenario: Diagnostics checks are successful
     When Diagnostics tab is selected

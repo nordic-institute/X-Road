@@ -4,6 +4,7 @@ global:
   tlsDisable: false
 {% endif %}
 server:
+  podManagementPolicy: "Parallel"
   ha:
     enabled: true
     replicas: {{ openbao_ha_replicas }}

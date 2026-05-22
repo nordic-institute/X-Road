@@ -9,6 +9,16 @@
   tags:
     - init
 
+- name: Install lima0 DHCP recovery timer (mac/lima only; no-op elsewhere)
+  hosts: lxd_servers
+  become: "{{ onMacOs | default(true) }}"
+  strategy: free
+  roles:
+    - lima-net-recover
+  tags:
+    - init
+    - lima-net-recover
+
 - name: Perform RHEL support check
   hosts: ss_servers
   become: true
@@ -45,6 +55,16 @@
   strategy: free
   roles:
     - init-dev-configuration
+
+- name: Provision Jaeger tracing backend (xrd-jaeger LXD container)
+  hosts: lxd_servers
+  become: "{{ onMacOs | default(true) }}"
+  strategy: free
+  roles:
+    - role: jaeger
+      when: enable_jaeger | default(true) | bool
+  tags:
+    - jaeger
 
 - name: Install host-level monitoring (Netdata)
   hosts: lxd_servers

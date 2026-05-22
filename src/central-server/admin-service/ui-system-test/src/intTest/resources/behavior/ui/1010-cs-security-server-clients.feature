@@ -5,7 +5,7 @@ Feature: 1010 - CS: Security server: Authentication certificates
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Security Servers tab is selected
 
   Scenario: Security server authentication certificates for "SS-X" are listed

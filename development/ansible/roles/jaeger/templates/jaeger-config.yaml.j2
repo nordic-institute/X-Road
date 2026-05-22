@@ -1,0 +1,59 @@
+service:
+  extensions:
+    - jaeger_storage
+    - jaeger_query
+    - healthcheckv2
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [filter/drop_http_noise, batch]
+      exporters: [jaeger_storage_exporter]
+
+extensions:
+  healthcheckv2:
+    use_v2: true
+    http:
+      endpoint: 0.0.0.0:13133
+
+  jaeger_query:
+    storage:
+      traces: badger_main
+    http:
+      endpoint: 0.0.0.0:{{ jaeger_ui_port }}
+    grpc:
+      endpoint: 0.0.0.0:16685
+
+  jaeger_storage:
+    backends:
+      badger_main:
+        badger:
+          directories:
+            keys: {{ jaeger_storage_path }}/keys
+            values: {{ jaeger_storage_path }}/values
+          ephemeral: false
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:{{ jaeger_otlp_grpc_port }}
+      http:
+        endpoint: 0.0.0.0:{{ jaeger_otlp_http_port }}
+
+processors:
+  batch: {}
+
+  # Drop noisy HTTP server spans that were never renamed by our handlers —
+  # typically health checks, actuator/q endpoints, admin paths. Real proxy
+  # traffic enters ClientSoapMessageHandler / ClientRestMessageHandler /
+  # ServerProxyHandler which rewrite the span name to ClientProxy * /
+  # ServerProxy *. Anything still named "POST" / "GET" at SERVER kind is noise.
+  filter/drop_http_noise:
+    error_mode: ignore
+    traces:
+      span:
+        - 'kind == SPAN_KIND_SERVER and (name == "POST" or name == "GET" or name == "PUT" or name == "DELETE" or name == "HEAD" or name == "OPTIONS" or name == "PATCH")'
+
+exporters:
+  jaeger_storage_exporter:
+    trace_storage: badger_main

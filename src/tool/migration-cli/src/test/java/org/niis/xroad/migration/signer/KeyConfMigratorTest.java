@@ -126,7 +126,7 @@ class KeyConfMigratorTest {
         }
 
         @Override
-        protected char[] readPinFromConsole() {
+        protected char[] readPin() {
             return pin.toCharArray();
         }
     }

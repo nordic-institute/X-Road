@@ -175,6 +175,7 @@ include("tool:migration-cli")
 include("tool:messagelog-archive-verifier")
 include("tool:test-framework-core")
 include("tool:liquibase-executor")
+include("tool:otel-javaagent-dist")
 
 // Main projects
 include("shared-ui")

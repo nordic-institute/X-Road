@@ -20,7 +20,7 @@ RUN apt-get -qq update \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
   && adduser --quiet --system --uid 999 --home /var/lib/xroad --no-create-home --shell /bin/bash --group xroad \
-  && useradd -m xrd -s /usr/sbin/nologin -p '$6$JeOzaeWnLAQSUVuO$GOJ0wUKSVQnOR4I2JgZxdKr.kMO.YGS21SGaAshaYhayv8kSV9WuIFCZHTGAX8WRRTB/2ojuLnJg4kMoyzpcu1' \
+  && useradd -m xrd -s /usr/sbin/nologin -p '$6$AIURgrss2iB0xp/l$hz1/VmkIUoPEi..nyU9r.3Y4VCgGmWQyLBKCg7yRLUW9hCgjLOWV7s.6ZtTQ6CzuVw.k0mN4Hig0pkY7FH7Zz0' \
   && echo "xroad-center xroad-common/username string xrd" | debconf-set-selections \
   && apt-get -qq install --no-install-recommends postgresql postgresql-contrib \
   && apt-get -qq clean \

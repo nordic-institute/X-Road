@@ -5,7 +5,7 @@ Feature: 2100 - SS: Proxymonitor
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
 
   Scenario: Proxymonitor responds with correct response
     Given Clients tab is selected

@@ -14,8 +14,6 @@ argument_specs:
       serverconf_init_image: {type: str, required: false}
       jvm_metrics_enabled: {type: bool, default: false}
       openbao_tls_secret_name: {type: str, default: openbao-server-tls}
-      proxy_ui_superuser: {type: str, default: xrd}
-      proxy_ui_superuser_password: {type: str, required: true}
       configuration_client_update_interval: {type: str, default: "10"}
       serverconf_db: {type: dict, required: true}
       messagelog_db: {type: dict, required: true}

@@ -26,7 +26,7 @@
  -->
 
 <template>
-  <AppToolbar />
+  <AppToolbar v-if="!initialUserView" />
   <router-view name="navigation" />
 
   <v-main class="bg-surface pr-10 pb-8">
@@ -44,16 +44,28 @@ import { useUser } from '@/store/modules/user';
 
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import AppToolbar from '@/layouts/AppToolbar.vue';
-import { POLL_SESSION_TIMEOUT, useAppState } from "@niis/shared-ui";
+import { POLL_SESSION_TIMEOUT, useAppState } from '@niis/shared-ui';
+import { computed } from "vue";
+import { RouteName } from "@/global";
+import { useRoute } from "vue-router";
 
 const { isSessionAlive } = useAppState();
 const userStore = useUser();
 const { checkAlertStatus } = useAlerts();
 
+const route = useRoute();
+
+const initialUserView = computed(() => {
+  return route.name === RouteName.InitialAdminUser;
+});
+
 // Set interval to poll backend for session
 pollSessionStatus();
 
 async function pollSessionStatus() {
+  if (initialUserView.value) {
+    return;
+  }
   return userStore
     .fetchSessionStatus()
     .then(() => {
@@ -62,7 +74,7 @@ async function pollSessionStatus() {
     })
     .finally(() => {
       if (isSessionAlive()) {
-        window.setTimeout(pollSessionStatus, POLL_SESSION_TIMEOUT)
+        window.setTimeout(pollSessionStatus, POLL_SESSION_TIMEOUT);
       }
     });
 }

@@ -30,6 +30,7 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.springBoot.starterTest)
+  testImplementation(libs.systemStubs)
 
   xjc(libs.bundles.jaxb)
 }
