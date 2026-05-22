@@ -55,7 +55,7 @@ public class FeignClientConfiguration {
 
     private String getControlPlaneManagementBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT);
-        return "http://%s:%d/api/management/v5beta/participants".formatted(container.host(), container.port());
+        return "https://%s:%d/api/management/v5beta/participants".formatted(container.host(), container.port());
     }
 
     @Bean
@@ -67,7 +67,7 @@ public class FeignClientConfiguration {
 
     private String getControlPlaneSecretsBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT);
-        return "http://%s:%d/api/management/v3/secrets".formatted(container.host(), container.port());
+        return "https://%s:%d/api/management/v3/secrets".formatted(container.host(), container.port());
     }
 
     @Bean
@@ -79,7 +79,7 @@ public class FeignClientConfiguration {
 
     private String getIdentityHubManagementBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY);
-        return "http://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
+        return "https://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
     }
 
     @Bean
@@ -91,7 +91,7 @@ public class FeignClientConfiguration {
 
     private String getIssuerServiceAdminBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN);
-        return "http://%s:%d/api/admin/v1alpha".formatted(container.host(), container.port());
+        return "https://%s:%d/api/admin/v1alpha".formatted(container.host(), container.port());
     }
 
     @Bean
@@ -103,7 +103,7 @@ public class FeignClientConfiguration {
 
     private String getIssuerServiceIdentityBaseUrl() {
         var container = systemTestContainerSetup.getContainerMapping(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY);
-        return "http://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
+        return "https://%s:%d/api/identity/v1alpha/participants".formatted(container.host(), container.port());
     }
 
     @Bean
