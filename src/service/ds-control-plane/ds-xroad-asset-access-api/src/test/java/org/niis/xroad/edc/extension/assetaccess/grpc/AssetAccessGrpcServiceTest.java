@@ -27,31 +27,40 @@
 
 package org.niis.xroad.edc.extension.assetaccess.grpc;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.protobuf.StatusProto;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -217,6 +226,67 @@ class AssetAccessGrpcServiceTest {
 
         assertThat(response.hasExpiresAtEpochSeconds()).isFalse();
         assertThat(response.getAuthorization()).isEqualTo("opaque-token-abc");
+    }
+
+    static Stream<Arguments> edcFailureToErrorCode() {
+        return Stream.of(
+                Arguments.of(
+                        new EdcException("No dataset found for asset ID: svc"),
+                        ErrorCode.UNKNOWN_MEMBER),
+                Arguments.of(
+                        new EdcException("No offers found for asset ID: svc"),
+                        ErrorCode.UNKNOWN_MEMBER),
+                Arguments.of(
+                        new EdcException("No PULL distribution found for asset ID: svc"),
+                        ErrorCode.SERVICE_FAILED),
+                Arguments.of(
+                        new EdcException("Failed to fetch catalog: connection refused"),
+                        ErrorCode.NETWORK_ERROR),
+                Arguments.of(
+                        new EdcException("Failed to resolve participant context: ctx-1"),
+                        ErrorCode.INTERNAL_ERROR),
+                Arguments.of(
+                        new EdcException("Something unexpected happened"),
+                        ErrorCode.SERVICE_FAILED)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("edcFailureToErrorCode")
+    void acquireFailureCarriesClassifiedErrorCodeInProto(EdcException failure, ErrorCode expectedCode) {
+        stubParticipantContext();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(failure));
+
+        var request = AcquireAssetAccessReq.newBuilder()
+                .setParticipantContextId("participant-1")
+                .setAssetId("asset-1")
+                .setCounterPartyId("provider-1")
+                .setCounterPartyAddress("http://provider/dsp")
+                .build();
+
+        try {
+            stub.acquire(request);
+            throw new AssertionError("Expected StatusRuntimeException");
+        } catch (StatusRuntimeException ex) {
+            var actualCode = extractErrorCode(ex);
+            assertThat(actualCode).isEqualTo(expectedCode.code());
+        }
+    }
+
+    private String extractErrorCode(StatusRuntimeException ex) {
+        var status = StatusProto.fromThrowable(ex);
+        assertThat(status).isNotNull();
+        for (var any : status.getDetailsList()) {
+            if (any.is(XrdRuntimeExceptionProto.class)) {
+                try {
+                    return any.unpack(XrdRuntimeExceptionProto.class).getErrorCode();
+                } catch (InvalidProtocolBufferException e) {
+                    throw new AssertionError("Failed to unpack XrdRuntimeExceptionProto", e);
+                }
+            }
+        }
+        return null;
     }
 
     private static String buildJwt(String header, String payload, String signature) {

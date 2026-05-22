@@ -69,57 +69,64 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     public void acquire(AcquireAssetAccessReq request,
                         StreamObserver<AcquireAssetAccessResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> {
-
-            SpanAttributes.onCurrent()
-                    .set(XrdSpanAttrs.AssetAccess.PARTICIPANT_CONTEXT_ID, request.getParticipantContextId())
-                    .set(XrdSpanAttrs.AssetAccess.ASSET_ID, request.getAssetId())
-                    .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ID, request.getCounterPartyId())
-                    .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ADDRESS, request.getCounterPartyAddress())
-                    .set(XrdSpanAttrs.AssetAccess.PROTOCOL, request.getProtocol().isEmpty() ? null : request.getProtocol())
-                    .apply();
-
-            var participantResult = participantContextService
-                    .getParticipantContext(request.getParticipantContextId());
-            if (participantResult.failed()) {
-                throw new EdcException("Failed to resolve participant context: "
-                        + participantResult.getFailureDetail());
+            try {
+                return acquireInternal(request);
+            } catch (RuntimeException e) {
+                throw DspFailureClassifier.classify(e);
             }
-            var participantContext = participantResult.getContent();
-
-            var assetAccessRequest = new AssetAccessRequest(
-                    request.getAssetId(),
-                    request.getCounterPartyId(),
-                    request.getCounterPartyAddress(),
-                    request.getProtocol().isEmpty() ? null : request.getProtocol());
-
-            var serviceResult = awaitResult(assetAccessOrchestrator
-                    .acquireAssetAccess(participantContext, assetAccessRequest));
-
-            if (serviceResult.failed()) {
-                throw new EdcException("Asset access acquisition failed: "
-                        + serviceResult.getFailureDetail());
-            }
-
-            var dataAddress = serviceResult.getContent();
-            var properties = dataAddress.getProperties();
-            var endpoint = (String) properties.get(EDC_NS + "endpoint");
-            if (endpoint == null || endpoint.isBlank()) {
-                throw new EdcException("DataAddress missing required 'endpoint' property");
-            }
-            var authorization = (String) properties.get(EDC_NS + "authorization");
-
-            var expiresAt = extractJwtExpiry(authorization);
-
-            var respBuilder = AcquireAssetAccessResp.newBuilder()
-                    .setEndpoint(endpoint);
-            if (authorization != null) {
-                respBuilder.setAuthorization(authorization);
-            }
-            if (expiresAt != null) {
-                respBuilder.setExpiresAtEpochSeconds(expiresAt);
-            }
-            return respBuilder.build();
         });
+    }
+
+    private AcquireAssetAccessResp acquireInternal(AcquireAssetAccessReq request) {
+        SpanAttributes.onCurrent()
+                .set(XrdSpanAttrs.AssetAccess.PARTICIPANT_CONTEXT_ID, request.getParticipantContextId())
+                .set(XrdSpanAttrs.AssetAccess.ASSET_ID, request.getAssetId())
+                .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ID, request.getCounterPartyId())
+                .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ADDRESS, request.getCounterPartyAddress())
+                .set(XrdSpanAttrs.AssetAccess.PROTOCOL, request.getProtocol().isEmpty() ? null : request.getProtocol())
+                .apply();
+
+        var participantResult = participantContextService
+                .getParticipantContext(request.getParticipantContextId());
+        if (participantResult.failed()) {
+            throw new EdcException("Failed to resolve participant context: "
+                    + participantResult.getFailureDetail());
+        }
+        var participantContext = participantResult.getContent();
+
+        var assetAccessRequest = new AssetAccessRequest(
+                request.getAssetId(),
+                request.getCounterPartyId(),
+                request.getCounterPartyAddress(),
+                request.getProtocol().isEmpty() ? null : request.getProtocol());
+
+        var serviceResult = awaitResult(assetAccessOrchestrator
+                .acquireAssetAccess(participantContext, assetAccessRequest));
+
+        if (serviceResult.failed()) {
+            throw new EdcException("Asset access acquisition failed: "
+                    + serviceResult.getFailureDetail());
+        }
+
+        var dataAddress = serviceResult.getContent();
+        var properties = dataAddress.getProperties();
+        var endpoint = (String) properties.get(EDC_NS + "endpoint");
+        if (endpoint == null || endpoint.isBlank()) {
+            throw new EdcException("DataAddress missing required 'endpoint' property");
+        }
+        var authorization = (String) properties.get(EDC_NS + "authorization");
+
+        var expiresAt = extractJwtExpiry(authorization);
+
+        var respBuilder = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint(endpoint);
+        if (authorization != null) {
+            respBuilder.setAuthorization(authorization);
+        }
+        if (expiresAt != null) {
+            respBuilder.setExpiresAtEpochSeconds(expiresAt);
+        }
+        return respBuilder.build();
     }
 
     private Long extractJwtExpiry(String authorization) {

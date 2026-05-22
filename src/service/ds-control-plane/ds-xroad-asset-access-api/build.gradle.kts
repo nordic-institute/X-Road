@@ -21,4 +21,5 @@ dependencies {
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.awaitility)
+  testImplementation(libs.junit.jupiter.params)
 }
