@@ -125,7 +125,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 return null;
             }
             return policyMapper.toOwnerOnlyPolicyDefinition(policyId,
-                    ownerOnlyServiceId.getClientId(), resolveContextId(ownerOnlyServiceId));
+                    ownerOnlyServiceId.getClientId(), managementParticipantContextId);
         }
 
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -247,7 +247,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         if (accessRights.isEmpty()) {
             var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
             policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
-                    serviceId.getClientId(), resolveContextId(serviceId)));
+                    serviceId.getClientId(), managementParticipantContextId));
             return;
         }
 

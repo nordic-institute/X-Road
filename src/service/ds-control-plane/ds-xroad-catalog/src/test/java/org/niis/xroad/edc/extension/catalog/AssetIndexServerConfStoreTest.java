@@ -40,11 +40,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
+import org.niis.xroad.serverconf.model.Endpoint;
 
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -152,6 +156,7 @@ class AssetIndexServerConfStoreTest {
     void findByIdRoundtripsKnownServiceId() {
         when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(SERVICE_1_ADDRESS);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(nonEmptyAcl());
 
         var result = assetIndex.findById(SERVICE_1.asEncodedId());
 
@@ -238,8 +243,17 @@ class AssetIndexServerConfStoreTest {
         when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getDisabledNotice(SERVICE_2)).thenReturn("Maintenance");
         when(serverConfProvider.getDisabledNotice(SERVICE_3)).thenReturn(null);
-        // No management service configured — all services use host ctx
+        lenient().when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(nonEmptyAcl());
+        lenient().when(serverConfProvider.getServiceAccessRights(SERVICE_3)).thenReturn(nonEmptyAcl());
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+    }
+
+    private static List<AccessRight> nonEmptyAcl() {
+        var ar = new AccessRight();
+        ar.setSubjectId(ClientId.Conf.create("DEV", "GOV", "9999", "Consumer"));
+        ar.setEndpoint(new Endpoint("svc", "GET", "/", false));
+        ar.setRightsGiven(new Date());
+        return List.of(ar);
     }
 
     @Test
@@ -249,6 +263,8 @@ class AssetIndexServerConfStoreTest {
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
         when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(nonEmptyAcl());
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(nonEmptyAcl());
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
@@ -266,6 +282,8 @@ class AssetIndexServerConfStoreTest {
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
         when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(nonEmptyAcl());
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(nonEmptyAcl());
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var mgmtSpec = QuerySpec.Builder.newInstance()
@@ -287,6 +305,7 @@ class AssetIndexServerConfStoreTest {
     void findByIdMgmtServiceTaggedWithMgmtCtx() {
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(serverConfProvider.getServiceAddress(MGMT_SERVICE)).thenReturn(MGMT_SERVICE_ADDRESS);
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(nonEmptyAcl());
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
@@ -406,6 +425,35 @@ class AssetIndexServerConfStoreTest {
         var result = store.resolveForAsset(builtinAssetId);
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void queryAssetsOwnerOnlyServiceEmittedUnderBothHostAndMgmtCtx() {
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+
+        var result = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(Asset::getId)
+                .containsExactly(SERVICE_1.asEncodedId(), SERVICE_1.asEncodedId());
+        assertThat(result).extracting(Asset::getParticipantContextId)
+                .containsExactlyInAnyOrder(PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void findByIdOwnerOnlyAssetReturnedUnderMgmtCtx() {
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(SERVICE_1_ADDRESS);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
+
+        var result = assetIndex.findById(SERVICE_1.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
     }
 
     @Test

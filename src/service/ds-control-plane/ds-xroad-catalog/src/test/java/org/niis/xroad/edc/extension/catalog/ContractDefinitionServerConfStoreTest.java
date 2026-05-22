@@ -425,7 +425,7 @@ class ContractDefinitionServerConfStoreTest {
         assertThat(def.getAccessPolicyId())
                 .isEqualTo(AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
         assertThat(def.getContractPolicyId()).isEqualTo(def.getAccessPolicyId());
-        assertThat(def.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(def.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
     }
 
     @Test
@@ -441,7 +441,7 @@ class ContractDefinitionServerConfStoreTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(contractId);
-        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
     }
 
     @Test

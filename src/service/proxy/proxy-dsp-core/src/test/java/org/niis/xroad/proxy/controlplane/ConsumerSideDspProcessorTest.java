@@ -37,11 +37,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
 
@@ -73,13 +75,18 @@ class ConsumerSideDspProcessorTest {
     private AssetAccessAcquisitionService assetAccessAcquisitionService;
     @Mock
     private ProviderSecurityServerResolver providerSecurityServerResolver;
+    @Mock
+    private ServerConfProvider serverConfProvider;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private ConsumerSideDspProcessor processor;
     private ServiceId serviceId;
 
     @BeforeEach
     void setUp() {
-        processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver);
+        processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver,
+                serverConfProvider, globalConfProvider);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 
@@ -374,6 +381,62 @@ class ConsumerSideDspProcessorTest {
         verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
         assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
         assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
+    }
+
+    @Test
+    void selfCallByServerIdRoutesViaMgmtCtx() {
+        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
+        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(localServerId, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(serviceId, null, false));
+
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
+    }
+
+    @Test
+    void selfCallByHostAddressRoutesViaMgmtCtx() {
+        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
+        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
+        when(globalConfProvider.getSecurityServerAddress(localServerId)).thenReturn(HOST_A);
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(serviceId, null, false));
+
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
+    }
+
+    @Test
+    void remoteCandidateUsesHostCtxEvenWhenLocalServerKnown() {
+        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
+        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
+        when(globalConfProvider.getSecurityServerAddress(localServerId)).thenReturn(HOST_A);
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(serviceId, null, false));
+
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(DID_B);
+        assertThat(addrCaptor.getValue()).isEqualTo(URL_B);
     }
 
     @Test

@@ -384,7 +384,7 @@ class PolicyDefinitionServerConfStoreTest {
         var policy = result.getFirst();
         assertThat(policy.getId())
                 .isEqualTo(AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
-        assertThat(policy.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(policy.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
         assertThat(policy.getPolicy().getPermissions()).hasSize(1);
     }
 
@@ -399,7 +399,7 @@ class PolicyDefinitionServerConfStoreTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(policyId);
-        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
         assertThat(result.getPolicy().getPermissions()).hasSize(1);
     }
 

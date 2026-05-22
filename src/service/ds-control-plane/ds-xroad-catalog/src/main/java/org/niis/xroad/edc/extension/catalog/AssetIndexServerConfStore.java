@@ -85,6 +85,15 @@ class AssetIndexServerConfStore implements AssetIndex {
                 : participantContextId;
     }
 
+    private boolean isOwnerOnly(ServiceId serviceId) {
+        try {
+            return serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
+        } catch (Exception e) {
+            log.warn("Failed to read access rights for service '{}': {}", serviceId, e.getMessage());
+            return false;
+        }
+    }
+
     /**
      * Returns one {@link Asset} per enabled service across all members.
      * Disabled services (non-null {@code getDisabledNotice}) are excluded.
@@ -103,6 +112,9 @@ class AssetIndexServerConfStore implements AssetIndex {
                     continue;
                 }
                 assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
+                if (isOwnerOnly(serviceId)) {
+                    assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+                }
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
@@ -150,7 +162,8 @@ class AssetIndexServerConfStore implements AssetIndex {
             return null;
         }
         log.trace("findById assetId={} found", assetId);
-        return AssetMapper.toAsset(serviceId, resolveContextId(serviceId));
+        var ctxId = isOwnerOnly(serviceId) ? managementParticipantContextId : resolveContextId(serviceId);
+        return AssetMapper.toAsset(serviceId, ctxId);
     }
 
     /**

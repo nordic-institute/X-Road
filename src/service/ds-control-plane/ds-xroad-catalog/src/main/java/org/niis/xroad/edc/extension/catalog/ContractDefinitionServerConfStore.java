@@ -129,7 +129,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 return null;
             }
             return contractDefinitionMapper.toOwnerOnlyContractDefinition(
-                    ownerOnlyServiceId, resolveContextId(ownerOnlyServiceId));
+                    ownerOnlyServiceId, managementParticipantContextId);
         }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
@@ -240,7 +240,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
             definitions.add(contractDefinitionMapper.toOwnerOnlyContractDefinition(
-                    serviceId, resolveContextId(serviceId)));
+                    serviceId, managementParticipantContextId));
             return;
         }
         var grouped = accessRights.stream()
