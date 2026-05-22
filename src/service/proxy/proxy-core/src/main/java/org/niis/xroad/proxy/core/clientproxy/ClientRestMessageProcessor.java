@@ -202,6 +202,9 @@ public class ClientRestMessageProcessor {
                                String xRequestId, ProxyRequestContext ctx) throws Exception {
         log.trace("sendRequest()");
 
+        clientRequestPreparationService.recordServiceSecurityServerAddress(
+                requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData);
+
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getTargetSecurityServer(),
                 isManagementRequest(requestServiceId)));

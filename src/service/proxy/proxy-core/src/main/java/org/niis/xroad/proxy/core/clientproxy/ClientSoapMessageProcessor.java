@@ -215,6 +215,8 @@ public class ClientSoapMessageProcessor {
     private ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                                         String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("processRequest()");
+        clientRequestPreparationService.recordServiceSecurityServerAddress(
+                decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(), ctx, opMonitoringData);
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         consumerSideDspProcessor.execute(new DspRequest(
                 decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
