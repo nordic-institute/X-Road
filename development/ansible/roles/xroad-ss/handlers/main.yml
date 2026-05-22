@@ -4,3 +4,15 @@
   service:
     name: postgresql
     state: restarted
+
+- name: restart xroad-proxy
+  become: true
+  service:
+    name: xroad-proxy
+    state: restarted
+
+- name: restart xroad-confclient
+  become: true
+  service:
+    name: xroad-confclient
+    state: restarted
