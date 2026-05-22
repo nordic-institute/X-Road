@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -118,7 +119,7 @@ public class ControlPlaneRegistrar {
         return renderJsonLd(instance);
     }
 
-    private HttpResponse<String> sendRegistrationRequest(String body) throws Exception {
+    private HttpResponse<String> sendRegistrationRequest(String body) throws IOException, InterruptedException {
         var endpoint = URI.create(dspProperties.controlPlaneEndpoint() + "/v1/dataplanes");
         var request = HttpRequest.newBuilder()
                 .uri(endpoint)

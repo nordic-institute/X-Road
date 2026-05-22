@@ -59,14 +59,14 @@ import static org.mockito.Mockito.when;
 class ConsumerSideDspProcessorTest {
 
     private static final String INSTANCE = "DEV";
-    private static final String HOST_A = "xrd-ss0";
-    private static final String HOST_B = "xrd-ss1";
-    private static final String DID_A = "did:web:xrd-ss0%3A7183";
-    private static final String DID_B = "did:web:xrd-ss1%3A7183";
-    private static final String URL_A = "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1";
-    private static final String URL_B = "https://xrd-ss1:8183/api/dsp/xrd-ss1/2025-1";
-    private static final String MGMT_DID_A = "did:web:xrd-ss0%3A7183:mgmt";
-    private static final String MGMT_URL_A = "https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/2025-1";
+    private static final String HOST_A = "xrd-ss0.lxd";
+    private static final String HOST_B = "xrd-ss1.lxd";
+    private static final String DID_A = "did:web:xrd-ss0.lxd%3A7183";
+    private static final String DID_B = "did:web:xrd-ss1.lxd%3A7183";
+    private static final String URL_A = "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd/2025-1";
+    private static final String URL_B = "https://xrd-ss1.lxd:8183/api/dsp/xrd-ss1.lxd/2025-1";
+    private static final String MGMT_DID_A = "did:web:xrd-ss0.lxd%3A7183:mgmt";
+    private static final String MGMT_URL_A = "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd-mgmt/2025-1";
     private static final String UNKNOWN_HOST = "unknown.example.com";
 
     @Mock

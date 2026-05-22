@@ -31,6 +31,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -65,6 +66,7 @@ public class DataPlaneServerLifecycle {
      * Stops the Jetty server on CDI shutdown.
      */
     @PreDestroy
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public void destroy() throws Exception {
         dataPlaneServer.destroy();
     }

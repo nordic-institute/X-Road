@@ -74,15 +74,21 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
     @Deprecated(forRemoval = true, since = "edc17")
     public static Map<String, CounterPartyTarget> defaultMap() {
         return Map.ofEntries(
-                Map.entry("xrd-ss0", new CounterPartyTarget("did:web:xrd-ss0%3A7183", "https://xrd-ss0:8183/api/dsp/xrd-ss0/2025-1")),
-                Map.entry("xrd-ss1", new CounterPartyTarget("did:web:xrd-ss1%3A7183", "https://xrd-ss1:8183/api/dsp/xrd-ss1/2025-1")),
-                Map.entry("xrd-ss2", new CounterPartyTarget("did:web:xrd-ss2%3A7183", "https://xrd-ss2:8183/api/dsp/xrd-ss2/2025-1")),
+                //For E2E
+                Map.entry("xrd-ss0", new CounterPartyTarget("did:web:ss0-ds-identity-hub%3A7183",
+                        "https://ss0-ds-control-plane:8183/api/dsp/xrd-ss0/2025-1")),
+                Map.entry("xrd-ss1", new CounterPartyTarget("did:web:ss1-ds-identity-hub%3A7183",
+                        "https://ss1-ds-control-plane:8183/api/dsp/xrd-ss1/2025-1")),
+                Map.entry("xrd-ss2", new CounterPartyTarget("did:web:ss2-ds-identity-hub%3A7183",
+                        "https://ss2-ds-control-plane:8183/api/dsp/xrd-ss2/2025-1")),
+                //For LXD
                 Map.entry("xrd-ss0.lxd",
                         new CounterPartyTarget("did:web:xrd-ss0.lxd%3A7183", "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd/2025-1")),
                 Map.entry("xrd-ss1.lxd",
                         new CounterPartyTarget("did:web:xrd-ss1.lxd%3A7183", "https://xrd-ss1.lxd:8183/api/dsp/xrd-ss1.lxd/2025-1")),
                 Map.entry("xrd-ss2.lxd",
                         new CounterPartyTarget("did:web:xrd-ss2.lxd%3A7183", "https://xrd-ss2.lxd:8183/api/dsp/xrd-ss2.lxd/2025-1")),
+                //For vanilla hurl.
                 Map.entry("ss0", new CounterPartyTarget("did:web:ss0%3A7183", "https://ss0:8183/api/dsp/ss0/2025-1")),
                 Map.entry("ss1", new CounterPartyTarget("did:web:ss1%3A7183", "https://ss1:8183/api/dsp/ss1/2025-1")));
     }

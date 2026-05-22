@@ -92,8 +92,8 @@ Authorization: Bearer {{is_participant_token}}
 Content-Type: application/json
 
 {
-    "did": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
-    "holderId": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
+    "did": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}",
+    "holderId": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}",
     "name": "SS0 Holder (dev mock)",
     "properties": {
         "membershipType": "X-Road",
@@ -111,8 +111,8 @@ Authorization: Bearer {{is_participant_token}}
 Content-Type: application/json
 
 {
-    "did": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
-    "holderId": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
+    "did": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
+    "holderId": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
     "name": "SS1 Holder (dev mock)",
     "properties": {
         "membershipType": "X-Road",
@@ -132,8 +132,8 @@ Authorization: Bearer {{is_participant_token}}
 Content-Type: application/json
 
 {
-    "did": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
-    "holderId": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+    "did": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt",
+    "holderId": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt",
     "name": "SS0 Mgmt Holder (dev mock)",
     "properties": {
         "membershipType": "X-Road",
@@ -215,7 +215,7 @@ jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
 # --- 2a. xrd-ss0 ---
 
 # 2a.1 Create IH participant context on ss0.
-POST https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
+POST https://{{ss0_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
 Authorization: Bearer {{ih_provisioner_token}}
 Content-Type: application/json
 
@@ -224,16 +224,16 @@ Content-Type: application/json
     "serviceEndpoints": [
         {
             "type": "CredentialService",
-            "serviceEndpoint": "https://{{ss0_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss0_host}}",
-            "id": "did:web:{{ss0_host}}%3A{{ih_did_port}}-credential-service"
+            "serviceEndpoint": "https://{{ss0_ih_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss0_participant_id}}",
+            "id": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}-credential-service"
         }
     ],
     "active": true,
-    "participantContextId": "{{ss0_host}}",
-    "did": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
+    "participantContextId": "{{ss0_participant_id}}",
+    "did": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}",
     "key": {
-        "keyId": "did:web:{{ss0_host}}%3A{{ih_did_port}}#key-1",
-        "privateKeyAlias": "did:web:{{ss0_host}}%3A{{ih_did_port}}-key",
+        "keyId": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}#key-1",
+        "privateKeyAlias": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}-key",
         "keyGeneratorParams": {
             "algorithm": "EdDSA"
         }
@@ -245,7 +245,7 @@ HTTP *
 status < 500
 
 # 2a.2 Submit credential request from issuer for ss0's IH.
-POST https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_host}}/credentials/request
+POST https://{{ss0_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_participant_id}}/credentials/request
 Authorization: Bearer {{ih_admin_token}}
 Content-Type: application/json
 
@@ -267,7 +267,7 @@ status < 500
 
 # 2a.3 Poll credential request status; expect ISSUED. Hurl --retry handles retry.
 # If ERROR, fail loud — points to JWKS / DID resolution / network misconfig.
-GET https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_host}}/credentials/request/xroad-membership-credential-request
+GET https://{{ss0_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_participant_id}}/credentials/request/xroad-membership-credential-request
 Authorization: Bearer {{ih_admin_token}}
 
 HTTP 200
@@ -282,7 +282,7 @@ jsonpath "$.status" == "ISSUED"
 # already supports multiple ctx per IH instance; no code change needed.
 # `StsAccountProvisioner` on the IH auto-seeds the `<participantContextId>-sts-client-secret`
 # vault entry on create — that is the alias consumed by 3a.4 below.
-POST https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
+POST https://{{ss0_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
 Authorization: Bearer {{ih_provisioner_token}}
 Content-Type: application/json
 
@@ -291,16 +291,16 @@ Content-Type: application/json
     "serviceEndpoints": [
         {
             "type": "CredentialService",
-            "serviceEndpoint": "https://{{ss0_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss0_host}}-mgmt",
-            "id": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt-credential-service"
+            "serviceEndpoint": "https://{{ss0_ih_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss0_participant_id}}-mgmt",
+            "id": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt-credential-service"
         }
     ],
     "active": true,
-    "participantContextId": "{{ss0_host}}-mgmt",
-    "did": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
+    "participantContextId": "{{ss0_participant_id}}-mgmt",
+    "did": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt",
     "key": {
-        "keyId": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt#key-1",
-        "privateKeyAlias": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt-key",
+        "keyId": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt#key-1",
+        "privateKeyAlias": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt-key",
         "keyGeneratorParams": {
             "algorithm": "EdDSA"
         }
@@ -321,7 +321,7 @@ status < 500
 # `holderPid` as instance-unique, not per-ctx — reusing it makes the POST
 # silently re-target the existing host row (verified: 201 returned, row's
 # participant_context_id unchanged, no mgmt VC ever issued).
-POST https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_host}}-mgmt/credentials/request
+POST https://{{ss0_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_participant_id}}-mgmt/credentials/request
 Authorization: Bearer {{ih_admin_token}}
 Content-Type: application/json
 
@@ -342,7 +342,7 @@ HTTP *
 status < 500
 
 # 2a.6 Poll mgmt-ctx credential request status; expect ISSUED.
-GET https://{{ss0_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_host}}-mgmt/credentials/request/xroad-membership-mgmt-credential-request
+GET https://{{ss0_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss0_participant_id}}-mgmt/credentials/request/xroad-membership-mgmt-credential-request
 Authorization: Bearer {{ih_admin_token}}
 
 HTTP 200
@@ -353,7 +353,7 @@ jsonpath "$.status" == "ISSUED"
 # --- 2b. xrd-ss1 ---
 
 # 2b.1 Create IH participant context on ss1.
-POST https://{{ss1_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
+POST https://{{ss1_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
 Authorization: Bearer {{ih_provisioner_token}}
 Content-Type: application/json
 
@@ -362,16 +362,16 @@ Content-Type: application/json
     "serviceEndpoints": [
         {
             "type": "CredentialService",
-            "serviceEndpoint": "https://{{ss1_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss1_host}}",
-            "id": "did:web:{{ss1_host}}%3A{{ih_did_port}}-credential-service"
+            "serviceEndpoint": "https://{{ss1_ih_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss1_participant_id}}",
+            "id": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}-credential-service"
         }
     ],
     "active": true,
-    "participantContextId": "{{ss1_host}}",
-    "did": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
+    "participantContextId": "{{ss1_participant_id}}",
+    "did": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
     "key": {
-        "keyId": "did:web:{{ss1_host}}%3A{{ih_did_port}}#key-1",
-        "privateKeyAlias": "did:web:{{ss1_host}}%3A{{ih_did_port}}-key",
+        "keyId": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}#key-1",
+        "privateKeyAlias": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}-key",
         "keyGeneratorParams": {
             "algorithm": "EdDSA"
         }
@@ -383,7 +383,7 @@ HTTP *
 status < 500
 
 # 2b.2 Submit credential request from issuer for ss1's IH.
-POST https://{{ss1_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_host}}/credentials/request
+POST https://{{ss1_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_participant_id}}/credentials/request
 Authorization: Bearer {{ih_admin_token}}
 Content-Type: application/json
 
@@ -404,7 +404,7 @@ HTTP *
 status < 500
 
 # 2b.3 Poll credential request status; expect ISSUED.
-GET https://{{ss1_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_host}}/credentials/request/xroad-membership-credential-request
+GET https://{{ss1_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_participant_id}}/credentials/request/xroad-membership-credential-request
 Authorization: Bearer {{ih_admin_token}}
 
 HTTP 200
@@ -428,15 +428,15 @@ jsonpath "$.status" == "ISSUED"
 # --- 3a. xrd-ss0 ---
 
 # 3a.1 Create CP participant context on ss0.
-POST https://{{ss0_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
+POST https://{{ss0_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
 Authorization: Bearer {{cp_provisioner_token}}
 Content-Type: application/json
 
 {
     "@context": ["https://w3id.org/edc/connector/management/v2"],
     "@type": "ParticipantContext",
-    "identity": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
-    "@id": "{{ss0_host}}"
+    "identity": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}",
+    "@id": "{{ss0_participant_id}}"
 }
 
 HTTP *
@@ -445,7 +445,7 @@ status < 500
 
 # 3a.2 PUT participant context config — STS endpoints + DID.
 # Returns 204 No Content on success (per EDC v5beta).
-PUT https://{{ss0_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss0_host}}/config
+PUT https://{{ss0_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss0_participant_id}}/config
 Authorization: Bearer {{cp_provisioner_token}}
 Content-Type: application/json
 
@@ -453,11 +453,11 @@ Content-Type: application/json
     "@context": ["https://w3id.org/edc/connector/management/v2"],
     "@type": "ParticipantContextConfig",
     "entries": {
-        "edc.participant.id": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
-        "edc.participant.did": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
-        "edc.iam.sts.oauth.token.url": "https://{{ss0_host}}:{{ih_sts_port}}/api/sts/token",
-        "edc.iam.sts.oauth.client.id": "did:web:{{ss0_host}}%3A{{ih_did_port}}",
-        "edc.iam.sts.oauth.client.secret.alias": "{{ss0_host}}-sts-client-secret"
+        "edc.participant.id": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}",
+        "edc.participant.did": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}",
+        "edc.iam.sts.oauth.token.url": "https://{{ss0_ih_host}}:{{ih_sts_port}}/api/sts/token",
+        "edc.iam.sts.oauth.client.id": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}",
+        "edc.iam.sts.oauth.client.secret.alias": "{{ss0_participant_id}}-sts-client-secret"
     },
     "privateEntries": {}
 }
@@ -470,15 +470,15 @@ status < 500
 # Distinct DSP identity from 3a.1 — see PRD dsp-mgmt-dual-context. Two ctx on
 # the same CP → two `participantContextId` columns on edc_contract_negotiation
 # rows → self-negotiation no longer collides on the unique constraint.
-POST https://{{ss0_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
+POST https://{{ss0_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
 Authorization: Bearer {{cp_provisioner_token}}
 Content-Type: application/json
 
 {
     "@context": ["https://w3id.org/edc/connector/management/v2"],
     "@type": "ParticipantContext",
-    "identity": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
-    "@id": "{{ss0_host}}-mgmt"
+    "identity": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt",
+    "@id": "{{ss0_participant_id}}-mgmt"
 }
 
 HTTP *
@@ -489,7 +489,7 @@ status < 500
 # what the IH provisioned in 2a.4 (`<participantContextId>-sts-client-secret`,
 # i.e. `<ss0_host>-mgmt-sts-client-secret`). No separate vault seed step —
 # `StsAccountProvisioner` (IH side) writes the alias on participant create.
-PUT https://{{ss0_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss0_host}}-mgmt/config
+PUT https://{{ss0_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss0_participant_id}}-mgmt/config
 Authorization: Bearer {{cp_provisioner_token}}
 Content-Type: application/json
 
@@ -497,11 +497,11 @@ Content-Type: application/json
     "@context": ["https://w3id.org/edc/connector/management/v2"],
     "@type": "ParticipantContextConfig",
     "entries": {
-        "edc.participant.id": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
-        "edc.participant.did": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
-        "edc.iam.sts.oauth.token.url": "https://{{ss0_host}}:{{ih_sts_port}}/api/sts/token",
-        "edc.iam.sts.oauth.client.id": "did:web:{{ss0_host}}%3A{{ih_did_port}}:mgmt",
-        "edc.iam.sts.oauth.client.secret.alias": "{{ss0_host}}-mgmt-sts-client-secret"
+        "edc.participant.id": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.participant.did": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.iam.sts.oauth.token.url": "https://{{ss0_ih_host}}:{{ih_sts_port}}/api/sts/token",
+        "edc.iam.sts.oauth.client.id": "did:web:{{ss0_ih_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.iam.sts.oauth.client.secret.alias": "{{ss0_participant_id}}-mgmt-sts-client-secret"
     },
     "privateEntries": {}
 }
@@ -513,15 +513,15 @@ status < 500
 # --- 3b. xrd-ss1 ---
 
 # 3b.1 Create CP participant context on ss1.
-POST https://{{ss1_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
+POST https://{{ss1_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
 Authorization: Bearer {{cp_provisioner_token}}
 Content-Type: application/json
 
 {
     "@context": ["https://w3id.org/edc/connector/management/v2"],
     "@type": "ParticipantContext",
-    "identity": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
-    "@id": "{{ss1_host}}"
+    "identity": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
+    "@id": "{{ss1_participant_id}}"
 }
 
 HTTP *
@@ -529,7 +529,7 @@ HTTP *
 status < 500
 
 # 3b.2 PUT participant context config on ss1.
-PUT https://{{ss1_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss1_host}}/config
+PUT https://{{ss1_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss1_participant_id}}/config
 Authorization: Bearer {{cp_provisioner_token}}
 Content-Type: application/json
 
@@ -537,11 +537,11 @@ Content-Type: application/json
     "@context": ["https://w3id.org/edc/connector/management/v2"],
     "@type": "ParticipantContextConfig",
     "entries": {
-        "edc.participant.id": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
-        "edc.participant.did": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
-        "edc.iam.sts.oauth.token.url": "https://{{ss1_host}}:{{ih_sts_port}}/api/sts/token",
-        "edc.iam.sts.oauth.client.id": "did:web:{{ss1_host}}%3A{{ih_did_port}}",
-        "edc.iam.sts.oauth.client.secret.alias": "{{ss1_host}}-sts-client-secret"
+        "edc.participant.id": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
+        "edc.participant.did": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
+        "edc.iam.sts.oauth.token.url": "https://{{ss1_ih_host}}:{{ih_sts_port}}/api/sts/token",
+        "edc.iam.sts.oauth.client.id": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
+        "edc.iam.sts.oauth.client.secret.alias": "{{ss1_participant_id}}-sts-client-secret"
     },
     "privateEntries": {}
 }
