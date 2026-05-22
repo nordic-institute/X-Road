@@ -88,9 +88,11 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
                         new CounterPartyTarget("did:web:xrd-ss1.lxd%3A7183", "https://xrd-ss1.lxd:8183/api/dsp/xrd-ss1.lxd/2025-1")),
                 Map.entry("xrd-ss2.lxd",
                         new CounterPartyTarget("did:web:xrd-ss2.lxd%3A7183", "https://xrd-ss2.lxd:8183/api/dsp/xrd-ss2.lxd/2025-1")),
-                //For vanilla hurl.
-                Map.entry("ss0", new CounterPartyTarget("did:web:ss0%3A7183", "https://ss0:8183/api/dsp/ss0/2025-1")),
-                Map.entry("ss1", new CounterPartyTarget("did:web:ss1%3A7183", "https://ss1:8183/api/dsp/ss1/2025-1")));
+                //For docker compose system-test (single-host topology split across containers).
+                Map.entry("ss0", new CounterPartyTarget("did:web:ds-identity-hub%3A7183",
+                        "https://ds-control-plane:8183/api/dsp/ss0/2025-1")),
+                Map.entry("ss1", new CounterPartyTarget("did:web:ds-identity-hub%3A7183",
+                        "https://ds-control-plane:8183/api/dsp/ss1/2025-1")));
     }
 
     /**

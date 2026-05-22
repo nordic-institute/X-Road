@@ -39,9 +39,13 @@ import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 /**
  * Consumer-side implementation of {@link DspRequestProcessor}. Resolves candidate provider security
@@ -68,12 +72,23 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 @RequiredArgsConstructor
 public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
+    private static final Set<String> BUILTIN_SERVICE_CODES = Set.of(
+            "getSecurityServerMetrics",
+            "getSecurityServerOperationalData",
+            "getSecurityServerHealthData",
+            "listMethods",
+            "allowedMethods",
+            "getWsdl",
+            "getOpenAPI");
+
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
 
     @SuppressWarnings("deprecation")
     private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
     // Mgmt-ctx variant: same host keys, but URL and DID reference the mgmt participant context.
+    // Reused for built-in server-proxy handler services because they are inherently self-hosted
+    // and would otherwise produce DSP self-negotiation collisions on the host context.
     private final Map<String, CounterPartyTarget> mgmtCounterPartyTargets = CounterPartyTarget.managementMap();
 
     @Override
@@ -83,7 +98,8 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
         var serviceId = request.serviceId();
         var assetId = serviceId.asEncodedId();
-        var targets = request.managementSubsystem() ? mgmtCounterPartyTargets : counterPartyTargets;
+        var useMgmtCtx = request.managementSubsystem() || isBuiltinService(serviceId);
+        var targets = useMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
 
         var candidates = new ArrayList<>(
                 providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer()));
@@ -91,15 +107,22 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         log.debug("processing DSP request for service {}, asset {}, management={}. Got {} possible targets",
                 serviceId, assetId, request.managementSubsystem(), candidates.size());
 
-        RuntimeException last = null;
+        if (candidates.isEmpty()) {
+            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER,
+                    "No candidate security servers found for service %s", serviceId);
+        }
+
+        var remoteFailures = new ArrayList<RuntimeException>();
+        var localFailures = new ArrayList<RuntimeException>();
         for (var candidate : candidates) {
             var target = targets.get(candidate.hostAddress());
             if (target == null) {
-                last = XrdRuntimeException.systemException(NETWORK_ERROR,
+                var ex = XrdRuntimeException.systemException(NETWORK_ERROR,
                         "No DSP counter-party target configured for provider host-address \"%s\"",
                         candidate.hostAddress());
                 log.warn("No counter-party target for SS {} (address {}), trying next",
-                        candidate.serverId(), candidate.hostAddress(), last);
+                        candidate.serverId(), candidate.hostAddress(), ex);
+                localFailures.add(ex);
                 continue;
             }
             try {
@@ -108,12 +131,35 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
-                last = ex;
+                remoteFailures.add(ex);
             }
         }
 
-        throw XrdRuntimeException.systemException(NETWORK_ERROR, last,
+        throw buildFinalException(remoteFailures, localFailures, serviceId, candidates.size());
+    }
+
+    private static boolean isBuiltinService(ee.ria.xroad.common.identifier.ServiceId serviceId) {
+        return serviceId != null
+                && serviceId.getSubsystemCode() == null
+                && BUILTIN_SERVICE_CODES.contains(serviceId.getServiceCode());
+    }
+
+    private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
+                                                 List<RuntimeException> localFailures,
+                                                 Object serviceId, int candidateCount) {
+        if (localFailures.isEmpty() && !remoteFailures.isEmpty()
+                && remoteFailures.stream().allMatch(XrdRuntimeException.class::isInstance)) {
+            var xrdCodes = remoteFailures.stream()
+                    .map(XrdRuntimeException.class::cast)
+                    .map(XrdRuntimeException::getCode)
+                    .collect(Collectors.toSet());
+            if (xrdCodes.size() == 1) {
+                return remoteFailures.getFirst();
+            }
+        }
+        var last = !remoteFailures.isEmpty() ? remoteFailures.getLast() : localFailures.getLast();
+        return XrdRuntimeException.systemException(NETWORK_ERROR, last,
                 "All %d candidate security servers failed to acquire asset access for service %s",
-                candidates.size(), serviceId);
+                candidateCount, serviceId);
     }
 }

@@ -263,6 +263,87 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
+    void allCandidatesHomogeneousUnknownMemberPreservesCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        var failure = XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "catalog miss for asset");
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(failure);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
+                .thenThrow(failure);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+    }
+
+    @Test
+    void allCandidatesHomogeneousNetworkErrorPreservesCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        var failure = XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR, "catalog fetch failed");
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(failure);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
+                .thenThrow(failure);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()));
+    }
+
+    @Test
+    void mixedCodesAcrossCandidatesFallBackToNetworkError() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "catalog miss"));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR, "fetch failed"));
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()));
+    }
+
+    @Test
+    void emptyCandidateListThrowsUnknownMember() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of());
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
+    }
+
+    @Test
+    void localRoutingFailureMixedWithRemoteFailureFallsBackToNetworkError() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, UNKNOWN_HOST),
+                        new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "catalog miss"));
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()));
+    }
+
+    @Test
     void nonManagementRequestTargetsHostCtxDidAndUrl() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
@@ -270,6 +351,40 @@ class ConsumerSideDspProcessorTest {
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
         processor.execute(new DspRequest(serviceId, null, false));
+
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
+    }
+
+    @Test
+    void builtinServiceRequestTargetsMgmtCtxDidAndUrl() {
+        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "getSecurityServerMetrics");
+        when(providerSecurityServerResolver.resolve(builtinServiceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(builtinServiceId, null, false));
+
+        var idCaptor = ArgumentCaptor.forClass(String.class);
+        var addrCaptor = ArgumentCaptor.forClass(String.class);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), idCaptor.capture(), addrCaptor.capture());
+        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
+    }
+
+    @Test
+    void builtinServiceCodeOnSubsystemUsesHostCtx() {
+        var notBuiltin = ServiceId.Conf.create(INSTANCE, "COM", "1234", "Sub", "getSecurityServerMetrics");
+        when(providerSecurityServerResolver.resolve(notBuiltin, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(notBuiltin, null, false));
 
         var idCaptor = ArgumentCaptor.forClass(String.class);
         var addrCaptor = ArgumentCaptor.forClass(String.class);

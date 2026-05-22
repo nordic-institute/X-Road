@@ -33,6 +33,8 @@ import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.spi.constants.CoreConstants;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +59,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private final ContractDefinitionMapper contractDefinitionMapper;
     private final String participantContextId;
     private final String managementParticipantContextId;
+    private final BuiltinServiceCatalog builtinServiceCatalog;
     private final QueryEvaluator<ContractDefinition> queryEvaluator =
             new QueryEvaluator<>(ContractDefinition::getId, ContractDefinition::getParticipantContextId);
 
@@ -64,12 +67,14 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                                       GlobalConfProvider globalConfProvider,
                                       ContractDefinitionMapper contractDefinitionMapper,
                                       String participantContextId,
-                                      String managementParticipantContextId) {
+                                      String managementParticipantContextId,
+                                      BuiltinServiceCatalog builtinServiceCatalog) {
         this.serverConfProvider = serverConfProvider;
         this.globalConfProvider = globalConfProvider;
         this.contractDefinitionMapper = contractDefinitionMapper;
         this.participantContextId = participantContextId;
         this.managementParticipantContextId = managementParticipantContextId;
+        this.builtinServiceCatalog = builtinServiceCatalog;
     }
 
     /**
@@ -108,6 +113,11 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findById definitionId={} blank policyId after strip, returning null", definitionId);
             return null;
         }
+        var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
+        if (builtinServiceId != null) {
+            log.trace("findById definitionId={} matched builtin", definitionId);
+            return toBuiltinContractDefinition(builtinServiceId);
+        }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
             log.trace("findById definitionId={} too few parts={}, returning null", definitionId, parts.length);
@@ -143,6 +153,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 }
                 collectContractDefinitionsForService(serviceId, definitions);
             }
+        }
+        for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
+            definitions.add(toBuiltinContractDefinition(serviceId));
         }
 
         if (log.isTraceEnabled()) {
@@ -215,6 +228,18 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             definitions.add(contractDefinitionMapper.toContractDefinition(serviceId,
                     subjectAccessRights.getFirst().getSubjectId(), resolveContextId(serviceId)));
         }
+    }
+
+    private ContractDefinition toBuiltinContractDefinition(ServiceId serviceId) {
+        var assetId = AssetMapper.encodeAssetId(serviceId);
+        var contractId = assetId + ContractDefinitionMapper.getContractDefinitionSuffix();
+        return ContractDefinition.Builder.newInstance()
+                .id(contractId)
+                .accessPolicyId(assetId)
+                .contractPolicyId(assetId)
+                .assetsSelectorCriterion(new Criterion(CoreConstants.EDC_NAMESPACE + "id", "=", assetId))
+                .participantContextId(managementParticipantContextId)
+                .build();
     }
 
     private static String joinParts(String[] parts, int from, int to) {

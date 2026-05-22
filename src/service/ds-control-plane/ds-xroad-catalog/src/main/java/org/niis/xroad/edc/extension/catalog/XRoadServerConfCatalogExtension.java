@@ -87,6 +87,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
     private String participantContextId;
     private String managementParticipantContextId;
+    private BuiltinServiceCatalog builtinServiceCatalog;
 
     @Override
     public String name() {
@@ -101,6 +102,16 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + "-mgmt");
         log.info("Participant context ID for catalog assets: {}", participantContextId);
         log.info("Management participant context ID for catalog assets: {}", managementParticipantContextId);
+
+        var proxyMonitorEnabled = context.getSetting(BuiltinServiceCatalog.SETTING_PROXY_MONITOR_ENABLED, true);
+        var opMonitorEnabled = context.getSetting(BuiltinServiceCatalog.SETTING_OP_MONITOR_ENABLED, true);
+        var metaservicesEnabled = context.getSetting(BuiltinServiceCatalog.SETTING_METASERVICES_ENABLED, true);
+        var serverProxyUrl = context.getSetting(BuiltinServiceCatalog.SETTING_SERVER_PROXY_URL,
+                BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
+
+        builtinServiceCatalog = new BuiltinServiceCatalog(
+                serverConfProvider, proxyMonitorEnabled, opMonitorEnabled, metaservicesEnabled, serverProxyUrl);
+        log.info("Built-in service catalog active entries: {}", builtinServiceCatalog.activeServiceIds().size());
     }
 
     /**
@@ -111,7 +122,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     public AssetIndex assetIndex() {
         log.trace("Providing AssetIndex backed by ServerConf");
         return new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId);
+                serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId,
+                builtinServiceCatalog);
     }
 
     /**
@@ -132,7 +144,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
         return new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(),
-                participantContextId, managementParticipantContextId);
+                participantContextId, managementParticipantContextId, builtinServiceCatalog);
     }
 
     /**
@@ -144,7 +156,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         return new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider,
                 new ContractDefinitionMapper(),
-                participantContextId, managementParticipantContextId
-        );
+                participantContextId, managementParticipantContextId,
+                builtinServiceCatalog);
     }
 }

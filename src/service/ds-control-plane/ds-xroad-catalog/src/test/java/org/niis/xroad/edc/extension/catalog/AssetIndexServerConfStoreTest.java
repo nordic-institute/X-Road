@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -75,10 +76,24 @@ class AssetIndexServerConfStoreTest {
     private static final String SERVICE_3_ADDRESS = "https://ss2.example.com/r1/DEV/COM/2222/SubsystemB/lookupData/v2";
     private static final String MGMT_SERVICE_ADDRESS = "https://ss0.example.com/r1/DEV/COM/3333/MANAGEMENT/clientReg";
 
+    private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1111", "ss0");
+
     @BeforeEach
     void setUp() {
         assetIndex = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID);
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                noBuiltins());
+    }
+
+    private BuiltinServiceCatalog allBuiltins() {
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        return new BuiltinServiceCatalog(serverConfProvider, true, true, true,
+                BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
+    }
+
+    private BuiltinServiceCatalog noBuiltins() {
+        return new BuiltinServiceCatalog(serverConfProvider, false, false, false,
+                BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
     }
 
     @Test
@@ -278,5 +293,130 @@ class AssetIndexServerConfStoreTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void queryAssetsIncludesBuiltinsWhenNoServerconfServices() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = store.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).hasSize(7);
+        assertThat(result).extracting(Asset::getId)
+                .allMatch(id -> id.startsWith("DEV:GOV:1111:"));
+    }
+
+    @Test
+    void queryAssetsBuiltinsTaggedWithMgmtContext() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = store.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).allSatisfy(asset ->
+                assertThat(asset.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID));
+    }
+
+    @Test
+    void queryAssetsBuiltinsNeverTaggedWithHostContext() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = store.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).noneSatisfy(asset ->
+                assertThat(asset.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID));
+    }
+
+    @Test
+    void queryAssetsHostCtxFilterExcludesBuiltins() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var hostSpec = QuerySpec.Builder.newInstance()
+                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CONTEXT_ID))
+                .build();
+
+        var result = store.queryAssets(hostSpec).toList();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findByIdReturnsBuiltinAsset() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+
+        var result = store.findById(builtinAssetId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(builtinAssetId);
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void findByIdReturnsNullForUnknownBuiltinServiceCode() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+
+        var result = store.findById("DEV:GOV:1111:nonExistentService");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void resolveForAssetReturnsDataAddressForBuiltin() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+
+        var result = store.resolveForAsset(builtinAssetId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo("HttpData");
+        assertThat(result.getStringProperty("baseUrl")).isEqualTo(BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
+        assertThat(result.getStringProperty("proxyPath")).isEqualTo("true");
+        assertThat(result.getStringProperty("proxyMethod")).isEqualTo("true");
+        assertThat(result.getStringProperty("proxyBody")).isEqualTo("true");
+        assertThat(result.getStringProperty("proxyQueryParams")).isEqualTo("true");
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void resolveForAssetReturnsNullForDisabledBuiltin() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                noBuiltins());
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+
+        var result = store.resolveForAsset(builtinAssetId);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void countAssetsIncludesBuiltins() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var count = store.countAssets(List.of());
+
+        assertThat(count).isEqualTo(7);
     }
 }

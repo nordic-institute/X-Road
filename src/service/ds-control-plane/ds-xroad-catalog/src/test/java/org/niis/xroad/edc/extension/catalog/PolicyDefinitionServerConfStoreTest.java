@@ -28,6 +28,7 @@ package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -76,10 +77,24 @@ class PolicyDefinitionServerConfStoreTest {
     private static final ClientId.Conf SUBJECT_CLIENT = ClientId.Conf.create("DEV", "GOV", "9999", "Consumer");
     private static final GlobalGroupId SUBJECT_GROUP = GlobalGroupId.Conf.create("DEV", "sec-owners");
 
+    private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1234", "ss0");
+
     @BeforeEach
     void setUp() {
         store = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX);
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins());
+    }
+
+    private BuiltinServiceCatalog allBuiltins() {
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        return new BuiltinServiceCatalog(serverConfProvider, true, true, true,
+                BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
+    }
+
+    private BuiltinServiceCatalog noBuiltins() {
+        return new BuiltinServiceCatalog(serverConfProvider, false, false, false,
+                BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
     }
 
     @Test
@@ -288,6 +303,84 @@ class PolicyDefinitionServerConfStoreTest {
         var hostResult = store.findAll(hostSpec).toList();
         assertThat(hostResult).hasSize(1);
         assertThat(hostResult.getFirst().getId()).startsWith(SERVICE_1.asEncodedId());
+    }
+
+    @Test
+    void findAllIncludesBuiltinPolicies() {
+        var builtinStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = builtinStore.findAll(QuerySpec.none()).toList();
+
+        assertThat(result).hasSize(7);
+    }
+
+    @Test
+    void findAllBuiltinPoliciesTaggedWithMgmtContext() {
+        var builtinStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = builtinStore.findAll(QuerySpec.none()).toList();
+
+        assertThat(result).allSatisfy(pol ->
+                assertThat(pol.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX));
+    }
+
+    @Test
+    void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
+        var builtinStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var hostSpec = QuerySpec.Builder.newInstance()
+                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
+                .build();
+
+        var result = builtinStore.findAll(hostSpec).toList();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findByIdReturnsBuiltinPolicy() {
+        var builtinStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+
+        var result = builtinStore.findById(builtinAssetId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(builtinAssetId);
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findByIdReturnsNullForUnknownBuiltinId() {
+        var builtinStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+
+        var result = builtinStore.findById("DEV:GOV:1234:nonExistentService");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findAllBuiltinPoliciesHavePermissivePolicy() {
+        var builtinStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = builtinStore.findAll(QuerySpec.none()).toList();
+
+        result.forEach(pol -> assertThat(pol.getPolicy()).isNotNull());
     }
 
     private static AccessRight createAccessRight(ee.ria.xroad.common.identifier.XRoadId subjectId, Endpoint endpoint) {

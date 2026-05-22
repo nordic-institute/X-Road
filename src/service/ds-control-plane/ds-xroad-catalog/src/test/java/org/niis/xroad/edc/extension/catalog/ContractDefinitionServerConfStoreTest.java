@@ -28,6 +28,7 @@ package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -75,10 +76,24 @@ class ContractDefinitionServerConfStoreTest {
 
     private ContractDefinitionServerConfStore store;
 
+    private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1234", "ss0");
+
     @BeforeEach
     void setUp() {
         store = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX);
+                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins());
+    }
+
+    private BuiltinServiceCatalog allBuiltins() {
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        return new BuiltinServiceCatalog(serverConfProvider, true, true, true,
+                BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
+    }
+
+    private BuiltinServiceCatalog noBuiltins() {
+        return new BuiltinServiceCatalog(serverConfProvider, false, false, false,
+                BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
     }
 
     @Test
@@ -324,6 +339,89 @@ class ContractDefinitionServerConfStoreTest {
         var hostResult = store.findAll(hostSpec).toList();
         assertThat(hostResult).hasSize(1);
         assertThat(hostResult.getFirst().getId()).startsWith(SERVICE_1.asEncodedId());
+    }
+
+    @Test
+    void findAllIncludesBuiltinContractDefinitions() {
+        var builtinStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = builtinStore.findAll(QuerySpec.max()).toList();
+
+        assertThat(result).hasSize(7);
+    }
+
+    @Test
+    void findAllBuiltinsTaggedWithMgmtContext() {
+        var builtinStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = builtinStore.findAll(QuerySpec.max()).toList();
+
+        assertThat(result).allSatisfy(def ->
+                assertThat(def.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX));
+    }
+
+    @Test
+    void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
+        var builtinStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var hostSpec = QuerySpec.Builder.newInstance()
+                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
+                .build();
+
+        var result = builtinStore.findAll(hostSpec).toList();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findByIdReturnsBuiltinContractDefinition() {
+        var builtinStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+        var contractId = builtinAssetId + ContractDefinitionMapper.getContractDefinitionSuffix();
+
+        var result = builtinStore.findById(contractId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(contractId);
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+        assertThat(result.getAccessPolicyId()).isEqualTo(builtinAssetId);
+    }
+
+    @Test
+    void findByIdReturnsNullForUnknownBuiltinId() {
+        var builtinStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+
+        var result = builtinStore.findById("DEV:GOV:1234:nonExistentService-contract-definition");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findAllBuiltinDefinitionsHaveAcceptAllPolicyId() {
+        var builtinStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                allBuiltins());
+        when(serverConfProvider.getMembers()).thenReturn(List.of());
+
+        var result = builtinStore.findAll(QuerySpec.max()).toList();
+
+        result.forEach(def -> {
+            assertThat(def.getAccessPolicyId()).isNotBlank();
+            assertThat(def.getContractPolicyId()).isEqualTo(def.getAccessPolicyId());
+        });
     }
 
     private static AccessRight createAccessRight(XRoadId subjectId, Endpoint endpoint) {

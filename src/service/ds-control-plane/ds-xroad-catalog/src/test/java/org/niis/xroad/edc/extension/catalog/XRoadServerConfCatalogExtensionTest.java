@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,15 +38,23 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class XRoadServerConfCatalogExtensionTest {
+
+    private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1111", "ss0");
 
     @Mock
     private ServerConfProvider serverConfProvider;
 
     @Mock
     private GlobalConfProvider globalConfProvider;
+
+    @Mock
+    private ServiceExtensionContext context;
 
     private XRoadServerConfCatalogExtension extension;
 
@@ -53,6 +64,11 @@ class XRoadServerConfCatalogExtensionTest {
 
         setField(extension, "serverConfProvider", serverConfProvider);
         setField(extension, "globalConfProvider", globalConfProvider);
+
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(context.getSetting(anyString(), anyString())).thenAnswer(inv -> inv.getArgument(1));
+        when(context.getSetting(anyString(), anyBoolean())).thenAnswer(inv -> inv.getArgument(1));
+        extension.initialize(context);
     }
 
     @Test

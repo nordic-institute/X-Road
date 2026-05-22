@@ -59,16 +59,19 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final GlobalConfProvider globalConfProvider;
     private final String participantContextId;
     private final String managementParticipantContextId;
+    private final BuiltinServiceCatalog builtinServiceCatalog;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
 
     AssetIndexServerConfStore(ServerConfProvider serverConfProvider,
                               GlobalConfProvider globalConfProvider,
                               String participantContextId,
-                              String managementParticipantContextId) {
+                              String managementParticipantContextId,
+                              BuiltinServiceCatalog builtinServiceCatalog) {
         this.serverConfProvider = serverConfProvider;
         this.globalConfProvider = globalConfProvider;
         this.participantContextId = participantContextId;
         this.managementParticipantContextId = managementParticipantContextId;
+        this.builtinServiceCatalog = builtinServiceCatalog;
     }
 
     /**
@@ -102,6 +105,9 @@ class AssetIndexServerConfStore implements AssetIndex {
                 assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
             }
         }
+        for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
+            assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+        }
         if (log.isTraceEnabled()) {
             log.trace("queryAssets collected={} assets before filtering", assets.size());
         }
@@ -116,6 +122,11 @@ class AssetIndexServerConfStore implements AssetIndex {
     @Nullable
     public Asset findById(String assetId) {
         log.trace("findById assetId={}", assetId);
+        var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
+        if (builtinServiceId != null) {
+            log.trace("findById assetId={} matched builtin", assetId);
+            return AssetMapper.toAsset(builtinServiceId, managementParticipantContextId);
+        }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
             log.trace("findById assetId={} decode failed, returning null", assetId);
@@ -148,9 +159,13 @@ class AssetIndexServerConfStore implements AssetIndex {
      */
     @Override
     @Nullable
-    @SuppressWarnings("deprecation")
     public DataAddress resolveForAsset(String assetId) {
         log.trace("resolveForAsset assetId={}", assetId);
+        var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
+        if (builtinServiceId != null) {
+            log.trace("resolveForAsset assetId={} matched builtin, baseUrl={}", assetId, builtinServiceCatalog.serverProxyUrl());
+            return buildHttpDataAddress(builtinServiceCatalog.serverProxyUrl());
+        }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
             log.trace("resolveForAsset assetId={} decode failed, returning null", assetId);
@@ -172,8 +187,13 @@ class AssetIndexServerConfStore implements AssetIndex {
             return null;
         }
         log.trace("resolveForAsset assetId={} resolved baseUrl={}", assetId, serviceAddress);
+        return buildHttpDataAddress(serviceAddress);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static DataAddress buildHttpDataAddress(String baseUrl) {
         return HttpDataAddress.Builder.newInstance()
-                .baseUrl(serviceAddress)
+                .baseUrl(baseUrl)
                 .proxyPath("true")
                 .proxyMethod("true")
                 .proxyBody("true")

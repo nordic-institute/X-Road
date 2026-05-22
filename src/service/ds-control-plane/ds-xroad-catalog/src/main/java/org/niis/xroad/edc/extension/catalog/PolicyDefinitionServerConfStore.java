@@ -35,6 +35,8 @@ import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -60,6 +62,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final PolicyMapper policyMapper;
     private final String participantContextId;
     private final String managementParticipantContextId;
+    private final BuiltinServiceCatalog builtinServiceCatalog;
     private final QueryEvaluator<PolicyDefinition> queryEvaluator =
             new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
 
@@ -67,12 +70,14 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                                     GlobalConfProvider globalConfProvider,
                                     PolicyMapper policyMapper,
                                     String participantContextId,
-                                    String managementParticipantContextId) {
+                                    String managementParticipantContextId,
+                                    BuiltinServiceCatalog builtinServiceCatalog) {
         this.serverConfProvider = serverConfProvider;
         this.globalConfProvider = globalConfProvider;
         this.policyMapper = policyMapper;
         this.participantContextId = participantContextId;
         this.managementParticipantContextId = managementParticipantContextId;
+        this.builtinServiceCatalog = builtinServiceCatalog;
     }
 
     /**
@@ -101,6 +106,12 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         if (policyId == null || policyId.isBlank()) {
             log.trace("findById policyId blank, returning null");
             return null;
+        }
+
+        var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
+        if (builtinServiceId != null) {
+            log.trace("findById policyId={} matched builtin", policyId);
+            return toBuiltinPolicyDefinition(policyId);
         }
 
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -138,6 +149,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 }
                 collectPoliciesForService(serviceId, policies);
             }
+        }
+        for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
+            var assetId = AssetMapper.encodeAssetId(serviceId);
+            policies.add(toBuiltinPolicyDefinition(assetId));
         }
 
         if (log.isTraceEnabled()) {
@@ -228,6 +243,17 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             policies.add(policyMapper.toPolicyDefinition(compoundPolicyId,
                     subjectAccessRights.getFirst().getSubjectId(), endpoints, resolveContextId(serviceId)));
         }
+    }
+
+    private PolicyDefinition toBuiltinPolicyDefinition(String policyId) {
+        var policy = Policy.Builder.newInstance()
+                .type(PolicyType.SET)
+                .build();
+        return PolicyDefinition.Builder.newInstance()
+                .id(policyId)
+                .policy(policy)
+                .participantContextId(managementParticipantContextId)
+                .build();
     }
 
     private static String joinParts(String[] parts, int from, int to) {
