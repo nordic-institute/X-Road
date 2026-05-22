@@ -49,7 +49,7 @@ import static org.niis.xroad.e2e.EnvSetup.DS_CONTROL_PLANE;
 
 public class DsStepDefs extends BaseE2EStepDefs {
 
-    private static final String MGMT_BASE_URL = "http://%s:%d/api/management/v5beta/participants";
+    private static final String MGMT_BASE_URL = "https://%s:%d/api/management/v5beta/participants";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
 
@@ -109,7 +109,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     "expression": "ctx.agent.id == '%s'"
                 }
                 """.formatted(consumerDid);
-        String celUrl = "http://%s:%d/api/management/v5beta/celexpressions".formatted(mapping.host(), mapping.port());
+        String celUrl = "https://%s:%d/api/management/v5beta/celexpressions".formatted(mapping.host(), mapping.port());
         sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
 
         // Create policy with constraint referencing the CEL expression
@@ -181,7 +181,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
                 """.formatted(providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
@@ -203,7 +203,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "ContractRequest",
-                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1",
                     "counterPartyId": "%s",
                     "protocol": "dataspace-protocol-http:2025-1",
                     "policy": {
@@ -252,7 +252,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "TransferRequest",
-                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1",
                     "counterPartyId": "%s",
                     "protocol": "dataspace-protocol-http:2025-1",
                     "contractId": "%s",
@@ -306,7 +306,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 {
                     "assetId": "%s",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "http://%s:%d/api/dsp/test-part-ctx/2025-1"
+                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1"
                 }
                 """.formatted(assetId, providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
@@ -321,6 +321,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private ValidatableResponse sendRequest(Method method, String url, String token, String body, int expectedStatusCode) {
         testReportService.attachJson(method + " " + url, body);
         var response = given()
+                .relaxedHTTPSValidation()
                 .log().all()
                 .auth().oauth2(token)
                 .contentType(ContentType.JSON)
@@ -342,6 +343,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     private ValidatableResponse doGetRequest(String url, String token, int expectedStatusCode) {
         return given()
+                .relaxedHTTPSValidation()
                 .log().all()
                 .auth().oauth2(token)
                 .request(GET, url)

@@ -25,12 +25,14 @@
  */
 package org.niis.xroad.e2e;
 
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ContainerNetwork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Component;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -51,6 +53,9 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 public class EnvSetup extends BaseComposeSetup {
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
+    private static final String COMPOSE_DS_HTTPS_FILE = "compose.ds-https.yaml";
+    private static final String DS_HTTPS_KEYSTORE_VOLUME = "e2e-ds-https-keystore";
+    private static final String DS_HTTPS_KEYSTORE_INIT = "ds-https-keystore-init";
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
     private static final String COMPOSE_SS_E2E_DS_FILE = "compose.e2e.ds.yaml";
@@ -80,6 +85,7 @@ public class EnvSetup extends BaseComposeSetup {
     private ComposeContainer envSs0;
     private ComposeContainer envSs1;
     private ComposeContainer envAux;
+    private ComposeContainer envDsHttps;
 
     public EnvSetup(TestFrameworkCoreProperties coreProperties) {
         super(coreProperties);
@@ -87,6 +93,14 @@ public class EnvSetup extends BaseComposeSetup {
 
     @Override
     public void init() {
+        ensureDsHttpsKeystoreVolume();
+
+        envDsHttps = new ComposeContainer("dshttps-", getComposeFilePath(COMPOSE_DS_HTTPS_FILE));
+        envDsHttps.start();
+        await().atMost(Duration.ofMinutes(2)).until(() -> envDsHttps.getContainerByServiceName(DS_HTTPS_KEYSTORE_INIT)
+                .map(c -> !c.isRunning())
+                .orElse(false));
+
         envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER));
 
         envSs1 = createSSEnvironment("ss1", Set.of(Feature.HSM, Feature.MESSAGE_LOG_ENCRYPTION));
@@ -96,9 +110,15 @@ public class EnvSetup extends BaseComposeSetup {
                 .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_ADMIN, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
-                .withEnv("PROXY_0", getContainerName(envSs0, PROXY))
+                .withEnv("PROXY_0", "xrd-ss0")
                 .withEnv("PROXY_UI_1", getContainerName(envSs1, UI))
-                .withEnv("PROXY_1", getContainerName(envSs1, PROXY))
+                .withEnv("PROXY_1", "xrd-ss1")
+                .withEnv("IH_HOST_0", "ss0-ds-identity-hub")
+                .withEnv("IH_HOST_1", "ss1-ds-identity-hub")
+                .withEnv("CP_HOST_0", "ss0-ds-control-plane")
+                .withEnv("CP_HOST_1", "ss1-ds-control-plane")
+                .withEnv("PARTICIPANT_ID_0", "xrd-ss0")
+                .withEnv("PARTICIPANT_ID_1", "xrd-ss1")
                 .withLogConsumer(HURL, createLogConsumer("aux", HURL))
                 .withLogConsumer(CS, createLogConsumer("aux", CS))
                 .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer("aux", DS_ISSUER_SERVICE))
@@ -113,6 +133,18 @@ public class EnvSetup extends BaseComposeSetup {
         return null;
     }
 
+    private void ensureDsHttpsKeystoreVolume() {
+        var dockerClient = DockerClientFactory.lazyClient();
+        try {
+            dockerClient.removeVolumeCmd(DS_HTTPS_KEYSTORE_VOLUME).exec();
+            log.info("Removed stale {} volume", DS_HTTPS_KEYSTORE_VOLUME);
+        } catch (NotFoundException ignored) {
+            // first run
+        }
+        dockerClient.createVolumeCmd().withName(DS_HTTPS_KEYSTORE_VOLUME).exec();
+        log.info("Created external docker volume {}", DS_HTTPS_KEYSTORE_VOLUME);
+    }
+
     private void connectToExternalNetwork(ComposeContainer env, List<String> serviceNames, String envName) {
         for (String serviceName : serviceNames) {
             var containerState = env.getContainerByServiceName(serviceName).orElseThrow();
@@ -124,11 +156,17 @@ public class EnvSetup extends BaseComposeSetup {
                     .orElseThrow(() -> new RuntimeException("Could not find external network '%s'".formatted(XROAD_NETWORK)))
                     .getId();
 
+            var aliases = new ArrayList<String>();
+            aliases.add("%s-%s".formatted(envName, serviceName));
+            if (PROXY.equals(serviceName)) {
+                aliases.add("xrd-" + envName);
+            }
+
             dockerClient.connectToNetworkCmd()
                     .withContainerId(containerState.getContainerId())
                     .withNetworkId(networkId)
                     .withContainerNetwork(new ContainerNetwork()
-                            .withAliases("%s-%s".formatted(envName, serviceName)))
+                            .withAliases(aliases.toArray(String[]::new)))
                     .exec();
         }
     }
@@ -144,6 +182,7 @@ public class EnvSetup extends BaseComposeSetup {
 
         var env = new ComposeContainer(name + "-", files)
                 .withEnv("ENV_PREFIX", name + "-")
+                .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
@@ -227,6 +266,9 @@ public class EnvSetup extends BaseComposeSetup {
         }
         if (envAux != null) {
             envAux.stop();
+        }
+        if (envDsHttps != null) {
+            envDsHttps.stop();
         }
     }
 
