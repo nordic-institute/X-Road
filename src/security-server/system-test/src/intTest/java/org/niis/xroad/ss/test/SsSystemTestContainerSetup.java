@@ -130,6 +130,22 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
 
         dockerClient.restartContainerCmd(containerState.getContainerId()).exec();
         await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
+
+        var logConsumer = createLogConsumer(service);
+        dockerClient.logContainerCmd(containerState.getContainerId())
+                .withFollowStream(true)
+                .withStdOut(true)
+                .withStdErr(true)
+                .withSince((int) (System.currentTimeMillis() / 1000L))
+                .exec(new com.github.dockerjava.api.async.ResultCallback.Adapter<com.github.dockerjava.api.model.Frame>() {
+                    @Override
+                    public void onNext(com.github.dockerjava.api.model.Frame item) {
+                        var type = item.getStreamType() == com.github.dockerjava.api.model.StreamType.STDERR
+                                ? org.testcontainers.containers.output.OutputFrame.OutputType.STDERR
+                                : org.testcontainers.containers.output.OutputFrame.OutputType.STDOUT;
+                        logConsumer.accept(new org.testcontainers.containers.output.OutputFrame(type, item.getPayload()));
+                    }
+                });
     }
 
     public void stop(String service) {
