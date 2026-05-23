@@ -144,6 +144,34 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findByIdSynthesizesOwnerOnlyPolicyForLocallyRegisteredSubsystemWithoutServiceDescription() {
+        var clientDisableService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientDisable");
+        when(serverConfProvider.serviceExists(clientDisableService)).thenReturn(false);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var policyId = clientDisableService.asEncodedId() + ContractDefinitionMapper.OWNER_ONLY_SUFFIX;
+        var result = store.findById(policyId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findByIdReturnsNullForOwnerOnlyPolicyOfUnregisteredSubsystem() {
+        var foreignSubsystem = ClientId.Conf.create("DEV", "COM", "9999", "Foreign");
+        var foreignService = ServiceId.Conf.create(foreignSubsystem, "noSuchService");
+        when(serverConfProvider.serviceExists(foreignService)).thenReturn(false);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(foreignSubsystem, SS_ID)).thenReturn(false);
+
+        var policyId = foreignService.asEncodedId() + ContractDefinitionMapper.OWNER_ONLY_SUFFIX;
+        var result = store.findById(policyId);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     void findAllReturnsAllPoliciesAcrossMembersAndServices() {
         var ep1 = new Endpoint("svc1", "GET", "/api/data", false);
         var ep2 = new Endpoint("svc2", "*", "**", true);

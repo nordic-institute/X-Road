@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -122,7 +123,12 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             var assetIdStr = policyId.substring(0,
                     policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
             var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-            if (ownerOnlyServiceId == null || !serverConfProvider.serviceExists(ownerOnlyServiceId)) {
+            if (ownerOnlyServiceId == null) {
+                log.trace("findById definitionId={} owner-only candidate decode failed", definitionId);
+                return null;
+            }
+            if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
+                    && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
                 log.trace("findById definitionId={} owner-only candidate did not resolve", definitionId);
                 return null;
             }
@@ -165,6 +171,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             definitions.add(toBuiltinContractDefinition(serviceId));
         }
+        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
+                .forEach(serviceId -> definitions.add(contractDefinitionMapper.toOwnerOnlyContractDefinition(
+                        serviceId, managementParticipantContextId)));
 
         if (log.isTraceEnabled()) {
             log.trace("findAll collected={} definitions before filtering", definitions.size());
@@ -261,6 +270,19 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 .assetsSelectorCriterion(new Criterion(CoreConstants.EDC_NAMESPACE + "id", "=", assetId))
                 .participantContextId(managementParticipantContextId)
                 .build();
+    }
+
+    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
+        if (clientId == null || clientId.getSubsystemCode() == null) {
+            return false;
+        }
+        try {
+            var thisServer = serverConfProvider.getIdentifier();
+            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
+        } catch (Exception e) {
+            log.warn("Failed to read global-conf for synthetic contract definition check '{}': {}", clientId, e.getMessage());
+            return false;
+        }
     }
 
     private static String joinParts(String[] parts, int from, int to) {

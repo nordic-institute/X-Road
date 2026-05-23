@@ -191,6 +191,58 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
+    void findByIdSynthesizesOwnerOnlyAssetForLocallyRegisteredSubsystemWithoutServiceDescription() {
+        var clientDisableService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientDisable");
+        when(serverConfProvider.serviceExists(clientDisableService)).thenReturn(false);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var result = assetIndex.findById(clientDisableService.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(clientDisableService.asEncodedId());
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void findByIdReturnsNullForUnregisteredSubsystemWithoutServiceDescription() {
+        var foreignSubsystem = ClientId.Conf.create("DEV", "COM", "9999", "Foreign");
+        var foreignService = ServiceId.Conf.create(foreignSubsystem, "noSuchService");
+        when(serverConfProvider.serviceExists(foreignService)).thenReturn(false);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(foreignSubsystem, SS_ID)).thenReturn(false);
+
+        var result = assetIndex.findById(foreignService.asEncodedId());
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void queryAssetsDoesNotEnumerateSyntheticEntriesForSubsystemWithoutManagementContext() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+
+        var result = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void queryAssetsEmitsSyntheticManagementCatalogWhenSubsystemRegisteredWithoutServiceDescriptions() {
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var result = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
+        assertThat(result).allSatisfy(asset -> {
+            assertThat(asset.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
+            assertThat(asset.getId()).startsWith(MGMT_CLIENT.asEncodedId());
+        });
+    }
+
+    @Test
     @SuppressWarnings("deprecation")
     void resolveForAssetReturnsHttpDataAddress() {
         when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.annotation.Nullable;
@@ -117,6 +118,8 @@ class AssetIndexServerConfStore implements AssetIndex {
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
         }
+        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
+                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId)));
         if (log.isTraceEnabled()) {
             log.trace("queryAssets collected={} assets before filtering", assets.size());
         }
@@ -145,6 +148,10 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
         }
         if (!serverConfProvider.serviceExists(serviceId)) {
+            if (isLocallyRegisteredSubsystem(serviceId.getClientId())) {
+                log.trace("findById assetId={} synthesizing owner-only asset for locally registered subsystem", assetId);
+                return AssetMapper.toAsset(serviceId, managementParticipantContextId);
+            }
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
@@ -152,6 +159,19 @@ class AssetIndexServerConfStore implements AssetIndex {
                 ? managementParticipantContextId
                 : resolveContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
+    }
+
+    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
+        if (clientId == null || clientId.getSubsystemCode() == null) {
+            return false;
+        }
+        try {
+            var thisServer = serverConfProvider.getIdentifier();
+            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
+        } catch (Exception e) {
+            log.warn("Failed to read global-conf for synthetic asset check '{}': {}", clientId, e.getMessage());
+            return false;
+        }
     }
 
     /**

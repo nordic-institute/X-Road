@@ -240,6 +240,38 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findByIdSynthesizesOwnerOnlyContractDefinitionForLocallyRegisteredSubsystemWithoutServiceDescription() {
+        var clientDisableService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientDisable");
+        when(serverConfProvider.serviceExists(clientDisableService)).thenReturn(false);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var contractId = clientDisableService.asEncodedId()
+                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+        var result = store.findById(contractId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findByIdReturnsNullForOwnerOnlyContractOfUnregisteredSubsystem() {
+        var foreignSubsystem = ClientId.Conf.create("DEV", "COM", "9999", "Foreign");
+        var foreignService = ServiceId.Conf.create(foreignSubsystem, "noSuchService");
+        when(serverConfProvider.serviceExists(foreignService)).thenReturn(false);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(foreignSubsystem, SS_ID)).thenReturn(false);
+
+        var contractId = foreignService.asEncodedId()
+                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+        var result = store.findById(contractId);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     void findAllWithParticipantContextIdCriterionFilters() {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         var ar = createAccessRight(SUBJECT_CLIENT, ep);

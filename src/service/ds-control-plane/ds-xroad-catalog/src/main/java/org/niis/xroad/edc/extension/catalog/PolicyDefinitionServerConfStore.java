@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -118,7 +119,12 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             var assetIdStr = policyId.substring(0,
                     policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
             var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-            if (ownerOnlyServiceId == null || !serverConfProvider.serviceExists(ownerOnlyServiceId)) {
+            if (ownerOnlyServiceId == null) {
+                log.trace("findById policyId={} owner-only candidate decode failed", policyId);
+                return null;
+            }
+            if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
+                    && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
                 log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
                 return null;
             }
@@ -163,6 +169,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             var assetId = AssetMapper.encodeAssetId(serviceId);
             policies.add(toBuiltinPolicyDefinition(assetId));
         }
+        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
+                .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
+                        ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
+                        serviceId.getClientId(), managementParticipantContextId)));
 
         if (log.isTraceEnabled()) {
             log.trace("findAll collected={} policies before filtering", policies.size());
@@ -277,6 +287,19 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .policy(policy)
                 .participantContextId(managementParticipantContextId)
                 .build();
+    }
+
+    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
+        if (clientId == null || clientId.getSubsystemCode() == null) {
+            return false;
+        }
+        try {
+            var thisServer = serverConfProvider.getIdentifier();
+            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
+        } catch (Exception e) {
+            log.warn("Failed to read global-conf for synthetic policy definition check '{}': {}", clientId, e.getMessage());
+            return false;
+        }
     }
 
     private static String joinParts(String[] parts, int from, int to) {
