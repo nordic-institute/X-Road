@@ -108,12 +108,9 @@ class AssetIndexServerConfStore implements AssetIndex {
         var assets = new ArrayList<Asset>();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                if (serverConfProvider.getDisabledNotice(serviceId) != null) {
-                    continue;
-                }
-                assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
-                if (isOwnerOnly(serviceId)) {
-                    assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+                assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+                if (serverConfProvider.getDisabledNotice(serviceId) == null) {
+                    assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
                 }
             }
         }
@@ -147,22 +144,13 @@ class AssetIndexServerConfStore implements AssetIndex {
         if (log.isTraceEnabled()) {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
         }
-        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
-            log.trace("findById assetId={} service disabled, returning null", assetId);
+        if (!serverConfProvider.serviceExists(serviceId)) {
+            log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
-        try {
-            var address = serverConfProvider.getServiceAddress(serviceId);
-            if (address == null) {
-                log.trace("findById assetId={} no address found, returning null", assetId);
-                return null;
-            }
-        } catch (Exception e) {
-            log.warn("Failed to verify service existence for asset '{}': {}", assetId, e.getMessage());
-            return null;
-        }
-        log.trace("findById assetId={} found", assetId);
-        var ctxId = isOwnerOnly(serviceId) ? managementParticipantContextId : resolveContextId(serviceId);
+        var ctxId = serverConfProvider.getDisabledNotice(serviceId) != null
+                ? managementParticipantContextId
+                : resolveContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
     }
 

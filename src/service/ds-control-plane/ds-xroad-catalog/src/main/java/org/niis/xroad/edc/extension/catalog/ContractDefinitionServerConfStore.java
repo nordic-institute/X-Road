@@ -122,9 +122,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             var assetIdStr = policyId.substring(0,
                     policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
             var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-            if (ownerOnlyServiceId == null
-                    || !serverConfProvider.serviceExists(ownerOnlyServiceId)
-                    || !serverConfProvider.getServiceAccessRights(ownerOnlyServiceId).isEmpty()) {
+            if (ownerOnlyServiceId == null || !serverConfProvider.serviceExists(ownerOnlyServiceId)) {
                 log.trace("findById definitionId={} owner-only candidate did not resolve", definitionId);
                 return null;
             }
@@ -161,9 +159,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                if (serverConfProvider.getDisabledNotice(serviceId) != null) {
-                    continue;
-                }
                 collectContractDefinitionsForService(serviceId, definitions);
             }
         }
@@ -237,10 +232,13 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
      */
     private void collectContractDefinitionsForService(ServiceId serviceId,
                                                       List<ContractDefinition> definitions) {
+        definitions.add(contractDefinitionMapper.toOwnerOnlyContractDefinition(
+                serviceId, managementParticipantContextId));
+        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
+            return;
+        }
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
-            definitions.add(contractDefinitionMapper.toOwnerOnlyContractDefinition(
-                    serviceId, managementParticipantContextId));
             return;
         }
         var grouped = accessRights.stream()

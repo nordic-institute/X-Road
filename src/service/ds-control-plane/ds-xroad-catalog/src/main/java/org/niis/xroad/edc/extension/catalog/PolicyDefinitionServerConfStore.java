@@ -118,9 +118,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             var assetIdStr = policyId.substring(0,
                     policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
             var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-            if (ownerOnlyServiceId == null
-                    || !serverConfProvider.serviceExists(ownerOnlyServiceId)
-                    || !serverConfProvider.getServiceAccessRights(ownerOnlyServiceId).isEmpty()) {
+            if (ownerOnlyServiceId == null || !serverConfProvider.serviceExists(ownerOnlyServiceId)) {
                 log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
                 return null;
             }
@@ -158,9 +156,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                if (serverConfProvider.getDisabledNotice(serviceId) != null) {
-                    continue;
-                }
                 collectPoliciesForService(serviceId, policies);
             }
         }
@@ -243,11 +238,15 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
      * </ul>
      */
     private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies) {
+        var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
+        policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
+                serviceId.getClientId(), managementParticipantContextId));
+
+        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
+            return;
+        }
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
-            var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
-            policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
-                    serviceId.getClientId(), managementParticipantContextId));
             return;
         }
 

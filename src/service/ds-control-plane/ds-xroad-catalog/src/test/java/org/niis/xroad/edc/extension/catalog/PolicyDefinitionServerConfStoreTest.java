@@ -162,10 +162,19 @@ class PolicyDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.none()).toList();
 
-        // SERVICE_1: 2 subjects = 2 policies; SERVICE_2: 1 subject = 1 policy => 3 total
-        assertThat(result).hasSize(3);
-        assertThat(result).extracting(PolicyDefinition::getParticipantContextId)
+        assertThat(result).hasSize(5);
+        var perSubject = result.stream()
+                .filter(p -> !p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .toList();
+        assertThat(perSubject).hasSize(3);
+        assertThat(perSubject).extracting(PolicyDefinition::getParticipantContextId)
                 .containsOnly(PARTICIPANT_CTX);
+        var ownerOnly = result.stream()
+                .filter(p -> p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .toList();
+        assertThat(ownerOnly).hasSize(2);
+        assertThat(ownerOnly).extracting(PolicyDefinition::getParticipantContextId)
+                .containsOnly(MGMT_PARTICIPANT_CTX);
     }
 
     @Test
@@ -207,8 +216,17 @@ class PolicyDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.none()).toList();
 
-        // Only SERVICE_2 should be included (SERVICE_1 is disabled)
-        assertThat(result).hasSize(1);
+        assertThat(result).hasSize(3);
+        var perSubject = result.stream()
+                .filter(p -> !p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .toList();
+        assertThat(perSubject).hasSize(1);
+        var ownerOnly = result.stream()
+                .filter(p -> p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .toList();
+        assertThat(ownerOnly).hasSize(2);
+        assertThat(ownerOnly).extracting(PolicyDefinition::getParticipantContextId)
+                .containsOnly(MGMT_PARTICIPANT_CTX);
     }
 
     @Test
@@ -263,15 +281,23 @@ class PolicyDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.none()).toList();
 
-        assertThat(result).hasSize(2);
-        var mgmtPolicy = result.stream()
-                .filter(p -> p.getId().startsWith(MGMT_SERVICE.asEncodedId()))
+        assertThat(result).hasSize(4);
+        var hostPerSubject = result.stream()
+                .filter(p -> p.getId().startsWith(SERVICE_1.asEncodedId())
+                        && !p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
                 .findFirst().orElseThrow();
-        var hostPolicy = result.stream()
-                .filter(p -> p.getId().startsWith(SERVICE_1.asEncodedId()))
+        var mgmtPerSubject = result.stream()
+                .filter(p -> p.getId().startsWith(MGMT_SERVICE.asEncodedId())
+                        && !p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
                 .findFirst().orElseThrow();
-        assertThat(mgmtPolicy.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
-        assertThat(hostPolicy.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(hostPerSubject.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(mgmtPerSubject.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+        var ownerOnly = result.stream()
+                .filter(p -> p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .toList();
+        assertThat(ownerOnly).hasSize(2);
+        assertThat(ownerOnly).extracting(PolicyDefinition::getParticipantContextId)
+                .containsOnly(MGMT_PARTICIPANT_CTX);
     }
 
     @Test
@@ -294,8 +320,7 @@ class PolicyDefinitionServerConfStoreTest {
                 .filter(new Criterion("participantContextId", "=", MGMT_PARTICIPANT_CTX))
                 .build();
         var mgmtResult = store.findAll(mgmtSpec).toList();
-        assertThat(mgmtResult).hasSize(1);
-        assertThat(mgmtResult.getFirst().getId()).startsWith(MGMT_SERVICE.asEncodedId());
+        assertThat(mgmtResult).hasSize(3);
 
         var hostSpec = QuerySpec.Builder.newInstance()
                 .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
@@ -391,7 +416,6 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findByIdEmptyAclResolvesOwnerOnlyPolicyDefinition() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
 
         var policyId = AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX;
 
@@ -404,17 +428,16 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
-    void findByIdOwnerOnlyReturnsNullWhenServiceHasAcl() {
-        var ep = new Endpoint("svc1", "GET", "/api/data", false);
-        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+    void findByIdOwnerOnlyReturnedEvenWhenServiceHasAcl() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
 
         var policyId = AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX;
 
         var result = store.findById(policyId);
 
-        assertThat(result).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(policyId);
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
     }
 
     @Test
