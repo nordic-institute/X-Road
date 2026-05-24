@@ -70,7 +70,6 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String AUX_SERVICE = "auxiliary-service";
     private static final String MESSAGE_LOG_CLI = "message-log-cli";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
-    private static final String DS_DATA_PLANE = "ds-data-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
     public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
     private static final String XROAD_NETWORK = "xroad-network";
@@ -158,8 +157,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(AUX_SERVICE, createLogConsumer(name, AUX_SERVICE))
                 .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI))
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE))
-                .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB))
-                .withLogConsumer(DS_DATA_PLANE, createLogConsumer(name, DS_DATA_PLANE));
+                .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB));
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
@@ -168,7 +166,7 @@ public class EnvSetup extends BaseComposeSetup {
         env.start();
 
         List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER,
-                DS_CONTROL_PLANE, DS_IDENTITY_HUB, DS_DATA_PLANE));
+                DS_CONTROL_PLANE, DS_IDENTITY_HUB));
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             services.add(SOFTTOKEN_SIGNER);
         }
