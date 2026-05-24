@@ -1,6 +1,4 @@
 ---
-enable_jaeger: true
-jaeger_container_name: xrd-jaeger
 jaeger_version: "2.18.0"
 jaeger_arch_map:
   x86_64: amd64
@@ -13,3 +11,10 @@ jaeger_ui_port: 80
 jaeger_install_dir: /opt/jaeger
 jaeger_config_path: /etc/jaeger/config.yaml
 jaeger_storage_path: /var/lib/jaeger
+
+jaeger_badger_span_ttl: 4h
+jaeger_badger_maintenance_interval: 5m
+
+jaeger_memory_limit_mib: 512
+jaeger_memory_spike_limit_mib: 128
+jaeger_memory_check_interval: 5s

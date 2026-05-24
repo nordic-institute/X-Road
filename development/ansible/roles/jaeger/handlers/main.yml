@@ -1,9 +1,5 @@
 ---
 - name: Restart Jaeger
-  delegate_to: "{{ jaeger_container_name }}"
-  vars:
-    ansible_connection: lxd
-    ansible_become: false
   ansible.builtin.systemd:
     name: jaeger
     state: restarted

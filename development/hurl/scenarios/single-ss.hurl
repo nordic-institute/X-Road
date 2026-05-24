@@ -7,7 +7,7 @@ HTTP 200
 POST https://{{cs_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -54,7 +54,7 @@ HTTP *
 POST https://{{ss_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret123
+password: secret123!
 
 HTTP 200
 [Captures]

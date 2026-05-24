@@ -4,7 +4,7 @@ Feature: 0480 - CS: Manage Global Group members
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And CentralServer Settings tab is selected
     And Global Resources sub-tab is selected
 

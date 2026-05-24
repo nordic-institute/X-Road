@@ -6,7 +6,7 @@ Feature: 0500 - CS: Trust Services
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And TrustServices tab is selected
 
   Scenario: Add certification service

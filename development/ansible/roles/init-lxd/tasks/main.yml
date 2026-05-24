@@ -89,6 +89,32 @@
   tags:
     - ubuntu-container-init
 
+- name: Bind-mount host package build dir into xrd-repo
+  become: "{{ onMacOs | default(true) }}"
+  shell: |
+    set -e
+    SRC={{ (playbook_dir + '/../../deployment/native-packages/build') | realpath }}
+    HOST_UID=$(stat -c '%u' "$SRC")
+    # Map Lima-visible owner of build dir to container root so dpkg-scanpackages /
+    # createrepo_c can write Packages and repodata back to the host dir.
+    lxc config set xrd-repo raw.idmap "both $HOST_UID 0"
+    lxc config device remove xrd-repo xroad-build 2>/dev/null || true
+    lxc config device add xrd-repo xroad-build disk source="$SRC" path=/srv/xroad-build
+    lxc restart xrd-repo
+    # Re-wait for network after restart.
+    for i in $(seq 1 30); do
+      ip=$(lxc list xrd-repo -c 4 --format csv | awk '{print $1}')
+      [ -n "$ip" ] && [ "$ip" != "-" ] && exit 0
+      sleep 1
+    done
+    echo "xrd-repo did not get an IPv4 in time" >&2
+    exit 1
+  args:
+    executable: /bin/bash
+  changed_when: true
+  tags:
+    - ubuntu-container-init
+
 - name: Force IPv4 for APT to prevent IPv6 timeouts
   raw: echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
   delegate_to: "{{ item }}"
