@@ -83,7 +83,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void start_shouldActivatePollExecutor() {
+    void startShouldActivatePollExecutor() {
         when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenReturn(List.of());
 
         var future = pollExecutor.start();
@@ -93,7 +93,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void start_shouldBeginPollingTasks() {
+    void startShouldBeginPollingTasks() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
                 .processState(100)
@@ -117,7 +117,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void executeTask_shouldDeleteTaskOnSuccess() {
+    void executeTaskShouldDeleteTaskOnSuccess() {
         var payload = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-123")
                 .processState(100)
@@ -141,7 +141,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void executeTask_shouldUpdateTaskOnFailure() {
+    void executeTaskShouldUpdateTaskOnFailure() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
                 .processState(100)
@@ -166,7 +166,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void handleTask_shouldDispatchContractNegotiationTaskPayload() {
+    void handleTaskShouldDispatchContractNegotiationTaskPayload() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
                 .processState(100)
@@ -190,7 +190,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void handleTask_shouldDispatchTransferProcessTaskPayload() {
+    void handleTaskShouldDispatchTransferProcessTaskPayload() {
         var payload = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-123")
                 .processState(100)
@@ -214,7 +214,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void handleTask_shouldHandleUnknownPayloadType() {
+    void handleTaskShouldHandleUnknownPayloadType() {
         var payload = new UnknownPayload("process-1", 100, "CONSUMER");
         var task = Task.Builder.newInstance()
                 .at(System.currentTimeMillis())
@@ -233,7 +233,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void run_shouldContinuePollingAfterSuccessfulExecution() {
+    void runShouldContinuePollingAfterSuccessfulExecution() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
                 .processState(100)
@@ -258,7 +258,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void run_shouldContinuePollingAfterExecutionException() {
+    void runShouldContinuePollingAfterExecutionException() {
         when(taskStore.fetchForUpdate(any(QuerySpec.class)))
                 .thenThrow(new RuntimeException("Store error"))
                 .thenReturn(List.of());
@@ -271,7 +271,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void run_shouldDeleteTaskAfterLimitReached() {
+    void runShouldDeleteTaskAfterLimitReached() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
                 .processState(100)
@@ -301,7 +301,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void stop_shouldStopPolling() throws InterruptedException {
+    void stopShouldStopPolling() throws InterruptedException {
         when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenReturn(List.of());
 
         pollExecutor.start();
@@ -317,7 +317,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void executeTask_shouldLogErrorOnProcessingFailure() {
+    void executeTaskShouldLogErrorOnProcessingFailure() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
                 .processState(100)
@@ -343,7 +343,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void executeTask_shouldProcessMultipleTasks() {
+    void executeTaskShouldProcessMultipleTasks() {
         var payload1 = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-1")
                 .processState(100)
