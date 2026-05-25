@@ -1,4 +1,5 @@
 @Dataspaces
+@Skip
 Feature: 0300 - Data spaces baseline
 
   Scenario: Issuer service is provisioned

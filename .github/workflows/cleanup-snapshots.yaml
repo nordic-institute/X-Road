@@ -53,7 +53,6 @@ jobs:
           - x-road/ss-proxy-ui-api
           # Data space service images
           - x-road/ds-control-plane
-          - x-road/ds-data-plane
           - x-road/ds-identity-hub
           # Database initialization images
           - x-road/ss-db-init
