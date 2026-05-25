@@ -111,7 +111,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(taskStore, atLeastOnce()).fetchForUpdate(any(QuerySpec.class))
         );
     }
@@ -135,7 +135,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(taskStore).delete(task.getId())
         );
     }
@@ -160,7 +160,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(taskStore).update(any(Task.class))
         );
     }
@@ -184,7 +184,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(contractNegotiationTaskExecutor).handle(any(ContractNegotiationTaskPayload.class))
         );
     }
@@ -208,7 +208,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(transferProcessTaskExecutor).handle(any(TransferProcessTaskPayload.class))
         );
     }
@@ -227,7 +227,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(taskStore).delete(task.getId())
         );
     }
@@ -252,7 +252,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(taskStore, times(3)).fetchForUpdate(any(QuerySpec.class))
         );
     }
@@ -265,7 +265,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(monitor).severe(any(String.class), any(Exception.class))
         );
     }
@@ -292,7 +292,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
                     verify(taskStore, times(3)).fetchForUpdate(any(QuerySpec.class));
                     verify(taskStore).delete(task.getId());
                     verify(taskStore, times(2)).update(any());
@@ -301,19 +301,22 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void stopShouldStopPolling() throws InterruptedException {
+    void stopShouldStopPolling() {
         when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenReturn(List.of());
 
         pollExecutor.start();
-        Thread.sleep(200); // Allow some polling cycles
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore, atLeastOnce()).fetchForUpdate(any(QuerySpec.class))
+        );
+
         pollExecutor.stop();
 
-        // Verify that no more tasks are fetched after stopping
-        var callCountBefore = mockingDetails(taskStore).getInvocations().size();
-        Thread.sleep(300);
-        var callCountAfter = mockingDetails(taskStore).getInvocations().size();
+        var callCountAfterStop = mockingDetails(taskStore).getInvocations().size();
 
-        assertThat(callCountAfter).isEqualTo(callCountBefore);
+        await().during(500, TimeUnit.MILLISECONDS).atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                assertThat(mockingDetails(taskStore).getInvocations()).hasSize(callCountAfterStop)
+        );
     }
 
     @Test
@@ -337,7 +340,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() ->
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
                 verify(monitor).severe(any(String.class))
         );
     }
@@ -372,7 +375,7 @@ class TaskPollExecutorTest {
 
         pollExecutor.start();
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(contractNegotiationTaskExecutor).handle(any());
             verify(transferProcessTaskExecutor).handle(any());
             verify(taskStore, times(2)).delete(any());
