@@ -21,8 +21,6 @@ containerd:
   user: false
 
 portForwards:
-  - guestPort: 28443
-    hostPort: 28443
   - guestPortRange: [1, 65535]
     ignore: true
 

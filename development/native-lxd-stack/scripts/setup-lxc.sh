@@ -43,7 +43,7 @@ function configure_lxc_client() {
 
   # Add remote with token
   echo "Adding remote with token..."
-  lxc remote add xroad-lxd https://127.0.0.1:${LXD_PORT} \
+  lxc remote add xroad-lxd https://${lima_ip}:${LXD_PORT} \
     --token=${TOKEN}
 
   echo "Switching to remote..."
