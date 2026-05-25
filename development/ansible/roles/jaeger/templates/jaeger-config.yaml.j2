@@ -6,7 +6,7 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [filter/drop_http_noise, batch]
+      processors: [memory_limiter, filter/drop_http_noise, batch]
       exporters: [jaeger_storage_exporter]
 
 extensions:
@@ -31,6 +31,9 @@ extensions:
             keys: {{ jaeger_storage_path }}/keys
             values: {{ jaeger_storage_path }}/values
           ephemeral: false
+          ttl:
+            spans: {{ jaeger_badger_span_ttl }}
+          maintenance_interval: {{ jaeger_badger_maintenance_interval }}
 
 receivers:
   otlp:
@@ -41,6 +44,11 @@ receivers:
         endpoint: 0.0.0.0:{{ jaeger_otlp_http_port }}
 
 processors:
+  memory_limiter:
+    check_interval: {{ jaeger_memory_check_interval }}
+    limit_mib: {{ jaeger_memory_limit_mib }}
+    spike_limit_mib: {{ jaeger_memory_spike_limit_mib }}
+
   batch: {}
 
   # Drop noisy HTTP server spans that were never renamed by our handlers —

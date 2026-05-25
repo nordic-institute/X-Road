@@ -1,0 +1,77 @@
+---
+# Single shared package repository served over HTTP.
+#
+# Host build dir is bind-mounted into /srv/xroad-build (LXD disk device,
+# attached by init-lxd). nginx aliases serve DEB/RPM straight from the
+# mount — no copy. dpkg-scanpackages and createrepo_c run in-place on
+# every fresh env so rebuilt packages are picked up immediately.
+
+- name: Detect cached-image marker
+  stat:
+    path: /etc/xroad-cached-image
+  register: cached_image_marker
+
+# ---- baked-in apt installs (skip when cached image already has them) ----
+
+- name: Install repo tooling
+  apt:
+    name: [dpkg-dev, createrepo-c, nginx-light]
+    state: present
+    update_cache: true
+    install_recommends: false
+  when: not cached_image_marker.stat.exists
+
+# ---- nginx site config (always written so stale baked configs get refreshed) ----
+
+- name: Remove default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Configure nginx site
+  copy:
+    dest: /etc/nginx/sites-available/xrd-repo
+    mode: '0644'
+    content: |
+      server {
+        listen 80 default_server;
+        location /deb/ {
+          alias /srv/xroad-build/ubuntu{{ ansible_facts['distribution_version'] }}/;
+          autoindex on;
+        }
+        location /rpm/ {
+          alias /srv/xroad-build/rhel/{{ rhel_releasever }}/;
+          autoindex on;
+        }
+      }
+  notify: reload nginx
+
+- name: Enable xrd-repo nginx site
+  file:
+    src: /etc/nginx/sites-available/xrd-repo
+    dest: /etc/nginx/sites-enabled/xrd-repo
+    state: link
+  notify: reload nginx
+
+# ---- runtime steps (skipped during cache-fill) ----
+
+- name: Scan DEB repo (writes Packages into mounted host dir)
+  shell: dpkg-scanpackages -m . > Packages
+  args:
+    chdir: "/srv/xroad-build/ubuntu{{ ansible_facts['distribution_version'] }}"
+  when: not cache_fill_mode | default(false)
+
+- name: Build RPM repodata (writes repodata/ into mounted host dir)
+  command: createrepo_c /srv/xroad-build/rhel/{{ rhel_releasever }}
+  when: not cache_fill_mode | default(false)
+
+- name: Ensure nginx running
+  systemd:
+    name: nginx
+    state: started
+    enabled: true
+  when: not cache_fill_mode | default(false)
+
+- name: Force pending nginx reloads now (before downstream roles hit the repo)
+  meta: flush_handlers
