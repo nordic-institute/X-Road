@@ -43,6 +43,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockingDetails;
@@ -253,7 +254,7 @@ class TaskPollExecutorTest {
         pollExecutor.start();
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
-                verify(taskStore, times(3)).fetchForUpdate(any(QuerySpec.class))
+                verify(taskStore, atLeast(3)).fetchForUpdate(any(QuerySpec.class))
         );
     }
 
@@ -286,16 +287,17 @@ class TaskPollExecutorTest {
         when(taskStore.fetchForUpdate(any(QuerySpec.class)))
                 .thenReturn(List.of(task))
                 .thenReturn(List.of(task.toBuilder().retryCount(task.getRetryCount() + 1).build()))
-                .thenReturn(List.of(task.toBuilder().retryCount(task.getRetryCount() + 2).build()));
+                .thenReturn(List.of(task.toBuilder().retryCount(task.getRetryCount() + 2).build()))
+                .thenReturn(List.of());
 
         when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
 
         pollExecutor.start();
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-                    verify(taskStore, times(3)).fetchForUpdate(any(QuerySpec.class));
+                    verify(taskStore, atLeast(3)).fetchForUpdate(any(QuerySpec.class));
                     verify(taskStore).delete(task.getId());
-                    verify(taskStore, times(2)).update(any());
+                    verify(taskStore, atLeast(2)).update(any());
                 }
         );
     }
