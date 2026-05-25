@@ -93,7 +93,6 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
                 .withExposedService(BROWSER, PORT_CHROMEDRIVER, forListeningPort())
-                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY, forListeningPort())
@@ -107,7 +106,6 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
                 .withLogConsumer(NGINX, createLogConsumer(NGINX))
                 .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
-                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
                 .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(DS_IDENTITY_HUB))
                 .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer(DS_ISSUER_SERVICE));
     }
