@@ -204,7 +204,7 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("Catalog can be retrieved from participant context {string} with DID {string}")
+    @Step("Catalog can be retrieved using participant context {string} with DID {string}")
     public void catalogCanBeRetrievedFromParticipantContext(String participantContextId, String participantDid) {
         String request = """
                 {

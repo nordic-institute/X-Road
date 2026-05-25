@@ -42,8 +42,7 @@ testAllure = "2.34.0"
 testSelenide = "7.16.1"
 shadowPlugin = "9.4.1"
 owaspDependencyCheck = "12.2.2"
-edc = "0.16.0"
-edc-v = "0.16.0-20260323-1-SNAPSHOT"
+edc = "0.17.0"
 dataplane-sdk = "0.0.7-SNAPSHOT"
 opentelemetry-javaagent = "2.27.0"
 
@@ -153,6 +152,7 @@ cucumber-java = { module = "io.cucumber:cucumber-java", version.ref = "testCucum
 cucumber-spring = { module = "io.cucumber:cucumber-spring", version.ref = "testCucumber" }
 cucumber-junit = { module = "io.cucumber:cucumber-junit-platform-engine", version.ref = "testCucumber" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
+testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testContainers" }
 mockserver-client = { module = "org.mock-server:mockserver-client-java", version = "5.15.0" }
 
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
@@ -242,8 +242,6 @@ opentelemetry-javaagent = { module = "io.opentelemetry.javaagent:opentelemetry-j
 
 # EDC Core modules
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
-edc-virtual-controlplane-feature-dcp-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-dcp-bom", version.ref = "edc-v" }
-edc-virtual-controlplane-feature-sql-bom = { module = "org.eclipse.edc.virtualized:virtual-controlplane-feature-sql-bom", version.ref = "edc-v" }
 
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
@@ -253,9 +251,31 @@ edc-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-contolplane-api-config = { module = "org.eclipse.edc:control-api-configuration", version.ref = "edc" }
 edc-dataplane-signaling = { module = "org.eclipse.edc:data-plane-signaling", version.ref = "edc" }
+edc-dataplane-signaling-client            = { module = "org.eclipse.edc:data-plane-signaling-client",              version.ref = "edc" }
+edc-dataplane-selector-control-api        = { module = "org.eclipse.edc:data-plane-selector-control-api",          version.ref = "edc" }
+edc-core-participantcontext-connector-classic = { module = "org.eclipse.edc:participant-context-connector-classic-core", version.ref = "edc" }
 edc-api-secrets = { module = "org.eclipse.edc:secrets-api", version.ref = "edc" }
 
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
+edc-core-controlplane-contract-tasks = { module = "org.eclipse.edc:control-plane-contract-task-executor", version.ref = "edc" }
+edc-core-controlplane-transfer-tasks = { module = "org.eclipse.edc:control-plane-transfer-task-executor", version.ref = "edc" }
+edc-core-tasks = { module = "org.eclipse.edc:task-core", version.ref = "edc" }
+edc-core-dsp-virtual = { module = "org.eclipse.edc:dsp-virtual", version.ref = "edc" }
+edc-core-dps = { module = "org.eclipse.edc:data-plane-signaling-core", version.ref = "edc" }
+edc-core-dps-oauth = { module = "org.eclipse.edc:data-plane-signaling-oauth2", version.ref = "edc" }
+edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }
+edc-core-runtime = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
+edc-core-token = { module = "org.eclipse.edc:token-core", version.ref = "edc" }
+edc-core-jersey = { module = "org.eclipse.edc:jersey-core", version.ref = "edc" }
+edc-core-jetty = { module = "org.eclipse.edc:jetty-core", version.ref = "edc" }
+edc-core-policy-monitor = { module = "org.eclipse.edc:policy-monitor-core", version.ref = "edc" }
+edc-core-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
+edc-core-mgmtapi-jsonschema = { module = "org.eclipse.edc:management-api-schema-validator", version.ref = "edc" }
+edc-mgmtapi-v5 = { module = "org.eclipse.edc:management-api-v5", version.ref = "edc" }
+edc-mgmtapi-authn-oauth2 = { module = "org.eclipse.edc:management-api-oauth2-authentication", version.ref = "edc" }
+edc-mgmtapi-authz = { module = "org.eclipse.edc:management-api-authorization", version.ref = "edc" }
+edc-encryption-aes = { module = "org.eclipse.edc:aes-encryption", version.ref = "edc" }
+edc-configuration-filesystem = { module = "org.eclipse.edc:configuration-filesystem", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 edc-core-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
@@ -265,10 +285,28 @@ edc-edr-cache-api = { module = "org.eclipse.edc:edr-cache-api", version.ref = "e
 
 edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 
-edcv-tasks-store-poll-executor = { module = "org.eclipse.edc.virtualized:tasks-store-poll-executor", version.ref = "edc-v" }
+edc-sql-contract-negotiation = { module = "org.eclipse.edc:contract-negotiation-store-sql", version.ref = "edc" }
+edc-sql-transfer-process = { module = "org.eclipse.edc:transfer-process-store-sql", version.ref = "edc" }
+edc-sql-edr-index = { module = "org.eclipse.edc:edr-index-sql", version.ref = "edc" }
+edc-sql-dataplane-instance = { module = "org.eclipse.edc:data-plane-instance-store-sql", version.ref = "edc" }
+edc-sql-control-plane = { module = "org.eclipse.edc:control-plane-sql", version.ref = "edc" }
+edc-sql-jti-validation = { module = "org.eclipse.edc:jti-validation-store-sql", version.ref = "edc" }
+edc-sql-policy-monitor = { module = "org.eclipse.edc:policy-monitor-store-sql", version.ref = "edc" }
+edc-sql-fedcatalog-cache = { module = "org.eclipse.edc:federated-catalog-cache-sql", version.ref = "edc" }
+edc-sql-fedcatalog-target-node = { module = "org.eclipse.edc:target-node-directory-sql", version.ref = "edc" }
+edc-sql-core = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
+edc-sql-lease = { module = "org.eclipse.edc:sql-lease", version.ref = "edc" }
+edc-sql-lease-core = { module = "org.eclipse.edc:sql-lease-core", version.ref = "edc" }
+edc-sql-pool = { module = "org.eclipse.edc:sql-pool-apache-commons", version.ref = "edc" }
+edc-transaction-local = { module = "org.eclipse.edc:transaction-local", version.ref = "edc" }
+edc-sql-cel-store = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
+edc-sql-tasks-store = { module = "org.eclipse.edc:task-store-sql", version.ref = "edc" }
+edc-sql-participantcontext-store = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
 
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
+edc-spi-tasks = { module = "org.eclipse.edc:task-spi", version.ref = "edc" }
+edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
 edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
@@ -290,6 +328,7 @@ edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "ed
 edc-spi-dsp-http = { module = "org.eclipse.edc:dsp-http-spi", version.ref = "edc" }
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
 edc-spi-dataplane = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
+edc-spi-dataplane-http = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
 edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi", version.ref = "edc" }
 edc-spi-validator = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
@@ -306,6 +345,7 @@ edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 # EDC Lib modules
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
 edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
+edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
@@ -315,6 +355,7 @@ edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", versi
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-iam-dcp-trustedissuers = { module = "org.eclipse.edc:decentralized-claims-issuers-configuration", version.ref = "edc" }
+edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version.ref = "edc" }
 
 edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 
@@ -322,7 +363,6 @@ edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
-edcv-bom-controlplane = { module = "org.eclipse.edc.virtualized:virtual-controlplane-base-bom", version.ref = "edc-v" }
 edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", version.ref = "edc" }
 edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
 edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }
@@ -346,7 +386,8 @@ edc-dcp = [
   "edc-crypto-verifiablecredentials",
   "edc-iam-dcp-core",
   "edc-iam-decentralized",
-  "edc-iam-dcp-trustedissuers"
+  "edc-iam-dcp-trustedissuers",
+  "edc-iam-dcp-cel",
 ]
 edc-connector = [
   "edc-boot",
