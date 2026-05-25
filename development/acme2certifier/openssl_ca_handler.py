@@ -1,5 +1,22 @@
 # -*- coding: utf-8 -*-
-"""handler for an openssl ca"""
+"""handler for an openssl ca.
+
+Re-forked from upstream
+https://github.com/grindsa/acme2certifier/blob/0.42.1/examples/ca_handler/openssl_ca_handler.py
+with these X-Road-local additions (search for "X-Road:" markers below):
+
+  1. ``cert_db_index_file`` / ``cert_serial_file`` — on enrollment, append a row
+     to OpenSSL's ``index.txt`` and consume/increment ``serial`` so the CA
+     stays usable by ``openssl ca`` outside acme2certifier.
+  2. EAB profile-driven extension selection — when ``profile_id`` is set (via
+     the EAB kid_profiles ``cahandler.profile_id`` field, populated by
+     ``eab_profile_header_info_check``), the handler reads the
+     ``[extensions_<profile_id>]`` block from ``openssl_conf`` instead of the
+     default ``[extensions]`` block. Upstream's eab_profiling feature is not
+     wired to the openssl handler.
+  3. ``serial_in_hex_format`` — pads to even-length hex (required by OpenSSL's
+     ``index.txt`` format).
+"""
 from __future__ import print_function
 import os
 import datetime
@@ -33,6 +50,10 @@ from acme_srv.helper import (
     convert_byte_to_string,
     csr_cn_get,
     csr_san_get,
+    # X-Road: helpers for EAB profile-driven extension selection
+    eab_profile_header_info_check,
+    config_headerinfo_load,
+    config_eab_profile_load,
 )
 
 BLOCK_ALL_DOMAIN = "block.all"
@@ -58,6 +79,13 @@ class CAhandler(object):
         self.allowed_domainlist = []
         self.blocked_domainlist = []
         self.cn_enforce = False
+        # X-Road: OpenSSL CA bookkeeping files + EAB profile state
+        self.cert_db_index_file = None
+        self.cert_serial_file = None
+        self.profile_id = None
+        self.header_info_field = False
+        self.eab_handler = None
+        self.eab_profiling = False
 
     def __enter__(self):
         """Makes ACMEHandler a Context Manager"""
@@ -209,12 +237,18 @@ class CAhandler(object):
 
         file_dic = dict(load_config(self.logger, cfg_file=self.openssl_conf))
 
+        # X-Road: pick profile-specific extensions block when profile_id is set
+        # via EAB kid_profiles (e.g. profile_id=auth -> [extensions_auth]).
+        extensions_block_name = "extensions"
+        if self.profile_id:
+            extensions_block_name = "extensions_" + self.profile_id
+
         cert_extention_dic = {}
-        if "extensions" in file_dic:
-            for extension in file_dic["extensions"]:
+        if extensions_block_name in file_dic:
+            for extension in file_dic[extensions_block_name]:
 
                 cert_extention_dic[extension] = {}
-                parameters = file_dic["extensions"][extension].split(",")
+                parameters = file_dic[extensions_block_name][extension].split(",")
 
                 # set crititcal task if applicable
                 if parameters[0] == "critical":
@@ -253,10 +287,12 @@ class CAhandler(object):
 
             # determine filename
             if self.save_cert_as_hex:
+                # X-Road: even-length hex (OpenSSL index.txt format).
+                serial_formatted = self.serial_in_hex_format(serial)
                 self.logger.debug(
-                    "Convert serial to hex: %s: %s", serial, f"{serial:X}"
+                    "Convert serial to hex: %s: %s", serial, serial_formatted
                 )
-                cert_file = f"{serial:X}"
+                cert_file = serial_formatted
             else:
                 cert_file = str(serial)
             with open(f"{self.cert_save_path}/{cert_file}.pem", "wb") as fso:
@@ -267,6 +303,13 @@ class CAhandler(object):
             )
 
         self.logger.debug("CAhandler._certificate_store() ended")
+
+    # X-Road: helper for OpenSSL index.txt / cert_save_path filenames.
+    @staticmethod
+    def serial_in_hex_format(serial: int) -> str:
+        """format serial as uppercase hex, zero-padded to even length"""
+        serial_formatted = f"{serial:X}"
+        return serial_formatted.zfill(len(serial_formatted) + len(serial_formatted) % 2)
 
     def _config_check_issuer(self) -> str:
         """check issuing CA configuration"""
@@ -452,6 +495,13 @@ class CAhandler(object):
         self.issuer_dict["issuing_ca_crl"] = config_dic.get(
             "CAhandler", "issuing_ca_crl", fallback=None
         )
+        # X-Road: paths to OpenSSL CA bookkeeping files.
+        self.cert_db_index_file = config_dic.get(
+            "CAhandler", "cert_db_index_file", fallback=self.cert_db_index_file
+        )
+        self.cert_serial_file = config_dic.get(
+            "CAhandler", "cert_serial_file", fallback=self.cert_serial_file
+        )
 
         if "ca_cert_chain_list" in config_dic["CAhandler"]:
             try:
@@ -495,6 +545,12 @@ class CAhandler(object):
 
         # load allow/block lists
         self._config_domainlists_load(config_dic)
+
+        # X-Road: load EAB-profiling + header_info for profile_id selection.
+        self.eab_profiling, self.eab_handler = config_eab_profile_load(
+            self.logger, config_dic
+        )
+        self.header_info_field = config_headerinfo_load(self.logger, config_dic)
 
         self.save_cert_as_hex = config_dic.getboolean(
             "CAhandler", "save_cert_as_hex", fallback=False
@@ -764,7 +820,23 @@ class CAhandler(object):
         builder = builder.not_valid_after(cert_validity)
         builder = builder.issuer_name(ca_cert.subject)
         builder = builder.subject_name(subject)
-        builder = builder.serial_number(uuid.uuid4().int)
+        # X-Road: consume + increment OpenSSL's serial file so externally-issued
+        # certs keep getting sequential serials. Fall back to UUID4 only when
+        # no serial file is configured or it doesn't exist yet.
+        serial = uuid.uuid4().int
+        if self.cert_serial_file and os.path.exists(self.cert_serial_file):
+            with open(self.cert_serial_file, "r+") as serial_file:
+                content = serial_file.read()
+                serial = int(content.strip(), base=16)
+                next_serial = serial + 1
+                next_serial_formatted = self.serial_in_hex_format(next_serial)
+                self.logger.debug(
+                    "CAhandler.enroll() next serial in hex: %s", next_serial_formatted
+                )
+                serial_file.seek(0)
+                serial_file.truncate()
+                serial_file.write(next_serial_formatted)
+        builder = builder.serial_number(serial)
         builder = builder.public_key(req.public_key())
 
         self.logger.debug("CAhandler._cert_signing_prep() ended")
@@ -859,6 +931,10 @@ class CAhandler(object):
 
         error = self._config_check()
 
+        # X-Road: resolve profile_id from EAB-bound kid_profiles / header_info.
+        if not error:
+            error = eab_profile_header_info_check(self.logger, self, csr, "profile_id")
+
         if not error:
             try:
                 # check CN and SAN against black/whitlist
@@ -912,6 +988,27 @@ class CAhandler(object):
                                 cert.public_bytes(serialization.Encoding.DER)
                             )
                         )
+                    # X-Road: append a row to OpenSSL's index.txt so the cert
+                    # is visible to `openssl ca` (revocation, listing, etc.).
+                    if self.cert_db_index_file and os.path.exists(
+                        self.cert_db_index_file
+                    ):
+                        with open(
+                            self.cert_db_index_file, "a", encoding="utf8"
+                        ) as index_file:
+                            dn = cert.subject.rfc4514_string(
+                                {NameOID.SERIAL_NUMBER: "serialNumber"}
+                            ).replace("/", "\\/").replace(",", "/")
+                            index_file.write("V\t")
+                            index_file.write(
+                                cert.not_valid_after.strftime("%y%m%d%H%M%SZ") + "\t\t"
+                            )
+                            serial_formatted = self.serial_in_hex_format(
+                                cert.serial_number
+                            )
+                            index_file.write(serial_formatted + "\t")
+                            index_file.write("unknown\t")
+                            index_file.write(dn + "\n")
                 else:
                     error = "urn:ietf:params:acme:badCSR"
 

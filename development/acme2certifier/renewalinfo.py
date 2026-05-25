@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Renewalinfo class: ACME renewal info handler with separated config and repository helpers."""
+"""Renewalinfo class: ACME renewal info handler with separated config and repository helpers.
+
+Re-forked from upstream
+https://github.com/grindsa/acme2certifier/blob/0.42.1/acme_srv/renewalinfo.py
+with one X-Road-local patch (search for "X-Road:" markers below):
+
+  * ``b64_decode(self.logger, ...).hex()`` is unreliable: upstream's
+    ``b64_decode`` calls ``convert_byte_to_string`` which tries to decode the
+    raw bytes as UTF-8 and only falls back to bytes on failure. For ARI URLs
+    that happen to decode cleanly the result is a str, and ``str.hex()`` does
+    not exist. Use ``base64.b64decode`` directly to keep bytes.
+"""
 from __future__ import print_function
+import base64  # X-Road: replaces b64_decode for serial/AKI parsing
 from typing import Dict
 from dataclasses import dataclass
 from acme_srv.db_handler import DBstore
@@ -16,7 +28,6 @@ from acme_srv.helper import (
     cert_serial_get,
     cert_aki_get,
     b64_url_recode,
-    b64_decode,
 )
 
 
@@ -335,11 +346,13 @@ class Renewalinfo(object):
         self.logger.debug("Renewalinfo._extract_serial_and_aki_from_string()")
         renewalinfo_list = renewalinfo_string.split(".")
         if len(renewalinfo_list) == 2:
-            serial = b64_decode(
-                self.logger, b64_url_recode(self.logger, renewalinfo_list[1])
+            # X-Road: see module docstring — b64_decode returns str when bytes
+            # happen to decode as UTF-8, breaking .hex(). Use base64 directly.
+            serial = base64.b64decode(
+                b64_url_recode(self.logger, renewalinfo_list[1])
             ).hex()
-            aki = b64_decode(
-                self.logger, b64_url_recode(self.logger, renewalinfo_list[0])
+            aki = base64.b64decode(
+                b64_url_recode(self.logger, renewalinfo_list[0])
             ).hex()
         else:
             serial = None

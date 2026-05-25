@@ -247,6 +247,9 @@ TESTCA_IMAGE="${REGISTRY}/testca-dev:${IMAGE_TAG}"
 TESTCA_DOCKERFILE="${CA_CONTAINER}/Dockerfile"
 TESTCA_CONTEXT="$CA_CONTAINER"
 
+# Stage development/acme2certifier/ into ${CA_CONTAINER}/build/acme2certifier
+(cd "$CA_CONTAINER" && XROAD_HOME="$ROOT_DIR" ./init_context.sh)
+
 build_cmd=(
   docker buildx build --progress=plain
   "${CACHE_FLAG[@]}"
