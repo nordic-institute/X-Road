@@ -19,11 +19,13 @@
         <sql>
             CREATE UNIQUE INDEX identifier_unique_object_index
                 ON identifier (
+                               object_type,
                                xroad_instance,
                                member_class,
                                member_code,
                                subsystem_code,
-                               group_code
+                               group_code,
+                               server_code
                     )
                 NULLS NOT DISTINCT
                 WHERE object_type IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP');
