@@ -27,24 +27,31 @@
 
 package org.niis.xroad.ds.issuance.membership;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import org.eclipse.edc.spi.result.Result;
 
 /**
- * Validates a holder-submitted {@link MemberIdClaim}: signature, cert chain via global conf,
- * MemberId equality, freshness window, replay store.
+ * Verifies a holder-submitted credential-request membership assertion carried as a compact
+ * JWS string in the outer JWT's {@code xroadMemberClaim} claim.
  *
- * <p>Production implementation backs by {@code lib:globalconf-impl} and the issuer's nonce
- * store. A bypass implementation exists for system-test environments that lack a CS.
+ * <p>Returns the verified X-Road member identity derived from the signing certificate's
+ * subject (looked up via global conf). The caller maps that {@link ClientId} into the
+ * attestation output shape.
+ *
+ * <p>Production implementation backs by {@code lib:globalconf-impl} and EDC's
+ * {@code TokenValidationService} rules registry. A bypass implementation exists for
+ * system-test environments that lack a Central Server.
  */
 public interface MemberIdClaimVerifier {
 
     /**
-     * Verifies the supplied claim was issued by the X-Road member it names.
+     * Verifies the JWS membership assertion.
      *
-     * @param claim     the parsed claim from the credential request
-     * @param holderDid the DID extracted from the EDC ClaimToken; must match {@link MemberIdClaim.Payload#holderDid()}
-     * @return success with the verified MemberId (canonical string), failure carrying a
+     * @param compactJws         the JWS string extracted from the outer JWT's {@code xroadMemberClaim} claim
+     * @param expectedHolderDid  the holder DID from the outer JWT's {@code sub}; the inner assertion's {@code sub} must match
+     * @param expectedIssuerDid  the issuer-service DID; the inner assertion's {@code aud} must match
+     * @return the verified X-Road member identity from the cert subject, or a failure carrying a
      *         {@link MembershipVerificationReason} in the message field
      */
-    Result<String> verify(MemberIdClaim claim, String holderDid);
+    Result<ClientId> verify(String compactJws, String expectedHolderDid, String expectedIssuerDid);
 }

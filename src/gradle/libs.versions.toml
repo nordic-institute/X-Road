@@ -45,6 +45,7 @@ owaspDependencyCheck = "12.2.2"
 edc = "0.16.0"
 edc-v = "0.16.0-20260323-1-SNAPSHOT"
 dataplane-sdk = "0.0.7-SNAPSHOT"
+nimbus = "10.7"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -294,6 +295,9 @@ edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi
 edc-spi-validator = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
 edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
+edc-spi-jwt = { module = "org.eclipse.edc:jwt-spi", version.ref = "edc" }
+edc-spi-keys = { module = "org.eclipse.edc:keys-spi", version.ref = "edc" }
+edc-lib-token = { module = "org.eclipse.edc:token-lib", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
 edc-spi-edr = { module = "org.eclipse.edc:edr-store-spi", version.ref = "edc" }
@@ -333,6 +337,8 @@ edc-issuerservice-issuance-spi = { module = "org.eclipse.edc:issuerservice-issua
 edc-issuerservice-holder-spi = { module = "org.eclipse.edc:issuerservice-holder-spi", version.ref = "edc" }
 
 edc-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version.ref = "dataplane-sdk" }
+
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "5.0.1" }

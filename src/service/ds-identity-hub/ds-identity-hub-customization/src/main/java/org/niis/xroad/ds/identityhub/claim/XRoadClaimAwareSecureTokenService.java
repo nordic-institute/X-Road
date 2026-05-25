@@ -27,6 +27,7 @@
 
 package org.niis.xroad.ds.identityhub.claim;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import org.eclipse.edc.identityhub.spi.authentication.ParticipantSecureTokenService;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext;
@@ -39,17 +40,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Decorator over the default {@link ParticipantSecureTokenService} that injects an
- * {@code xroadMemberClaim} entry into the JWT claims for every credential-request
- * token issued by the IdentityHub.
+ * Decorator over the default {@link ParticipantSecureTokenService} that injects a signed
+ * {@code xroadMemberClaim} JWS into the JWT claims for every credential-request token
+ * issued by the IdentityHub.
  *
- * <p>The MemberId is read from the {@link IdentityHubParticipantContext} properties under
- * key {@value #MEMBER_ID_PROPERTY}. If the property is absent for a given participant
- * context, the request proceeds unchanged (the issuer-side attestation will then ERROR
- * with {@code CLAIM_MISSING}, which surfaces the misconfiguration explicitly).
+ * <p>The X-Road MemberId is read from the {@link IdentityHubParticipantContext} properties
+ * under key {@value #MEMBER_ID_PROPERTY} as a canonical {@code INSTANCE/CLASS/CODE} string,
+ * parsed to a {@link ClientId}, and handed to the {@link MemberClaimSigner} to produce a
+ * compact-serialised JWS. The JWS is then embedded under the {@value #CLAIM_KEY} claim of
+ * the outer JWT.
  *
- * <p>This matches the Q11/Q12 multi-member single-hub design: each participant context
- * represents exactly one X-Road member; the IdentityHub runtime can host many.
+ * <p>If the property is absent or malformed for a given participant context, the request
+ * proceeds unchanged (the issuer-side attestation will then ERROR with {@code CLAIM_MISSING},
+ * which surfaces the misconfiguration explicitly).
  */
 public class XRoadClaimAwareSecureTokenService implements ParticipantSecureTokenService {
 
@@ -58,6 +61,9 @@ public class XRoadClaimAwareSecureTokenService implements ParticipantSecureToken
 
     /** JWT claim key the issuer-side attestation source reads. */
     public static final String CLAIM_KEY = "xroadMemberClaim";
+
+    /** Standard JWT registered-claim name for the audience. */
+    private static final String AUDIENCE_CLAIM = "aud";
 
     private final ParticipantSecureTokenService delegate;
     private final IdentityHubParticipantContextService participantContextService;
@@ -92,20 +98,45 @@ public class XRoadClaimAwareSecureTokenService implements ParticipantSecureToken
         }
         IdentityHubParticipantContext ctx = ctxResult.getContent();
         Object rawMemberId = ctx.getProperties() == null ? null : ctx.getProperties().get(MEMBER_ID_PROPERTY);
-        if (!(rawMemberId instanceof String memberId) || memberId.isBlank()) {
+        if (!(rawMemberId instanceof String memberIdString) || memberIdString.isBlank()) {
             monitor.debug("X-Road claim signer: participant context '"
                     + participantContextId + "' has no '" + MEMBER_ID_PROPERTY
                     + "' property — passing through without xroadMemberClaim");
             return claims;
         }
-        Result<MemberClaim> signed = signer.sign(ctx.getDid(), memberId);
+        ClientId memberClientId = parseMemberId(memberIdString);
+        if (memberClientId == null) {
+            monitor.warning("X-Road claim signer: participant context '" + participantContextId
+                    + "' has malformed '" + MEMBER_ID_PROPERTY + "' value '" + memberIdString
+                    + "' (expected INSTANCE/CLASS/CODE) — passing through without xroadMemberClaim");
+            return claims;
+        }
+        String audience = claims == null ? null : claims.get(AUDIENCE_CLAIM);
+        Result<String> signed = signer.sign(memberClientId, ctx.getDid(), audience);
         if (signed.failed()) {
             monitor.warning("X-Road claim signer: signing failed for member '"
-                    + memberId + "': " + signed.getFailureDetail());
+                    + memberIdString + "': " + signed.getFailureDetail());
             return claims;
         }
         Map<String, String> enriched = new HashMap<>(claims == null ? Map.of() : claims);
-        enriched.put(CLAIM_KEY, MemberClaimJsonEncoder.encode(signed.getContent()));
+        enriched.put(CLAIM_KEY, signed.getContent());
         return enriched;
+    }
+
+    /**
+     * Parses a canonical {@code INSTANCE/CLASS/CODE} string into a member-level {@link ClientId}.
+     * Returns {@code null} on any malformed input (wrong segment count, blank segment).
+     */
+    private static ClientId parseMemberId(String memberId) {
+        String[] parts = memberId.split("/", -1);
+        if (parts.length != 3) {
+            return null;
+        }
+        for (String part : parts) {
+            if (part == null || part.isBlank()) {
+                return null;
+            }
+        }
+        return ClientId.Conf.create(parts[0], parts[1], parts[2]);
     }
 }

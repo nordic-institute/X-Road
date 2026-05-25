@@ -27,12 +27,19 @@
 
 package org.niis.xroad.ds.issuance.membership;
 
+import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSourceFactoryRegistry;
+import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.spi.TokenValidationService;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+
+import java.time.Clock;
 
 import static org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationExtension.NAME;
 
@@ -46,9 +53,9 @@ import static org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationEx
  *
  * <p>Bypass mode is controlled by {@code xroad.issuer.verify-claim} (default {@code true}).
  * When false, a {@link BypassMemberIdClaimVerifier} is registered — system-test only.
- *
- * <p>The production {@link MemberIdClaimVerifier} backed by global conf + nonce store
- * is a follow-up layer; until then disabling bypass requires an externally-provided bean.
+ * When true, the production {@link GlobalConfMemberIdClaimVerifier} is constructed with
+ * dependencies resolved via EDC's service context (which delegates to Quarkus CDI for
+ * X-Road-side services like {@link GlobalConfProvider}).
  */
 @Extension(NAME)
 public class XRoadMembershipAttestationExtension implements ServiceExtension {
@@ -66,6 +73,9 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
     @Inject
     private AttestationSourceFactoryRegistry registry;
 
+    @Inject
+    private IdentityHubParticipantContextService participantContextService;
+
     @Inject(required = false)
     private MemberIdClaimVerifier injectedVerifier;
 
@@ -77,9 +87,8 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         MemberIdClaimVerifier verifier = resolveVerifier(context);
-        var parser = new MemberIdClaimParser();
         registry.registerFactory(ATTESTATION_TYPE,
-                new XRoadMembershipAttestationSourceFactory(verifier, parser));
+                new XRoadMembershipAttestationSourceFactory(verifier, participantContextService));
         context.getMonitor().info("X-Road MembershipCredential attestation registered for type '"
                 + ATTESTATION_TYPE + "', verify-claim=" + verifyClaim);
     }
@@ -91,12 +100,29 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
                             + "system-test environments. Set xroad.issuer.verify-claim=true for production.");
             return new BypassMemberIdClaimVerifier();
         }
-        if (injectedVerifier == null) {
-            throw new IllegalStateException(
-                    "xroad.issuer.verify-claim=true but no MemberIdClaimVerifier bean is available. "
-                            + "Wire a global-conf-backed verifier or set xroad.issuer.verify-claim=false "
-                            + "in test environments.");
+        if (injectedVerifier != null) {
+            return injectedVerifier;
         }
-        return injectedVerifier;
+        return buildProductionVerifier(context);
+    }
+
+    private GlobalConfMemberIdClaimVerifier buildProductionVerifier(ServiceExtensionContext context) {
+        GlobalConfProvider globalConf = context.getService(GlobalConfProvider.class);
+        TokenValidationService tokenValidationService = context.getService(TokenValidationService.class);
+        JtiValidationStore jtiValidationStore = context.getService(JtiValidationStore.class);
+        MemberClaimVerifierProperties properties = context.getService(MemberClaimVerifierProperties.class);
+        Clock clock = context.getService(Clock.class);
+        OcspVerifierFactory xroadOcspVerifierFactory = new OcspVerifierFactory();
+        CertChainValidator certChainValidator =
+                new CertChainValidator(globalConf, xroadOcspVerifierFactory, clock);
+        OcspVerifier ocspVerifier = new OcspVerifier(globalConf, xroadOcspVerifierFactory, clock);
+        return new GlobalConfMemberIdClaimVerifier(globalConf,
+                certChainValidator,
+                ocspVerifier,
+                tokenValidationService,
+                jtiValidationStore,
+                properties,
+                context.getMonitor(),
+                clock);
     }
 }

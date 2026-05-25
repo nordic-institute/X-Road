@@ -27,6 +27,7 @@
 
 package org.niis.xroad.ds.issuance.membership;
 
+import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSource;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSourceFactory;
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
@@ -35,15 +36,16 @@ import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
  * Factory that produces a single shared {@link XRoadMembershipAttestationSource} for every
  * cred-def referencing the X-Road-overridden {@code holder} attestation type.
  *
- * <p>State (verifier + parser) is supplied at construction by
- * {@link XRoadMembershipAttestationExtension}.
+ * <p>State (verifier + participant-context service for issuer-DID resolution) is supplied
+ * at construction by {@link XRoadMembershipAttestationExtension}.
  */
 public class XRoadMembershipAttestationSourceFactory implements AttestationSourceFactory {
 
     private final AttestationSource source;
 
-    public XRoadMembershipAttestationSourceFactory(MemberIdClaimVerifier verifier, MemberIdClaimParser parser) {
-        this.source = new XRoadMembershipAttestationSource(verifier, parser);
+    public XRoadMembershipAttestationSourceFactory(MemberIdClaimVerifier verifier,
+                                                   IdentityHubParticipantContextService participantContextService) {
+        this.source = new XRoadMembershipAttestationSource(verifier, participantContextService);
     }
 
     @Override

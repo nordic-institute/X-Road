@@ -17,6 +17,9 @@ dependencies {
 
   runtimeOnly(libs.edc.core.sql.bootstrapper)
 
+  runtimeOnly(project(":lib:rpc-quarkus"))
+  runtimeOnly(project(":lib:globalconf-quarkus"))
+
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
   runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-customization"))
 }

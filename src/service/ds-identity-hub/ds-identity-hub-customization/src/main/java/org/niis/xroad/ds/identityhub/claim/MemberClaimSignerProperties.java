@@ -24,31 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.ds.identityhub.claim;
 
-package org.niis.xroad.ds.issuance.membership;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+
+import java.time.Duration;
 
 /**
- * Container for the holder-signed assertion that claims a specific X-Road MemberId.
- *
- * <p>Carried inside the DCP JWT presented by the holder (claim key {@code xroadMemberClaim}).
- * The {@code payload} is signed by the member's X-Road sign key; the {@code certificate}
- * is the end-entity sign certificate. The issuer's verifier checks the signature, looks
- * the cert up in global conf to derive the actual MemberId, and asserts it matches
- * {@link Payload#memberId()}.
- *
- * @param payload     the signed assertion content
- * @param signature   base64-encoded signature of {@code payload} bytes (canonical JSON, sorted keys)
- * @param certificate base64-encoded DER X.509 sign cert of the claiming member
+ * Holder-side configuration for the X-Road MemberId claim JWS. Lives under the
+ * {@code xroad.identityhub.claim} prefix.
  */
-public record MemberIdClaim(Payload payload, String signature, String certificate) {
+@ConfigMapping(prefix = "xroad.identityhub.claim")
+public interface MemberClaimSignerProperties {
 
     /**
-     * Signed assertion content.
-     *
-     * @param holderDid the DID submitting the credential request
-     * @param memberId  the X-Road MemberId claimed (canonical INSTANCE/CLASS/CODE form)
-     * @param nonce     unique per-request nonce; rejected if seen within the freshness window
-     * @param issuedAt  epoch seconds when the holder produced this claim
+     * Lifetime of the JWS membership assertion ({@code exp - iat}). The issuer-side
+     * verifier rejects assertions older than this plus its leeway window. Holders should
+     * match this with the issuer's {@code xroad.issuer.claim.lifetime-seconds}.
+     * Default 5 minutes.
      */
-    public record Payload(String holderDid, String memberId, String nonce, long issuedAt) { }
+    @WithName("lifetime-seconds")
+    @WithDefault("300")
+    long lifetimeSeconds();
+
+    default Duration lifetime() {
+        return Duration.ofSeconds(lifetimeSeconds());
+    }
 }

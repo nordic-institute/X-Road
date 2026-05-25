@@ -27,24 +27,35 @@
 
 package org.niis.xroad.ds.identityhub.claim;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import org.eclipse.edc.spi.result.Result;
 
 /**
- * Signs a {@link MemberClaim.Payload} on behalf of the X-Road member that holds the
- * sign-cert key for the supplied {@code memberId}.
+ * Signs a credential-request membership assertion on behalf of the X-Road member identified
+ * by {@code memberClientId}. The result is a compact-serialised JWS string suitable for
+ * embedding as the {@code xroadMemberClaim} value inside the outer DCP JWT.
  *
- * <p>The production implementation calls the X-Road signer service via gRPC; a stub
- * impl exists for system-test deployments that lack the signer service.
+ * <p>The signed JWS payload follows standard JWT registered claims:
+ * <ul>
+ *   <li>{@code sub} = {@code iss} = {@code holderDid}</li>
+ *   <li>{@code aud} = {@code audience} (the issuer-service DID)</li>
+ *   <li>{@code iat}, {@code exp}, {@code jti} are generated internally</li>
+ * </ul>
+ * The X-Road member identity is conveyed by the signing certificate's subject (carried in
+ * the JWS {@code x5c} header) — there is no {@code memberId} claim in the payload.
+ *
+ * <p>The production implementation calls the X-Road signer service via gRPC; a stub impl
+ * exists for system-test deployments that lack the signer service.
  */
 public interface MemberClaimSigner {
 
     /**
-     * Builds a fully-populated {@link MemberClaim} for the given context.
+     * Builds a compact-serialised JWS for the given context.
      *
-     * @param holderDid IdentityHub participant context's DID
-     * @param memberId  the X-Road MemberId to claim (canonical INSTANCE/CLASS/CODE)
-     * @return the signed claim envelope, or a failure if the sign key is unavailable
-     *         or the signing call fails
+     * @param memberClientId X-Road member whose sign key authenticates the assertion
+     * @param holderDid      IdentityHub participant DID; populates {@code sub} and {@code iss}
+     * @param audience       issuer-service DID; populates {@code aud}
+     * @return the compact JWS string, or a failure if signing fails
      */
-    Result<MemberClaim> sign(String holderDid, String memberId);
+    Result<String> sign(ClientId memberClientId, String holderDid, String audience);
 }

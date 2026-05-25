@@ -24,34 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.ds.issuance.membership;
 
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+
+import java.time.Duration;
+
 /**
- * Stable failure reasons emitted by the XRoadMembershipCredential attestation source.
- * Encoded in the EDC credential-request ERROR state and accessible to callers for
- * programmatic distinction of validation failures.
- *
- * <p>Coarse buckets: precise cause lives in the failure log message. See
- * {@code PLAN-real-signing-and-verification.md} Q17 for rationale.
+ * Verifier-side configuration for the X-Road MemberId claim JWS lifetime checks. Lives
+ * under the {@code xroad.issuer.claim} prefix.
  */
-public enum MembershipVerificationReason {
-    /** Outer JWT did not carry an {@code xroadMemberClaim}. */
-    CLAIM_MISSING,
-    /** Inner JWS unparseable, headers or payload invalid. */
-    CLAIM_MALFORMED,
-    /** {@code iat}/{@code exp} window violation (covers exp, iat-in-future, leeway exhausted). */
-    CLAIM_EXPIRED,
-    /** {@code jti} already seen. */
-    CLAIM_REPLAYED,
-    /** {@code sub} doesn't match outer JWT holder DID, or {@code aud} doesn't match this issuer. */
-    CLAIM_AUDIENCE_INVALID,
-    /** JWS signature didn't verify against the cert in the {@code x5c} header. */
-    SIGNATURE_INVALID,
-    /** PKIX failed (untrusted CA, expired cert, broken chain, malformed cert, subject not a ClientId). */
-    CERT_CHAIN_INVALID,
-    /** Pinned OCSP missing, stale, signature invalid, or status not {@code GOOD}. */
-    OCSP_INVALID,
-    /** Verifier infrastructure not ready (cold start, confclient unreachable). */
-    GLOBALCONF_UNAVAILABLE
+@ConfigMapping(prefix = "xroad.issuer.claim")
+public interface MemberClaimVerifierProperties {
+
+    /**
+     * Maximum age of the JWS membership assertion (from {@code iat} to {@code exp}).
+     * Holders should match this with their {@code xroad.identityhub.claim.lifetime-seconds}
+     * setting. Default 5 minutes.
+     */
+    @WithName("lifetime-seconds")
+    @WithDefault("300")
+    long lifetimeSeconds();
+
+    /**
+     * Allowed clock skew when checking {@code iat} / {@code exp}. Default 30 seconds.
+     */
+    @WithName("leeway-seconds")
+    @WithDefault("30")
+    long leewaySeconds();
+
+    default Duration lifetime() {
+        return Duration.ofSeconds(lifetimeSeconds());
+    }
+
+    default Duration leeway() {
+        return Duration.ofSeconds(leewaySeconds());
+    }
 }

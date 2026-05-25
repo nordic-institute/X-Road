@@ -25,28 +25,33 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.ds.identityhub.claim;
+package org.niis.xroad.ds.issuance.membership;
 
-/**
- * Holder-side mirror of the signed X-Road MemberId assertion. The {@link Payload} is
- * serialised to canonical JSON and signed; result + cert are wrapped here and injected
- * into the DCP JWT as the {@code xroadMemberClaim} claim.
- *
- * <p>Issuer-side equivalent: {@code org.niis.xroad.ds.issuance.membership.MemberIdClaim}.
- * Kept duplicated rather than shared to keep IdentityHub and IssuerService modules
- * independent.
- *
- * @param payload     the signed assertion content
- * @param signature   base64-encoded signature of canonical-JSON payload bytes
- * @param certificate base64-encoded DER X.509 sign cert of the claiming member
- */
-public record MemberClaim(Payload payload, String signature, String certificate) {
+import org.junit.jupiter.api.Test;
 
-    /**
-     * @param holderDid the IdentityHub participant context's DID
-     * @param memberId  canonical INSTANCE/CLASS/CODE form
-     * @param nonce     fresh per-request nonce
-     * @param issuedAt  epoch seconds
-     */
-    public record Payload(String holderDid, String memberId, String nonce, long issuedAt) { }
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class MembershipVerificationReasonTest {
+
+    @Test
+    void enum_contains_exactly_the_nine_coarse_buckets() {
+        Set<String> expected = Set.of(
+                "CLAIM_MISSING",
+                "CLAIM_MALFORMED",
+                "CLAIM_EXPIRED",
+                "CLAIM_REPLAYED",
+                "CLAIM_AUDIENCE_INVALID",
+                "SIGNATURE_INVALID",
+                "CERT_CHAIN_INVALID",
+                "OCSP_INVALID",
+                "GLOBALCONF_UNAVAILABLE");
+        Set<String> actual = Arrays.stream(MembershipVerificationReason.values())
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+        assertEquals(expected, actual);
+    }
 }

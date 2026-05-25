@@ -27,38 +27,52 @@
 
 package org.niis.xroad.ds.identityhub.claim;
 
+import com.nimbusds.jose.PlainHeader;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
+import ee.ria.xroad.common.identifier.ClientId;
 import org.eclipse.edc.spi.result.Result;
 
-import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.HexFormat;
+import java.util.Date;
+import java.util.UUID;
 
 /**
- * Test-only signer that produces a deterministic-shape claim with a fixed-string
- * signature and certificate. Paired with the issuer-side
- * {@code BypassMemberIdClaimVerifier} for end-to-end testing without real PKI.
+ * Test-only signer that produces an unsigned (alg=none) JWT carrying the standard claims
+ * plus a custom {@code xroadMemberId} payload claim. Paired with the issuer-side
+ * {@code BypassMemberIdClaimVerifier} which extracts the memberId from the payload (since
+ * the stub has no real signing cert).
  *
  * <p>MUST NOT be enabled in production. Activated by {@code xroad.identityhub.sign-claim=false}.
+ * The production signer derives memberId from the signing cert subject and emits a real
+ * signed JWS — no {@code xroadMemberId} payload claim.
  */
 public class StubMemberClaimSigner implements MemberClaimSigner {
 
-    private static final String STUB_SIGNATURE = "stub-signature";
-    private static final String STUB_CERTIFICATE = "stub-certificate";
+    /** Stub-only payload claim used by the bypass verifier to recover the memberId. */
+    static final String STUB_MEMBER_ID_CLAIM = "xroadMemberId";
 
-    private final SecureRandom random = new SecureRandom();
+    private static final long DEFAULT_LIFETIME_SECONDS = 300;
 
     @Override
-    public Result<MemberClaim> sign(String holderDid, String memberId) {
-        if (holderDid == null || memberId == null) {
-            return Result.failure("holderDid and memberId must be supplied");
+    public Result<String> sign(ClientId memberClientId, String holderDid, String audience) {
+        if (memberClientId == null || holderDid == null) {
+            return Result.failure("memberClientId and holderDid must be supplied");
         }
-        var payload = new MemberClaim.Payload(holderDid, memberId, freshNonce(), Instant.now().getEpochSecond());
-        return Result.success(new MemberClaim(payload, STUB_SIGNATURE, STUB_CERTIFICATE));
+        Instant now = Instant.now();
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .issuer(holderDid)
+                .subject(holderDid)
+                .audience(audience)
+                .issueTime(Date.from(now))
+                .expirationTime(Date.from(now.plusSeconds(DEFAULT_LIFETIME_SECONDS)))
+                .jwtID(UUID.randomUUID().toString())
+                .claim(STUB_MEMBER_ID_CLAIM, canonicalMemberId(memberClientId))
+                .build();
+        return Result.success(new PlainJWT(new PlainHeader(), claims).serialize());
     }
 
-    private String freshNonce() {
-        byte[] bytes = new byte[16];
-        random.nextBytes(bytes);
-        return HexFormat.of().formatHex(bytes);
+    private static String canonicalMemberId(ClientId clientId) {
+        return clientId.getXRoadInstance() + "/" + clientId.getMemberClass() + "/" + clientId.getMemberCode();
     }
 }
