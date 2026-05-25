@@ -27,10 +27,13 @@ package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -45,6 +48,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +69,17 @@ class ConfigurationClientTest {
 
     @TempDir
     File tempDir;
+
+    @BeforeAll
+    static void pinClockBeforeFixtureExpiry() {
+        // Signed fixtures (test-conf-simple, test-conf-detached) carry Expire-date 2026-05-20T17:42:55Z.
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
+    }
+
+    @AfterAll
+    static void restoreClock() {
+        TimeUtils.setClock(Clock.systemDefaultZone());
+    }
 
     /**
      * Test to ensure a simple configuration will be downloaded.
