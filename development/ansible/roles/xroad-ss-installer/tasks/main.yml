@@ -1,5 +1,5 @@
 ---
-- name: Assert required variables
+- name: Assert bootstrapper_url is set (remote mode)
   assert:
     that:
       - bootstrapper_url is defined
@@ -7,7 +7,21 @@
       - bootstrapper_url is match('^https?://')
     fail_msg: >-
       xroad-ss-installer requires bootstrapper_url pointing at the
-      get-xroad.sh script (http(s)://...)
+      get-xroad.sh script (http(s)://...) when xroad_installer_local_mode is
+      false.
+  when: not (xroad_installer_local_mode | bool)
+
+- name: Assert local-mode prerequisites
+  assert:
+    that:
+      - xroad_installer_local_source is defined
+      - xroad_installer_local_source | length > 0
+      - xroad_repo_url_override | length > 0
+    fail_msg: >-
+      xroad_installer_local_mode=true requires xroad_installer_local_source
+      (path to the in-tree installer scripts) and xroad_repo_url_override
+      (URL of the local package repo) to be set.
+  when: xroad_installer_local_mode | bool
 
 - name: Fail on unsupported OS family
   fail:
@@ -29,9 +43,20 @@
     group: root
     mode: '0600'
 
-- name: Run bootstrapper
+- name: Sync in-tree installer scripts to target (local mode)
+  become: true
+  ansible.posix.synchronize:
+    src: "{{ xroad_installer_local_source }}/"
+    dest: /tmp/xroad-installer/
+    delete: true
+    rsync_opts:
+      - "--exclude=build"
+      - "--exclude=.git"
+  when: xroad_installer_local_mode | bool
+
+- name: Run installer
   block:
-    - name: Pipe get-xroad.sh into bash via curl
+    - name: Pipe get-xroad.sh into bash via curl (remote mode)
       shell: |
         sudo bash -c "$(curl -sSfL {{ bootstrapper_url }})" -- --config-file /tmp/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
       args:
@@ -40,23 +65,38 @@
       register: bootstrapper_result
       failed_when: bootstrapper_result.rc != 0
       no_log: false
+      when: not (xroad_installer_local_mode | bool)
 
-    - name: Show bootstrapper output
+    - name: Run in-tree xroad-installer.sh (local mode)
+      become: true
+      shell: |
+        bash /tmp/xroad-installer/xroad-installer.sh --config-file /tmp/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
+      args:
+        chdir: /tmp/xroad-installer
+        executable: /bin/bash
+      environment:
+        XROAD_INSTALLER_LOG_FILE: "{{ ansible_env.HOME }}/xroad-installer-{{ ansible_date_time.iso8601_basic_short }}.log"
+      register: local_installer_result
+      failed_when: local_installer_result.rc != 0
+      when: xroad_installer_local_mode | bool
+
+    - name: Show installer output
       debug:
         msg: |-
           --- stdout ---
-          {{ bootstrapper_result.stdout | default('') }}
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stdout | default('') }}
           --- stderr ---
-          {{ bootstrapper_result.stderr | default('') }}
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stderr | default('') }}
   rescue:
-    - name: Surface bootstrapper failure
+    - name: Surface installer failure
       fail:
         msg: |-
-          Bootstrapper failed (rc={{ bootstrapper_result.rc | default('unknown') }}).
+          Installer failed (mode={{ 'local' if (xroad_installer_local_mode | bool) else 'remote' }},
+          rc={{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).rc | default('unknown') }}).
           --- stdout ---
-          {{ bootstrapper_result.stdout | default('') }}
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stdout | default('') }}
           --- stderr ---
-          {{ bootstrapper_result.stderr | default('') }}
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stderr | default('') }}
   always:
     - name: Locate installer log on host
       find:

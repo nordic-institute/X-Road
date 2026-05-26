@@ -1,13 +1,32 @@
 ---
-# Full URL of the bootstrapper script (REQUIRED — asserted in main.yml).
+# When true: skip the bootstrapper/tarball entirely and run the installer
+# scripts from this checkout (synchronized to the target). Also flips
+# XROAD_TRUSTED_LOCAL_REPO=true so the installer treats
+# xroad_repo_url_override as an unsigned local repo (e.g. file:///xroad from
+# the LXD dev stack).
+xroad_installer_local_mode: false
+
+# Path on the Ansible controller to the in-tree installer scripts.
+# Used only when xroad_installer_local_mode is true.
+xroad_installer_local_source: "{{ playbook_dir }}/../../deployment/security-server/xroad-installer"
+
+# Full URL of the bootstrapper script. REQUIRED when xroad_installer_local_mode
+# is false (asserted in main.yml).
 # Example: https://artifactory.niis.org/artifactory/xroad-scripts/0.0.1-beta/get-xroad.sh
 bootstrapper_url: ""
 
 # Optional: override the package repo the installer points apt/dnf at.
 # Leave empty to let the installer use its built-in defaults
 # (artifactory.niis.org xroad8-snapshot-{deb,rpm}).
+# In local mode, set to the dev-stack repo URL (e.g. "file:///xroad /" for
+# Ubuntu, "file:///xroad" for RHEL).
 xroad_repo_url_override: ""
 xroad_repo_gpg_key_url: ""
+
+# When true, the installer treats xroad_repo_url_override as an unsigned
+# trusted local repo (skips GPG download/import). Defaults to local-mode
+# value; can be overridden independently if needed.
+xroad_trusted_local_repo: "{{ xroad_installer_local_mode }}"
 
 # Installer config values — mapped 1:1 onto XROAD_* keys in the .conf file.
 xroad_admin_username: xrd

@@ -64,6 +64,12 @@ XROAD_SECRET_STORE_TYPE=local
 # Default for RPM: xroad8-snapshot-rpm
 #XROAD_REPO_MAIN=
 
+# Set to "true" to treat XROAD_REPO_URL_OVERRIDE as an unsigned trusted local
+# repository (e.g. file:///xroad from the LXD dev stack). Skips GPG key
+# download/import; emits an apt source with [trusted=yes] / a yum .repo with
+# gpgcheck=0. Requires XROAD_REPO_URL_OVERRIDE to be set.
+#XROAD_TRUSTED_LOCAL_REPO=false
+
 # OpenBao mirror repository component name. Define when the goal is to install OpenBao from a custom repository/mirror.
 # Default for DEB: https://pkgs.openbao.org/deb
 # Default for RPM: https://pkgs.openbao.org/rpm

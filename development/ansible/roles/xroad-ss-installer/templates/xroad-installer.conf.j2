@@ -13,3 +13,6 @@ XROAD_REPO_URL_OVERRIDE={{ xroad_repo_url_override | quote }}
 {% if xroad_repo_gpg_key_url %}
 XROAD_REPO_GPG_KEY_URL={{ xroad_repo_gpg_key_url | quote }}
 {% endif %}
+{% if xroad_trusted_local_repo | bool %}
+XROAD_TRUSTED_LOCAL_REPO=true
+{% endif %}
