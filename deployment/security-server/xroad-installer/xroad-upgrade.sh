@@ -184,27 +184,32 @@ main() {
     "V8 repository activated" \
     "Repository switch failed. Services are stopped. Restore V7 repo from: /etc/apt/sources.list.d/xroad.list.v7.bak.* (DEB) or /etc/yum.repos.d/ (RPM)"
 
-  # Step 9: Upgrade packages — apt-get install / yum update -y for xroad-securityserver.
+  # Step 9: Fix duplicate serverconf.identifier rows before Liquibase migration. If the fix fails, correct the data manually and re-run the upgrade wizard.
+  run_step "fix_serverconf_identifier_duplicates.sh" \
+    "serverconf.identifier deduplication finished" \
+    "serverconf.identifier deduplication failed. Fix the problematic rows manually and re-run the upgrade wizard."
+
+  # Step 10: Upgrade packages — apt-get install / yum update -y for xroad-securityserver.
   run_step "upgrade_packages.sh" \
     "Security Server packages upgraded to 8.0" \
     "Package upgrade failed. V8 repo is active but packages are still at V7. Restore V7 repo backup and investigate before retrying."
 
-  # Step 10: Migrate V7 on-disk TLS certificates/keys to the local secret store (KV xrd-secret/tls/*).
+  # Step 11: Migrate V7 on-disk TLS certificates/keys to the local secret store (KV xrd-secret/tls/*).
   run_step "migrate_tls_to_secret_store.sh" \
     "TLS certificates migrated to secret store" \
     "TLS-to-secret-store migration failed. X-Road services are still stopped. Verify xroad-secret-store-local is installed and OpenBao is reachable, then re-run the wizard."
 
-  # Step 11: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
+  # Step 12: Run migration-CLI subcommands — per-step confirmation + sentinel resumability.
   run_step "run_migration_cli.sh" \
     "Migration-CLI steps completed" \
     "Migration failed. X-Road services are stopped. V7 repo is still active. Fix the issue and re-run the wizard to resume from checkpoint."
 
-  # Step 12: Start X-Road services, is-active polling.
+  # Step 13: Start X-Road services, is-active polling.
   run_step "start_xroad_services.sh" \
     "X-Road services started" \
     "Service start failed after successful upgrade. Run: systemctl status <service> to diagnose."
 
-  # Step 13: Remove obsolete V7 config files (operator-confirmed; unattended deletes by default — set XROAD_DELETE_OBSOLETE_FILES=no to keep).
+  # Step 14: Remove obsolete V7 config files (operator-confirmed; unattended deletes by default — set XROAD_DELETE_OBSOLETE_FILES=no to keep).
   run_step "cleanup_obsolete_files.sh" \
     "Obsolete V7 config files cleanup completed" \
     "Obsolete files cleanup step failed. Upgrade succeeded; review /etc/xroad/conf.d and /etc/xroad/signer manually."

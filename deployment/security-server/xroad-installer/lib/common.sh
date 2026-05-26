@@ -103,6 +103,51 @@ log_warn_exit() {
   exit $EXIT_SUCCESS
 }
 
+# Read a value from a sectionless properties file using crudini.
+# Returns an empty string when the key is not found.
+get_db_prop() {
+  local file="$1"
+  local key="$2"
+  local value
+
+  if value=$(crudini --get <(
+    printf '[default]\n'
+    cat "$file"
+  ) default "$key" 2>/dev/null); then
+    printf '%s\n' "$value"
+  fi
+}
+
+read_serverconf_pg_connection() {
+  local jdbc_url hostport db_path
+
+  if [[ ! -f "$DB_PROPS" ]]; then
+    log_die "$DB_PROPS not found."
+  fi
+
+  jdbc_url=$(get_db_prop "$DB_PROPS" 'xroad.db.serverconf.hibernate.connection.url' | tr -d ' ')
+
+  if [[ -z "$jdbc_url" ]]; then
+    log_die "serverconf JDBC URL not found in $DB_PROPS."
+  fi
+
+  hostport=$(echo "$jdbc_url" | sed 's|jdbc:postgresql://\([^/]*\)/.*|\1|')
+
+  db_host="${hostport%%:*}"
+  if [[ "$hostport" == *:* ]]; then
+    db_port="${hostport##*:}"
+  else
+    db_port="5432"
+  fi
+
+  db_user=$(get_db_prop "$DB_PROPS" 'xroad.db.serverconf.hibernate.connection.username')
+  db_password=$(get_db_prop "$DB_PROPS" 'xroad.db.serverconf.hibernate.connection.password')
+  db_user="${db_user%%@*}"
+
+  db_path=$(echo "$jdbc_url" | sed 's|jdbc:postgresql://[^/]*/\([^?]*\).*|\1|')
+  db_database="${db_path:-serverconf}"
+}
+
 # Check PostgreSQL server version. Exits with error if major version < 15.
 check_pg_version() {
   local host="$1"

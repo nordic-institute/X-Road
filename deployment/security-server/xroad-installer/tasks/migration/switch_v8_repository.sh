@@ -87,7 +87,7 @@ switch_v8_repository_ubuntu() {
 
 # Switch to V8 repository on RHEL/Rocky/AlmaLinux:
 #   1. Find every /etc/yum.repos.d/xroad*.repo file and back each up to <file>.v7.bak.TIMESTAMP, then remove the original
-#   2. Add the V8 repo via yum-config-manager --add-repo
+#   2. Add the V8 repo via dnf config-manager --add-repo
 #   3. Re-import GPG key via rpm --import
 #   4. Run yum makecache so Plan 12-02 sees V8 metadata
 switch_v8_repository_rhel() {
@@ -125,10 +125,10 @@ switch_v8_repository_rhel() {
     done
   fi
 
-  # Step 2: Add the V8 repo via yum-config-manager --add-repo
+  # Step 2: Add the V8 repo via dnf config-manager --add-repo
   local repo_url="${XROAD_REPO_URL_OVERRIDE:-${XROAD_REPO_BASE_URL}/${XROAD_REPO_MAIN}}"
   log_message "Adding V8 X-Road repository: $repo_url"
-  if yum-config-manager --add-repo "$repo_url"; then
+  if dnf config-manager --add-repo "$repo_url"; then
     log_info "V8 X-Road repository added successfully"
   else
     log_die "Failed to add V8 X-Road repository"
