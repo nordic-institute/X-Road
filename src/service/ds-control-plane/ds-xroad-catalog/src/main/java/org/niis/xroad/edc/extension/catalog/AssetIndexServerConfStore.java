@@ -56,6 +56,8 @@ import java.util.stream.Stream;
 @Slf4j
 class AssetIndexServerConfStore implements AssetIndex {
 
+    private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
+
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final String participantContextId;
@@ -239,18 +241,18 @@ class AssetIndexServerConfStore implements AssetIndex {
     @Override
     public StoreResult<Void> create(Asset asset) {
         log.trace("create assetId={} read-only, returning alreadyExists", asset.getId());
-        return StoreResult.alreadyExists("Read-only: managed by ServerConf");
+        return StoreResult.alreadyExists(READ_ONLY_MESSAGE);
     }
 
     @Override
     public StoreResult<Asset> deleteById(String assetId) {
         log.trace("deleteById assetId={} read-only, returning notFound", assetId);
-        return StoreResult.notFound("Read-only: managed by ServerConf");
+        return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
     @Override
     public StoreResult<Asset> updateAsset(Asset asset) {
         log.trace("updateAsset assetId={} read-only, returning notFound", asset.getId());
-        return StoreResult.notFound("Read-only: managed by ServerConf");
+        return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 }

@@ -55,6 +55,8 @@ import java.util.stream.Stream;
 @Slf4j
 class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
+    private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
+
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final ContractDefinitionMapper contractDefinitionMapper;
@@ -184,19 +186,19 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     @Override
     public StoreResult<Void> save(ContractDefinition definition) {
         log.trace("save definitionId={} read-only, returning alreadyExists", definition.getId());
-        return StoreResult.alreadyExists("Read-only: managed by ServerConf");
+        return StoreResult.alreadyExists(READ_ONLY_MESSAGE);
     }
 
     @Override
     public StoreResult<Void> update(ContractDefinition definition) {
         log.trace("update definitionId={} read-only, returning notFound", definition.getId());
-        return StoreResult.notFound("Read-only: managed by ServerConf");
+        return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
     @Override
     public StoreResult<ContractDefinition> deleteById(String id) {
         log.trace("deleteById definitionId={} read-only, returning notFound", id);
-        return StoreResult.notFound("Read-only: managed by ServerConf");
+        return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
     /**

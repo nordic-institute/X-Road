@@ -58,6 +58,8 @@ import java.util.stream.Stream;
 @Slf4j
 class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
+    private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
+
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final PolicyMapper policyMapper;
@@ -183,19 +185,19 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     @Override
     public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
         log.trace("create policyId={} read-only, returning alreadyExists", policy.getId());
-        return StoreResult.alreadyExists("Read-only: managed by ServerConf");
+        return StoreResult.alreadyExists(READ_ONLY_MESSAGE);
     }
 
     @Override
     public StoreResult<PolicyDefinition> update(PolicyDefinition policy) {
         log.trace("update policyId={} read-only, returning notFound", policy.getId());
-        return StoreResult.notFound("Read-only: managed by ServerConf");
+        return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
     @Override
     public StoreResult<PolicyDefinition> delete(String policyId) {
         log.trace("delete policyId={} read-only, returning notFound", policyId);
-        return StoreResult.notFound("Read-only: managed by ServerConf");
+        return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
     /**
