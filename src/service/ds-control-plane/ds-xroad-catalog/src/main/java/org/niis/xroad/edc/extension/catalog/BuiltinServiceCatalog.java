@@ -38,14 +38,9 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * Single source of truth for built-in server-proxy service handler entries.
- *
- * <p>Built-in handlers are wired directly in {@code ServiceHandlerLoader} and never registered
- * in serverconf. This class emits synthetic catalog entries for them so the DSP catalog can
- * surface these services to consumers.
- *
- * <p>Each addon group can be disabled independently via
- * {@code xroad.dsp.builtin-services.{name}.enabled} config keys (default {@code true}).
+ * Synthetic catalog entries for built-in server-proxy handlers (proxy-monitor, op-monitor,
+ * metaservices). Built-in handlers are wired in {@code ServiceHandlerLoader} and never
+ * present in serverconf. Each group toggles via {@code xroad.dsp.builtin-services.{name}.enabled}.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -88,19 +83,10 @@ class BuiltinServiceCatalog {
         }
     }
 
-    /**
-     * Returns the list of active built-in service IDs in a stable, deterministic order.
-     */
     List<ServiceId.Conf> activeServiceIds() {
         return List.copyOf(activeServiceIdsMap().values());
     }
 
-    /**
-     * Looks up a built-in ServiceId by its encoded asset ID string.
-     *
-     * @param assetId the encoded asset ID
-     * @return the matching ServiceId.Conf, or null if not a known built-in asset
-     */
     @Nullable
     ServiceId.Conf findServiceId(String assetId) {
         if (assetId == null || assetId.isBlank()) {
@@ -109,9 +95,6 @@ class BuiltinServiceCatalog {
         return activeServiceIdsMap().get(assetId);
     }
 
-    /**
-     * Returns the server-proxy base URL for built-in data addresses.
-     */
     String serverProxyUrl() {
         return serverProxyUrl;
     }
@@ -148,16 +131,10 @@ class BuiltinServiceCatalog {
         entries.put(serviceId.asEncodedId(), serviceId);
     }
 
-    /**
-     * Returns whether any built-in services are active.
-     */
     boolean hasActiveServices() {
         return !activeServiceIdsMap().isEmpty();
     }
 
-    /**
-     * Returns a predicate that matches asset IDs belonging to built-in services.
-     */
     Predicate<String> isBuiltinAssetId() {
         return assetId -> activeServiceIdsMap().containsKey(assetId);
     }

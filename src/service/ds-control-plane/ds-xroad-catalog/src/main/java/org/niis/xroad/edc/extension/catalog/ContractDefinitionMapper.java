@@ -45,28 +45,13 @@ class ContractDefinitionMapper {
 
     private static final String CONTRACT_DEFINITION_SUFFIX = "-contract-definition";
 
-    /**
-     * Suffix used on the owner-only policy/contract IDs to keep them disjoint from
-     * regular per-subject (assetId:subjectId) IDs.
-     */
+    /** Disjoint from per-subject {assetId}:{subjectId} IDs so lookup paths never collide. */
     static final String OWNER_ONLY_SUFFIX = "-owner-only";
 
-    /**
-     * Returns the contract definition ID suffix used by this mapper.
-     * Used by {@link ContractDefinitionServerConfStore#findById(String)} to strip the suffix.
-     */
     static String getContractDefinitionSuffix() {
         return CONTRACT_DEFINITION_SUFFIX;
     }
 
-    /**
-     * Builds a {@link ContractDefinition} for a (service, subject) pair.
-     *
-     * @param serviceId            the X-Road service
-     * @param subjectId            the access right subject
-     * @param participantContextId the participant context ID
-     * @return the built ContractDefinition
-     */
     static ContractDefinition toContractDefinition(ServiceId serviceId, XRoadId subjectId, String participantContextId) {
         if (log.isTraceEnabled()) {
             log.trace("toContractDefinition serviceId={} subjectId={}",
@@ -87,23 +72,14 @@ class ContractDefinitionMapper {
                 .build();
     }
 
-    /**
-     * Builds the owner-only policyId for a service. Disjoint from per-subject policyId
-     * format (which uses {assetId}:{subjectId}) so the lookup paths in
-     * {@link ContractDefinitionServerConfStore#findById} and
-     * {@link PolicyDefinitionServerConfStore#findById} never collide.
-     */
     static String ownerOnlyPolicyId(ServiceId serviceId) {
         return AssetMapper.encodeAssetId(serviceId) + OWNER_ONLY_SUFFIX;
     }
 
     /**
-     * Builds an owner-only ContractDefinition for a service with no explicit ACL.
-     * Tagged with the supplied participantContextId (host ctx for user services).
-     * The accessPolicy referenced here is emitted in tandem by
-     * {@link PolicyMapper#toOwnerOnlyPolicyDefinition}; EDC's
-     * ContractDefinitionResolverImpl pre-evaluates that policy at catalog time and
-     * hides the ContractDefinition from non-owner peers.
+     * Emitted for services with no explicit ACL. EDC's ContractDefinitionResolverImpl
+     * pre-evaluates the paired owner-only access policy at catalog time and hides the
+     * definition from non-owner peers.
      */
     static ContractDefinition toOwnerOnlyContractDefinition(ServiceId serviceId, String participantContextId) {
         var assetId = AssetMapper.encodeAssetId(serviceId);

@@ -35,10 +35,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * Evaluates {@link QuerySpec} against a stream of entities of type {@code T}.
- * Supports {@code id =} and {@code participantContextId =} criteria (AND-combined).
- * Paging (offset + limit) is applied after filtering.
- * Unsupported criteria are skipped with a WARN log. Sort requests are ignored with a one-shot WARN.
+ * Filters a stream by {@link QuerySpec}. Supports {@code id =} and
+ * {@code participantContextId =} criteria (AND-combined); sort is ignored,
+ * unsupported criteria are skipped.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -53,10 +52,6 @@ class QueryEvaluator<T> {
 
     private boolean sortWarningLogged = false;
 
-    /**
-     * Evaluates a QuerySpec against the given stream.
-     * Applies criterion filters (AND-combined), then paging (offset + limit).
-     */
     Stream<T> evaluate(Stream<T> source, QuerySpec querySpec) {
         if (log.isTraceEnabled()) {
             log.trace("evaluate criteria={} offset={} limit={}",

@@ -51,10 +51,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * ServerConf-backed {@link PolicyDefinitionStore} that builds ODRL {@link PolicyDefinition} objects
- * from live ServerConf access rights data.
- * Each (service, subject) pair produces one PolicyDefinition with compound ID.
- * Write operations return {@link StoreResult} failures (read-only store).
+ * Read-only {@link PolicyDefinitionStore} backed by serverconf access rights.
+ * Emits one ODRL {@link PolicyDefinition} per (service, subject) pair.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -71,10 +69,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final QueryEvaluator<PolicyDefinition> queryEvaluator =
             new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
 
-    /**
-     * Chooses the participant context ID for a given serviceId.
-     * MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations.
-     */
+    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
     private String resolveContextId(ServiceId serviceId) {
         var mgmtService = globalConfProvider.getManagementRequestService();
         return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
@@ -82,13 +77,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 : participantContextId;
     }
 
-    /**
-     * Finds a PolicyDefinition by compound policyId ({assetId}:{subjectId}).
-     * Decodes the ServiceId portion (5 or 6 parts), then matches the subject
-     * from the service's access rights.
-     *
-     * @return the PolicyDefinition, or null if not found or malformed
-     */
     @Override
     @Nullable
     @WithSpan("dsp-find-acl")
@@ -138,10 +126,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         return result;
     }
 
-    /**
-     * Returns all PolicyDefinitions across all enabled services and their access rights.
-     * Iterates members x services, groups access rights by subject.
-     */
     @Override
     public Stream<PolicyDefinition> findAll(QuerySpec spec) {
         if (log.isTraceEnabled()) {
@@ -188,10 +172,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
-    /**
-     * Attempts to decode a ServiceId from the first {@code servicePartCount} parts of the policyId,
-     * then finds the matching subject from remaining parts.
-     */
     @Nullable
     private PolicyDefinition tryDecodeAndMatch(String[] parts, int servicePartCount, String policyId) {
         if (parts.length <= servicePartCount) {
@@ -228,14 +208,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     }
 
     /**
-     * Collects all PolicyDefinitions for a given service.
-     * <ul>
-     *   <li>Non-empty ACL: one PolicyDefinition per subject.</li>
-     *   <li>Empty ACL: a single owner-only PolicyDefinition. The ContractDefinition emitted
-     *       by {@link ContractDefinitionServerConfStore} references this policy as its
-     *       accessPolicy; EDC pre-evaluates it at catalog time and filters the
-     *       ContractDefinition out for non-owner consumers.</li>
-     * </ul>
+     * Emits one owner-only policy per service (referenced by the paired owner-only
+     * ContractDefinition) plus one per-subject policy for each ACL entry.
      */
     private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies) {
         var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);

@@ -49,11 +49,6 @@ class AssetMapper {
     static final int SERVICE_ID_PARTS_WITH_VERSION = 6;
     static final int SERVICE_ID_PARTS_WITHOUT_VERSION = 5;
 
-    /**
-     * Encodes a ServiceId to a stable asset ID string using {@link XRoadId#asEncodedId()}.
-     * Format: INSTANCE:memberClass:memberCode:subsystemCode:serviceCode[:serviceVersion]
-     * Uses ':' separator (canonical X-Road encoding).
-     */
     static String encodeAssetId(ServiceId serviceId) {
         var encoded = serviceId.asEncodedId();
         if (log.isTraceEnabled()) {
@@ -63,9 +58,6 @@ class AssetMapper {
     }
 
     /**
-     * Decodes an asset ID string back to {@link ServiceId.Conf}.
-     * Handles 5 parts (no version) and 6 parts (with version).
-     *
      * @return decoded ServiceId.Conf, or null for malformed IDs
      */
     @Nullable
@@ -99,9 +91,6 @@ class AssetMapper {
         return ServiceId.Conf.create(parts[i++], parts[i++], parts[i++], parts[i++], parts[i]);
     }
 
-    /**
-     * Maps a {@link ServiceId} to an EDC {@link Asset} with DCAT-compliant properties per D-03.
-     */
     static Asset toAsset(ServiceId.Conf serviceId, String participantContextId) {
         var assetId = encodeAssetId(serviceId);
         var title = buildTitle(serviceId);
@@ -127,20 +116,12 @@ class AssetMapper {
                 .build();
     }
 
-    /**
-     * Builds title from serviceCode and optional serviceVersion.
-     * D-03: "serviceCode:serviceVersion" or just "serviceCode" if version is null.
-     */
     private static String buildTitle(ServiceId serviceId) {
         return serviceId.getServiceVersion() != null
                 ? serviceId.getServiceCode() + ":" + serviceId.getServiceVersion()
                 : serviceId.getServiceCode();
     }
 
-    /**
-     * Builds description from ServiceId fields.
-     * D-04: "X-Road service {serviceCode}:{serviceVersion} provided by {memberCode}/{subsystemCode}"
-     */
     private static String buildDescription(ServiceId serviceId) {
         var sb = new StringBuilder("X-Road service ")
                 .append(serviceId.getServiceCode());
@@ -154,10 +135,6 @@ class AssetMapper {
         return sb.toString();
     }
 
-    /**
-     * Builds keyword list from ServiceId fields.
-     * D-03: dcat:keyword = list containing memberClass, subsystemCode (null omitted).
-     */
     private static List<String> buildKeywords(ServiceId serviceId) {
         var keywords = new ArrayList<String>();
         keywords.add(serviceId.getMemberClass());

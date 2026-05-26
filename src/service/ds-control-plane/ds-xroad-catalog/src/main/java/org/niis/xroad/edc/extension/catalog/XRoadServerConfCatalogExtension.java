@@ -41,9 +41,8 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 /**
- * EDC ServiceExtension that overrides default catalog store SPIs with ServerConf-backed implementations.
- * AssetIndex, DataAddressResolver, PolicyDefinitionStore, and ContractDefinitionStore are all backed
- * by live ServerConf reads.
+ * Overrides EDC's default catalog SPIs (AssetIndex, DataAddressResolver,
+ * PolicyDefinitionStore, ContractDefinitionStore) with ServerConf-backed read-only stores.
  */
 @Slf4j
 @Extension(XRoadServerConfCatalogExtension.NAME)
@@ -52,30 +51,16 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     static final String NAME = "X-Road ServerConf Catalog";
 
     /**
-     * EDC config key for the participant context ID used when tagging catalog assets.
-     *
-     * <p>Each ds-control-plane instance must tag its catalog entities with the
-     * {@code participantContextId} that matches the {@code ParticipantContext} registered in the
-     * Identity Hub for this Security Server. The registered context is the SS hostname (e.g.
-     * {@code xrd-ss0}), so this setting should be set to the SS hostname in
-     * {@code local-ds-control-plane.yaml} for native deployments.
-     *
-     * <p>Default resolves to {@code edc.hostname} (which itself defaults to the {@code HOSTNAME}
-     * environment variable or {@code "localhost"}), matching the Identity Hub bootstrap convention.
-     * Under {@code edc-iam-dcp-core}, EDC's catalog endpoint filters the {@code ContractDefinitionStore}
-     * by {@code participantContextId = <routed-context>}, so this value must match exactly.
+     * Tag for catalog entities owned by this SS. Must match the ParticipantContext registered
+     * in the Identity Hub (SS hostname) — EDC's catalog endpoint filters by it under
+     * edc-iam-dcp-core. Defaults to {@code edc.hostname}.
      */
     static final String SETTING_PARTICIPANT_CONTEXT_ID = "xroad.dsp.participant-context-id";
 
     /**
-     * EDC config key for the participant context ID used when tagging MANAGEMENT-subsystem entities.
-     *
-     * <p>MANAGEMENT subsystem must own a distinct DSP identity so that self-negotiation (SS hosting
-     * MANAGEMENT locally) produces two distinct {@code participantContextId} values — one per side of
-     * the contract negotiation — avoiding the {@code edc_contract_negotiation} unique-constraint collision.
-     *
-     * <p>Defaults to {@code ${xroad.dsp.participant-context-id}-mgmt}, resolved by Smallrye Config
-     * expression chaining.
+     * Distinct DSP identity for MANAGEMENT-subsystem entities. Required so that self-negotiation
+     * (SS hosting MANAGEMENT locally) avoids the {@code edc_contract_negotiation} unique-constraint
+     * collision. Defaults to {@code ${xroad.dsp.participant-context-id}-mgmt}.
      */
     static final String SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID = "xroad.dsp.management-participant-context-id";
 
@@ -114,10 +99,6 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.info("Built-in service catalog active entries: {}", builtinServiceCatalog.activeServiceIds().size());
     }
 
-    /**
-     * Provides a ServerConf-backed {@link AssetIndex} with live reads from {@link ServerConfProvider}.
-     * Also serves as {@link DataAddressResolver} since {@code AssetIndex extends DataAddressResolver} in EDC 0.16.
-     */
     @Provider
     public AssetIndex assetIndex() {
         log.trace("Providing AssetIndex backed by ServerConf");
@@ -126,19 +107,12 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 builtinServiceCatalog);
     }
 
-    /**
-     * Provides a {@link DataAddressResolver} delegating to the same ServerConf-backed {@link AssetIndex}.
-     */
     @Provider
     public DataAddressResolver dataAddressResolver() {
         log.trace("Providing DataAddressResolver delegating to ServerConf-backed AssetIndex");
         return assetIndex();
     }
 
-    /**
-     * Provides a ServerConf-backed {@link PolicyDefinitionStore} with live ODRL policy generation
-     * from {@link ServerConfProvider} access rights data.
-     */
     @Provider
     public PolicyDefinitionStore policyDefinitionStore() {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
@@ -147,9 +121,6 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 participantContextId, managementParticipantContextId, builtinServiceCatalog);
     }
 
-    /**
-     * Provides a ContractDefinitionStore backed by ServerConf with disambiguated (asset, subject) IDs.
-     */
     @Provider
     public ContractDefinitionStore contractDefinitionStore() {
         log.trace("Providing ContractDefinitionStore backed by ServerConf");

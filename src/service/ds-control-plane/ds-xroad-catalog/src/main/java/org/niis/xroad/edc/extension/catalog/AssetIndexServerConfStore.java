@@ -47,12 +47,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * ServerConf-backed {@link AssetIndex} that reads members and services live from
- * {@link ServerConfProvider} on each call. Disabled services are excluded.
- * Write operations return {@link StoreResult} failures (read-only store).
- *
- * <p>{@code AssetIndex} extends {@code DataAddressResolver} in EDC 0.16, so this class
- * implements both interfaces via the single {@code AssetIndex} contract.
+ * Read-only {@link AssetIndex} backed by live {@link ServerConfProvider} reads. Also serves
+ * as {@code DataAddressResolver} since EDC 0.16 folds it into the {@code AssetIndex} contract.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -67,10 +63,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
 
-    /**
-     * Chooses the participant context ID for a given serviceId.
-     * MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations.
-     */
+    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
     private String resolveContextId(ServiceId serviceId) {
         var mgmtService = globalConfProvider.getManagementRequestService();
         return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
@@ -87,11 +80,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
     }
 
-    /**
-     * Returns one {@link Asset} per enabled service across all members.
-     * Disabled services (non-null {@code getDisabledNotice}) are excluded.
-     * Results are filtered and paged by {@link QueryEvaluator}.
-     */
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
         if (log.isTraceEnabled()) {
@@ -118,10 +106,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         return queryEvaluator.evaluate(assets.stream(), querySpec);
     }
 
-    /**
-     * Decodes the asset ID, verifies the service exists and is enabled, returns the {@link Asset}.
-     * Returns {@code null} for malformed IDs, disabled services, or missing services.
-     */
     @Override
     @Nullable
     public Asset findById(String assetId) {
@@ -166,10 +150,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
     }
 
-    /**
-     * Builds an {@link HttpDataAddress} for the given asset with proxy flags enabled.
-     * Returns {@code null} on decode failure, disabled service, or missing address.
-     */
     @Override
     @Nullable
     public DataAddress resolveForAsset(String assetId) {

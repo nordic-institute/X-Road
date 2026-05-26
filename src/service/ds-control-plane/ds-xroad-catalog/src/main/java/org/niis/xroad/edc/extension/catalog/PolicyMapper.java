@@ -55,8 +55,7 @@ import java.util.Map;
 
 /**
  * Maps X-Road access rights to ODRL {@link PolicyDefinition} objects.
- * Builds AND(clientConstraint, OR(per-path ANDs)) constraint trees per D-04.
- * Package-private per D-11.
+ * Constraint tree shape: AND(clientConstraint, OR(per-path ANDs)).
  */
 @Slf4j
 class PolicyMapper {
@@ -69,15 +68,6 @@ class PolicyMapper {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Creates a {@link PolicyDefinition} for a (service, subject) pair with the given endpoints.
-     *
-     * @param policyId             compound policy ID ({assetId}:{subjectId})
-     * @param subjectId            the access right subject (ClientId, GlobalGroupId, or LocalGroupId)
-     * @param endpoints            the endpoints the subject has access to (serverconf model Endpoint)
-     * @param participantContextId the participant context ID for the PolicyDefinition
-     * @return the built PolicyDefinition
-     */
     PolicyDefinition toPolicyDefinition(String policyId, XRoadId subjectId,
                                         List<Endpoint> endpoints, String participantContextId) {
         if (log.isTraceEnabled()) {
@@ -126,12 +116,10 @@ class PolicyMapper {
     }
 
     /**
-     * Builds an owner-only PolicyDefinition for services with no explicit ACL.
-     * The single Permission requires the consumer clientId to match the service owner
-     * member ({@link XRoadClientIdConstraintFunction#evaluate} performs memberEquals).
-     * EDC's ContractDefinitionResolverImpl pre-evaluates this policy at catalog time;
-     * non-owner consumers see the ContractDefinition filtered out (datasets shrink),
-     * preserving the legacy ACL semantics where empty-ACL meant "no external access".
+     * Emitted for services with no explicit ACL. Single permission requires consumer
+     * clientId to memberEquals the owner; EDC's ContractDefinitionResolverImpl pre-evaluates
+     * this at catalog time and filters the definition out for non-owner consumers, preserving
+     * the legacy "empty ACL means no external access" semantics.
      */
     PolicyDefinition toOwnerOnlyPolicyDefinition(String policyId, ClientId ownerMemberId,
                                                  String participantContextId) {
@@ -162,10 +150,6 @@ class PolicyMapper {
                 .build();
     }
 
-    /**
-     * Creates the subject-type-specific AtomicConstraint per D-05.
-     * Uses instanceof dispatch to determine the constraint key.
-     */
     private AtomicConstraint createClientConstraint(XRoadId subjectId) {
         String constraintKey;
         if (subjectId instanceof GlobalGroupId) {
@@ -186,10 +170,6 @@ class PolicyMapper {
                 .build();
     }
 
-    /**
-     * Builds a per-path constraint: AndConstraint containing the datapath AtomicConstraint
-     * and any additional conditions parsed from the endpoint.
-     */
     private Constraint buildPathConstraint(Endpoint endpoint, String serviceContext) {
         log.trace("buildPathConstraint method={} path={} serviceContext={}",
                 endpoint.getMethod(), endpoint.getPath(), serviceContext);
@@ -212,15 +192,8 @@ class PolicyMapper {
     }
 
     /**
-     * Parses additional conditions from a JSON string.
-     * The current Endpoint model has no additionalCondition field, so this is invoked with null.
-     * When the field is added, the caller will pass the actual JSON string.
-     *
-     * @param additionalConditionJson JSON string (nullable) containing additional constraints
-     * @param method                  the endpoint HTTP method (for logging)
-     * @param path                    the endpoint path (for logging)
-     * @param serviceId               the service context (for logging)
-     * @return list of parsed Constraints, or empty list if null/blank/malformed
+     * The Endpoint model has no additionalCondition field yet, so callers pass null today.
+     * Returns an empty list on null/blank/malformed input.
      */
     List<Constraint> parseAdditionalConditions(@Nullable String additionalConditionJson,
                                                String method, String path, String serviceId) {

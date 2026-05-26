@@ -227,12 +227,7 @@ public interface ServerConfProvider {
     List<Endpoint> getServiceEndpoints(ServiceId serviceId);
 
     /**
-     * Returns all access rights for a given service, regardless of subject.
-     * Each {@link AccessRight} contains the subjectId (ClientId/GlobalGroupId/LocalGroupId)
-     * and the endpoint the subject has access to.
-     *
-     * @param serviceId the service identifier
-     * @return list of access rights for the service (may be empty, never null)
+     * @return access rights for the service across all subjects (may be empty, never null)
      */
     List<AccessRight> getServiceAccessRights(ServiceId serviceId);
 

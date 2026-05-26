@@ -49,9 +49,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * ServerConf-backed {@link ContractDefinitionStore}.
- * Enumerates one {@link ContractDefinition} per (asset, subject) pair with disambiguated IDs.
- * Write operations return {@link StoreResult} failures (read-only store).
+ * Read-only {@link ContractDefinitionStore} backed by serverconf access rights.
+ * Emits one definition per (asset, subject) pair with compound IDs.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -67,10 +66,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private final QueryEvaluator<ContractDefinition> queryEvaluator =
             new QueryEvaluator<>(ContractDefinition::getId, ContractDefinition::getParticipantContextId);
 
-    /**
-     * Chooses the participant context ID for a given serviceId.
-     * MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations.
-     */
+    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
     private String resolveContextId(ServiceId serviceId) {
         var mgmtService = globalConfProvider.getManagementRequestService();
         return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
@@ -78,13 +74,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 : participantContextId;
     }
 
-    /**
-     * Finds a ContractDefinition by compound definitionId ({assetId}:{subjectId}-contract-definition).
-     * Strips the suffix to recover policyId, then decodes the ServiceId portion (6 or 5 parts)
-     * and matches the subject from the service's access rights.
-     *
-     * @return the ContractDefinition, or null if not found or malformed
-     */
     @Override
     @Nullable
     public ContractDefinition findById(String definitionId) {
@@ -139,10 +128,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         return result;
     }
 
-    /**
-     * Returns all ContractDefinitions across all enabled services and their access rights.
-     * Iterates members x services, groups access rights by subject.
-     */
     @Override
     @NotNull
     public Stream<ContractDefinition> findAll(QuerySpec spec) {
@@ -188,10 +173,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
-    /**
-     * Attempts to decode a ServiceId from the first {@code servicePartCount} parts of the policyId,
-     * then finds the matching subject from the remaining parts.
-     */
     @Nullable
     private ContractDefinition tryDecodeAndMatch(String[] parts, int servicePartCount, String definitionId) {
         if (parts.length <= servicePartCount) {
@@ -218,15 +199,8 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     }
 
     /**
-     * Collects all ContractDefinitions for a given service.
-     * <ul>
-     *   <li>Non-empty ACL: one ContractDefinition per subject (legacy per-subject emission).</li>
-     *   <li>Empty ACL: a single owner-only ContractDefinition referencing an owner-only
-     *       accessPolicy. EDC's ContractDefinitionResolverImpl pre-evaluates the access
-     *       policy at catalog time and hides the definition from non-owner peers, so the
-     *       service stays invisible to external consumers while remaining reachable for
-     *       the owning member's self-call (legacy proxy behaviour).</li>
-     * </ul>
+     * Emits one owner-only definition per service (hidden from non-owner peers by EDC's
+     * ContractDefinitionResolverImpl) plus one per-subject definition for each ACL entry.
      */
     private void collectContractDefinitionsForService(ServiceId serviceId,
                                                       List<ContractDefinition> definitions) {

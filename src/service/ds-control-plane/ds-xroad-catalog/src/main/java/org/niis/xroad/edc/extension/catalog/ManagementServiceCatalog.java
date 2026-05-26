@@ -38,14 +38,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Enumerates the management WSDL service codes hosted by the federation's management subsystem.
- * The list mirrors {@code org.niis.xroad.common.managementrequest.model.ManagementRequestType}
- * but is duplicated here to avoid pulling the management-request module (and its Spring Web
- * transitive dependencies) into the control-plane catalog.
- *
- * <p>Owner-only catalog entries are emitted only when the management subsystem (as resolved by
- * {@link GlobalConfProvider#getManagementRequestService()}) is locally registered as a client on
- * this Security Server. Outside that case the helper yields an empty stream.
+ * Synthetic catalog entries for management WSDL services hosted by the federation's
+ * management subsystem. The service code list mirrors
+ * {@code org.niis.xroad.common.managementrequest.model.ManagementRequestType} — duplicated
+ * here to avoid pulling the management-request module's Spring Web transitive deps into
+ * the control-plane catalog.
  */
 @Slf4j
 @UtilityClass
