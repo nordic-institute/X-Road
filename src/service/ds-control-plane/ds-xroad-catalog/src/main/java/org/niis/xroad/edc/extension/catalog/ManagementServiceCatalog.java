@@ -29,14 +29,13 @@ package org.niis.xroad.edc.extension.catalog;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
 import java.util.stream.Stream;
-
-@Slf4j
 
 /**
  * Enumerates the management WSDL service codes hosted by the federation's management subsystem.
@@ -48,7 +47,9 @@ import java.util.stream.Stream;
  * {@link GlobalConfProvider#getManagementRequestService()}) is locally registered as a client on
  * this Security Server. Outside that case the helper yields an empty stream.
  */
-final class ManagementServiceCatalog {
+@Slf4j
+@UtilityClass
+class ManagementServiceCatalog {
 
     static final List<String> SERVICE_CODES = List.of(
             "authCertReg",
@@ -63,9 +64,6 @@ final class ManagementServiceCatalog {
             "maintenanceModeEnable",
             "maintenanceModeDisable"
     );
-
-    private ManagementServiceCatalog() {
-    }
 
     static Stream<ServiceId.Conf> resolveSyntheticServices(GlobalConfProvider globalConfProvider,
                                                            ServerConfProvider serverConfProvider) {

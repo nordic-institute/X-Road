@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,16 +44,9 @@ class ContractDefinitionMapperTest {
     private static final ClientId.Conf SUBJECT_CLIENT = ClientId.Conf.create("DEV", "GOV", "9999", "Consumer");
     private static final GlobalGroupId SUBJECT_GROUP = GlobalGroupId.Conf.create("DEV", "sec-owners");
 
-    private ContractDefinitionMapper mapper;
-
-    @BeforeEach
-    void setUp() {
-        mapper = new ContractDefinitionMapper();
-    }
-
     @Test
     void singleSubjectProducesCorrectIdFormat() {
-        var result = mapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
+        var result = ContractDefinitionMapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
 
         assertThat(result.getId()).endsWith("-contract-definition");
         assertThat(result.getId()).isEqualTo("DEV:GOV:1234:SubSys:svc1:v1:DEV:GOV:9999:Consumer-contract-definition");
@@ -62,8 +54,8 @@ class ContractDefinitionMapperTest {
 
     @Test
     void multiSubjectSameAssetProducesDistinctIds() {
-        var resultClient = mapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
-        var resultGroup = mapper.toContractDefinition(SERVICE_1, SUBJECT_GROUP, PARTICIPANT_CTX);
+        var resultClient = ContractDefinitionMapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
+        var resultGroup = ContractDefinitionMapper.toContractDefinition(SERVICE_1, SUBJECT_GROUP, PARTICIPANT_CTX);
 
         assertThat(resultClient.getId()).isNotEqualTo(resultGroup.getId());
         assertThat(resultClient.getId()).endsWith("-contract-definition");
@@ -72,14 +64,14 @@ class ContractDefinitionMapperTest {
 
     @Test
     void accessPolicyIdEqualsContractPolicyId() {
-        var result = mapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
+        var result = ContractDefinitionMapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
 
         assertThat(result.getAccessPolicyId()).isEqualTo(result.getContractPolicyId());
     }
 
     @Test
     void policyIdIsSuffixStrippedContractId() {
-        var result = mapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
+        var result = ContractDefinitionMapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
 
         var expectedPolicyId = result.getId().replace("-contract-definition", "");
         assertThat(result.getAccessPolicyId()).isEqualTo(expectedPolicyId);
@@ -87,7 +79,7 @@ class ContractDefinitionMapperTest {
 
     @Test
     void assetsSelectorContainsCriterionWithEdcNamespaceId() {
-        var result = mapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
+        var result = ContractDefinitionMapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
 
         assertThat(result.getAssetsSelector()).hasSize(1);
         var criterion = result.getAssetsSelector().getFirst();
@@ -98,14 +90,14 @@ class ContractDefinitionMapperTest {
 
     @Test
     void participantContextIdSetOnDefinition() {
-        var result = mapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
+        var result = ContractDefinitionMapper.toContractDefinition(SERVICE_1, SUBJECT_CLIENT, PARTICIPANT_CTX);
 
         assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
     }
 
     @Test
     void fivePartServiceIdProducesValidDefinition() {
-        var result = mapper.toContractDefinition(SERVICE_2, SUBJECT_CLIENT, PARTICIPANT_CTX);
+        var result = ContractDefinitionMapper.toContractDefinition(SERVICE_2, SUBJECT_CLIENT, PARTICIPANT_CTX);
 
         assertThat(result.getId()).isEqualTo("DEV:GOV:5678:SubSys:svc2:DEV:GOV:9999:Consumer-contract-definition");
         assertThat(result.getAssetsSelector().getFirst().getOperandRight()).isEqualTo("DEV:GOV:5678:SubSys:svc2");

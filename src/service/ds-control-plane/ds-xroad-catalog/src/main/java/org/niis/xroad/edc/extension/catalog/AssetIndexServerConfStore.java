@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
@@ -54,6 +55,7 @@ import java.util.stream.Stream;
  * implements both interfaces via the single {@code AssetIndex} contract.
  */
 @Slf4j
+@RequiredArgsConstructor
 class AssetIndexServerConfStore implements AssetIndex {
 
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
@@ -64,18 +66,6 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
-
-    AssetIndexServerConfStore(ServerConfProvider serverConfProvider,
-                              GlobalConfProvider globalConfProvider,
-                              String participantContextId,
-                              String managementParticipantContextId,
-                              BuiltinServiceCatalog builtinServiceCatalog) {
-        this.serverConfProvider = serverConfProvider;
-        this.globalConfProvider = globalConfProvider;
-        this.participantContextId = participantContextId;
-        this.managementParticipantContextId = managementParticipantContextId;
-        this.builtinServiceCatalog = builtinServiceCatalog;
-    }
 
     /**
      * Chooses the participant context ID for a given serviceId.

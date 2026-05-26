@@ -155,7 +155,6 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.trace("Providing ContractDefinitionStore backed by ServerConf");
         return new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider,
-                new ContractDefinitionMapper(),
                 participantContextId, managementParticipantContextId,
                 builtinServiceCatalog);
     }

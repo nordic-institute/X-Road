@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.catalog;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -47,6 +48,7 @@ import java.util.function.Predicate;
  * {@code xroad.dsp.builtin-services.{name}.enabled} config keys (default {@code true}).
  */
 @Slf4j
+@RequiredArgsConstructor
 class BuiltinServiceCatalog {
 
     static final String PROXY_MONITOR_SERVICE_CODE = "getSecurityServerMetrics";
@@ -69,18 +71,6 @@ class BuiltinServiceCatalog {
     private final boolean metaservicesEnabled;
     private final String serverProxyUrl;
     private volatile Map<String, ServiceId.Conf> activeServiceIdsCache;
-
-    BuiltinServiceCatalog(ServerConfProvider serverConfProvider,
-                          boolean proxyMonitorEnabled,
-                          boolean opMonitorEnabled,
-                          boolean metaservicesEnabled,
-                          String serverProxyUrl) {
-        this.serverConfProvider = serverConfProvider;
-        this.proxyMonitorEnabled = proxyMonitorEnabled;
-        this.opMonitorEnabled = opMonitorEnabled;
-        this.metaservicesEnabled = metaservicesEnabled;
-        this.serverProxyUrl = serverProxyUrl;
-    }
 
     private Map<String, ServiceId.Conf> activeServiceIdsMap() {
         var cached = activeServiceIdsCache;

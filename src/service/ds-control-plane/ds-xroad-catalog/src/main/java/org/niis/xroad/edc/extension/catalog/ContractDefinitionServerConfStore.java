@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -53,32 +54,18 @@ import java.util.stream.Stream;
  * Write operations return {@link StoreResult} failures (read-only store).
  */
 @Slf4j
+@RequiredArgsConstructor
 class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
-    private final ContractDefinitionMapper contractDefinitionMapper;
     private final String participantContextId;
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final QueryEvaluator<ContractDefinition> queryEvaluator =
             new QueryEvaluator<>(ContractDefinition::getId, ContractDefinition::getParticipantContextId);
-
-    ContractDefinitionServerConfStore(ServerConfProvider serverConfProvider,
-                                      GlobalConfProvider globalConfProvider,
-                                      ContractDefinitionMapper contractDefinitionMapper,
-                                      String participantContextId,
-                                      String managementParticipantContextId,
-                                      BuiltinServiceCatalog builtinServiceCatalog) {
-        this.serverConfProvider = serverConfProvider;
-        this.globalConfProvider = globalConfProvider;
-        this.contractDefinitionMapper = contractDefinitionMapper;
-        this.participantContextId = participantContextId;
-        this.managementParticipantContextId = managementParticipantContextId;
-        this.builtinServiceCatalog = builtinServiceCatalog;
-    }
 
     /**
      * Chooses the participant context ID for a given serviceId.
@@ -134,7 +121,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 log.trace("findById definitionId={} owner-only candidate did not resolve", definitionId);
                 return null;
             }
-            return contractDefinitionMapper.toOwnerOnlyContractDefinition(
+            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                     ownerOnlyServiceId, managementParticipantContextId);
         }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -174,7 +161,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             definitions.add(toBuiltinContractDefinition(serviceId));
         }
         ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
-                .forEach(serviceId -> definitions.add(contractDefinitionMapper.toOwnerOnlyContractDefinition(
+                .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                         serviceId, managementParticipantContextId)));
 
         if (log.isTraceEnabled()) {
@@ -226,7 +213,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (matchedEntries == null || matchedEntries.isEmpty()) {
             return null;
         }
-        return contractDefinitionMapper.toContractDefinition(serviceId,
+        return ContractDefinitionMapper.toContractDefinition(serviceId,
                 matchedEntries.getFirst().getSubjectId(), resolveContextId(serviceId));
     }
 
@@ -243,7 +230,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
      */
     private void collectContractDefinitionsForService(ServiceId serviceId,
                                                       List<ContractDefinition> definitions) {
-        definitions.add(contractDefinitionMapper.toOwnerOnlyContractDefinition(
+        definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                 serviceId, managementParticipantContextId));
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
@@ -257,7 +244,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();
-            definitions.add(contractDefinitionMapper.toContractDefinition(serviceId,
+            definitions.add(ContractDefinitionMapper.toContractDefinition(serviceId,
                     subjectAccessRights.getFirst().getSubjectId(), resolveContextId(serviceId)));
         }
     }

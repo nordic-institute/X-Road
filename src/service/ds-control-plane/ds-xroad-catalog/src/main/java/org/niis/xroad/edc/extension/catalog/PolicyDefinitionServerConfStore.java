@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -56,6 +57,7 @@ import java.util.stream.Stream;
  * Write operations return {@link StoreResult} failures (read-only store).
  */
 @Slf4j
+@RequiredArgsConstructor
 class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
@@ -68,20 +70,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final QueryEvaluator<PolicyDefinition> queryEvaluator =
             new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
-
-    PolicyDefinitionServerConfStore(ServerConfProvider serverConfProvider,
-                                    GlobalConfProvider globalConfProvider,
-                                    PolicyMapper policyMapper,
-                                    String participantContextId,
-                                    String managementParticipantContextId,
-                                    BuiltinServiceCatalog builtinServiceCatalog) {
-        this.serverConfProvider = serverConfProvider;
-        this.globalConfProvider = globalConfProvider;
-        this.policyMapper = policyMapper;
-        this.participantContextId = participantContextId;
-        this.managementParticipantContextId = managementParticipantContextId;
-        this.builtinServiceCatalog = builtinServiceCatalog;
-    }
 
     /**
      * Chooses the participant context ID for a given serviceId.

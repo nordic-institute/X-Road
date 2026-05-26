@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.annotation.Nullable;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
@@ -40,17 +41,13 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Maps between X-Road {@link ServiceId} domain objects and EDC {@link Asset} instances.
- * Package-private utility class per D-10.
  */
 @Slf4j
-final class AssetMapper {
+@UtilityClass
+class AssetMapper {
 
     static final int SERVICE_ID_PARTS_WITH_VERSION = 6;
     static final int SERVICE_ID_PARTS_WITHOUT_VERSION = 5;
-
-    private AssetMapper() {
-        // utility class
-    }
 
     /**
      * Encodes a ServiceId to a stable asset ID string using {@link XRoadId#asEncodedId()}.

@@ -81,7 +81,7 @@ class ContractDefinitionServerConfStoreTest {
     @BeforeEach
     void setUp() {
         store = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 noBuiltins());
     }
 
@@ -397,7 +397,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllIncludesBuiltinContractDefinitions() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 allBuiltins());
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -409,7 +409,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinsTaggedWithMgmtContext() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 allBuiltins());
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -422,7 +422,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 allBuiltins());
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -438,7 +438,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsBuiltinContractDefinition() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 allBuiltins());
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
         var contractId = builtinAssetId + ContractDefinitionMapper.getContractDefinitionSuffix();
@@ -454,7 +454,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsNullForUnknownBuiltinId() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 allBuiltins());
 
         var result = builtinStore.findById("DEV:GOV:1234:nonExistentService-contract-definition");
@@ -514,7 +514,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinDefinitionsHaveAcceptAllPolicyId() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new ContractDefinitionMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 allBuiltins());
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 

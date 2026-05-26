@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.catalog;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.Criterion;
@@ -37,12 +38,18 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Maps X-Road (service, subject) pairs to EDC {@link ContractDefinition} instances.
- * Package-private per D-07.
  */
 @Slf4j
+@UtilityClass
 class ContractDefinitionMapper {
 
     private static final String CONTRACT_DEFINITION_SUFFIX = "-contract-definition";
+
+    /**
+     * Suffix used on the owner-only policy/contract IDs to keep them disjoint from
+     * regular per-subject (assetId:subjectId) IDs.
+     */
+    static final String OWNER_ONLY_SUFFIX = "-owner-only";
 
     /**
      * Returns the contract definition ID suffix used by this mapper.
@@ -60,7 +67,7 @@ class ContractDefinitionMapper {
      * @param participantContextId the participant context ID
      * @return the built ContractDefinition
      */
-    ContractDefinition toContractDefinition(ServiceId serviceId, XRoadId subjectId, String participantContextId) {
+    static ContractDefinition toContractDefinition(ServiceId serviceId, XRoadId subjectId, String participantContextId) {
         if (log.isTraceEnabled()) {
             log.trace("toContractDefinition serviceId={} subjectId={}",
                     serviceId.asEncodedId(), subjectId.asEncodedId());
@@ -81,12 +88,6 @@ class ContractDefinitionMapper {
     }
 
     /**
-     * Suffix used on the owner-only policy/contract IDs to keep them disjoint from
-     * regular per-subject (assetId:subjectId) IDs.
-     */
-    static final String OWNER_ONLY_SUFFIX = "-owner-only";
-
-    /**
      * Builds the owner-only policyId for a service. Disjoint from per-subject policyId
      * format (which uses {assetId}:{subjectId}) so the lookup paths in
      * {@link ContractDefinitionServerConfStore#findById} and
@@ -104,7 +105,7 @@ class ContractDefinitionMapper {
      * ContractDefinitionResolverImpl pre-evaluates that policy at catalog time and
      * hides the ContractDefinition from non-owner peers.
      */
-    ContractDefinition toOwnerOnlyContractDefinition(ServiceId serviceId, String participantContextId) {
+    static ContractDefinition toOwnerOnlyContractDefinition(ServiceId serviceId, String participantContextId) {
         var assetId = AssetMapper.encodeAssetId(serviceId);
         var policyId = ownerOnlyPolicyId(serviceId);
         var contractId = policyId + CONTRACT_DEFINITION_SUFFIX;
