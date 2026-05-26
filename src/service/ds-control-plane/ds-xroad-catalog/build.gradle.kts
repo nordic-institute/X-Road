@@ -1,22 +1,22 @@
 plugins {
-    id("xroad.java-conventions")
+  id("xroad.java-conventions")
 }
 
 dependencies {
-    implementation(libs.edc.spi.asset)               // AssetIndex, DataAddressResolver
-    implementation(libs.edc.spi.policy)              // PolicyDefinitionStore
-    implementation(libs.edc.spi.contract)            // ContractDefinitionStore
-    implementation(libs.edc.spi.core)                // QuerySpec, Criterion, StoreResult
-    implementation(libs.edc.boot)                    // ServiceExtension, @Provider, @Inject
-    implementation(libs.edc.spi.policy.engine)       // ODRL model types
-    implementation(libs.edc.spi.dataplane.http)      // HttpDataAddress.Builder
+  implementation(libs.edc.spi.asset)
+  implementation(libs.edc.spi.policy)
+  implementation(libs.edc.spi.contract)
+  implementation(libs.edc.spi.core)
+  implementation(libs.edc.boot)
+  implementation(libs.edc.spi.policy.engine)
+  implementation(libs.edc.spi.dataplane.http)
 
-    implementation(project(":lib:serverconf-core"))  // ServerConfProvider
-    implementation(project(":lib:globalconf-core"))  // GlobalConfProvider
-    implementation(project(":common:common-domain")) // X-Road domain types
-    implementation(project(":service:ds-control-plane:ds-xroad-control-plane-policy"))
+  implementation(project(":lib:serverconf-core"))
+  implementation(project(":lib:globalconf-core"))
+  implementation(project(":common:common-domain"))
+  implementation(project(":service:ds-control-plane:ds-xroad-control-plane-policy"))
 
-    testImplementation(libs.assertj.core)
-    testImplementation(libs.mockito.jupiter)
-    testImplementation(libs.logback.classic)  // Logback ListAppender for WARN log assertions
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.logback.classic)
 }
