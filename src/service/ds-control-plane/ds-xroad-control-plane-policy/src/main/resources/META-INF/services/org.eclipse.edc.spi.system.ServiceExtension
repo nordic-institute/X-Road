@@ -1,1 +1,2 @@
 org.niis.xroad.edc.extension.policy.controlplane.XRoadControlPlanePolicyExtension
+org.niis.xroad.edc.extension.policy.controlplane.participantagent.XRoadParticipantAgentExtension

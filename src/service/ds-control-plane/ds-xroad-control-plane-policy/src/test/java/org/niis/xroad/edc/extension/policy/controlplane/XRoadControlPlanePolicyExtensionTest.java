@@ -28,6 +28,7 @@
 package org.niis.xroad.edc.extension.policy.controlplane;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -42,15 +43,20 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLd.DEFAULT_SCOPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_SCOPE_V_2025_1;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_NAMESPACE;
 
 @ExtendWith(MockitoExtension.class)
 class XRoadControlPlanePolicyExtensionTest {
 
+    @Mock
+    JsonLd jsonLd;
     @Mock
     RuleBindingRegistry ruleBindingRegistry;
     @Mock
@@ -87,5 +93,15 @@ class XRoadControlPlanePolicyExtensionTest {
         verify(ruleBindingRegistry, times(27)).bind(anyString(), anyString());
         // Each call invokes policyEngine.registerFunction() once = 9 total
         verify(policyEngine, times(9)).registerFunction(any(), any(), anyString(), any());
+    }
+
+    @Test
+    void initializeRegistersXroadNamespaceOnDspAndDefaultScopes() {
+        when(serviceExtensionContext.getMonitor()).thenReturn(monitor);
+
+        extension.initialize(serviceExtensionContext);
+
+        verify(jsonLd).registerNamespace("xroad", XROAD_NAMESPACE, DSP_SCOPE_V_2025_1);
+        verify(jsonLd).registerNamespace("xroad", XROAD_NAMESPACE, DEFAULT_SCOPE);
     }
 }

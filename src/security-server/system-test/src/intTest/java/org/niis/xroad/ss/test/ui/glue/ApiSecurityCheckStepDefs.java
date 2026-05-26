@@ -79,8 +79,11 @@ public class ApiSecurityCheckStepDefs extends BaseUiStepDefs {
     public void allEndpointsFailWithCode(int code) {
         List<ResultDto> results = new ArrayList<>();
 
-        Map<String, Object> feignClients = applicationContext.getBeansWithAnnotation(FeignClient.class);
-        for (Object feignClient : feignClients.values()) {
+        for (String beanName : applicationContext.getBeanNamesForAnnotation(FeignClient.class)) {
+            if (isDataspacesFeignClient(beanName)) {
+                continue;
+            }
+            Object feignClient = applicationContext.getBean(beanName);
             Arrays.stream(feignClient.getClass().getDeclaredMethods())
                     .filter(this::isFeignMethod)
                     .forEach(method -> {
@@ -105,6 +108,12 @@ public class ApiSecurityCheckStepDefs extends BaseUiStepDefs {
         }
 
         generateReport(results, String.valueOf(code));
+    }
+
+    private boolean isDataspacesFeignClient(String beanName) {
+        return beanName.startsWith("feignControlPlane")
+                || beanName.startsWith("feignIdentityHub")
+                || beanName.startsWith("feignIssuerService");
     }
 
     private boolean shouldBeSkipped(Object feignClient, Method method) {

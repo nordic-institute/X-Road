@@ -23,8 +23,7 @@
     <include file="serverconf/008-admin-users.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/009-drop-uiuser-table.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/010-identifiers-consolidation.xml" relativeToChangelogFile="true"/>
-    <!-- TODO: Uncomment after the fix script is added in XRDDEV-3154 -->
-    <!-- <include file="serverconf/011-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/> -->
+    <include file="serverconf/011-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/>
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->

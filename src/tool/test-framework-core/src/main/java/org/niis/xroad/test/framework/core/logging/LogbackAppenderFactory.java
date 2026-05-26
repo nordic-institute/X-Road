@@ -110,14 +110,17 @@ public class LogbackAppenderFactory {
         String logFilePath = buildLogPath(workingDir, subdirectory, filename);
         String logPattern = pattern != null ? pattern : DEFAULT_PATTERN;
 
+        Logger logger = context.getLogger(loggerName);
+        if (logger.iteratorForAppenders().hasNext()) {
+            return logger;
+        }
         FileAppender<ILoggingEvent> appender = createFileAppender(
                 context,
                 loggerName + "-APPENDER",
                 logFilePath,
                 logPattern,
-                false);
+                true);
 
-        Logger logger = context.getLogger(loggerName);
         logger.addAppender(appender);
         logger.setLevel(Level.INFO);
         logger.setAdditive(false); // Don't propagate to root logger

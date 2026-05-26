@@ -6,7 +6,7 @@ Feature: 0570 - CS: Trust Services: Timestamping Services
   Background:
     Given CentralServer login page is open
     Then Browser is set in CELLULAR2G network speed
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And TrustServices tab is selected
 
   Scenario: Add timestamping service

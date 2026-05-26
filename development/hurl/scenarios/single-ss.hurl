@@ -7,7 +7,7 @@ HTTP 200
 POST https://{{cs_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -49,12 +49,14 @@ Content-Type: application/json
   "password": "secret123!"
 }
 HTTP *
+[Asserts]
+ status toString matches "^(201|409)$"
 
 # Log in to the Security Server
 POST https://{{ss_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret123
+password: secret123!
 
 HTTP 200
 [Captures]
