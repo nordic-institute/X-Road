@@ -51,6 +51,14 @@ xroad:
   dsp:
     participant-context-id: ${HOSTNAME:localhost}
     management-participant-context-id: ${xroad.dsp.participant-context-id}-mgmt
+  cp:
+    dataplane:
+      proxy:
+        id: "xroad-proxy"
+        url: "${XROAD_PROXY_DATAPLANE_URL:http://127.0.0.1:5590/full/api/v1/dataflows}"
+        enabled: true
+        allowed-source-types: http,https
+        allowed-transfer-types: Xrd-PULL
 
 edc:
   hostname: ${HOSTNAME:localhost}
