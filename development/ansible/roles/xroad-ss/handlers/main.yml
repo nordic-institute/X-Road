@@ -1,10 +1,4 @@
 ---
-- name: restart postgresql (dev remote)
-  become: true
-  service:
-    name: postgresql
-    state: restarted
-
 - name: restart xroad-proxy
   become: true
   service:

@@ -5,7 +5,9 @@
 - include_tasks: rhel.yml
   when: ansible_facts['os_family'] == "RedHat"
 
-- include_tasks: postgres_remote_dev.yml
+- include_role:
+    name: xroad-base
+    tasks_from: postgres_remote_dev.yml
   when: enable_postgres_remote_access | default(false) | bool
 
 - name: enable proxy health check
