@@ -1,0 +1,24 @@
+---
+# Installs X-Road Security Server on the ss_servers inventory group using
+# the bootstrapper (get-xroad.sh). Caller supplies:
+#   -e bootstrapper_url=<full URL of get-xroad.sh>
+#   -e xroad_admin_password=<admin password>
+# Optional overrides:
+#   -e xroad_repo_url_override=<custom apt/dnf URL>
+#   -e xroad_repo_gpg_key_url=<GPG key URL matching the override repo>
+
+- hosts: ss_servers
+  any_errors_fatal: true
+  gather_facts: true
+  tasks:
+    - name: Verify host OS is supported
+      fail:
+        msg: "OS family '{{ ansible_facts['os_family'] }}' not supported by xroad-ss-installer"
+      when: ansible_facts['os_family'] not in ['Debian', 'RedHat']
+
+- hosts: ss_servers
+  gather_facts: true
+  roles:
+    - xroad-ss-installer
+  tags:
+    - ss-installer

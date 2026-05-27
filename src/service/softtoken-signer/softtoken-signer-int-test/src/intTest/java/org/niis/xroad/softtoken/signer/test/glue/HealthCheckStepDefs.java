@@ -27,6 +27,7 @@
 
 package org.niis.xroad.softtoken.signer.test.glue;
 
+import io.cucumber.java.After;
 import io.cucumber.java.en.Step;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -153,34 +154,56 @@ public class HealthCheckStepDefs extends BaseSoftTokenSignerStepDefs {
         log.info("Signer service container started and healthy.");
     }
 
+    /**
+     * Ensure the signer container is running again after each health-check scenario.
+     * A scenario that stops the signer and then fails an assertion would otherwise leave it
+     * stopped, hanging the next scenario's setup on the signer RPC deadline. Runs before the
+     * key-cleanup hook (higher @After order executes first) so cleanup can reach the signer.
+     */
+    @After(value = "@HealthCheck", order = 20000)
+    public void ensureSignerRunning() {
+        if (!containerSetup.isRunning(SIGNER)) {
+            log.info("Signer container not running after scenario; restarting to isolate teardown.");
+            containerSetup.startContainer(SIGNER, true);
+        }
+    }
+
     @Step("health check failure threshold is reached")
     public void healthCheckFailureThresholdIsReached() {
         log.info("Waiting for liveness probe to report DOWN (failure threshold reached)...");
-        var url = buildHealthBaseUrl() + "/q/health/live";
-        await().atMost(30, TimeUnit.SECONDS)
-                .pollInterval(2, TimeUnit.SECONDS)
-                .untilAsserted(() -> given().get(url).then().statusCode(503));
+        awaitCheckStatus("/q/health/live", "SOFTTOKEN_SYNC_LIVENESS", "DOWN");
         log.info("Liveness probe reports DOWN - failure threshold reached.");
     }
 
     @Step("sync age threshold is exceeded")
     public void syncAgeThresholdIsExceeded() {
         log.info("Waiting for readiness probe to report DOWN (sync age exceeded)...");
-        var url = buildHealthBaseUrl() + "/q/health/ready";
-        await().atMost(30, TimeUnit.SECONDS)
-                .pollInterval(2, TimeUnit.SECONDS)
-                .untilAsserted(() -> given().get(url).then().statusCode(503));
+        // Wait on the SOFTTOKEN_SYNC_READINESS check specifically. The aggregate /q/health/ready
+        // also includes SIGNER_CHANNEL_READINESS_CHECK, which trips DOWN as soon as the signer
+        // channel hits TRANSIENT_FAILURE - well before the sync-age threshold elapses.
+        awaitCheckStatus("/q/health/ready", "SOFTTOKEN_SYNC_READINESS", "DOWN");
         log.info("Readiness probe reports DOWN - sync age threshold exceeded.");
     }
 
     @Step("keys are synchronized after recovery")
     public void keysAreSynchronizedAfterRecovery() {
         log.info("Waiting for liveness probe to recover to UP...");
-        var url = buildHealthBaseUrl() + "/q/health/live";
-        await().atMost(30, TimeUnit.SECONDS)
-                .pollInterval(2, TimeUnit.SECONDS)
-                .untilAsserted(() -> given().get(url).then().statusCode(200));
+        awaitCheckStatus("/q/health/live", "SOFTTOKEN_SYNC_LIVENESS", "UP");
         log.info("Liveness probe recovered to UP - keys synchronized.");
+    }
+
+    private void awaitCheckStatus(String path, String checkName, String expectedStatus) {
+        var url = buildHealthBaseUrl() + path;
+        await().atMost(30, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    var response = given().get(url).then().extract().response();
+                    var check = findCheckByName(response, checkName);
+                    assertThat(check).as("Check '%s' should be present", checkName).isNotNull();
+                    assertThat(((java.util.Map<?, ?>) check).get("status"))
+                            .as("Check '%s' status", checkName)
+                            .isEqualTo(expectedStatus);
+                });
     }
 
     @Step("the health response HTTP status code is {int}")

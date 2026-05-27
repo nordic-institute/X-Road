@@ -144,16 +144,35 @@
 - name: Install SS servers
   hosts: ss_servers
   become: true
-  become_user: root
   strategy: free
+  vars:
+    xroad_installer_local_mode: true
+    # LXD dev containers are below the installer's OS/RAM/CPU floor.
+    skip_requirements_check: true
+    # Ubuntu apt expects "file:///xroad /", RHEL dnf expects "file:///xroad" —
+    # mirrors vars_files/local_repo.yml (ubuntu_apt_repo / rhel_repo_baseurl).
+    xroad_repo_url_override: >-
+      {{ 'file:///xroad /' if ansible_facts['os_family'] == 'Debian'
+         else 'file:///xroad' }}
+    xroad_tls_hostname: "{{ inventory_hostname }}.lxd"
+    xroad_tls_alt_names: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ inventory_hostname }}.lxd,DNS:{{ inventory_hostname }}"
+  vars_files:
+    # ss_database.yml consumed by xroad-ss postinstall (enable_postgres_remote_access, pg_remote_dev_cidrs)
+    - vars_files/ss_database.yml
   roles:
-    - xroad-ss
+    - xroad-ss-installer
+  post_tasks:
+    # include_tasks (not include_role) so the xroad-ss -> xroad-base meta
+    # dependency is NOT run — the installer already set up repos/packages/user.
+    - name: Apply SS postinstall tweaks (db_property, postgres_remote_dev, opmonitor)
+      include_tasks: roles/xroad-ss/tasks/postinstall.yml
+  handlers:
+    # postinstall.yml notifies xroad-ss handlers; register them at play level
+    # since we no longer enter the role via include_role.
+    - import_tasks: roles/xroad-ss/handlers/main.yml
   tags:
     - ss
     - install
-  vars_files:
-    - vars_files/local_repo.yml
-    - vars_files/ss_database.yml
 
 - name: Install IS servers
   hosts: is_servers
