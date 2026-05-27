@@ -32,20 +32,22 @@ import com.google.common.cache.CacheBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.spi.EdcException;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
+
 /**
  * Singleton listener registered once at extension startup.
- * Dispatches ContractNegotiation terminal events to waiting futures
- * via an ID-keyed registry. Replaces per-request anonymous listener instances.
+ * Dispatches ContractNegotiation terminal events to waiting futures via an ID-keyed registry.
  *
  * <p>Thread safety: ConcurrentHashMap guarantees atomic put/remove.
- * Dead-letter maps handle the sub-microsecond window where an event arrives
- * before {@link #register(String, CompletableFuture)} is called.
+ * Dead-letter caches close the sub-microsecond window where an event arrives before
+ * {@link #register(String, CompletableFuture)} is called.
  */
 public class NegotiationCompletionListener implements ContractNegotiationListener {
 
@@ -69,12 +71,9 @@ public class NegotiationCompletionListener implements ContractNegotiationListene
     }
 
     /**
-     * Registers a future to be completed when the negotiation with the given ID reaches a terminal state.
-     * Must be called after {@code initiateNegotiation()} returns the negotiation ID.
-     * Checks dead-letter maps for events that arrived before this call.
-     *
-     * @param negotiationId the negotiation ID returned by initiateNegotiation
-     * @param future        the future to complete on terminal state
+     * Registers a future to be completed when the negotiation reaches a terminal state.
+     * Must be called after {@code initiateNegotiation()} returns the negotiation ID; the
+     * dead-letter caches are consulted for events that arrived before this call.
      */
     public void register(String negotiationId, CompletableFuture<ContractAgreement> future) {
         registry.put(negotiationId, future);
@@ -91,15 +90,13 @@ public class NegotiationCompletionListener implements ContractNegotiationListene
         if (termination != null) {
             pendingTerminations.invalidate(negotiationId);
             registry.remove(negotiationId);
-            future.completeExceptionally(new EdcException(termination.reason()));
+            future.completeExceptionally(buildNegotiationFailedException(negotiationId, termination.reason()));
         }
     }
 
     /**
-     * Removes the negotiation ID from all maps. Called on timeout or explicit cleanup.
+     * Removes the negotiation ID from registry and dead-letter caches.
      * Safe to call if the entry was already removed by an event delivery.
-     *
-     * @param negotiationId the negotiation ID to remove
      */
     public void deregister(String negotiationId) {
         registry.remove(negotiationId);
@@ -108,10 +105,7 @@ public class NegotiationCompletionListener implements ContractNegotiationListene
     }
 
     /**
-     * Returns the number of active waiters (negotiation IDs currently registered).
-     * Useful for monitoring and debugging.
-     *
-     * @return the number of registered futures
+     * Returns the number of negotiation IDs currently registered.
      */
     public int activeWaiters() {
         return registry.size();
@@ -131,11 +125,18 @@ public class NegotiationCompletionListener implements ContractNegotiationListene
     public void terminated(ContractNegotiation negotiation) {
         var future = registry.remove(negotiation.getId());
         if (future != null) {
-            future.completeExceptionally(
-                    new EdcException("Contract negotiation terminated: " + negotiation.getId()));
+            future.completeExceptionally(buildNegotiationFailedException(negotiation.getId(), null));
         } else {
             pendingTerminations.put(negotiation.getId(),
                     new Termination("Contract negotiation terminated: " + negotiation.getId()));
         }
+    }
+
+    private static XrdRuntimeException buildNegotiationFailedException(String negotiationId, String reason) {
+        return XrdRuntimeException.systemException(DSP_NEGOTIATION_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems(negotiationId)
+                .details(reason)
+                .build();
     }
 }

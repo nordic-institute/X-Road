@@ -37,7 +37,6 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.StatusProto;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.AfterEach;
@@ -50,6 +49,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
@@ -85,7 +86,7 @@ class AssetAccessGrpcServiceTest {
     void setUp() throws Exception {
         var responseHandler = new RpcResponseHandler();
         var grpcService = new AssetAccessGrpcService(
-                assetAccessOrchestrator, participantContextService, responseHandler);
+                assetAccessOrchestrator, participantContextService, responseHandler, java.time.Duration.ofSeconds(60));
         server = ServerBuilder.forPort(0)
                 .addService(grpcService)
                 .build()
@@ -228,65 +229,160 @@ class AssetAccessGrpcServiceTest {
         assertThat(response.getAuthorization()).isEqualTo("opaque-token-abc");
     }
 
-    static Stream<Arguments> edcFailureToErrorCode() {
+    static Stream<Arguments> dspErrorCodes() {
         return Stream.of(
-                Arguments.of(
-                        new EdcException("No dataset found for asset ID: svc"),
-                        ErrorCode.UNKNOWN_MEMBER),
-                Arguments.of(
-                        new EdcException("No offers found for asset ID: svc"),
-                        ErrorCode.UNKNOWN_MEMBER),
-                Arguments.of(
-                        new EdcException("No PULL distribution found for asset ID: svc"),
-                        ErrorCode.SERVICE_FAILED),
-                Arguments.of(
-                        new EdcException("Failed to fetch catalog: connection refused"),
-                        ErrorCode.NETWORK_ERROR),
-                Arguments.of(
-                        new EdcException("Failed to resolve participant context: ctx-1"),
-                        ErrorCode.INTERNAL_ERROR),
-                Arguments.of(
-                        new EdcException("Something unexpected happened"),
-                        ErrorCode.SERVICE_FAILED)
+                Arguments.of(ErrorCode.DSP_CATALOG_FETCH_FAILED),
+                Arguments.of(ErrorCode.DSP_CATALOG_PARSE_FAILED),
+                Arguments.of(ErrorCode.DSP_ACQUISITION_TIMEOUT),
+                Arguments.of(ErrorCode.DSP_DATASET_NOT_FOUND),
+                Arguments.of(ErrorCode.DSP_OFFERS_NOT_FOUND),
+                Arguments.of(ErrorCode.DSP_PULL_DISTRIBUTION_MISSING),
+                Arguments.of(ErrorCode.DSP_DATAADDRESS_INVALID),
+                Arguments.of(ErrorCode.DSP_NEGOTIATION_FAILED),
+                Arguments.of(ErrorCode.DSP_TRANSFER_FAILED),
+                Arguments.of(ErrorCode.DSP_ACQUISITION_FAILED),
+                Arguments.of(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED)
         );
     }
 
     @ParameterizedTest
-    @MethodSource("edcFailureToErrorCode")
-    void acquireFailureCarriesClassifiedErrorCodeInProto(EdcException failure, ErrorCode expectedCode) {
+    @MethodSource("dspErrorCodes")
+    void dspExceptionPropagatesWithDataspacePrefixedWireCode(ErrorCode dspCode) {
         stubParticipantContext();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
-                .thenReturn(CompletableFuture.failedFuture(failure));
-
-        var request = AcquireAssetAccessReq.newBuilder()
-                .setParticipantContextId("participant-1")
-                .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+        var dspException = XrdRuntimeException.systemException(dspCode)
+                .origin(ErrorOrigin.DATASPACE)
                 .build();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(dspException));
+
+        var request = baseRequest().build();
 
         try {
             stub.acquire(request);
             throw new AssertionError("Expected StatusRuntimeException");
         } catch (StatusRuntimeException ex) {
-            var actualCode = extractErrorCode(ex);
-            assertThat(actualCode).isEqualTo(expectedCode.code());
+            assertThat(extractErrorCode(ex)).isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + dspCode.code());
         }
     }
 
+    @Test
+    void dspExceptionPreservesMetadataItemsVerbatim() {
+        stubParticipantContext();
+        var dspException = XrdRuntimeException.systemException(ErrorCode.DSP_DATASET_NOT_FOUND)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems("my-asset-id", "extra-context")
+                .build();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(dspException));
+
+        var request = baseRequest().setAssetId("my-asset-id").build();
+
+        try {
+            stub.acquire(request);
+            throw new AssertionError("Expected StatusRuntimeException");
+        } catch (StatusRuntimeException ex) {
+            assertThat(extractMetadata(ex))
+                    .containsExactly("my-asset-id", "extra-context");
+        }
+    }
+
+    @Test
+    void dspExceptionPreservesIdentifierAndDetails() {
+        stubParticipantContext();
+        var dspException = XrdRuntimeException.systemException(ErrorCode.DSP_CATALOG_FETCH_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .identifier("fixed-uuid-1234")
+                .details("provider unreachable")
+                .build();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(dspException));
+
+        try {
+            stub.acquire(baseRequest().build());
+            throw new AssertionError("Expected StatusRuntimeException");
+        } catch (StatusRuntimeException ex) {
+            var proto = unpackProto(ex);
+            assertThat(proto.getIdentifier()).isEqualTo("fixed-uuid-1234");
+            assertThat(proto.getDetails()).isEqualTo("provider unreachable");
+        }
+    }
+
+    @Test
+    void nonDspXrdExceptionPassesThroughUnchanged() {
+        stubParticipantContext();
+        var signerException = XrdRuntimeException.systemException(ErrorCode.SERVICE_FAILED)
+                .origin(ErrorOrigin.SIGNER)
+                .details("signer unavailable")
+                .build();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(signerException));
+
+        try {
+            stub.acquire(baseRequest().build());
+            throw new AssertionError("Expected StatusRuntimeException");
+        } catch (StatusRuntimeException ex) {
+            assertThat(extractErrorCode(ex)).isEqualTo(ErrorOrigin.SIGNER.toPrefix() + ErrorCode.SERVICE_FAILED.code());
+        }
+    }
+
+    @Test
+    void plainRuntimeExceptionFromFutureBecomesDspAcquisitionFailed() {
+        stubParticipantContext();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(new RuntimeException("unexpected")));
+
+        try {
+            stub.acquire(baseRequest().build());
+            throw new AssertionError("Expected StatusRuntimeException");
+        } catch (StatusRuntimeException ex) {
+            assertThat(extractErrorCode(ex))
+                    .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + ErrorCode.DSP_ACQUISITION_FAILED.code());
+        }
+    }
+
+    @Test
+    void orchestratorThrowsDirectlyBecomesInternalError() {
+        stubParticipantContext();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+                .thenThrow(new RuntimeException("unexpected direct throw"));
+
+        try {
+            stub.acquire(baseRequest().build());
+            throw new AssertionError("Expected StatusRuntimeException");
+        } catch (StatusRuntimeException ex) {
+            assertThat(extractErrorCode(ex)).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
+        }
+    }
+
+    private AcquireAssetAccessReq.Builder baseRequest() {
+        return AcquireAssetAccessReq.newBuilder()
+                .setParticipantContextId("participant-1")
+                .setAssetId("asset-1")
+                .setCounterPartyId("provider-1")
+                .setCounterPartyAddress("http://provider/dsp");
+    }
+
     private String extractErrorCode(StatusRuntimeException ex) {
+        return unpackProto(ex).getErrorCode();
+    }
+
+    private java.util.List<String> extractMetadata(StatusRuntimeException ex) {
+        return unpackProto(ex).getErrorMetadataList();
+    }
+
+    private XrdRuntimeExceptionProto unpackProto(StatusRuntimeException ex) {
         var status = StatusProto.fromThrowable(ex);
         assertThat(status).isNotNull();
         for (var any : status.getDetailsList()) {
             if (any.is(XrdRuntimeExceptionProto.class)) {
                 try {
-                    return any.unpack(XrdRuntimeExceptionProto.class).getErrorCode();
+                    return any.unpack(XrdRuntimeExceptionProto.class);
                 } catch (InvalidProtocolBufferException e) {
                     throw new AssertionError("Failed to unpack XrdRuntimeExceptionProto", e);
                 }
             }
         }
-        return null;
+        throw new AssertionError("No XrdRuntimeExceptionProto found in gRPC status details");
     }
 
     private static String buildJwt(String header, String payload, String signature) {

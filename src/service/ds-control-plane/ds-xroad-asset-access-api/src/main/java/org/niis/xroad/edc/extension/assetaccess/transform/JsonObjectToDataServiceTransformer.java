@@ -26,9 +26,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_DESC
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 
 /**
- * Converts from a DCAT data service as a {@link JsonObject} in JSON-LD expanded form to a {@link DataService}.
+ * Converts a DCAT data service ({@link JsonObject}, JSON-LD expanded form) to a {@link DataService}.
+ * Adapted from EDC {@code federated-catalog-core}.
  */
-// copy/paste from federated-catalog-core EDC module
 public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransformer<JsonObject, DataService> {
 
     public JsonObjectToDataServiceTransformer() {

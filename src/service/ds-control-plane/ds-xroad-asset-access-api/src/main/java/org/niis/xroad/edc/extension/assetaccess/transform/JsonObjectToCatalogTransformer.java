@@ -43,9 +43,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
 
 /**
- * Converts from a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form to a {@link Catalog}.
+ * Converts a DCAT catalog ({@link JsonObject}, JSON-LD expanded form) to a {@link Catalog}.
+ * Adapted from EDC {@code federated-catalog-core} to avoid pulling that module's full dependency surface.
  */
-// copy/paste from federated-catalog-core EDC module
 public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
 
     public JsonObjectToCatalogTransformer() {

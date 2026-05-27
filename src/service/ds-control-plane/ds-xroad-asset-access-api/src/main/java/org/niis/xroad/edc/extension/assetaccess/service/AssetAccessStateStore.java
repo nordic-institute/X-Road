@@ -61,6 +61,9 @@ public class AssetAccessStateStore {
      * Returns the existing in-flight future for {@code key} if one exists; otherwise calls {@code supplier}
      * to create a new future, registers it, and returns it. The registered future removes itself from the
      * map on completion.
+     *
+     * <p>The supplier must be non-blocking: it runs under a {@link ConcurrentHashMap} bin lock
+     * and is expected only to assemble (not await) the async pipeline.
      */
     public CompletableFuture<ServiceResult<DataAddress>> loadOrStartInFlight(
             String key,

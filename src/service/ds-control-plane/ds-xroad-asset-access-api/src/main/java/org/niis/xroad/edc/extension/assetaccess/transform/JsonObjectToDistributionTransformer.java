@@ -27,9 +27,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVIC
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
 /**
- * Converts from a DCAT distribution as a {@link JsonObject} in JSON-LD expanded form to a {@link Distribution}.
+ * Converts a DCAT distribution ({@link JsonObject}, JSON-LD expanded form) to a {@link Distribution}.
+ * Adapted from EDC {@code federated-catalog-core-2025}.
  */
-// copy/paste from federated-catalog-core-2025 edc module
 public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransformer<JsonObject, Distribution> {
 
     public JsonObjectToDistributionTransformer() {

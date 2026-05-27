@@ -34,8 +34,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.telemetry.SpanAttributes;
 import org.niis.xroad.common.core.telemetry.XrdSpanAttrs;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
@@ -46,11 +47,18 @@ import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 
 import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 /**
  * gRPC service implementation that delegates to {@link AssetAccessOrchestrator}.
@@ -61,7 +69,6 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceImplBase {
 
-    private static final long TIMEOUT_SECONDS = 60;
     private static final String EDC_NS = "https://w3id.org/edc/v0.0.1/ns/";
     private static final String ENDPOINT_KEY = EDC_NS + "endpoint";
     private static final String AUTHORIZATION_KEY = EDC_NS + "authorization";
@@ -69,17 +76,12 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     private final AssetAccessOrchestrator assetAccessOrchestrator;
     private final ParticipantContextService participantContextService;
     private final RpcResponseHandler responseHandler;
+    private final Duration acquisitionTimeout;
 
     @Override
     @WithSpan("dsp-asset-acquire")
     public void acquire(AcquireAssetAccessReq request, StreamObserver<AcquireAssetAccessResp> responseObserver) {
-        responseHandler.handleRequest(responseObserver, () -> {
-            try {
-                return acquireInternal(request);
-            } catch (EdcException e) {
-                throw DspFailureClassifier.classify(e);
-            }
-        });
+        responseHandler.handleRequest(responseObserver, () -> acquireInternal(request));
     }
 
     private AcquireAssetAccessResp acquireInternal(AcquireAssetAccessReq request) {
@@ -103,7 +105,11 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     private ParticipantContext resolveParticipantContext(String participantContextId) {
         var result = participantContextService.getParticipantContext(participantContextId);
         if (result.failed()) {
-            throw new EdcException("Failed to resolve participant context: " + result.getFailureDetail());
+            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_CONTEXT_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .metadataItems(participantContextId)
+                    .details(result.getFailureDetail())
+                    .build();
         }
         return result.getContent();
     }
@@ -119,7 +125,10 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     private DataAddress awaitAcquireResult(ParticipantContext participantContext, AssetAccessRequest assetAccessRequest) {
         var serviceResult = awaitResult(assetAccessOrchestrator.acquireAssetAccess(participantContext, assetAccessRequest));
         if (serviceResult.failed()) {
-            throw new EdcException("Asset access acquisition failed: " + serviceResult.getFailureDetail());
+            throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .details(serviceResult.getFailureDetail())
+                    .build();
         }
         return serviceResult.getContent();
     }
@@ -128,7 +137,9 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
         var properties = dataAddress.getProperties();
         var endpoint = (String) properties.get(ENDPOINT_KEY);
         if (endpoint == null || endpoint.isBlank()) {
-            throw new EdcException("DataAddress missing required 'endpoint' property");
+            throw XrdRuntimeException.systemException(DSP_DATAADDRESS_INVALID)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .build();
         }
         var authorization = (String) properties.get(AUTHORIZATION_KEY);
         var expiresAt = extractJwtExpiry(authorization);
@@ -165,14 +176,44 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
 
     private <T> T awaitResult(CompletableFuture<T> future) {
         try {
-            return future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            return future.get(acquisitionTimeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new EdcException("Asset access acquisition interrupted", e);
+            throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .cause(e)
+                    .details("Asset access acquisition interrupted")
+                    .build();
         } catch (ExecutionException e) {
-            throw new EdcException("Asset access acquisition failed", e.getCause());
+            return unwrapExecutionException(e);
+        } catch (CompletionException e) {
+            return unwrapCompletionException(e);
         } catch (TimeoutException e) {
-            throw new EdcException("Asset access acquisition timed out after " + TIMEOUT_SECONDS + "s", e);
+            throw XrdRuntimeException.systemException(DSP_ACQUISITION_TIMEOUT)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .cause(e)
+                    .metadataItems(acquisitionTimeout.toMillis())
+                    .build();
         }
+    }
+
+    private static <T> T unwrapExecutionException(ExecutionException e) {
+        if (e.getCause() instanceof XrdRuntimeException xre) {
+            throw xre;
+        }
+        throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .cause(e.getCause())
+                .build();
+    }
+
+    private static <T> T unwrapCompletionException(CompletionException e) {
+        if (e.getCause() instanceof XrdRuntimeException xre) {
+            throw xre;
+        }
+        throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .cause(e.getCause())
+                .build();
     }
 }

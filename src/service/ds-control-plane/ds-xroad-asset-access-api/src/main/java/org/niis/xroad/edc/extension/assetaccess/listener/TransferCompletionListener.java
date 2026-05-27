@@ -32,21 +32,23 @@ import com.google.common.cache.CacheBuilder;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
+
 /**
  * Singleton listener registered once at extension startup.
- * Dispatches TransferProcess terminal events to waiting futures
- * via an ID-keyed registry. Replaces per-request anonymous listener instances.
+ * Dispatches TransferProcess terminal events to waiting futures via an ID-keyed registry.
  *
  * <p>Thread safety: ConcurrentHashMap guarantees atomic put/remove.
- * Dead-letter maps handle the sub-microsecond window where an event arrives
- * before {@link #register(String, CompletableFuture)} is called.
+ * Dead-letter caches close the sub-microsecond window where an event arrives before
+ * {@link #register(String, CompletableFuture)} is called.
  */
 public class TransferCompletionListener implements TransferProcessListener {
 
@@ -70,12 +72,9 @@ public class TransferCompletionListener implements TransferProcessListener {
     }
 
     /**
-     * Registers a future to be completed when the transfer process with the given ID reaches a terminal state.
-     * Must be called after {@code initiateTransfer()} returns the transfer process ID.
-     * Checks dead-letter maps for events that arrived before this call.
-     *
-     * @param transferProcessId the transfer process ID returned by initiateTransfer
-     * @param future            the future to complete on terminal state
+     * Registers a future to be completed when the transfer process reaches a terminal state.
+     * Must be called after {@code initiateTransfer()} returns the transfer process ID; the
+     * dead-letter caches are consulted for events that arrived before this call.
      */
     public void register(String transferProcessId, CompletableFuture<DataAddress> future) {
         registry.put(transferProcessId, future);
@@ -92,15 +91,13 @@ public class TransferCompletionListener implements TransferProcessListener {
         if (termination != null) {
             pendingTerminations.invalidate(transferProcessId);
             registry.remove(transferProcessId);
-            future.completeExceptionally(new EdcException(termination.reason()));
+            future.completeExceptionally(buildTransferFailedException(transferProcessId, termination.reason()));
         }
     }
 
     /**
-     * Removes the transfer process ID from all maps. Called on timeout or explicit cleanup.
+     * Removes the transfer process ID from registry and dead-letter caches.
      * Safe to call if the entry was already removed by an event delivery.
-     *
-     * @param transferProcessId the transfer process ID to remove
      */
     public void deregister(String transferProcessId) {
         registry.remove(transferProcessId);
@@ -109,10 +106,7 @@ public class TransferCompletionListener implements TransferProcessListener {
     }
 
     /**
-     * Returns the number of active waiters (transfer process IDs currently registered).
-     * Useful for monitoring and debugging.
-     *
-     * @return the number of registered futures
+     * Returns the number of transfer process IDs currently registered.
      */
     public int activeWaiters() {
         return registry.size();
@@ -134,11 +128,18 @@ public class TransferCompletionListener implements TransferProcessListener {
         String errorDetail = process.getErrorDetail() != null
                 ? process.getErrorDetail() : "provider terminated";
         if (future != null) {
-            future.completeExceptionally(
-                    new EdcException("Transfer process terminated: " + errorDetail));
+            future.completeExceptionally(buildTransferFailedException(process.getId(), errorDetail));
         } else {
             pendingTerminations.put(process.getId(),
                     new Termination("Transfer process terminated: " + errorDetail));
         }
+    }
+
+    private static XrdRuntimeException buildTransferFailedException(String transferProcessId, String detail) {
+        return XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems(transferProcessId)
+                .details(detail)
+                .build();
     }
 }

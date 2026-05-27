@@ -30,9 +30,10 @@ package org.niis.xroad.edc.extension.assetaccess.listener;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -64,7 +65,7 @@ class NegotiationCompletionListenerTest {
     }
 
     @Test
-    void registerBeforeTerminatedFailsFutureWithEdcException() {
+    void registerBeforeTerminatedFailsFutureWithDspNegotiationFailed() {
         var negotiation = buildNegotiation("neg-1");
         var future = new CompletableFuture<ContractAgreement>();
 
@@ -73,7 +74,13 @@ class NegotiationCompletionListenerTest {
 
         assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("neg-1");
+                });
         assertThat(listener.activeWaiters()).isZero();
     }
 
@@ -102,7 +109,13 @@ class NegotiationCompletionListenerTest {
         assertThat(future.isCompletedExceptionally()).isTrue();
         assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("neg-1");
+                });
         assertThat(listener.activeWaiters()).isZero();
     }
 

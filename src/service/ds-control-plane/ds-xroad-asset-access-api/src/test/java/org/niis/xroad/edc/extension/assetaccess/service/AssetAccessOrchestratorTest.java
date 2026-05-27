@@ -55,6 +55,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
@@ -102,7 +104,8 @@ class AssetAccessOrchestratorTest {
         transferListener = new TransferCompletionListener();
         orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), catalogService, contractNegotiationService,
                 transferProcessService, negotiationListener, transferListener,
-                jsonLd, transformerRegistry, monitor);
+                jsonLd, transformerRegistry, monitor,
+                java.time.Duration.ofSeconds(60), java.time.Duration.ofSeconds(60));
     }
 
     @Test
@@ -212,26 +215,7 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
-    void acquireAssetAccessDistributionWithMismatchedFormatRejected() throws Exception {
-        var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
-
-        var catalog = buildCatalog("asset-1", "offer-1", "JSON-PULL");
-        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
-        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
-        when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
-
-        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
-
-        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
-                .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class)
-                .hasMessageContaining("No PULL distribution found");
-    }
-
-    @Test
-    void acquireAssetAccessCatalogFetchFailurePropagatesAsEdcException() {
+    void catalogFetchFailureThrowsDspCatalogFetchFailed() {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
@@ -243,11 +227,60 @@ class AssetAccessOrchestratorTest {
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_catalog_fetch_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
     }
 
     @Test
-    void acquireAssetAccessNoMatchingOfferPropagatesAsEdcException() throws Exception {
+    void catalogFetchEdcExceptionThrowsDspCatalogFetchFailed() {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var edcException = new EdcException("upstream failure");
+
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenThrow(edcException);
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_catalog_fetch_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getCause()).isSameAs(edcException);
+                });
+    }
+
+    @Test
+    void catalogParseFailureThrowsDspCatalogParseFailed() {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
+        when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.failure("bad catalog json"));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_catalog_parse_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+    }
+
+    @Test
+    void datasetNotFoundThrowsDspDatasetNotFound() throws Exception {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
@@ -257,11 +290,65 @@ class AssetAccessOrchestratorTest {
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_dataset_not_found");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("asset-1");
+                });
     }
 
     @Test
-    void acquireAssetAccessNegotiationTerminatedPropagatesAsEdcException() throws Exception {
+    void offersNotFoundThrowsDspOffersNotFound() throws Exception {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+
+        var catalog = buildCatalogWithNoOffers("asset-1");
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
+        when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_offers_not_found");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("asset-1");
+                });
+    }
+
+    @Test
+    void pullDistributionMissingThrowsDspPullDistributionMissing() throws Exception {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+
+        var catalog = buildCatalog("asset-1", "offer-1", "JSON-LD");
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
+        when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_pull_distribution_missing");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("asset-1");
+                });
+    }
+
+    @Test
+    void negotiationTerminatedThrowsDspNegotiationFailed() throws Exception {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
@@ -287,12 +374,18 @@ class AssetAccessOrchestratorTest {
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("neg-1");
+                });
         verifyNoInteractions(transferProcessService);
     }
 
     @Test
-    void acquireAssetAccessTransferInitiationFailurePropagatesAsEdcException() throws Exception {
+    void transferInitiationFailureThrowsDspTransferFailed() throws Exception {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
@@ -323,7 +416,12 @@ class AssetAccessOrchestratorTest {
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
     }
 
     @Test
@@ -405,7 +503,7 @@ class AssetAccessOrchestratorTest {
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class);
 
         assertThat(negotiationListener.activeWaiters()).isZero();
         assertThat(transferListener.activeWaiters()).isZero();
@@ -456,7 +554,7 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
-    void acquireAssetAccessTransferTerminatedPropagatesAsEdcException() throws Exception {
+    void transferTerminatedThrowsDspTransferFailed() throws Exception {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
@@ -490,7 +588,13 @@ class AssetAccessOrchestratorTest {
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("tp-1");
+                });
     }
 
     private ParticipantContext buildParticipantContext() {
@@ -526,6 +630,16 @@ class AssetAccessOrchestratorTest {
         var dataset = Dataset.Builder.newInstance()
                 .id(assetId)
                 .offer(offerId, Policy.Builder.newInstance().build())
+                .distribution(distribution)
+                .build();
+        return Catalog.Builder.newInstance().dataset(dataset).build();
+    }
+
+    private Catalog buildCatalogWithNoOffers(String assetId) {
+        var dataService = DataService.Builder.newInstance().build();
+        var distribution = Distribution.Builder.newInstance().format("Xrd-PULL").dataService(dataService).build();
+        var dataset = Dataset.Builder.newInstance()
+                .id(assetId)
                 .distribution(distribution)
                 .build();
         return Catalog.Builder.newInstance().dataset(dataset).build();

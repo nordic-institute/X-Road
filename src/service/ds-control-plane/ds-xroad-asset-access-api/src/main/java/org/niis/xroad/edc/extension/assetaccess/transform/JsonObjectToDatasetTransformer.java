@@ -34,9 +34,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DISTRIBUTION_
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 
 /**
- * Converts from a DCAT dataset as a {@link JsonObject} in JSON-LD expanded form to a {@link Dataset}.
+ * Converts a DCAT dataset ({@link JsonObject}, JSON-LD expanded form) to a {@link Dataset}.
+ * Adapted from EDC {@code federated-catalog-core-2025}.
  */
-// copy/paste from federated-catalog-core-2025 edc module
 public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<JsonObject, Dataset> {
 
     public JsonObjectToDatasetTransformer() {

@@ -39,6 +39,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -51,29 +52,36 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
 
 import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 
 /**
  * Orchestrates the full asset access acquisition flow: catalog fetch, offer selection, contract negotiation,
  * transfer process initiation, and data address resolution — using event-driven callbacks instead of polling.
  *
  * <p>Uses singleton {@link NegotiationCompletionListener} and {@link TransferCompletionListener}
- * registered once at extension startup, rather than per-request anonymous listeners. This provides
- * O(1) event dispatch via ConcurrentHashMap and eliminates the TOCTOU race condition.
+ * registered once at extension startup. O(1) event dispatch via ConcurrentHashMap; dead-letter
+ * caches inside each listener close the race between {@code initiate*} returning and {@code register}.
  */
 @RequiredArgsConstructor
 public class AssetAccessOrchestrator {
-
-    private static final long TIMEOUT_SECONDS = 60;
 
     private final AssetAccessStateStore stateStore;
     private final CatalogService catalogService;
@@ -84,6 +92,8 @@ public class AssetAccessOrchestrator {
     private final JsonLd jsonLd;
     private final TypeTransformerRegistry transformerRegistry;
     private final Monitor monitor;
+    private final Duration negotiationTimeout;
+    private final Duration transferTimeout;
 
     /**
      * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+counterparty key.
@@ -125,18 +135,31 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<Catalog> fetchCatalog(String key, ParticipantContext participantContext, AssetAccessRequest request) {
         monitor.info("%s catalog fetch started".formatted(key));
-        return catalogService.requestCatalog(participantContext, request.counterPartyId(), request.counterPartyAddress(),
-                        request.protocolOrDefault(), QuerySpec.none())
-                .thenApply(result -> {
-                    if (result.failed()) {
-                        monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
-                        throw new EdcException("Failed to fetch catalog: %s".formatted(result.getFailureDetail()));
-                    }
-                    var catalog = parseCatalog(key, result.getContent());
-                    monitor.debug("%s catalog fetch succeeded: datasets=%d"
-                            .formatted(key, catalog.getDatasets().size()));
-                    return catalog;
-                });
+        try {
+            return catalogService.requestCatalog(participantContext, request.counterPartyId(), request.counterPartyAddress(),
+                            request.protocolOrDefault(), QuerySpec.none())
+                    .thenApply(result -> {
+                        if (result.failed()) {
+                            monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
+                            throw XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
+                                    .origin(ErrorOrigin.DATASPACE)
+                                    .details(result.getFailureDetail())
+                                    .build();
+                        }
+                        var catalog = parseCatalog(key, result.getContent());
+                        monitor.debug("%s catalog fetch succeeded: datasets=%d"
+                                .formatted(key, catalog.getDatasets().size()));
+                        return catalog;
+                    });
+        } catch (EdcException e) {
+            monitor.warning("%s catalog fetch failed with EDC exception".formatted(key), e);
+            return CompletableFuture.failedFuture(
+                    XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
+                            .origin(ErrorOrigin.DATASPACE)
+                            .cause(e)
+                            .details(e.getMessage())
+                            .build());
+        }
     }
 
     private Catalog parseCatalog(String key, byte[] catalogBytes) {
@@ -146,11 +169,20 @@ public class AssetAccessOrchestrator {
                     .compose(expanded -> transformerRegistry.transform(expanded, Catalog.class))
                     .orElseThrow(failure -> {
                         monitor.warning("%s catalog parse failed: %s".formatted(key, failure.getFailureDetail()));
-                        return new EdcException("Failed to parse catalog: %s".formatted(failure.getFailureDetail()));
+                        return XrdRuntimeException.systemException(DSP_CATALOG_PARSE_FAILED)
+                                .origin(ErrorOrigin.DATASPACE)
+                                .details(failure.getFailureDetail())
+                                .build();
                     });
+        } catch (XrdRuntimeException e) {
+            throw e;
         } catch (Exception e) {
             monitor.warning("%s catalog parse failed".formatted(key), e);
-            throw new EdcException("Error parsing catalog response", e);
+            throw XrdRuntimeException.systemException(DSP_CATALOG_PARSE_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .cause(e)
+                    .details(e.getMessage())
+                    .build();
         }
     }
 
@@ -158,31 +190,34 @@ public class AssetAccessOrchestrator {
         var dataset = catalog.getDatasets().stream()
                 .filter(ds -> assetId.equals(ds.getId()))
                 .findFirst()
-                .orElseThrow(() -> new EdcException("No dataset found for asset ID: %s".formatted(assetId)));
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_DATASET_NOT_FOUND)
+                        .origin(ErrorOrigin.DATASPACE)
+                        .metadataItems(assetId)
+                        .build());
 
         if (!dataset.hasOffers()) {
-            throw new EdcException("No offers found for asset ID: %s".formatted(assetId));
+            throw XrdRuntimeException.systemException(DSP_OFFERS_NOT_FOUND)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .metadataItems(assetId)
+                    .build();
         }
 
         var firstOffer = dataset.getOffers().entrySet().iterator().next();
 
-        // find a PULL distribution from the dataset
         var transferType = dataset.getDistributions().stream()
                 .map(Distribution::getFormat)
                 .filter(f -> "Xrd-PULL".equals(f))
                 .findFirst()
-                .orElseThrow(() -> new EdcException("No PULL distribution found for asset ID: %s".formatted(assetId)));
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PULL_DISTRIBUTION_MISSING)
+                        .origin(ErrorOrigin.DATASPACE)
+                        .metadataItems(assetId)
+                        .build());
 
         monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s"
                 .formatted(key, assetId, firstOffer.getKey(), transferType));
         return new OfferContext(firstOffer.getKey(), firstOffer.getValue(), dataset, transferType);
     }
 
-    /**
-     * Initiates contract negotiation and registers on the shared listener to await the terminal event.
-     * The negotiation ID is obtained first, then registered with the listener — the dead-letter map
-     * in the listener handles the sub-microsecond window between initiation returning and registration.
-     */
     private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,
                                                                    AssetAccessRequest request, OfferContext offer) {
         try {
@@ -197,7 +232,7 @@ public class AssetAccessOrchestrator {
             negotiationListener.register(negotiationId, future);
 
             return future
-                    .orTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .orTimeout(negotiationTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .whenComplete((result, throwable) -> onNegotiationComplete(key, negotiationId, result, throwable));
         } catch (Exception e) {
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
@@ -230,11 +265,6 @@ public class AssetAccessOrchestrator {
         }
     }
 
-    /**
-     * Initiates the transfer process and registers on the shared listener to await the started event.
-     * The transfer process ID is obtained first, then registered with the listener — the dead-letter map
-     * in the listener handles the sub-microsecond window between initiation returning and registration.
-     */
     private CompletableFuture<DataAddress> transferAndAwaitDataAddress(
             String key, ParticipantContext participantContext, ContractAgreement agreement,
             String transferType, String counterPartyAddress, String protocol) {
@@ -245,11 +275,26 @@ public class AssetAccessOrchestrator {
                 .transferType(transferType)
                 .build();
 
-        var result = transferProcessService.initiateTransfer(participantContext, transferRequest);
+        ServiceResult<TransferProcess> result;
+        try {
+            result = transferProcessService.initiateTransfer(participantContext, transferRequest);
+        } catch (EdcException e) {
+            monitor.warning("%s transfer initiate failed with EDC exception".formatted(key), e);
+            return CompletableFuture.failedFuture(
+                    XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
+                            .origin(ErrorOrigin.DATASPACE)
+                            .cause(e)
+                            .details(e.getMessage())
+                            .build());
+        }
+
         if (result.failed()) {
             monitor.warning("%s transfer initiate failed: %s".formatted(key, result.getFailureDetail()));
             return CompletableFuture.failedFuture(
-                    new EdcException("Could not start transfer process: %s".formatted(result.getFailureDetail())));
+                    XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
+                            .origin(ErrorOrigin.DATASPACE)
+                            .details(result.getFailureDetail())
+                            .build());
         }
 
         var transferProcessId = result.getContent().getId();
@@ -258,7 +303,7 @@ public class AssetAccessOrchestrator {
         transferListener.register(transferProcessId, future);
 
         return future
-                .orTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .orTimeout(transferTimeout.toMillis(), TimeUnit.MILLISECONDS)
                 .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
     }
 
@@ -267,7 +312,6 @@ public class AssetAccessOrchestrator {
         if (throwable != null) {
             monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
         } else if (dataAddress != null) {
-            // Log endpoint type only at info level; full DataAddress may carry a bearer token.
             monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
             monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
         }

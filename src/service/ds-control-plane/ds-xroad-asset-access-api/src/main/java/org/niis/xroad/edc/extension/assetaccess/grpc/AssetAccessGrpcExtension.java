@@ -43,6 +43,7 @@ import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.function.Supplier;
 
 /**
@@ -59,6 +60,11 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
 
     @Setting(key = "xroad.asset-access.rpc.host", description = "gRPC server listen address", defaultValue = "0.0.0.0")
     private String rpcHost;
+
+    @Setting(key = "xroad.asset-access.acquisition.timeout-seconds",
+            description = "Overall asset acquisition deadline in seconds (gRPC await for catalog → negotiation → transfer)",
+            defaultValue = "60")
+    private long acquisitionTimeoutSeconds;
 
     @Inject
     private AssetAccessOrchestrator assetAccessOrchestrator;
@@ -80,7 +86,8 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext extensionContext) {
         var responseHandler = new RpcResponseHandler();
-        grpcService = new AssetAccessGrpcService(assetAccessOrchestrator, participantContextService, responseHandler);
+        grpcService = new AssetAccessGrpcService(assetAccessOrchestrator, participantContextService, responseHandler,
+                Duration.ofSeconds(acquisitionTimeoutSeconds));
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }
 
@@ -107,6 +114,8 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 monitor.warning("Interrupted while shutting down gRPC server", e);
+            } catch (RuntimeException e) {
+                monitor.severe("Failed to shut down gRPC server for " + EXTENSION_NAME, e);
             }
         }
     }

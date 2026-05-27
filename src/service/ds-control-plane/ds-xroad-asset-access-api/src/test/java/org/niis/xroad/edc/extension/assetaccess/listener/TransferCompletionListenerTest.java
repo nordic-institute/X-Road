@@ -29,10 +29,11 @@ package org.niis.xroad.edc.extension.assetaccess.listener;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -65,7 +66,7 @@ class TransferCompletionListenerTest {
     }
 
     @Test
-    void registerBeforeTerminatedFailsFutureWithEdcException() {
+    void registerBeforeTerminatedFailsFutureWithDspTransferFailed() {
         var process = TransferProcess.Builder.newInstance().id("tp-1").build();
         var future = new CompletableFuture<DataAddress>();
 
@@ -74,7 +75,13 @@ class TransferCompletionListenerTest {
 
         assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("tp-1");
+                });
         assertThat(listener.activeWaiters()).isZero();
     }
 
@@ -104,7 +111,13 @@ class TransferCompletionListenerTest {
         assertThat(future.isCompletedExceptionally()).isTrue();
         assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(EdcException.class);
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                    assertThat(cause.getErrorCodeMetadata()).contains("tp-1");
+                });
         assertThat(listener.activeWaiters()).isZero();
     }
 

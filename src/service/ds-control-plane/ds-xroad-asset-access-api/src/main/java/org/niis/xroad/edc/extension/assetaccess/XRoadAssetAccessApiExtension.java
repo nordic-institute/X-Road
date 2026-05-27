@@ -39,6 +39,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -52,6 +53,8 @@ import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToCatalogTra
 import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDataServiceTransformer;
 import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDatasetTransformer;
 import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDistributionTransformer;
+
+import java.time.Duration;
 
 @Provides({AssetAccessOrchestrator.class})
 @Extension(value = XRoadAssetAccessApiExtension.EXTENSION_NAME)
@@ -89,6 +92,16 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     @Inject
     private ParticipantIdMapper participantIdMapper;
 
+    @Setting(key = "xroad.asset-access.negotiation.timeout-seconds",
+            description = "Per-stage contract negotiation deadline in seconds",
+            defaultValue = "60")
+    private long negotiationTimeoutSeconds;
+
+    @Setting(key = "xroad.asset-access.transfer.timeout-seconds",
+            description = "Per-stage transfer process deadline in seconds",
+            defaultValue = "60")
+    private long transferTimeoutSeconds;
+
     private AssetAccessOrchestrator assetAccessOrchestrator;
     private NegotiationCompletionListener negotiationCompletionListener;
     private TransferCompletionListener transferCompletionListener;
@@ -120,17 +133,21 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     @Provider
     public AssetAccessOrchestrator assetAccessOrchestrator() {
-        assetAccessOrchestrator = new AssetAccessOrchestrator(
-                new AssetAccessStateStore(),
-                catalogService,
-                contractNegotiationService,
-                transferProcessService,
-                negotiationCompletionListener,
-                transferCompletionListener,
-                jsonLd,
-                assetAccessTransformerRegistry,
-                monitor
-        );
+        if (assetAccessOrchestrator == null) {
+            assetAccessOrchestrator = new AssetAccessOrchestrator(
+                    new AssetAccessStateStore(),
+                    catalogService,
+                    contractNegotiationService,
+                    transferProcessService,
+                    negotiationCompletionListener,
+                    transferCompletionListener,
+                    jsonLd,
+                    assetAccessTransformerRegistry,
+                    monitor,
+                    Duration.ofSeconds(negotiationTimeoutSeconds),
+                    Duration.ofSeconds(transferTimeoutSeconds)
+            );
+        }
         return assetAccessOrchestrator;
     }
 }
