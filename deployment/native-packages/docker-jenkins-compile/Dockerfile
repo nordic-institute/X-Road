@@ -1,40 +1,64 @@
 FROM ubuntu:26.04
-RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
 
+RUN apt-get -y update \
+  && apt-get install -y locales \
+  && locale-gen en_US.UTF-8 \
+  && apt-get clean
+
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
-  && apt-get -qq upgrade \
-  && apt-get -qq install curl software-properties-common gawk \
-  openjdk-25-jdk-headless build-essential git unzip debhelper \
-  && apt-get -qq autoremove \
-  && apt-get -qq clean
+  && apt-get -qq upgrade -y \
+  && apt-get install -y -qq --no-install-recommends \
+    ca-certificates \
+    curl \
+    software-properties-common \
+    gawk \
+    openjdk-25-jdk-headless \
+    build-essential \
+    git \
+    unzip \
+    debhelper \
+  && apt-get -qq autoremove -y \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-RUN add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
+RUN install -m 0755 -d /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc \
+  && chmod a+r /etc/apt/keyrings/docker.asc \
+  && tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
 
-RUN apt-get -y update && \
- apt-get -y install \
-   docker-ce \
-   docker-ce-cli \
-   containerd.io
+RUN apt-get -qq update \
+  && apt-get -qq install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin \
+  && apt-get -qq autoremove -y \
+  && rm -rf /var/lib/apt/lists/*
 
 ARG JENKINSUID
 ARG JENKINSGID
 ARG DOCKERGID
 
 # Setup users and groups
-RUN groupmod -g ${DOCKERGID} docker
-RUN groupadd -o -g ${JENKINSGID} builder && useradd -m -u ${JENKINSUID} -g ${JENKINSGID} -G ${DOCKERGID} builder \
-  && mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache
+RUN groupadd -g ${DOCKERGID} host-docker \
+  && groupadd -o -g ${JENKINSGID} builder \
+  && useradd -m -u ${JENKINSUID} -g ${JENKINSGID} -G host-docker builder \
+  && mkdir -p /mnt/gradle-cache \
+  && chown -R builder:builder /mnt/gradle-cache
 
 USER builder
 WORKDIR /mnt
 
-ENV GRADLE_USER_HOME /mnt/gradle-cache
+ENV GRADLE_USER_HOME=/mnt/gradle-cache
