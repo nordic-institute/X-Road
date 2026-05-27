@@ -58,7 +58,7 @@ spec:
               name: tmp-volume
       initContainers:
         - name: check-db-ready
-          image: "postgres:17"
+          image: "postgres:18"
           securityContext:
             {{- toYaml .root.Values.securityContext.container | nindent 12 }}
           command: ['sh', '-c',

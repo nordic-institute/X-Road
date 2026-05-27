@@ -1,5 +1,5 @@
 ARG DOCKER_REGISTRY=""
-FROM ${DOCKER_REGISTRY}ubuntu:noble
+FROM ${DOCKER_REGISTRY}ubuntu:resolute
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Configure package mirror for APT
@@ -27,7 +27,7 @@ RUN apt-get -qq update \
   && apt-get -qq clean
 
 ARG VERSION
-ARG DIST=noble
+ARG DIST=resolute
 ARG REPO=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/debian
 ARG REPO_KEY=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/jenkins@niis.org.gpg
 ARG COMPONENT=main

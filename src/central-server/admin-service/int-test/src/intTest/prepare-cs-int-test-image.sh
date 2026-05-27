@@ -25,7 +25,7 @@ log_success "Project built successfully"
 # Step 2: Build packages
 log_info "=== Step 2: Building packages ==="
 cd "${ROOT_DIR}"
-./src/build_packages.sh -d -r noble --package-only
+./src/build_packages.sh -d -r resolute --package-only
 if [[ $? -ne 0 ]]; then
     log_error "Failed to build packages"
     exit 1

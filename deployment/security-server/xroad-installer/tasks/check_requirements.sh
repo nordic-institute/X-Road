@@ -23,7 +23,7 @@ validate_os_version() {
 
     # Check for supported Ubuntu versions
     if [[ "$ID" == "ubuntu" ]]; then
-      if [[ "$VERSION_ID" == "22.04" ]] || [[ "$VERSION_ID" == "24.04" ]]; then
+      if [[ "$VERSION_ID" == "24.04" ]] || [[ "$VERSION_ID" == "26.04" ]]; then
         supported=true
       fi
     # Check for supported RHEL versions

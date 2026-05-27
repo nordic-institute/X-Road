@@ -122,7 +122,7 @@ jobs:
           REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           REGISTRY="${{ env.REGISTRY }}/${REPO_LOWERCASE}"
           
-          IMAGES=(deb-jammy deb-noble rpm-el8 rpm-el9)
+          IMAGES=(deb-noble deb-resolute rpm-el8 rpm-el9)
           
           for image in "${IMAGES[@]}"; do
             echo "Creating manifest for package-builder-${image}:${TAG}"
@@ -172,13 +172,13 @@ jobs:
           
           ## Built Images
           Each image is available for both amd64 and arm64:
-          - \`package-builder-deb-jammy:${TAG}\`
           - \`package-builder-deb-noble:${TAG}\`
+          - \`package-builder-deb-resolute:${TAG}\`
           - \`package-builder-rpm-el8:${TAG}\`
           - \`package-builder-rpm-el9:${TAG}\`
           
           ### Architecture-Specific Tags (for debugging)
-          - \`package-builder-deb-jammy:${TAG}-amd64\`
-          - \`package-builder-deb-jammy:${TAG}-arm64\`
+          - \`package-builder-deb-resolute:${TAG}-amd64\`
+          - \`package-builder-deb-resolute:${TAG}-arm64\`
           - (same pattern for all images)
           EOF

@@ -182,7 +182,7 @@ docker run --detach \
   # Optional parameters - BEGIN
   -v <config-volume>:/etc/xroad \
   -v <archive-volume>:/var/lib/xroad \
-  -v <database-volume>:/var/lib/postgresql/16/main \
+  -v <database-volume>:/var/lib/postgresql/18/main \
   -e XROAD_LOG_LEVEL=INFO \
   -e XROAD_DB_HOST=<database-host> \
   -e XROAD_DB_PORT=<database-port> \

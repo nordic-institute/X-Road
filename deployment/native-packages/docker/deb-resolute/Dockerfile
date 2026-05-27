@@ -1,5 +1,5 @@
 ARG DOCKER_REGISTRY=""
-FROM ${DOCKER_REGISTRY}ubuntu:22.04
+FROM ${DOCKER_REGISTRY}ubuntu:26.04
 
 # Configure package mirror for APT
 ARG XROAD_MIRROR_URL
