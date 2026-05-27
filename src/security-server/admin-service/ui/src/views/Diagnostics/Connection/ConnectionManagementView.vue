@@ -106,6 +106,7 @@
             :label="$t('diagnostics.connection.securityServer.targetClient')"
             variant="outlined"
             :disabled="true"
+            :loading="subsystemsLoading"
           ></v-combobox>
         </v-col>
         <v-col cols="2">
@@ -117,6 +118,7 @@
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.securityServer')"
             variant="outlined"
+            :loading="securityServerLoading"
           ></v-combobox>
         </v-col>
       </v-row>
@@ -128,10 +130,10 @@
         </v-col>
         <v-col cols="1">
           <span v-if="!managementServiceStatus">
-            <xrd-status-icon :status="statusIconType(undefined)"/>
+            <xrd-status-icon :status="statusIconType(undefined)" />
           </span>
           <span v-else>
-            <xrd-status-icon :status="statusIconType(managementServiceStatus?.status_class)"/>
+            <xrd-status-icon :status="statusIconType(managementServiceStatus?.status_class)" />
           </span>
         </v-col>
         <v-col cols="10" data-test="management-server-status-message">
@@ -184,6 +186,8 @@ export default defineComponent({
   name: 'ConnectionManagementView',
   data() {
     return {
+      subsystemsLoading: false,
+      securityServerLoading: false,
       otherSecurityServerLoading: false,
       ...initialState()
     };
@@ -217,15 +221,25 @@ export default defineComponent({
     this.selectedInstance = this.localInstance || '';
 
     if (this.selectedInstance) {
-      await this.fetchAllSubsystems(this.selectedInstance);
-      this.localAllSubsystems = this.allSubsystems.map(
-        (c: Client) => ({ ...c }),
-      );
-      this.selectedTargetSubsystemId = this.managementService || '';
+      try {
+        this.subsystemsLoading = true;
+        await this.fetchAllSubsystems(this.selectedInstance);
+        this.localAllSubsystems = this.allSubsystems.map(
+          (c: Client) => ({ ...c }),
+        );
+        this.selectedTargetSubsystemId = this.managementService || '';
+      } finally {
+        this.subsystemsLoading = false;
+      }
     }
 
     if (this.selectedTargetSubsystemId) {
-      await this.fetchSecurityServers(this.selectedTargetSubsystemId);
+      try {
+        this.securityServerLoading = true;
+        await this.fetchSecurityServers(this.selectedTargetSubsystemId);
+      } finally {
+        this.securityServerLoading = false;
+      }
       this.localSecurityServers = this.securityServers.map(
         (s: SecurityServer) => ({ ...s }),
       );

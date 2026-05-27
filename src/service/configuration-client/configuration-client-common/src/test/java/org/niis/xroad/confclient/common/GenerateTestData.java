@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core;
+package org.niis.xroad.confclient.common;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
@@ -65,10 +65,9 @@ public final class GenerateTestData {
     /**
      * Main program entry point.
      *
-     * @param args command-line arguments
      * @throws Exception in case of any errors
      */
-    public static void main(String[] args) throws Exception {
+    public static void main() throws Exception {
         // simple conf with private & shared params + additional file
         new TestConfDir("test-conf-simple").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
                         "EE", "/" + FILE_NAME_PRIVATE_PARAMETERS), FILE_NAME_PRIVATE_PARAMETERS)
@@ -100,7 +99,7 @@ public final class GenerateTestData {
             StringBuilder parts = new StringBuilder();
 
             if (writeExpireDate) {
-                parts.append("--innerboundary\nExpire-date: 2026-05-20T17:42:55Z\n\n");
+                parts.append("--innerboundary\nExpire-date: 2032-05-20T17:42:55Z\n\n");
             }
 
             for (ConfDirEntry entry : entries) {
