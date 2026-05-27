@@ -13,6 +13,7 @@ dependencies {
   api(project(":lib:serverconf-core"))
   api(project(":lib:globalconf-impl"))
 
+  annotationProcessor(libs.hibernate.jpamodelgen)
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 
