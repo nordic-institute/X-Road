@@ -15,7 +15,6 @@ RUN apt-get -qq update \
   && apt-get install -y -qq --no-install-recommends \
     ca-certificates \
     curl \
-    software-properties-common \
     gawk \
     openjdk-25-jdk-headless \
     build-essential \
@@ -52,7 +51,7 @@ ARG JENKINSGID
 ARG DOCKERGID
 
 # Setup users and groups
-RUN groupadd -g ${DOCKERGID} host-docker \
+RUN groupadd -o -g ${DOCKERGID} host-docker \
   && groupadd -o -g ${JENKINSGID} builder \
   && useradd -m -u ${JENKINSUID} -g ${JENKINSGID} -G host-docker builder \
   && mkdir -p /mnt/gradle-cache \
