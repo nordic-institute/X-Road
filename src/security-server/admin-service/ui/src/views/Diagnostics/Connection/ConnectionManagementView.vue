@@ -84,6 +84,7 @@
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.targetClient')"
             :disabled="true"
+            :loading="subsystemsLoading"
           />
         </v-col>
         <v-col cols="2">
@@ -95,6 +96,7 @@
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.securityServer')"
+            :loading="securityServerLoading"
           />
         </v-col>
       </v-row>
@@ -172,6 +174,8 @@ export default defineComponent({
   },
   data() {
     return {
+      subsystemsLoading: false,
+      securityServerLoading: false,
       otherSecurityServerLoading: false,
       ...initialState(),
     };
@@ -205,13 +209,21 @@ export default defineComponent({
     this.selectedInstance = this.localInstance || '';
 
     if (this.selectedInstance) {
-      await this.fetchAllSubsystems(this.selectedInstance);
+      try {
+        this.subsystemsLoading = true;await this.fetchAllSubsystems(this.selectedInstance);
       this.localAllSubsystems = this.allSubsystems.map((c: Client) => ({ ...c }));
-      this.selectedTargetSubsystemId = this.managementService || '';
+      this.selectedTargetSubsystemId = this.managementService || '';} finally {
+        this.subsystemsLoading = false;
+      }
     }
 
     if (this.selectedTargetSubsystemId) {
-      await this.fetchSecurityServers(this.selectedTargetSubsystemId);
+      try {
+        this.securityServerLoading = true;
+        await this.fetchSecurityServers(this.selectedTargetSubsystemId);
+      } finally {
+        this.securityServerLoading = false;
+      }
       this.localSecurityServers = this.securityServers.map((s: SecurityServer) => ({ ...s }));
       if (this.securityServers.length === 1) {
         this.selectedSecurityServerId = this.localSecurityServers[0].id;
