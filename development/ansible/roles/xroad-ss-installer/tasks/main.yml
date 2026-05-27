@@ -43,15 +43,34 @@
     group: root
     mode: '0600'
 
-- name: Sync in-tree installer scripts to target (local mode)
+- name: Stage installer on controller (local mode)
+  delegate_to: localhost
+  run_once: true
+  become: false
+  ansible.builtin.shell: |
+    set -euo pipefail
+    source ./_publish-installer-common.sh
+    REPO_ROOT=../.. prepare_staging
+    REPO_ROOT=../.. copy_helper_scripts
+  args:
+    chdir: "{{ xroad_installer_local_source }}/.."
+    executable: /bin/bash
+  changed_when: true
+  when: xroad_installer_local_mode | bool
+
+- name: Clean previous installer staging dir on target (local mode)
   become: true
-  ansible.posix.synchronize:
-    src: "{{ xroad_installer_local_source }}/"
+  ansible.builtin.file:
+    path: /tmp/xroad-installer
+    state: absent
+  when: xroad_installer_local_mode | bool
+
+- name: Sync staged installer to target (local mode)
+  become: true
+  ansible.builtin.copy:
+    src: "{{ xroad_installer_local_source }}/../build/xroad-installer/"
     dest: /tmp/xroad-installer/
-    delete: true
-    rsync_opts:
-      - "--exclude=build"
-      - "--exclude=.git"
+    mode: preserve
   when: xroad_installer_local_mode | bool
 
 - name: Run installer
