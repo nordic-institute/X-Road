@@ -9,6 +9,7 @@ dependencies {
   implementation(libs.jakarta.annotationApi)
   implementation(libs.slf4j.api)
 
+  testImplementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)
 }

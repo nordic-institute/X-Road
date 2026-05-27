@@ -58,6 +58,7 @@ import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
+import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
@@ -206,7 +207,7 @@ public class AssetAccessOrchestrator {
 
         var transferType = dataset.getDistributions().stream()
                 .map(Distribution::getFormat)
-                .filter(f -> "Xrd-PULL".equals(f))
+                .filter(XRoadTransferType.PULL.wireValue()::equals)
                 .findFirst()
                 .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PULL_DISTRIBUTION_MISSING)
                         .origin(ErrorOrigin.DATASPACE)

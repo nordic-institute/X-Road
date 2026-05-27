@@ -60,6 +60,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
+import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -616,7 +617,7 @@ class AssetAccessOrchestratorTest {
     }
 
     private void stubCatalogAndTransformChain(String assetId) {
-        var catalog = buildCatalog(assetId, "offer-1", "Xrd-PULL");
+        var catalog = buildCatalog(assetId, "offer-1", XRoadTransferType.PULL.wireValue());
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
         when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
@@ -637,7 +638,7 @@ class AssetAccessOrchestratorTest {
 
     private Catalog buildCatalogWithNoOffers(String assetId) {
         var dataService = DataService.Builder.newInstance().build();
-        var distribution = Distribution.Builder.newInstance().format("Xrd-PULL").dataService(dataService).build();
+        var distribution = Distribution.Builder.newInstance().format(XRoadTransferType.PULL.wireValue()).dataService(dataService).build();
         var dataset = Dataset.Builder.newInstance()
                 .id(assetId)
                 .distribution(distribution)

@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -57,19 +58,19 @@ class AssetAccessStateStoreTest {
     @Test
     void recordAndRetrieveAgreement() {
         var agreement = buildAgreement("agr-1");
-        store.recordAgreement("key-1", agreement, "Xrd-PULL");
+        store.recordAgreement("key-1", agreement, XRoadTransferType.PULL.wireValue());
 
         var ctx = store.getAgreement("key-1");
 
         assertThat(ctx).isNotNull();
         assertThat(ctx.agreement()).isSameAs(agreement);
-        assertThat(ctx.transferType()).isEqualTo("Xrd-PULL");
+        assertThat(ctx.transferType()).isEqualTo(XRoadTransferType.PULL.wireValue());
     }
 
     @Test
     void recordAgreementDoesNotAffectOtherKeys() {
         var agreement = buildAgreement("agr-1");
-        store.recordAgreement("key-1", agreement, "Xrd-PULL");
+        store.recordAgreement("key-1", agreement, XRoadTransferType.PULL.wireValue());
 
         assertThat(store.getAgreement("key-2")).isNull();
     }
