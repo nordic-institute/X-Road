@@ -48,7 +48,6 @@ import java.util.function.Supplier;
 
 /**
  * EDC ServiceExtension that hosts a gRPC server for the AssetAccessService.
- * Manages RpcServer lifecycle: creates in start(), destroys in shutdown().
  */
 @Extension(value = AssetAccessGrpcExtension.EXTENSION_NAME)
 public class AssetAccessGrpcExtension implements ServiceExtension {
@@ -124,7 +123,6 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
         return resolveServerCredentials(() -> CDI.current().select(RpcCredentialsConfigurer.class).get());
     }
 
-    // Package-private seam for unit testing without CDI.current() mocking (see AssetAccessGrpcExtensionTest).
     ServerCredentials resolveServerCredentials(Supplier<RpcCredentialsConfigurer> configurerSupplier) {
         try {
             return configurerSupplier.get().createServerCredentials();

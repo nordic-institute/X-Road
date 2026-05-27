@@ -27,112 +27,48 @@
 
 package org.niis.xroad.edc.extension.assetaccess.listener;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 
 /**
- * Singleton listener registered once at extension startup.
- * Dispatches ContractNegotiation terminal events to waiting futures via an ID-keyed registry.
- *
- * <p>Thread safety: ConcurrentHashMap guarantees atomic put/remove.
- * Dead-letter caches close the sub-microsecond window where an event arrives before
- * {@link #register(String, CompletableFuture)} is called.
+ * Singleton EDC listener that dispatches ContractNegotiation terminal events to waiting futures
+ * via a shared {@link FutureRegistry}.
  */
 public class NegotiationCompletionListener implements ContractNegotiationListener {
 
-    private static final Duration PENDING_TTL = Duration.ofMinutes(5);
-    private static final long PENDING_MAX_SIZE = 10_000;
+    private final FutureRegistry<ContractAgreement> registry = new FutureRegistry<>(
+            NegotiationCompletionListener::buildFailedException);
 
-    private final ConcurrentHashMap<String, CompletableFuture<ContractAgreement>> registry =
-            new ConcurrentHashMap<>();
-
-    private final Cache<String, ContractAgreement> pendingAgreements = CacheBuilder.newBuilder()
-            .expireAfterWrite(PENDING_TTL)
-            .maximumSize(PENDING_MAX_SIZE)
-            .build();
-
-    private final Cache<String, Termination> pendingTerminations = CacheBuilder.newBuilder()
-            .expireAfterWrite(PENDING_TTL)
-            .maximumSize(PENDING_MAX_SIZE)
-            .build();
-
-    record Termination(String reason) {
-    }
-
-    /**
-     * Registers a future to be completed when the negotiation reaches a terminal state.
-     * Must be called after {@code initiateNegotiation()} returns the negotiation ID; the
-     * dead-letter caches are consulted for events that arrived before this call.
-     */
     public void register(String negotiationId, CompletableFuture<ContractAgreement> future) {
-        registry.put(negotiationId, future);
-
-        var pending = pendingAgreements.getIfPresent(negotiationId);
-        if (pending != null) {
-            pendingAgreements.invalidate(negotiationId);
-            registry.remove(negotiationId);
-            future.complete(pending);
-            return;
-        }
-
-        var termination = pendingTerminations.getIfPresent(negotiationId);
-        if (termination != null) {
-            pendingTerminations.invalidate(negotiationId);
-            registry.remove(negotiationId);
-            future.completeExceptionally(buildNegotiationFailedException(negotiationId, termination.reason()));
-        }
+        registry.register(negotiationId, future);
     }
 
-    /**
-     * Removes the negotiation ID from registry and dead-letter caches.
-     * Safe to call if the entry was already removed by an event delivery.
-     */
     public void deregister(String negotiationId) {
-        registry.remove(negotiationId);
-        pendingAgreements.invalidate(negotiationId);
-        pendingTerminations.invalidate(negotiationId);
+        registry.deregister(negotiationId);
     }
 
-    /**
-     * Returns the number of negotiation IDs currently registered.
-     */
     public int activeWaiters() {
-        return registry.size();
+        return registry.activeWaiters();
     }
 
     @Override
     public void finalized(ContractNegotiation negotiation) {
-        var future = registry.remove(negotiation.getId());
-        if (future != null) {
-            future.complete(negotiation.getContractAgreement());
-        } else {
-            pendingAgreements.put(negotiation.getId(), negotiation.getContractAgreement());
-        }
+        registry.dispatchSuccess(negotiation.getId(), negotiation.getContractAgreement());
     }
 
     @Override
     public void terminated(ContractNegotiation negotiation) {
-        var future = registry.remove(negotiation.getId());
-        if (future != null) {
-            future.completeExceptionally(buildNegotiationFailedException(negotiation.getId(), null));
-        } else {
-            pendingTerminations.put(negotiation.getId(),
-                    new Termination("Contract negotiation terminated: " + negotiation.getId()));
-        }
+        registry.dispatchTermination(negotiation.getId(), "Contract negotiation terminated: " + negotiation.getId());
     }
 
-    private static XrdRuntimeException buildNegotiationFailedException(String negotiationId, String reason) {
+    private static XrdRuntimeException buildFailedException(String negotiationId, String reason) {
         return XrdRuntimeException.systemException(DSP_NEGOTIATION_FAILED)
                 .origin(ErrorOrigin.DATASPACE)
                 .metadataItems(negotiationId)

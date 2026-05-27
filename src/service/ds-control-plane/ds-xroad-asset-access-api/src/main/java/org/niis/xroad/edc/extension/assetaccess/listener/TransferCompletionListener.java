@@ -27,8 +27,6 @@
 
 package org.niis.xroad.edc.extension.assetaccess.listener;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -36,110 +34,47 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 
 /**
- * Singleton listener registered once at extension startup.
- * Dispatches TransferProcess terminal events to waiting futures via an ID-keyed registry.
- *
- * <p>Thread safety: ConcurrentHashMap guarantees atomic put/remove.
- * Dead-letter caches close the sub-microsecond window where an event arrives before
- * {@link #register(String, CompletableFuture)} is called.
+ * Singleton EDC listener that dispatches TransferProcess terminal events to waiting futures
+ * via a shared {@link FutureRegistry}.
  */
 public class TransferCompletionListener implements TransferProcessListener {
 
-    private static final Duration PENDING_TTL = Duration.ofMinutes(5);
-    private static final long PENDING_MAX_SIZE = 10_000;
+    private final FutureRegistry<DataAddress> registry = new FutureRegistry<>(
+            TransferCompletionListener::buildFailedException);
 
-    private final ConcurrentHashMap<String, CompletableFuture<DataAddress>> registry =
-            new ConcurrentHashMap<>();
-
-    private final Cache<String, DataAddress> pendingStarted = CacheBuilder.newBuilder()
-            .expireAfterWrite(PENDING_TTL)
-            .maximumSize(PENDING_MAX_SIZE)
-            .build();
-
-    private final Cache<String, Termination> pendingTerminations = CacheBuilder.newBuilder()
-            .expireAfterWrite(PENDING_TTL)
-            .maximumSize(PENDING_MAX_SIZE)
-            .build();
-
-    record Termination(String reason) {
-    }
-
-    /**
-     * Registers a future to be completed when the transfer process reaches a terminal state.
-     * Must be called after {@code initiateTransfer()} returns the transfer process ID; the
-     * dead-letter caches are consulted for events that arrived before this call.
-     */
     public void register(String transferProcessId, CompletableFuture<DataAddress> future) {
-        registry.put(transferProcessId, future);
-
-        var pending = pendingStarted.getIfPresent(transferProcessId);
-        if (pending != null) {
-            pendingStarted.invalidate(transferProcessId);
-            registry.remove(transferProcessId);
-            future.complete(pending);
-            return;
-        }
-
-        var termination = pendingTerminations.getIfPresent(transferProcessId);
-        if (termination != null) {
-            pendingTerminations.invalidate(transferProcessId);
-            registry.remove(transferProcessId);
-            future.completeExceptionally(buildTransferFailedException(transferProcessId, termination.reason()));
-        }
+        registry.register(transferProcessId, future);
     }
 
-    /**
-     * Removes the transfer process ID from registry and dead-letter caches.
-     * Safe to call if the entry was already removed by an event delivery.
-     */
     public void deregister(String transferProcessId) {
-        registry.remove(transferProcessId);
-        pendingStarted.invalidate(transferProcessId);
-        pendingTerminations.invalidate(transferProcessId);
+        registry.deregister(transferProcessId);
     }
 
-    /**
-     * Returns the number of transfer process IDs currently registered.
-     */
     public int activeWaiters() {
-        return registry.size();
+        return registry.activeWaiters();
     }
 
     @Override
     public void started(TransferProcess process, TransferProcessStartedData additionalData) {
-        var future = registry.remove(process.getId());
-        if (future != null) {
-            future.complete(additionalData.getDataAddress());
-        } else {
-            pendingStarted.put(process.getId(), additionalData.getDataAddress());
-        }
+        registry.dispatchSuccess(process.getId(), additionalData.getDataAddress());
     }
 
     @Override
     public void terminated(TransferProcess process) {
-        var future = registry.remove(process.getId());
-        String errorDetail = process.getErrorDetail() != null
-                ? process.getErrorDetail() : "provider terminated";
-        if (future != null) {
-            future.completeExceptionally(buildTransferFailedException(process.getId(), errorDetail));
-        } else {
-            pendingTerminations.put(process.getId(),
-                    new Termination("Transfer process terminated: " + errorDetail));
-        }
+        var errorDetail = process.getErrorDetail() != null ? process.getErrorDetail() : "provider terminated";
+        registry.dispatchTermination(process.getId(), errorDetail);
     }
 
-    private static XrdRuntimeException buildTransferFailedException(String transferProcessId, String detail) {
+    private static XrdRuntimeException buildFailedException(String transferProcessId, String reason) {
         return XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
                 .origin(ErrorOrigin.DATASPACE)
                 .metadataItems(transferProcessId)
-                .details(detail)
+                .details(reason)
                 .build();
     }
 }
