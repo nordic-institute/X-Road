@@ -7,7 +7,7 @@ HTTP 200
 POST https://{{cs_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -201,11 +201,22 @@ HTTP 200
 GET https://{{ss0_host}}:4000
 HTTP 200
 
+# Bootstrap the initial admin user (no-op once one exists)
+POST https://{{ss0_host}}:4000/api/v1/initialization/admin-user
+Content-Type: application/json
+{
+  "username": "xrd",
+  "password": "secret123!"
+}
+HTTP *
+[Asserts]
+status toString matches "^(201|409)$"
+
 # Log in to the Security Server
 POST https://{{ss0_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -557,11 +568,22 @@ HTTP 201
 GET https://{{ss1_host}}:4000
 HTTP 200
 
+# Bootstrap the initial admin user (no-op once one exists)
+POST https://{{ss1_host}}:4000/api/v1/initialization/admin-user
+Content-Type: application/json
+{
+  "username": "xrd",
+  "password": "secret123!"
+}
+HTTP *
+[Asserts]
+status toString matches "^(201|409)$"
+
 # Log in to the Security Server
 POST https://{{ss1_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -673,7 +695,7 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 HTTP 200
 
 [Captures]
-ss1_token_id: jsonpath "$[?(@.type == 'HARDWARE')].id" nth 0
+ss1_token_id: jsonpath "$[?(@.type == 'HARDWARE')].id"
 
 # Log in to the Security Servers token
 PUT https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/login
@@ -1146,9 +1168,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 HTTP 200
 
 [Captures]
-# TODO: Currently, Hurl does not support combining multiple filters in JSONPath - https://github.com/Orange-OpenSource/hurl/issues/1697
-# TODO: Once it does, replace the jsonpath below with following: "$.endpoints[?(@.path == '/api/members' && @.method == 'GET')].id" nth 0
-ss0_test_rest_openapi_service_get_members_endpoint_id: jsonpath "$.endpoints[?(@.path == '/api/members')].id" nth 0
+ss0_test_rest_openapi_service_get_members_endpoint_id: jsonpath "$.endpoints[?(@.path == '/api/members' && @.method == 'GET')].id"
 
 POST https://{{ss0_host}}:4000/api/v1/endpoints/{{ss0_test_rest_openapi_service_get_members_endpoint_id}}/service-clients
 X-XSRF-TOKEN: {{ss0_xsrf_token}}

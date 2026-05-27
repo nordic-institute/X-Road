@@ -1,0 +1,48 @@
+---
+# Installs a systemd timer that self-heals the lima0 DHCPv4 lease.
+# No-op on Linux LXD hosts (no lima0 interface).
+
+- name: Detect lima0 interface
+  stat:
+    path: /sys/class/net/lima0
+  register: lima0_iface
+
+- name: Install lima0 DHCP recovery (mac/lima only)
+  when: lima0_iface.stat.exists
+  block:
+    - name: Install lima0-dhcp-recover.sh
+      copy:
+        src: lima0-dhcp-recover.sh
+        dest: /usr/local/sbin/lima0-dhcp-recover.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install lima0-dhcp-recover systemd unit
+      copy:
+        src: lima0-dhcp-recover.service
+        dest: /etc/systemd/system/lima0-dhcp-recover.service
+        owner: root
+        group: root
+        mode: "0644"
+      register: lima0_recover_unit
+
+    - name: Install lima0-dhcp-recover systemd timer
+      copy:
+        src: lima0-dhcp-recover.timer
+        dest: /etc/systemd/system/lima0-dhcp-recover.timer
+        owner: root
+        group: root
+        mode: "0644"
+      register: lima0_recover_timer
+
+    - name: Reload systemd if units changed
+      systemd:
+        daemon_reload: true
+      when: lima0_recover_unit.changed or lima0_recover_timer.changed
+
+    - name: Enable and start lima0-dhcp-recover.timer
+      systemd:
+        name: lima0-dhcp-recover.timer
+        enabled: true
+        state: started

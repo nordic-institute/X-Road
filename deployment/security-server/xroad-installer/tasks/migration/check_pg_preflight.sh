@@ -9,36 +9,11 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 DB_PROPS="/etc/xroad/db.properties"
 
 parse_and_check_pg() {
-  if [[ ! -f "$DB_PROPS" ]]; then
-    log_warn "$DB_PROPS not found, skipping PostgreSQL pre-flight check"
-    return 0
-  fi
+  read_serverconf_pg_connection
 
-  # Extract JDBC URL for serverconf database.
-  # Key format on 7.8.x: xroad.db.serverconf.hibernate.connection.url = jdbc:postgresql://host[:port]/dbname
-  local jdbc_url
-  jdbc_url=$(grep -m1 'serverconf.*hibernate\.connection\.url' "$DB_PROPS" \
-    | sed 's/^[^=]*=\s*//' | tr -d ' ')
+  log_message "PostgreSQL pre-flight: host=$db_host port=$db_port user=$db_user"
 
-  if [[ -z "$jdbc_url" ]]; then
-    log_warn "serverconf JDBC URL not found in $DB_PROPS, skipping PG version check"
-    return 0
-  fi
-
-  local hostport
-  hostport=$(echo "$jdbc_url" | sed 's|jdbc:postgresql://\([^/]*\)/.*|\1|')
-  local pg_host="${hostport%%:*}"
-  local pg_port
-  if [[ "$hostport" == *:* ]]; then
-    pg_port="${hostport##*:}"
-  else
-    # Port absent from JDBC URL — use PostgreSQL default
-    pg_port="5432"
-  fi
-
-  log_message "PostgreSQL pre-flight: host=$pg_host port=$pg_port"
-
-  check_pg_version "$pg_host" "$pg_port" "postgres" ""
+  check_pg_version "$db_host" "$db_port" "$db_user" "$db_password"
 }
 
 main() {

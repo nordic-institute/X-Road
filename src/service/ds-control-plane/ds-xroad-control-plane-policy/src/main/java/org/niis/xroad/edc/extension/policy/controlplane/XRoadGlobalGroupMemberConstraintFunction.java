@@ -30,6 +30,7 @@ package org.niis.xroad.edc.extension.policy.controlplane;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
@@ -40,13 +41,15 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_GLOBAL_GROUP;
 
 
+@Slf4j
 @RequiredArgsConstructor
 public class XRoadGlobalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
-    static final String KEY = "xroad:globalGroupMember";
+    static final String KEY = XROAD_GLOBAL_GROUP;
 
     private final GlobalConfProvider globalConfProvider;
     private final Monitor monitor;
@@ -61,14 +64,23 @@ public class XRoadGlobalGroupMemberConstraintFunction<C extends ParticipantAgent
                 return false;
             }
             GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
+            log.debug("evaluate: operator={} globalGroup={}", operator, globalGroupId.asEncodedId());
             return PolicyContextHelper.findMemberIdFromContext(context)
-                    .map(memberId -> switch (operator) {
-                        case EQ, IN -> globalConfProvider.isSubjectInGlobalGroup(memberId, globalGroupId);
-                        default -> {
-                            context.reportProblem("Unsupported operator: " + operator);
-                            yield false;
-                        }
-                    }).orElse(false);
+                    .map(memberId -> {
+                        var result = switch (operator) {
+                            case EQ, IN -> globalConfProvider.isSubjectInGlobalGroup(memberId, globalGroupId);
+                            default -> {
+                                context.reportProblem("Unsupported operator: " + operator);
+                                yield false;
+                            }
+                        };
+                        log.debug("evaluate: memberId={} globalGroup={} -> {}",
+                                memberId.asEncodedId(), globalGroupId.asEncodedId(), result);
+                        return result;
+                    }).orElseGet(() -> {
+                        log.debug("evaluate: no memberId in context -> false");
+                        return false;
+                    });
         } finally {
             monitor.debug("XRoadGlobalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
         }

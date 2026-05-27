@@ -26,7 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import { InitialServerConf } from '@/openapi-types';
+import { InitialAdminUser, InitialAdminUserStatus, InitialServerConf } from '@/openapi-types';
 import * as api from '@/util/api';
 
 export const useInitializeServer = defineStore('initializeServer', {
@@ -65,6 +65,13 @@ export const useInitializeServer = defineStore('initializeServer', {
     },
     async initializeServer(payload: InitialServerConf) {
       return api.post('/initialization', payload);
+    },
+    async fetchInitialAdminUserStatus() {
+      return api.get<InitialAdminUserStatus>('/initialization/admin-user/status')
+        .then((resp) => resp.data);
+    },
+    async createInitialAdminUser(payload: InitialAdminUser) {
+      await api.post('/initialization/admin-user', payload);
     },
   },
 });

@@ -68,8 +68,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -99,6 +103,21 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
         properties = {"spring.main.lazy-initialization=true"})
 @WithMockUser(authorities = {"DIAGNOSTICS"})
 public class DiagnosticsApiControllerTest extends AbstractApiControllerTestContext {
+
+    private static final int UNBOUND_PROXY_PORT = pickClosedPort();
+
+    @DynamicPropertySource
+    static void overrideProxyServerUrl(DynamicPropertyRegistry registry) {
+        registry.add("xroad.proxy-ui-api.proxy-server-url", () -> "https://localhost:" + UNBOUND_PROXY_PORT);
+    }
+
+    private static int pickClosedPort() {
+        try (ServerSocket s = new ServerSocket(0)) {
+            return s.getLocalPort();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to allocate an ephemeral port", e);
+        }
+    }
 
     private static final OffsetDateTime PREVIOUS_UPDATE = TimeUtils.offsetDateTimeNow().with(LocalTime.of(10, 42));
     private static final OffsetDateTime NEXT_UPDATE = PREVIOUS_UPDATE.plusHours(1);
@@ -579,7 +598,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
         assertEquals("network_error", connectionStatusDto.getError().getCode());
         assertThat(connectionStatusDto.getError().getMetadata().getFirst())
-                .contains("Connect to localhost:8443")
+                .contains("Connect to localhost:" + UNBOUND_PROXY_PORT)
                 .contains("Connection refused");
     }
 

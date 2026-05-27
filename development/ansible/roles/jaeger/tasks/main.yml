@@ -1,0 +1,96 @@
+---
+# Install Jaeger v2 inside the xrd-jaeger LXD container.
+# Container provisioning, APT IPv4/timeouts, and package mirror overlay are
+# handled by the init-lxd role (xrd-jaeger is a regular inventory host).
+- name: Install dependencies inside xrd-jaeger
+  ansible.builtin.raw: |
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends ca-certificates curl tar
+  tags:
+    - jaeger
+
+- name: Create jaeger system user
+  ansible.builtin.user:
+    name: jaeger
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+  tags:
+    - jaeger
+
+- name: Ensure Jaeger directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: jaeger
+    group: jaeger
+    mode: "0755"
+  loop:
+    - "{{ jaeger_install_dir }}"
+    - "{{ jaeger_config_path | dirname }}"
+    - "{{ jaeger_storage_path }}"
+    - "{{ jaeger_storage_path }}/keys"
+    - "{{ jaeger_storage_path }}/values"
+  tags:
+    - jaeger
+
+- name: Resolve Jaeger binary architecture
+  ansible.builtin.set_fact:
+    jaeger_arch: "{{ jaeger_arch_map[ansible_architecture] | default('amd64') }}"
+  tags:
+    - jaeger
+
+- name: Download + extract Jaeger v2 binary
+  ansible.builtin.unarchive:
+    src: "https://github.com/jaegertracing/jaeger/releases/download/v{{ jaeger_version }}/jaeger-{{ jaeger_version }}-linux-{{ jaeger_arch }}.tar.gz"
+    dest: "{{ jaeger_install_dir }}"
+    remote_src: true
+    extra_opts: ["--strip-components=1"]
+    owner: jaeger
+    group: jaeger
+    creates: "{{ jaeger_install_dir }}/jaeger"
+  tags:
+    - jaeger
+
+- name: Render Jaeger configuration
+  ansible.builtin.template:
+    src: jaeger-config.yaml.j2
+    dest: "{{ jaeger_config_path }}"
+    owner: jaeger
+    group: jaeger
+    mode: "0644"
+  notify: restart jaeger
+  tags:
+    - jaeger
+
+- name: Install Jaeger systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/jaeger.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Jaeger v2
+      Documentation=https://www.jaegertracing.io/docs/
+      After=network.target
+
+      [Service]
+      User=jaeger
+      Group=jaeger
+      ExecStart={{ jaeger_install_dir }}/jaeger --config {{ jaeger_config_path }}
+      AmbientCapabilities=CAP_NET_BIND_SERVICE
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: restart jaeger
+  tags:
+    - jaeger
+
+- name: Enable and start Jaeger
+  ansible.builtin.systemd:
+    name: jaeger
+    enabled: true
+    state: started
+    daemon_reload: true
+  tags:
+    - jaeger

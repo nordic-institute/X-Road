@@ -122,7 +122,7 @@ services:
       - ./signer-container-files/etc/xroad/globalconf:/etc/xroad/globalconf
       - softhsm-tokens:/var/lib/softhsm/tokens/
   db-serverconf:
-    image: postgres:17
+    image: postgres:18
     environment:
       - POSTGRES_DB=serverconf
       - POSTGRES_PASSWORD=secret

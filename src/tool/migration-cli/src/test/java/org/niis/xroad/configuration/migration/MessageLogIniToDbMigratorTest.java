@@ -53,22 +53,22 @@ class MessageLogIniToDbMigratorTest {
         assertFalse(properties.isEmpty(), "Should have loaded properties");
 
         // TEST/GOV/1234 has 2 keys
-        assertNotNull(properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/GOV/1234\"[0]"));
-        assertNotNull(properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/GOV/1234\"[1]"));
+        assertNotNull(properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/GOV/1234\"[0]"));
+        assertNotNull(properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/GOV/1234\"[1]"));
 
         // Verify one of the key values
-        String govKey0 = properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/GOV/1234\"[0]");
+        String govKey0 = properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/GOV/1234\"[0]");
         assertTrue("B2343D46FF3C40F6".equals(govKey0) || "92DA25CD74A678B1".equals(govKey0),
                 "Should contain one of the GOV keys");
 
         // TEST/COM/5678 has 1 key
-        assertNotNull(properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/COM/5678\"[0]"));
-        assertEquals("D014E1D708695CB7", properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/COM/5678\"[0]"));
+        assertNotNull(properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/COM/5678\"[0]"));
+        assertEquals("D014E1D708695CB7", properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/COM/5678\"[0]"));
 
         // TEST/MUN/9012 has 3 keys
-        assertNotNull(properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/MUN/9012\"[0]"));
-        assertNotNull(properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/MUN/9012\"[1]"));
-        assertNotNull(properties.get("xroad.common.messagelog.archive-grouping-keys.\"TEST/MUN/9012\"[2]"));
+        assertNotNull(properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/MUN/9012\"[0]"));
+        assertNotNull(properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/MUN/9012\"[1]"));
+        assertNotNull(properties.get("xroad.message-log-encryption.archive.grouping-keys.\"TEST/MUN/9012\"[2]"));
     }
 
     @Test
@@ -78,7 +78,7 @@ class MessageLogIniToDbMigratorTest {
 
         // Then: All properties should follow the correct format
         properties.keySet().forEach(key -> {
-            assertTrue(key.startsWith("xroad.common.messagelog.archive-grouping-keys."),
+            assertTrue(key.startsWith("xroad.message-log-encryption.archive.grouping-keys."),
                     "Key should start with correct prefix: " + key);
             assertTrue(key.contains("[") && key.contains("]"),
                     "Key should contain array index: " + key);

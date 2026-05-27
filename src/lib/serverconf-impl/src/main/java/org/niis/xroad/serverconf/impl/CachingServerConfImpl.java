@@ -42,6 +42,7 @@ import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.Endpoint;
@@ -69,6 +70,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     private final Cache<ServiceId, Optional<Service>> serviceCache;
     private final Cache<AclCacheKey, List<Endpoint>> aclCache;
     private final Cache<ServiceId, List<ee.ria.xroad.common.metadata.Endpoint>> serviceEndpointsCache;
+    private final Cache<ServiceId, List<AccessRight>> serviceAccessRightsCache;
     private final Cache<ClientId, Optional<Client>> clientCache;
     private final Cache<String, InternalSSLKey> internalKeyCache;
 
@@ -114,6 +116,13 @@ public class CachingServerConfImpl extends ServerConfImpl {
         serviceEndpointsCache = CacheBuilder.newBuilder()
                 .weigher((ServiceId k, List<ee.ria.xroad.common.metadata.Endpoint> v) -> v.size() + 1)
                 .maximumWeight(serverConfProperties.serviceEndpointsCacheSize())
+                .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .recordStats()
+                .build();
+
+        serviceAccessRightsCache = CacheBuilder.newBuilder()
+                .weigher((ServiceId k, List<AccessRight> v) -> v.size() + 1)
+                .maximumWeight(serverConfProperties.aclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
@@ -183,6 +192,19 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 throw xrdRuntimeException;
             }
             log.debug("Failed to get list of service endpoints", e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        try {
+            return serviceAccessRightsCache.get(serviceId, () -> super.getServiceAccessRights(serviceId));
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof XrdRuntimeException xrdRuntimeException) {
+                throw xrdRuntimeException;
+            }
+            log.debug("Failed to get list of service access rights", e);
             return List.of();
         }
     }
@@ -291,6 +313,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     aclCache.stats());
             log.trace("ServerConf.serviceEndpointsCache: entries: {}, stats: {}", serviceEndpointsCache.size(),
                     serviceEndpointsCache.stats());
+            log.trace("ServerConf.serviceAccessRightsCache: entries: {}, stats: {}", serviceAccessRightsCache.size(),
+                    serviceAccessRightsCache.stats());
         }
     }
 

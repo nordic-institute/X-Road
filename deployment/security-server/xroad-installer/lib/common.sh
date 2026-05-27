@@ -103,6 +103,51 @@ log_warn_exit() {
   exit $EXIT_SUCCESS
 }
 
+# Read a value from a sectionless properties file using crudini.
+# Returns an empty string when the key is not found.
+get_db_prop() {
+  local file="$1"
+  local key="$2"
+  local value
+
+  if value=$(crudini --get <(
+    printf '[default]\n'
+    cat "$file"
+  ) default "$key" 2>/dev/null); then
+    printf '%s\n' "$value"
+  fi
+}
+
+read_serverconf_pg_connection() {
+  local jdbc_url hostport db_path
+
+  if [[ ! -f "$DB_PROPS" ]]; then
+    log_die "$DB_PROPS not found."
+  fi
+
+  jdbc_url=$(get_db_prop "$DB_PROPS" 'xroad.db.serverconf.hibernate.connection.url' | tr -d ' ')
+
+  if [[ -z "$jdbc_url" ]]; then
+    log_die "serverconf JDBC URL not found in $DB_PROPS."
+  fi
+
+  hostport=$(echo "$jdbc_url" | sed 's|jdbc:postgresql://\([^/]*\)/.*|\1|')
+
+  db_host="${hostport%%:*}"
+  if [[ "$hostport" == *:* ]]; then
+    db_port="${hostport##*:}"
+  else
+    db_port="5432"
+  fi
+
+  db_user=$(get_db_prop "$DB_PROPS" 'xroad.db.serverconf.hibernate.connection.username')
+  db_password=$(get_db_prop "$DB_PROPS" 'xroad.db.serverconf.hibernate.connection.password')
+  db_user="${db_user%%@*}"
+
+  db_path=$(echo "$jdbc_url" | sed 's|jdbc:postgresql://[^/]*/\([^?]*\).*|\1|')
+  db_database="${db_path:-serverconf}"
+}
+
 # Check PostgreSQL server version. Exits with error if major version < 15.
 check_pg_version() {
   local host="$1"
@@ -140,7 +185,7 @@ handle_os_not_supported() {
 
   log_error "Unsupported OS: $os_name $os_version"
   log_message "Supported versions are:"
-  log_message "  - Ubuntu 22.04/24.04"
+  log_message "  - Ubuntu 24.04/26.04"
   log_message "  - RHEL 9/10"
   exit $EXIT_ERROR
 }
@@ -215,4 +260,48 @@ execute_by_os() {
   esac
 
   "$fn"
+}
+
+# X-Road units that must NOT auto-start during package upgrade.
+# xroad-secret-store-local is intentionally absent — its postinst fresh-install
+# branch starts OpenBao + the secret-store init service, which step 9 (TLS
+# migration) needs.
+XROAD_MASK_UNITS=(
+  xroad-base.service
+  xroad-signer.service
+  xroad-confclient.service
+  xroad-confproxy.service
+  xroad-proxy.service
+  xroad-proxy-ui-api.service
+  xroad-monitor.service
+  xroad-opmonitor.service
+  xroad-auxiliary-service.service
+)
+
+mask_xroad_units() {
+  log_message "Masking X-Road units to suppress auto-start during package upgrade:"
+  for unit in "${XROAD_MASK_UNITS[@]}"; do
+    log_message "  - $unit"
+    systemctl mask "$unit" >/dev/null 2>&1 || true
+  done
+  log_info "X-Road units masked (xroad-secret-store-local left unmasked)"
+}
+
+unmask_xroad_units() {
+  log_message "Unmasking X-Road units before service start:"
+  for unit in "${XROAD_MASK_UNITS[@]}"; do
+    log_message "  - $unit"
+    systemctl unmask "$unit" >/dev/null 2>&1 || true
+  done
+  systemctl daemon-reload
+
+  # On RHEL, %systemd_post's `systemctl preset` was blocked by the mask for
+  # fresh-install V8 units (xroad-ds-*, xroad-auxiliary-service). Apply preset
+  # now so they pick up their default enabled-on-boot state. Idempotent for
+  # upgraded V7 units (preset is a no-op when the unit is already enabled).
+  for unit in "${XROAD_MASK_UNITS[@]}"; do
+    systemctl preset "$unit" >/dev/null 2>&1 || true
+  done
+
+  log_info "X-Road units unmasked"
 }

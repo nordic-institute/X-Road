@@ -54,7 +54,7 @@ mark_applied() {
 }
 
 # Normalize version string: extract major.minor.patch from package manager version strings
-# e.g., "8.0.0.20260315~ubuntu22.04" -> "8.0.0", "8.0.0.beta1" -> "8.0.0"
+# e.g., "8.0.0.20260315~ubuntu26.04" -> "8.0.0", "8.0.0.beta1" -> "8.0.0"
 normalize_version() {
     echo "$1" | grep -oP '^\d+\.\d+\.\d+' || echo "$1"
 }

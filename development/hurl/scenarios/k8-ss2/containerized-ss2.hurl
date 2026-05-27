@@ -2,7 +2,7 @@
 POST https://{{cs_host}}:{{cs_port}}/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -22,11 +22,22 @@ HTTP 200
 GET https://{{ss2_host}}:4000
 HTTP 200
 
+# Bootstrap the initial admin user (no-op once one exists)
+POST https://{{ss2_host}}:4000/api/v1/initialization/admin-user
+Content-Type: application/json
+{
+  "username": "xrd",
+  "password": "secret123!"
+}
+HTTP *
+[Asserts]
+status toString matches "^(201|409)$"
+
 # Log in to the Security Server
 POST https://{{ss2_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -304,7 +315,7 @@ HTTP 200
 POST https://{{ss0_host}}:{{ss0_port}}/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -328,3 +339,6 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 # 201 on first run; 409 duplicate_accessright
 HTTP *
+[Asserts]
+status != 404
+status != 500

@@ -192,7 +192,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "http://localhost:7181/api/check/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:6181/api/check/health" ]
     networks:
       - xrd-ss-network
     ports:

@@ -51,7 +51,6 @@ dependencies {
   implementation(libs.springBoot.starterCache)
   implementation(libs.springBoot.starterMail)
   implementation(libs.springBoot.starterValidation)
-  implementation("io.micrometer:micrometer-tracing-bridge-brave")
   implementation(libs.acme4j)
   implementation(libs.libpam4j)
   implementation(libs.apache.commonsCompress)

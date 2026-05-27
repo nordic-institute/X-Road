@@ -12,9 +12,13 @@ updates:
         patterns:
           - "org.springframework.boot*"
           - "org.springframework.cloud*"
-          - "io.opentelemetry.instrumentation*"
           - "org.hibernate*"
           - "com.zaxxer:HikariCP"
+      opentelemetry-bundle:
+        applies-to: version-updates
+        patterns:
+          - "io.opentelemetry.instrumentation*"
+          - "io.opentelemetry.javaagent*"
       grpc-minor-patch:
         applies-to: version-updates
         update-types:
@@ -34,6 +38,7 @@ updates:
           - "org.springframework.boot*"
           - "org.springframework.cloud*"
           - "io.opentelemetry.instrumentation*"
+          - "io.opentelemetry.javaagent*"
           - "org.hibernate*"
           - "com.zaxxer:HikariCP"
           - "org.eclipse.dataplane-core*"

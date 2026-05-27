@@ -38,6 +38,7 @@ import lombok.Setter;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.IOException;
@@ -60,6 +61,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     @Override
     public SecurityServerId.Conf getIdentifier() {
         return serverConfProvider.getIdentifier();
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return serverConfProvider.getServiceAccessRights(serviceId);
     }
 
     @Override

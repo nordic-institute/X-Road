@@ -6,7 +6,7 @@ Feature: 0300 - CS: System Settings -> System parameters  -> Member Classes
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And CentralServer Settings tab is selected
     And System settings sub-tab is selected
     And user scrolls to "Member Classes"

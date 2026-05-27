@@ -88,7 +88,11 @@ public class ApiWebSecurityConfig {
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
     public WebSecurityCustomizer apiWebSecurityCustomizer() {
-        return customizer -> customizer.ignoring().requestMatchers("/api/v1/openapi.yaml");
+        return customizer -> customizer.ignoring().requestMatchers(
+                "/api/v1/openapi.yaml",
+                "/api/v1/initialization/admin-user/status",
+                "/api/v1/initialization/admin-user"
+        );
     }
 
     /**

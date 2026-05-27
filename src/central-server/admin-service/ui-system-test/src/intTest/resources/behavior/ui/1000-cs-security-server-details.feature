@@ -5,7 +5,7 @@ Feature: 1000 - CS: Security server: Details
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Security Servers tab is selected
 
   Scenario Outline: Security server details for <serverCode> are visible

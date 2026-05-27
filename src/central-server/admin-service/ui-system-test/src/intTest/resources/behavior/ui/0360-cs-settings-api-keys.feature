@@ -6,7 +6,7 @@ Feature: 0360 - CS: System Settings -> Api Keys
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And CentralServer Settings tab is selected
     And API Keys sub-tab is selected
 
@@ -63,7 +63,7 @@ Feature: 0360 - CS: System Settings -> Api Keys
 
     When CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd-sys logs in to CentralServer with password secret
+    And User xrd-sys logs in to CentralServer with password secret123!
     And CentralServer Settings tab is selected
     And API Keys sub-tab is selected
     When Newly created API key is edit dialog is opened

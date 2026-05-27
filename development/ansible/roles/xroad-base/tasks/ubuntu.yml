@@ -20,12 +20,10 @@
       - software-properties-common
       - postgresql-common
 
-- name: Configure PostgreSQL PGDG apt repository on Jammy
+- name: Configure PostgreSQL PGDG apt repository
   command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
   args:
     creates: /etc/apt/sources.list.d/pgdg.list
-  when:
-    - ansible_facts['distribution_release'] == "jammy"
 
 - name: Disable automatic upgrades
   copy:

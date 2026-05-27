@@ -19,6 +19,7 @@ quarkus:
         - xroad-logging.yaml
         - /etc/xroad/conf.d/local-tls.yaml
         - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/conf.d/local-ds-control-plane.yaml
         - /etc/xroad/db.properties
     log:
       console:
@@ -35,8 +36,29 @@ web:
     protocol:
       port: 8183
       path: /api/dsp
+      virtual: true
     control:
       port: 8184
+      path: /api/v1/control
+    signaling:
+      port: 8185
+
+xroad:
+  db:
+    serverconf:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${quarkus.application.name}
+  dsp:
+    participant-context-id: ${HOSTNAME:localhost}
+    management-participant-context-id: ${xroad.dsp.participant-context-id}-mgmt
+  cp:
+    dataplane:
+      proxy:
+        id: "xroad-proxy"
+        url: "${XROAD_PROXY_DATAPLANE_URL:http://127.0.0.1:5590/full/api/v1/dataflows}"
+        enabled: true
+        allowed-source-types: http,https
+        allowed-transfer-types: Xrd-PULL
 
 edc:
   hostname: ${HOSTNAME:localhost}
@@ -44,9 +66,19 @@ edc:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
       token: "${XROAD_SECRET_STORE_TOKEN}"
+      # EDC HashicorpVaultClient hardcodes a "data" segment between secretPath
+      # and folderPath/key (KV v2 semantics). The KV v2 mount path therefore
+      # IS the secretPath value; per-service partitioning lives under folder.
+      # New mount xrd-ds-secret/ is provisioned as KV v2 by secret-store-init.sh,
+      # separate from the KV v1 xrd-secret/ mount used by Quarkus services.
+      folder: ds
       api:
         secret:
-          path: /v1/xrd-secret/ds
+          path: /v1/xrd-ds-secret
+  encryption:
+    aes:
+      key:
+        alias: ds-aes-key
   component:
     id: DSP-compatibility-test
   transfer:
@@ -66,6 +98,8 @@ edc:
   sql:
     schema:
       autocreate: true
+  participant:
+    did: "did:web:${HOSTNAME:localhost}%3A10100"
   iam:
     issuer:
       id: "did:web:${HOSTNAME:localhost}%3A7183"

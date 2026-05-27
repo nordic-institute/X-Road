@@ -28,14 +28,16 @@
 <template>
   <v-app>
     <slot />
-    <XrdConfirmDialog v-if="appStateStore.isRestarting()" data-test="restarting-app-dialog" title="common.restartingService" persistent hide-cancel-button
+    <XrdConfirmDialog v-if="appStateStore.isRestarting()" data-test="restarting-app-dialog" title="common.restartingService" persistent
+                      hide-cancel-button
                       hide-accept-button>
       <template #text>
         <div v-if="restartingMessage" class="font-weight-regular body-regular mb-4">{{ $t(restartingMessage) }}</div>
         <v-progress-linear indeterminate class="xrd" />
       </template>
     </XrdConfirmDialog>
-    <XrdLogoutDialog v-else-if="!loginView && !appStateStore.isSessionAlive()" @logout="emit('logout')" />
+
+    <XrdLogoutDialog v-else-if="!loginView && !initialUserView && !appStateStore.isSessionAlive()" @logout="emit('logout')" />
     <XrdSnackBar />
   </v-app>
 </template>
@@ -51,6 +53,10 @@ defineProps({
   loginView: {
     type: Boolean,
     required: true,
+  },
+  initialUserView: {
+    type: Boolean,
+    default: false,
   },
 });
 const emit = defineEmits(['logout']);

@@ -24,9 +24,9 @@ usage() {
   echo " -d, --docker-compile   Compile inside a Docker container instead of native Gradle build."
   echo " -h, --help             Display this help message and exit."
   echo " -r release-name        Specify one or more releases to build packages for. Supported values:"
-  echo "                          - noble, jammy   (Debian packages)"
+  echo "                          - resolute, noble   (Debian packages)"
   echo "                          - rpm-el9, rpm-el10 (Red Hat packages)"
-  echo "                        Example: -r noble -r rpm-el9"
+  echo "                        Example: -r resolute -r rpm-el9"
   echo ""
   echo "Options can be used individually or in combination."
   echo "If provided, options must precede any additional arguments."
@@ -47,7 +47,7 @@ currentBuildPlan() {
     fi
     if [ ${#BUILD_PACKAGES_FOR_RELEASES[@]} -eq 0 ]; then
       log_info "  No specific release(s) provided -> Building all supported packages"
-      BUILD_PACKAGES_FOR_RELEASES+=("noble" "jammy" "rpm-el9" "rpm-el10")
+      BUILD_PACKAGES_FOR_RELEASES+=("resolute" "noble" "rpm-el9" "rpm-el10")
     fi
     log_kv "  Building packages" "${BUILD_PACKAGES_FOR_RELEASES[*]}" 3 5
   fi
@@ -117,7 +117,7 @@ prepareLocalRegistry() {
 
 prepareDebianPackagesBuilderImages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
-    if [[ "$release" == "noble" || "$release" == "jammy" ]]; then
+    if [[ "$release" == "resolute" || "$release" == "noble" ]]; then
       buildBuilderImage "deb-$release"
     fi
   done
@@ -133,7 +133,7 @@ prepareRedhatPackagesBuilderImages() {
 
 buildDebianPackages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
-    if [[ "$release" == "noble" || "$release" == "jammy" ]]; then
+    if [[ "$release" == "resolute" || "$release" == "noble" ]]; then
       runInBuilderImage "deb-$release" /workspace/deployment/native-packages/build-deb.sh "$release" "$PACKAGE_VERSION" || errorExit "Error building deb-$release packages."
     fi
   done
@@ -168,7 +168,7 @@ while [[ $# -gt 0 ]]; do
   --help | -h) usage 0 ;;
   -r)
     case $2 in
-    noble | jammy) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
+    resolute | noble) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
     rpm-el9 | rpm-el10) BUILD_PACKAGES_FOR_RELEASES+=("$2") ;;
     *) errorExit "Unknown/unsupported release $2. Exiting..." ;;
     esac

@@ -5,7 +5,7 @@ Feature: 0400 - CS: Members
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
 
   Scenario: Member detail info is correctly shown
     Given Members tab is selected

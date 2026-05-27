@@ -21,7 +21,7 @@ function builddeb {
 
     pushd "$(pwd)"
     cd "$root/$dist"
-    cp ../generic/* debian/
+    cp -n ../generic/* debian/
     version="$(dpkg-parsechangelog -l../generic/changelog | sed -n -e 's/^Version: //p')"
     compat="$(cat debian/compat)"
     sed -i "s/\${debhelper-version}/$compat/" debian/control
@@ -98,13 +98,13 @@ else
 fi
 
 case "$1" in
-    jammy)
-        prepare ubuntu22.04
-        builddeb build/xroad/ubuntu jammy ubuntu22.04 "$PACKAGE_VERSION"
-        ;;
     noble)
         prepare ubuntu24.04
         builddeb build/xroad/ubuntu noble ubuntu24.04 "$PACKAGE_VERSION"
+        ;;
+    resolute)
+        prepare ubuntu26.04
+        builddeb build/xroad/ubuntu resolute ubuntu26.04 "$PACKAGE_VERSION"
         ;;
     *)
         echo "Unsupported distribution $dist"

@@ -122,8 +122,6 @@ class LiquibaseExecutorTest {
                 "--defaultSchemaName=myschema",
                 "--contexts=user",
                 "--prop-db-user=xroad",
-                "--prop-proxy-ui-superuser=admin",
-                "--prop-proxy-ui-superuser-password=secret",
                 "update"
         );
         assertEquals("serverconf", executor.changelog);
@@ -133,8 +131,6 @@ class LiquibaseExecutorTest {
         assertEquals("user", executor.contexts);
         assertEquals("update", executor.command);
         assertTrue(executor.unmatched.contains("--prop-db-user=xroad"));
-        assertTrue(executor.unmatched.contains("--prop-proxy-ui-superuser=admin"));
-        assertTrue(executor.unmatched.contains("--prop-proxy-ui-superuser-password=secret"));
     }
 
     @Test
@@ -187,23 +183,13 @@ class LiquibaseExecutorTest {
     }
 
     @Test
-    void shouldTranslatePropProxyUiSuperuser() {
+    void shouldTranslateMultiSegmentPropName() {
         var executor = new LiquibaseExecutor();
         new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test",
-                "--prop-proxy-ui-superuser=admin", "update");
+                "--prop-some-multi-word-name=value", "update");
         List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
-        assertTrue(args.contains("-Dproxy_ui_superuser=admin"),
-                "Should translate --prop-proxy-ui-superuser, got: " + args);
-    }
-
-    @Test
-    void shouldTranslatePropProxyUiSuperuserPassword() {
-        var executor = new LiquibaseExecutor();
-        new CommandLine(executor).parseArgs("--changelog=serverconf", "--url=jdbc:h2:mem:test",
-                "--prop-proxy-ui-superuser-password=secret", "update");
-        List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
-        assertTrue(args.contains("-Dproxy_ui_superuser_password=secret"),
-                "Should translate --prop-proxy-ui-superuser-password, got: " + args);
+        assertTrue(args.contains("-Dsome_multi_word_name=value"),
+                "Should translate hyphenated --prop-* to underscored -D, got: " + args);
     }
 
     @Test
@@ -263,7 +249,7 @@ class LiquibaseExecutorTest {
                 "--url=jdbc:postgresql://localhost/serverconf",
                 "--defaultSchemaName=serverconf",
                 "--prop-db-user=xroad",
-                "--prop-proxy-ui-superuser=admin",
+                "--prop-some-multi-word-name=value",
                 "update");
         List<String> args = Arrays.asList(executor.buildLiquibaseArgs());
 
@@ -280,7 +266,7 @@ class LiquibaseExecutorTest {
         }
 
         assertTrue(args.contains("-Ddb_user=xroad"), "Should have -Ddb_user");
-        assertTrue(args.contains("-Dproxy_ui_superuser=admin"), "Should have -Dproxy_ui_superuser");
+        assertTrue(args.contains("-Dsome_multi_word_name=value"), "Should have -Dsome_multi_word_name");
         assertTrue(args.contains("-Ddb_schema=serverconf"), "Should have -Ddb_schema");
     }
 

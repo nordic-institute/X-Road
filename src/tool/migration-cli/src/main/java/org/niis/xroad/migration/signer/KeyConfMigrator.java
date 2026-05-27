@@ -43,7 +43,6 @@ import org.niis.xroad.signer.keyconf.KeyConfType;
 import org.niis.xroad.signer.keyconf.KeyType;
 import org.niis.xroad.signer.keyconf.ObjectFactory;
 
-import java.io.Console;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +61,7 @@ import java.util.Optional;
 public class KeyConfMigrator {
 
     private static final String SOFT_TOKEN = "softtoken";
+    private static final String SOFTTOKEN_PIN_ENV_VAR = "XROAD_MIGRATION_SOFTTOKEN_PIN";
     private static final String INDENT_UNIT = "  ";
 
     public void migrate(String keyconfPath, String dbPropertiesPath) throws SQLException {
@@ -151,26 +151,24 @@ public class KeyConfMigrator {
     }
 
     private byte[] getPinHashFromInput(String keyconfPath) {
-        char[] pin;
-        do {
-            pin = readPinFromConsole();
-            try {
-                KeyStore keystore = KeyStore.getInstance("pkcs12");
-                try (FileInputStream fis = new FileInputStream(Paths.get(
-                        keyconfPath, SOFT_TOKEN, ".softtoken.p12").toFile())) {
-                    keystore.load(fis, pin);
-                }
-                PrivateKey privateKey = (PrivateKey) keystore.getKey("pin", pin);
-                if (privateKey == null) {
-                    logWarn(0, "Provided pin is invalid, try again.");
-                    pin = null;
-                }
-            } catch (Exception e) {
-                logWarn(0, "Provided pin is invalid, try again.");
-                pin = null;
+        char[] pin = readPin();
+        try {
+            KeyStore keystore = KeyStore.getInstance("pkcs12");
+            try (FileInputStream fis = new FileInputStream(Paths.get(
+                    keyconfPath, SOFT_TOKEN, ".softtoken.p12").toFile())) {
+                keystore.load(fis, pin);
             }
-
-        } while (pin == null || pin.length == 0);
+            PrivateKey privateKey = (PrivateKey) keystore.getKey("pin", pin);
+            if (privateKey == null) {
+                throw new IllegalStateException(
+                        "Invalid soft token pin provided via " + SOFTTOKEN_PIN_ENV_VAR + " environment variable.");
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Invalid soft token pin provided via " + SOFTTOKEN_PIN_ENV_VAR + " environment variable.", e);
+        }
 
         logInfo(1, "pin ok");
         return hashPin(pin);
@@ -188,9 +186,14 @@ public class KeyConfMigrator {
         return INDENT_UNIT.repeat(Math.max(0, indentLevel));
     }
 
-    protected char[] readPinFromConsole() {
-        Console console = System.console();
-        return console.readPassword("Enter softtoken pin:");
+    protected char[] readPin() {
+        String pin = System.getenv(SOFTTOKEN_PIN_ENV_VAR);
+        if (pin == null || pin.isEmpty()) {
+            throw new IllegalStateException(
+                    "Soft token pin not provided. Export " + SOFTTOKEN_PIN_ENV_VAR
+                            + " before running the keyconf migration step.");
+        }
+        return pin.toCharArray();
     }
 
     private Optional<byte[]> readKey(String id, String keyconfPath) {
