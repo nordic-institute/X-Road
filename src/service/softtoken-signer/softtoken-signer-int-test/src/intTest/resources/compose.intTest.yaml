@@ -18,7 +18,7 @@ services:
           memory: 256M
 
   db-serverconf:
-    image: postgres:17
+    image: postgres:18
     environment:
       - POSTGRES_DB=serverconf
       - POSTGRES_PASSWORD=secret

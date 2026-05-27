@@ -6,7 +6,7 @@ xrd-cs ansible_connection=lxd
 #xrd-cp ansible_connection=lxd
 
 [ca_servers]
-xrd-ca ansible_connection=lxd
+xrd-ca ansible_connection=lxd ubuntu_releasever=noble
 
 [ss_servers]
 #xrd-ss0 ansible_connection=lxd
@@ -35,7 +35,7 @@ lima-xroad-lxd ansible_ssh_args="-F {{ lookup('env','HOME') }}/.lima/xroad-lxd/s
 localhost ansible_connection=local
 
 [hurl_servers]
-xrd-hurl ansible_connection=lxd
+xrd-hurl ansible_connection=lxd ubuntu_releasever=noble
 
 [repo_servers]
 xrd-repo ansible_connection=lxd

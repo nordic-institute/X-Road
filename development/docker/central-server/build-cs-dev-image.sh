@@ -8,7 +8,7 @@
 #   --registry REGISTRY     Registry URL (default: localhost:5555 for local, ghcr.io for CI)
 #   --environment ENV       Environment: local|ci (default: local)
 #   --version VERSION       Image version tag (default: read from gradle.properties)
-#   --packages-path PATH    Path to Ubuntu 24.04 packages (default: auto-detect)
+#   --packages-path PATH    Path to Ubuntu 26.04 packages (default: auto-detect)
 #   --platforms PLATFORMS   Build platforms (default: linux/amd64,linux/arm64)
 #   --help                  Show this help
 
@@ -43,7 +43,7 @@ OPTIONS:
     --registry REGISTRY     Registry URL (default: localhost:5555 for local, ghcr.io for CI)
     --environment ENV       Environment: local|ci (default: local)
     --version VERSION       Image version tag (default: read from gradle.properties)
-    --packages-path PATH    Path to Ubuntu 24.04 packages (default: auto-detect)
+    --packages-path PATH    Path to Ubuntu 26.04 packages (default: auto-detect)
     --platforms PLATFORMS   Build platforms (default: host platform, e.g. --platforms linux/amd64,linux/arm64)
     --help                  Show this help
 
@@ -70,8 +70,8 @@ VERSIONING:
     For CI builds, pass --version with the SERVICE_IMAGE_TAG value from the CI workflow.
 
 PACKAGE REQUIREMENTS:
-    This script requires Ubuntu 24.04 packages to be built first.
-    Default location: deployment/native-packages/build/ubuntu24.04/
+    This script requires Ubuntu 26.04 packages to be built first.
+    Default location: deployment/native-packages/build/ubuntu26.04/
 EOF
 }
 
@@ -119,7 +119,7 @@ fi
 
 # Auto-detect packages path if not provided
 if [[ -z "$PACKAGES_PATH" ]]; then
-  PACKAGES_PATH="${XROAD_HOME}/deployment/native-packages/build/ubuntu24.04"
+  PACKAGES_PATH="${XROAD_HOME}/deployment/native-packages/build/ubuntu26.04"
 fi
 
 PERF_PATH="${XROAD_HOME}/development/docker/postgres-dev/files/"
@@ -127,7 +127,7 @@ PERF_PATH="${XROAD_HOME}/development/docker/postgres-dev/files/"
 # Validate packages directory
 if [[ ! -d "$PACKAGES_PATH" ]] || [[ ! "$(ls -A "$PACKAGES_PATH")" ]]; then
   log_error "Cannot find packages in $PACKAGES_PATH"
-  log_error "Please build Ubuntu 24.04 packages first using: ./deployment/native-packages/build-deb.sh noble"
+  log_error "Please build Ubuntu 26.04 packages first using: ./deployment/native-packages/build-deb.sh resolute"
   exit 1
 fi
 

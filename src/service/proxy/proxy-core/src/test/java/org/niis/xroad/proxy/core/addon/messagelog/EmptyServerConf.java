@@ -37,6 +37,7 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
@@ -49,6 +50,11 @@ import static java.util.Collections.emptyList;
  * can extend this class and override only the more interesting methods.
  */
 public class EmptyServerConf implements ServerConfProvider {
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return emptyList();
+    }
 
     @Override
     public boolean serviceExists(ServiceId serviceId) {

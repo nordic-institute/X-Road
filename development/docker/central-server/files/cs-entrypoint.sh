@@ -29,10 +29,10 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         # Update X-Road configuration on startup, if necessary
         log "Updating configuration from $CONFIG_VERSION to $PACKAGED_VERSION"
         cp -a /root/etc/xroad/* /etc/xroad/
-        pg_ctlcluster 16 main start
+        pg_ctlcluster 18 main start
         wait_db
         dpkg-reconfigure xroad-center
-        pg_ctlcluster 16 main stop
+        pg_ctlcluster 18 main stop
         nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
@@ -54,7 +54,7 @@ if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.api-token") 
   log "Creating API token for registration service..."
   TOKEN=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
   ENCODED=$(echo -n "$TOKEN" | sha256sum -b | cut -d' ' -f1)
-  pg_ctlcluster 16 main start
+  pg_ctlcluster 18 main start
   wait_db
   su -c "psql -q centerui_production" postgres <<EOF
 SET ROLE centerui;
@@ -69,7 +69,7 @@ END
 \$\$
 ;
 EOF
-  pg_ctlcluster 16 main stop
+  pg_ctlcluster 18 main stop
   /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" xroad.registration-service.api-token "$TOKEN"
   /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" xroad.management-service.api-token "$TOKEN"
 fi
@@ -81,8 +81,8 @@ sed -ri 's/host    replication     all             127.0.0.1\/32/host    all    
 # Apply PostgreSQL performance optimizations if enabled
 if [ "${POSTGRES_PERFORMANCE_TUNING:-true}" = "true" ]; then
   log "Applying PostgreSQL performance optimizations for single-session performance.."
-  POSTGRES_CONF="/etc/postgresql/16/main/postgresql.conf"
-  PERF_CONF="/etc/postgresql/16/main/postgresql-performance.conf"
+  POSTGRES_CONF="/etc/postgresql/18/main/postgresql.conf"
+  PERF_CONF="/etc/postgresql/18/main/postgresql-performance.conf"
   
   if [ -f "$PERF_CONF" ]; then
     # Include performance config if not already included

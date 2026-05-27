@@ -59,6 +59,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity_;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -70,15 +71,20 @@ import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.impl.entity.AccessRightEntity_;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity_;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity_;
+import org.niis.xroad.serverconf.impl.mapper.AccessRightMapper;
 import org.niis.xroad.serverconf.impl.mapper.CertificateMapper;
 import org.niis.xroad.serverconf.impl.mapper.ClientMapper;
 import org.niis.xroad.serverconf.impl.mapper.EndpointMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServerConfMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServiceMapper;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.Certificate;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
@@ -428,6 +434,31 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return tx(session -> {
+            var serviceOwner = clientDao.getClient(session, serviceId.getClientId());
+            if (serviceOwner == null) {
+                return List.of();
+            }
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<AccessRightEntity> query = cb.createQuery(AccessRightEntity.class);
+            Root<ClientEntity> root = query.from(ClientEntity.class);
+            Join<ClientEntity, AccessRightEntity> acl = root.join(ClientEntity_.accessRights);
+            Join<AccessRightEntity, EndpointEntity> endpoint = acl.join(AccessRightEntity_.endpoint);
+            acl.fetch(AccessRightEntity_.endpoint);
+
+            query.select(acl).where(
+                    cb.equal(root, serviceOwner),
+                    cb.equal(endpoint.get(EndpointEntity_.serviceCode), serviceId.getServiceCode())
+            );
+
+            var accessRights = session.createQuery(query).setReadOnly(true).list();
+            return AccessRightMapper.get().toTargets(accessRights);
+        });
+    }
+
+    @Override
     public boolean isAvailable() {
         try {
             return serverConfDatabaseCtx.doInTransaction(SharedSessionContract::isConnected);
@@ -519,21 +550,21 @@ public class ServerConfImpl implements ServerConfProvider {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<AccessRightEntity> query = cb.createQuery(AccessRightEntity.class);
         final Root<ClientEntity> root = query.from(ClientEntity.class);
-        final Join<ClientEntity, AccessRightEntity> acl = root.join("accessRights");
-        final Join<AccessRightEntity, EndpointEntity> endpoint = acl.join("endpoint");
-        final Join<AccessRightEntity, XRoadIdEntity> identifier = acl.join("subjectId");
-        acl.fetch("endpoint");
+        final Join<ClientEntity, AccessRightEntity> acl = root.join(ClientEntity_.accessRights);
+        final Join<AccessRightEntity, EndpointEntity> endpoint = acl.join(AccessRightEntity_.endpoint);
+        final Join<AccessRightEntity, XRoadIdEntity> identifier = acl.join(AccessRightEntity_.subjectId);
+        acl.fetch(AccessRightEntity_.endpoint);
 
         var orPredicates = new ArrayList<Predicate>();
         if (localClientId != null) {
             orPredicates.add(cb.equal(identifier, localClientId));
         }
-        orPredicates.add(cb.equal(identifier.get("objectType"), XRoadObjectType.GLOBALGROUP));
-        orPredicates.add(cb.equal(identifier.get("objectType"), XRoadObjectType.LOCALGROUP));
+        orPredicates.add(cb.equal(identifier.get(XRoadIdEntity_.objectType), XRoadObjectType.GLOBALGROUP));
+        orPredicates.add(cb.equal(identifier.get(XRoadIdEntity_.objectType), XRoadObjectType.LOCALGROUP));
 
         query.select(acl).where(cb.and(
                         cb.equal(root, serviceOwner),
-                        cb.equal(endpoint.get("serviceCode"), serviceId.getServiceCode())),
+                        cb.equal(endpoint.get(EndpointEntity_.serviceCode), serviceId.getServiceCode())),
                 cb.or(orPredicates.toArray(new Predicate[0])));
         var accessRights = session.createQuery(query).setReadOnly(true).list();
         return EndpointMapper.get().toTargets(

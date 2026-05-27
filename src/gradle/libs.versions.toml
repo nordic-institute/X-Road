@@ -288,7 +288,6 @@ edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participan
 edc-sql-contract-negotiation = { module = "org.eclipse.edc:contract-negotiation-store-sql", version.ref = "edc" }
 edc-sql-transfer-process = { module = "org.eclipse.edc:transfer-process-store-sql", version.ref = "edc" }
 edc-sql-edr-index = { module = "org.eclipse.edc:edr-index-sql", version.ref = "edc" }
-edc-sql-dataplane-instance = { module = "org.eclipse.edc:data-plane-instance-store-sql", version.ref = "edc" }
 edc-sql-control-plane = { module = "org.eclipse.edc:control-plane-sql", version.ref = "edc" }
 edc-sql-jti-validation = { module = "org.eclipse.edc:jti-validation-store-sql", version.ref = "edc" }
 edc-sql-policy-monitor = { module = "org.eclipse.edc:policy-monitor-store-sql", version.ref = "edc" }

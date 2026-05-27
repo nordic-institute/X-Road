@@ -35,7 +35,7 @@ ansible_lxd_remote=local
 ```
 and then:
 1. Create new inventory in `config/custom`
-3. Run `./start-env.sh --custom-inventory=config/custom/my-inventory.txt`
+2. Run `./start-env.sh --custom-inventory=config/custom/my-inventory.txt`
 
 ### Usage within other hosts
 

@@ -263,22 +263,22 @@ jobs:
           echo "Packages built successfully, removing packages.."
           rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/10
 
-      - name: Build Ubuntu 22.04 (Jammy) packages
-        working-directory: ./src
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: |
-          ./build_packages.sh -d -r jammy --package-only
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu22.04
-
       - name: Build Ubuntu 24.04 (Noble) packages
         working-directory: ./src
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: ./build_packages.sh -d -r noble --package-only
+        run: |
+          ./build_packages.sh -d -r noble --package-only
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
+
+      - name: Build Ubuntu 26.04 (Resolute) packages
+        working-directory: ./src
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: ./build_packages.sh -d -r resolute --package-only
 
       - name: Build and push Central Server dev image
         working-directory: ./development/docker/central-server
@@ -292,7 +292,7 @@ jobs:
             --environment ci \
             --registry ${{ env.IMAGE_REGISTRY }} \
             --version ${{ env.SERVICE_IMAGE_TAG }} \
-            --packages-path ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04 \
+            --packages-path ${{ github.workspace }}/deployment/native-packages/build/ubuntu26.04 \
             --platforms linux/amd64
 
       - name: Build development images

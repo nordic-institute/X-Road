@@ -10,7 +10,7 @@ galaxy_info:
     - name: MacOSX
       versions: [any]
     - name: Ubuntu
-      versions: [jammy, noble, resolute]
+      versions: [noble, resolute]
     - name: EL
       versions: ["8", "9", "10"]
   galaxy_tags: [kubernetes, postgresql, cloudnative-pg, xroad]

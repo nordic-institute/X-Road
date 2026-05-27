@@ -99,7 +99,7 @@ jobs:
     name: Build Summary
     needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services]
     if: always()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Generate build summary
         run: |
