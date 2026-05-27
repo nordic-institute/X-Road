@@ -27,7 +27,6 @@
 package org.niis.xroad.edc.extension.assetaccess.grpc;
 
 import io.grpc.ServerCredentials;
-import jakarta.enterprise.inject.spi.CDI;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -44,7 +43,6 @@ import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.function.Supplier;
 
 /**
  * EDC ServiceExtension that hosts a gRPC server for the AssetAccessService.
@@ -70,6 +68,9 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
 
     @Inject
     private ParticipantContextService participantContextService;
+
+    @Inject
+    private RpcCredentialsConfigurer credentialsConfigurer;
 
     @Inject
     private Monitor monitor;
@@ -119,22 +120,17 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
         }
     }
 
-    private ServerCredentials resolveServerCredentials() {
-        return resolveServerCredentials(() -> CDI.current().select(RpcCredentialsConfigurer.class).get());
-    }
-
-    ServerCredentials resolveServerCredentials(Supplier<RpcCredentialsConfigurer> configurerSupplier) {
+    ServerCredentials resolveServerCredentials() {
         try {
-            return configurerSupplier.get().createServerCredentials();
+            return credentialsConfigurer.createServerCredentials();
         } catch (Exception e) {
-            monitor.severe("%s failed to resolve %s from CDI — gRPC server cannot start"
-                    .formatted(EXTENSION_NAME, RpcCredentialsConfigurer.class.getSimpleName()), e);
+            monitor.severe("%s failed to build server credentials — gRPC server cannot start"
+                    .formatted(EXTENSION_NAME), e);
             throw XrdRuntimeException.systemException(
                     ErrorCode.INTERNAL_ERROR,
                     e,
-                    "%s failed to resolve %s from CDI",
-                    EXTENSION_NAME,
-                    RpcCredentialsConfigurer.class.getSimpleName());
+                    "%s failed to build server credentials",
+                    EXTENSION_NAME);
         }
     }
 }

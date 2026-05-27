@@ -36,8 +36,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 
-import java.util.function.Supplier;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,6 +63,7 @@ class AssetAccessGrpcExtensionTest {
     void setUp() throws Exception {
         extension = new AssetAccessGrpcExtension();
         setField(extension, "monitor", monitor);
+        setField(extension, "credentialsConfigurer", configurer);
     }
 
     @Test
@@ -73,30 +72,27 @@ class AssetAccessGrpcExtensionTest {
     }
 
     @Test
-    void resolveServerCredentialsWithWorkingSupplierReturnsCredentials() {
+    void resolveServerCredentialsReturnsConfigurerOutput() {
         when(configurer.createServerCredentials()).thenReturn(serverCredentials);
-        Supplier<RpcCredentialsConfigurer> supplier = () -> configurer;
 
-        var result = extension.resolveServerCredentials(supplier);
+        var result = extension.resolveServerCredentials();
 
         assertThat(result).isSameAs(serverCredentials);
         verify(monitor, never()).severe(anyString(), any(Throwable.class));
     }
 
     @Test
-    void startFailsFastWhenCdiConfigurerMissing() {
-        var cause = new IllegalStateException("no CDI");
-        Supplier<RpcCredentialsConfigurer> failingSupplier = () -> {
-            throw cause;
-        };
+    void resolveServerCredentialsWrapsConfigurerFailure() {
+        var cause = new IllegalStateException("vault unreachable");
+        when(configurer.createServerCredentials()).thenThrow(cause);
 
-        assertThatThrownBy(() -> extension.resolveServerCredentials(failingSupplier))
+        assertThatThrownBy(() -> extension.resolveServerCredentials())
                 .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining(AssetAccessGrpcExtension.EXTENSION_NAME)
-                .hasMessageContaining("RpcCredentialsConfigurer")
+                .hasMessageContaining("server credentials")
                 .hasCause(cause);
 
-        verify(monitor).severe(contains("failed to resolve"), any(Throwable.class));
+        verify(monitor).severe(contains("failed to build server credentials"), any(Throwable.class));
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {
