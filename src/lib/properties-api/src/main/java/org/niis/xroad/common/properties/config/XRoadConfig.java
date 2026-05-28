@@ -31,11 +31,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Resolution entry point: static factory declares scopes for keys; instance methods
- * resolve values with layer provenance (DB &rarr; country &rarr; default).
- *
- * <p>SPIKE: in the real impl the resolver implementation moves to
- * {@code :lib:properties-core}; this module keeps only the providers.
+ * Resolution entry point. The static factory declares scopes for keys; instance methods
+ * resolve values with layer provenance (DB &rarr; country &rarr; default). Construct via
+ * {@code XRoadConfigBuilder} in {@code :lib:properties-impl}.
  */
 public interface XRoadConfig {
 
@@ -54,7 +52,7 @@ public interface XRoadConfig {
      */
     <T> Value<T> get(ConfigKey<T> key);
 
-    /** @return every registered key resolved (export and UI enumeration) */
+    /** @return every registered key resolved */
     Stream<Value<?>> all();
 
     /**
