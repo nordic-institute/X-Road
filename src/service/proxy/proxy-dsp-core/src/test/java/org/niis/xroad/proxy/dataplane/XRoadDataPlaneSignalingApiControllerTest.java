@@ -144,12 +144,6 @@ class XRoadDataPlaneSignalingApiControllerTest {
         assertThat(result.getString(EDC_NAMESPACE + "state")).isEqualTo("FAILED");
     }
 
-    @Test
-    void checkAvailabilityDoesNotThrow() {
-        // no-op — must not throw
-        controller.checkAvailability();
-    }
-
     private DataFlowStartMessage buildStartMessage(String processId) {
         return DataFlowStartMessage.Builder.newInstance()
                 .processId(processId)

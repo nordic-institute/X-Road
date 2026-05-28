@@ -149,14 +149,6 @@ public class XRoadDataPlaneSignalingApiController {
         manager.suspend(dataFlowId, suspendMessage != null ? suspendMessage.getReason() : null);
     }
 
-    /**
-     * Health-check endpoint. Returns 204 if the data plane is available.
-     */
-    @GET
-    @Path("/check")
-    public void checkAvailability() {
-    }
-
     private JsonObject buildStateResponse(DataFlowStates state) {
         return Json.createObjectBuilder()
                 .add(TYPE, "DataFlowState")
