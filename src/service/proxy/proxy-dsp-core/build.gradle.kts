@@ -29,8 +29,8 @@ dependencies {
   implementation(libs.jersey.media.json.jackson)
   implementation(libs.jetty.ee11.servlet)
 
-  testImplementation(project(":service:op-monitor:op-monitor-api"))
   testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.core)
   testImplementation(libs.wiremock.standalone)
 }

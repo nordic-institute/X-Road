@@ -137,9 +137,10 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 return assetAccessAcquisitionService.acquireAssetAccess(
                         assetId, target.counterPartyId(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
+                var failure = (ex instanceof XrdRuntimeException xrd) ? DspLegacyErrorMapper.toLegacy(xrd) : ex;
                 log.warn("Acquire failed for SS {} (address {}), trying next",
-                        candidate.serverId(), candidate.hostAddress(), ex);
-                remoteFailures.add(ex);
+                        candidate.serverId(), candidate.hostAddress(), failure);
+                remoteFailures.add(failure);
             }
         }
 

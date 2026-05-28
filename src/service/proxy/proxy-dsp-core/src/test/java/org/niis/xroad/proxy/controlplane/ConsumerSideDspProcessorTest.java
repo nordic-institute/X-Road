@@ -455,4 +455,60 @@ class ConsumerSideDspProcessorTest {
         assertThat(idCaptor.getValue()).isEqualTo(DID_A);
         assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
     }
+
+    @Test
+    void singleCandidateDspExceptionMappedToLegacyCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(dspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue());
+    }
+
+    @Test
+    void allCandidatesThrowSameDspCodeSurfacesAsMappedLegacyCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(dspException);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
+                .thenThrow(dspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.NETWORK_ERROR)).isTrue());
+    }
+
+    @Test
+    void dspExceptionMetadataRoundTripCarriesOriginalCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_NEGOTIATION_FAILED.code()))
+                .details("negotiation timed out")
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(dspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.SERVICE_FAILED)).isTrue();
+                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
+                    assertThat(xrd.getErrorCodeMetadata().getFirst())
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_NEGOTIATION_FAILED.code());
+                });
+    }
 }
