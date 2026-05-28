@@ -26,13 +26,19 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
+import org.eclipse.jetty.server.ServerConnector;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThatNoException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,41 +46,60 @@ class DataPlaneServerTest {
 
     @Mock
     private DataPlaneServerProperties properties;
+    @Mock
+    private XRoadDataPlaneSignalingApiController signalingController;
 
-    private DataPlaneServer server;
+    private DataPlaneServer dataPlaneServer;
 
     @AfterEach
     void tearDown() throws Exception {
-        if (server != null) {
-            server.destroy();
+        if (dataPlaneServer != null) {
+            dataPlaneServer.stop();
         }
     }
 
-    @Test
-    void initCreatesServerWithoutStarting() throws Exception {
+    private void stubProperties() {
         when(properties.listenPort()).thenReturn(0);
         when(properties.listenAddress()).thenReturn("127.0.0.1");
         when(properties.threadPoolMin()).thenReturn(1);
         when(properties.threadPoolMax()).thenReturn(5);
         when(properties.threadPoolIdleTimeout()).thenReturn(1000);
-
-        server = new DataPlaneServer(properties);
-        // init() creates the server but does not start it — no exception
-        assertThatNoException().isThrownBy(() -> server.init());
     }
 
     @Test
-    void registerJaxRsResourceThenStartHandlerIsSet() throws Exception {
-        when(properties.listenPort()).thenReturn(0);
-        when(properties.listenAddress()).thenReturn("127.0.0.1");
-        when(properties.threadPoolMin()).thenReturn(1);
-        when(properties.threadPoolMax()).thenReturn(5);
-        when(properties.threadPoolIdleTimeout()).thenReturn(1000);
+    void startBindsToConfiguredPortAndMountsSignalingController() throws Exception {
+        stubProperties();
+        dataPlaneServer = new DataPlaneServer(properties, signalingController);
+        dataPlaneServer.start();
 
-        server = new DataPlaneServer(properties);
-        server.init();
-        server.registerJaxRsResource("test/", new Object());
-        // start() registers the handler and starts the Jetty server — must not throw
-        assertThatNoException().isThrownBy(() -> server.start());
+        assertThat(dataPlaneServer.getServer().isStarted()).isTrue();
+
+        var connector = (ServerConnector) dataPlaneServer.getServer().getConnectors()[0];
+        int port = connector.getLocalPort();
+        assertThat(port).isPositive();
+
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:" + port + "/full/api/v1/dataflows/probe"))
+                .GET()
+                .build();
+        var response = client.send(request, HttpResponse.BodyHandlers.discarding());
+        assertThat(response.statusCode()).isBetween(200, 499);
+    }
+
+    @Test
+    void stopShutsDownServer() throws Exception {
+        stubProperties();
+        dataPlaneServer = new DataPlaneServer(properties, signalingController);
+        dataPlaneServer.start();
+        dataPlaneServer.stop();
+
+        assertThat(dataPlaneServer.getServer().isStopped()).isTrue();
+    }
+
+    @Test
+    void stopBeforeStartIsNoop() {
+        dataPlaneServer = new DataPlaneServer(properties, signalingController);
+        org.assertj.core.api.Assertions.assertThatNoException().isThrownBy(() -> dataPlaneServer.stop());
     }
 }

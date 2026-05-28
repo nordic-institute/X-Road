@@ -27,6 +27,9 @@ package org.niis.xroad.proxy.dataplane;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.ws.rs.ext.Provider;
@@ -47,59 +50,50 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 /**
  * CDI bean that owns a separate Jetty Server instance for the data-plane listener.
  * Starts on the configured data-plane port (default 5590) with plain HTTP on localhost.
- * <p>
- * Lifecycle is driven by {@link DataPlaneServerLifecycle}: {@link #init()} creates the server
- * and connector; {@link #start()} must be called after all JAX-RS resources are registered
- * via {@link #registerJaxRsResource}; {@link #destroy()} stops the server.
  */
 @Slf4j
+@Startup
 @ApplicationScoped
 @RequiredArgsConstructor
 @ArchUnitSuppressed("NoVanillaExceptions")
 public class DataPlaneServer {
 
+    private static final String SIGNALING_CONTEXT_PATH = "/full/api/";
+
     private final DataPlaneServerProperties dataplaneProperties;
+    private final XRoadDataPlaneSignalingApiController signalingController;
 
     private Server server;
-    private Handler jaxRsHandler;
 
-    /**
-     * Creates the dataplane Jetty server and connector. Does not start the server.
-     * Call {@link #registerJaxRsResource} followed by {@link #start()} to complete initialization.
-     */
-    public void init() {
-        log.info("Initializing full-data-plane Jetty server..");
-        server = createServer(dataplaneProperties);
-        createConnector();
-    }
-
-    /**
-     * Registers the handler and starts the Jetty server.
-     * Must be called after all JAX-RS resources have been registered via {@link #registerJaxRsResource}.
-     *
-     * @throws Exception if the server fails to start
-     */
+    @PostConstruct
     public void start() throws Exception {
-        registerHandler();
+        log.info("Initializing DataPlane signaling server..");
+        server = buildServer();
+        addConnector();
+        server.setHandler(jaxRsHandler(SIGNALING_CONTEXT_PATH, signalingController));
         server.start();
-        log.info("DataPlane Jetty server started on port {}", dataplaneProperties.listenPort());
+        log.info("DataPlane signaling server started on port {}", dataplaneProperties.listenPort());
     }
 
-    /**
-     * Stops the dataplane Jetty server.
-     */
-    public void destroy() throws Exception {
-        server.stop();
+    @PreDestroy
+    public void stop() throws Exception {
+        if (server != null) {
+            server.stop();
+        }
     }
 
-    private static Server createServer(DataPlaneServerProperties properties) {
-        var threadPool = new QueuedThreadPool(properties.threadPoolMax(), properties.threadPoolMin());
-        threadPool.setIdleTimeout(properties.threadPoolIdleTimeout());
+    Server getServer() {
+        return server;
+    }
+
+    private Server buildServer() {
+        var threadPool = new QueuedThreadPool(dataplaneProperties.threadPoolMax(), dataplaneProperties.threadPoolMin());
+        threadPool.setIdleTimeout(dataplaneProperties.threadPoolIdleTimeout());
         threadPool.setDetailedDump(false);
         return new Server(threadPool);
     }
 
-    private void createConnector() {
+    private void addConnector() {
         var connector = new ServerConnector(server);
         connector.setName("DataPlaneConnector");
         connector.setPort(dataplaneProperties.listenPort());
@@ -107,27 +101,17 @@ public class DataPlaneServer {
         server.addConnector(connector);
     }
 
-    /**
-     * Registers a JAX-RS resource on the dataplane Jetty server at the given context path.
-     * Must be called before the server is started (i.e. before {@link #start()}).
-     *
-     * @param contextPath the path prefix for the resource (e.g. "/api/v1/dataflows")
-     * @param resource    the JAX-RS annotated resource instance
-     */
-    public void registerJaxRsResource(String contextPath, Object resource) {
-        var resourceConfig = new ResourceConfig();
+    private Handler jaxRsHandler(String contextPath, Object resource) {
+        var rc = new ResourceConfig();
         // Lenient ObjectMapper required: EDC's DspDataAddress emits @type with no matching
         // builder setter; without FAIL_ON_UNKNOWN_PROPERTIES=false Jackson 400s the /start body.
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(JsonProcessingFeature.class);
-        resourceConfig.register(new LenientObjectMapperResolver());
-        resourceConfig.register(resource);
-
-        var servletContextHandler = new ServletContextHandler(contextPath);
-        var jerseyServlet = new ServletContainer(resourceConfig);
-        servletContextHandler.addServlet(new ServletHolder(jerseyServlet), "/*");
-
-        this.jaxRsHandler = servletContextHandler;
+        rc.register(JacksonFeature.class);
+        rc.register(JsonProcessingFeature.class);
+        rc.register(new LenientObjectMapperResolver());
+        rc.register(resource);
+        var ctx = new ServletContextHandler(contextPath);
+        ctx.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
+        return ctx;
     }
 
     @Provider
@@ -139,13 +123,5 @@ public class DataPlaneServer {
         public ObjectMapper getContext(Class<?> type) {
             return mapper;
         }
-    }
-
-    private void registerHandler() {
-        var sequence = new Handler.Sequence();
-        if (jaxRsHandler != null) {
-            sequence.addHandler(jaxRsHandler);
-        }
-        server.setHandler(sequence);
     }
 }
