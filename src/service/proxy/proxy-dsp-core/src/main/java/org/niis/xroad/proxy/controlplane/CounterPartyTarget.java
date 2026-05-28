@@ -41,9 +41,9 @@ import java.util.Map;
  * <p>{@code counterPartyAddress} is the whole DSP base URL of the provider's Control Plane.
  * EDC appends the protocol version path and per-message subpath at dispatch time.
  *
- * <p>This is hardcoded today, keyed by globalconf-resolved provider host-address.
- * Future work moves the lookup into globalconf-published shared parameters
- * (see {@code .scratch/dsp-counterparty-cleanup/issues/04-followup-globalconf-dsp-endpoint.md}).
+ * <p>Hardcoded today, keyed by globalconf-resolved provider host-address.
+ *
+ * <p>Planned: move lookup into globalconf-published shared parameters.
  *
  * @param counterPartyId      URL-encoded participant DID (e.g. {@code did:web:xrd-ss0%3A7183})
  * @param counterPartyAddress full DSP base URL (e.g. {@code https://xrd-ss0:8183/api/dsp})
@@ -68,10 +68,9 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      * SS hostname, so the segment appears twice in the URL.
      *
      * @return immutable map keyed by host-address
-     * @deprecated Hardcoded map; will be replaced by config-driven counter-party resolution
-     *     (see {@code .scratch/dsp-counterparty-cleanup/}).
+     * @deprecated Planned: replace hardcoded map with config-driven counter-party resolution.
      */
-    @Deprecated(forRemoval = true, since = "edc17")
+    @Deprecated(forRemoval = true)
     public static Map<String, CounterPartyTarget> defaultMap() {
         return Map.ofEntries(
                 //For E2E

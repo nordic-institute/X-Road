@@ -146,7 +146,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_returnsTypedEndpointAndAuthorization() {
+    void acquireSuccessReturnsTypedEndpointAndAuthorization() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-abc-123")
@@ -166,7 +166,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_withNullAuthorization_returnsNullAuthorization() {
+    void acquireSuccessWithNullAuthorizationReturnsNullAuthorization() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
@@ -178,7 +178,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireFailure_throwsStatusRuntimeException() {
+    void acquireFailureThrowsStatusRuntimeException() {
         configuredError = new StatusRuntimeException(Status.INTERNAL);
 
         assertThatThrownBy(() -> client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp"))
@@ -188,7 +188,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_cacheHitReturnsWithoutSecondGrpcCall() {
+    void acquireSuccessCacheHitReturnsWithoutSecondGrpcCall() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-abc-123")
@@ -205,7 +205,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_differentKeyCausesCacheMiss() {
+    void acquireSuccessDifferentKeyCausesCacheMiss() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -218,7 +218,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_differentParticipantContextCausesCacheMiss() {
+    void acquireSuccessDifferentParticipantContextCausesCacheMiss() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -234,7 +234,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_differentCounterPartyAddressCausesCacheMiss() {
+    void acquireSuccessDifferentCounterPartyAddressCausesCacheMiss() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -247,7 +247,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_withoutExpiresAtUsesDefaultTtl() {
+    void acquireSuccessWithoutExpiresAtUsesDefaultTtl() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
@@ -261,7 +261,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_concurrentCallsForSameKeyCollapseToSingleGrpcRoundTrip() throws Exception {
+    void acquireSuccessConcurrentCallsForSameKeyCollapseToSingleGrpcRoundTrip() throws Exception {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-x")
@@ -298,7 +298,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_cacheDisabledBypassesCache() {
+    void acquireSuccessCacheDisabledBypassesCache() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -325,7 +325,7 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
-    void acquireSuccess_callOptionsCarryDeadline() {
+    void acquireSuccessCallOptionsCarryDeadline() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();

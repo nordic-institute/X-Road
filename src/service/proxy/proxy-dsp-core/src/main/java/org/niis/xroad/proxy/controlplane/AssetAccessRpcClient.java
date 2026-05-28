@@ -56,7 +56,6 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     private ManagedChannel channel;
     private AssetAccessServiceGrpc.AssetAccessServiceBlockingStub accessServiceBlockingStub;
 
-    // Null when caching is disabled via configuration; acquireAssetAccess() bypasses to a direct gRPC call.
     private AssetAccessCache cache;
 
     @Override
@@ -77,8 +76,6 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(),
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
-        // Deadline is applied at channel level by RpcChannelFactory#timeoutInterceptor;
-        // per-stub interceptors are therefore unnecessary here.
         accessServiceBlockingStub = AssetAccessServiceGrpc.newBlockingStub(channel).withWaitForReady();
         cache = buildCache();
     }
@@ -111,8 +108,6 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         if (cache == null) {
             return loadAssetAccess(cacheKey).response();
         }
-        // cache.get(key, loader) serializes concurrent loads on the same key inside Caffeine,
-        // collapsing N parallel proxy threads into a single gRPC round-trip per cache miss.
         return cache.get(cacheKey, this::loadAssetAccess).response();
     }
 

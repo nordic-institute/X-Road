@@ -61,7 +61,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void prepare_delegatesToManagerAndReturnsStatusMessage() {
+    void prepareDelegatesToManagerAndReturnsStatusMessage() {
         var prepareMessage = DataFlowPrepareMessage.Builder.newInstance()
                 .processId("flow-6")
                 .transferType("Xrd-PULL")
@@ -77,7 +77,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void start_returnsStatusMessageWithProxyEndpoint() {
+    void startReturnsStatusMessageWithProxyEndpoint() {
         var startMessage = buildStartMessage("flow-1");
         var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
 
@@ -90,7 +90,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void start_withFlowId_delegatesToManagerStart() {
+    void startWithFlowIdDelegatesToManagerStart() {
         var startMessage = buildStartMessage("flow-2");
         var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
 
@@ -103,14 +103,14 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void terminate_delegatesToManagerTerminate() {
+    void terminateDelegatesToManagerTerminate() {
         controller.terminate("flow-3", Map.of());
 
         verify(manager).terminate("flow-3");
     }
 
     @Test
-    void suspend_delegatesToManagerSuspend() {
+    void suspendDelegatesToManagerSuspend() {
         var suspendMessage = DataFlowSuspendMessage.Builder.newInstance().reason("pause").build();
 
         controller.suspend("flow-4", suspendMessage);
@@ -119,14 +119,14 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void suspend_withNullMessage_passesNullReason() {
+    void suspendWithNullMessagePassesNullReason() {
         controller.suspend("flow-4", null);
 
         verify(manager).suspend("flow-4", null);
     }
 
     @Test
-    void getTransferState_returnsStateJsonObject() {
+    void getTransferStateReturnsStateJsonObject() {
         when(manager.state("flow-5")).thenReturn(DataFlowStates.STARTED);
 
         var result = controller.getTransferState("flow-5");
@@ -136,7 +136,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void getTransferState_unknownId_returnsFailedState() {
+    void getTransferStateUnknownIdReturnsFailedState() {
         when(manager.state("unknown")).thenReturn(DataFlowStates.FAILED);
 
         var result = controller.getTransferState("unknown");
@@ -145,7 +145,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void checkAvailability_doesNotThrow() {
+    void checkAvailabilityDoesNotThrow() {
         // no-op — must not throw
         controller.checkAvailability();
     }

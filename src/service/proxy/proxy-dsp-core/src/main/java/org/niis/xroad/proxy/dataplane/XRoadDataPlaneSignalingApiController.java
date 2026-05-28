@@ -155,7 +155,6 @@ public class XRoadDataPlaneSignalingApiController {
     @GET
     @Path("/check")
     public void checkAvailability() {
-        // no-op — Jetty returns 204 by default for void methods
     }
 
     private JsonObject buildStateResponse(DataFlowStates state) {

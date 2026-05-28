@@ -27,6 +27,7 @@
 package org.niis.xroad.proxy.controlplane;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -92,9 +93,6 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     @SuppressWarnings("deprecation")
     private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
-    // Mgmt-ctx variant: same host keys, but URL and DID reference the mgmt participant context.
-    // Reused for built-in server-proxy handler services because they are inherently self-hosted
-    // and would otherwise produce DSP self-negotiation collisions on the host context.
     private final Map<String, CounterPartyTarget> mgmtCounterPartyTargets = CounterPartyTarget.managementMap();
 
     @Override
@@ -148,7 +146,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         throw buildFinalException(remoteFailures, localFailures, serviceId, candidates.size());
     }
 
-    private static boolean isBuiltinService(ee.ria.xroad.common.identifier.ServiceId serviceId) {
+    private static boolean isBuiltinService(ServiceId serviceId) {
         return serviceId != null
                 && serviceId.getSubsystemCode() == null
                 && BUILTIN_SERVICE_CODES.contains(serviceId.getServiceCode());
@@ -186,7 +184,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
                                                  List<RuntimeException> localFailures,
-                                                 Object serviceId, int candidateCount) {
+                                                 ServiceId serviceId, int candidateCount) {
         if (localFailures.isEmpty() && !remoteFailures.isEmpty()
                 && remoteFailures.stream().allMatch(XrdRuntimeException.class::isInstance)) {
             var xrdCodes = remoteFailures.stream()

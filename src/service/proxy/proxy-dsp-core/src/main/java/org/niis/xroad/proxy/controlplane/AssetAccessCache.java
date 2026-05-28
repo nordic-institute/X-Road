@@ -42,22 +42,12 @@ import java.util.function.Function;
 class AssetAccessCache {
 
     /**
-     * Cache key for acquired asset access responses.
+     * Cache key for acquired asset access responses. A cache must key on every field that
+     * affects the response.
      *
-     * <p>All five fields are included even though {@code participantContextId},
-     * {@code counterPartyAddress}, and {@code protocol} are effectively constant
-     * today. Rationale:
-     * <ul>
-     *   <li>{@code participantContextId} — currently a hardcoded constant from
-     *       {@link AssetAccessClientProperties#participantContextId()};
-     *       future requirements will make it per-request-configurable.</li>
-     *   <li>{@code counterPartyAddress} — deterministic per {@code counterPartyId}
-     *       today; future work will resolve it from GlobalConf. Included
-     *       for defence-in-depth at zero cost.</li>
-     *   <li>{@code protocol} — one DSP protocol today; multiple versions
-     *       foreseeable.</li>
-     * </ul>
-     * <p>General rule: a cache must key on every field that affects the response.
+     * <p>Planned: {@code participantContextId} will become per-request-configurable;
+     * {@code counterPartyAddress} will be resolved from GlobalConf; multiple {@code protocol}
+     * versions are foreseeable.
      */
     record CacheKey(String participantContextId, String assetId, String counterPartyId,
                     String counterPartyAddress, String protocol) { }
@@ -67,30 +57,37 @@ class AssetAccessCache {
     private final Cache<CacheKey, CachedEntry> cache;
 
     AssetAccessCache(AssetAccessClientProperties.Cache cacheProps) {
-        long defaultTtlNanos = cacheProps.defaultTtl().toNanos();
         this.cache = Caffeine.newBuilder()
                 .maximumSize(cacheProps.maximumSize())
-                .expireAfter(new Expiry<CacheKey, CachedEntry>() {
-                    @Override
-                    public long expireAfterCreate(CacheKey key, CachedEntry value, long currentTime) {
-                        if (value.expiresAtEpochSeconds() <= 0) {
-                            return defaultTtlNanos;
-                        }
-                        long ttlSeconds = value.expiresAtEpochSeconds() - Instant.now().getEpochSecond();
-                        return TimeUnit.SECONDS.toNanos(Math.max(ttlSeconds, 0));
-                    }
-
-                    @Override
-                    public long expireAfterUpdate(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
-                        return currentDuration;
-                    }
-
-                    @Override
-                    public long expireAfterRead(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
-                        return currentDuration;
-                    }
-                })
+                .expireAfter(new EntryExpiry(cacheProps.defaultTtl().toNanos()))
                 .build();
+    }
+
+    private static final class EntryExpiry implements Expiry<CacheKey, CachedEntry> {
+        private final long defaultTtlNanos;
+
+        EntryExpiry(long defaultTtlNanos) {
+            this.defaultTtlNanos = defaultTtlNanos;
+        }
+
+        @Override
+        public long expireAfterCreate(CacheKey key, CachedEntry value, long currentTime) {
+            if (value.expiresAtEpochSeconds() <= 0) {
+                return defaultTtlNanos;
+            }
+            long ttlSeconds = value.expiresAtEpochSeconds() - Instant.now().getEpochSecond();
+            return TimeUnit.SECONDS.toNanos(Math.max(ttlSeconds, 0));
+        }
+
+        @Override
+        public long expireAfterUpdate(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
+            return currentDuration;
+        }
+
+        @Override
+        public long expireAfterRead(CacheKey key, CachedEntry value, long currentTime, long currentDuration) {
+            return currentDuration;
+        }
     }
 
     /**

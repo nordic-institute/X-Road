@@ -51,7 +51,7 @@ class DataPlaneServerTest {
     }
 
     @Test
-    void init_createsServerWithoutStarting() throws Exception {
+    void initCreatesServerWithoutStarting() throws Exception {
         when(properties.listenPort()).thenReturn(0);
         when(properties.listenAddress()).thenReturn("127.0.0.1");
         when(properties.threadPoolMin()).thenReturn(1);
@@ -64,7 +64,7 @@ class DataPlaneServerTest {
     }
 
     @Test
-    void registerJaxRsResource_thenStart_handlerIsSet() throws Exception {
+    void registerJaxRsResourceThenStartHandlerIsSet() throws Exception {
         when(properties.listenPort()).thenReturn(0);
         when(properties.listenAddress()).thenReturn("127.0.0.1");
         when(properties.threadPoolMin()).thenReturn(1);

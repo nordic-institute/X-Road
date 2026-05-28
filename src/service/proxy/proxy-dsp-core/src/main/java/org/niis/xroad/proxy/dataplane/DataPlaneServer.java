@@ -116,11 +116,8 @@ public class DataPlaneServer {
      */
     public void registerJaxRsResource(String contextPath, Object resource) {
         var resourceConfig = new ResourceConfig();
-        // Jackson handles application/json bodies for the signaling POJO types.
-        // JSON-P handles the jakarta.json.JsonObject debug-state probe.
-        // The lenient ObjectMapper context resolver is needed because EDC's DspDataAddress
-        // emits @type with no matching builder setter; without FAIL_ON_UNKNOWN_PROPERTIES=false
-        // Jackson 400s the /start body.
+        // Lenient ObjectMapper required: EDC's DspDataAddress emits @type with no matching
+        // builder setter; without FAIL_ON_UNKNOWN_PROPERTIES=false Jackson 400s the /start body.
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(JsonProcessingFeature.class);
         resourceConfig.register(new LenientObjectMapperResolver());

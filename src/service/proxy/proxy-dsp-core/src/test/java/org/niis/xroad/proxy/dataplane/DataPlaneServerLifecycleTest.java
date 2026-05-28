@@ -49,7 +49,7 @@ class DataPlaneServerLifecycleTest {
     private XRoadDataPlaneSignalingApiController signalingApiController;
 
     @Test
-    void initialize_callsInitThenRegisterThenStartInOrder() throws Exception {
+    void initializeCallsInitThenRegisterThenStartInOrder() throws Exception {
         var lifecycle = new DataPlaneServerLifecycle(dataPlaneServer, signalingApiController);
         lifecycle.initialize();
 
@@ -60,7 +60,7 @@ class DataPlaneServerLifecycleTest {
     }
 
     @Test
-    void initialize_registersSignalingControllerAtCorrectPath() throws Exception {
+    void initializeRegistersSignalingControllerAtCorrectPath() throws Exception {
         var lifecycle = new DataPlaneServerLifecycle(dataPlaneServer, signalingApiController);
         lifecycle.initialize();
 
@@ -68,7 +68,7 @@ class DataPlaneServerLifecycleTest {
     }
 
     @Test
-    void initialize_serverStartFailure_throwsXrdRuntimeException() throws Exception {
+    void initializeServerStartFailureThrowsXrdRuntimeException() throws Exception {
         doThrow(new RuntimeException("Port in use")).when(dataPlaneServer).start();
 
         var lifecycle = new DataPlaneServerLifecycle(dataPlaneServer, signalingApiController);
@@ -77,7 +77,7 @@ class DataPlaneServerLifecycleTest {
     }
 
     @Test
-    void destroy_stopsServer() throws Exception {
+    void destroyStopsServer() throws Exception {
         var lifecycle = new DataPlaneServerLifecycle(dataPlaneServer, signalingApiController);
         lifecycle.destroy();
 

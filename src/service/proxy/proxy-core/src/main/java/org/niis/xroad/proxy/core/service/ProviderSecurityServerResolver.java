@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -46,16 +45,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 /**
  * Resolves the candidate security servers that host a given service, honoring an optional
  * caller-sent {@link SecurityServerId} hint.
- *
- * <p>Shared between the traditional proxy routing path
- * ({@link DefaultServiceAddressResolver}) and the DSP acquire path
- * ({@code ConsumerSideDspProcessor}) so that hint semantics and error codes
- * ({@link org.niis.xroad.common.core.exception.ErrorCode#UNKNOWN_MEMBER} /
- * {@link org.niis.xroad.common.core.exception.ErrorCode#INVALID_SECURITY_SERVER})
- * stay in one place.
- *
- * <p>Maintenance-mode filtering is intentionally NOT performed here — it remains a
- * {@link DefaultServiceAddressResolver}-only concern.
  */
 @Slf4j
 @ApplicationScoped
@@ -86,11 +75,9 @@ public class ProviderSecurityServerResolver {
             return List.of(new ProviderAddress(hint, hostNameBySecurityServer(hint, hostNames)));
         }
 
-        var result = new ArrayList<ProviderAddress>(hostNames.size());
-        for (var host : hostNames) {
-            result.add(new ProviderAddress(null, host));
-        }
-        return result;
+        return hostNames.stream()
+                .map(host -> new ProviderAddress(null, host))
+                .toList();
     }
 
     private Collection<String> hostNamesByProvider(ServiceId serviceProvider) {

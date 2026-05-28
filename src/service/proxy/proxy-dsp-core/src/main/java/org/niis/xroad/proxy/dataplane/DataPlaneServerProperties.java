@@ -55,10 +55,6 @@ public interface DataPlaneServerProperties {
     @WithDefault("60000")
     int threadPoolIdleTimeout();
 
-    @WithName("control-plane-endpoint")
-    @WithDefault("http://127.0.0.1:8184/api/v1/control")
-    String controlPlaneEndpoint();
-
     @WithDefault("http://127.0.0.1:5590/full/api/v1/dataflows")
     String dataFlowEndpoint();
 
