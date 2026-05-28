@@ -30,14 +30,13 @@ package org.niis.xroad.common.properties.config.keys;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Scope;
-import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 
 /** Common keys, registered by every process. */
 public final class CommonConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope COMMON = XRoadConfig.scope("common");
+    private static final Scope COMMON = Scope.of("common");
 
     /** Singleton. */
     public static final CommonConfigKeys INSTANCE = new CommonConfigKeys();

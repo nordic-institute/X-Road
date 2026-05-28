@@ -41,11 +41,19 @@ public final class Scope {
     private final String name;
     private final List<ConfigKey<?>> keys = new ArrayList<>();
 
-    Scope(String name) {
+    private Scope(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("scope name is required");
         }
         this.name = name;
+    }
+
+    /**
+     * @param name scope segment, must be non-blank
+     * @return scope producing keys {@code xroad.<name>.<shortKey>}
+     */
+    public static Scope of(String name) {
+        return new Scope(name);
     }
 
     /** @return scope segment, e.g. {@code "signer"} */

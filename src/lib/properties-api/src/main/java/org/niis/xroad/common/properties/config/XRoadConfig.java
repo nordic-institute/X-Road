@@ -31,19 +31,11 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Resolution entry point. The static factory declares scopes for keys; instance methods
- * resolve values with layer provenance (DB &rarr; country &rarr; default). Construct via
- * {@code XRoadConfigBuilder} in {@code :lib:properties-impl}.
+ * Resolution contract. Instance methods resolve values with layer provenance
+ * (DB &rarr; country &rarr; default). Construct via {@code XRoadConfigBuilder} in
+ * {@code :lib:properties-impl}; declare scopes via {@link Scope#of(String)}.
  */
 public interface XRoadConfig {
-
-    /**
-     * @param name scope segment, must be non-blank
-     * @return scope producing keys {@code xroad.<name>.<shortKey>}
-     */
-    static Scope scope(String name) {
-        return new Scope(name);
-    }
 
     /**
      * @param key key to resolve
