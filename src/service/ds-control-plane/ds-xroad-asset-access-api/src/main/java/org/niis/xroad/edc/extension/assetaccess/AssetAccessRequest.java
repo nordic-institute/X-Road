@@ -24,20 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.core.exception;
 
-public enum ErrorOrigin {
-    CLIENT,
-    SERVER,
-    PROXY,
-    OP_MONITOR,
-    MONITOR,
-    CONF_CLIENT,
-    AUXILIARY_SERVICE,
-    SIGNER,
-    DATASPACE;
+package org.niis.xroad.edc.extension.assetaccess;
 
-    public String toPrefix() {
-        return this.name().toLowerCase() + ".";
+public record AssetAccessRequest(
+        String assetId,
+        String counterPartyId,
+        String counterPartyAddress,
+        String protocol
+) {
+    private static final String DEFAULT_PROTOCOL = "dataspace-protocol-http:2025-1";
+
+    public String protocolOrDefault() {
+        return protocol != null ? protocol : DEFAULT_PROTOCOL;
     }
 }

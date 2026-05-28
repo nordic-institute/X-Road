@@ -24,20 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.core.exception;
+package org.niis.xroad.edc.extension.catalog;
 
-public enum ErrorOrigin {
-    CLIENT,
-    SERVER,
-    PROXY,
-    OP_MONITOR,
-    MONITOR,
-    CONF_CLIENT,
-    AUXILIARY_SERVICE,
-    SIGNER,
-    DATASPACE;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
-    public String toPrefix() {
-        return this.name().toLowerCase() + ".";
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class ApplicationYamlTransferTypeDefaultTest {
+
+    private static final Path APPLICATION_YAML =
+            Path.of("../ds-control-plane-application/src/main/resources/application.yaml");
+
+    @Test
+    void allowedTransferTypesDefaultMatchesConstant() throws Exception {
+        var content = Files.readString(APPLICATION_YAML);
+
+        assertThat(content)
+                .as("application.yaml must keep its allowed-transfer-types default in sync with XRoadTransferType.PULL")
+                .contains("allowed-transfer-types: " + XRoadTransferType.PULL.wireValue());
     }
 }

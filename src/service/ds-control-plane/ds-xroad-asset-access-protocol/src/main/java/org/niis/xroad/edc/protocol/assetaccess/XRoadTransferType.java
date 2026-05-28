@@ -24,20 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.core.exception;
+package org.niis.xroad.edc.protocol.assetaccess;
 
-public enum ErrorOrigin {
-    CLIENT,
-    SERVER,
-    PROXY,
-    OP_MONITOR,
-    MONITOR,
-    CONF_CLIENT,
-    AUXILIARY_SERVICE,
-    SIGNER,
-    DATASPACE;
+import java.util.Arrays;
+import java.util.Optional;
 
-    public String toPrefix() {
-        return this.name().toLowerCase() + ".";
+/**
+ * X-Road dataspace transfer-type vocabulary used on the EDC catalog/distribution wire.
+ */
+public enum XRoadTransferType {
+
+    PULL("Xrd-PULL"),
+    PUSH("Xrd-PUSH");
+
+    private final String wireValue;
+
+    XRoadTransferType(String wireValue) {
+        this.wireValue = wireValue;
+    }
+
+    public String wireValue() {
+        return wireValue;
+    }
+
+    public static Optional<XRoadTransferType> fromWireValue(String value) {
+        return Arrays.stream(values())
+                .filter(type -> type.wireValue.equals(value))
+                .findFirst();
     }
 }

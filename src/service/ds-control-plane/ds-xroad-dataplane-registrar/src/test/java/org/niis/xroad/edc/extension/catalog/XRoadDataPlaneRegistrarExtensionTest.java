@@ -38,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -71,7 +72,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
                 "xroad.cp.dataplane.proxy.id", "xroad-proxy-ss0",
                 "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows",
                 "xroad.cp.dataplane.proxy.allowed-source-types", "http",
-                "xroad.cp.dataplane.proxy.allowed-transfer-types", "Xrd-PULL"
+                "xroad.cp.dataplane.proxy.allowed-transfer-types", XRoadTransferType.PULL.wireValue()
         )));
         when(store.save(any())).thenReturn(StoreResult.success());
 
@@ -83,7 +84,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
         assertThat(saved.getId()).isEqualTo("xroad-proxy-ss0");
         assertThat(saved.getUrl()).hasToString("http://127.0.0.1:5590/full/api/v1/dataflows");
         assertThat(saved.getAllowedSourceTypes()).containsExactly("http");
-        assertThat(saved.getAllowedTransferTypes()).containsExactly("Xrd-PULL");
+        assertThat(saved.getAllowedTransferTypes()).containsExactly(XRoadTransferType.PULL.wireValue());
     }
 
     @Test
@@ -105,7 +106,8 @@ class XRoadDataPlaneRegistrarExtensionTest {
                 "xroad.cp.dataplane.dp1.id", "dp1",
                 "xroad.cp.dataplane.dp1.url", "http://dp1:5590",
                 "xroad.cp.dataplane.dp1.allowed-source-types", "http,https",
-                "xroad.cp.dataplane.dp1.allowed-transfer-types", "Xrd-PULL, Xrd-PUSH"
+                "xroad.cp.dataplane.dp1.allowed-transfer-types",
+                XRoadTransferType.PULL.wireValue() + ", " + XRoadTransferType.PUSH.wireValue()
         )));
         when(store.save(any())).thenReturn(StoreResult.success());
 
@@ -114,7 +116,8 @@ class XRoadDataPlaneRegistrarExtensionTest {
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
         verify(store).save(captor.capture());
         assertThat(captor.getValue().getAllowedSourceTypes()).containsExactlyInAnyOrder("http", "https");
-        assertThat(captor.getValue().getAllowedTransferTypes()).containsExactlyInAnyOrder("Xrd-PULL", "Xrd-PUSH");
+        assertThat(captor.getValue().getAllowedTransferTypes())
+                .containsExactlyInAnyOrder(XRoadTransferType.PULL.wireValue(), XRoadTransferType.PUSH.wireValue());
     }
 
     @Test
@@ -122,10 +125,10 @@ class XRoadDataPlaneRegistrarExtensionTest {
         when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
                 "xroad.cp.dataplane.dp1.id", "dp1",
                 "xroad.cp.dataplane.dp1.url", "http://dp1:5590",
-                "xroad.cp.dataplane.dp1.allowed-transfer-types", "Xrd-PULL",
+                "xroad.cp.dataplane.dp1.allowed-transfer-types", XRoadTransferType.PULL.wireValue(),
                 "xroad.cp.dataplane.dp2.id", "dp2",
                 "xroad.cp.dataplane.dp2.url", "http://dp2:5591",
-                "xroad.cp.dataplane.dp2.allowed-transfer-types", "Xrd-PUSH"
+                "xroad.cp.dataplane.dp2.allowed-transfer-types", XRoadTransferType.PUSH.wireValue()
         )));
         when(store.save(any())).thenReturn(StoreResult.success());
 

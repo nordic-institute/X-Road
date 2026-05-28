@@ -24,20 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.core.exception;
+package org.niis.xroad.common.core.telemetry;
 
-public enum ErrorOrigin {
-    CLIENT,
-    SERVER,
-    PROXY,
-    OP_MONITOR,
-    MONITOR,
-    CONF_CLIENT,
-    AUXILIARY_SERVICE,
-    SIGNER,
-    DATASPACE;
+import io.opentelemetry.api.common.AttributeKey;
 
-    public String toPrefix() {
-        return this.name().toLowerCase() + ".";
+/**
+ * Central registry of typed OpenTelemetry span attribute keys used across X-Road services.
+ */
+public final class XrdSpanAttrs {
+
+    private XrdSpanAttrs() {
+        throw new AssertionError();
+    }
+
+    /**
+     * Span attributes for asset access operations.
+     */
+    public static final class AssetAccess {
+        public static final AttributeKey<String> ASSET_ID = AttributeKey.stringKey("xroad.asset.id");
+        public static final AttributeKey<String> COUNTERPARTY_ID = AttributeKey.stringKey("xroad.counterparty.id");
+        public static final AttributeKey<String> COUNTERPARTY_ADDRESS = AttributeKey.stringKey("xroad.counterparty.address");
+        public static final AttributeKey<String> PARTICIPANT_CONTEXT_ID = AttributeKey.stringKey("xroad.participant.context.id");
+        public static final AttributeKey<String> PROTOCOL = AttributeKey.stringKey("xroad.protocol");
+
+        private AssetAccess() {
+            throw new AssertionError();
+        }
     }
 }

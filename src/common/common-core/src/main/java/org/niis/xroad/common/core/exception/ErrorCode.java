@@ -305,7 +305,20 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     PGP_ENCODE_FAILED("pgp_encode_failed"),
     PGP_ENCRYPTION_KEYS_MISSING("pgp_encryption_keys_missing"),
 
-    TOKEN_PIN_MISSING("token_pin_missing");
+    TOKEN_PIN_MISSING("token_pin_missing"),
+
+    // ===== DATASPACE / DSP =====
+    DSP_CATALOG_FETCH_FAILED("dsp_catalog_fetch_failed"),
+    DSP_CATALOG_PARSE_FAILED("dsp_catalog_parse_failed"),
+    DSP_DATASET_NOT_FOUND("dsp_dataset_not_found"),
+    DSP_OFFERS_NOT_FOUND("dsp_offers_not_found"),
+    DSP_PULL_DISTRIBUTION_MISSING("dsp_pull_distribution_missing"),
+    DSP_PARTICIPANT_CONTEXT_FAILED("dsp_participant_context_failed"),
+    DSP_DATAADDRESS_INVALID("dsp_dataaddress_invalid"),
+    DSP_ACQUISITION_TIMEOUT("dsp_acquisition_timeout"),
+    DSP_NEGOTIATION_FAILED("dsp_negotiation_failed"),
+    DSP_TRANSFER_FAILED("dsp_transfer_failed"),
+    DSP_ACQUISITION_FAILED("dsp_acquisition_failed");
 
     private final String code;
 
