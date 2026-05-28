@@ -53,7 +53,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * JAX-RS controller for the X-Road proxy data-plane signaling API.
  * <p>
  * Mounted at {@code /full/api/} context path (via {@link DataPlaneServer}) so that the full
- * URL matches {@code DataPlaneServerProperties.dataFlowEndpoint()}.
+ * URL is reachable at {@code http://<listen-address>:<listen-port>/full/api/v1/dataflows}.
  * <p>
  * Accepts plain Jackson-serialized POJOs from EDC's {@code DataPlaneSignalingClient}
  * ({@code data-plane-signaling-core}). No JSON-LD expansion is performed — Jersey + Jackson

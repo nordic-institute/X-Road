@@ -55,7 +55,4 @@ public interface DataPlaneServerProperties {
     @WithDefault("60000")
     int threadPoolIdleTimeout();
 
-    @WithDefault("http://${xroad.proxy.dsp.listen-address}:${xroad.proxy.dsp.listen-port}/full/api/v1/dataflows")
-    String dataFlowEndpoint();
-
 }

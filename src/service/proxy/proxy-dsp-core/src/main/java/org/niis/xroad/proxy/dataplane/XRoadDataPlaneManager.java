@@ -58,6 +58,8 @@ public class XRoadDataPlaneManager {
     /** Full transfer-type string for Xrd-PULL flows (matches the wire value). */
     static final String XRD_PULL_TRANSFER_TYPE = "Xrd-PULL";
 
+    private static final String SIGNALING_PATH = "/full/api/v1/dataflows";
+
     private final DataPlaneServerProperties dspProperties;
     private final ConcurrentHashMap<String, DataFlowStates> activeFlows = new ConcurrentHashMap<>();
 
@@ -76,7 +78,7 @@ public class XRoadDataPlaneManager {
 
     /**
      * Handles a start request, preserving {@code Xrd-PULL} semantics: validates the transfer type,
-     * fabricates a {@link DspDataAddress} pointing to {@code dataFlowEndpoint}, and returns it
+     * fabricates a {@link DspDataAddress} pointing to the proxy's signaling endpoint, and returns it
      * wrapped in a {@link DataFlowStatusMessage}.
      *
      * @param message incoming start message
@@ -132,12 +134,16 @@ public class XRoadDataPlaneManager {
     private DataFlowStatusMessage buildStatusMessage(DataFlowStates state) {
         var dataAddress = DspDataAddress.Builder.newInstance()
                 .endpointType("http")
-                .endpoint(dspProperties.dataFlowEndpoint())
+                .endpoint(buildSignalingEndpoint())
                 .build();
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddress)
                 .state(state.toString())
                 .build();
+    }
+
+    private String buildSignalingEndpoint() {
+        return "http://%s:%d%s".formatted(dspProperties.listenAddress(), dspProperties.listenPort(), SIGNALING_PATH);
     }
 
     private void storeState(String processId, DataFlowStates state) {
