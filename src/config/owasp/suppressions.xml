@@ -1,3 +1,343 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+  <!--
+    XRDDEV-3176 — Backend dependency audit suppressions.
+    Triaged 2026-05-25 against OWASP dependency-check 12.2.2 output.
+    Each entry documents the CVE(s) suppressed and why suppression is the correct outcome
+    rather than a version bump. Re-evaluate annually or when the affected dependency is upgraded.
+  -->
+
+  <!-- ============================================================
+       C1: CPE false positive — `plane:plane` / X-Road & EDC data/control-plane modules.
+       Vendor: makeplane/plane (project management tool). Not Eclipse EDC or X-Road.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: CVEs target the `plane` project management tool (https://github.com/makeplane/plane),
+      not Eclipse EDC data-plane / control-plane / transfer-data-plane modules, nor X-Road ds-*-plane services.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.edc/(data-plane|control-plane|transfer-data-plane)[^@]*@.*$</packageUrl>
+    <cpe>cpe:/a:plane:plane</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: X-Road's own ds-*-plane service modules misidentified as `plane:plane` CPE.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.niis\.xroad\.service\.ds_(control|data)_plane[^@]*@.*$</packageUrl>
+    <cpe>cpe:/a:plane:plane</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: Eclipse EDC `validator-lib` / `validator-spi` are EDC's own validation modules,
+      not the `validator` npm package (https://www.npmjs.com/package/validator).
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.edc/validator-(lib|spi)@.*$</packageUrl>
+    <cpe>cpe:/a:validator:validator</cpe>
+  </suppress>
+
+  <!-- ============================================================
+       C2: CPE false positive — `hashicorp:vault` / Eclipse EDC vault-hashicorp.
+       EDC `vault-hashicorp` is a client SDK wrapping the Vault HTTP API.
+       CVEs target the HashiCorp Vault server, not reachable through the client.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: Eclipse EDC `vault-hashicorp` and `vault-hashicorp-spi` are client-side SDKs
+      that talk to a remote Vault server over HTTPS. CVEs against HashiCorp Vault server
+      (CVE-2024-2048, CVE-2026-4525, CVE-2025-3879, CVE-2025-6000, CVE-2020-16250/51,
+      CVE-2026-3605, CVE-2025-11621, CVE-2023-24999, CVE-2018-19786, CVE-2026-5807,
+      CVE-2020-10661, CVE-2020-13223, CVE-2020-7220, CVE-2021-27400, CVE-2023-5077,
+      CVE-2023-6337, CVE-2024-5798, CVE-2021-32923, CVE-2025-5999, CVE-2025-6037,
+      CVE-2023-0620, CVE-2021-43998, CVE-2023-0665, CVE-2024-8365, CVE-2025-4166,
+      CVE-2025-6014, CVE-2021-41802, CVE-2023-2121, CVE-2020-10660, CVE-2020-25594,
+      CVE-2021-27668, CVE-2021-3024, CVE-2021-38554, CVE-2022-41316, CVE-2023-3775,
+      CVE-2023-25000, CVE-2025-6011) are not reachable through the client.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.edc/vault-hashicorp(-spi)?@.*$</packageUrl>
+    <cpe>cpe:/a:hashicorp:vault</cpe>
+  </suppress>
+
+  <!-- ============================================================
+       C3: CPE false positive — `keypair` npm package vs Eclipse EDC keypair-* modules.
+       CVE-2021-41117 is in https://www.npmjs.com/package/keypair (Node.js).
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: Eclipse EDC `keypair-*` modules are Java IAM components.
+      CVE-2021-41117 targets the `keypair` npm package (Node.js SSH keypair generator), unrelated.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.edc/(keypair-(api|lib|spi|validators)|identity-hub-keypair-store-sql)@.*$</packageUrl>
+    <cve>CVE-2021-41117</cve>
+  </suppress>
+
+  <!-- ============================================================
+       C4: CPE false positive — `liquibase` PyPI package vs X-Road liquibase-executor.
+       CVE-2022-0839 is in the `liquibase` Python package on PyPI, not Liquibase migration tool.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: `liquibase-executor` is X-Road's wrapper around the Liquibase Java migration tool.
+      CVE-2022-0839 targets the `liquibase` Python package on PyPI, unrelated.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.niis\.xroad\.tool\.liquibase_executor/liquibase-executor@.*$</packageUrl>
+    <cve>CVE-2022-0839</cve>
+  </suppress>
+
+  <!-- ============================================================
+       C5: CPE false positive — EDC jetty-core@0.16.0 wrongly matched against ancient Jetty CVEs.
+       The artifact version 0.16.0 is the EDC release; actual embedded Jetty is 12.1.x.
+       CVEs CVE-2009-5045, CVE-2017-7656/57/58, CVE-2017-9735, CVE-2022-2048 target Jetty <= 9.x.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      EDC `jetty-core@0.16.0` is the EDC artifact version, not the embedded Jetty version.
+      Actual Jetty version pulled by EDC is 12.1.x (covered separately by B2 override to 12.1.9).
+      Suppress legacy Jetty CVEs incorrectly matched on the EDC artifact version string.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.edc/jetty-core@.*$</packageUrl>
+    <cve>CVE-2009-5045</cve>
+    <cve>CVE-2017-7656</cve>
+    <cve>CVE-2017-7657</cve>
+    <cve>CVE-2017-7658</cve>
+    <cve>CVE-2017-9735</cve>
+    <cve>CVE-2022-2048</cve>
+    <cve>CVE-2023-44487</cve>
+  </suppress>
+
+  <!-- ============================================================
+       D3: migration-cli shaded httpclient5 — already covered by B4 resolution strategy override,
+       but the previously-built shadowJar may still contain 5.6. Suppress until next rebuild.
+       Remove this entry after `./gradlew :tool:migration-cli:shadowJar` rebuilds with 5.6.1.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      `migration-cli-1.0.jar` is a one-shot internal CLI tool, not deployed to runtime.
+      httpclient5 5.6 (CVE-2026-40542) gets pinned to 5.6.1 via root resolution strategy (XRDDEV-3176 B4).
+      This suppression covers shaded copies in any cached or pre-built artifact.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.niis\.xroad\.tool\.migration_cli/migration-cli@.*$</packageUrl>
+    <cve>CVE-2026-40542</cve>
+  </suppress>
+
+  <!-- ============================================================
+       D4: MockServer 5.15.0 (test-scope only via test-framework-core).
+       CVE-2021-32827 (SSRF via mockserver-core). Not in production runtime classpath.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      org.mock-server:mockserver-core / mockserver-client-java 5.15.0 are pulled in only by
+      `tool:test-framework-core` for test harness mocking. Not in production runtime classpath.
+      CVE-2021-32827 requires running the MockServer instance as a test fixture, no production impact.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.mock-server/mockserver-(core|client-java)@.*$</packageUrl>
+    <cve>CVE-2021-32827</cve>
+  </suppress>
+
+  <!-- ============================================================
+       D5: commons-fileupload 1.5 (test-scope only via feign-form-spring -> spring-cloud-openfeign -> test-framework-core).
+       Investigated 2026-05-25: not present on any production runtimeClasspath.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      commons-fileupload 1.5 (CVE-2025-48976) is pulled in only by
+      io.github.openfeign:feign-form-spring:13.6 -> spring-cloud-openfeign 5.0.1
+      via `tool:test-framework-core` for test-side Feign multipart calls.
+      Verified 2026-05-25 via `./gradlew :central-server:admin-service:application:dependencyInsight --configuration runtimeClasspath` — absent from prod.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/commons-fileupload/commons-fileupload@1\.5$</packageUrl>
+    <cve>CVE-2025-48976</cve>
+  </suppress>
+
+  <!-- ============================================================
+       D6: commons-beanutils 1.9.4 (test-scope only via Allure CLI + MockServer).
+       Investigated 2026-05-25: pulled via opencsv -> allure-plugin-api and velocity-tools-generic -> mockserver-core.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      commons-beanutils 1.9.4 (CVE-2025-48734) reached via:
+        - com.opencsv:opencsv -> io.qameta.allure:allure-plugin-api -> allure-commandline (test reporting)
+        - org.apache.velocity.tools:velocity-tools-generic -> org.mock-server:mockserver-core (test mocking)
+      Both paths are test-runtime only. Verified absent from production runtimeClasspath 2026-05-25.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/commons-beanutils/commons-beanutils@.*$</packageUrl>
+    <cve>CVE-2025-48734</cve>
+  </suppress>
+
+  <!-- ============================================================
+       D7: Allure 2.34.0 family — CVE-2026-33166 in allure-generator.
+       Allure split into two release tracks at 2.34.0:
+         - allure-cucumber7-jvm / allure-selenide / allure-junit-platform stop at 2.34.0
+         - allure-commandline / allure-plugin-api continue (currently at 2.42.0)
+       Bumping testAllure beyond 2.34.0 breaks the JVM-side test integrations.
+       allure-generator runs only in the CLI report-generation step, never in production runtime.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      io.qameta.allure:* 2.34.0 (CVE-2026-33166 in allure-generator).
+      Cannot bump testAllure beyond 2.34.0 — allure-cucumber7-jvm, allure-selenide, allure-junit-platform
+      stop publishing at 2.34.0. allure-generator runs only as the standalone Allure report-generation CLI
+      during test runs, never in deployed services.
+      Re-evaluate when Qameta publishes 2.35+ for the JVM-side test integration artifacts.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.qameta\.allure/.*@.*$</packageUrl>
+    <cve>CVE-2026-33166</cve>
+  </suppress>
+
+  <!-- ============================================================
+       C7: CPE false positive — GlassFish server CVEs matched against JAXB-bundled XML utilities.
+       relaxng-datatype / rngom are RELAX NG XML schema utilities under com.sun.xml.bind.external,
+       not the GlassFish application server. NVD matches `glassfish` CPE on the group name.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: CVE-2026-2586 (GlassFish Administration Console RCE) and
+      CVE-2026-2587 (GlassFish gadget handler EL template injection) both target the
+      Eclipse GlassFish application server. They do NOT affect com.sun.xml.bind.external
+      RELAX NG utilities (relaxng-datatype, rngom), which are JAXB-bundled XML schema libraries.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.sun\.xml\.bind\.external/(relaxng-datatype|rngom)@.*$</packageUrl>
+    <cve>CVE-2026-2586</cve>
+    <cve>CVE-2026-2587</cve>
+  </suppress>
+
+  <!-- ============================================================
+       C6: CPE false positive — OpenTelemetry-Go CVE matched against Java semconv.
+       CVE-2026-39883 is in opentelemetry-go (the Go SDK), patched in 1.43.0 of opentelemetry-go.
+       NVD CPE matcher incorrectly flags io.opentelemetry.semconv (Java) for it.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      CPE collision: CVE-2026-39883 (https://github.com/open-telemetry/opentelemetry-go/security/advisories/GHSA-hfvc-g4fc-pqhx)
+      affects opentelemetry-go (the Go SDK), patched in opentelemetry-go 1.43.0.
+      It does NOT affect io.opentelemetry.semconv (Java), which is the artifact NVD is
+      incorrectly matching here.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.opentelemetry\.semconv/opentelemetry-semconv@.*$</packageUrl>
+    <cve>CVE-2026-39883</cve>
+  </suppress>
+
+  <!-- ============================================================
+       D1: Shaded payloads inside e2e-test-1.0.jar (test fat-jar; not deployed).
+       gRPC 1.80.0 bundles its own internal Netty 4.1.86.Final via shadowJar relocation.
+       Selenide / feign-form / older transitives drag nimbus-jose-jwt 9.28, json-smart 2.4.7,
+       tika 2.9.2 into the test runner fat-jar.
+       (commons-beanutils 1.9.4 separately covered by D6.)
+       Track upgrade of these transitives under follow-up XRDDEV ticket — none ship in production.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      Shaded gRPC-internal Netty 4.1.86.Final inside the e2e-test runner shadowJar (test-scope only).
+      4.1.86 is gRPC 1.80.0's bundled Netty version. Production Netty is forced to 4.2.14 via root resolution strategy (XRDDEV-3176).
+      Follow-up XRDDEV ticket to bump gRPC's internal Netty alignment.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty-.*@4\.1\.86\.Final$</packageUrl>
+    <cve>CVE-2023-44487</cve>
+    <cve>CVE-2025-55163</cve>
+    <cve>CVE-2026-33870</cve>
+    <cve>CVE-2026-33871</cve>
+    <cve>CVE-2026-42579</cve>
+    <cve>CVE-2026-42581</cve>
+    <cve>CVE-2026-42582</cve>
+    <cve>CVE-2026-42583</cve>
+    <cve>CVE-2026-42584</cve>
+    <cve>CVE-2026-42585</cve>
+    <cve>CVE-2026-42586</cve>
+    <cve>CVE-2026-42587</cve>
+    <cve>CVE-2026-44248</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      nimbus-jose-jwt 9.28 shaded inside e2e-test runner shadowJar (Selenide/feign-form transitive).
+      Test-scope only.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.nimbusds/nimbus-jose-jwt@9\.28$</packageUrl>
+    <cve>CVE-2023-52428</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      json-smart 2.4.7 shaded inside e2e-test runner shadowJar (via nimbus-jose-jwt transitive).
+      Test-scope only.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/net\.minidev/json-smart@2\.4\.7$</packageUrl>
+    <cve>CVE-2023-1370</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      tika-core 2.9.x shaded inside e2e-test runner shadowJar (transitive via Selenide stack).
+      Test-scope only; never used to parse untrusted input on production path.
+      Pattern matches the 2.9 patch line (currently 2.9.3) — Selenide hasn't moved off 2.9.x yet.
+      Re-evaluate when Selenide drops the Tika 2.9.x line or X-Road tests stop using Selenide.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.tika/tika-core@2\.9\..*$</packageUrl>
+    <cve>CVE-2025-54988</cve>
+    <cve>CVE-2025-66516</cve>
+  </suppress>
+
+  <!-- ============================================================
+       D2: Shaded payloads inside softtoken-signer-int-test-1.0.jar (int-test fat-jar; not deployed).
+       Carries gRPC's internal Netty 4.1.132.Final via shadowJar.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      Shaded gRPC-internal Netty 4.1.132.Final inside softtoken-signer-int-test shadowJar (test-scope).
+      4.1.132 is gRPC's bundled internal Netty version. Production Netty is forced to 4.2.14 via root resolution strategy (XRDDEV-3176).
+      Follow-up XRDDEV ticket to bump gRPC's internal Netty alignment.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty-.*@4\.1\.132\.Final$</packageUrl>
+    <cve>CVE-2026-33870</cve>
+    <cve>CVE-2026-33871</cve>
+    <cve>CVE-2026-42579</cve>
+    <cve>CVE-2026-42581</cve>
+    <cve>CVE-2026-42582</cve>
+    <cve>CVE-2026-42583</cve>
+    <cve>CVE-2026-42584</cve>
+    <cve>CVE-2026-42585</cve>
+    <cve>CVE-2026-42586</cve>
+    <cve>CVE-2026-42587</cve>
+    <cve>CVE-2026-44248</cve>
+  </suppress>
+
+  <!-- ============================================================
+       A5: io.prometheus:simpleclient_tracer_otel_agent 0.16.0 — deprecated, transitive.
+       CVE-2023-43810, CVE-2023-45142, CVE-2023-47108 (W3C Trace Context parsing in old otel API).
+       Comes via Spring Boot/Quarkus actuator chains; not directly used by X-Road code.
+       Superseded by Micrometer in current metrics path. Risk: parsing of inbound HTTP trace headers,
+       which X-Road services do not forward to this code path.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      io.prometheus:simpleclient_tracer_otel_agent 0.16.0 is the deprecated Prometheus simpleclient
+      tracer bridge for the old OpenTelemetry Java API. Pulled transitively by actuator BOMs.
+      X-Road services use Micrometer for metrics; this artifact is not on the runtime tracing path.
+      CVE-2023-43810/45142/47108 are W3C TraceContext parsing issues that require the artifact to
+      actively parse inbound trace headers — which is not invoked by any X-Road code path.
+      Re-evaluate when upstream BOM (Spring Boot / Quarkus) stops pulling this transitive.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.prometheus/simpleclient_tracer.*@.*$</packageUrl>
+    <cve>CVE-2023-43810</cve>
+    <cve>CVE-2023-45142</cve>
+    <cve>CVE-2023-47108</cve>
+  </suppress>
+
+  <!-- ============================================================
+       E1: spring-cloud-vault-config 5.0.1 — no upstream patch yet.
+       CVE-2026-40981 / 40982 / 41002. spring-cloud-vault highest published version is 5.0.1.
+       Monitor https://github.com/spring-cloud/spring-cloud-vault for 5.0.2 / 5.1.0 release.
+       ============================================================ -->
+  <suppress>
+    <notes><![CDATA[
+      Spring Cloud Vault 5.0.1 (CVE-2026-40981, CVE-2026-40982, CVE-2026-41002) — accepted risk.
+      No upstream patch available as of 2026-05-25; 5.0.1 is the latest published version,
+      and the parent BOM (spring-cloud 2025.1.1) is already on the latest stable release line.
+      Mitigations in place: Vault access restricted to localhost socket inside containerised security-server;
+      no untrusted HTTP input reaches the vault config client. Remove this suppression when
+      Spring Cloud Vault 5.0.2 / 5.1.0 ships a fix.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.cloud/spring-cloud-(vault-config|starter-vault-config)@.*$</packageUrl>
+    <cve>CVE-2026-40981</cve>
+    <cve>CVE-2026-40982</cve>
+    <cve>CVE-2026-41002</cve>
+  </suppress>
+
 </suppressions>
