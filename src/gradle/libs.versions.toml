@@ -6,6 +6,7 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.38"
+jersey = "4.0.2"
 jetty = "12.1.9"
 jaxb = "4.0.8"
 hibernate = "7.3.4.Final"
@@ -53,6 +54,13 @@ metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "m
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
+jetty-ee11-servlet = { module = "org.eclipse.jetty.ee11:jetty-ee11-servlet", version.ref = "jetty" }
+
+jersey-container-servlet = { module = "org.glassfish.jersey.containers:jersey-container-servlet", version.ref = "jersey" }
+jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
+jersey-inject-hk2 = { module = "org.glassfish.jersey.inject:jersey-hk2", version.ref = "jersey" }
+jersey-media-json-processing = { module = "org.glassfish.jersey.media:jersey-media-json-processing", version.ref = "jersey" }
+jersey-media-json-jackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson", version.ref = "jersey" }
 
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
@@ -92,6 +100,7 @@ quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-co
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
 quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
 quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
+quarkus-caffeine = { group = "io.quarkus", name = "quarkus-caffeine", version.ref = "quarkus" }
 quarkus-quartz = { group = "io.quarkus", name = "quarkus-quartz", version.ref = "quarkus" }
 quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "quarkus" }
 quarkus-jdbc-postgresql = { group = "io.quarkus", name = "quarkus-jdbc-postgresql", version.ref = "quarkus" }
