@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -208,7 +207,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     }
 
     private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)},
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());

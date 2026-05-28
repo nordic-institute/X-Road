@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.PROXY_TLS_PROTOCOLS;
 
 /**
  * This is a custom SSL socket factory that connects to the fastest target
@@ -192,7 +191,7 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     protected void prepareSocket(final SSLSocket socket) {
-        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
+        socket.setEnabledProtocols(PROXY_TLS_PROTOCOLS);
         socket.setEnabledCipherSuites(proxyProperties.xroadTlsCiphers());
     }
 

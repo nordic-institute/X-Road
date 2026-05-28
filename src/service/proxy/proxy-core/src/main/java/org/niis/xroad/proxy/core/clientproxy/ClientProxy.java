@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -133,7 +132,7 @@ public class ClientProxy {
         cf.setIncludeProtocols(clientProxyProperties.clientTlsProtocols());
         cf.setIncludeCipherSuites(clientProxyProperties.clientTlsCiphers());
 
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},
                 new SecureRandom());
 
