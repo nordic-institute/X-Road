@@ -15,7 +15,7 @@ dependencies {
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
   implementation(project(":service:op-monitor:op-monitor-api"))
 
-  implementation("com.github.ben-manes.caffeine:caffeine")
+  implementation(libs.quarkus.caffeine)
   implementation(libs.quarkus.scheduler)
   implementation(libs.quarkus.health)
   implementation(libs.edc.spi.core)

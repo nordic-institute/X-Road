@@ -100,6 +100,7 @@ quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-co
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
 quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
 quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
+quarkus-caffeine = { group = "io.quarkus", name = "quarkus-caffeine", version.ref = "quarkus" }
 quarkus-quartz = { group = "io.quarkus", name = "quarkus-quartz", version.ref = "quarkus" }
 quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "quarkus" }
 quarkus-jdbc-postgresql = { group = "io.quarkus", name = "quarkus-jdbc-postgresql", version.ref = "quarkus" }
