@@ -148,7 +148,12 @@
 - name: Install SS servers
   hosts: ss_servers
   become: true
-  strategy: free
+  # linear (not free): the installer's run_once "Stage installer on controller"
+  # step rewrites a shared build/xroad-installer dir (rm -rf + cp -R). Under free,
+  # a second SS host races into the per-host "Sync staged installer" copy while
+  # that rewrite is mid-flight and fails with "chmod: cannot access .source".
+  # linear barriers the staging step ahead of the parallel syncs.
+  strategy: linear
   vars:
     xroad_installer_local_mode: true
     # LXD dev containers are below the installer's OS/RAM/CPU floor.
