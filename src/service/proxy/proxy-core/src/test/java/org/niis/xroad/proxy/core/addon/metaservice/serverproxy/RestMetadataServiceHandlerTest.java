@@ -44,7 +44,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -62,6 +64,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -117,7 +120,7 @@ class RestMetadataServiceHandlerTest {
 
     private ServerConfProvider serverConfProvider;
     private ProxyProperties proxyProperties;
-    private CommonProperties commonProperties;
+    private XRoadConfig xRoadConfig;
 
     /**
      * Init data for tests
@@ -149,9 +152,11 @@ class RestMetadataServiceHandlerTest {
         when(clientProxy.clientTlsProtocols()).thenReturn(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS);
         when(clientProxy.clientTlsCiphers()).thenReturn(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
-        // Build a CommonProperties mock that supplies the temp files path
-        commonProperties = mock(CommonProperties.class);
-        when(commonProperties.tempFilesPath()).thenReturn(TMP_DIR);
+        // Build an XRoadConfig that supplies the temp files path
+        xRoadConfig = XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .overrides(Map.of("xroad.common.temp-files-path", TMP_DIR))
+                .build();
 
         var mockHeaders = mock(HttpFields.class);
         mockRequest = mock(RequestWrapper.class);
@@ -178,7 +183,7 @@ class RestMetadataServiceHandlerTest {
     @Test
     void shouldBeAbleToHandleListMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
+                proxyProperties, xRoadConfig);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -189,7 +194,7 @@ class RestMetadataServiceHandlerTest {
     @Test
     void shouldBeAbleToHandleAllowedMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
+                proxyProperties, xRoadConfig);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -202,7 +207,7 @@ class RestMetadataServiceHandlerTest {
     void shouldHandleListMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
+                proxyProperties, xRoadConfig);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -230,7 +235,7 @@ class RestMetadataServiceHandlerTest {
     void shouldHandleAllowedMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
+                proxyProperties, xRoadConfig);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -258,7 +263,7 @@ class RestMetadataServiceHandlerTest {
     void shouldHandleGetOpenApi() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
+                proxyProperties, xRoadConfig);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -283,7 +288,7 @@ class RestMetadataServiceHandlerTest {
     @Test
     void shouldOverrideServerUrlsForYaml() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
+                proxyProperties, xRoadConfig);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test for petstore.yaml parsing
@@ -321,7 +326,7 @@ class RestMetadataServiceHandlerTest {
     @Test
     void shouldOverrideServerUrlsForJson() throws Exception {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                proxyProperties, commonProperties);
+                proxyProperties, xRoadConfig);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test petstore.json parsing
@@ -353,7 +358,7 @@ class RestMetadataServiceHandlerTest {
     public void shouldDetectUnsupportedOpenapiVersion() {
         assertThrows(XrdRuntimeException.class, () -> {
             RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider,
-                    proxyProperties, commonProperties);
+                    proxyProperties, xRoadConfig);
             ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
             // Test for petstore.yaml parsing

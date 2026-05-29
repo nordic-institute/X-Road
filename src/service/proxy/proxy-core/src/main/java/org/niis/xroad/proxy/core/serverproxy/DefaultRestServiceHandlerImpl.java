@@ -54,7 +54,7 @@ import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
@@ -68,6 +68,7 @@ import java.util.Arrays;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_MISSING_URL;
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 /**
  * Default REST service handler that forwards the request to the configured service address.
@@ -77,14 +78,14 @@ public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
 
     private final ServerConfProvider serverConfProvider;
     private final HttpClient serverHttpClient;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
 
     public DefaultRestServiceHandlerImpl(ServerConfProvider serverConfProvider,
                                          HttpClient serverHttpClient,
-                                         CommonProperties commonProperties) {
+                                         XRoadConfig xRoadConfig) {
         this.serverConfProvider = serverConfProvider;
         this.serverHttpClient = serverHttpClient;
-        this.commonProperties = commonProperties;
+        this.xRoadConfig = xRoadConfig;
     }
 
     @Override
@@ -177,7 +178,7 @@ public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
         CachingStream restResponseBody = null;
         try {
             if (response.getEntity() != null) {
-                restResponseBody = new CachingStream(commonProperties.tempFilesPath());
+                restResponseBody = new CachingStream(xRoadConfig.value(TEMP_FILES_PATH));
                 TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
                 messageEncoder.restBody(tee);
                 EntityUtils.consume(response.getEntity());

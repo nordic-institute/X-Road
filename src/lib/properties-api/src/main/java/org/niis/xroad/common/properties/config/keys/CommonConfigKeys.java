@@ -38,8 +38,7 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
 
     private static final Scope COMMON = Scope.of("common");
 
-    /** Singleton. */
-    public static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
+    private static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
 
     /** {@code xroad.common.instance-country} — active country overlay flag; no default. */
     public static final ConfigKey<String> INSTANCE_COUNTRY = COMMON
@@ -54,6 +53,11 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
             .build();
 
     private CommonConfigKeys() {
+    }
+
+    /** @return the provider singleton (pass to {@code XRoadConfigBuilder.register(...)}). */
+    public static CommonConfigKeys instance() {
+        return INSTANCE;
     }
 
     @Override

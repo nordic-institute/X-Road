@@ -44,6 +44,17 @@ public interface XRoadConfig {
      */
     <T> Value<T> get(ConfigKey<T> key);
 
+    /**
+     * Shorthand for {@code get(key).value()} when source attribution is not needed.
+     *
+     * @param key key to resolve
+     * @param <T> value type
+     * @return effective value
+     */
+    default <T> T value(ConfigKey<T> key) {
+        return get(key).value();
+    }
+
     /** @return every registered key resolved */
     Stream<Value<?>> all();
 

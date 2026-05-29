@@ -43,7 +43,7 @@ import org.apache.commons.io.IOUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageRecord;
@@ -73,6 +73,7 @@ import java.util.zip.ZipOutputStream;
 import static org.niis.xroad.common.core.exception.ErrorCode.BAD_REQUEST;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.ASIC;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.VERIFICATIONCONF;
 
@@ -115,7 +116,7 @@ public class AsicContainerClientRequestProcessor {
     private final ConfClientRpcClient confClientRpcClient;
     private final MessageRecordEncryption messageRecordEncryption;
     private final LogRecordManager logRecordManager;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
 
     public boolean canProcess(String target) {
         return switch (target) {
@@ -270,7 +271,7 @@ public class AsicContainerClientRequestProcessor {
         final String filename = AsicUtils.escapeString(queryId)
                 + (isResponse == null ? "" : (isResponse ? "-response" : "-request")) + ".zip.gpg";
 
-        final Path tempFile = Files.createTempFile(Paths.get(commonProperties.tempFilesPath()), "asic", null);
+        final Path tempFile = Files.createTempFile(Paths.get(xRoadConfig.value(TEMP_FILES_PATH)), "asic", null);
 
         try {
             final EncryptionConfig encryptionConfig = encryptionConfigProvider.forClientId(clientId);
@@ -397,7 +398,7 @@ public class AsicContainerClientRequestProcessor {
     private void encryptContainer(ResponseWrapper response, EncryptionConfig encryptionConfig,
                                   AsicContainer asicContainer) throws IOException {
         final Path tempFile = Files.createTempFile(
-                Paths.get(commonProperties.tempFilesPath()), "asic", null);
+                Paths.get(xRoadConfig.value(TEMP_FILES_PATH)), "asic", null);
         try {
             try (OutputStream os = encryptionConfig.createEncryptionStream(tempFile)) {
                 asicContainer.write(os);

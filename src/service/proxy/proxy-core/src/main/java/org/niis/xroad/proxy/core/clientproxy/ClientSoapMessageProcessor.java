@@ -48,7 +48,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -96,6 +96,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPON
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_SELECTED_TARGET;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -117,7 +118,7 @@ public class ClientSoapMessageProcessor {
     private final OpMonitoringDataHelper opMonitoringDataHelper;
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties proxyProperties;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
     private final DspRequestProcessor consumerSideDspProcessor;
@@ -157,7 +158,7 @@ public class ClientSoapMessageProcessor {
         }
         opMonitoringDataHelper.updateOpMonitoringClientSecurityServerAddress(opMonitoringData);
 
-        var decoder = new SoapRequestDecoder(ctx, messageSigningService, commonProperties.tempFilesPath(),
+        var decoder = new SoapRequestDecoder(ctx, messageSigningService, xRoadConfig.value(TEMP_FILES_PATH),
                 xRequestId, proxyProperties, opMonitoringDataHelper);
 
         ProxyMessage response = null;
@@ -364,7 +365,7 @@ public class ClientSoapMessageProcessor {
         log.trace("parseResponse()");
 
         ProxyMessage response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
-                commonProperties.tempFilesPath());
+                xRoadConfig.value(TEMP_FILES_PATH));
 
         ProxyMessageDecoder responseDecoder = new ProxyMessageDecoder(globalConfProvider,
                 ocspVerifierFactory, response,

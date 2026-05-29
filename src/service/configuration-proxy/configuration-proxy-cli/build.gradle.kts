@@ -14,6 +14,7 @@ dependencies {
   implementation(project(":service:configuration-proxy:configuration-proxy-common"))
   implementation(project(":service:configuration-proxy:configuration-proxy-jpa"))
 
+  implementation(project(":lib:properties-api"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:rpc-quarkus"))

@@ -8,6 +8,8 @@ dependencies {
 
   implementation(project(":service:configuration-client:configuration-client-model"))
   implementation(project(":service:configuration-client:configuration-client-common"))
+  implementation(project(":lib:properties-api"))
+  implementation(project(":lib:properties-impl"))
 
   implementation(libs.quarkus.arc)
   implementation(libs.quarkus.quartz)

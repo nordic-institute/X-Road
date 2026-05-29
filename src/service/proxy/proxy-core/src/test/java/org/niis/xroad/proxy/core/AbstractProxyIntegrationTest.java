@@ -41,8 +41,10 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -193,20 +195,21 @@ public abstract class AbstractProxyIntegrationTest {
         properties.putAll(ADDITIONAL_PROPERTIES);
 
         ProxyProperties proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, properties);
-        CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-                "xroad.common.temp-files-path", "build/"
-        ));
-        startServices(proxyProperties, commonProperties);
+        XRoadConfig xRoadConfig = XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .overrides(Map.of("xroad.common.temp-files-path", "build/"))
+                .build();
+        startServices(proxyProperties, xRoadConfig);
     }
 
-    static void startServices(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
-        startClientProxy(proxyProperties, commonProperties);
-        startServerProxy(proxyProperties, commonProperties);
+    static void startServices(ProxyProperties proxyProperties, XRoadConfig xRoadConfig) throws Exception {
+        startClientProxy(proxyProperties, xRoadConfig);
+        startServerProxy(proxyProperties, xRoadConfig);
 
         MessageLog.init(new NullLogManager(TEST_GLOBAL_CONF, TEST_SERVER_CONF));
     }
 
-    private static void startClientProxy(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
+    private static void startClientProxy(ProxyProperties proxyProperties, XRoadConfig xRoadConfig) throws Exception {
         clientKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         clientAuthTrustVerifier = new LoggingAuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
@@ -237,7 +240,7 @@ public abstract class AbstractProxyIntegrationTest {
         var clientRestMessageProcessor = new ClientRestMessageProcessor(
                 messageSigningServiceClient, httpSenderProviderClient,
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
-                TEST_GLOBAL_CONF, proxyProperties, commonProperties,
+                TEST_GLOBAL_CONF, proxyProperties, xRoadConfig,
                 OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
                 mock(DspRequestProcessor.class), identifierValidationService);
 
@@ -249,7 +252,7 @@ public abstract class AbstractProxyIntegrationTest {
         clientProxy.init();
     }
 
-    private static void startServerProxy(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
+    private static void startServerProxy(ProxyProperties proxyProperties, XRoadConfig xRoadConfig) throws Exception {
         serverKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
@@ -266,7 +269,7 @@ public abstract class AbstractProxyIntegrationTest {
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
-                TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties, commonProperties,
+                TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties, xRoadConfig,
                 new NoopVaultClient(), mock(MonitorRpcClient.class),
                 httpSenderProviderServer, httpClientCreator.getHttpClient());
         serviceHandlerLoader.init();
@@ -275,12 +278,12 @@ public abstract class AbstractProxyIntegrationTest {
 
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
-                TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
+                TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, xRoadConfig,
                 OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
-                TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
+                TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, xRoadConfig,
                 OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,

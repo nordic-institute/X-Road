@@ -28,12 +28,14 @@ import jakarta.inject.Singleton;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.confproxy.common.service.ConfClientHelper;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Date;
+
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 @Singleton
 public class DownloadConfAction extends AbstractAction {
@@ -45,12 +47,12 @@ public class DownloadConfAction extends AbstractAction {
                     "Destination path to use for configuration download");
 
     private final ConfClientHelper confClientHelper;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
 
-    public DownloadConfAction(ConfClientHelper confClientHelper, CommonProperties commonProperties) {
+    public DownloadConfAction(ConfClientHelper confClientHelper, XRoadConfig xRoadConfig) {
         super("download-conf");
         this.confClientHelper = confClientHelper;
-        this.commonProperties = commonProperties;
+        this.xRoadConfig = xRoadConfig;
 
         getOptions()
                 .addOption(ANCHOR)
@@ -64,7 +66,7 @@ public class DownloadConfAction extends AbstractAction {
             System.out.println("Downloading configuration using anchor from: " + anchor);
             String destination = commandLine.getOptionValue(DESTINATION.getOpt());
             if (StringUtils.isBlank(destination)) {
-                destination = Paths.get(commonProperties.tempFilesPath(), "conf_" + new Date().getTime()).toString();
+                destination = Paths.get(xRoadConfig.value(TEMP_FILES_PATH), "conf_" + new Date().getTime()).toString();
             }
             System.out.println("Destination directory: " + anchor);
             try {

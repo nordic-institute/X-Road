@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.confproxy.common.config.ConfigurationProxyProperties;
 import org.niis.xroad.confproxy.common.domain.ConfProxyInstance;
 import org.niis.xroad.confproxy.common.utils.ConfProxyUtils;
@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 import static org.niis.xroad.confproxy.common.exceptions.ConfProxyErrorCode.GLOBAL_CONF_DISTRIBUTION_ERROR;
 
 @Slf4j
@@ -55,7 +56,7 @@ public class InstanceRefresher {
     private final SignerSignClient signerSignClient;
     private final ConfClientHelper confClientHelper;
     private final ConfigurationProxyProperties cpProperties;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
 
     /**
      * Launch the configuration proxy instance. Downloads signed directory,
@@ -87,7 +88,7 @@ public class InstanceRefresher {
                         cpProperties.address(),
                         cpProperties.getHashAlgorithmUri(),
                         cpProperties.getSignatureDigestAlgorithmId(),
-                        commonProperties.tempFilesPath());
+                        xRoadConfig.value(TEMP_FILES_PATH));
                 try (output) {
                     log.debug("Build signed directory");
                     output.buildSignedDirectory(signerRpcClient, signerSignClient);

@@ -8,6 +8,9 @@ dependencies {
 
   implementation(project(":service:configuration-client:configuration-client-common"))
 
+  implementation(project(":lib:properties-api"))
+  implementation(project(":lib:properties-impl"))
+
   implementation(project(":common:common-core"))
   implementation(project(":common:common-domain"))
   implementation(project(":common:common-jetty"))

@@ -43,7 +43,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -78,6 +78,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_DISABLED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 @Slf4j
 @ApplicationScoped
@@ -91,7 +92,7 @@ public class ServerRestMessageProcessor {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties proxyProperties;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final IdentifierValidationService identifierValidationService;
@@ -169,7 +170,7 @@ public class ServerRestMessageProcessor {
 
         var requestMessage = new VerifyingProxyMessage(
                 jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
-                commonProperties.tempFilesPath(),
+                xRoadConfig.value(TEMP_FILES_PATH),
                 clientVerificationService, messageSigningService, proxyProperties, clientSslCerts);
 
         var decoder = new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory,

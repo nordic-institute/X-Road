@@ -27,7 +27,7 @@
 
 package org.niis.xroad.proxy.core.test;
 
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.util.Map;
@@ -44,7 +44,7 @@ public class ProxyTestSuiteHelper {
 
     public volatile MessageTestCase currentTestCase;
     public ProxyProperties proxyProperties;
-    public CommonProperties commonProperties;
+    public XRoadConfig xRoadConfig;
 
     private DummyService dummyService;
     private DummyServerProxy dummyServerProxy;

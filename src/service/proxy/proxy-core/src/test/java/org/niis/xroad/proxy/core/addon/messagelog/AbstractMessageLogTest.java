@@ -34,8 +34,10 @@ import ee.ria.xroad.common.util.CacheInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -76,9 +78,10 @@ abstract class AbstractMessageLogTest {
 
     ProxyProperties proxyProperties;
     ProxyMessageLogProperties messageLogProperties;
-    CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-            "xroad.common.temp-files-path", "build/tmp"
-    ));
+    XRoadConfig xRoadConfig = XRoadConfigBuilder.create()
+            .register(CommonConfigKeys.instance())
+            .overrides(Map.of("xroad.common.temp-files-path", "build/tmp"))
+            .build();
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;

@@ -48,7 +48,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -74,6 +74,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.ALLOWED_METHODS;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.GET_OPENAPI;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
@@ -99,16 +100,16 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private final ServerConfProvider serverConfProvider;
     private final HttpClientCreator httpClientCreator;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
 
     public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider,
                                           ProxyProperties proxyProperties,
-                                          CommonProperties commonProperties) {
+                                          XRoadConfig xRoadConfig) {
         this.serverConfProvider = serverConfProvider;
         this.httpClientCreator = new HttpClientCreator(serverConfProvider,
                 proxyProperties.clientProxy().clientTlsProtocols(),
                 proxyProperties.clientProxy().clientTlsCiphers());
-        this.commonProperties = commonProperties;
+        this.xRoadConfig = xRoadConfig;
     }
 
     @Override
@@ -151,7 +152,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         );
 
         @SuppressWarnings("squid:S2095") // stream is closed later.
-        CachingStream restResponseBody = new CachingStream(commonProperties.tempFilesPath());
+        CachingStream restResponseBody = new CachingStream(xRoadConfig.value(TEMP_FILES_PATH));
         try {
             if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(LIST_METHODS)) {
                 handleListMethods(requestProxyMessage, restResponse, restResponseBody);

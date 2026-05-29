@@ -25,11 +25,22 @@
 package org.niis.xroad.confproxy.common.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.confclient.common.service.ConfigurationClientService;
 import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
 
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
+
 public class ConfProxyConfig {
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig() {
+        return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .build();
+    }
 
     @ApplicationScoped
     HttpUrlConnectionConfigurer httpUrlConnectionConfigurer(ConfClientProperties confClientProperties) {
@@ -39,7 +50,8 @@ public class ConfProxyConfig {
     @ApplicationScoped
     ConfigurationClientService configurationClientService(HttpUrlConnectionConfigurer httpUrlConnectionConfigurer,
                                                           ConfClientProperties confClientProperties,
-                                                          CommonProperties commonProperties) {
-        return new ConfigurationClientService(httpUrlConnectionConfigurer, confClientProperties, commonProperties::tempFilesPath);
+                                                          XRoadConfig xRoadConfig) {
+        return new ConfigurationClientService(httpUrlConnectionConfigurer, confClientProperties,
+                () -> xRoadConfig.value(TEMP_FILES_PATH));
     }
 }

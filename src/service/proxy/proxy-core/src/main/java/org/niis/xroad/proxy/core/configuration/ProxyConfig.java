@@ -33,6 +33,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -66,6 +69,13 @@ import static java.util.Arrays.stream;
 
 @Slf4j
 class ProxyConfig {
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig() {
+        return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .build();
+    }
 
     @ApplicationScoped
     VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {

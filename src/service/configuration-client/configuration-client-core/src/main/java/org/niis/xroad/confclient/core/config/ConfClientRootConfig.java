@@ -28,7 +28,9 @@ package org.niis.xroad.confclient.core.config;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
 import org.niis.xroad.confclient.common.globalconf.FileBasedProvider;
 import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepository;
@@ -43,15 +45,24 @@ import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import javax.sql.DataSource;
 
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
+
 public class ConfClientRootConfig {
 
     @ApplicationScoped
+    XRoadConfig xRoadConfig() {
+        return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .build();
+    }
+
+    @ApplicationScoped
     ConfigurationAnchorProvider configurationAnchorProvider(ConfigurationClientProperties configurationClientProperties,
-                                                            CommonProperties commonProperties,
+                                                            XRoadConfig xRoadConfig,
                                                             Provider<DataSource> dataSource) {
         return switch (configurationClientProperties.configurationAnchorStorage()) {
             case FILE -> new FileBasedProvider(configurationClientProperties.configurationAnchorFile(),
-                    commonProperties.tempFilesPath());
+                    xRoadConfig.value(TEMP_FILES_PATH));
             case DB -> new DBBasedProvider(dataSource.get());
         };
     }
@@ -92,11 +103,11 @@ public class ConfClientRootConfig {
     @ApplicationScoped
     ConfigurationClientService configurationClientService(HttpUrlConnectionConfigurer httpUrlConnectionConfigurer,
                                                           ConfigurationClientProperties configurationClientProperties,
-                                                          CommonProperties commonProperties) {
+                                                          XRoadConfig xRoadConfig) {
         return new ConfigurationClientService(
                 httpUrlConnectionConfigurer,
                 configurationClientProperties,
-                commonProperties::tempFilesPath);
+                () -> xRoadConfig.value(TEMP_FILES_PATH));
     }
 
 }

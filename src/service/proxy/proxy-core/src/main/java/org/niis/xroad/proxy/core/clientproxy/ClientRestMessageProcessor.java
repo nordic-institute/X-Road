@@ -53,7 +53,7 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -98,6 +98,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPON
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_SELECTED_TARGET;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -113,7 +114,7 @@ public class ClientRestMessageProcessor {
     private final OpMonitoringDataHelper opMonitoringDataHelper;
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties proxyProperties;
-    private final CommonProperties commonProperties;
+    private final XRoadConfig xRoadConfig;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
     private final DspRequestProcessor consumerSideDspProcessor;
@@ -307,7 +308,7 @@ public class ClientRestMessageProcessor {
     private ProxyMessage parseResponse(HttpSender httpSender, OpMonitoringData opMonitoringData,
                                        ServiceId requestServiceId) throws IOException, MimeException {
         var response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
-                commonProperties.tempFilesPath());
+                xRoadConfig.value(TEMP_FILES_PATH));
         var decoder = new ProxyMessageDecoder(globalConfProvider,
                 ocspVerifierFactory, response,
                 httpSender.getResponseContentType(),
