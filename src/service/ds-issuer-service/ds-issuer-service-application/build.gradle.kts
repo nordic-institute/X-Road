@@ -17,6 +17,9 @@ dependencies {
 
   runtimeOnly(libs.edc.core.sql.bootstrapper)
 
+  runtimeOnly(libs.edc.vault.hashicorp)
+  runtimeOnly(libs.edc.encryption.aes)
+
   runtimeOnly(project(":lib:rpc-quarkus"))
   runtimeOnly(project(":lib:globalconf-quarkus"))
 

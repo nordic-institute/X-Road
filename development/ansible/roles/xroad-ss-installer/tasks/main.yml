@@ -1,0 +1,146 @@
+---
+- name: Assert bootstrapper_url is set (remote mode)
+  assert:
+    that:
+      - bootstrapper_url is defined
+      - bootstrapper_url | length > 0
+      - bootstrapper_url is match('^https?://')
+    fail_msg: >-
+      xroad-ss-installer requires bootstrapper_url pointing at the
+      get-xroad.sh script (http(s)://...) when xroad_installer_local_mode is
+      false.
+  when: not (xroad_installer_local_mode | bool)
+
+- name: Assert local-mode prerequisites
+  assert:
+    that:
+      - xroad_installer_local_source is defined
+      - xroad_installer_local_source | length > 0
+      - xroad_repo_url_override | length > 0
+    fail_msg: >-
+      xroad_installer_local_mode=true requires xroad_installer_local_source
+      (path to the in-tree installer scripts) and xroad_repo_url_override
+      (URL of the local package repo) to be set.
+  when: xroad_installer_local_mode | bool
+
+- name: Fail on unsupported OS family
+  fail:
+    msg: "Unsupported OS family: {{ ansible_facts['os_family'] }}"
+  when: ansible_facts['os_family'] not in ['Debian', 'RedHat']
+
+- include_tasks: ubuntu.yml
+  when: ansible_facts['os_family'] == "Debian"
+
+- include_tasks: rhel.yml
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Render installer config
+  become: true
+  template:
+    src: xroad-installer.conf.j2
+    dest: /tmp/xroad-installer.conf
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Stage installer on controller (local mode)
+  delegate_to: localhost
+  run_once: true
+  become: false
+  ansible.builtin.shell: |
+    set -euo pipefail
+    source ./_publish-installer-common.sh
+    REPO_ROOT=../.. prepare_staging
+    REPO_ROOT=../.. copy_helper_scripts
+  args:
+    chdir: "{{ xroad_installer_local_source }}/.."
+    executable: /bin/bash
+  changed_when: true
+  when: xroad_installer_local_mode | bool
+
+- name: Clean previous installer staging dir on target (local mode)
+  become: true
+  ansible.builtin.file:
+    path: /tmp/xroad-installer
+    state: absent
+  when: xroad_installer_local_mode | bool
+
+- name: Sync staged installer to target (local mode)
+  become: true
+  ansible.builtin.copy:
+    src: "{{ xroad_installer_local_source }}/../build/xroad-installer/"
+    dest: /tmp/xroad-installer/
+    mode: preserve
+  when: xroad_installer_local_mode | bool
+
+- name: Run installer
+  block:
+    - name: Pipe get-xroad.sh into bash via curl (remote mode)
+      shell: |
+        sudo bash -c "$(curl -sSfL {{ bootstrapper_url }})" -- --config-file /tmp/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
+      args:
+        chdir: "{{ ansible_env.HOME }}"
+        executable: /bin/bash
+      register: bootstrapper_result
+      failed_when: bootstrapper_result.rc != 0
+      no_log: false
+      when: not (xroad_installer_local_mode | bool)
+
+    - name: Run in-tree xroad-installer.sh (local mode)
+      become: true
+      shell: |
+        bash /tmp/xroad-installer/xroad-installer.sh --config-file /tmp/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
+      args:
+        chdir: /tmp/xroad-installer
+        executable: /bin/bash
+      environment:
+        XROAD_INSTALLER_LOG_FILE: "{{ ansible_env.HOME }}/xroad-installer-{{ ansible_date_time.iso8601_basic_short }}.log"
+      register: local_installer_result
+      failed_when: local_installer_result.rc != 0
+      when: xroad_installer_local_mode | bool
+
+    - name: Show installer output
+      debug:
+        msg: |-
+          --- stdout ---
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stdout | default('') }}
+          --- stderr ---
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stderr | default('') }}
+  rescue:
+    - name: Surface installer failure
+      fail:
+        msg: |-
+          Installer failed (mode={{ 'local' if (xroad_installer_local_mode | bool) else 'remote' }},
+          rc={{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).rc | default('unknown') }}).
+          --- stdout ---
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stdout | default('') }}
+          --- stderr ---
+          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stderr | default('') }}
+  always:
+    - name: Locate installer log on host
+      find:
+        paths: "{{ ansible_env.HOME }}"
+        patterns: "xroad-installer-*.log"
+        file_type: file
+      register: installer_logs
+      changed_when: false
+
+    - name: Fetch installer log to controller
+      fetch:
+        src: "{{ installer_logs.files | sort(attribute='mtime') | map(attribute='path') | last }}"
+        dest: "{{ playbook_dir }}/logs/{{ inventory_hostname }}-xroad-installer.log"
+        flat: true
+      when: installer_logs.files | length > 0
+
+- name: Start xroad services on RHEL (installer does not auto-start)
+  become: true
+  systemd:
+    name: xroad-proxy
+    state: started
+    enabled: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Wait for X-Road UI port
+  wait_for:
+    port: 4000
+    timeout: 180

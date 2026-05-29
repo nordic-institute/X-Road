@@ -34,6 +34,7 @@ import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
@@ -88,6 +89,17 @@ public class SoftTokenSignerIntTestContainerSetup extends BaseComposeSetup {
         var dockerClient = containerState.getDockerClient();
         dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
         await().atMost(30, TimeUnit.SECONDS).until(() -> !containerState.isRunning());
+    }
+
+    /**
+     * Check whether a container is currently running.
+     * @param service the Docker Compose service name
+     * @return true if the container exists and is running
+     */
+    public boolean isRunning(String service) {
+        return env.getContainerByServiceName(service)
+                .map(ContainerState::isRunning)
+                .orElse(false);
     }
 
     /**

@@ -19,6 +19,7 @@ quarkus:
         - xroad-logging.yaml
         - /etc/xroad/conf.d/local-tls.yaml
         - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/conf.d/local-ds-issuer-service.yaml
         - /etc/xroad/db.properties
     log:
       console:
@@ -52,6 +53,24 @@ web:
 
 edc:
   hostname: ${HOSTNAME}
+  vault:
+    hashicorp:
+      url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+      token: "${XROAD_SECRET_STORE_TOKEN}"
+      # KV v2 mount xrd-ds-secret; provisioned by secret-store-init.sh.
+      # See ds-control-plane application.yaml for path-construction rationale.
+      folder: ds
+      health:
+        check:
+          standby:
+            ok: true
+      api:
+        secret:
+          path: /v1/xrd-ds-secret
+  encryption:
+    aes:
+      key:
+        alias: ds-aes-key
   datasource:
     default:
       url: ${xroad.db.ds-issuer-service.hibernate.connection.url}

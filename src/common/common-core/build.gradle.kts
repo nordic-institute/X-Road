@@ -34,6 +34,7 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.logback.classic)
+  testImplementation(libs.opentelemetry.sdk.testing)
 }
 
 fun gitCommitHash(): String? {

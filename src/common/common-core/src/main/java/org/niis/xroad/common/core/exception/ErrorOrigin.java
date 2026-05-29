@@ -34,7 +34,8 @@ public enum ErrorOrigin {
     MONITOR,
     CONF_CLIENT,
     AUXILIARY_SERVICE,
-    SIGNER;
+    SIGNER,
+    DATASPACE;
 
     public String toPrefix() {
         return this.name().toLowerCase() + ".";

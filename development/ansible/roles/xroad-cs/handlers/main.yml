@@ -1,6 +1,0 @@
----
-- name: restart postgresql (dev remote)
-  become: true
-  service:
-    name: postgresql
-    state: restarted

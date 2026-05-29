@@ -13,6 +13,7 @@ dependencies {
   implementation(project(":service:ds-control-plane:ds-xroad-control-plane-policy"))
   implementation(project(":service:ds-control-plane:ds-xroad-catalog"))
   implementation(project(":service:ds-control-plane:ds-xroad-dataplane-registrar"))
+  implementation(project(":service:ds-control-plane:ds-xroad-asset-access-api"))
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))

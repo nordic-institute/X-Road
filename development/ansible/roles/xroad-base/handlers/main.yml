@@ -3,3 +3,9 @@
   service:
     name: ssh
     state: restarted
+
+- name: restart postgresql (dev remote)
+  become: true
+  service:
+    name: postgresql
+    state: restarted

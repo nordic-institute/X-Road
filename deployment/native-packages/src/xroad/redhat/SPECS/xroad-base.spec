@@ -90,6 +90,7 @@ rm -rf %{buildroot}
 %attr(755,root,root) /usr/share/xroad/scripts/setup_xroad_admin_user.sh
 /usr/share/xroad/scripts/_migration_common.sh
 %attr(755,root,root) /usr/share/xroad/scripts/run_migrations.sh
+%attr(755,root,root) /usr/share/xroad/scripts/db_property.sh
 %dir /usr/share/xroad/migrations
 /usr/share/xroad/migrations/*
 /usr/share/xroad/db/liquibase-executor.jar
