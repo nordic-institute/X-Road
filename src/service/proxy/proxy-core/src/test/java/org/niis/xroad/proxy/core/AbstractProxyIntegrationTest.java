@@ -61,6 +61,7 @@ import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
@@ -75,6 +76,7 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
@@ -104,7 +106,8 @@ import java.util.Set;
 import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
 
-/** Base class for proxy integration tests.
+/**
+ * Base class for proxy integration tests.
  */
 public abstract class AbstractProxyIntegrationTest {
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
@@ -174,7 +177,8 @@ public abstract class AbstractProxyIntegrationTest {
         var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
         var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
         var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
-        var serviceAddressResolverClient = new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties);
+        var serviceAddressResolverClient = new DefaultServiceAddressResolver(
+                TEST_GLOBAL_CONF, proxyProperties, new ProviderSecurityServerResolver(TEST_GLOBAL_CONF));
         var clientVerificationServiceClient = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
@@ -187,7 +191,8 @@ public abstract class AbstractProxyIntegrationTest {
                 messageSigningServiceClient, httpSenderProviderClient,
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient, identifierValidationService);
+                OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
+                mock(DspRequestProcessor.class), identifierValidationService);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),

@@ -1,10 +1,18 @@
 ---
-{% if xroad_image_registry | length > 0 %}
+{% if (xroad_image_registry | length > 0) or jvm_metrics_enabled %}
 global:
+{% if xroad_image_registry | length > 0 %}
   image:
     registry: {{ xroad_image_registry }}
 {% if xroad_image_tag | length > 0 %}
     tag: {{ xroad_image_tag }}
+{% endif %}
+{% endif %}
+{% if jvm_metrics_enabled %}
+  extraPodAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9801"
+    prometheus.io/path: "/metrics"
 {% endif %}
 {% endif %}
 
@@ -73,6 +81,30 @@ services:
         subPath: openbao.crt
         name: op-monitor-openbao-tls-certificate
 
+  # DSP services — bump replicas from chart default of 0. DB clusters are
+  # provisioned by the cloudnative_pg role (see ds_*_db vars).
+  # ds-* services talk to OpenBao over HTTPS via the Quarkus vault client,
+  # so they need the same openbao TLS cert mount as proxy/signer/monitor.
+{% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
+  {{ svc }}:
+    replicas: 1
+    env:
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: {{ svc }}-openbao-tls-certificate
+        secret:
+          secretName: {{ openbao_tls_secret_name }}
+          items:
+            - key: tls.crt
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt
+        subPath: openbao.crt
+        name: {{ svc }}-openbao-tls-certificate
+{% endfor %}
+  mock-jwks-server:
+    replicas: 1
+
   auxiliary-service:
     env:
 {% if serverconf_init_image | length > 0 %}
@@ -111,3 +143,8 @@ otel:
     serviceNamespace: xroad
     deploymentEnvironment: {{ otel_deployment_environment }}
 {% endif %}
+
+# Postgres image used by DSP wait-gate initContainers. The DB clusters
+# themselves are provisioned by the cloudnative_pg role, not the chart.
+postgres:
+  image: "{{ postgres_image }}"

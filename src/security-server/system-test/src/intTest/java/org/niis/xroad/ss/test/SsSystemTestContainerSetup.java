@@ -29,9 +29,11 @@ package org.niis.xroad.ss.test;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.ss.test.ds.bootstrap.DspBootstrap;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.utility.MountableFile;
@@ -70,10 +72,13 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
     private static final String COMPOSE_SYSTEMTEST_DS_FILE = "compose.systemtest.ds.yaml";
 
     private final ObjectMapper objectMapper;
+    private final DspBootstrap dspBootstrap;
 
-    public SsSystemTestContainerSetup(TestFrameworkCoreProperties coreProperties, ObjectMapper objectMapper) {
+    public SsSystemTestContainerSetup(TestFrameworkCoreProperties coreProperties, ObjectMapper objectMapper,
+                                      @Lazy DspBootstrap dspBootstrap) {
         super(coreProperties);
         this.objectMapper = objectMapper;
+        this.dspBootstrap = dspBootstrap;
     }
 
     @Override
@@ -96,6 +101,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY_DID, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
@@ -116,6 +122,7 @@ public class SsSystemTestContainerSetup extends BaseComposeSetup {
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
         execInContainer(AUXILIARY_SERVICE, "/etc/xroad/backup-keys/init_backup_encryption.sh");
+        dspBootstrap.bootstrap();
 
         initSelenideRemoteWebDriver();
     }

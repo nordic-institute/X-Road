@@ -47,10 +47,8 @@ import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
  * Readiness check for the Proxy auth-key OCSP response status.
  * <p>
  * Startup-tolerant: null auth key / cert chain / end-entity cert return UP with a
- * fine-grained {@code status=AWAITING_*} payload — the legacy
- * {@code HealthChecks.checkAuthKeyOcspStatus} treats these as failures, Phase 9 reverses
- * that per SC#1 to prevent restart cascades during fresh Security Server installs
- * (signer has not yet synced).
+ * fine-grained {@code status=AWAITING_*} payload rather than DOWN, to prevent restart
+ * cascades during fresh Security Server installs where the signer has not yet synced.
  * <p>
  * Self-wraps in its constructor:
  * {@code CachingHealthCheck(TimedHealthCheck(this::doCheck))} — cache on the outside,

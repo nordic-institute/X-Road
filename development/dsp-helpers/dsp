@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# dsp — entrypoint dispatcher for EDC mgmt + control API inspection helpers
+# Usage: dsp <command> [args...]
+#
+# Commands:
+#   participants    <ss>           List all participant contexts
+#   participant-create <ss> <ctx>  Create a participant context
+#   assets          <ss> <ctx>     List assets for a participant context
+#   asset-create    <ss> <ctx> <id> <baseUrl>  Create an asset
+#   policies        <ss> <ctx>     List policy definitions
+#   contracts       <ss> <ctx>     List contract definitions
+#   dataplanes      <ss>           List registered data-planes (no auth)
+#   catalog         <ss> <ctx>     Query full DSP catalog
+#   seed            [ss0] [ss1]    Seed via setup_dsp.hurl + verify
+#
+# <ss> = ss0 | ss1  (resolves via lxc list) or a literal hostname/IP
+# Set DSP_RAW=1 to suppress jq pretty-printing.
+set -euo pipefail
+
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/scripts" && pwd)"
+
+cmd="${1:-}"
+if [[ -z "${cmd}" ]]; then
+    grep '^#   ' "${BASH_SOURCE[0]}" | sed 's/^#   /  /'
+    exit 0
+fi
+shift
+
+script="${SCRIPTS_DIR}/${cmd}.sh"
+if [[ ! -f "${script}" ]]; then
+    echo "ERROR: unknown command '${cmd}'" >&2
+    echo "Run '$(basename "${BASH_SOURCE[0]}")' with no args for usage." >&2
+    exit 1
+fi
+
+exec "${script}" "$@"

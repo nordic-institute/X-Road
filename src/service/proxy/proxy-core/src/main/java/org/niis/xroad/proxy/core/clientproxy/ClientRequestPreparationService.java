@@ -85,6 +85,23 @@ public class ClientRequestPreparationService {
         }
     }
 
+    public void recordServiceSecurityServerAddress(ServiceId requestServiceId,
+                                                   SecurityServerId securityServerId,
+                                                   ProxyRequestContext ctx,
+                                                   OpMonitoringData opMonitoringData) {
+        if (opMonitoringData == null) {
+            return;
+        }
+        try {
+            var candidates = serviceAddressResolver.resolve(requestServiceId, securityServerId, ctx);
+            if (!candidates.isEmpty()) {
+                opMonitoringData.setServiceSecurityServerAddress(candidates.getFirst().getHost());
+            }
+        } catch (RuntimeException e) {
+            log.debug("Failed to resolve service security server address for op-monitoring", e);
+        }
+    }
+
     /**
      * Prepares an {@link HttpSender} for a client proxy request: resolves target addresses,
      * sets SSL attributes, connection pool user token, timeouts, and common request headers.
