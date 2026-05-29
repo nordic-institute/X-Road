@@ -398,6 +398,7 @@ edc-dcp = [
   "edc-iam-decentralized",
   "edc-iam-dcp-trustedissuers",
   "edc-iam-dcp-cel",
+  "edc-oauth2-client",
 ]
 edc-connector = [
   "edc-boot",
