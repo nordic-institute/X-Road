@@ -7,9 +7,9 @@
 #
 # Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
-#   - ds-control-plane:  participant-context-id, control-plane-endpoint
+#   - ds-control-plane:  participant-context-id
 #   - ds-identity-hub:   jwks.url, keystore path
-#   - xroad-proxy:       dsp.participant-context-id, dsp.control-plane-endpoint
+#   - xroad-proxy:       dsp.participant-context-id
 # AND the packages no longer start the units unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
@@ -37,7 +37,7 @@
 #    missing. Dropping the file here lets the first package-driven start succeed.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-proxy debconf ships
-#   participant-context-id and control-plane-endpoint as answerable questions.
+#   participant-context-id as an answerable question.
 # ---------------------------------------------------------------------------
 - name: preseed DSP control plane config (must precede xroad-proxy package install)
   copy:
@@ -50,7 +50,6 @@
         proxy:
           dsp:
             participant-context-id: "{{ inventory_hostname }}.lxd"
-            control-plane-endpoint: "https://localhost:8184/api/v1/control"
             cache:
               enabled: false
 
