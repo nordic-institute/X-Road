@@ -88,6 +88,7 @@ DIR="$(cd "$(dirname $0)" && pwd)"
 cd "$DIR"
 
 mkdir -p build/xroad
+rm -rf build/xroad/ubuntu
 cp -a src/xroad/ubuntu build/xroad/
 
 # version was not given, use empty
