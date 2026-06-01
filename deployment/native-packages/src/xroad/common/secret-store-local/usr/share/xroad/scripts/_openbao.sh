@@ -315,7 +315,7 @@ create_token() {
     echo "[OPENBAO] Using custom token ID: $token_id" >&2
   fi
 
-  local token_response=$(bao_api "POST" "$addr" "/v1/auth/token/create-orphan" \
+  local token_response=$(bao_api "POST" "$addr" "/v1/auth/token/create" \
     "$payload_json" \
     "$token" "Creating token with policy: $policy")
 
