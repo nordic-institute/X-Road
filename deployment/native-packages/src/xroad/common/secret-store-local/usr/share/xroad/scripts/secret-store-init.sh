@@ -64,16 +64,19 @@ else
   }
 fi
 
-# Configure KV if needed
-if curl -s -k -H "X-Vault-Token: $BAO_TOKEN" "$BAO_ADDR/v1/sys/mounts" | jq -e 'has("xrd-secret/")' >/dev/null; then
-  echo "KV store already configured"
-else
-  echo "Configuring KV store..."
-  configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
-    echo "Failed to configure KV store" >&2
-    exit 1
-  }
-fi
+# Configure KV stores (xrd-secret KV v1 + xrd-ds-secret KV v2). configure_kv
+# is idempotent and provisions whichever mount is missing.
+echo "Configuring KV stores..."
+configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
+  echo "Failed to configure KV store" >&2
+  exit 1
+}
+
+# Seed AES encryption key for ds-* services (idempotent).
+seed_ds_aes_key "$BAO_ADDR" "$BAO_TOKEN" || {
+  echo "Failed to seed DS AES key" >&2
+  exit 1
+}
 
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 
