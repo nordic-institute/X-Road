@@ -6,7 +6,7 @@ images:
     arch: "aarch64"
 
 cpus: 4
-memory: 12GiB
+memory: 14GiB
 disk: "64GiB"
 
 vmType: "vz"
