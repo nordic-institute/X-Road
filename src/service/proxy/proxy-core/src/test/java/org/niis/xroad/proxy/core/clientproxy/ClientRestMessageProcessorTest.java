@@ -27,6 +27,8 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -44,6 +46,8 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.DspRequest;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
@@ -56,6 +60,7 @@ import java.net.URI;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -108,8 +113,74 @@ class ClientRestMessageProcessorTest {
                 commonProperties,
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
+                mock(DspRequestProcessor.class),
                 mock(IdentifierValidationService.class)
         );
+    }
+
+    @Test
+    void isManagementRequestReturnsTrueWhenServiceIdMatchesManagementSubsystem() {
+        var management = ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(management);
+        var serviceId = ServiceId.Conf.create(management, "clientReg");
+
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+
+        assertThat(processor.isManagementRequest(serviceId)).isTrue();
+    }
+
+    @Test
+    void isManagementRequestReturnsFalseForNonManagementClient() {
+        var management = ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
+        var other = ClientId.Conf.create("DEV", "COM", "4321", "TestClient");
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(management);
+        var serviceId = ServiceId.Conf.create(other, "mock1");
+
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+
+        assertThat(processor.isManagementRequest(serviceId)).isFalse();
+    }
+
+    @Test
+    void isManagementRequestReturnsFalseWhenGlobalConfManagementServiceIsNull() {
+        var other = ClientId.Conf.create("DEV", "COM", "4321", "TestClient");
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var serviceId = ServiceId.Conf.create(other, "mock1");
+
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+
+        assertThat(processor.isManagementRequest(serviceId)).isFalse();
+    }
+
+    @Test
+    void managementServiceIdProducesDspRequestWithManagementFlagTrue() {
+        var management = ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(management);
+        var serviceId = ServiceId.Conf.create(management, "clientReg");
+
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+
+        // isManagementRequest drives the management flag in the DspRequest constructed by sendRequest.
+        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        assertThat(dspRequest.managementSubsystem()).isTrue();
+    }
+
+    @Test
+    void nonManagementServiceIdProducesDspRequestWithManagementFlagFalse() {
+        var management = ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
+        var other = ClientId.Conf.create("DEV", "COM", "4321", "TestClient");
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(management);
+        var serviceId = ServiceId.Conf.create(other, "testService");
+
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+
+        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        assertThat(dspRequest.managementSubsystem()).isFalse();
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {

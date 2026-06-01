@@ -34,8 +34,6 @@ import org.niis.xroad.ss.test.ds.api.FeignIdentityHubManagementApi;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Base64;
-
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -49,7 +47,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
             + "and keypair is generated with private key alias {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias) {
         var credentialServiceUrl = "http://ds-identity-hub:" + Port.DS_IDENTITY_HUB_CREDENTIALS + "/api/credentials/v1/participants/"
-                + Base64.getEncoder().encodeToString(participantId.getBytes());
+                + participantId;
 
         String createParticipantRequest = """
                 {
@@ -84,7 +82,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
             + "with existing private key in vault with alias {string} and public key {string}")
     public void identityHubParticipantContextIsInitialized(String participantId, String did, String privateKeyAlias, String publicKey) {
         var credentialServiceUrl = "http://ds-identity-hub:" + Port.DS_IDENTITY_HUB_CREDENTIALS + "/api/credentials/v1/participants/"
-                + Base64.getEncoder().encodeToString(participantId.getBytes());
+                + participantId;
 
         String createParticipantRequest = """
                 {
@@ -133,8 +131,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
 
         var response = feignIdentityHubManagementApi.requestCredential(
                 AuthTokens.ADMIN,
-                // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
-                Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()),
+                participantContextId,
                 request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))
@@ -149,8 +146,7 @@ public class IdentityHubStepDefs extends BaseStepDefs {
         for (int i = 0; i < maxRetries; i++) {
             var response = feignIdentityHubManagementApi.getCredentialRequestStatus(
                     AuthTokens.ADMIN,
-                    // Seemingly since EDC 17 participant context ID doesn't need to be base64 encoded
-                    Base64.getUrlEncoder().encodeToString(participantContextId.getBytes()),
+                    participantContextId,
                     holderPid);
             validate(response)
                     .assertion(equalsStatusCodeAssertion(OK))
