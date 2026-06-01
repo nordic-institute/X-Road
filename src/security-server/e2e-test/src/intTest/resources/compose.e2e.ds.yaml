@@ -88,6 +88,7 @@ services:
       - HOSTNAME=${ENV_PREFIX:-}ds-control-plane
       - XROAD_HOST=ds-control-plane
       - XROAD_DSP_PARTICIPANT_CONTEXT_ID=${DSP_PARTICIPANT_ID:-xrd-ss}
+      - XROAD_PROXY_DATAPLANE_URL=http://proxy:5590/full/api/v1/dataflows
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
