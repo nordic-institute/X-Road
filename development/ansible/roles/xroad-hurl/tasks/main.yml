@@ -30,14 +30,14 @@
         dest: /opt/hurl/run-hurl.sh
         mode: "0755"
 
-    - name: Copy Hurl configuration files
+    - name: Copy Hurl scenario files
       copy:
-        src: "{{ hurl_files }}"
-        dest: "{{ hurl_files_dest }}"
+        src: "{{ hurl_scenario_dir }}/{{ item }}"
+        dest: "{{ hurl_install_dir }}/scenario/{{ item }}"
         group: "root"
         owner: "root"
         mode: "0644"
-        directory_mode: "0755"
+      with_items: "{{ hurl_files }}"
 
     - name: Copy Hurl env file
       copy:

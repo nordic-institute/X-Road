@@ -1,0 +1,4 @@
+#!/bin/bash
+. /etc/xroad/services/ds-issuer-service.conf
+
+exec java ${XROAD_PARAMS} ${XROAD_DS_ISSUER_SERVICE_PARAMS} -jar /usr/share/xroad/jlib/ds-issuer-service/quarkus-run.jar

@@ -44,7 +44,12 @@ function opensslCA() {
 }
 
 if [ "$1" == "auth" ]; then
-  subjectAltName=$(openssl req -in csr/${SER}.csr -text -noout | grep -A1 "Subject Alternative Name" | tail -n1 | sed 's/^[ \t]*//')
+  # openssl req -text prints IP entries as "IP Address:1.2.3.4"; openssl config
+  # syntax wants "IP:1.2.3.4". Translate so re-injection through extfile parses.
+  subjectAltName=$(openssl req -in csr/${SER}.csr -text -noout \
+    | grep -A1 "Subject Alternative Name" | tail -n1 \
+    | sed 's/^[ \t]*//' \
+    | sed 's/IP Address:/IP:/g')
   if [ ! -z "$subjectAltName" ]; then
     extensionsOverride="
 [ auth_ext ]
