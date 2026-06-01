@@ -15,29 +15,15 @@
   tags:
     - build-packages
 
-- name: Configure local repositories on CS
-  hosts: cs_servers
+- name: Rebuild shared package repository (single shared, served over HTTP)
+  hosts: repo_servers
+  become: true
   strategy: free
   roles:
-    - packages-to-local-repo
+    - xroad-repo
   tags:
     - local-repo
-
-- name: Configure local repositories on CP
-  hosts: cp_servers
-  strategy: free
-  roles:
-    - packages-to-local-repo
-  tags:
-    - local-repo
-
-- name: Configure local repositories on SS
-  hosts: ss_servers
-  strategy: free
-  roles:
-    - packages-to-local-repo
-  tags:
-    - local-repo
+    - repo
 
 - name: Reinstall packages on CS
   hosts: cs_servers

@@ -1,4 +1,10 @@
 ---
+# TEMPORARY (dataspaces dev): pre-install preseed runs before the xroad-centralserver
+# package starts xroad-ds-issuer-service. Puts the DS runtime config and TLS keystore
+# on disk BEFORE the package postinst fires. Remove this include (and pre-cs-install.yml)
+# once upstream packaging ships debconf preseeds and stops auto-starting the unit.
+- include_tasks: pre-cs-install.yml
+
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
 
@@ -6,3 +12,5 @@
     name: xroad-base
     tasks_from: postgres_remote_dev.yml
   when: enable_postgres_remote_access | default(false) | bool
+
+- include_tasks: post-cs-install.yml

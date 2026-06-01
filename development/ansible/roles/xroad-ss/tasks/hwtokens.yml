@@ -53,13 +53,13 @@
       register: softhsm2_slot_id
       changed_when: false
 
-    - name: Append SoftHSM2 signer module to end of local.yaml
+    - name: Append SoftHSM2 signer module under xroad in local.yaml
       blockinfile:
         path: /etc/xroad/conf.d/local.yaml
-        insertafter: EOF
-        marker: "# {mark} SoftHSM2 signer module"
-        block: |
-          # hardware token configuration:
+        insertafter: '^xroad:$'
+        marker: "  # {mark} SoftHSM2 signer module"
+        block: |2
+            # hardware token configuration:
             signer:
               modules:
                 softhsm2:
