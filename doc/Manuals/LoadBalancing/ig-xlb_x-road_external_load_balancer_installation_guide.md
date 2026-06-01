@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.29
+Version: 1.30
 Doc. ID: IG-XLB
 
 
@@ -36,6 +36,7 @@ Doc. ID: IG-XLB
 | 02.04.2025 | 1.27    | Added Proxy memory health check paragraph                                                                                | Mikk-Erik Bachmann          |
 | 06.05.2025 | 1.28    | Added more details about the soft token status check result caching                                                      | Petteri Kivimäki            |
 | 01.08.2025 | 1.29    | Fix a broken link                                                                                                        | Petteri Kivimäki            |
+| 22.05.2026 | 1.30    | Added ACME HTTP challenge port clarification for secondaries                                                             | Mikk-Erik Bachmann          |
 
 ## Table of Contents
 
@@ -360,6 +361,8 @@ In order to properly set up the data replication, the secondary nodes must be ab
     Improvements to API key handling in clustered setups will be included in later releases.
 
 11. It is possible to use the autologin-package with secondary nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
+
+12. Note about ACME: using ACME to order or renew certificates is not possible on secondaries, so the ACME HTTP-01 challenge port (typically TCP 80) does not need to be reachable here. Only the primary node responds to ACME challenges.
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
  to verify the setup.
