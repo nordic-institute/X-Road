@@ -109,7 +109,7 @@ is_sealed() {
   done
   if [ $attempt -eq $max_attempts ]; then
     echo "[OPENBAO] Failed to check seal status after $max_attempts attempts" >&2
-    exit 1
+    return 2
   fi
   echo "$status" | jq -e '.sealed == true' >/dev/null
 }
@@ -188,11 +188,22 @@ path "xrd-secret/message-log/database-encryption/keys/*" {
 path "xrd-secret/signer/token-pins/*" {
   capabilities = ["read", "list", "create", "update", "delete"]
 }
-path "xrd-secret/ds/*" {
-  capabilities = ["read", "list", "create", "update", "delete"]
-}
 
 path "xrd-secret" {
+  capabilities = ["list"]
+}
+
+# KV v2 paths for EDC-based services (ds-*).
+path "xrd-ds-secret/data/ds/*" {
+  capabilities = ["read", "list", "create", "update"]
+}
+path "xrd-ds-secret/metadata/ds/*" {
+  capabilities = ["read", "list", "delete"]
+}
+path "xrd-ds-secret/delete/ds/*" {
+  capabilities = ["update"]
+}
+path "xrd-ds-secret" {
   capabilities = ["list"]
 }
 path "sys/internal/ui/mounts/*" {
@@ -210,14 +221,63 @@ EOF
   return 0
 }
 
+mount_if_missing() {
+  local addr="$1"
+  local token="$2"
+  local mount="$3"
+  local payload="$4"
+  local label="$5"
+
+  if curl -s -k -H "X-Vault-Token: $token" "$addr/v1/sys/mounts" | \
+       jq -e --arg m "${mount}/" 'has($m)' >/dev/null; then
+    echo "[OPENBAO] Mount ${mount}/ already exists; skipping ${label}"
+    return 0
+  fi
+  bao_api "POST" "$addr" "/v1/sys/mounts/${mount}" \
+    "$payload" "$token" "Enabling ${label} (${mount})"
+}
+
 configure_kv() {
   local addr="${1:-$BAO_ADDR}"
   local token="${2:-$BAO_TOKEN}"
 
-  bao_api "POST" "$addr" "/v1/sys/mounts/xrd-secret" \
-    '{"type": "kv"}' "$token" "Enabling KV secrets engine" || return 1
+  mount_if_missing "$addr" "$token" "xrd-secret" \
+    '{"type": "kv"}' "KV v1 secrets engine" || return 1
+
+  mount_if_missing "$addr" "$token" "xrd-ds-secret" \
+    '{"type": "kv-v2"}' "KV v2 secrets engine" || return 1
 
   echo "[OPENBAO] KV configuration completed"
+  return 0
+}
+
+# Seed a 32-byte AES key (base64-encoded) at xrd-ds-secret/ds/<alias> when
+# absent. Idempotent: skips when an existing value is present so package
+# upgrades / re-runs don't rotate the key under live services.
+# WIP / DEV: production rotation should be operator-driven via OpenBao audit-
+# logged workflows, not generated on first boot of each host.
+seed_ds_aes_key() {
+  local addr="${1:-$BAO_ADDR}"
+  local token="${2:-$BAO_TOKEN}"
+  local alias="${3:-ds-aes-key}"
+
+  local existing
+  existing=$(curl -s -k -o /dev/null -w "%{http_code}" \
+    -H "X-Vault-Token: $token" \
+    "$addr/v1/xrd-ds-secret/data/ds/${alias}")
+  if [ "$existing" = "200" ]; then
+    echo "[OPENBAO] AES key xrd-ds-secret/ds/${alias} already present; skipping"
+    return 0
+  fi
+
+  local key_b64
+  key_b64=$(openssl rand 32 | base64 -w 0 2>/dev/null || openssl rand 32 | base64)
+
+  bao_api "POST" "$addr" "/v1/xrd-ds-secret/data/ds/${alias}" \
+    "$(jq -nc --arg v "$key_b64" '{data:{content:$v}}')" \
+    "$token" "Seeding AES encryption key (${alias})" || return 1
+
+  echo "[OPENBAO] AES key seed completed"
   return 0
 }
 

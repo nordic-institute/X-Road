@@ -23,6 +23,16 @@
       changed_when: false
       failed_when: false
 
+    - name: Read upstream Ubuntu fingerprint for xrd-repo
+      shell: |
+        set -o pipefail
+        lxc image info ubuntu:{{ hostvars['xrd-repo'].ubuntu_releasever }} | awk '/^Fingerprint:/ {print $2; exit}'
+      args:
+        executable: /bin/bash
+      register: xrd_repo_upstream_fp_raw
+      changed_when: false
+      failed_when: false
+
     - name: Read xroad-is-cached image properties
       command: lxc image show xroad-is-cached
       register: xroad_is_cached_show
@@ -32,6 +42,12 @@
     - name: Read xroad-ca-cached image properties
       command: lxc image show xroad-ca-cached
       register: xroad_ca_cached_show
+      changed_when: false
+      failed_when: false
+
+    - name: Read xroad-repo-cached image properties
+      command: lxc image show xroad-repo-cached
+      register: xroad_repo_cached_show
       changed_when: false
       failed_when: false
 
@@ -65,6 +81,20 @@
             else {}
           }}
 
+        xrd_repo_upstream_fp: >-
+          {{
+            (xrd_repo_upstream_fp_raw.stdout | trim)
+            if xrd_repo_upstream_fp_raw.rc == 0
+            else ''
+          }}
+
+        xroad_repo_cached_props: >-
+          {{
+            (xroad_repo_cached_show.stdout | from_yaml).properties | default({})
+            if xroad_repo_cached_show.rc == 0
+            else {}
+          }}
+
     - name: Decide xroad cache usability
       set_fact:
         xroad_is_cache_usable: >-
@@ -87,12 +117,23 @@
             )
           }}
 
+        xroad_repo_cache_usable: >-
+          {{
+            (xroad_repo_cached_show.rc | default(1)) == 0
+            and (
+              xrd_repo_upstream_fp == ''
+              or xroad_repo_cached_props.ubuntu_base | default('')
+                 == xrd_repo_upstream_fp
+            )
+          }}
+
     - name: Build per-container image source map
       set_fact:
         container_image_alias_map: >-
           {{
             ({'xrd-is': 'xroad-is-cached'} if xroad_is_cache_usable else {})
             | combine({'xrd-ca': 'xroad-ca-cached'} if xroad_ca_cache_usable else {})
+            | combine({'xrd-repo': 'xroad-repo-cached'} if xroad_repo_cache_usable else {})
           }}
 
     - name: Show cached image decisions
@@ -100,6 +141,7 @@
         msg:
           - "xrd-is source: {{ container_image_alias_map['xrd-is'] | default(hostvars['xrd-is'].ubuntu_releasever ~ ' (upstream)') }}"
           - "xrd-ca source: {{ container_image_alias_map['xrd-ca'] | default(hostvars['xrd-ca'].ubuntu_releasever ~ ' (upstream)') }}"
+          - "xrd-repo source: {{ container_image_alias_map['xrd-repo'] | default(hostvars['xrd-repo'].ubuntu_releasever ~ ' (upstream)') }}"
 
 - name: Ready all Ubuntu containers
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
