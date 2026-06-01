@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Populates the EDC {@link DataPlaneInstanceStore} from local YAML configuration at boot.
@@ -47,6 +48,11 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
 
     static final String NAME = "X-Road DataPlane Registrar";
     static final String SETTING_DATAPLANES = "xroad.cp.dataplane";
+    static final String SETTING_HOSTNAME = "edc.hostname";
+    static final String SETTING_PARTICIPANT_CONTEXT_ID = "xroad.dsp.participant-context-id";
+    static final String SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID = "xroad.dsp.management-participant-context-id";
+    static final String DEFAULT_HOSTNAME = "localhost";
+    static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
 
     static final String KEY_ID = "id";
     static final String KEY_URL = "url";
@@ -71,36 +77,56 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
                     SETTING_DATAPLANES);
             return;
         }
-        entries.forEach(this::registerFromConfig);
+        var participantContextIds = resolveParticipantContextIds(context);
+        entries.forEach(entry -> registerFromConfig(entry, participantContextIds));
     }
 
-    private void registerFromConfig(Config entry) {
+    private List<String> resolveParticipantContextIds(ServiceExtensionContext context) {
+        var defaultContextId = context.getSetting(SETTING_HOSTNAME, DEFAULT_HOSTNAME);
+        var participantContextId = context.getSetting(SETTING_PARTICIPANT_CONTEXT_ID, defaultContextId);
+        var managementParticipantContextId = context.getSetting(
+                SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + MANAGEMENT_CONTEXT_SUFFIX);
+        return Stream.of(participantContextId, managementParticipantContextId).distinct().toList();
+    }
+
+    private void registerFromConfig(Config entry, List<String> participantContextIds) {
         var node = entry.currentNode();
         boolean enabled = entry.getBoolean(KEY_ENABLED, true);
         if (!enabled) {
             log.info("Data plane entry '{}' is disabled — skipping.", node);
             return;
         }
-        var instance = buildInstance(entry);
+        participantContextIds.forEach(participantContextId -> register(entry, node, participantContextId));
+    }
+
+    private void register(Config entry, String node, String participantContextId) {
+        var instance = buildInstance(entry, participantContextId);
         var result = dataPlaneInstanceStore.save(instance);
         if (result.failed()) {
             log.error("Failed to register data plane '{}' (config node '{}'): {}",
                     instance.getId(), node, result.getFailureDetail());
             return;
         }
-        log.info("Registered data plane '{}' from config (node '{}', url='{}')",
-                instance.getId(), node, instance.getUrl());
+        log.info("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
+                instance.getId(), participantContextId, node, instance.getUrl());
     }
 
-    private DataPlaneInstance buildInstance(Config entry) {
+    private DataPlaneInstance buildInstance(Config entry, String participantContextId) {
         var builder = DataPlaneInstance.Builder.newInstance()
-                .id(entry.getString(KEY_ID))
+                .id(instanceId(entry.getString(KEY_ID), participantContextId))
+                .participantContextId(participantContextId)
                 .url(entry.getString(KEY_URL));
 
         getMultiValues(entry, KEY_ALLOWED_SOURCE_TYPES).forEach(builder::allowedSourceType);
         getMultiValues(entry, KEY_ALLOWED_TRANSFER_TYPES).forEach(builder::allowedTransferType);
 
-        return builder.build();
+        var instance = builder.build();
+        instance.transitionToRegistered();
+        return instance;
+    }
+
+    private static String instanceId(String baseId, String participantContextId) {
+        return baseId + "::" + participantContextId;
     }
 
     private static List<String> getMultiValues(Config entry, String key) {
