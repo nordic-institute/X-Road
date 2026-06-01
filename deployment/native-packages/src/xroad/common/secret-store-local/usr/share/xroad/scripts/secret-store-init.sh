@@ -34,7 +34,11 @@ else
 fi
 
 # Check if sealed and unseal if needed
-if ! is_sealed; then
+is_sealed; sealed_rc=$?
+if [ "$sealed_rc" -eq 2 ]; then
+  echo "Cannot determine OpenBao seal status; aborting" >&2
+  exit 1
+elif [ "$sealed_rc" -ne 0 ]; then
   echo "OpenBao is already unsealed"
 else
   echo "Unsealing OpenBao..."
@@ -44,7 +48,11 @@ else
       exit 1
     fi
 
-    if ! is_sealed; then
+    is_sealed; sealed_rc=$?
+    if [ "$sealed_rc" -eq 2 ]; then
+      echo "Cannot verify seal status after unseal; aborting" >&2
+      exit 1
+    elif [ "$sealed_rc" -ne 0 ]; then
       echo "Successfully unsealed OpenBao"
       break
     fi
