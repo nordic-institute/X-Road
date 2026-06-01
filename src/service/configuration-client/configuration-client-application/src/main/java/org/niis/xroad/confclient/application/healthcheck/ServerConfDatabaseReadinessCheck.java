@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.confclient.application.healthcheck;
 
+import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,7 @@ import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 @Readiness
 @ApplicationScoped
 @RequiredArgsConstructor
+@LookupIfProperty(name = "quarkus.datasource.active", stringValue = "true", lookupIfMissing = true)
 public class ServerConfDatabaseReadinessCheck implements HealthCheck {
     private static final String NAME = "CONFCLIENT__SERVERCONF_READINESS_CHECK";
     private static final int VALIDATION_TIMEOUT_SECONDS = 5;

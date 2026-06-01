@@ -42,9 +42,9 @@ import java.util.Date;
  * "find CA via globalconf, build PKIX path, validate against trust anchor" flow used by
  * SOAP signature verification.
  *
- * <p>OCSP is intentionally <em>not</em> checked here — slice 05 introduces the pinned-OCSP
- * verification step downstream of this one. Until then we rely on {@code
- * CertChainVerifier.verifyChainOnly(...)}.
+ * <p>OCSP is intentionally <em>not</em> checked here — the pinned-OCSP verification step is
+ * performed downstream by {@link OcspVerifier}; this validator relies on
+ * {@code CertChainVerifier.verifyChainOnly(...)}.
  *
  * <p>The X-Road instance is the verifier's own local instance from
  * {@link GlobalConfProvider#getInstanceIdentifier()}. Multi-instance federation (a holder

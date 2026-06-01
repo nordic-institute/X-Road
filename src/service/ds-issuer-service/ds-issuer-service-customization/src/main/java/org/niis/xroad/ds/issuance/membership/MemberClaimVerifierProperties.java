@@ -26,40 +26,22 @@
  */
 package org.niis.xroad.ds.issuance.membership;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-
 import java.time.Duration;
 
 /**
- * Verifier-side configuration for the X-Road MemberId claim JWS lifetime checks. Lives
- * under the {@code xroad.issuer.claim} prefix.
+ * Verifier-side configuration for the X-Road MemberId claim JWS lifetime checks.
+ *
+ * @param lifetimeSeconds maximum age of the assertion ({@code iat} to {@code exp}); holders
+ *                        should match the {@code xroad.identityhub.claim.lifetime-seconds} setting.
+ * @param leewaySeconds   allowed clock skew when checking {@code iat} / {@code exp}.
  */
-@ConfigMapping(prefix = "xroad.issuer.claim")
-public interface MemberClaimVerifierProperties {
+public record MemberClaimVerifierProperties(long lifetimeSeconds, long leewaySeconds) {
 
-    /**
-     * Maximum age of the JWS membership assertion (from {@code iat} to {@code exp}).
-     * Holders should match this with their {@code xroad.identityhub.claim.lifetime-seconds}
-     * setting. Default 5 minutes.
-     */
-    @WithName("lifetime-seconds")
-    @WithDefault("300")
-    long lifetimeSeconds();
-
-    /**
-     * Allowed clock skew when checking {@code iat} / {@code exp}. Default 30 seconds.
-     */
-    @WithName("leeway-seconds")
-    @WithDefault("30")
-    long leewaySeconds();
-
-    default Duration lifetime() {
-        return Duration.ofSeconds(lifetimeSeconds());
+    public Duration lifetime() {
+        return Duration.ofSeconds(lifetimeSeconds);
     }
 
-    default Duration leeway() {
-        return Duration.ofSeconds(leewaySeconds());
+    public Duration leeway() {
+        return Duration.ofSeconds(leewaySeconds);
     }
 }

@@ -49,13 +49,9 @@ import static org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationEx
  *
  * <p>Cred-defs continue to reference {@code attestationType: holder} unchanged. Behavior
  * becomes: holder must present a signed X-Road MemberId claim in the DCP JWT, verified
- * against X-Road global conf (or trusted verbatim when bypass mode is on).
- *
- * <p>Bypass mode is controlled by {@code xroad.issuer.verify-claim} (default {@code true}).
- * When false, a {@link BypassMemberIdClaimVerifier} is registered — system-test only.
- * When true, the production {@link GlobalConfMemberIdClaimVerifier} is constructed with
- * dependencies resolved via EDC's service context (which delegates to Quarkus CDI for
- * X-Road-side services like {@link GlobalConfProvider}).
+ * against X-Road global conf via {@link GlobalConfMemberIdClaimVerifier}. The X-Road-side
+ * {@link GlobalConfProvider} is resolved through EDC {@code @Inject} (which delegates to
+ * Quarkus CDI for beans not provided by an EDC extension).
  */
 @Extension(NAME)
 public class XRoadMembershipAttestationExtension implements ServiceExtension {
@@ -64,11 +60,15 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
 
     static final String ATTESTATION_TYPE = "holder";
 
-    @Setting(key = "xroad.issuer.verify.claim",
-            description = "Whether to verify the X-Road MemberId claim cryptographically. "
-                    + "Must be true in production; false only for system-test fixtures with no CS.",
-            defaultValue = "true")
-    private boolean verifyClaim;
+    @Setting(key = "xroad.issuer.claim.lifetime-seconds",
+            description = "Maximum age in seconds of the X-Road MemberId claim JWS (iat to exp).",
+            defaultValue = "300")
+    private long claimLifetimeSeconds;
+
+    @Setting(key = "xroad.issuer.claim.leeway-seconds",
+            description = "Allowed clock skew in seconds when checking the claim JWS iat/exp.",
+            defaultValue = "30")
+    private long claimLeewaySeconds;
 
     @Inject
     private AttestationSourceFactoryRegistry registry;
@@ -76,8 +76,17 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
     @Inject
     private IdentityHubParticipantContextService participantContextService;
 
-    @Inject(required = false)
-    private MemberIdClaimVerifier injectedVerifier;
+    @Inject
+    private GlobalConfProvider globalConf;
+
+    @Inject
+    private TokenValidationService tokenValidationService;
+
+    @Inject
+    private JtiValidationStore jtiValidationStore;
+
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
@@ -86,36 +95,18 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        MemberIdClaimVerifier verifier = resolveVerifier(context);
+        var verifier = buildVerifier(context);
         registry.registerFactory(ATTESTATION_TYPE,
                 new XRoadMembershipAttestationSourceFactory(verifier, participantContextService));
         context.getMonitor().info("X-Road MembershipCredential attestation registered for type '"
-                + ATTESTATION_TYPE + "', verify-claim=" + verifyClaim);
+                + ATTESTATION_TYPE + "'");
     }
 
-    private MemberIdClaimVerifier resolveVerifier(ServiceExtensionContext context) {
-        if (!verifyClaim) {
-            context.getMonitor().warning(
-                    "X-Road MemberId claim verification is DISABLED. This is acceptable only in "
-                            + "system-test environments. Set xroad.issuer.verify-claim=true for production.");
-            return new BypassMemberIdClaimVerifier();
-        }
-        if (injectedVerifier != null) {
-            return injectedVerifier;
-        }
-        return buildProductionVerifier(context);
-    }
-
-    private GlobalConfMemberIdClaimVerifier buildProductionVerifier(ServiceExtensionContext context) {
-        GlobalConfProvider globalConf = context.getService(GlobalConfProvider.class);
-        TokenValidationService tokenValidationService = context.getService(TokenValidationService.class);
-        JtiValidationStore jtiValidationStore = context.getService(JtiValidationStore.class);
-        MemberClaimVerifierProperties properties = context.getService(MemberClaimVerifierProperties.class);
-        Clock clock = context.getService(Clock.class);
-        OcspVerifierFactory xroadOcspVerifierFactory = new OcspVerifierFactory();
-        CertChainValidator certChainValidator =
-                new CertChainValidator(globalConf, xroadOcspVerifierFactory, clock);
-        OcspVerifier ocspVerifier = new OcspVerifier(globalConf, xroadOcspVerifierFactory, clock);
+    private GlobalConfMemberIdClaimVerifier buildVerifier(ServiceExtensionContext context) {
+        var properties = new MemberClaimVerifierProperties(claimLifetimeSeconds, claimLeewaySeconds);
+        var xroadOcspVerifierFactory = new OcspVerifierFactory();
+        var certChainValidator = new CertChainValidator(globalConf, xroadOcspVerifierFactory, clock);
+        var ocspVerifier = new OcspVerifier(globalConf, xroadOcspVerifierFactory, clock);
         return new GlobalConfMemberIdClaimVerifier(globalConf,
                 certChainValidator,
                 ocspVerifier,

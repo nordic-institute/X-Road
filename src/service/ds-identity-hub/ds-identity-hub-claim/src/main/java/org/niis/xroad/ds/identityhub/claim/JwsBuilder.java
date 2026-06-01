@@ -52,7 +52,7 @@ import java.util.function.BiFunction;
  * input bytes and produce signature bytes — fine — but the digest-then-sign split is
  * cleaner expressed as a {@link BiFunction} that just calls signer-client.
  *
- * <p>This slice supports the RSA family ({@code RS256}/{@code RS384}/{@code RS512}). ECDSA
+ * <p>Supports the RSA family ({@code RS256}/{@code RS384}/{@code RS512}). ECDSA
  * and EdDSA support require DER↔R||S signature transcoding and are deferred until a
  * deployment actually needs them — X-Road's typical sign cert profile uses RSA.
  */
@@ -118,7 +118,7 @@ final class JwsBuilder {
         DigestAlgorithm digestAlgorithm = signAlgo.digest();
         if (digestAlgorithm == null) {
             // EdDSA path — no separate hash. Currently unsupported (would need Nimbus EdDSA alg).
-            throw new JwsBuildException("Sign algorithm '" + signAlgo.name() + "' has no associated digest; unsupported in this slice");
+            throw new JwsBuildException("Sign algorithm '" + signAlgo.name() + "' has no associated digest; currently unsupported");
         }
         try {
             MessageDigest md = MessageDigest.getInstance(digestAlgorithm.name());
@@ -138,8 +138,8 @@ final class JwsBuilder {
                         "Unsupported RSA-PKCS digest '" + signAlgo.digest().name() + "' for JWS");
             };
         }
-        throw new JwsBuildException("Sign mechanism '" + signAlgo.signMechanism() + "' is not yet supported by the X-Road claim signer "
-                + "(slice 04 supports CKM_RSA_PKCS only; ECDSA/PSS/EdDSA require DER↔R||S transcoding).");
+        throw new JwsBuildException("Sign mechanism '" + signAlgo.signMechanism() + "' is not supported by the X-Road claim signer "
+                + "(only CKM_RSA_PKCS is supported; ECDSA/PSS/EdDSA require DER↔R||S transcoding).");
     }
 
     /** ASCII-encode helper kept for completeness; not currently used. */

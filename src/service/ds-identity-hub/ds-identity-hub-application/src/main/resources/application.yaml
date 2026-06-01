@@ -10,6 +10,10 @@ quarkus:
     category:
       "EDC-MONITOR":
         level: DEBUG
+  arc:
+    unremovable-types:
+      - org.niis.xroad.signer.client.SignerRpcClient
+      - org.niis.xroad.signer.client.SignerSignClient
 
 "%native":
   quarkus:

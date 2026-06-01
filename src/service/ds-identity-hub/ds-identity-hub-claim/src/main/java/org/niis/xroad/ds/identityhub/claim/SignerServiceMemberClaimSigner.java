@@ -30,8 +30,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import org.eclipse.edc.spi.result.Result;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
@@ -64,10 +62,9 @@ import java.util.UUID;
  * fetch hasn't completed), the credential request fails with a clear error and CRM
  * retries on its own.
  *
- * <p>This slice supports the RSA family ({@code SHA*WithRSA}). ECDSA/PSS/EdDSA require
+ * <p>Supports the RSA family ({@code SHA*WithRSA}). ECDSA/PSS/EdDSA require
  * DER↔R||S signature transcoding and are deferred until needed.
  */
-@ApplicationScoped
 public class SignerServiceMemberClaimSigner implements MemberClaimSigner {
 
     private final SignerRpcClient signerRpcClient;
@@ -76,7 +73,6 @@ public class SignerServiceMemberClaimSigner implements MemberClaimSigner {
     private final Clock clock;
     private final OcspFetcher ocspFetcher;
 
-    @Inject
     public SignerServiceMemberClaimSigner(SignerRpcClient signerRpcClient,
                                           SignerSignClient signerSignClient,
                                           MemberClaimSignerProperties properties,
@@ -129,7 +125,8 @@ public class SignerServiceMemberClaimSigner implements MemberClaimSigner {
                 .build();
 
         try {
-            String compactJws = JwsBuilder.build(claims, cert, signAlgo, info.keyId(), this::callSigner, ocspResult.getContent());
+            String compactJws = JwsBuilder.build(claims, cert, signAlgo, info.keyId(),
+                    (keyId, digest) -> callSigner(keyId, signAlgo, digest), ocspResult.getContent());
             return Result.success(compactJws);
         } catch (JwsBuilder.JwsBuildException e) {
             return Result.failure("signer-service: " + e.getMessage());
@@ -138,16 +135,9 @@ public class SignerServiceMemberClaimSigner implements MemberClaimSigner {
         }
     }
 
-    private byte[] callSigner(String keyId, byte[] digest) {
-        // SignerSignClient drives the SignDataPreparer-mediated digest framing on the
-        // signer side per algorithm (PKCS#1 v1.5 prefix for RSA, raw for ECDSA/PSS).
-        // We always pass a SHA-256 digest here because we only support RSA-SHA256 family
-        // in slice 04 (per JwsBuilder's toJwsAlgorithm guard).
+    private byte[] callSigner(String keyId, SignAlgorithm signAlgo, byte[] digest) {
         try {
-            return signerSignClient.sign(keyId, SignAlgorithm.ofDigestAndMechanism(
-                            DigestAlgorithm.SHA256,
-                            ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS),
-                    digest);
+            return signerSignClient.sign(keyId, signAlgo, digest);
         } catch (Exception e) {
             throw new JwsBuilder.JwsBuildException("signer.sign failed: " + e.getMessage(), e);
         }

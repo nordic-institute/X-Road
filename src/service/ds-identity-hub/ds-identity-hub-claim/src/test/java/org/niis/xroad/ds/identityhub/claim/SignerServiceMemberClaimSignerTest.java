@@ -57,7 +57,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,9 +81,7 @@ class SignerServiceMemberClaimSignerTest {
     void setUp() {
         signerRpcClient = mock(SignerRpcClient.class);
         signerSignClient = mock(SignerSignClient.class);
-        MemberClaimSignerProperties properties = mock(MemberClaimSignerProperties.class);
-        lenient().when(properties.lifetimeSeconds()).thenReturn(300L);
-        lenient().when(properties.lifetime()).thenReturn(java.time.Duration.ofSeconds(300));
+        MemberClaimSignerProperties properties = new MemberClaimSignerProperties(300L);
         Clock clock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
         signer = new SignerServiceMemberClaimSigner(signerRpcClient, signerSignClient, properties, clock);
     }

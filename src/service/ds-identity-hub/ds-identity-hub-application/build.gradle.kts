@@ -24,4 +24,5 @@ dependencies {
   runtimeOnly(project(":service:signer:signer-client"))
 
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
+  runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-claim"))
 }

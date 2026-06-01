@@ -44,8 +44,8 @@ import java.util.Base64;
  *
  * <p>Cold-start: if the signer's first periodic OCSP fetch hasn't completed (cache empty
  * for this cert), the response slot is {@code null}. We surface this as a failure rather
- * than emitting an unsigned-OCSP JWS — the verifier (slice 03 design + slice 05 wiring)
- * rejects JWS missing the {@code ocsp} header.
+ * than emitting an unsigned-OCSP JWS — the verifier rejects JWS missing the
+ * {@code ocsp} header.
  */
 final class OcspFetcher {
 

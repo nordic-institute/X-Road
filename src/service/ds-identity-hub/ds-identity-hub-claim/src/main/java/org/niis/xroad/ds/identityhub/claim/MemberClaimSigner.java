@@ -44,8 +44,7 @@ import org.eclipse.edc.spi.result.Result;
  * The X-Road member identity is conveyed by the signing certificate's subject (carried in
  * the JWS {@code x5c} header) — there is no {@code memberId} claim in the payload.
  *
- * <p>The production implementation calls the X-Road signer service via gRPC; a stub impl
- * exists for system-test deployments that lack the signer service.
+ * <p>The implementation signs via the X-Road signer service over gRPC.
  */
 public interface MemberClaimSigner {
 

@@ -58,13 +58,13 @@ import java.util.Objects;
 /**
  * Production {@link MemberIdClaimVerifier} that anchors trust in X-Road global conf.
  *
- * <p>Validation flow per {@code PLAN-real-signing-and-verification.md} Q14:
+ * <p>Validation flow:
  * <ol>
  *   <li>Parse the compact JWS (must be a signed JWT — rejects {@code alg=none}).</li>
  *   <li>Extract {@code x5c[0]} → X.509 cert.</li>
  *   <li>{@link CertChainValidator} PKIX path validation against globalconf trust anchors.</li>
- *   <li><strong>OCSP pinning</strong> — deferred to slice 05; this slice accepts JWS with
- *       or without an {@code ocsp} header.</li>
+ *   <li><strong>OCSP</strong> — the pinned OCSP response from the {@code ocsp} JWS header is
+ *       verified via {@link OcspVerifier}; a missing or invalid response is rejected.</li>
  *   <li>JWS signature verification by feeding the cert's public key to EDC's
  *       {@link TokenValidationService} together with the registered rules
  *       (audience, sub-equals, JTI replay, iat/exp window). Nimbus does the signature

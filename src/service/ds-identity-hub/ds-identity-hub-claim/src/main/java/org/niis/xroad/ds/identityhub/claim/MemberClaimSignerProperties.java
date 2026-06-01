@@ -26,30 +26,18 @@
  */
 package org.niis.xroad.ds.identityhub.claim;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-
 import java.time.Duration;
 
 /**
- * Holder-side configuration for the X-Road MemberId claim JWS. Lives under the
- * {@code xroad.identityhub.claim} prefix.
+ * Holder-side configuration for the X-Road MemberId claim JWS.
+ *
+ * @param lifetimeSeconds JWS membership-assertion lifetime ({@code exp - iat}). The issuer-side
+ *                        verifier rejects assertions older than this plus its leeway window;
+ *                        holders should match the issuer's {@code xroad.issuer.claim.lifetime-seconds}.
  */
-@ConfigMapping(prefix = "xroad.identityhub.claim")
-public interface MemberClaimSignerProperties {
+public record MemberClaimSignerProperties(long lifetimeSeconds) {
 
-    /**
-     * Lifetime of the JWS membership assertion ({@code exp - iat}). The issuer-side
-     * verifier rejects assertions older than this plus its leeway window. Holders should
-     * match this with the issuer's {@code xroad.issuer.claim.lifetime-seconds}.
-     * Default 5 minutes.
-     */
-    @WithName("lifetime-seconds")
-    @WithDefault("300")
-    long lifetimeSeconds();
-
-    default Duration lifetime() {
-        return Duration.ofSeconds(lifetimeSeconds());
+    public Duration lifetime() {
+        return Duration.ofSeconds(lifetimeSeconds);
     }
 }

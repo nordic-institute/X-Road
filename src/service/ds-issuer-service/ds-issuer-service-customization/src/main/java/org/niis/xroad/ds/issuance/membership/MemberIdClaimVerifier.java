@@ -38,9 +38,8 @@ import org.eclipse.edc.spi.result.Result;
  * subject (looked up via global conf). The caller maps that {@link ClientId} into the
  * attestation output shape.
  *
- * <p>Production implementation backs by {@code lib:globalconf-impl} and EDC's
- * {@code TokenValidationService} rules registry. A bypass implementation exists for
- * system-test environments that lack a Central Server.
+ * <p>The implementation anchors trust in {@code lib:globalconf-impl} and EDC's
+ * {@code TokenValidationService} rules registry.
  */
 public interface MemberIdClaimVerifier {
 

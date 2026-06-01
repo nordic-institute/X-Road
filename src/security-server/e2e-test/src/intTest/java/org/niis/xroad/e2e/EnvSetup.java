@@ -67,6 +67,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String SIGNER = "signer";
     private static final String SOFTTOKEN_SIGNER = "softtoken-signer";
     private static final String CONFIGURATION_CLIENT = "configuration-client";
+    private static final String ANCHOR_INIT = "anchor-init";
     private static final String AUX_SERVICE = "auxiliary-service";
     private static final String MESSAGE_LOG_CLI = "message-log-cli";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
@@ -102,6 +103,9 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(HURL, createLogConsumer("aux", HURL))
                 .withLogConsumer(CS, createLogConsumer("aux", CS))
                 .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer("aux", DS_ISSUER_SERVICE))
+                .withLogConsumer(OPENBAO, createLogConsumer("aux", OPENBAO))
+                .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer("aux", CONFIGURATION_CLIENT))
+                .withLogConsumer(ANCHOR_INIT, createLogConsumer("aux", ANCHOR_INIT))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 

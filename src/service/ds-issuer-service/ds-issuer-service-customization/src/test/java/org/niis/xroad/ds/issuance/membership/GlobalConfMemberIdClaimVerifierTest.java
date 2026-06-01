@@ -51,7 +51,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Collections;
@@ -88,13 +87,9 @@ class GlobalConfMemberIdClaimVerifierTest {
         ocspVerifier = mock(OcspVerifier.class);
         tokenValidationService = mock(TokenValidationService.class);
         jtiStore = mock(JtiValidationStore.class);
-        properties = mock(MemberClaimVerifierProperties.class);
+        properties = new MemberClaimVerifierProperties(300L, 30L);
         clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
 
-        lenient().when(properties.lifetime()).thenReturn(Duration.ofMinutes(5));
-        lenient().when(properties.leeway()).thenReturn(Duration.ofSeconds(30));
-        lenient().when(properties.leewaySeconds()).thenReturn(30L);
-        lenient().when(properties.lifetimeSeconds()).thenReturn(300L);
         lenient().when(ocspVerifier.verify(any(), any())).thenReturn(Result.success());
 
         verifier = new GlobalConfMemberIdClaimVerifier(globalConf,

@@ -172,8 +172,6 @@ services:
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
       - EDC_ENCRYPTION_STRICT=false
-      - XROAD_ISSUER_VERIFY_CLAIM=false # test only: trust claim payload, no PKI in this stack
-      - XROAD_IDENTITYHUB_SIGN_CLAIM=false
       - DEBUG=true
     healthcheck:
       interval: 5s
@@ -199,6 +197,10 @@ services:
         condition: service_healthy
       mock-jwks-server:
         condition: service_healthy
+      openbao:
+        condition: service_healthy
+      configuration-client:
+        condition: service_healthy
 
   mock-jwks-server:
     image: python:3.11-alpine
@@ -218,8 +220,101 @@ services:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
     volumes:
       - ./jwks/:/jwks
+
+  openbao:
+    image: ${OPENBAO_DEV_IMG}
+    pull_policy: always
+    environment:
+      - BAO_ADDR=http://0.0.0.0:8200
+      - BAO_TOKEN=${XROAD_SECRET_STORE_ROOT_TOKEN}
+      - XROAD_SECRET_STORE_TOKEN_OVERRIDE=${XROAD_SECRET_STORE_TOKEN:-}
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "sh", "-c", "bao secrets list -format=json | jq 'has(\"xrd-pki/\")' | grep -q true" ]
+    networks:
+      - xroad-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  anchor-init:
+    image: ${OPENBAO_DEV_IMG}
+    pull_policy: always
+    entrypoint: [ "bash", "-c" ]
+    command:
+      - |
+        set -e
+        CS="https://cs:4000"
+        JAR="$$(mktemp)"
+        echo "anchor-init: waiting for Central Server.."
+        until curl -sfk -o /dev/null "$$CS"; do sleep 3; done
+        for i in $$(seq 1 60); do
+          rm -f "$$JAR"
+          curl -sk -c "$$JAR" -o /dev/null "$$CS" || { sleep 5; continue; }
+          XSRF="$$(awk '/XSRF-TOKEN/{print $$7}' "$$JAR")"
+          code="$$(curl -sk -b "$$JAR" -c "$$JAR" -o /dev/null -w '%{http_code}' \
+            -X POST "$$CS/login" --data 'username=xrd' --data 'password=secret123!' \
+            -H "X-XSRF-TOKEN: $$XSRF")"
+          if [ "$$code" != "200" ]; then echo "anchor-init: login HTTP $$code, retrying.."; sleep 5; continue; fi
+          XSRF="$$(awk '/XSRF-TOKEN/{print $$7}' "$$JAR")"
+          code="$$(curl -sk -b "$$JAR" -c "$$JAR" -o /anchor/configuration-anchor.xml -w '%{http_code}' \
+            "$$CS/api/v1/configuration-sources/INTERNAL/anchor/download" -H "X-XSRF-TOKEN: $$XSRF")"
+          if [ "$$code" = "200" ] && [ -s /anchor/configuration-anchor.xml ]; then
+            echo "anchor-init: anchor downloaded"; exit 0
+          fi
+          echo "anchor-init: anchor download HTTP $$code (signing key may not exist yet), retrying.."
+          sleep 5
+        done
+        echo "anchor-init: FAILED to download configuration anchor"; exit 1
+    networks:
+      - xroad-network
+    volumes:
+      - ds-anchor:/anchor
+    deploy:
+      resources:
+        reservations:
+          memory: 16M
+        limits:
+          memory: 64M
+
+  configuration-client:
+    image: ${CONFIGURATION_CLIENT_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=configuration-client
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_CONFIGURATION_CLIENT_CONFIGURATION_ANCHOR_STORAGE=FILE
+      - XROAD_CONFIGURATION_CLIENT_CONFIGURATION_ANCHOR_FILE=/anchor/configuration-anchor.xml
+      - QUARKUS_DATASOURCE_ACTIVE=false
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xroad-network
+    volumes:
+      - ds-anchor:/anchor
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+    depends_on:
+      openbao:
+        condition: service_healthy
+      anchor-init:
+        condition: service_completed_successfully
 volumes:
   ca-volume:
+  ds-anchor:
 networks:
   xroad-network:
     name: xroad-network

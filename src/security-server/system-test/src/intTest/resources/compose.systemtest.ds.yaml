@@ -129,7 +129,7 @@ services:
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
       - EDC_ENCRYPTION_STRICT=false # implicitly enabled - requires extra overhead of having AES key present in OpenBao
-      - XROAD_IDENTITYHUB_SIGN_CLAIM=false # test only: stub claim signer
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
       - DEBUG=true
     healthcheck:
       interval: 5s
@@ -187,7 +187,6 @@ services:
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - EDC_IAM_DID_WEB_USE_HTTPS=false # Identity hub hosts DID over http
       - EDC_ENCRYPTION_STRICT=false
-      - XROAD_ISSUER_VERIFY_CLAIM=false # test only: trust claim payload, no PKI in this stack
       - DEBUG=true
     healthcheck:
       interval: 5s
