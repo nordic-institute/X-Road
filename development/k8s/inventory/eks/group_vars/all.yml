@@ -39,6 +39,7 @@ openbao_tls_mode: self_signed
 external_service_bridges: []
 
 deploy_prometheus: false
+deploy_netdata: true
 
 # Storage class for PersistentVolumeClaims. EBS gp3 recommended.
 storage_class: gp3
