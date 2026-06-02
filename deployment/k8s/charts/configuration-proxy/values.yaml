@@ -1,7 +1,7 @@
 global:
   image:
     registry: artifactory.niis.org/xroad8-snapshot-image
-    tag: 8.0.0-beta2-SNAPSHOT
+    tag: 8.0.0-beta2
     pullPolicy: IfNotPresent
 
 init:
