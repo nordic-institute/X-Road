@@ -1,5 +1,5 @@
 ARG DOCKER_REGISTRY=""
-FROM ${DOCKER_REGISTRY}ubuntu:24.04
+FROM ${DOCKER_REGISTRY}ubuntu:26.04
 
 ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
@@ -9,15 +9,16 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # ACME
-ARG A2C_VER=0.35
-ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
+ARG A2C_VER=0.42.1
+ARG A2C_DEB_RELEASE=2
+ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-${A2C_DEB_RELEASE}_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates supervisor nginx python3 python3-pip \
     uwsgi uwsgi-plugin-python3 curl nano \
-  && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-1_all.deb \
+  && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-${A2C_DEB_RELEASE}_all.deb \
   && apt-get clean
 
 #Setup TEST-CA with TSA and OCSP
@@ -49,17 +50,16 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
     && sed -i "s/nginx/www-data/g" /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
     && echo "plugins = python3" >> /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
     && cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certifier \
-    && sed -i s/level=log_mode\)/level=log_mode,filename=\'logs\\/a2c_logs\'\)/g /var/www/acme2certifier/acme_srv/helper.py \
+    && sed -i s/level=log_mode\)/level=log_mode,filename=\'logs\\/a2c_logs\'\)/g /var/www/acme2certifier/acme_srv/helpers/logging_utils.py \
     && mkdir -p /var/www/acme2certifier/logs \
     && chown -R www-data:www-data /var/www/acme2certifier/logs \
-    #&& sed -i "61i \            if serial.startswith(\'00\'\): serial = serial[2:]" /var/www/acme2certifier/acme_srv/renewalinfo.py \
-    && sed -i "4i import base64" /var/www/acme2certifier/acme_srv/renewalinfo.py \
-    && sed -i s/b64_decode\(self.logger,\ /base64.b64decode\(/g /var/www/acme2certifier/acme_srv/renewalinfo.py \
     && usermod -a -G ca www-data
 
-COPY --chown=www-data:www-data files/acme2certifier/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
-COPY --chown=www-data:www-data files/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
-COPY --chown=www-data:www-data files/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
+# Canonical ACME overlay from development/acme2certifier/, staged by init_context.sh.
+COPY --chown=www-data:www-data build/acme2certifier/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
+COPY --chown=www-data:www-data build/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
+COPY --chown=www-data:www-data build/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
+COPY --chown=www-data:www-data build/acme2certifier/renewalinfo.py /var/www/acme2certifier/acme_srv/renewalinfo.py
 
 COPY files/ca-entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh

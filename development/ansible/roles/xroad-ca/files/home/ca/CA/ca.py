@@ -3,7 +3,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import subprocess
 import tempfile
-import cgi
+import email
 import os
 import sys
 
@@ -51,26 +51,42 @@ class CAHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(self.FORM_HTML)
 
-    def do_POST(self):
-        cgi.maxlen = 10000
+    def _parse_multipart(self):
+        # Parse the multipart/form-data POST with the stdlib email module.
+        # Replaces cgi.FieldStorage (the cgi module was removed in Python 3.13).
+        # Returns (certreq_filename, certreq_bytes, req_type).
+        length = int(self.headers.get('Content-Length', 0))
+        if length <= 0 or length > 10000:
+            return (None, None, 'auto')
+        body = self.rfile.read(length)
+        msg = email.message_from_bytes(
+            b"Content-Type: " + self.headers.get('Content-Type', '').encode()
+            + b"\r\nMIME-Version: 1.0\r\n\r\n" + body)
+        certreq_filename = None
+        certreq_bytes = None
+        req_type = 'auto'
+        if msg.is_multipart():
+            for part in msg.get_payload():
+                name = part.get_param('name', header='content-disposition')
+                if part.get_filename():
+                    certreq_filename = part.get_filename()
+                    certreq_bytes = part.get_payload(decode=True)
+                elif name == 'type':
+                    req_type = part.get_payload(decode=True).decode().strip()
+        return (certreq_filename, certreq_bytes, req_type)
 
+    def do_POST(self):
         expect = self.headers.get('expect', "")
         if expect.lower() == "100-continue":
             self.send_response(100)
             self.end_headers()
 
-        form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={'REQUEST_METHOD': 'POST'})
+        (req_filename, req_bytes, req_type) = self._parse_multipart()
 
-        req_item = form['certreq']
-        req_type = form.getfirst('type', 'auto')
-
-        if req_item.filename:
+        if req_filename and req_bytes is not None:
             # The field contains an uploaded file
             if req_type == "auto":
-                if "sign" in req_item.filename:
+                if "sign" in req_filename:
                     sign_type = "sign"
                 else:
                     sign_type = "auth"
@@ -82,7 +98,7 @@ class CAHandler(BaseHTTPRequestHandler):
 
             try:
                 t = tempfile.NamedTemporaryFile()
-                t.write(req_item.file.read())
+                t.write(req_bytes)
                 t.flush()
                 p = subprocess.Popen(["bash", "/home/ca/CA/sign_req.sh", sign_type, t.name],
                                      stdout=subprocess.PIPE,
@@ -91,7 +107,7 @@ class CAHandler(BaseHTTPRequestHandler):
                 t.close()
                 p.wait()
                 if p.returncode == 0:
-                    crtname = os.path.splitext(req_item.filename)[0].replace("_csr_", "_crt_")
+                    crtname = os.path.splitext(req_filename)[0].replace("_csr_", "_crt_")
                     self.send_response(200, 'OK')
                     self.send_header('Content-Type', 'application/octet-stream')
                     self.send_header('Content-Disposition',
@@ -109,7 +125,6 @@ class CAHandler(BaseHTTPRequestHandler):
                 return
             finally:
                 t.close()
-                req_item.file.close()
 
         self.send_error(400)
         return
