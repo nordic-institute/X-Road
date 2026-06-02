@@ -47,7 +47,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CON
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
-import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
@@ -65,16 +65,16 @@ class DspLegacyErrorMapper {
     private static final String DATASPACE_SEGMENT = "dataspace.";
 
     private static final Map<ErrorCode, ErrorCode> DSP_TO_LEGACY = Map.ofEntries(
-            entry(DSP_CATALOG_FETCH_FAILED, NETWORK_ERROR),
-            entry(DSP_CATALOG_PARSE_FAILED, NETWORK_ERROR),
-            entry(DSP_ACQUISITION_TIMEOUT, NETWORK_ERROR),
+            entry(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
+            entry(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
+            entry(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
+            entry(DSP_ACQUISITION_FAILED, IO_ERROR),
             entry(DSP_DATASET_NOT_FOUND, UNKNOWN_MEMBER),
             entry(DSP_OFFERS_NOT_FOUND, UNKNOWN_MEMBER),
             entry(DSP_PULL_DISTRIBUTION_MISSING, SERVICE_FAILED),
             entry(DSP_DATAADDRESS_INVALID, SERVICE_FAILED),
             entry(DSP_NEGOTIATION_FAILED, SERVICE_FAILED),
             entry(DSP_TRANSFER_FAILED, SERVICE_FAILED),
-            entry(DSP_ACQUISITION_FAILED, SERVICE_FAILED),
             entry(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR));
 
     static XrdRuntimeException toLegacy(XrdRuntimeException ex) {

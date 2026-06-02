@@ -46,6 +46,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
@@ -100,8 +101,11 @@ class ClientRestMessageProcessorTest {
         var clientVerificationService = mock(ClientVerificationService.class);
         var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
         when(httpSenderProvider.createClientHttpSender()).thenReturn(mock(HttpSender.class));
-        when(clientRequestPreparationService.prepareRequest(any(), any(), any(), any(), any(), any()))
+        when(clientRequestPreparationService.prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
                 .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        when(consumerSideDspProcessor.execute(any()))
+                .thenReturn(new AssetAccessResponse("https://localhost:5500/", null));
 
         return new ClientRestMessageProcessor(
                 messageSigningService,
@@ -113,7 +117,7 @@ class ClientRestMessageProcessorTest {
                 commonProperties,
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
-                mock(DspRequestProcessor.class),
+                consumerSideDspProcessor,
                 mock(IdentifierValidationService.class)
         );
     }

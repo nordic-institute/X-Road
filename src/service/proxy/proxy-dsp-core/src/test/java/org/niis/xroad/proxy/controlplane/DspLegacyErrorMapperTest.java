@@ -49,6 +49,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CON
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
@@ -57,16 +58,16 @@ class DspLegacyErrorMapperTest {
 
     static Stream<Arguments> dspToLegacyMappings() {
         return Stream.of(
-                Arguments.of(DSP_CATALOG_FETCH_FAILED, NETWORK_ERROR),
-                Arguments.of(DSP_CATALOG_PARSE_FAILED, NETWORK_ERROR),
-                Arguments.of(DSP_ACQUISITION_TIMEOUT, NETWORK_ERROR),
+                Arguments.of(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
+                Arguments.of(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
+                Arguments.of(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
+                Arguments.of(DSP_ACQUISITION_FAILED, IO_ERROR),
                 Arguments.of(DSP_DATASET_NOT_FOUND, UNKNOWN_MEMBER),
                 Arguments.of(DSP_OFFERS_NOT_FOUND, UNKNOWN_MEMBER),
                 Arguments.of(DSP_PULL_DISTRIBUTION_MISSING, SERVICE_FAILED),
                 Arguments.of(DSP_DATAADDRESS_INVALID, SERVICE_FAILED),
                 Arguments.of(DSP_NEGOTIATION_FAILED, SERVICE_FAILED),
                 Arguments.of(DSP_TRANSFER_FAILED, SERVICE_FAILED),
-                Arguments.of(DSP_ACQUISITION_FAILED, SERVICE_FAILED),
                 Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR)
         );
     }
@@ -162,7 +163,7 @@ class DspLegacyErrorMapperTest {
 
         var result = DspLegacyErrorMapper.toLegacy(ex);
 
-        assertThat(result.isCausedBy(NETWORK_ERROR)).isTrue();
+        assertThat(result.isCausedBy(IO_ERROR)).isTrue();
     }
 
     private static XrdRuntimeException dspExceptionWithDoublePrefix(ErrorCode dspCode, String... metadata) {

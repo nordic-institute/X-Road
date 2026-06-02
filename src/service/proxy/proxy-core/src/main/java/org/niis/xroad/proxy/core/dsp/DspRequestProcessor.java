@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.proxy.core.dsp;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * Processes DSP (Data Space Protocol) requests within the proxy request pipeline.
  * Implementations perform asset access acquisition via the control plane.
@@ -38,7 +40,9 @@ public interface DspRequestProcessor {
      *
      * @param request the DSP request carrying the target service identifier and an optional
      *                caller-sent security-server hint
-     * @return the asset access response containing the dataplane endpoint and optional authorization
+     * @return the asset access response containing the dataplane endpoint and optional authorization;
+     *         never {@code null} — an unresolved target raises an exception instead
      */
+    @Nonnull
     AssetAccessResponse execute(DspRequest request);
 }

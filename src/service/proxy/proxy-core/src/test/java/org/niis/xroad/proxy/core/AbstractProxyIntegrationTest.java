@@ -136,16 +136,17 @@ public abstract class AbstractProxyIntegrationTest {
 
         org.apache.xml.security.Init.init();
 
-        Map<String, String> properties = Map.of(
-                "xroad.proxy.server.listen-address", "127.0.0.1",
-                "xroad.proxy.server.listen-port", serverPort,
-                "xroad.proxy.server-port", serverPort,
-                "xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml",
-                "xroad.proxy.client-proxy.client-timeout", "15000",
-                "xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml",
-                "xroad.proxy.client-proxy.connector-host", "127.0.0.1",
-                "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
-                "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort())
+        Map<String, String> properties = Map.ofEntries(
+                Map.entry("xroad.proxy.server.listen-address", "127.0.0.1"),
+                Map.entry("xroad.proxy.server.listen-port", serverPort),
+                Map.entry("xroad.proxy.server-port", serverPort),
+                Map.entry("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml"),
+                Map.entry("xroad.proxy.client-proxy.client-timeout", "15000"),
+                Map.entry("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml"),
+                Map.entry("xroad.proxy.client-proxy.connector-host", "127.0.0.1"),
+                Map.entry("xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort)),
+                Map.entry("xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort())),
+                Map.entry("xroad.proxy.dsp-enabled", "false")
         );
 
         ProxyProperties proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, properties);

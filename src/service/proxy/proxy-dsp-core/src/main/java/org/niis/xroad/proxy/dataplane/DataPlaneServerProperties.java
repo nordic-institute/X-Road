@@ -59,4 +59,8 @@ public interface DataPlaneServerProperties {
     @WithDefault("http://${xroad.proxy.dsp.listen-address}:${xroad.proxy.dsp.listen-port}/full/api/v1/dataflows")
     String dataFlowEndpoint();
 
+    @WithName("serverproxy-endpoint")
+    @WithDefault("https://localhost:${xroad.proxy.server-port:5500}")
+    String serverproxyEndpoint();
+
 }

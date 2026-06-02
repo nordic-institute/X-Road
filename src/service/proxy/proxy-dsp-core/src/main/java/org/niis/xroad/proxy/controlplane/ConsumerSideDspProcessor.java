@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import jakarta.annotation.Nonnull;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,8 +50,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
-import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 
 /**
  * Consumer-side implementation of {@link DspRequestProcessor}. Resolves candidate provider security
@@ -68,9 +71,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
  *       error (fail fast; no silent fallback).</li>
  * </ul>
  *
- * <p>Exhaustion of all candidates ends in
- * {@link org.niis.xroad.common.core.exception.ErrorCode#NETWORK_ERROR} with the last thrown
- * exception chained.
+ * <p>Exhaustion of all candidates is translated to a legacy error code at the execute boundary
+ * via {@link DspLegacyErrorMapper#toLegacy(XrdRuntimeException)}.
  */
 @Slf4j
 @ApplicationScoped
@@ -97,10 +99,18 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     @Override
     @WithSpan("dsp-execute")
+    @Nonnull
     public AssetAccessResponse execute(DspRequest request) {
         log.trace("execute({})", request);
 
-        var serviceId = request.serviceId();
+        try {
+            return acquireAssetAccessForService(request, request.serviceId());
+        } catch (XrdRuntimeException ex) {
+            throw DspLegacyErrorMapper.toLegacy(ex);
+        }
+    }
+
+    private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
         var requestForcesMgmtCtx = request.managementSubsystem() || isBuiltinService(serviceId);
 
@@ -111,8 +121,10 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 serviceId, assetId, request.managementSubsystem(), candidates.size());
 
         if (candidates.isEmpty()) {
-            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER,
-                    "No candidate security servers found for service %s", serviceId);
+            throw XrdRuntimeException.systemException(DSP_DATASET_NOT_FOUND)
+                    .origin(DATASPACE)
+                    .details("No candidate security servers found for service %s".formatted(serviceId))
+                    .build();
         }
 
         var localServerId = safeLocalServerId();
@@ -125,9 +137,11 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             var targets = useMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
             var target = targets.get(candidate.hostAddress());
             if (target == null) {
-                var ex = XrdRuntimeException.systemException(NETWORK_ERROR,
-                        "No DSP counter-party target configured for provider host-address \"%s\"",
-                        candidate.hostAddress());
+                var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
+                        .origin(DATASPACE)
+                        .details("No DSP counter-party target configured for provider host-address \"%s\""
+                                .formatted(candidate.hostAddress()))
+                        .build();
                 log.warn("No counter-party target for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
                 localFailures.add(ex);
@@ -137,13 +151,11 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 return assetAccessAcquisitionService.acquireAssetAccess(
                         assetId, target.counterPartyId(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
-                var failure = (ex instanceof XrdRuntimeException xrd) ? DspLegacyErrorMapper.toLegacy(xrd) : ex;
                 log.warn("Acquire failed for SS {} (address {}), trying next",
-                        candidate.serverId(), candidate.hostAddress(), failure);
-                remoteFailures.add(failure);
+                        candidate.serverId(), candidate.hostAddress(), ex);
+                remoteFailures.add(ex);
             }
         }
-
         throw buildFinalException(remoteFailures, localFailures, serviceId, candidates.size());
     }
 
@@ -175,6 +187,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         if (localServerId == null) {
             return null;
         }
+
         try {
             return globalConfProvider.getSecurityServerAddress(localServerId);
         } catch (Exception e) {
@@ -197,8 +210,11 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             }
         }
         var last = !remoteFailures.isEmpty() ? remoteFailures.getLast() : localFailures.getLast();
-        return XrdRuntimeException.systemException(NETWORK_ERROR, last,
-                "All %d candidate security servers failed to acquire asset access for service %s",
-                candidateCount, serviceId);
+        return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                .origin(DATASPACE)
+                .cause(last)
+                .details("All %d candidate security servers failed to acquire asset access for service %s"
+                        .formatted(candidateCount, serviceId))
+                .build();
     }
 }
