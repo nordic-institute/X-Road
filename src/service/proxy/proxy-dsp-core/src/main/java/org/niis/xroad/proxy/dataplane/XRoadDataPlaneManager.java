@@ -58,8 +58,6 @@ public class XRoadDataPlaneManager {
     /** Full transfer-type string for Xrd-PULL flows (matches the wire value). */
     static final String XRD_PULL_TRANSFER_TYPE = "Xrd-PULL";
 
-    private static final String SIGNALING_PATH = "/full/api/v1/dataflows";
-
     private final DataPlaneServerProperties dspProperties;
     private final ConcurrentHashMap<String, DataFlowStates> activeFlows = new ConcurrentHashMap<>();
 
@@ -134,16 +132,12 @@ public class XRoadDataPlaneManager {
     private DataFlowStatusMessage buildStatusMessage(DataFlowStates state) {
         var dataAddress = DspDataAddress.Builder.newInstance()
                 .endpointType("http")
-                .endpoint(buildSignalingEndpoint())
+                .endpoint(dspProperties.dataFlowEndpoint())
                 .build();
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddress)
                 .state(state.toString())
                 .build();
-    }
-
-    private String buildSignalingEndpoint() {
-        return "http://%s:%d%s".formatted(dspProperties.listenAddress(), dspProperties.listenPort(), SIGNALING_PATH);
     }
 
     private void storeState(String processId, DataFlowStates state) {
