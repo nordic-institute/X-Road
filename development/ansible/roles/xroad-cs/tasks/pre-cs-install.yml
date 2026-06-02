@@ -1,0 +1,82 @@
+---
+# TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
+# that xroad-centralserver package auto-starts xroad-ds-issuer-service before
+# its runtime config and TLS keystore are on disk, causing crash-loop /
+# StartLimitBurst. Pre-seeding here lets the service boot exactly once, cleanly.
+#
+# Remove this file (and the `include_tasks: pre-cs-install.yml` line in main.yml)
+# once upstream packaging ships debconf preseeds or cloud-init hooks for:
+#   - ds-issuer-service: hostname, statuslist.callback.address, jwks.url, keystore
+# AND the package no longer starts the unit unconditionally during postinst.
+
+# xroad user/group are already created by the xroad-base role (meta dependency
+# of xroad-cs) before this file runs, so keystore tasks below can `chown
+# xroad:xroad` without pre-creating anything.
+
+# ---------------------------------------------------------------------------
+# 1. /etc/xroad/conf.d — xroad-common creates this during install; we need
+#    it earlier to drop YAML preseed files before any postinst auto-starts a
+#    unit. dpkg leaves pre-existing dirs intact (not a conffile).
+#
+# TEMPORARY (dataspaces dev): remove once packages ship the config stubs.
+# ---------------------------------------------------------------------------
+- name: ensure /etc/xroad/conf.d exists for preseeded configs
+  file:
+    path: /etc/xroad/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+# ---------------------------------------------------------------------------
+# 3. DS issuer-service runtime overrides. EDC's QuarkusConfigBridge only sees
+#    enumerable SmallRye sources (yaml/properties files); env-vars never reach
+#    EDC's @Setting resolution. These must exist before the unit's first start.
+#
+#    edc.statuslist.callback.address: EDC's LocalStatusListCredentialPublisher
+#    composes "http://${edc.hostname}:6187/statuslist" by default, but
+#    edc.hostname (templated as ${HOSTNAME} in application.yaml) doesn't resolve
+#    because the systemd unit doesn't export HOSTNAME to the JVM, so EDC
+#    defaults to "localhost". The URL must be reachable from any consumer SS's
+#    Identity Hub during VP validation — we point at the CS host directly.
+#    https because ds-https-keystore.yml enables TLS on every ds-* port; plain
+#    http would surface as "unexpected end of stream" on the IH side.
+#
+# TEMPORARY (dataspaces dev): remove once xroad-ds-issuer-service debconf ships
+#   hostname, statuslist.callback.address, jwks.url, and keystore config.
+# ---------------------------------------------------------------------------
+- name: preseed ds-issuer-service runtime overrides
+  copy:
+    dest: /etc/xroad/conf.d/local-ds-issuer-service.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      edc:
+        hostname: "{{ groups['cs_servers'] | first }}"
+        statuslist:
+          callback:
+            # https because ds-https-keystore.yml enables TLS on every ds-* port —
+            # plain http here surfaces as "unexpected end of stream" on the IH side.
+            address: "https://{{ groups['cs_servers'] | first }}:6187/statuslist"
+        iam:
+          oauth2:
+            jwks:
+              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
+        web:
+          https:
+            keystore:
+              path: "/etc/xroad/ssl/ds-https.p12"
+              type: "PKCS12"
+              password: "changeit"
+            keymanager:
+              password: "changeit"
+
+# ---------------------------------------------------------------------------
+# 4. TLS keystore for DS services. Must be on disk before ds-* units start.
+#    Also installs xrd-ca into the system trust store.
+#
+# TEMPORARY (dataspaces dev): remove once packages handle TLS bootstrap via
+#   real PKI (replace xrd-ca with federation CA, rotate via PKI lifecycle).
+# ---------------------------------------------------------------------------
+- include_tasks: ds-https-keystore.yml

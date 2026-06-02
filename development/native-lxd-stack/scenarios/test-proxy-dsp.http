@@ -1,4 +1,4 @@
-### Test that random service works
+### Test DSP proxy flow (UC3: negotiation + dataplane transfer)
 POST http://{{host}}:{{proxy_port}}/r1/DEV/COM/1234/TestService/mock1
 Content-Type: application/json
 X-Road-Client: DEV/COM/4321/TestClient
