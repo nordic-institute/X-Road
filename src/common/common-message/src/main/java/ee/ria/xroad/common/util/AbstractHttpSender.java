@@ -108,6 +108,16 @@ public abstract class AbstractHttpSender implements Closeable {
     }
 
     /**
+     * Gets the value of an attribute.
+     *
+     * @param name attribute name
+     * @return attribute value, or null if not set
+     */
+    public Object getAttribute(String name) {
+        return context.getAttribute(name);
+    }
+
+    /**
      * Adds an additional header to the request.
      *
      * @param name  header name

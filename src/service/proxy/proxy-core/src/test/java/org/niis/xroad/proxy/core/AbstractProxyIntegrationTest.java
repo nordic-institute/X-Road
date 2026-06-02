@@ -58,6 +58,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientRequestPreparationService;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
+import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -169,8 +170,9 @@ public abstract class AbstractProxyIntegrationTest {
                 new NoopVaultKeyProvider(), proxyProperties);
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
+        var unusableAddressTracker = new UnusableAddressTracker(proxyProperties);
         var httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory);
+                .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
         var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
         var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
         var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
@@ -181,7 +183,7 @@ public abstract class AbstractProxyIntegrationTest {
         var identifierValidationService = new IdentifierValidationService(proxyProperties);
 
         var clientRequestPreparationServiceClient = new ClientRequestPreparationService(
-                serviceAddressResolverClient, proxyProperties, opMonitoringDataHelperClient);
+                serviceAddressResolverClient, proxyProperties, opMonitoringDataHelperClient, unusableAddressTracker);
         clientRequestPreparationServiceClient.init();
         var clientRestMessageProcessor = new ClientRestMessageProcessor(
                 messageSigningServiceClient, httpSenderProviderClient,

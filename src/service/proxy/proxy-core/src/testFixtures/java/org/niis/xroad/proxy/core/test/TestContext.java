@@ -42,6 +42,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientRequestPreparationService;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
+import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
@@ -107,8 +108,9 @@ public class TestContext {
                     serverConfProvider, mock(NoopVaultKeyProvider.class), proxyProperties);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
+            var unusableAddressTracker = new UnusableAddressTracker(proxyProperties);
             var httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                    .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory);
+                    .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
             HttpClientCreator httpClientCreator = new HttpClientCreator(serverConfProvider,
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
             var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
@@ -124,7 +126,7 @@ public class TestContext {
                     globalConfProvider);
             MetadataHandler metadataHandler = new MetadataHandler(metadataProcessor);
             var clientRequestPreparationService = new ClientRequestPreparationService(
-                    serviceAddressResolver, proxyProperties, opMonitoringDataHelper);
+                    serviceAddressResolver, proxyProperties, opMonitoringDataHelper, unusableAddressTracker);
             clientRequestPreparationService.init();
             var clientSoapMessageProcessor = new ClientSoapMessageProcessor(
                     messageSigningService, httpSenderProvider,

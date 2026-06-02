@@ -206,7 +206,12 @@ public class ClientRestMessageProcessor {
         }
         var entity = new SigningProxyMessageEntity(contentType, messageSigningService, restRequest, senderId,
                 jRequest, commonProperties.tempFilesPath(), opMonitoringData, xRequestId);
-        httpSender.doPost(getServiceAddress(addresses), entity);
+        try {
+            httpSender.doPost(getServiceAddress(addresses), entity);
+        } catch (Exception e) {
+            clientRequestPreparationService.markAddressUnusableIfHandshakeFailure(httpSender, e);
+            throw e;
+        }
         var restBodyDigest = entity.getRestBodyDigest();
         if (opMonitoringData != null) {
             opMonitoringData.setResponseInTs(getEpochMillisecond());

@@ -54,6 +54,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
+import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_SELECTED_TARGET;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 /**
@@ -71,6 +72,7 @@ public class ClientRequestPreparationService {
     private final ServiceAddressResolver serviceAddressResolver;
     private final ProxyProperties proxyProperties;
     private final OpMonitoringDataHelper opMonitoringDataHelper;
+    private final UnusableAddressTracker unusableAddressTracker;
 
     @Getter
     private URI dummyServiceAddress;
@@ -133,5 +135,20 @@ public class ClientRequestPreparationService {
         }
 
         return addresses;
+    }
+
+    /**
+     * Marks the selected target address as unusable if the given exception was caused by a TLS
+     * handshake failure. Covers handshake failures that surface only during request execution
+     * (e.g. a TLS 1.3 server proxy rejecting the client certificate after the handshake completed).
+     *
+     * @param httpSender the HTTP sender whose request failed
+     * @param exception  the failure to inspect for a TLS handshake error
+     */
+    public void markAddressUnusableIfHandshakeFailure(HttpSender httpSender, Throwable exception) {
+        if (UnusableAddressTracker.isHandshakeFailure(exception)
+                && httpSender.getAttribute(ID_SELECTED_TARGET) instanceof URI selectedTarget) {
+            unusableAddressTracker.markUnusable(selectedTarget);
+        }
     }
 }

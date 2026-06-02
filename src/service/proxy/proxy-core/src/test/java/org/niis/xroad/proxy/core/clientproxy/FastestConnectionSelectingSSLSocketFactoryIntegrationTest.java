@@ -212,8 +212,9 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
+        var proxyProperties = defaultConfiguration(ProxyProperties.class);
         return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory(),
-                defaultConfiguration(ProxyProperties.class));
+                proxyProperties, new UnusableAddressTracker(proxyProperties));
     }
 
     static class NoopTrustManager implements X509TrustManager {

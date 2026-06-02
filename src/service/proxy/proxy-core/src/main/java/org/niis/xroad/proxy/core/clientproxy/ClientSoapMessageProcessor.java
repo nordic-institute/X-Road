@@ -246,6 +246,9 @@ public class ClientSoapMessageProcessor {
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             }
 
+        } catch (Exception e) {
+            clientRequestPreparationService.markAddressUnusableIfHandshakeFailure(httpSender, e);
+            throw e;
         } finally {
             ctx.reqIns().close();
         }

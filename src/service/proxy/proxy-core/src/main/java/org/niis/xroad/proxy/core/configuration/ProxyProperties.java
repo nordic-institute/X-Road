@@ -33,6 +33,7 @@ import io.smallrye.config.WithName;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorBufferProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorConnectionProperties;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
@@ -176,6 +177,10 @@ public interface ProxyProperties {
         @WithName("fastest-connecting-ssl-uri-cache-period")
         @WithDefault("3600")
         int clientProxyFastestConnectingSslUriCachePeriod();
+
+        @WithName("fastest-connecting-ssl-uri-unusable-period")
+        @WithDefault("180s")
+        Duration clientProxyFastestConnectingSslUriUnusablePeriod();
 
         @WithName("use-fastest-connecting-ssl-socket-autoclose")
         @WithDefault("true")

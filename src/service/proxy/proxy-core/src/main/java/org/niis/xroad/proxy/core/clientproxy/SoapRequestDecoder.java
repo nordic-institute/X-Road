@@ -81,7 +81,7 @@ public final class SoapRequestDecoder implements SoapMessageDecoder.Callback {
     private SoapMessageImpl requestSoap;
     private ServiceId requestServiceId;
     private XrdRuntimeException executionException;
-    private PipedOutputStream reqOuts;
+    private final PipedOutputStream reqOuts;
     private String outputContentType;
     private ProxyMessageEncoder encoder;
 
