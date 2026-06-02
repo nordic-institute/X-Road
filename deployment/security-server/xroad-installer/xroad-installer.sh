@@ -24,6 +24,7 @@ XROAD_SECRET_STORE_TYPE="${XROAD_SECRET_STORE_TYPE:-}"
 XROAD_TLS_HOSTNAME="${XROAD_TLS_HOSTNAME:-}"
 XROAD_TLS_ALT_NAMES="${XROAD_TLS_ALT_NAMES:-}"
 XROAD_PROXY_MEM_SETTING="${XROAD_PROXY_MEM_SETTING:-}"
+XROAD_MESSAGELOG_ENABLED="${XROAD_MESSAGELOG_ENABLED:-}"
 XROAD_INSTALLER_CONFIG_FILE="${XROAD_INSTALLER_CONFIG_FILE:-}"
 
 parse_args() {
@@ -362,6 +363,29 @@ select_proxy_memory() {
   log_info "Selected Proxy memory settings: ${XROAD_PROXY_MEM_SETTING}"
 }
 
+# Function to select whether the message log is enabled
+select_messagelog() {
+  # If provided via config/CLI, normalise and validate it once
+  if [[ -n "$XROAD_MESSAGELOG_ENABLED" ]]; then
+    case "${XROAD_MESSAGELOG_ENABLED,,}" in
+      true|yes|1|on)   XROAD_MESSAGELOG_ENABLED="true" ;;
+      false|no|0|off)  XROAD_MESSAGELOG_ENABLED="false" ;;
+      *) log_die "Invalid value for XROAD_MESSAGELOG_ENABLED: '$XROAD_MESSAGELOG_ENABLED' (expected true/false)" ;;
+    esac
+    log_info "Message log enabled: $XROAD_MESSAGELOG_ENABLED"
+    return
+  fi
+
+  # Interactive selection (defaults to enabled)
+  if whiptail --title "Message Log" --yesno "Enable the message log?\n\nThe message log records exchanged messages for non-repudiation. It can be enabled or disabled later via configuration." 12 78; then
+    XROAD_MESSAGELOG_ENABLED="true"
+  else
+    XROAD_MESSAGELOG_ENABLED="false"
+  fi
+
+  log_info "Message log enabled: $XROAD_MESSAGELOG_ENABLED"
+}
+
 # Main installer function
 main() {
   # Parse command-line arguments
@@ -500,6 +524,19 @@ main() {
   select_proxy_memory
   log_message ""
 
+  # Step: Configure Message Log
+  select_messagelog
+
+  if [[ -f "$SCRIPT_DIR/tasks/configure_messagelog.sh" ]]; then
+    if ! XROAD_MESSAGELOG_ENABLED="$XROAD_MESSAGELOG_ENABLED" \
+       bash "$SCRIPT_DIR/tasks/configure_messagelog.sh"; then
+      log_die "Message log configuration failed"
+    fi
+  else
+    log_die "configure_messagelog.sh not found"
+  fi
+  log_message ""
+
   if [[ -f "$SCRIPT_DIR/tasks/install_security_server.sh" ]]; then
     if ! XROAD_SS_PACKAGE="$XROAD_SS_PACKAGE" \
        XROAD_ADMIN_USERNAME="$XROAD_ADMIN_USERNAME" \
@@ -530,6 +567,7 @@ main() {
   # Installation completed
   log_message "Admin user created: $XROAD_ADMIN_USERNAME"
   log_message "Security Server package installed: $XROAD_SS_PACKAGE"
+  log_message "Message log enabled: $XROAD_MESSAGELOG_ENABLED"
   log_message ""
   log_message "Next steps:"
   log_message "  - Review the log file: ${XROAD_INSTALLER_LOG_FILE:-xroad-installer-<timestamp>.log}"

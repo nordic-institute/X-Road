@@ -87,6 +87,11 @@ XROAD_SECRET_STORE_TYPE=local
 # "d" (Default)
 #XROAD_PROXY_MEM_SETTING="512m 1g"
 
-# 8. Other Options
+# 8. Message Log Configuration
+# Enable or disable the message log. The message log records exchanged
+# messages for non-repudiation. Accepts true/false. Defaults to "true".
+#XROAD_MESSAGELOG_ENABLED=true
+
+# 9. Other Options
 # Set to "true" to skip system requirements check.
 #XROAD_SKIP_REQUIREMENTS_CHECK="false"
