@@ -188,8 +188,7 @@ public class EnvSetup extends BaseComposeSetup {
 
         env.start();
 
-        List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER,
-                DS_IDENTITY_HUB));
+        List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER));
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             services.add(SOFTTOKEN_SIGNER);
         }
