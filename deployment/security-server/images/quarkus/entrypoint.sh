@@ -27,6 +27,7 @@ if [ "${OTEL_SDK_DISABLED:-true}" = "false" ] && [ -f "$OTEL_AGENT" ]; then
 fi
 
 exec java \
+  -XX:MaxRAMPercentage=${JAVA_MAX_RAM_PERCENTAGE:-60} \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
   -Djava.library.path=/usr/share/xroad/lib \
   -Dquarkus.profile=containerized \

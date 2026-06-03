@@ -64,11 +64,6 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
-        return serverConfProvider.getServiceAccessRights(serviceId);
-    }
-
-    @Override
     public boolean serviceExists(ServiceId serviceId) {
         return serverConfProvider.serviceExists(serviceId);
     }
@@ -193,6 +188,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         return serverConfProvider.getServiceEndpoints(serviceId);
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return serverConfProvider.getServiceAccessRights(serviceId);
     }
 
     @Override

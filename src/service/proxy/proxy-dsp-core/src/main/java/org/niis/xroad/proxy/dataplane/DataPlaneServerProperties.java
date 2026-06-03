@@ -55,4 +55,8 @@ public interface DataPlaneServerProperties {
     @WithDefault("60000")
     int threadPoolIdleTimeout();
 
+    @WithName("serverproxy-endpoint")
+    @WithDefault("https://localhost:${xroad.proxy.server-port:5500}")
+    String serverproxyEndpoint();
+
 }

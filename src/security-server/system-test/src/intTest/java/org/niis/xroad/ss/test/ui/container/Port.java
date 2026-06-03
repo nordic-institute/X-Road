@@ -40,6 +40,7 @@ public final class Port {
             DS_IDENTITY_HUB_STS = 7184,
             DS_IDENTITY_HUB_CREDENTIALS = 7185,
             DS_ISSUER_SERVICE_IDENTITY = 6182,
+            DS_ISSUER_SERVICE_IDENTITY_DID = 6183,
             DS_ISSUER_SERVICE_ISSUANCE = 6185,
             DS_ISSUER_SERVICE_ADMIN = 6186;
 

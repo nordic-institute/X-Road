@@ -8,11 +8,11 @@ metadata:
     app: xroad-{{ .service }}
 data:
   {{- $env := .config.env }}
-  {{- $javaToolOpts := printf "-XX:MaxRAMPercentage=%v" .root.Values.jvmHeap.maxRAMPercentage }}
+  {{- $env = merge $env (dict "JAVA_MAX_RAM_PERCENTAGE" (printf "%v" .root.Values.jvmHeap.maxRAMPercentage)) }}
   {{- if .root.Values.jvmMetrics.enabled }}
-    {{- $javaToolOpts = printf "%s -javaagent:/opt/jmx_prometheus_javaagent.jar=%d:/opt/jmx-exporter-config.yaml" $javaToolOpts (int .root.Values.jvmMetrics.jmxExporter.port) }}
+    {{- $javaToolOpts := printf "-javaagent:/opt/jmx_prometheus_javaagent.jar=%d:/opt/jmx-exporter-config.yaml" (int .root.Values.jvmMetrics.jmxExporter.port) }}
+    {{- $env = merge $env (dict "JAVA_TOOL_OPTIONS" $javaToolOpts) }}
   {{- end }}
-  {{- $env = merge $env (dict "JAVA_TOOL_OPTIONS" $javaToolOpts) }}
   {{- if .root.Values.otel.enabled }}
     {{- $nodeId := .root.Values.otel.nodeId }}
     {{- $namespace := .root.Values.otel.resourceAttributes.serviceNamespace }}

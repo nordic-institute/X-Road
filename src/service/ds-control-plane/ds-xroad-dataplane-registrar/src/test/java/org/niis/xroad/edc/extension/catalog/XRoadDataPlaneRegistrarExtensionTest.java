@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -46,11 +47,15 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class XRoadDataPlaneRegistrarExtensionTest {
+
+    private static final String HOST_CONTEXT = "ss1";
+    private static final String MGMT_CONTEXT = "ss1-mgmt";
 
     @Mock
     private ServiceExtensionContext context;
@@ -67,9 +72,10 @@ class XRoadDataPlaneRegistrarExtensionTest {
     }
 
     @Test
-    void initializeRegistersConfiguredEntries() {
+    void initializeRegistersConfiguredEntryUnderEachParticipantContext() {
+        stubParticipantContexts();
         when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
-                "xroad.cp.dataplane.proxy.id", "xroad-proxy-ss0",
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
                 "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows",
                 "xroad.cp.dataplane.proxy.allowed-source-types", "http",
                 "xroad.cp.dataplane.proxy.allowed-transfer-types", XRoadTransferType.PULL.wireValue()
@@ -79,18 +85,26 @@ class XRoadDataPlaneRegistrarExtensionTest {
         extension.initialize(context);
 
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-        verify(store).save(captor.capture());
-        var saved = captor.getValue();
-        assertThat(saved.getId()).isEqualTo("xroad-proxy-ss0");
-        assertThat(saved.getUrl()).hasToString("http://127.0.0.1:5590/full/api/v1/dataflows");
-        assertThat(saved.getAllowedSourceTypes()).containsExactly("http");
-        assertThat(saved.getAllowedTransferTypes()).containsExactly(XRoadTransferType.PULL.wireValue());
+        verify(store, times(2)).save(captor.capture());
+        var saved = captor.getAllValues();
+
+        assertThat(saved).extracting(DataPlaneInstance::getId)
+                .containsExactlyInAnyOrder("xroad-proxy::" + HOST_CONTEXT, "xroad-proxy::" + MGMT_CONTEXT);
+        assertThat(saved).extracting(DataPlaneInstance::getParticipantContextId)
+                .containsExactlyInAnyOrder(HOST_CONTEXT, MGMT_CONTEXT);
+        assertThat(saved).allSatisfy(instance -> {
+            assertThat(instance.getUrl()).hasToString("http://127.0.0.1:5590/full/api/v1/dataflows");
+            assertThat(instance.getAllowedSourceTypes()).containsExactly("http");
+            assertThat(instance.getAllowedTransferTypes()).containsExactly(XRoadTransferType.PULL.wireValue());
+            assertThat(instance.getState()).isEqualTo(DataPlaneInstanceStates.REGISTERED.code());
+        });
     }
 
     @Test
     void initializeSkipsDisabledEntries() {
+        stubParticipantContexts();
         when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
-                "xroad.cp.dataplane.proxy.id", "xroad-proxy-ss0",
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
                 "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows",
                 "xroad.cp.dataplane.proxy.enabled", "false"
         )));
@@ -102,6 +116,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
     @Test
     void initializeSplitsCsvAllowedTypes() {
+        stubParticipantContexts();
         when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
                 "xroad.cp.dataplane.dp1.id", "dp1",
                 "xroad.cp.dataplane.dp1.url", "http://dp1:5590",
@@ -114,14 +129,17 @@ class XRoadDataPlaneRegistrarExtensionTest {
         extension.initialize(context);
 
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-        verify(store).save(captor.capture());
-        assertThat(captor.getValue().getAllowedSourceTypes()).containsExactlyInAnyOrder("http", "https");
-        assertThat(captor.getValue().getAllowedTransferTypes())
-                .containsExactlyInAnyOrder(XRoadTransferType.PULL.wireValue(), XRoadTransferType.PUSH.wireValue());
+        verify(store, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues()).allSatisfy(instance -> {
+            assertThat(instance.getAllowedSourceTypes()).containsExactlyInAnyOrder("http", "https");
+            assertThat(instance.getAllowedTransferTypes())
+                    .containsExactlyInAnyOrder(XRoadTransferType.PULL.wireValue(), XRoadTransferType.PUSH.wireValue());
+        });
     }
 
     @Test
-    void initializeWithMultipleEntriesRegistersAll() {
+    void initializeWithMultipleEntriesRegistersAllUnderEachContext() {
+        stubParticipantContexts();
         when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
                 "xroad.cp.dataplane.dp1.id", "dp1",
                 "xroad.cp.dataplane.dp1.url", "http://dp1:5590",
@@ -134,7 +152,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
         extension.initialize(context);
 
-        verify(store, org.mockito.Mockito.times(2)).save(any());
+        verify(store, times(4)).save(any());
     }
 
     @Test
@@ -144,6 +162,13 @@ class XRoadDataPlaneRegistrarExtensionTest {
         extension.initialize(context);
 
         verify(store, never()).save(any());
+    }
+
+    private void stubParticipantContexts() {
+        when(context.getSetting("edc.hostname", "localhost")).thenReturn(HOST_CONTEXT);
+        when(context.getSetting("xroad.dsp.participant-context-id", HOST_CONTEXT)).thenReturn(HOST_CONTEXT);
+        when(context.getSetting("xroad.dsp.management-participant-context-id", HOST_CONTEXT + "-mgmt"))
+                .thenReturn(MGMT_CONTEXT);
     }
 
     private static Config buildDataplaneConfig(Map<String, String> entries) {

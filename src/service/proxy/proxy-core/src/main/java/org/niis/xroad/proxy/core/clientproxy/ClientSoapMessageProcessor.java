@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
@@ -48,6 +49,9 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspRequest;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
@@ -100,6 +104,7 @@ public class ClientSoapMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
+    private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
@@ -198,6 +203,10 @@ public class ClientSoapMessageProcessor {
         }
     }
 
+    boolean isManagementRequest(ServiceId serviceId) {
+        return serviceId.getClientId().equals(globalConfProvider.getManagementRequestService());
+    }
+
     private void checkRequestIdentifiers(SoapRequestDecoder decoder) {
         identifierValidationService.checkIdentifier(decoder.getRequestSoap().getClient());
         identifierValidationService.checkIdentifier(decoder.getRequestSoap().getService());
@@ -207,10 +216,17 @@ public class ClientSoapMessageProcessor {
     private ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                                         String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("processRequest()");
-
+        clientRequestPreparationService.recordServiceSecurityServerAddress(
+                decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(), ctx, opMonitoringData);
+        // MANAGEMENT requests target the mgmt participant context; all others use the host context.
+        AssetAccessResponse assetAccess = proxyProperties.dspEnabled()
+                ? consumerSideDspProcessor.execute(new DspRequest(
+                        decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
+                        isManagementRequest(decoder.getServiceId())))
+                : null;
         ProxyMessage response;
         try (HttpSender httpSender = httpSenderProvider.createClientHttpSender()) {
-            sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData);
+            sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData, assetAccess);
 
             // Check for any errors from the handler thread once more.
             waitForRequestSent(ctx);
@@ -227,13 +243,18 @@ public class ClientSoapMessageProcessor {
     }
 
     private void sendRequest(HttpSender httpSender, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
-                             String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
+                             String xRequestId, OpMonitoringData opMonitoringData, AssetAccessResponse assetAccess)
+            throws Exception {
         log.trace("sendRequest()");
 
         try {
-            URI[] addresses = clientRequestPreparationService.prepareRequest(
-                    httpSender, decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
-                    ctx, opMonitoringData, decoder.getOriginalSoapAction());
+            URI[] addresses = assetAccess != null
+                    ? clientRequestPreparationService.prepareRequest(
+                            httpSender, decoder.getServiceId(), URI.create(assetAccess.endpoint()),
+                            ctx, opMonitoringData, decoder.getOriginalSoapAction())
+                    : clientRequestPreparationService.prepareRequest(
+                            httpSender, decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
+                            ctx, opMonitoringData, decoder.getOriginalSoapAction());
 
             // Add unique id to distinguish request/response pairs
             httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);

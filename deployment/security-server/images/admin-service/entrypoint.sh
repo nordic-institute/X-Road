@@ -26,6 +26,7 @@ if [[ "${OTEL_SDK_DISABLED:-true}" == "false" ]] && [[ -f "$OTEL_AGENT" ]]; then
 fi
 
 exec java \
+  -XX:MaxRAMPercentage=${JAVA_MAX_RAM_PERCENTAGE:-60} \
   -Dspring.profiles.include=containerized \
   $DEBUG_OPTS \
   $OTEL_OPTS \

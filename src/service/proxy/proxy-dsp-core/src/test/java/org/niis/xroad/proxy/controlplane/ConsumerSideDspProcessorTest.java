@@ -105,6 +105,20 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
+    void metadataServiceFlowsThroughDspAndReturnsNonNull() {
+        var listMethods = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "listMethods");
+        when(providerSecurityServerResolver.resolve(listMethods, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var expected = new AssetAccessResponse("http://dp/e", null);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any())).thenReturn(expected);
+
+        var result = processor.execute(new DspRequest(listMethods, null, false));
+
+        assertThat(result).isSameAs(expected);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), any());
+    }
+
+    @Test
     void assetIdDerivedFromServiceIdEncoding() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
@@ -201,7 +215,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void allSecurityServersFailThrowsNetworkError() {
+    void allSecurityServersFailThrowsIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
@@ -218,7 +232,7 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
+                        .isEqualTo(ErrorCode.IO_ERROR.code()))
                 .hasMessageContaining("candidate security servers failed")
                 .satisfies(ex -> assertThat(ex.getCause()).isIn(failureA, failureB));
     }
@@ -240,14 +254,14 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void allCandidatesUnmappedThrowsNetworkError() {
+    void allCandidatesUnmappedThrowsIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()))
+                        .isEqualTo(ErrorCode.IO_ERROR.code()))
                 .hasMessageContaining("candidate security servers failed");
 
         verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
@@ -306,7 +320,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void mixedCodesAcrossCandidatesFallBackToNetworkError() {
+    void mixedCodesAcrossCandidatesFallBackToIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
@@ -319,7 +333,7 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()));
+                        .isEqualTo(ErrorCode.IO_ERROR.code()));
     }
 
     @Test
@@ -336,7 +350,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void localRoutingFailureMixedWithRemoteFailureFallsBackToNetworkError() {
+    void localRoutingFailureMixedWithRemoteFailureFallsBackToIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, UNKNOWN_HOST),
@@ -347,7 +361,7 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()));
+                        .isEqualTo(ErrorCode.IO_ERROR.code()));
     }
 
     @Test
@@ -457,7 +471,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void singleCandidateDspExceptionMappedToLegacyCode() {
+    void remoteDatasetNotFoundFromReachedProviderMapsToIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -468,7 +482,7 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue());
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue());
     }
 
     @Test
@@ -487,7 +501,7 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.NETWORK_ERROR)).isTrue());
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue());
     }
 
     @Test
@@ -511,4 +525,72 @@ class ConsumerSideDspProcessorTest {
                             .isEqualTo("originalCode=" + ErrorCode.DSP_NEGOTIATION_FAILED.code());
                 });
     }
+    @Test
+    void emptyCandidatesYieldsUnknownMemberWithOriginalDspCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of());
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue();
+                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
+                    assertThat(xrd.getErrorCodeMetadata().getFirst())
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
+                });
+    }
+    @Test
+    void missingCounterPartyTargetYieldsIoErrorWithOriginalDspCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
+                    assertThat(xrd.getErrorCodeMetadata().getFirst())
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                });
+    }
+    @Test
+    void allCandidatesFailedAggregationYieldsIoErrorWithOriginalDspCode() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(new RuntimeException("SS A unreachable"));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_B), eq(URL_B)))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.IO_ERROR, "network down"));
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
+                    assertThat(xrd.getErrorCodeMetadata().getFirst())
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                });
+    }
+    @Test
+    void dspCatalogFetchFailedPerCandidateMapsToIoError() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(dspException);
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
+                    assertThat(xrd.getErrorCodeMetadata().getFirst())
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_CATALOG_FETCH_FAILED.code());
+                });
+    }
+
 }

@@ -52,11 +52,6 @@ import static java.util.Collections.emptyList;
 public class EmptyServerConf implements ServerConfProvider {
 
     @Override
-    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
-        return emptyList();
-    }
-
-    @Override
     public boolean serviceExists(ServiceId serviceId) {
         return true;
     }
@@ -146,6 +141,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         return null;
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return emptyList();
     }
 
     @Override

@@ -74,6 +74,7 @@ class ProxyTests {
 
         PROPS.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
+        PROPS.put("xroad.proxy.dsp-enabled", "false");
 
         PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(PROPS);
 
