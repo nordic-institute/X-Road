@@ -145,14 +145,21 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
+    @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CONFIGURATION_PROPERTY)
     public ResponseEntity<Void> updateConfigurableProperty(
             SecurityServerPropertyUpdateDto securityServerSystemParameterUpdateDto
     ) {
-        configurablePropertiesService.updateConfigurableProperty(
-                securityServerSystemParameterUpdateDto.getPropertyName(),
-                securityServerSystemParameterUpdateDto.getPropertyValue(),
-                securityServerSystemParameterUpdateDto.getScope()
-        );
+        var name = securityServerSystemParameterUpdateDto.getPropertyName();
+        var value = securityServerSystemParameterUpdateDto.getPropertyValue();
+        var scope = securityServerSystemParameterUpdateDto.getScope();
+
+        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_NAME, name);
+        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_VALUE, value);
+        if (scope != null) {
+            auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, scope);
+        }
+
+        configurablePropertiesService.updateConfigurableProperty(name, value, scope);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

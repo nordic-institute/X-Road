@@ -160,7 +160,11 @@ public enum RestApiAuditProperty {
     SERVICE_PROVIDER_NAME,
 
     USERNAME,
-    USER_ROLES;
+    USER_ROLES,
+
+    SYSTEM_PROPERTY_NAME,
+    SYSTEM_PROPERTY_VALUE,
+    SYSTEM_PROPERTY_SCOPE;
 
     /**
      * Gets logged property name for the enum value.
