@@ -221,6 +221,7 @@ services:
     volumes:
       - ./jwks/:/jwks
 
+### BEGIN consider reusing cs's configuration-client once containerized deployment is supported
   openbao:
     image: ${OPENBAO_DEV_IMG}
     pull_policy: always
@@ -312,6 +313,7 @@ services:
         condition: service_healthy
       anchor-init:
         condition: service_completed_successfully
+### END consider reusing cs's configuration-client once containerized deployment is supported
 volumes:
   ca-volume:
   ds-anchor:

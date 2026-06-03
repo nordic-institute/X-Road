@@ -28,6 +28,7 @@ package org.niis.xroad.common.rpc.client;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -37,6 +38,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;

@@ -146,3 +146,5 @@ services:
     depends_on:
       db-ds-identity-hub:
         condition: service_healthy
+      signer:
+        condition: service_healthy

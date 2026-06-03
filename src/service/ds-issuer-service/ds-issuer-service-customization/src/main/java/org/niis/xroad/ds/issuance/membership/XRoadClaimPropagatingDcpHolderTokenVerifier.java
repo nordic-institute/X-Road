@@ -77,6 +77,8 @@ public class XRoadClaimPropagatingDcpHolderTokenVerifier implements DcpHolderTok
                                                    TokenRepresentation token) {
         ServiceResult<DcpRequestContext> upstream = delegate.verify(issuerContext, token);
         if (upstream.failed()) {
+            monitor.warning("X-Road DCP holder-token verification rejected for issuer context '%s': %s"
+                    .formatted(issuerContext.getParticipantContextId(), upstream.getFailureDetail()));
             return upstream;
         }
         DcpRequestContext context = upstream.getContent();

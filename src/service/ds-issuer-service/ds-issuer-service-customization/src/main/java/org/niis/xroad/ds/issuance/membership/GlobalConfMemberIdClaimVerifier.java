@@ -30,8 +30,8 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.SignedJWT;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -187,7 +187,9 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
 
     private Result<ClientId> extractSubjectIdentity(X509Certificate cert) {
         try {
-            ClientId.Conf subjectId = globalConf.getSubjectName(new SubjectNameParameters(globalConf), cert);
+            var profileParams = new SignCertificateProfileInfoParameters(
+                    ClientId.Conf.create(globalConf.getInstanceIdentifier(), "PLACEHOLDER", "PLACEHOLDER"), "");
+            ClientId.Conf subjectId = globalConf.getSubjectName(profileParams, cert);
             if (subjectId == null) {
                 return Result.failure(MembershipVerificationReason.CERT_CHAIN_INVALID.name()
                         + ": cert subject is not a valid X-Road ClientId");
@@ -229,28 +231,6 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
                     ? Result.success()
                     : Result.failure("'sub' claim does not match expected, expected '%s', got '%s'"
                             .formatted(expectedSubject, sub));
-        }
-    }
-
-    /**
-     * Parameters tuple for {@link GlobalConfProvider#getSubjectName(SignCertificateProfileInfo.Parameters, X509Certificate)}.
-     * The cert profile dispatch keys on the X-Road instance — we pass the verifier's local
-     * instance. Other fields are unused by the subject-name extraction logic.
-     */
-    private record SubjectNameParameters(GlobalConfProvider globalConf) implements SignCertificateProfileInfo.Parameters {
-        @Override
-        public SecurityServerId getServerId() {
-            return null;
-        }
-
-        @Override
-        public ClientId getClientId() {
-            return ClientId.Conf.create(globalConf.getInstanceIdentifier(), "PLACEHOLDER", "PLACEHOLDER");
-        }
-
-        @Override
-        public String getMemberName() {
-            return "";
         }
     }
 }

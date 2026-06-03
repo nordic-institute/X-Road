@@ -34,4 +34,5 @@ public interface SignerSignClient {
     byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest);
 
     byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey);
+
 }

@@ -31,6 +31,7 @@ import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipant
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSource;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSourceFactory;
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 /**
  * Factory that produces a single shared {@link XRoadMembershipAttestationSource} for every
@@ -44,8 +45,9 @@ public class XRoadMembershipAttestationSourceFactory implements AttestationSourc
     private final AttestationSource source;
 
     public XRoadMembershipAttestationSourceFactory(MemberIdClaimVerifier verifier,
-                                                   IdentityHubParticipantContextService participantContextService) {
-        this.source = new XRoadMembershipAttestationSource(verifier, participantContextService);
+                                                   IdentityHubParticipantContextService participantContextService,
+                                                   Monitor monitor) {
+        this.source = new XRoadMembershipAttestationSource(verifier, participantContextService, monitor);
     }
 
     @Override

@@ -97,7 +97,7 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var verifier = buildVerifier(context);
         registry.registerFactory(ATTESTATION_TYPE,
-                new XRoadMembershipAttestationSourceFactory(verifier, participantContextService));
+                new XRoadMembershipAttestationSourceFactory(verifier, participantContextService, context.getMonitor()));
         context.getMonitor().info("X-Road MembershipCredential attestation registered for type '"
                 + ATTESTATION_TYPE + "'");
     }

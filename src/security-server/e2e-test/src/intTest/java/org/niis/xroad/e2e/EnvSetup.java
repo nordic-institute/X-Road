@@ -152,6 +152,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_IDENTITY, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
@@ -159,7 +160,8 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO))
                 .withLogConsumer(AUX_SERVICE, createLogConsumer(name, AUX_SERVICE))
                 .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI))
-                .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB));
+                .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB))
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE));
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
@@ -168,7 +170,7 @@ public class EnvSetup extends BaseComposeSetup {
         env.start();
 
         List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER,
-                DS_IDENTITY_HUB));
+                DS_IDENTITY_HUB, DS_CONTROL_PLANE));
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             services.add(SOFTTOKEN_SIGNER);
         }

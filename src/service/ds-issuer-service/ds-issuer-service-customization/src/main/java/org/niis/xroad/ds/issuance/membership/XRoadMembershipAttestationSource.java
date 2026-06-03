@@ -32,6 +32,7 @@ import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipant
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationContext;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSource;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.LinkedHashMap;
@@ -54,32 +55,50 @@ public class XRoadMembershipAttestationSource implements AttestationSource {
     static final String CLAIM_KEY = "xroadMemberClaim";
     static final String JWT_CLAIM_TYPE = "jwt";
 
+    static final String MEMBERSHIP_TYPE_CLAIM = "membershipType";
+    static final String MEMBER_IDENTIFIER_CLAIM = "xrdMemberIdentifier";
+    static final String MEMBERSHIP_TYPE = "X-Road";
+
     private final MemberIdClaimVerifier verifier;
     private final IdentityHubParticipantContextService participantContextService;
+    private final Monitor monitor;
 
     public XRoadMembershipAttestationSource(MemberIdClaimVerifier verifier,
-                                            IdentityHubParticipantContextService participantContextService) {
+                                            IdentityHubParticipantContextService participantContextService,
+                                            Monitor monitor) {
         this.verifier = verifier;
         this.participantContextService = participantContextService;
+        this.monitor = monitor;
     }
 
     @Override
     public Result<Map<String, Object>> execute(AttestationContext context) {
         ClaimToken token = context.getClaimToken(JWT_CLAIM_TYPE);
         if (token == null) {
-            return Result.failure(MembershipVerificationReason.CLAIM_MISSING.name());
+            return reject(MembershipVerificationReason.CLAIM_MISSING.name(), "no 'jwt' claim token in attestation context");
         }
         Object raw = token.getClaim(CLAIM_KEY);
         if (!(raw instanceof String compactJws) || compactJws.isBlank()) {
-            return Result.failure(MembershipVerificationReason.CLAIM_MISSING.name());
+            return reject(MembershipVerificationReason.CLAIM_MISSING.name(), "outer JWT has no '" + CLAIM_KEY + "' claim");
         }
         String holderDid = subjectOf(token);
-        String issuerDid = resolveIssuerDid(context.participantContextId());
+        String issuerDid = resolveIssuerDid(issuerParticipantContextId(context));
         Result<ClientId> verified = verifier.verify(compactJws, holderDid, issuerDid);
         if (verified.failed()) {
-            return verified.mapEmpty();
+            return reject(verified.getFailureDetail(),
+                    "holder DID '" + holderDid + "', issuer DID '" + issuerDid + "'");
         }
         return Result.success(toAttestationOutput(verified.getContent()));
+    }
+
+    private Result<Map<String, Object>> reject(String reason, String detail) {
+        monitor.warning("X-Road membership attestation rejected: " + reason + " (" + detail + ")");
+        return Result.failure(reason);
+    }
+
+    private static String issuerParticipantContextId(AttestationContext context) {
+        var holder = context.holder();
+        return holder == null ? null : holder.getParticipantContextId();
     }
 
     private String resolveIssuerDid(String participantContextId) {
@@ -99,15 +118,9 @@ public class XRoadMembershipAttestationSource implements AttestationSource {
     }
 
     private static Map<String, Object> toAttestationOutput(ClientId memberId) {
-        Map<String, Object> out = new LinkedHashMap<>(4);
-        out.put("xRoadInstance", memberId.getXRoadInstance());
-        out.put("memberClass", memberId.getMemberClass());
-        out.put("memberCode", memberId.getMemberCode());
-        out.put("memberId", canonical(memberId));
+        Map<String, Object> out = new LinkedHashMap<>(2);
+        out.put(MEMBERSHIP_TYPE_CLAIM, MEMBERSHIP_TYPE);
+        out.put(MEMBER_IDENTIFIER_CLAIM, memberId.asEncodedId());
         return out;
-    }
-
-    private static String canonical(ClientId memberId) {
-        return memberId.getXRoadInstance() + "/" + memberId.getMemberClass() + "/" + memberId.getMemberCode();
     }
 }
