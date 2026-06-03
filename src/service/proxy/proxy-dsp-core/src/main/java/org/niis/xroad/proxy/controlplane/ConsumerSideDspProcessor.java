@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 
 /**
@@ -205,7 +206,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .map(XrdRuntimeException.class::cast)
                     .map(XrdRuntimeException::getCode)
                     .collect(Collectors.toSet());
-            if (xrdCodes.size() == 1) {
+            if (xrdCodes.size() == 1 && !isRemoteNotFoundCode(xrdCodes.iterator().next())) {
                 return remoteFailures.getFirst();
             }
         }
@@ -216,5 +217,10 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 .details("All %d candidate security servers failed to acquire asset access for service %s"
                         .formatted(candidateCount, serviceId))
                 .build();
+    }
+
+    private static boolean isRemoteNotFoundCode(String errorCode) {
+        return errorCode != null
+                && (errorCode.endsWith(DSP_DATASET_NOT_FOUND.code()) || errorCode.endsWith(DSP_OFFERS_NOT_FOUND.code()));
     }
 }

@@ -471,7 +471,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void singleCandidateDspExceptionMappedToLegacyCode() {
+    void remoteDatasetNotFoundFromReachedProviderMapsToIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -482,7 +482,7 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue());
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue());
     }
 
     @Test
