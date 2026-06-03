@@ -27,268 +27,378 @@
 
 package org.niis.xroad.proxy.core.configuration;
 
-import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorBufferProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorConnectionProperties;
 
 import java.time.Duration;
 import java.util.Optional;
 
-import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
-import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
-import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_META_SERVICES_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_PROXY_MONITOR_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADMIN_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.BATCH_SIGNING_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_CONNECTOR_INITIAL_IDLE_TIME;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPCLIENT_SO_LINGER;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPCLIENT_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPS_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTP_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_IDLE_CONNECTION_MONITOR_INTERVAL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_IDLE_CONNECTION_MONITOR_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_TLS_CIPHERS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_TLS_PROTOCOLS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_USE_IDLE_CONNECTION_MONITOR;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_JETTY_CONFIGURATION_FILE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_ENABLE_CONNECTION_REUSE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_TOTAL_DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_TOTAL_MAX_CONNECTIONS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MILLIS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_INTERFACE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HSM_HEALTH_CHECK_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.LOG_CLIENT_CERT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MEMORY_USAGE_THRESHOLD;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_SIGN_DIGEST_NAME;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_CLIENT_READ_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_JETTY_CONFIGURATION_FILE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_LISTEN_ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_CONNECTOR_INITIAL_IDLE_TIME;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_JETTY_CONFIGURATION_FILE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_LISTEN_ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_LISTEN_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_MIN_SUPPORTED_CLIENT_VERSION;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SSL_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.STRICT_IDENTIFIER_CHECKS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.VERIFY_CLIENT_CERT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.XROAD_TLS_CIPHERS;
 
-@ConfigMapping(prefix = "xroad.proxy")
-public interface ProxyProperties {
+@RequiredArgsConstructor
+public class ProxyProperties {
 
-    ServerProperties server();
+    private final XRoadConfig xRoadConfig;
+    private final ServerProperties serverProperties;
+    private final ClientProxyProperties clientProxyProperties;
+    private final Addon addon;
 
-    ClientProxyProperties clientProxy();
+    public ProxyProperties(XRoadConfig xRoadConfig) {
+        this.xRoadConfig = xRoadConfig;
+        this.serverProperties = new ServerProperties(xRoadConfig);
+        this.clientProxyProperties = new ClientProxyProperties(xRoadConfig);
+        this.addon = new Addon(xRoadConfig);
+    }
 
-    Addon addon();
+    public ServerProperties server() {
+        return serverProperties;
+    }
 
-    @WithName("admin-port")
-    @WithDefault("5566")
-    int adminPort();
+    public ClientProxyProperties clientProxy() {
+        return clientProxyProperties;
+    }
 
-    @WithName("ssl-enabled")
-    @WithDefault("true")
-    boolean sslEnabled();
+    public Addon addon() {
+        return addon;
+    }
 
+    public int adminPort() {
+        return xRoadConfig.value(ADMIN_PORT);
+    }
     @WithName("dsp-enabled")
     @WithDefault("true")
     boolean dspEnabled();
 
-    @WithName("health-check-enabled")
-    @WithDefault("false")
     boolean healthCheckEnabled();
 
-    @WithName("health-check-port")
-    @WithDefault("5588")
-    // referenced in application.yaml
-    @SuppressWarnings("unused")
-    int healthCheckPort();
+    public boolean sslEnabled() {
+        return xRoadConfig.value(SSL_ENABLED);
+    }
 
-    @WithName("health-check-interface")
-    @WithDefault("0.0.0.0")
-    // referenced in application.yaml
-    @SuppressWarnings("unused")
-    String healthCheckInterface();
+    public boolean healthCheckEnabled() {
+        return xRoadConfig.value(HEALTH_CHECK_ENABLED);
+    }
 
-    @WithName("hsm-health-check-enabled")
-    @WithDefault("false")
-    // referenced in application.yaml
-    @SuppressWarnings("unused")
-    boolean hsmHealthCheckEnabled();
+    public int healthCheckPort() {
+        return xRoadConfig.value(HEALTH_CHECK_PORT);
+    }
 
-    @WithName("memory-usage-threshold")
-    // referenced in application.yaml
-    @SuppressWarnings("unused")
-    Optional<Integer> memoryUsageThreshold();
+    public String healthCheckInterface() {
+        return xRoadConfig.value(HEALTH_CHECK_INTERFACE);
+    }
 
-    @WithName("message-sign-digest-name")
-    @WithDefault("SHA-512")
-    String messageSignDigestName();
+    public boolean hsmHealthCheckEnabled() {
+        return xRoadConfig.value(HSM_HEALTH_CHECK_ENABLED);
+    }
 
-    @WithName("verify-client-cert")
-    @WithDefault("true")
-    boolean verifyClientCert();
+    public Optional<Integer> memoryUsageThreshold() {
+        return xRoadConfig.valueOpt(MEMORY_USAGE_THRESHOLD);
+    }
 
-    @WithName("log-client-cert")
-    @WithDefault("false")
-    boolean logClientCert();
+    public String messageSignDigestName() {
+        return xRoadConfig.value(MESSAGE_SIGN_DIGEST_NAME);
+    }
 
-    @WithName("enforce-client-is-cert-validity-period-check")
-    @WithDefault("false")
-    boolean enforceClientIsCertValidityPeriodCheck();
+    public boolean verifyClientCert() {
+        return xRoadConfig.value(VERIFY_CLIENT_CERT);
+    }
 
-    @WithName("server-port")
-    @WithDefault("5500")
-    int serverProxyPort();
+    public boolean logClientCert() {
+        return xRoadConfig.value(LOG_CLIENT_CERT);
+    }
 
-    @WithName("xroad-tls-ciphers")
-    @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
-    String[] xroadTlsCiphers();
+    public boolean enforceClientIsCertValidityPeriodCheck() {
+        return xRoadConfig.value(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK);
+    }
 
-    @WithName("batch-signing-enabled")
-    @WithDefault("false")
-    boolean batchSigningEnabled();
+    public int serverProxyPort() {
+        return xRoadConfig.value(SERVER_PORT);
+    }
 
-    @WithName("strict-identifier-checks")
-    @WithDefault("true")
-    boolean strictIdentifierChecks();
+    public String[] xroadTlsCiphers() {
+        return xRoadConfig.value(XROAD_TLS_CIPHERS);
+    }
 
-    @ConfigMapping(prefix = "xroad.proxy.client-proxy")
-    interface ClientProxyProperties {
-        @WithName("connector-host")
-        @WithDefault("0.0.0.0")
-        String connectorHost();
+    public boolean batchSigningEnabled() {
+        return xRoadConfig.value(BATCH_SIGNING_ENABLED);
+    }
 
-        @WithName("client-http-port")
-        @WithDefault("8080")
-        int clientHttpPort();
+    public boolean strictIdentifierChecks() {
+        return xRoadConfig.value(STRICT_IDENTIFIER_CHECKS);
+    }
 
-        @WithName("client-https-port")
-        @WithDefault("8443")
-        int clientHttpsPort();
+    @RequiredArgsConstructor
+    public static class ClientProxyProperties {
 
-        @WithName("jetty-configuration-file")
-        @WithDefault("classpath:jetty/clientproxy.xml")
-        String jettyConfigurationFile();
+        private final XRoadConfig xRoadConfig;
 
-        @WithName("client-connector-initial-idle-time")
-        @WithDefault("30000")
-        int clientConnectorInitialIdleTime();
+        public String connectorHost() {
+            return xRoadConfig.value(CLIENT_PROXY_CONNECTOR_HOST);
+        }
 
-        @WithName("client-timeout")
-        @WithDefault("30000")
-        int clientProxyTimeout();
+        public int clientHttpPort() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_HTTP_PORT);
+        }
 
-        @WithName("client-httpclient-so-linger")
-        @WithDefault("-1")
-        int clientHttpclientSoLinger();
+        public int clientHttpsPort() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_HTTPS_PORT);
+        }
 
-        @WithName("client-httpclient-timeout")
-        @WithDefault("0")
-        int clientHttpclientTimeout();
+        public String jettyConfigurationFile() {
+            return xRoadConfig.value(CLIENT_PROXY_JETTY_CONFIGURATION_FILE);
+        }
 
-        @WithName("pool-total-max-connections")
-        @WithDefault("10000")
-        int poolTotalMaxConnections();
+        public int clientConnectorInitialIdleTime() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_CONNECTOR_INITIAL_IDLE_TIME);
+        }
 
-        @WithName("pool-total-default-max-connections-per-route")
-        @WithDefault("2500")
-        int poolTotalDefaultMaxConnectionsPerRoute();
+        public int clientProxyTimeout() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_TIMEOUT);
+        }
 
-        @WithName("pool-validate-connections-after-inactivity-of-millis")
-        @WithDefault("2000")
-        int poolValidateConnectionsAfterInactivityOfMillis();
+        public int clientHttpclientSoLinger() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_HTTPCLIENT_SO_LINGER);
+        }
 
-        @WithName("client-idle-connection-monitor-interval")
-        @WithDefault("30000")
-        int clientIdleConnectionMonitorInterval();
+        public int clientHttpclientTimeout() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_HTTPCLIENT_TIMEOUT);
+        }
 
-        @WithName("client-idle-connection-monitor-timeout")
-        @WithDefault("60000")
-        int clientIdleConnectionMonitorTimeout();
+        public int poolTotalMaxConnections() {
+            return xRoadConfig.value(CLIENT_PROXY_POOL_TOTAL_MAX_CONNECTIONS);
+        }
 
-        @WithName("client-use-idle-connection-monitor")
-        @WithDefault("true")
-        boolean clientUseIdleConnectionMonitor();
+        public int poolTotalDefaultMaxConnectionsPerRoute() {
+            return xRoadConfig.value(CLIENT_PROXY_POOL_TOTAL_DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
+        }
 
-        @WithName("fastest-connecting-ssl-uri-cache-period")
-        @WithDefault("3600")
-        int clientProxyFastestConnectingSslUriCachePeriod();
+        public int poolValidateConnectionsAfterInactivityOfMillis() {
+            return xRoadConfig.value(CLIENT_PROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MILLIS);
+        }
+
+        public int clientIdleConnectionMonitorInterval() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_IDLE_CONNECTION_MONITOR_INTERVAL);
+        }
+
+        public int clientIdleConnectionMonitorTimeout() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_IDLE_CONNECTION_MONITOR_TIMEOUT);
+        }
+
+        public boolean clientUseIdleConnectionMonitor() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_USE_IDLE_CONNECTION_MONITOR);
+        }
+
+        public int clientProxyFastestConnectingSslUriCachePeriod() {
+            return xRoadConfig.value(CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD);
+        }
 
         @WithName("fastest-connecting-ssl-uri-unusable-period")
         @WithDefault("180s")
         Duration clientProxyFastestConnectingSslUriUnusablePeriod();
 
-        @WithName("use-fastest-connecting-ssl-socket-autoclose")
-        @WithDefault("true")
-        boolean useSslSocketAutoClose();
+        public boolean useSslSocketAutoClose() {
+            return xRoadConfig.value(CLIENT_PROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE);
+        }
 
-        @WithName("client-tls-protocols")
-        @WithDefault(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING)
-        String[] clientTlsProtocols();
+        public String[] clientTlsProtocols() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_TLS_PROTOCOLS);
+        }
 
-        @WithName("client-tls-ciphers")
-        @WithDefault(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING)
-        String[] clientTlsCiphers();
+        public String[] clientTlsCiphers() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_TLS_CIPHERS);
+        }
 
-        @WithName("pool-enable-connection-reuse")
-        @WithDefault("false")
-        boolean poolEnableConnectionReuse();
+        public boolean poolEnableConnectionReuse() {
+            return xRoadConfig.value(CLIENT_PROXY_POOL_ENABLE_CONNECTION_REUSE);
+        }
 
         @WithName("enable-request-retry")
         @WithDefault("true")
         boolean enableRequestRetry();
     }
 
-    @ConfigMapping(prefix = "xroad.proxy.server")
-    interface ServerProperties {
-        @WithName("listen-address")
-        @WithDefault("0.0.0.0")
-        String listenAddress();
+    @RequiredArgsConstructor
+    public static class ServerProperties {
 
-        @WithName("listen-port")
-        @WithDefault("5500")
-        int listenPort();
+        private final XRoadConfig xRoadConfig;
 
-        @WithName("connector-initial-idle-time")
-        @WithDefault("30000")
-        int connectorInitialIdleTime();
-
-        @WithName("jetty-configuration-file")
-        @WithDefault("classpath:jetty/serverproxy.xml")
-        String jettyConfigurationFile();
-
-        @WithName("support-clients-pooled-connections")
-        @WithDefault("false")
-        boolean serverSupportClientsPooledConnections();
-
-        @WithName("min-supported-client-version")
-        Optional<String> minSupportedClientVersion();
-    }
-
-    @ConfigMapping(prefix = "xroad.proxy.ocsp-responder")
-    interface OcspResponderProperties {
-        @WithName("listen-address")
-        @WithDefault("0.0.0.0")
-        String listenAddress();
-
-        @WithName("port")
-        @WithDefault("5577")
-        int port();
-
-        @WithName("client-connect-timeout")
-        @WithDefault("20000")
-        int clientConnectTimeout();
-
-        @WithName("client-read-timeout")
-        @WithDefault("30000")
-        int clientReadTimeout();
-
-        @WithName("jetty-configuration-file")
-        @WithDefault("classpath:jetty/ocsp-responder.xml")
-        String jettyConfigurationFile();
-    }
-
-    @ConfigMapping(prefix = "xroad.proxy.addon")
-    interface Addon {
-        @WithName("proxy-monitor")
-        ProxyAddonProxyMonitorProperties proxyMonitor();
-
-        @WithName("meta-services")
-        ProxyAddonMetaservicesProperties metaservices();
-
-        @WithName("op-monitor")
-        ProxyAddonOpMonitorProperties opMonitor();
-
-        interface ProxyAddonProxyMonitorProperties {
-            @WithName("enabled")
-            @WithDefault("true")
-            boolean enabled();
+        public String listenAddress() {
+            return xRoadConfig.value(SERVER_LISTEN_ADDRESS);
         }
 
-        interface ProxyAddonMetaservicesProperties {
-            @WithName("enabled")
-            @WithDefault("true")
-            boolean enabled();
+        public int listenPort() {
+            return xRoadConfig.value(SERVER_LISTEN_PORT);
         }
 
-        interface ProxyAddonOpMonitorProperties {
+        public int connectorInitialIdleTime() {
+            return xRoadConfig.value(SERVER_CONNECTOR_INITIAL_IDLE_TIME);
+        }
+
+        public String jettyConfigurationFile() {
+            return xRoadConfig.value(SERVER_JETTY_CONFIGURATION_FILE);
+        }
+
+        public boolean serverSupportClientsPooledConnections() {
+            return xRoadConfig.value(SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        }
+
+        public Optional<String> minSupportedClientVersion() {
+            return xRoadConfig.valueOpt(SERVER_MIN_SUPPORTED_CLIENT_VERSION);
+        }
+    }
+
+    @RequiredArgsConstructor
+    public static class OcspResponderProperties {
+        private final XRoadConfig xRoadConfig;
+
+        public String listenAddress() {
+            return xRoadConfig.value(OCSP_RESPONDER_LISTEN_ADDRESS);
+        }
+
+        public int port() {
+            return xRoadConfig.value(OCSP_RESPONDER_PORT);
+        }
+
+        public int clientConnectTimeout() {
+            return xRoadConfig.value(OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT);
+        }
+
+        public int clientReadTimeout() {
+            return xRoadConfig.value(OCSP_RESPONDER_CLIENT_READ_TIMEOUT);
+        }
+
+        public String jettyConfigurationFile() {
+            return xRoadConfig.value(OCSP_RESPONDER_JETTY_CONFIGURATION_FILE);
+        }
+    }
+
+    @RequiredArgsConstructor
+    public static class Addon {
+
+        private final XRoadConfig xRoadConfig;
+        private final ProxyAddonProxyMonitorProperties proxyAddonProxyMonitorProperties;
+        private final ProxyAddonMetaservicesProperties proxyAddonMetaservicesProperties;
+        private final ProxyAddonOpMonitorProperties proxyAddonOpMonitorProperties;
+
+        public Addon(XRoadConfig xRoadConfig) {
+            this.xRoadConfig = xRoadConfig;
+            this.proxyAddonProxyMonitorProperties = new ProxyAddonProxyMonitorProperties(xRoadConfig);
+            this.proxyAddonMetaservicesProperties = new ProxyAddonMetaservicesProperties(xRoadConfig);
+            this.proxyAddonOpMonitorProperties = new ProxyAddonOpMonitorProperties(xRoadConfig);
+        }
+
+        public ProxyAddonProxyMonitorProperties proxyMonitor() {
+            return proxyAddonProxyMonitorProperties;
+        }
+
+        public ProxyAddonMetaservicesProperties metaservices() {
+            return proxyAddonMetaservicesProperties;
+        }
+
+        public ProxyAddonOpMonitorProperties opMonitor() {
+            return proxyAddonOpMonitorProperties;
+        }
+
+        @RequiredArgsConstructor
+        public static class ProxyAddonProxyMonitorProperties {
+
+            private final XRoadConfig xRoadConfig;
+
+            @WithName("enabled")
+            @WithDefault("true")
+            public boolean enabled() {
+                return xRoadConfig.value(ADDON_PROXY_MONITOR_ENABLED);
+            }
+        }
+
+        @RequiredArgsConstructor
+        public static class ProxyAddonMetaservicesProperties {
+
+            private final XRoadConfig xRoadConfig;
+
+            public boolean enabled() {
+                return xRoadConfig.value(ADDON_META_SERVICES_ENABLED);
+            }
+        }
+
+        public static class ProxyAddonOpMonitorProperties {
+
+            private final XRoadConfig xRoadConfig;
+            private final OpMonitorConnectionProperties opMonitorConnectionProperties;
+            private final OpMonitorBufferProperties opMonitorBufferProperties;
+
+            public ProxyAddonOpMonitorProperties(XRoadConfig xRoadConfig) {
+                this.xRoadConfig = xRoadConfig;
+                this.opMonitorConnectionProperties = new OpMonitorConnectionProperties(xRoadConfig);
+                this.opMonitorBufferProperties = new OpMonitorBufferProperties(xRoadConfig);
+            }
+
             @WithName("enabled")
             @WithDefault("false")
-            boolean enabled();
+            public boolean enabled() {
+                return xRoadConfig.value(ADDON_OP_MONITOR_ENABLED);
+            }
 
             @WithName("buffer")
-            OpMonitorBufferProperties buffer();
+            public OpMonitorBufferProperties buffer() {
+                return opMonitorBufferProperties;
+            }
 
             @WithName("connection")
-            OpMonitorConnectionProperties connection();
+            public OpMonitorConnectionProperties connection() {
+                return opMonitorConnectionProperties;
+            }
 
         }
 

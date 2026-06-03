@@ -25,22 +25,24 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.config;
+package org.niis.xroad.common.properties.config.quarkus;
 
-import java.util.Optional;
+import io.smallrye.config.ConfigSourceContext;
+import io.smallrye.config.ConfigSourceFactory;
+import org.eclipse.microprofile.config.spi.ConfigSource;
+import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
 
-public sealed interface ConfigKey<T> permits Scope.DefaultConfigKey {
-    Optional<String> scopeName();
+import java.util.List;
 
-    String key();
+/**
+ * Registers {@link XRoadDefaultsConfigSource} with the packaged catalogue
+ * ({@link ConfigKeyProviders#allProviders()}). Wired via
+ * {@code META-INF/services/io.smallrye.config.ConfigSourceFactory}.
+ */
+public final class XRoadDefaultsConfigSourceFactory implements ConfigSourceFactory {
 
-    String defaultValue();
-
-    T convertedDefaultValue();
-
-    Class<T> type();
-
-    T convert(String rawValue);
-
-    Validator.Result validate(T value);
+    @Override
+    public Iterable<ConfigSource> getConfigSources(ConfigSourceContext context) {
+        return List.of(new XRoadDefaultsConfigSource(ConfigKeyProviders.allProviders()));
+    }
 }

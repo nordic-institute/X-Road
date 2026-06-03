@@ -38,6 +38,7 @@ import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -102,7 +103,9 @@ abstract class AbstractMessageLogTest {
 
     protected void testSetUp(Map<String, String> configOverrides, boolean encrypted) throws Exception {
         // Initialize ProxyProperties with overrides
-        proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+        proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .build());
 
         messageLogProperties = configOverrides.isEmpty()
                 ? ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class)

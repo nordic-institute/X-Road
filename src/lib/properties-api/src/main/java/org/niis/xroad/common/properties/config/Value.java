@@ -32,11 +32,10 @@ package org.niis.xroad.common.properties.config;
  *
  * @param key          resolved key
  * @param value        effective value after layering
- * @param defaultValue packaged default, for UI diffing
  * @param source       layer that supplied {@link #value}
  * @param <T>          value type
  */
-public record Value<T>(ConfigKey<T> key, T value, T defaultValue, Source source) {
+public record Value<T>(ConfigKey<T> key, T value, Source source) {
 
     /** @return {@code true} when value did not come from the default layer */
     public boolean isOverridden() {

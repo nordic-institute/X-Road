@@ -34,13 +34,11 @@ import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Value;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Construction entry point for the resolver. Callers depend on {@code :lib:properties-api}
@@ -71,7 +69,6 @@ public final class XRoadConfigBuilder {
 
     /**
      * Mocked DB-override layer: dotted effective key &rarr; raw string value.
-     *
      * @param raw effective key to raw value
      * @return this builder
      */
@@ -115,13 +112,9 @@ public final class XRoadConfigBuilder {
         }
 
         @Override
-        public Stream<Value<?>> all() {
-            return resolved.values().stream();
-        }
-
-        @Override
-        public Stream<Value<?>> all(String scope) {
-            return resolved.values().stream().filter(v -> v.key().scope().equals(scope));
+        @SuppressWarnings("unchecked")
+        public <T> Optional<Value<T>> getOpt(ConfigKey<T> key) {
+            return Optional.ofNullable((Value<T>) resolved.get(key));
         }
 
         @Override
@@ -132,34 +125,19 @@ public final class XRoadConfigBuilder {
         private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides) {
             var raw = overrides.get(key.key());
             if (raw != null) {
-                return new Value<>(key, coerce(raw, key.type(), key.key()), key.defaultValue(), Source.DB);
+                return new Value<>(key, converAndValidate(raw, key), Source.DB);
             }
-            return new Value<>(key, key.defaultValue(), key.defaultValue(), Source.DEFAULT);
+            return new Value<>(key, key.convertedDefaultValue(), Source.DEFAULT);
         }
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        private static <T> T coerce(String raw, Class<T> type, String keyName) {
-            try {
-                if (type == String.class) {
-                    return (T) raw;
-                }
-                if (type == Integer.class) {
-                    return (T) Integer.valueOf(raw);
-                }
-                if (type == Boolean.class) {
-                    return (T) Boolean.valueOf(raw);
-                }
-                if (type == Duration.class) {
-                    return (T) Duration.parse(raw);
-                }
-                if (type.isEnum()) {
-                    return (T) Enum.valueOf((Class) type, raw);
-                }
-            } catch (RuntimeException e) {
-                throw new IllegalStateException("Cannot coerce override for %s to %s: %s"
-                        .formatted(keyName, type.getSimpleName(), raw), e);
+        private static <T> T converAndValidate(String raw, ConfigKey<T> key) {
+            var converted = key.convert(raw);
+            var result = key.validate(converted);
+            if (!result.valid()) {
+                throw new IllegalArgumentException(
+                        "Invalid config value \"%s\" for %s: %s".formatted(raw, key.key(), result.message()));
             }
-            throw new IllegalStateException("Unsupported type for %s: %s".formatted(keyName, type.getName()));
+            return converted;
         }
     }
 }

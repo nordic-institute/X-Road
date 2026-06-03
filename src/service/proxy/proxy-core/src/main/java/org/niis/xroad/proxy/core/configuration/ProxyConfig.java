@@ -36,6 +36,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -74,7 +75,28 @@ class ProxyConfig {
     XRoadConfig xRoadConfig() {
         return XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
+                .register(ProxyConfigKeys.instance())
                 .build();
+    }
+
+    @ApplicationScoped
+    ProxyProperties proxyProperties(XRoadConfig xRoadConfig) {
+        return new ProxyProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyProperties.ClientProxyProperties clientProxyProperties(ProxyProperties proxyProperties) {
+        return proxyProperties.clientProxy();
+    }
+
+    @ApplicationScoped
+    ProxyProperties.Addon addonProperties(ProxyProperties proxyProperties) {
+        return proxyProperties.addon();
+    }
+
+    @ApplicationScoped
+    ProxyProperties.OcspResponderProperties ocspResponderProperties(XRoadConfig xRoadConfig) {
+        return new ProxyProperties.OcspResponderProperties(xRoadConfig);
     }
 
     @ApplicationScoped

@@ -36,7 +36,7 @@ import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 /** Common keys, registered by every process. */
 public final class CommonConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope COMMON = Scope.of("common");
+    private static final Scope COMMON = Scope.of("xroad.common");
 
     private static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
 
@@ -48,8 +48,8 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common.temp-files-path} — base directory for temporary files. */
     public static final ConfigKey<String> TEMP_FILES_PATH = COMMON
             .string("temp-files-path")
-            .validation(nonEmpty())
-            .defaultValue("/var/tmp/xroad/")
+            .withValidator(nonEmpty())
+            .withDefaultValue("/var/tmp/xroad/")
             .build();
 
     private CommonConfigKeys() {

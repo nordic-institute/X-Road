@@ -28,12 +28,11 @@
 package org.niis.xroad.common.properties.config;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Resolution contract. Instance methods resolve values with layer provenance
  * (DB &rarr; country &rarr; default). Construct via {@code XRoadConfigBuilder} in
- * {@code :lib:properties-impl}; declare scopes via {@link Scope#of(String)}.
+ * {@code :lib:properties-impl}.
  */
 public interface XRoadConfig {
 
@@ -45,8 +44,14 @@ public interface XRoadConfig {
     <T> Value<T> get(ConfigKey<T> key);
 
     /**
+     * @param key key to resolve
+     * @param <T> value type
+     * @return resolved value with source attribution
+     */
+    <T> Optional<Value<T>> getOpt(ConfigKey<T> key);
+
+    /**
      * Shorthand for {@code get(key).value()} when source attribution is not needed.
-     *
      * @param key key to resolve
      * @param <T> value type
      * @return effective value
@@ -55,14 +60,15 @@ public interface XRoadConfig {
         return get(key).value();
     }
 
-    /** @return every registered key resolved */
-    Stream<Value<?>> all();
-
     /**
-     * @param scope scope segment to filter by
-     * @return resolved keys within {@code scope}
+     * Shorthand for {@code get(key).value()} when source attribution is not needed.
+     * @param key key to resolve
+     * @param <T> value type
+     * @return effective value
      */
-    Stream<Value<?>> all(String scope);
+    default <T> Optional<T> valueOpt(ConfigKey<T> key) {
+        return getOpt(key).map(Value::value);
+    }
 
     /** @return active country overlay, empty when none selected */
     Optional<Country> country();

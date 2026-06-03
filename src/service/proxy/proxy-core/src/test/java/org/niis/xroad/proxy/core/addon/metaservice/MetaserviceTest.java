@@ -34,9 +34,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -80,7 +80,10 @@ class MetaserviceTest {
         props.put("xroad.proxy.ssl-enabled", "false");
         props.put("xroad.proxy.client-proxy.client-timeout", "15000");
 
-        PROXY_TEST_SUITE_HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
+        PROXY_TEST_SUITE_HELPER.proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(props)
+                .build());
         PROXY_TEST_SUITE_HELPER.xRoadConfig = XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))

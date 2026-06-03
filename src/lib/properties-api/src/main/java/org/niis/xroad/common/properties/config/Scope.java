@@ -1,21 +1,19 @@
 /*
  * The MIT License
- *
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,99 +22,354 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.common.properties.config;
+
+import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-/**
- * Property namespace forming effective keys {@code xroad.<scope>.<shortKey>}; obtained
- * via {@link XRoadConfig#scope(String)}. Every key built through it registers back here,
- * so providers never maintain a parallel key list.
- */
-public final class Scope {
+public abstract sealed class Scope {
 
-    private final String name;
-    private final List<ConfigKey<?>> keys = new ArrayList<>();
+    private final String rootPath;
 
-    private Scope(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("scope name is required");
+    private Scope(String rootPath) {
+        this.rootPath = rootPath;
+    }
+
+    public abstract Optional<String> name();
+
+    public abstract List<ConfigKey<?>> keys();
+
+    public String rootPath() {
+        return rootPath;
+    }
+
+    public Scope child(String pathSegment) {
+        return new ChildScope(this, rootPath() + "." + pathSegment);
+    }
+
+    public StringKeyBuilder string(String shortKey) {
+        return new StringKeyBuilder(this, shortKey);
+    }
+
+    public StringArrayKeyBuilder stringArray(String shortKey) {
+        return new StringArrayKeyBuilder(this, shortKey);
+    }
+
+    public IntKeyBuilder integer(String shortKey) {
+        return new IntKeyBuilder(this, shortKey);
+    }
+
+    public LongKeyBuilder longValue(String shortKey) {
+        return new LongKeyBuilder(this, shortKey);
+    }
+
+    public DurationKeyBuilder keyDuration(String shortKey) {
+        return new DurationKeyBuilder(this, shortKey);
+    }
+
+    public BooleanKeyBuilder bool(String shortKey) {
+        return new BooleanKeyBuilder(this, shortKey);
+    }
+
+    public <E extends Enum<E>> EnumKeyBuilder<E> keyEnum(String shortKey, Class<E> type) {
+        return new EnumKeyBuilder<E>(this, shortKey, type);
+    }
+
+    public <T> GeneralKeyBuilder<T> key(String shortKey, Class<T> type) {
+        return new GeneralKeyBuilder<T>(this, shortKey, type);
+    }
+
+    public static Scope of(String rootPath) {
+        Objects.requireNonNull(rootPath, "scope rootPath is null");
+        return new RootScope(rootPath, null);
+    }
+
+    public static Scope of(String rootPath, String name) {
+        Objects.requireNonNull(rootPath, "scope rootPath is null");
+        Objects.requireNonNull(name, "scope name is null");
+        return new RootScope(rootPath, name);
+    }
+
+    private static final class RootScope extends Scope {
+        private final String name;
+        private final List<ConfigKey<?>> keys = new ArrayList<>();
+
+        private RootScope(String rootPath, String name) {
+            super(rootPath);
+            this.name = name;
         }
-        this.name = name;
+
+        public ChildScope child(String path) {
+            return new ChildScope(this, rootPath() + "." + path);
+        }
+
+
+        @Override
+        public Optional<String> name() {
+            return Optional.ofNullable(name);
+        }
+
+        @Override
+        public List<ConfigKey<?>> keys() {
+            return keys;
+        }
     }
 
-    /**
-     * @param name scope segment, must be non-blank
-     * @return scope producing keys {@code xroad.<name>.<shortKey>}
-     */
-    public static Scope of(String name) {
-        return new Scope(name);
+    private static final class ChildScope extends Scope {
+
+        private final Scope parent;
+
+        private ChildScope(Scope parent, String rootPath) {
+            super(rootPath);
+            this.parent = parent;
+        }
+
+        @Override
+        public Optional<String> name() {
+            return parent.name();
+        }
+
+        @Override
+        public List<ConfigKey<?>> keys() {
+            return List.of();
+        }
     }
 
-    /** @return scope segment, e.g. {@code "signer"} */
-    public String name() {
-        return name;
+    public static final class DefaultConfigKey<T> implements ConfigKey<T> {
+
+        private final String scopeName;
+        private final String key;
+        private final Class<T> type;
+        private final String defaultValue;
+        private final Function<String, T> converter;
+        private final Validator<T> validator;
+
+        private DefaultConfigKey(String scopeName,
+                                 String key, Class<T> type,
+                                 String defaultValue,
+                                 Function<String, T> converter,
+                                 Validator<T> validator) {
+            if (key == null || key.isEmpty()) {
+                throw new IllegalArgumentException("key cannot be empty");
+            }
+
+            Objects.requireNonNull(type, "type is required for %s".formatted(key));
+            Objects.requireNonNull(converter, "converter is required for %s".formatted(key));
+            Objects.requireNonNull(validator, "validator is required for %s".formatted(key));
+
+            if (defaultValue != null) {
+                var result = validator.validate(converter.apply(defaultValue));
+                if (!result.valid()) {
+                    throw new IllegalArgumentException(
+                            "Invalid default for %s: %s".formatted(key, result.message()));
+                }
+            }
+
+            this.scopeName = scopeName;
+            this.key = key;
+            this.type = type;
+            this.defaultValue = defaultValue;
+            this.converter = converter;
+            this.validator = validator;
+        }
+
+        @Override
+        public Optional<String> scopeName() {
+            return Optional.ofNullable(scopeName);
+        }
+
+        @Override
+        public String key() {
+            return key;
+        }
+
+        @Override
+        public String defaultValue() {
+            return defaultValue;
+        }
+
+        @Override
+        public T convertedDefaultValue() {
+            return defaultValue == null ? null : convert(defaultValue);
+        }
+
+        @Override
+        public Class<T> type() {
+            return type;
+        }
+
+        @Override
+        public T convert(String rawValue) {
+            return rawValue == null ? null : converter.apply(rawValue);
+        }
+
+        @Override
+        public Validator.Result validate(T value) {
+            return validator.validate(value);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof DefaultConfigKey<?> that)) return false;
+            return Objects.equals(key, that.key);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(key);
+        }
     }
 
-    /** @return keys built through this scope, in declaration order (immutable copy) */
-    public List<ConfigKey<?>> keys() {
-        return List.copyOf(keys);
+    @RequiredArgsConstructor
+    private abstract static sealed class Builder<T, KB extends Builder<T, KB>> {
+        protected final Scope scope;
+        protected final String shortKey;
+        protected final Class<T> type;
+
+        protected Validator<T> validator = Validator.none();
+        protected Function<String, T> converter;
+        protected String defaultValue;
+
+
+        @SuppressWarnings("unchecked")
+        public KB withValidator(Validator<T> val) {
+            this.validator = val;
+            return (KB) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public KB withDefaultValue(String defValue) {
+            this.defaultValue = defValue;
+            return (KB) this;
+        }
+
+        public ConfigKey<T> build() {
+            var key = scope.rootPath() + "." + shortKey;
+
+            var configKey = new DefaultConfigKey<>(scope.name().orElse(null), key, type, defaultValue, converter, validator);
+
+            if (defaultValue != null) {
+                var result = validator.validate(converter.apply(defaultValue));
+                if (!result.valid()) {
+                    throw new IllegalStateException(
+                            "Invalid default for %s: %s".formatted(key, result.message()));
+                }
+            }
+
+            // every key (root or nested) is tracked on the root scope, so provider.keys() returns the whole tree
+            var root = scope;
+            while (root instanceof ChildScope child) {
+                root = child.parent;
+            }
+            ((RootScope) root).keys().add(configKey);
+
+            return configKey;
+        }
     }
 
-    /**
-     * @param shortKey scope-relative key name
-     * @return builder for an {@code Integer} property
-     */
-    public ConfigKey.Builder<Integer> integer(String shortKey) {
-        return new ConfigKey.Builder<>(this, shortKey, Integer.class);
+    public static final class StringKeyBuilder extends Builder<String, StringKeyBuilder> {
+
+        private StringKeyBuilder(Scope scope, String shortKey) {
+            super(scope, shortKey, String.class);
+            converter = Function.identity();
+        }
+
     }
 
-    /**
-     * @param shortKey scope-relative key name
-     * @return builder for a {@code Boolean} property
-     */
-    public ConfigKey.Builder<Boolean> bool(String shortKey) {
-        return new ConfigKey.Builder<>(this, shortKey, Boolean.class);
+    public static final class StringArrayKeyBuilder extends Builder<String[], StringArrayKeyBuilder> {
+
+        private StringArrayKeyBuilder(Scope scope, String shortKey) {
+            super(scope, shortKey, String[].class);
+            converter = raw -> Stream.of(raw.split(","))
+                    .map(String::trim)
+                    .toArray(String[]::new);
+        }
+
     }
 
-    /**
-     * @param shortKey scope-relative key name
-     * @return builder for a {@code String} property
-     */
-    public ConfigKey.Builder<String> string(String shortKey) {
-        return new ConfigKey.Builder<>(this, shortKey, String.class);
+    public static final class IntKeyBuilder extends Builder<Integer, IntKeyBuilder> {
+
+        private IntKeyBuilder(Scope scope, String shortKey) {
+            super(scope, shortKey, Integer.class);
+            converter = Integer::parseInt;
+        }
+
+
+        public IntKeyBuilder withDefaultValue(int defaultValue) {
+            this.defaultValue = String.valueOf(defaultValue);
+            return this;
+        }
     }
 
-    /**
-     * @param shortKey scope-relative key name
-     * @return builder for a {@code Duration} property
-     */
-    public ConfigKey.Builder<Duration> duration(String shortKey) {
-        return new ConfigKey.Builder<>(this, shortKey, Duration.class);
+    public static final class LongKeyBuilder extends Builder<Long, LongKeyBuilder> {
+
+        private LongKeyBuilder(Scope scope, String shortKey) {
+            super(scope, shortKey, Long.class);
+            converter = Long::parseLong;
+        }
+
+        public LongKeyBuilder withDefaultValue(long defaultValue) {
+            this.defaultValue = String.valueOf(defaultValue);
+            return this;
+        }
     }
 
-    /**
-     * @param shortKey scope-relative key name
-     * @param type     enum type
-     * @param <E>      enum type
-     * @return builder for an enum property
-     */
-    public <E extends Enum<E>> ConfigKey.Builder<E> enumOf(String shortKey, Class<E> type) {
-        return new ConfigKey.Builder<>(this, shortKey, type);
+    public static final class EnumKeyBuilder<E extends Enum<E>> extends Builder<E, EnumKeyBuilder<E>> {
+
+        private EnumKeyBuilder(Scope scope, String shortKey, Class<E> type) {
+            super(scope, shortKey, type);
+            converter = raw -> Enum.valueOf(type, raw);
+        }
+
+        public EnumKeyBuilder<E> defaultValue(E defaultValue) {
+            this.defaultValue = defaultValue == null ? null : defaultValue.name();
+            return this;
+        }
     }
 
-    /**
-     * Records a key built by {@link ConfigKey.Builder#build()}.
-     *
-     * @param key the built key
-     * @param <T> value type
-     * @return same key, for fluent return
-     */
-    <T> ConfigKey<T> track(ConfigKey<T> key) {
-        keys.add(key);
-        return key;
+    public static final class DurationKeyBuilder extends Builder<Duration, DurationKeyBuilder> {
+
+        private DurationKeyBuilder(Scope scope, String shortKey) {
+            super(scope, shortKey, Duration.class);
+            converter = Duration::parse;
+        }
+
+        public DurationKeyBuilder withDefaultValue(Duration defaultValue) {
+            this.defaultValue = defaultValue == null ? null : defaultValue.toString();
+            return this;
+        }
     }
+
+    public static final class BooleanKeyBuilder extends Builder<Boolean, BooleanKeyBuilder> {
+
+        private BooleanKeyBuilder(Scope scope, String shortKey) {
+            super(scope, shortKey, Boolean.class);
+            converter = Boolean::parseBoolean;
+        }
+
+        public BooleanKeyBuilder withDefaultValue(Boolean defaultValue) {
+            this.defaultValue = defaultValue == null ? null : String.valueOf(defaultValue);
+            return this;
+        }
+    }
+
+    public static final class GeneralKeyBuilder<T> extends Builder<T, GeneralKeyBuilder<T>> {
+
+        private GeneralKeyBuilder(Scope scope, String shortKey, Class<T> type) {
+            super(scope, shortKey, type);
+        }
+
+        public GeneralKeyBuilder<T> withConverter(Function<String, T> converter) {
+            this.converter = converter;
+            return this;
+        }
+    }
+
 }

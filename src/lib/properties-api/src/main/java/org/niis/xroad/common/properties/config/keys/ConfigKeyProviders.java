@@ -25,22 +25,26 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.config;
+package org.niis.xroad.common.properties.config.keys;
 
-import java.util.Optional;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 
-public sealed interface ConfigKey<T> permits Scope.DefaultConfigKey {
-    Optional<String> scopeName();
+import java.util.List;
 
-    String key();
+/**
+ * Aggregator of every shipped {@link ConfigKeyProvider}. Used where the complete catalogue
+ * is needed (admin-service UI/export, the Quarkus defaults config source). A single list to
+ * maintain when a new {@code *ConfigKeys} provider is added.
+ */
+public final class ConfigKeyProviders {
 
-    String defaultValue();
+    private ConfigKeyProviders() {
+    }
 
-    T convertedDefaultValue();
-
-    Class<T> type();
-
-    T convert(String rawValue);
-
-    Validator.Result validate(T value);
+    /** @return all shipped providers (common scope + per-service scopes) */
+    public static List<ConfigKeyProvider> allProviders() {
+        return List.of(
+                CommonConfigKeys.instance(),
+                ProxyConfigKeys.instance());
+    }
 }
