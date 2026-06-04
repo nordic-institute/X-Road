@@ -197,6 +197,10 @@ public interface ProxyProperties {
         @WithName("pool-enable-connection-reuse")
         @WithDefault("false")
         boolean poolEnableConnectionReuse();
+
+        @WithName("enable-request-retry")
+        @WithDefault("true")
+        boolean enableRequestRetry();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.server")

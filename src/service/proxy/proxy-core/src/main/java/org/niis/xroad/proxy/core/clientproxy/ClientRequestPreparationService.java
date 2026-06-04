@@ -151,4 +151,15 @@ public class ClientRequestPreparationService {
             unusableAddressTracker.markUnusable(selectedTarget);
         }
     }
+
+    /**
+     * Tells whether any of the given target addresses is currently usable, i.e. not within the
+     * TLS handshake failure cooldown period.
+     *
+     * @param addresses candidate target addresses
+     * @return true if at least one address is usable
+     */
+    public boolean hasUsableAddresses(URI[] addresses) {
+        return unusableAddressTracker.filterUsable(addresses).length > 0;
+    }
 }

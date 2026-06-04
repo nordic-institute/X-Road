@@ -63,8 +63,12 @@ import static org.niis.xroad.common.properties.DefaultTlsProperties.PROXY_TLS_PR
  */
 public class DummySslServerProxy extends Server {
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public DummySslServerProxy(String host, int port, KeyManager keyManager) throws Exception {
+        this(host, port, keyManager, new DummyAuthTrustManager());
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public DummySslServerProxy(String host, int port, KeyManager keyManager, TrustManager trustManager) throws Exception {
         SslContextFactory.Server cf = new SslContextFactory.Server();
         cf.setIncludeProtocols(PROXY_TLS_PROTOCOLS);
         cf.setIncludeCipherSuites(DEFAULT_XROAD_SSL_CIPHER_SUITES);
@@ -74,7 +78,7 @@ public class DummySslServerProxy extends Server {
 
         SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(new KeyManager[]{keyManager},
-                new TrustManager[]{new DummyAuthTrustManager()},
+                new TrustManager[]{trustManager},
                 new SecureRandom());
         cf.setSslContext(ctx);
 

@@ -269,6 +269,9 @@ configurableProperties:
   - propertyName: "xroad.proxy.client-proxy.pool-enable-connection-reuse"
     defaultValue: "false"
     scope: "proxy"
+  - propertyName: "xroad.proxy.client-proxy.enable-request-retry"
+    defaultValue: "true"
+    scope: "proxy"
 
   - propertyName: "xroad.proxy.server.listen-address"
     defaultValue: "0.0.0.0"

@@ -76,6 +76,7 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
@@ -97,6 +98,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +117,20 @@ public abstract class AbstractProxyIntegrationTest {
     protected static ServerProxy serverProxy;
 
     protected static int proxyClientPort = getFreePort();
+    protected static int proxyServerPort;
+
+    /**
+     * Extra configuration properties merged into the proxy configuration before startup.
+     * Subclasses populate this in a static initializer; cleared after the test class finishes.
+     */
+    protected static final Map<String, String> ADDITIONAL_PROPERTIES = new HashMap<>();
+
+    /**
+     * Optional service address resolver used by the client proxy instead of the default
+     * global configuration based one. Subclasses set this in a static initializer; cleared
+     * after the test class finishes.
+     */
+    protected static ServiceAddressResolver serviceAddressResolverOverride;
 
     protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServiceServerConf());
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
@@ -130,11 +146,28 @@ public abstract class AbstractProxyIntegrationTest {
     public static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
 
-        final String serverPort = String.valueOf(getFreePort());
-
         org.apache.xml.security.Init.init();
 
-        Map<String, String> properties = Map.of(
+        startProxies();
+    }
+
+    /**
+     * Stops the proxies and starts them again, picking up the current state of
+     * {@link #ADDITIONAL_PROPERTIES} and {@link #serviceAddressResolverOverride}. Lets a
+     * subclass apply class-specific configuration from its own {@code @BeforeAll}, which runs
+     * after this class has already started the proxies with default configuration.
+     */
+    protected static void restartProxies() throws Exception {
+        serverProxy.destroy();
+        clientProxy.destroy();
+        startProxies();
+    }
+
+    private static void startProxies() throws Exception {
+        proxyServerPort = getFreePort();
+        final String serverPort = String.valueOf(proxyServerPort);
+
+        Map<String, String> properties = new HashMap<>(Map.of(
                 "xroad.proxy.server.listen-address", "127.0.0.1",
                 "xroad.proxy.server.listen-port", serverPort,
                 "xroad.proxy.server-port", serverPort,
@@ -144,7 +177,8 @@ public abstract class AbstractProxyIntegrationTest {
                 "xroad.proxy.client-proxy.connector-host", "127.0.0.1",
                 "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
                 "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort())
-        );
+        ));
+        properties.putAll(ADDITIONAL_PROPERTIES);
 
         ProxyProperties proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, properties);
         CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
@@ -176,7 +210,9 @@ public abstract class AbstractProxyIntegrationTest {
         var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
         var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
         var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
-        var serviceAddressResolverClient = new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties);
+        var serviceAddressResolverClient = serviceAddressResolverOverride != null
+                ? serviceAddressResolverOverride
+                : new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties);
         var clientVerificationServiceClient = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
@@ -245,6 +281,8 @@ public abstract class AbstractProxyIntegrationTest {
     @AfterAll
     public static void afterAll() throws Exception {
         RESERVED_PORTS.clear();
+        ADDITIONAL_PROPERTIES.clear();
+        serviceAddressResolverOverride = null;
         serverProxy.destroy();
         clientProxy.destroy();
     }
