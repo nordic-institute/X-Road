@@ -68,6 +68,10 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> SSL_ENABLED = PROXY
             .bool("ssl-enabled").withDefaultValue(true).build();
 
+    /** {@code xroad.proxy.dsp-enabled}. */
+    public static final ConfigKey<Boolean> DSP_ENABLED = PROXY
+            .bool("dsp-enabled").withDefaultValue(true).build();
+
     /** {@code xroad.proxy.health-check-enabled}. */
     public static final ConfigKey<Boolean> HEALTH_CHECK_ENABLED = PROXY
             .bool("health-check-enabled").withDefaultValue(false).build();

@@ -27,8 +27,6 @@
 
 package org.niis.xroad.proxy.core.configuration;
 
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorBufferProperties;
@@ -61,6 +59,7 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIEN
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_TOTAL_MAX_CONNECTIONS;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MILLIS;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_INTERFACE;
@@ -116,11 +115,10 @@ public class ProxyProperties {
     public int adminPort() {
         return xRoadConfig.value(ADMIN_PORT);
     }
-    @WithName("dsp-enabled")
-    @WithDefault("true")
-    boolean dspEnabled();
 
-    boolean healthCheckEnabled();
+    public boolean dspEnabled() {
+        return xRoadConfig.value(DSP_ENABLED);
+    }
 
     public boolean sslEnabled() {
         return xRoadConfig.value(SSL_ENABLED);
@@ -355,8 +353,6 @@ public class ProxyProperties {
 
             private final XRoadConfig xRoadConfig;
 
-            @WithName("enabled")
-            @WithDefault("true")
             public boolean enabled() {
                 return xRoadConfig.value(ADDON_PROXY_MONITOR_ENABLED);
             }
@@ -384,18 +380,14 @@ public class ProxyProperties {
                 this.opMonitorBufferProperties = new OpMonitorBufferProperties(xRoadConfig);
             }
 
-            @WithName("enabled")
-            @WithDefault("false")
             public boolean enabled() {
                 return xRoadConfig.value(ADDON_OP_MONITOR_ENABLED);
             }
 
-            @WithName("buffer")
             public OpMonitorBufferProperties buffer() {
                 return opMonitorBufferProperties;
             }
 
-            @WithName("connection")
             public OpMonitorConnectionProperties connection() {
                 return opMonitorConnectionProperties;
             }
