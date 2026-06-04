@@ -165,6 +165,8 @@ services:
         name: proxy-http
       - port: 8443
         name: proxy-https
+      - port: 5590
+        name: dsp-dataflow
     readinessProbe:
       path: "/q/health/ready"
       scheme: "HTTP"
@@ -182,8 +184,11 @@ services:
       XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
       XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_HOST: "op-monitor"
       XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_SCHEME: https
-      XROAD_PROXY_DSP_CONTROL_PLANE_ENDPOINT: "http://ds-control-plane:8184/api/control"
+      XROAD_PROXY_DSP_CONTROL_PLANE_ENDPOINT: "http://ds-control-plane:8184/api/v1/control"
       XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
+      XROAD_PROXY_DSP_LISTEN_ADDRESS: "0.0.0.0"
+      XROAD_PROXY_DSP_DATA_FLOW_ENDPOINT: "http://proxy:5590/full/api/v1/dataflows"
+      XROAD_COMMON_RPC_CHANNEL_ASSET_ACCESS_HOST: "ds-control-plane"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
@@ -439,9 +444,9 @@ services:
     replicas: 0
     resources:
       requests:
-        memory: "64M"
+        memory: "256M"
       limits:
-        memory: "320M"
+        memory: "640M"
     ports:
       - port: 8181
         name: http
@@ -451,6 +456,8 @@ services:
         name: dsp
       - port: 8184
         name: control
+      - port: 5460
+        name: asset-access
       - port: 4099
         name: health
       - port: 9999
@@ -473,6 +480,9 @@ services:
       annotations: {}
     env:
       HOSTNAME: "ds-control-plane"
+      XROAD_HOST: "ds-control-plane"
+      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
+      XROAD_PROXY_DATAPLANE_URL: "http://proxy:5590/full/api/v1/dataflows"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
@@ -583,9 +593,9 @@ services:
     replicas: 0
     resources:
       requests:
-        memory: "64M"
+        memory: "256M"
       limits:
-        memory: "320M"
+        memory: "640M"
     ports:
       - port: 6181
         name: health
@@ -759,6 +769,14 @@ otel:
 # `xroad.dsp.enabled` short-circuits all DSP-scoped resources.
 postgres:
   image: ""
+
+# DSP seed knobs. trustedIssuerDid is the issuer participant DID written into
+# the core-SS serverconf `configuration_properties` row that ds-control-plane
+# reads on startup. Default points at the in-cluster issuer; hybrid dev envs
+# override it with the dataspace-wide issuer (e.g. the LXD xrd-cs one).
+dsp:
+  seed:
+    trustedIssuerDid: "did:web:ds-issuer-service%3A10100:issuer"
 
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).

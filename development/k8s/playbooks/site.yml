@@ -48,6 +48,30 @@
       ansible.builtin.include_role:
         name: security_server
 
+    - name: Register ss2 host-record in LXD dnsmasq (mac + lima only)
+      ansible.builtin.command:
+        cmd: >-
+          limactl shell {{ lxd_lima_instance }} --
+          sudo lxc network set lxdbr0
+          raw.dnsmasq host-record={{ ss2_advertised_host }},{{ ss2_advertised_ip }}
+      register: ss2_dns_record
+      changed_when: ss2_dns_record.rc == 0
+      when:
+        - ansible_facts['os_family'] == 'Darwin'
+        - ss2_advertised_host is defined
+
+    # `lxc network set` makes LXD regenerate the in.lxdbr0 nftables chain,
+    # wiping the xroad-mac-direct DNS accept rules — without them the mac
+    # loses all *.lxd resolution. setup-mac-net.sh re-inserts idempotently.
+    - name: Re-apply mac->LXD network exceptions after dnsmasq change
+      ansible.builtin.command:
+        cmd: "{{ playbook_dir }}/../../native-lxd-stack/scripts/setup-mac-net.sh"
+      register: mac_net_reapply
+      changed_when: "'inserting nft accept rules' in mac_net_reapply.stdout"
+      when:
+        - ansible_facts['os_family'] == 'Darwin'
+        - ss2_advertised_host is defined
+
     - name: Deploy Prometheus (when enabled)
       ansible.builtin.include_role:
         name: prometheus

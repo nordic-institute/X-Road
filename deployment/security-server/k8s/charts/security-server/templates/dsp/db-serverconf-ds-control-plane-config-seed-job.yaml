@@ -104,7 +104,7 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c 'SET search_path TO {{ .Values.init.serverconf.schema | default "public" }}, public; INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES ($seed$edc.iam.trusted-issuer.issuer.id$seed$, $seed$did:web:ds-issuer-service%3A10100:issuer$seed$, $seed$ds-control-plane$seed$, now(), now()) ON CONFLICT DO NOTHING;'
+              psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c 'SET search_path TO {{ .Values.init.serverconf.schema | default "public" }}, public; INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES ($seed$edc.iam.trusted-issuer.issuer.id$seed$, $seed${{ .Values.dsp.seed.trustedIssuerDid }}$seed$, $seed$ds-control-plane$seed$, now(), now()) ON CONFLICT DO NOTHING; UPDATE configuration_properties SET property_value = $seed${{ .Values.dsp.seed.trustedIssuerDid }}$seed$, updated_at = now() WHERE property_key = $seed$edc.iam.trusted-issuer.issuer.id$seed$ AND scope = $seed$ds-control-plane$seed$;'
           resources:
             {{- toYaml .Values.waitGate.resources | nindent 12 }}
           volumeMounts:

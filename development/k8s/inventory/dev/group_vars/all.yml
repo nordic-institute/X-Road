@@ -43,24 +43,31 @@ containerd_config_patches:
 
 external_service_host: host.docker.internal
 
+# Pods resolve and route *.lxd hosts directly (lima socket_vmnet + LXD
+# dnsmasq), so bridges target container-canonical ports. The bare service
+# names exist for consumers that dial short hostnames — e.g. the
+# trusted-issuer DID did:web:xrd-cs%3A6183 resolved by ds-control-plane.
 external_service_bridges:
   - name: xrd-cs
-    external_host: "{{ external_service_host }}"
+    external_host: "xrd-cs.lxd"
     ports:
-      - {name: http, port: 80, targetPort: 3010}
-      - {name: https, port: 443, targetPort: 3015}
-      - {name: registration, port: 4001, targetPort: 3030}
-      - {name: management, port: 4002, targetPort: 3035}
+      - {name: http, port: 80, targetPort: 80}
+      - {name: https, port: 443, targetPort: 443}
+      - {name: registration, port: 4001, targetPort: 4001}
+      - {name: management, port: 4002, targetPort: 4002}
+      - {name: issuer-did, port: 6183, targetPort: 6183}
+      - {name: issuer-issuance, port: 6185, targetPort: 6185}
+      - {name: issuer-statuslist, port: 6187, targetPort: 6187}
   - name: xrd-ca
-    external_host: "{{ external_service_host }}"
+    external_host: "xrd-ca.lxd"
     ports:
-      - {name: ca, port: 8888, targetPort: 4002}
-      - {name: tsa, port: 8899, targetPort: 4004}
+      - {name: ca, port: 8888, targetPort: 8888}
+      - {name: tsa, port: 8899, targetPort: 8899}
   - name: xrd-ss0
-    external_host: "{{ external_service_host }}"
+    external_host: "xrd-ss0.lxd"
     ports:
-      - {name: proxy, port: 5500, targetPort: 3230}
-      - {name: proxy-ocsp, port: 5577, targetPort: 3240}
+      - {name: proxy, port: 5500, targetPort: 5500}
+      - {name: proxy-ocsp, port: 5577, targetPort: 5577}
   - name: xrd-jaeger
     # Jaeger runs as its own LXD container (xrd-jaeger.lxd, 10.10.10.x) on the same
     # LXD bridge that the kind worker can route to. host.docker.internal would point
@@ -86,9 +93,27 @@ openbao_ha_replicas: 2
 openbao_global_tls_disable: false
 openbao_tls_mode: self_signed
 
+# Identity advertised to the LXD side for the k8s-hosted SS2. The host-record
+# lands in LXD's dnsmasq so xrd-ss0/xrd-ss1 control planes resolve it to the
+# mac, where the 0.0.0.0 port-forwards below terminate.
+ss2_advertised_host: xrd-ss2.lxd
+ss2_advertised_ip: 192.168.105.1
+lxd_lima_instance: xroad-lxd
+
 port_forwards:
   - {name: proxy-ui-api, namespace: "{{ security_server_namespace }}", resource: svc/proxy-ui-api, ports: "4000:4000"}
   - {name: proxy-http, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5500:5500"}
   - {name: proxy-ocsp, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5577:5577"}
   - {name: proxy-8080, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8080:8080"}
   - {name: proxy-8443, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8443:8443"}
+  # DSP participant-context seeding (mac-local) + LXD-facing identity endpoints.
+  # 0.0.0.0 listeners back the dnsmasq host-record xrd-ss2.lxd -> {{ ss2_advertised_ip }},
+  # letting LXD-side control planes resolve ss2's DID document, credential
+  # service, and DSP protocol endpoint.
+  # All on 0.0.0.0: Jetty's sniHostCheck rejects IP-literal HTTPS, so even
+  # mac-local seeding goes through the xrd-ss2.lxd name (-> 192.168.105.1).
+  - {name: ih-identity, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7182:7182", address: "0.0.0.0"}
+  - {name: ih-did, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7183:7183", address: "0.0.0.0"}
+  - {name: ih-credentials, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7185:7185", address: "0.0.0.0"}
+  - {name: cp-mgmt, namespace: "{{ security_server_namespace }}", resource: svc/ds-control-plane, ports: "8182:8182", address: "0.0.0.0"}
+  - {name: cp-dsp, namespace: "{{ security_server_namespace }}", resource: svc/ds-control-plane, ports: "8183:8183", address: "0.0.0.0"}

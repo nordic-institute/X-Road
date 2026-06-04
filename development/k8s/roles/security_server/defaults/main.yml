@@ -21,6 +21,11 @@ openbao_tls_secret_name: openbao-server-tls
 
 configuration_client_update_interval: "10"
 
+proxy_dsp_enabled: true
+
+trusted_issuer_host: xrd-cs
+xrd_ca_external_host: xrd-ca.lxd
+
 serverconf_db:
   name: db-serverconf
   database: serverconf
