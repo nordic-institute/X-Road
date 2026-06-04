@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition.ConfigurableProperty;
-import org.niis.xroad.securityserver.restapi.dto.ConfigurationPropertyAuditListener;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;

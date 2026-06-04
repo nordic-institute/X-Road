@@ -48,7 +48,7 @@ import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.dto.ConfigurationPropertyAuditListener;
+import org.niis.xroad.securityserver.restapi.service.ConfigurationPropertyAuditListener;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.AuthProviderTypeResponseDto;

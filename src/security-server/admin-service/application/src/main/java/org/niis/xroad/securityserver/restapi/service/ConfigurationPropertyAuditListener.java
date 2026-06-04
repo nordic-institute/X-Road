@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dto;
+package org.niis.xroad.securityserver.restapi.service;
 
 import org.jspecify.annotations.Nullable;
 
