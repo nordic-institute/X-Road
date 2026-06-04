@@ -36,6 +36,7 @@ import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
+import org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -76,6 +77,8 @@ public class BootstrapConfiguration {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        // Throttle only the API and login; static assets (SPA, /assets, fonts, css, js) are not rate-limited.
+        bean.addUrlPatterns("/api/*", FormLoginWebSecurityConfig.LOGIN_URL);
         return bean;
     }
 

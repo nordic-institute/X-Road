@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
@@ -66,6 +67,8 @@ public class SecurityServerConfiguration {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        // Throttle only the API and login; static assets (SPA, /assets, fonts, css, js) are not rate-limited.
+        bean.addUrlPatterns("/api/*", FormLoginWebSecurityConfig.LOGIN_URL);
         return bean;
     }
 
