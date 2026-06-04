@@ -142,11 +142,18 @@ public class ClientRequestPreparationService {
      * handshake failure. Covers handshake failures that surface only during request execution
      * (e.g. a TLS 1.3 server proxy rejecting the client certificate after the handshake completed).
      *
+     * <p>Marking is skipped when only one address was resolved: the failure cooldown exists to
+     * steer selection and retry towards alternative security servers, and with a single address
+     * it would instead fail fast all traffic to the provider for the cooldown period, turning a
+     * transient handshake failure into a self-inflicted outage.
+     *
      * @param httpSender the HTTP sender whose request failed
      * @param exception  the failure to inspect for a TLS handshake error
      */
     public void markAddressUnusableIfHandshakeFailure(HttpSender httpSender, Throwable exception) {
         if (UnusableAddressTracker.isHandshakeFailure(exception)
+                && httpSender.getAttribute(ID_TARGETS) instanceof URI[] targets
+                && targets.length > 1
                 && httpSender.getAttribute(ID_SELECTED_TARGET) instanceof URI selectedTarget) {
             unusableAddressTracker.markUnusable(selectedTarget);
         }

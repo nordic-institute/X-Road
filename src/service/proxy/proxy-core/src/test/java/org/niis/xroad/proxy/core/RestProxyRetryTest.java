@@ -113,19 +113,29 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    void shouldAbortRetryWhenNoUsableAddressesRemain() throws Exception {
+    void shouldNotRetryOrEnterCooldownWithSingleAddress() throws Exception {
         int badPort = getFreePort();
         var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey());
         try {
-            RESOLVER.plan(List.of(List.of(uri(badPort))));
+            RESOLVER.plan(List.of(List.of(uri(badPort)), List.of(uri(badPort))));
 
+            // single address: nothing to fail over to, so no retry is attempted
             postEcho()
                     .statusCode(500)
                     .header("X-Road-Error", Matchers.containsString("ssl_authentication_failed"));
 
-            // the only address enters cooldown after the first failure: no retry is attempted
             assertThat(RESOLVER.resolveCount()).isEqualTo(1);
             assertThat(LOG_MANAGER.clientRequestLogCount()).isEqualTo(1);
+
+            // the single address is not put in cooldown: the next request attempts a real
+            // connection and surfaces the actual handshake error again instead of failing
+            // fast with the synthetic cooldown error
+            postEcho()
+                    .statusCode(500)
+                    .header("X-Road-Error", Matchers.containsString("ssl_authentication_failed"));
+
+            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
+            assertThat(LOG_MANAGER.clientRequestLogCount()).isEqualTo(2);
         } finally {
             badProxy.destroy();
         }
