@@ -162,4 +162,24 @@ public class ClientRequestPreparationService {
     public boolean hasUsableAddresses(URI[] addresses) {
         return unusableAddressTracker.filterUsable(addresses).length > 0;
     }
+
+    /**
+     * Tells whether a failed send attempt may be retried towards another security server: only
+     * TLS handshake failures qualify, the attempt count is capped at the number of resolved
+     * addresses (so each available security server is tried at most once even when failure
+     * cooldown tracking is disabled), and at least one address must remain outside the failure
+     * cooldown. Anything else propagates to the caller unchanged.
+     *
+     * @param exception the failure to inspect
+     * @param targets   the resolved target addresses of the failed attempt (the ID_TARGETS
+     *                  attribute of the failed sender), or null if address resolution never ran
+     * @param attempt   the number of the failed attempt, starting from 1
+     * @return true if a retry attempt may be made
+     */
+    public boolean shouldRetry(Throwable exception, Object targets, int attempt) {
+        return UnusableAddressTracker.isHandshakeFailure(exception)
+                && targets instanceof URI[] addresses
+                && attempt < addresses.length
+                && hasUsableAddresses(addresses);
+    }
 }

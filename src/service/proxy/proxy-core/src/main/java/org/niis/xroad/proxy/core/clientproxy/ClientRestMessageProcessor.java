@@ -249,18 +249,13 @@ public class ClientRestMessageProcessor {
     }
 
     /**
-     * Tells whether a failed send attempt may be retried: only TLS handshake failures with a
-     * replayable request entity and at least one target address outside the failure cooldown
-     * qualify — anything else propagates to the caller unchanged. The attempt count is capped
-     * at the number of resolved addresses, so each available security server is tried at most
-     * once even when failure cooldown tracking is disabled.
+     * Tells whether a failed send attempt may be retried: the shared retry gate must pass
+     * (TLS handshake failure, attempts capped at the resolved address count, a usable address
+     * remaining) and the request entity must still be replayable.
      */
     private boolean canRetry(Exception exception, SigningProxyMessageEntity entity, Object targets, int attempt) {
-        return UnusableAddressTracker.isHandshakeFailure(exception)
-                && entity != null && entity.isReplayable()
-                && targets instanceof URI[] addresses
-                && attempt < addresses.length
-                && clientRequestPreparationService.hasUsableAddresses(addresses);
+        return clientRequestPreparationService.shouldRetry(exception, targets, attempt)
+                && entity != null && entity.isReplayable();
     }
 
     private void sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,

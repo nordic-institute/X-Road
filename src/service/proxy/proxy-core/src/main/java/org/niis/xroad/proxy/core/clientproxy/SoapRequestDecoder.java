@@ -79,6 +79,8 @@ public final class SoapRequestDecoder implements SoapMessageDecoder.Callback {
 
     private String originalSoapAction;
     private SoapMessageImpl requestSoap;
+    private Map<String, String> soapPartHeaders;
+    private List<OCSPResp> ocspResponses = List.of();
     private ServiceId requestServiceId;
     private XrdRuntimeException executionException;
     private final PipedOutputStream reqOuts;
@@ -105,6 +107,7 @@ public final class SoapRequestDecoder implements SoapMessageDecoder.Callback {
         }
 
         requestSoap = (SoapMessageImpl) message;
+        soapPartHeaders = headers;
         requestServiceId = requestSoap.getService();
 
         opMonitoringDataHelper.updateOpMonitoringDataBySoapMessage(ctx.opMonitoringData(), requestSoap);
@@ -127,7 +130,7 @@ public final class SoapRequestDecoder implements SoapMessageDecoder.Callback {
 
     private void writeOcspResponses() throws CertificateEncodingException, IOException {
         CertChain chain = messageSigningService.getAuthKey().certChain();
-        List<OCSPResp> ocspResponses = messageSigningService.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
+        ocspResponses = messageSigningService.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 
         for (OCSPResp ocsp : ocspResponses) {
             encoder.ocspResponse(ocsp);
@@ -299,5 +302,15 @@ public final class SoapRequestDecoder implements SoapMessageDecoder.Callback {
     /** Returns the cached list of attachments from the SOAP request. */
     public List<Attachment> getAttachments() {
         return attachmentCache;
+    }
+
+    /** Returns the mime headers of the encoded SOAP part, or {@code null} if not yet parsed. */
+    public Map<String, String> getSoapPartHeaders() {
+        return soapPartHeaders;
+    }
+
+    /** Returns the OCSP responses written into the encoded message (empty when SSL is disabled). */
+    public List<OCSPResp> getOcspResponses() {
+        return ocspResponses;
     }
 }

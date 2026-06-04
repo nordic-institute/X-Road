@@ -27,6 +27,7 @@
 
 package org.niis.xroad.proxy.core.test;
 
+import lombok.Getter;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -58,6 +59,7 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
@@ -73,6 +75,7 @@ import static org.mockito.Mockito.mock;
 public class TestContext {
     final TestGlobalConfWrapper globalConfProvider;
     final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
+    @Getter
     final KeyConfProvider keyConfProvider;
     final TestServerConfWrapper serverConfProvider;
     final ProxyTestSuiteHelper proxyTestSuiteHelper;
@@ -89,6 +92,16 @@ public class TestContext {
     }
 
     public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper, boolean startServerProxy, MonitorRpcClient monitorRpcClient) {
+        this(proxyTestSuiteHelper, startServerProxy, monitorRpcClient, null);
+    }
+
+    /**
+     * Creates a test context whose client proxy resolves service addresses with the given
+     * resolver instead of the default global configuration based one. Lets tests script the
+     * target addresses per resolve call (e.g. for connection failover and retry scenarios).
+     */
+    public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper, boolean startServerProxy, MonitorRpcClient monitorRpcClient,
+                       ServiceAddressResolver serviceAddressResolverOverride) {
         try {
             org.apache.xml.security.Init.init();
 
@@ -116,7 +129,9 @@ public class TestContext {
             var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
             var httpSenderProvider = new HttpSenderProvider(httpClient, httpClientCreator.getHttpClient(), proxyProperties);
             var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
-            var serviceAddressResolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties);
+            var serviceAddressResolver = serviceAddressResolverOverride != null
+                    ? serviceAddressResolverOverride
+                    : new DefaultServiceAddressResolver(globalConfProvider, proxyProperties);
             var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
                     globalConfProvider, proxyProperties, certHelper);
 

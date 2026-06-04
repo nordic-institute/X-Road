@@ -33,6 +33,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.messagelog.LogMessage;
 import org.niis.xroad.messagelog.RestLogMessage;
+import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.messagelog.TimestampRecord;
 import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
@@ -57,12 +58,15 @@ import static ee.ria.xroad.common.TestCertUtil.getCaCert;
 /**
  * Shared helpers for the client proxy TLS handshake retry integration tests.
  */
-final class RestRetryTestUtil {
+public final class RestRetryTestUtil {
 
     private RestRetryTestUtil() {
     }
 
-    static URI uri(int port) {
+    /**
+     * Builds a server proxy address for the given local port.
+     */
+    public static URI uri(int port) {
         return URI.create("https://127.0.0.1:%d/".formatted(port));
     }
 
@@ -71,7 +75,7 @@ final class RestRetryTestUtil {
      * verification passes at connect time) but rejects the client certificate, producing the
      * delayed TLS 1.3 handshake failure during request execution.
      */
-    static DummySslServerProxy startRejectingProxy(int port, AuthKey authKey) throws Exception {
+    public static DummySslServerProxy startRejectingProxy(int port, AuthKey authKey) throws Exception {
         var certChain = authKey.certChain().getAllCertsWithoutTrustedRoot().toArray(new X509Certificate[0]);
         var keyManager = new DummySslServerProxy.DummyAuthKeyManager() {
             @Override
@@ -125,20 +129,23 @@ final class RestRetryTestUtil {
      * Service address resolver returning a scripted list of addresses per resolve call;
      * the last list repeats once the script is exhausted.
      */
-    static final class TestAddressResolver implements ServiceAddressResolver {
+    public static final class TestAddressResolver implements ServiceAddressResolver {
         private volatile List<List<URI>> plan = List.of();
         private final AtomicInteger calls = new AtomicInteger();
 
-        void plan(List<List<URI>> addressesPerResolve) {
+        /** Scripts the address lists to return for consecutive resolve calls. */
+        public void plan(List<List<URI>> addressesPerResolve) {
             this.plan = addressesPerResolve;
             calls.set(0);
         }
 
-        int resolveCount() {
+        /** Returns the number of resolve calls made since the last plan/reset. */
+        public int resolveCount() {
             return calls.get();
         }
 
-        void reset() {
+        /** Clears the scripted plan and the call counter. */
+        public void reset() {
             plan = List.of();
             calls.set(0);
         }
@@ -151,21 +158,19 @@ final class RestRetryTestUtil {
     }
 
     /**
-     * Message log manager that records REST log messages so tests can assert how many
+     * Message log manager that records log messages so tests can assert how many
      * client-side request records were produced.
      */
-    static final class CountingLogManager extends AbstractLogManager {
-        private final List<RestLogMessage> messages = new CopyOnWriteArrayList<>();
+    public static final class CountingLogManager extends AbstractLogManager {
+        private final List<LogMessage> messages = new CopyOnWriteArrayList<>();
 
-        CountingLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        public CountingLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
             super(globalConfProvider, serverConfProvider);
         }
 
         @Override
         public void log(LogMessage message) {
-            if (message instanceof RestLogMessage restLogMessage) {
-                messages.add(restLogMessage);
-            }
+            messages.add(message);
         }
 
         @Override
@@ -178,15 +183,24 @@ final class RestRetryTestUtil {
             return Map.of();
         }
 
-        long clientRequestLogCount() {
+        /** Returns the number of client-side request records logged (REST and SOAP). */
+        public long clientRequestLogCount() {
             return messages.stream()
                     .filter(LogMessage::isClientSide)
-                    .filter(message -> !message.isResponse())
+                    .filter(message -> !isResponse(message))
                     .count();
         }
 
-        void reset() {
+        /** Clears the recorded log messages. */
+        public void reset() {
             messages.clear();
+        }
+
+        private static boolean isResponse(LogMessage message) {
+            return switch (message) {
+                case RestLogMessage rest -> rest.isResponse();
+                case SoapLogMessage soap -> soap.isResponse();
+            };
         }
     }
 }

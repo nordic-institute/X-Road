@@ -28,8 +28,10 @@ package org.niis.xroad.proxy.core.clientproxy;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
+import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -40,6 +42,8 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.entity.AbstractHttpEntity;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -49,8 +53,10 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.protocol.Attachment;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
+import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
@@ -59,7 +65,13 @@ import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,13 +83,17 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static ee.ria.xroad.common.util.HeaderValueUtils.getBoundary;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
+import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_SELECTED_TARGET;
+import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 /**
  * Processes client-side SOAP messages as a CDI singleton.
@@ -209,9 +225,7 @@ public class ClientSoapMessageProcessor {
         log.trace("processRequest()");
 
         ProxyMessage response;
-        try (HttpSender httpSender = httpSenderProvider.createClientHttpSender()) {
-            sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData);
-
+        try (HttpSender httpSender = executeWithRetry(ctx, decoder, xRequestId, opMonitoringData)) {
             // Check for any errors from the handler thread once more.
             waitForRequestSent(ctx);
             checkError(decoder);
@@ -226,8 +240,73 @@ public class ClientSoapMessageProcessor {
         return response;
     }
 
+    /**
+     * Sends the request, transparently retrying towards another security server when a TLS
+     * handshake failure surfaces mid-request (e.g. a TLS 1.3 server proxy rejecting the client
+     * certificate after the handshake completed). The first attempt streams the message from the
+     * request pipe as the handler thread encodes it; when it fails, the pipe is drained so the
+     * handler thread completes the message (attachment caching, signing, exactly-once logging),
+     * and subsequent attempts replay it byte-identically from the captured state. Returns the
+     * sender of the successful attempt, left open so the response can be parsed from it; failed
+     * attempts' senders are closed here.
+     */
+    private HttpSender executeWithRetry(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
+                                        String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
+        final boolean retryEnabled = proxyProperties.clientProxy().enableRequestRetry();
+        ReplaySoapProxyMessageEntity replayEntity = null;
+        for (int attempt = 1; ; attempt++) {
+            var httpSender = httpSenderProvider.createClientHttpSender();
+            try {
+                sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData, replayEntity);
+                return httpSender;
+            } catch (Exception e) {
+                var targets = httpSender.getAttribute(ID_TARGETS);
+                var failedAddress = httpSender.getAttribute(ID_SELECTED_TARGET);
+                httpSender.close();
+                if (!retryEnabled || !clientRequestPreparationService.shouldRetry(e, targets, attempt)
+                        || !completeRequestForReplay(ctx, decoder, attempt)) {
+                    throw e;
+                }
+                if (replayEntity == null) {
+                    replayEntity = new ReplaySoapProxyMessageEntity(decoder);
+                }
+                log.warn("Sending the request to the server proxy failed with a TLS handshake error, retrying"
+                                + " (xRequestId: {}, attempt: {}, failed address: {})",
+                        xRequestId, attempt, failedAddress, e);
+            }
+        }
+    }
+
+    /**
+     * After a failed first attempt, finishes producing the request message so that it can be
+     * replayed: drains the remaining encoded message from the pipe — letting the handler thread
+     * parse the whole client request, cache the attachments, sign the message and log it — waits
+     * for the handler thread to finish, and verifies it completed without errors. Later attempts
+     * replay from memory and the caches, so there is nothing left to complete.
+     *
+     * @return true if the request message is fully produced and replayable
+     */
+    private boolean completeRequestForReplay(ClientSoapRequestContext ctx, SoapRequestDecoder decoder, int attempt) {
+        if (attempt > 1) {
+            return true;
+        }
+        drainAndClose(ctx.reqIns());
+        waitForRequestSent(ctx);
+        return decoder.getException() == null;
+    }
+
+    private static void drainAndClose(PipedInputStream reqIns) {
+        try (reqIns) {
+            reqIns.transferTo(OutputStream.nullOutputStream());
+        } catch (IOException e) {
+            // the handler thread died and broke the pipe — its recorded error is checked next
+            log.trace("Draining the request pipe failed", e);
+        }
+    }
+
     private void sendRequest(HttpSender httpSender, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
-                             String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
+                             String xRequestId, OpMonitoringData opMonitoringData,
+                             ReplaySoapProxyMessageEntity replayEntity) throws Exception {
         log.trace("sendRequest()");
 
         try {
@@ -238,10 +317,17 @@ public class ClientSoapMessageProcessor {
             // Add unique id to distinguish request/response pairs
             httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
-            if (opMonitoringData != null) {
-                opMonitoringData.setRequestOutTs(getEpochMillisecond());
+            if (replayEntity == null) {
+                // first attempt: stream the message from the pipe as the handler thread encodes it
+                if (opMonitoringData != null) {
+                    opMonitoringData.setRequestOutTs(getEpochMillisecond());
+                }
+                httpSender.doPost(getServiceAddress(addresses), ctx.reqIns(), CHUNKED_LENGTH,
+                        decoder.getOutputContentType());
+                ctx.reqIns().close();
+            } else {
+                httpSender.doPost(getServiceAddress(addresses), replayEntity);
             }
-            httpSender.doPost(getServiceAddress(addresses), ctx.reqIns(), CHUNKED_LENGTH, decoder.getOutputContentType());
             if (opMonitoringData != null) {
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             }
@@ -249,8 +335,6 @@ public class ClientSoapMessageProcessor {
         } catch (Exception e) {
             clientRequestPreparationService.markAddressUnusableIfHandshakeFailure(httpSender, e);
             throw e;
-        } finally {
-            ctx.reqIns().close();
         }
     }
 
@@ -410,5 +494,79 @@ public class ClientSoapMessageProcessor {
         }
         // postpone actual name resolution to the fastest connection selector
         return clientRequestPreparationService.getDummyServiceAddress();
+    }
+
+    /**
+     * Named static entity that replays the byte-identical signed SOAP request message produced by
+     * the first send attempt. Re-encodes from the in-memory SOAP message, the captured OCSP
+     * responses, the cached attachments and the stored signature, using the original MIME
+     * boundaries — without touching the client stream, the signer, or the message log.
+     *
+     * <p>Note: {@link #isRepeatable()} returning {@code true} would also permit Apache HttpClient's
+     * own retry handler to resend the entity. That handler is pinned to zero retries in
+     * {@code ProxyClientConfig} and must stay disabled — resends are driven exclusively by the
+     * processor-level retry loop.
+     */
+    static final class ReplaySoapProxyMessageEntity extends AbstractHttpEntity {
+
+        private final SoapMessageImpl requestSoap;
+        private final Map<String, String> soapPartHeaders;
+        private final List<OCSPResp> ocspResponses;
+        private final List<Attachment> attachments;
+        private final SignatureData signature;
+        private final String topBoundary;
+        private final String attachmentBoundary;
+
+        ReplaySoapProxyMessageEntity(SoapRequestDecoder decoder) {
+            super();
+            setContentType(decoder.getOutputContentType());
+            this.requestSoap = decoder.getRequestSoap();
+            this.soapPartHeaders = decoder.getSoapPartHeaders();
+            this.ocspResponses = decoder.getOcspResponses();
+            this.attachments = decoder.getAttachments();
+            this.signature = decoder.getEncoder().getSignature();
+            this.topBoundary = getBoundary(decoder.getOutputContentType());
+            this.attachmentBoundary = decoder.getEncoder().getAttachmentBoundary();
+        }
+
+        @Override
+        public boolean isRepeatable() {
+            return true;
+        }
+
+        @Override
+        public long getContentLength() {
+            return -1;
+        }
+
+        @Override
+        public InputStream getContent() throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void writeTo(OutputStream outstream) {
+            try {
+                final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream, SoapUtils.getHashAlgoId(),
+                        topBoundary, attachmentBoundary);
+                for (OCSPResp ocsp : ocspResponses) {
+                    enc.ocspResponse(ocsp);
+                }
+                enc.soap(requestSoap, soapPartHeaders);
+                for (Attachment attachment : attachments) {
+                    enc.attachment(attachment.contentType(), attachment.content().getCachedContents(),
+                            attachment.additionalHeaders());
+                }
+                enc.signature(signature);
+                enc.close();
+            } catch (Exception e) {
+                throw XrdRuntimeException.systemException(IO_ERROR, e);
+            }
+        }
+
+        @Override
+        public boolean isStreaming() {
+            return true;
+        }
     }
 }
