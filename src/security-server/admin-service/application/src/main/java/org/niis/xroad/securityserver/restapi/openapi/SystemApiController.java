@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -46,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
+import org.niis.xroad.securityserver.restapi.dto.ConfigurationPropertyAuditListener;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.AuthProviderTypeResponseDto;
@@ -154,12 +157,15 @@ public class SystemApiController implements SystemApi {
         var scope = securityServerSystemParameterUpdateDto.getScope();
 
         auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_NAME, name);
-        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_VALUE, value);
-        if (scope != null) {
-            auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, scope);
-        }
+        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE, value);
+        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, ObjectUtils.getIfNull(scope, StringUtils.EMPTY));
 
-        configurablePropertiesService.updateConfigurableProperty(name, value, scope);
+        ConfigurationPropertyAuditListener auditListener = (_, _, _, oldValue) ->
+                auditDataHelper.put(
+                        RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE,
+                        ObjectUtils.getIfNull(oldValue, StringUtils.EMPTY));
+
+        configurablePropertiesService.updateConfigurableProperty(name, value, scope, auditListener);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

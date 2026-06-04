@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition.ConfigurableProperty;
+import org.niis.xroad.securityserver.restapi.dto.ConfigurationPropertyAuditListener;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -88,16 +89,45 @@ public class ConfigurablePropertiesService {
      * @param scope         scope of the property (service name or null)
      */
     public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
+        updateConfigurableProperty(propertyKey, propertyValue, scope, ConfigurationPropertyAuditListener.NOOP);
+    }
+
+    /**
+     * Updates the value of an existing system parameter or creates a new one
+     * if the property does not yet exist in the repository.
+     * <p>
+     * If a configuration property with the given key and scope is found, its value is updated.
+     * Otherwise, a new {@link ConfigurationPropertyEntity} is created and persisted.
+     * </p>
+     * <p>
+     * This variant allows the caller to provide a {@link ConfigurationPropertyAuditListener}
+     * that will be notified after the update operation is completed. The listener receives
+     * the property key, new value, scope (if any), and the previous value (if any).
+     * </p>
+     *
+     * @param propertyKey   unique key of the system property
+     * @param propertyValue new value for the system property
+     * @param scope         scope of the property (service name or null)
+     * @param auditListener listener invoked after successful update to handle audit or side effects;
+     *                      use {@link ConfigurationPropertyAuditListener#NOOP} if no action is required
+     */
+    public void updateConfigurableProperty(
+            String propertyKey, String propertyValue, String scope, ConfigurationPropertyAuditListener auditListener) {
+
         if (!isPropertyConfigurable(propertyKey, scope)) {
             throw new NotFoundException(
                     "Configurable property '%s' with scope '%s' is not defined".formatted(propertyKey, scope),
                     NOT_FOUND.build());
         }
-        repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope)
-                .ifPresentOrElse(entity -> {
-                    entity.setPropertyValue(propertyValue);
-                    repository.saveOrUpdate(entity);
-                }, () -> repository.saveOrUpdate(createConfigurationProperty(propertyKey, propertyValue, scope)));
+
+        var existing = repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope);
+        var propertyOldValue = existing.map(ConfigurationPropertyEntity::getPropertyValue).orElse(null);
+
+        var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey, scope));
+        entity.setPropertyValue(propertyValue);
+        repository.saveOrUpdate(entity);
+
+        auditListener.onUpdate(propertyKey, propertyValue, scope, propertyOldValue);
     }
 
     private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(
@@ -121,10 +151,9 @@ public class ConfigurablePropertiesService {
                 .anyMatch(p -> p.getPropertyName().equals(propertyKey) && Objects.equals(p.getScope(), scope));
     }
 
-    private static ConfigurationPropertyEntity createConfigurationProperty(String propertyKey, String propertyValue, String scope) {
+    private static ConfigurationPropertyEntity createEmptyConfigurationProperty(String propertyKey, String scope) {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(propertyKey);
-        entity.setPropertyValue(propertyValue);
         entity.setScope(scope);
         return entity;
     }

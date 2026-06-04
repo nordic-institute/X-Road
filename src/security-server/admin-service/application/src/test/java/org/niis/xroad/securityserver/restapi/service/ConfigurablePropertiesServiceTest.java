@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
+import org.niis.xroad.securityserver.restapi.dto.ConfigurationPropertyAuditListener;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -44,6 +45,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -202,6 +204,50 @@ class ConfigurablePropertiesServiceTest {
 
         assertThrows(NotFoundException.class,
                 () -> service.updateConfigurableProperty("unknown.property.key", PROPERTY_VALUE, SCOPE));
+    }
+
+    @Test
+    void updateConfigurablePropertyFoundInDatabaseWithAuditListener() {
+        var entity = new ConfigurationPropertyEntity();
+        entity.setPropertyKey(PROPERTY_NAME);
+        entity.setPropertyValue(PROPERTY_VALUE);
+        entity.setScope(SCOPE);
+        var auditListener = mock(ConfigurationPropertyAuditListener.class);
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
+        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
+
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, auditListener);
+
+        ArgumentCaptor<ConfigurationPropertyEntity> captor =
+                ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
+
+        verify(repository).saveOrUpdate(captor.capture());
+
+        ConfigurationPropertyEntity capturedEntity = captor.getValue();
+        assertEquals(PROPERTY_VALUE_2, capturedEntity.getPropertyValue());
+
+        verify(auditListener).onUpdate(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, PROPERTY_VALUE);
+    }
+
+    @Test
+    void updateConfigurablePropertyNotFoundInDatabaseWithAuditListener() {
+        var auditListener = mock(ConfigurationPropertyAuditListener.class);
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
+        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
+
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, auditListener);
+
+        ArgumentCaptor<ConfigurationPropertyEntity> captor =
+                ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
+
+        verify(repository).saveOrUpdate(captor.capture());
+
+        ConfigurationPropertyEntity capturedEntity = captor.getValue();
+        assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
+        assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
+        assertEquals(SCOPE, capturedEntity.getScope());
+
+        verify(auditListener).onUpdate(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, null);
     }
 
     private static void assertCommonConfigurablePropertyDtoFields(SecurityServerConfigurablePropertyDto parameter) {
