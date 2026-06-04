@@ -1,0 +1,10 @@
+---
+monitoring_namespace: ss-monitoring
+security_server_namespace: ss
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+netdata_chart_repo: "https://netdata.github.io/helmchart/"
+netdata_chart: "netdata/netdata"
+netdata_chart_version: "3.7.165"
+
+netdata_helm_timeout: 10m

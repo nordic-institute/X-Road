@@ -1,10 +1,20 @@
 ---
-{% if xroad_image_registry | length > 0 %}
+{% set ds_tls = ss2_advertised_host is defined %}
+{% set ds_truststore_opts = '-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts.p12 -Djavax.net.ssl.trustStorePassword=changeit' %}
+{% if (xroad_image_registry | length > 0) or jvm_metrics_enabled %}
 global:
+{% if xroad_image_registry | length > 0 %}
   image:
     registry: {{ xroad_image_registry }}
 {% if xroad_image_tag | length > 0 %}
     tag: {{ xroad_image_tag }}
+{% endif %}
+{% endif %}
+{% if jvm_metrics_enabled %}
+  extraPodAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9801"
+    prometheus.io/path: "/metrics"
 {% endif %}
 {% endif %}
 
@@ -16,11 +26,23 @@ init:
   opmonitor:
     dbUsername: {{ opmonitor_db.username }}
 
+{% set proxy_env = {
+  'XROAD_PROXY_ADDON_OP_MONITOR_ENABLED': 'true',
+  'XROAD_PROXY_DSP_ENABLED': proxy_dsp_enabled | string | lower,
+  'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt',
+} %}
+{% if ds_tls %}
+{% set _ = proxy_env.update({
+  'XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID': ss2_advertised_host,
+  'XROAD_PROXY_DSP_CONTROL_PLANE_ENDPOINT': 'https://ds-control-plane:8184/api/v1/control',
+  'JAVA_TOOL_OPTIONS': ds_truststore_opts,
+}) %}
+{% endif %}
 services:
 {% for svc, extra_env in [
   ('configuration-client', {'XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL': configuration_client_update_interval, 'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
   ('signer', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
-  ('proxy', {'XROAD_PROXY_ADDON_OP_MONITOR_ENABLED': 'true', 'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('proxy', proxy_env),
   ('monitor', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
 ] %}
   {{ svc }}:
@@ -35,10 +57,20 @@ services:
           items:
             - key: tls.crt
               path: openbao.crt
+{% if ds_tls and svc == 'proxy' %}
+      - name: {{ svc }}-ds-https
+        secret:
+          secretName: ds-https-keystore
+{% endif %}
     extraVolumeMounts:
       - mountPath: /etc/xroad/ssl/openbao.crt
         subPath: openbao.crt
         name: {{ svc }}-openbao-tls-certificate
+{% if ds_tls and svc == 'proxy' %}
+      - mountPath: /etc/xroad/ssl/cacerts.p12
+        subPath: cacerts.p12
+        name: {{ svc }}-ds-https
+{% endif %}
 {% endfor %}
 
   proxy-ui-api:
@@ -72,6 +104,75 @@ services:
       - mountPath: /etc/xroad/ssl/openbao.crt
         subPath: openbao.crt
         name: op-monitor-openbao-tls-certificate
+
+  # DSP services — bump replicas from chart default of 0. DB clusters are
+  # provisioned by the cloudnative_pg role (see ds_*_db vars).
+  # ds-* services talk to OpenBao over HTTPS via the Quarkus vault client,
+  # so they need the same openbao TLS cert mount as proxy/signer/monitor.
+  # With ds_tls the shared xrd-ca-signed keystore lights up HTTPS on every
+  # EDC port, matching the LXD stack's ds-https-keystore.yml behaviour.
+{% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
+  {{ svc }}:
+    replicas: 1
+{% if ds_tls and svc in ['ds-identity-hub', 'ds-issuer-service'] %}
+    # These two default to probing an EDC web port, which ds-https flips to
+    # TLS — and Jetty's sniHostCheck rejects kubelet's by-IP probes (400
+    # Invalid SNI). Probe the plain-HTTP quarkus health port instead, same
+    # as ds-control-plane.
+    readinessProbe:
+      path: "/q/health"
+      port: 4099
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health"
+      port: 4099
+      scheme: "HTTP"
+{% endif %}
+    env:
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+{% if ds_tls %}
+      EDC_WEB_HTTPS_KEYSTORE_PATH: "/etc/xroad/ssl/ds-https.p12"
+      EDC_WEB_HTTPS_KEYSTORE_TYPE: "PKCS12"
+      EDC_WEB_HTTPS_KEYSTORE_PASSWORD: "changeit"
+      EDC_WEB_HTTPS_KEYMANAGER_PASSWORD: "changeit"
+      JAVA_TOOL_OPTIONS: "{{ ds_truststore_opts }}"
+{% if svc == 'ds-control-plane' %}
+      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "{{ ss2_advertised_host }}"
+      EDC_DSP_CALLBACK_ADDRESS: "https://{{ ss2_advertised_host }}:8183/api/dsp/%s"
+      EDC_IAM_DID_WEB_USE_HTTPS: "true"
+{% endif %}
+{% if svc == 'ds-identity-hub' %}
+      EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ss2_advertised_host }}"
+      EDC_IAM_DID_WEB_USE_HTTPS: "true"
+{% endif %}
+{% endif %}
+    extraVolumes:
+      - name: {{ svc }}-openbao-tls-certificate
+        secret:
+          secretName: {{ openbao_tls_secret_name }}
+          items:
+            - key: tls.crt
+              path: openbao.crt
+{% if ds_tls %}
+      - name: {{ svc }}-ds-https
+        secret:
+          secretName: ds-https-keystore
+{% endif %}
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt
+        subPath: openbao.crt
+        name: {{ svc }}-openbao-tls-certificate
+{% if ds_tls %}
+      - mountPath: /etc/xroad/ssl/ds-https.p12
+        subPath: ds-https.p12
+        name: {{ svc }}-ds-https
+      - mountPath: /etc/xroad/ssl/cacerts.p12
+        subPath: cacerts.p12
+        name: {{ svc }}-ds-https
+{% endif %}
+{% endfor %}
+  mock-jwks-server:
+    replicas: 1
 
   auxiliary-service:
     env:
@@ -111,3 +212,14 @@ otel:
     serviceNamespace: xroad
     deploymentEnvironment: {{ otel_deployment_environment }}
 {% endif %}
+
+{% if ds_tls %}
+dsp:
+  seed:
+    trustedIssuerDid: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
+{% endif %}
+
+# Postgres image used by DSP wait-gate initContainers. The DB clusters
+# themselves are provisioned by the cloudnative_pg role, not the chart.
+postgres:
+  image: "{{ postgres_image }}"

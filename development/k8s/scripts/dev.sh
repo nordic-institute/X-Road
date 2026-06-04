@@ -15,6 +15,9 @@ SUPPORTED_SERVICES=(
   op-monitor
   auxiliary-service
   softtoken-signer
+  ds-control-plane
+  ds-identity-hub
+  ds-issuer-service
 )
 
 usage() {
@@ -85,6 +88,7 @@ validate_service() {
 service_to_image() {
   case "${SERVICE}" in
     proxy-ui-api) echo "ss-proxy-ui-api" ;;
+    ds-*)         echo "${SERVICE}" ;;
     *)            echo "ss-${SERVICE}" ;;
   esac
 }
@@ -98,11 +102,32 @@ service_to_build_target() {
   esac
 }
 
+# Returns the gradle_path column from service-config.csv for the given build target.
+gradle_path_for_target() {
+  local target="$1" csv line svc_name gradle_path
+  csv="${CORE_ROOT}/deployment/security-server/images/service-config.csv"
+  while IFS=',' read -r svc_name _ gradle_path _; do
+    [[ "${svc_name}" == "${target}" ]] && { echo "${gradle_path}"; return 0; }
+  done < <(tail -n +2 "${csv}")
+  return 1
+}
+
 handleBuild() {
   [[ "${BUILD}" != true ]] && return
-  local target
+  local target gradle_path gradle_module
   target="$(service_to_build_target)"
-  log_info "Building service '${SERVICE}' (image build target: ${target})"
+
+  gradle_path="$(gradle_path_for_target "${target}")"
+  if [[ -n "${gradle_path}" && "${gradle_path}" != "-" ]]; then
+    gradle_module=":${gradle_path//\//:}"
+    log_info "Gradle build: ${gradle_module}"
+    (
+      cd "${CORE_ROOT}/src"
+      ./gradlew "${gradle_module}:build"
+    )
+  fi
+
+  log_info "Building image '${SERVICE}' (build target: ${target})"
   require_bin docker "brew install --cask docker"
   (
     cd "${CORE_ROOT}/deployment/security-server/images"
