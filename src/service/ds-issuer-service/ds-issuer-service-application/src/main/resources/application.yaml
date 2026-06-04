@@ -9,7 +9,10 @@ quarkus:
     level: INFO
     category:
       "EDC-MONITOR":
-        level: DEBUG
+        level: TRACE
+  arc:
+    unremovable-types:
+      - org.niis.xroad.globalconf.GlobalConfProvider
 
 "%native":
   quarkus:
