@@ -28,6 +28,7 @@ package org.niis.xroad.confclient.core.config;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
@@ -50,9 +51,10 @@ import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP
 public class ConfClientRootConfig {
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig() {
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
+                .dbOverrides(appName)
                 .build();
     }
 

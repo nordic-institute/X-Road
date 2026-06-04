@@ -27,12 +27,15 @@
 
 package org.niis.xroad.common.properties.config.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Country;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Value;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
+import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -45,6 +48,7 @@ import java.util.Optional;
  * for the {@link XRoadConfig} interface they consume, and on {@code :lib:properties-impl}
  * here only at the construction site.
  */
+@Slf4j
 public final class XRoadConfigBuilder {
 
     private final List<ConfigKeyProvider> providers = new ArrayList<>();
@@ -68,12 +72,32 @@ public final class XRoadConfigBuilder {
     }
 
     /**
-     * Mocked DB-override layer: dotted effective key &rarr; raw string value.
+     * In-memory DB-override layer (mainly for tests): dotted effective key &rarr; raw string value.
      * @param raw effective key to raw value
      * @return this builder
      */
     public XRoadConfigBuilder overrides(Map<String, String> raw) {
         this.overrides = Map.copyOf(raw);
+        return this;
+    }
+
+    /**
+     * Loads the DB-override layer from the {@code configuration_properties} table via the
+     * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
+     * its URL is unset, so callers fall back to packaged defaults. Reuses the framework-neutral
+     * {@link CachedDbConfigSource}.
+     *
+     * @param appName application name (drives the read-pool name and scope filtering)
+     * @return this builder
+     */
+    public XRoadConfigBuilder dbOverrides(String appName) {
+        var dbSourceConfig = DbSourceConfig.loadValues(appName);
+        if (dbSourceConfig.isEnabled() && dbSourceConfig.getUrl() != null) {
+            this.overrides = Map.copyOf(new CachedDbConfigSource(dbSourceConfig).getProperties());
+            log.info("Loaded {} config override(s) from DB for '{}'", overrides.size(), appName);
+        } else {
+            log.info("DB config source disabled; '{}' uses packaged defaults only", appName);
+        }
         return this;
     }
 

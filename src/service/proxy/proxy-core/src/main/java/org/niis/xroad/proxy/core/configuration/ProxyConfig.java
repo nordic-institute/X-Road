@@ -32,6 +32,7 @@ import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
@@ -72,10 +73,11 @@ import static java.util.Arrays.stream;
 class ProxyConfig {
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig() {
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .register(ProxyConfigKeys.instance())
+                .dbOverrides(appName)
                 .build();
     }
 

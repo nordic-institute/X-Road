@@ -5,4 +5,5 @@ plugins {
 dependencies {
   implementation(project(":lib:properties-api"))
   implementation(project(":lib:properties-core"))
+  implementation(libs.slf4j.api)
 }
