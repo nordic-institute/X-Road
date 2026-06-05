@@ -16,19 +16,19 @@
   "main": "./src/index.ts",
   "dependencies": {
     "@fontsource-variable/open-sans": "^5.2.7",
-    "@fontsource-variable/material-symbols-rounded": "^5.2.44",
+    "@fontsource-variable/material-symbols-rounded": "^5.2.45",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
-    "axios": "~1.16.0",
-    "dayjs": "^1.11.20",
+    "axios": "~1.16.1",
+    "dayjs": "^1.11.21",
     "deepmerge": "^4.3.1",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "vee-validate": "^4.15.1",
-    "vue": "^3.5.34",
-    "vue-i18n": "^11.4.2",
-    "vue-router": "^5.0.6",
-    "vuetify": "^4.0.7"
+    "vue": "^3.5.35",
+    "vue-i18n": "^11.4.4",
+    "vue-router": "^5.1.0",
+    "vuetify": "^4.0.8"
   },
   "engines": {
     "npm": "use-pnpm",
