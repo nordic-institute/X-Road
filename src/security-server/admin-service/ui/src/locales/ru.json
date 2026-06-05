@@ -441,6 +441,7 @@
     "sign_cert_not_supported": "Подписывающий сертификат не поддерживается",
     "signer_not_reachable": "Подписчик в данный момент недоступен. Пожалуйста, проверьте журнал подписчика для получения подробной информации.",
     "software_token_init_failed": "Не удалось инициализировать программный токен",
+    "ssl_authentication_failed": "Ошибка аутентификации SSL",
     "timestamping_service_already_configured": "Служба временных меток уже настроена",
     "timestamping_service_not_found": "Служба временных меток не найдена",
     "token": {

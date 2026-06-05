@@ -49,7 +49,7 @@ public class ConnectionTestingStepDefs extends BaseUiStepDefs {
 
     @Step("Central Server authentication certificate registration service status should be failed")
     public void centralServerAuthCertStatusFailed() {
-        page.centralServerAuthCertMessage().shouldHave(Condition.partialText("IO error"));
+        page.centralServerAuthCertMessage().shouldHave(Condition.partialText("SSL authentication failed"));
     }
 
     @Step("Central Server authentication certificate registration service Test button should be enabled")
