@@ -107,6 +107,7 @@
             :label="$t('diagnostics.connection.securityServer.targetClient')"
             variant="outlined"
             data-test="other-security-server-target-client-id"
+            :loading="subsystemsLoading"
           ></v-combobox>
         </v-col>
         <v-col cols="2">
@@ -119,6 +120,7 @@
             :label="$t('diagnostics.connection.securityServer.securityServer')"
             variant="outlined"
             data-test="other-security-server-id"
+            :loading="securityServerLoading"
           ></v-combobox>
         </v-col>
       </v-row>
@@ -178,6 +180,8 @@ const initialState = () => {
     selectedSecurityServerId: '',
     localSecurityServers: [] as SecurityServer[],
     localOtherStatus: undefined as ConnectionStatus | undefined,
+    subsystemsLoading: false,
+    securityServerLoading: false,
   };
 };
 
@@ -227,14 +231,24 @@ export default defineComponent({
         this.selectedSecurityServerId = '';
 
         if (newInstance) {
-          await this.fetchAllSubsystems(newInstance);
+          try {
+            this.subsystemsLoading = true;
+            await this.fetchAllSubsystems(newInstance);
+          } finally {
+            this.subsystemsLoading = false;
+          }
         }
       },
     },
     async selectedTargetSubsystemId(newSubsystemId: string | null) {
       this.selectedSecurityServerId = '';
       if (newSubsystemId) {
-        await this.fetchSecurityServers(newSubsystemId);
+        try {
+          this.securityServerLoading = true;
+          await this.fetchSecurityServers(newSubsystemId);
+        } finally {
+          this.securityServerLoading = false;
+        }
         this.localSecurityServers = this.securityServers.map(
           (s: SecurityServer) => ({ ...s }),
         );

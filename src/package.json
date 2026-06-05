@@ -8,22 +8,24 @@
     "test-ss": "pnpm run --filter xroad-securityserver-admin-ui test",
     "build-workspace": "pnpm -r run build",
     "prepReportDirs": "mkdirp ./build && mkdirp ./build/reports",
-    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/audit-ci.txt"
+    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/ui-audit-ci.json"
   },
   "pnpm": {
     "minimumReleaseAge": 4320,
     "overrides": {
-      "minimatch": "^10.2.3",
-      "rollup": "^4.59.0",
-      "flatted": "^3.4.2",
-      "immutable": "^5.1.5",
-      "picomatch": "^4.0.4",
-      "handlebars": "^4.7.9",
-      "lodash": "^4.18.0",
-      "defu": "^6.1.5",
+      "@isaacs/brace-expansion": "5.0.1",
       "axios": "~1.15.2",
+      "defu": "6.1.5",
       "fast-uri": "^3.1.2",
-      "js-cookie": "^3.0.7"
+      "flatted": "3.4.2",
+      "glob": "^11.1.0",
+      "handlebars": "4.7.9",
+      "immutable": "5.1.5",
+      "js-cookie": "^3.0.7",
+      "lodash": "4.18.0",
+      "minimatch": "^10.2.3",
+      "picomatch": "4.0.4",
+      "rollup": "4.59.0"
     }
   },
   "devDependencies": {
