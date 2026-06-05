@@ -32,6 +32,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
 import org.niis.xroad.confclient.common.globalconf.FileBasedProvider;
 import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepository;
@@ -54,8 +55,14 @@ public class ConfClientRootConfig {
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
+                .register(ConfClientConfigKeys.instance())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    @ApplicationScoped
+    ConfigurationClientProperties configurationClientProperties(XRoadConfig xRoadConfig) {
+        return new ConfigurationClientProperties(xRoadConfig);
     }
 
     @ApplicationScoped

@@ -29,7 +29,8 @@ package org.niis.xroad.confclient.core.globalconf;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 
 import java.io.ByteArrayInputStream;
@@ -50,8 +51,10 @@ class VerificationConfHandlerTest {
 
     @Test
     void testGetVerificationConf() throws Exception {
-        ConfigurationClientProperties configurationClientProperties = ConfigUtils.initConfiguration(ConfigurationClientProperties.class,
-                Map.of("xroad.configuration-client.global-conf-dir", CONF_DIR));
+        ConfigurationClientProperties configurationClientProperties = new ConfigurationClientProperties(XRoadConfigBuilder.create()
+                .register(ConfClientConfigKeys.instance())
+                .overrides(Map.of("xroad.configuration-client.global-conf-dir", CONF_DIR))
+                .build());
         VerificationConfHandler handler = new VerificationConfHandler(configurationClientProperties);
 
 
@@ -70,8 +73,10 @@ class VerificationConfHandlerTest {
 
     @Test
     void testException() {
-        ConfigurationClientProperties configurationClientProperties = ConfigUtils.initConfiguration(ConfigurationClientProperties.class,
-                Map.of("xroad.configuration-client.global-conf-dir", "not-existing-dir"));
+        ConfigurationClientProperties configurationClientProperties = new ConfigurationClientProperties(XRoadConfigBuilder.create()
+                .register(ConfClientConfigKeys.instance())
+                .overrides(Map.of("xroad.configuration-client.global-conf-dir", "not-existing-dir"))
+                .build());
         VerificationConfHandler handler = new VerificationConfHandler(configurationClientProperties);
 
         var exception = assertThrows(XrdRuntimeException.class, handler::getVerificationConf);

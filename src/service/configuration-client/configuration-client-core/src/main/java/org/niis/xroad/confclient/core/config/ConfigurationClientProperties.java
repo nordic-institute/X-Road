@@ -26,51 +26,59 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.confclient.common.config.ConfigurationClientConfig;
 
-@ConfigMapping(prefix = "xroad.configuration-client")
-public interface ConfigurationClientProperties extends ConfigurationClientConfig {
+@RequiredArgsConstructor
+public class ConfigurationClientProperties implements ConfigurationClientConfig {
 
-    @WithName(ConfigurationClientConfig.ALLOWED_FEDERATIONS)
-    @WithDefault(ConfigurationClientConfig.ALLOWED_FEDERATIONS_DEFAULT)
-    String allowedFederations();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName(ConfigurationClientConfig.GLOBAL_CONF_HOSTNAME_VERIFICATION)
-    @WithDefault(ConfigurationClientConfig.GLOBAL_CONF_HOSTNAME_VERIFICATION_DEFAULT)
-    boolean globalConfHostnameVerification();
+    @Override
+    public String allowedFederations() {
+        return xRoadConfig.value(ConfClientConfigKeys.ALLOWED_FEDERATIONS);
+    }
 
-    @WithName(ConfigurationClientConfig.GLOBAL_CONF_TLS_CERT_VERIFICATION)
-    @WithDefault(ConfigurationClientConfig.GLOBAL_CONF_TLS_CERT_VERIFICATION_DEFAULT)
-    boolean globalConfTlsCertVerification();
+    @Override
+    public boolean globalConfHostnameVerification() {
+        return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_HOSTNAME_VERIFICATION);
+    }
 
-    @WithName(ConfigurationClientConfig.DOWNLOADER_CONNECT_TIMEOUT)
-    @WithDefault(ConfigurationClientConfig.DOWNLOADER_CONNECT_TIMEOUT_DEFAULT)
-    int downloaderConnectTimeout();
+    @Override
+    public boolean globalConfTlsCertVerification() {
+        return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_TLS_CERT_VERIFICATION);
+    }
 
-    @WithName(ConfigurationClientConfig.DOWNLOADER_READ_TIMEOUT)
-    @WithDefault(ConfigurationClientConfig.DOWNLOADER_READ_TIMEOUT_DEFAULT)
-    int downloaderReadTimeout();
+    @Override
+    public int downloaderConnectTimeout() {
+        return xRoadConfig.value(ConfClientConfigKeys.DOWNLOADER_CONNECT_TIMEOUT);
+    }
 
-    @WithName(ConfigurationClientConfig.GLOBAL_CONF_DIR)
-    @WithDefault(ConfigurationClientConfig.GLOBAL_CONF_DIR_DEFAULT)
-    String globalConfDir();
+    @Override
+    public int downloaderReadTimeout() {
+        return xRoadConfig.value(ConfClientConfigKeys.DOWNLOADER_READ_TIMEOUT);
+    }
 
-    @WithName("update-interval")
-    @WithDefault("60")
-    int updateInterval();
+    @Override
+    public String globalConfDir() {
+        return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_DIR);
+    }
 
-    @WithName("configuration-anchor-file")
-    @WithDefault("/etc/xroad/configuration-anchor.xml")
-    String configurationAnchorFile();
+    public int updateInterval() {
+        return xRoadConfig.value(ConfClientConfigKeys.UPDATE_INTERVAL);
+    }
 
-    @WithName("configuration-anchor-storage")
-    @WithDefault("DB")
-    ConfigurationAnchorStorage configurationAnchorStorage();
+    public String configurationAnchorFile() {
+        return xRoadConfig.value(ConfClientConfigKeys.CONFIGURATION_ANCHOR_FILE);
+    }
 
-    enum ConfigurationAnchorStorage {
+    public ConfigurationAnchorStorage configurationAnchorStorage() {
+        return ConfigurationAnchorStorage.valueOf(xRoadConfig.value(ConfClientConfigKeys.CONFIGURATION_ANCHOR_STORAGE));
+    }
+
+    public enum ConfigurationAnchorStorage {
         FILE,
         DB
     }
