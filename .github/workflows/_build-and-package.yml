@@ -35,7 +35,7 @@ jobs:
           task: start-measurement
           label: 'Build, unit tests and packaging'
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
@@ -62,7 +62,7 @@ jobs:
           label: 'Build environment setup'
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
