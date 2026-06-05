@@ -160,7 +160,7 @@ public class SystemApiController implements SystemApi {
         auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, ObjectUtils.getIfNull(scope, StringUtils.EMPTY));
 
         configurablePropertiesService.updateConfigurableProperty(
-                name, value, scope, (oldValue) ->
+                name, value, scope, oldValue ->
                         auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE, oldValue));
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
