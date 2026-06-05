@@ -66,7 +66,8 @@ class DefaultServiceAddressResolverTest {
     void setUp() {
         globalConfProvider = mock(GlobalConfProvider.class);
         proxyProperties = mock(ProxyProperties.class);
-        resolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties);
+        var providerSecurityServerResolver = new ProviderSecurityServerResolver(globalConfProvider);
+        resolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties, providerSecurityServerResolver);
 
         when(proxyProperties.sslEnabled()).thenReturn(false);
         when(proxyProperties.serverProxyPort()).thenReturn(PORT);
@@ -155,5 +156,24 @@ class DefaultServiceAddressResolverTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getHost()).isEqualTo(HOST);
+    }
+
+    @Test
+    void hintWithMaintenanceModeThrowsMaintenanceMode() {
+        var clientId = serviceProvider.getClientId();
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-maint");
+        when(globalConfProvider.getProviderAddress(clientId)).thenReturn(Set.of(HOST));
+        when(globalConfProvider.getSecurityServerAddress(hint)).thenReturn(HOST);
+        // Hint SS is in maintenance mode — the hoisted post-helper guard must throw MAINTENANCE_MODE.
+        var maintenanceMode = new SharedParameters.MaintenanceMode(true, "scheduled downtime");
+        when(globalConfProvider.getMaintenanceMode(hint)).thenReturn(Optional.of(maintenanceMode));
+
+        var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
+                mock(ee.ria.xroad.common.util.ResponseWrapper.class),
+                mock(OpMonitoringData.class));
+
+        assertThatThrownBy(() -> resolver.resolve(serviceProvider, hint, ctx))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getCode()).isEqualTo(MAINTENANCE_MODE.code()));
     }
 }

@@ -270,8 +270,16 @@ seed_ds_aes_key() {
     return 0
   fi
 
+  # openssl is absent from minimal images (e.g. the k8s init Job container) —
+  # fall back to /dev/urandom. 32 bytes base64-encode to exactly 44 chars;
+  # anything else means generation silently failed, so abort instead of
+  # seeding an unusable empty key.
   local key_b64
-  key_b64=$(openssl rand 32 | base64 -w 0 2>/dev/null || openssl rand 32 | base64)
+  key_b64=$({ openssl rand 32 2>/dev/null || head -c 32 /dev/urandom; } | base64 | tr -d '\n')
+  if [ "${#key_b64}" -ne 44 ]; then
+    echo "[OPENBAO] Failed to generate AES key material" >&2
+    return 1
+  fi
 
   bao_api "POST" "$addr" "/v1/xrd-ds-secret/data/ds/${alias}" \
     "$(jq -nc --arg v "$key_b64" '{data:{content:$v}}')" \

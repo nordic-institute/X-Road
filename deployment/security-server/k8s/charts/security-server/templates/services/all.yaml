@@ -1,14 +1,38 @@
 {{- range $service, $config := .Values.services }}
 
-{{- if or (ne $service "op-monitor") $config.enabled }} # Skip when service is op-monitor and it's not enabled
+{{- /*
+Skip services with replicas: 0 — this is the chart's "off" switch.
+Rendering a Deployment with replicas=0 is pointless and, for services
+whose imageName/waits depend on other values being set (e.g. DSP
+ds-*), produces manifests with empty image references that fail k8s
+API validation. Services intentionally paused should be removed from
+values, not zeroed.
+*/}}
+{{- $replicas := 1 -}}
+{{- if hasKey $config "replicas" }}{{ $replicas = $config.replicas | int }}{{ end }}
+{{- if and (gt $replicas 0) (or (ne $service "op-monitor") $config.enabled) }}
+{{- $cfg := $config }}
+{{- /*
+Render any wait specs declared on the service (values-driven, no
+service-name hardcoding here — see `xroad.dsp.wait.dispatch`).
+Each spec becomes one initContainer YAML string appended to
+`.config.initContainers`, the contract consumed by `xroad.deployment`.
+*/}}
+{{- with $config.waits }}
+  {{- $waits := list }}
+  {{- range $spec := . }}
+    {{- $waits = append $waits (include "xroad.dsp.wait.dispatch" (dict "root" $ "spec" $spec)) }}
+  {{- end }}
+  {{- $cfg = merge (dict "initContainers" $waits) $config }}
+{{- end }}
 ---
-{{- include "xroad.serviceaccount" (dict "root" $ "service" $service "config" $config) }}
+{{- include "xroad.serviceaccount" (dict "root" $ "service" $service "config" $cfg) }}
 ---
-{{- include "xroad.configmap.env" (dict "root" $ "service" $service "config" $config) }}
+{{- include "xroad.configmap.env" (dict "root" $ "service" $service "config" $cfg) }}
 ---
-{{- include "xroad.service" (dict "root" $ "service" $service "config" $config) }}
+{{- include "xroad.service" (dict "root" $ "service" $service "config" $cfg) }}
 ---
-{{- include "xroad.deployment" (dict "root" $ "service" $service "config" $config) }}
+{{- include "xroad.deployment" (dict "root" $ "service" $service "config" $cfg) }}
 {{- end }}
 
 {{- end }}

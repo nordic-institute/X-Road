@@ -36,16 +36,20 @@ import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * In-memory manager for active data flows in the X-Road proxy data plane.
  * <p>
- * Encapsulates the {@code Xrd-PULL} semantics: when a {@link DataFlowStartMessage} arrives,
- * the proxy fabricates a {@link DspDataAddress} pointing to its own signaling endpoint and
- * returns it wrapped in a {@link DataFlowStatusMessage}. No real data pipeline is started —
- * the proxy itself serves data on subsequent HTTP calls.
+ * Encapsulates the {@code Xrd-PULL} semantics: when a {@link DataFlowStartMessage} or
+ * {@link DataFlowPrepareMessage} arrives, the proxy fabricates a {@link DspDataAddress}
+ * advertising the provider serverproxy endpoint and returns it wrapped in a
+ * {@link DataFlowStatusMessage}. The serverproxy endpoint (mTLS) is the dataplane —
+ * consumers send signed X-Road requests directly to it via the existing PKI pipeline.
  * <p>
  * Flow state is tracked in-memory via a {@link ConcurrentHashMap}. The CP terminates flows
  * on completion, keeping the map bounded.
@@ -58,17 +62,18 @@ public class XRoadDataPlaneManager {
     /** Full transfer-type string for Xrd-PULL flows (matches the wire value). */
     static final String XRD_PULL_TRANSFER_TYPE = "Xrd-PULL";
 
-    private static final String SIGNALING_PATH = "/full/api/v1/dataflows";
-
     private final DataPlaneServerProperties dspProperties;
+    private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
+    private final ProxyProperties proxyProperties;
     private final ConcurrentHashMap<String, DataFlowStates> activeFlows = new ConcurrentHashMap<>();
 
     /**
      * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning —
-     * the response is built immediately using the proxy data-flow endpoint.
+     * the response is built immediately using the serverproxy endpoint.
      *
      * @param message incoming prepare message
-     * @return status message with {@code dataAddress.endpoint} set to the proxy data flow endpoint
+     * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
      */
     public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
         log.info("Preparing data flow for process {}", message.getProcessId());
@@ -78,11 +83,11 @@ public class XRoadDataPlaneManager {
 
     /**
      * Handles a start request, preserving {@code Xrd-PULL} semantics: validates the transfer type,
-     * fabricates a {@link DspDataAddress} pointing to the proxy's signaling endpoint, and returns it
+     * fabricates a {@link DspDataAddress} advertising the provider serverproxy endpoint, and returns it
      * wrapped in a {@link DataFlowStatusMessage}.
      *
      * @param message incoming start message
-     * @return status message with {@code dataAddress.endpoint} set to the proxy data flow endpoint
+     * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
      * @throws XrdRuntimeException if the transfer type is not {@code Xrd-PULL}
      */
     public DataFlowStatusMessage start(DataFlowStartMessage message) {
@@ -132,9 +137,11 @@ public class XRoadDataPlaneManager {
     }
 
     private DataFlowStatusMessage buildStatusMessage(DataFlowStates state) {
+        var protocol = proxyProperties.sslEnabled() ? "https" : "http";
+        var endpoint = resolveServerproxyEndpoint(protocol);
         var dataAddress = DspDataAddress.Builder.newInstance()
-                .endpointType("http")
-                .endpoint(buildSignalingEndpoint())
+                .endpointType(protocol)
+                .endpoint(endpoint)
                 .build();
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddress)
@@ -142,8 +149,19 @@ public class XRoadDataPlaneManager {
                 .build();
     }
 
-    private String buildSignalingEndpoint() {
-        return "http://%s:%d%s".formatted(dspProperties.listenAddress(), dspProperties.listenPort(), SIGNALING_PATH);
+    private String resolveServerproxyEndpoint(String protocol) {
+        try {
+            var ownAddress = globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
+            if (ownAddress != null && !ownAddress.isBlank()) {
+                var endpoint = "%s://%s:%d".formatted(protocol, ownAddress, proxyProperties.serverProxyPort());
+                log.debug("Advertising dataplane serverproxy endpoint {}", endpoint);
+                return endpoint;
+            }
+            log.warn("Own security-server address is blank; falling back to configured serverproxy endpoint");
+        } catch (Exception e) {
+            log.warn("Could not resolve own security-server address; falling back to configured serverproxy endpoint", e);
+        }
+        return dspProperties.serverproxyEndpoint();
     }
 
     private void storeState(String processId, DataFlowStates state) {
