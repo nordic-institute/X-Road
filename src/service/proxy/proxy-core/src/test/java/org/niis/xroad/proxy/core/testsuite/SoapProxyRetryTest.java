@@ -41,10 +41,11 @@ import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.CountingLogManager;
+import org.niis.xroad.proxy.core.RestRetryTestUtil.HandshakeOrderGate;
+import org.niis.xroad.proxy.core.RestRetryTestUtil.RejectingSslServerProxy;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.TestAddressResolver;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
-import org.niis.xroad.proxy.core.test.DummySslServerProxy;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -86,6 +87,7 @@ class SoapProxyRetryTest {
     private static final Map<String, String> PROPS = new HashMap<>();
     private static final ProxyTestSuiteHelper HELPER = new ProxyTestSuiteHelper();
     private static final TestAddressResolver RESOLVER = new TestAddressResolver();
+    private static final HandshakeOrderGate GATE = new HandshakeOrderGate();
 
     private final CountingLogManager logManager =
             new CountingLogManager(mock(GlobalConfProvider.class), mock(ServerConfProvider.class));
@@ -115,6 +117,7 @@ class SoapProxyRetryTest {
     @BeforeEach
     void setUp() {
         RESOLVER.reset();
+        GATE.reset();
     }
 
     @AfterEach
@@ -129,7 +132,7 @@ class SoapProxyRetryTest {
         startContext(true);
         int badPort = findRandomPort();
         int decoyPort = findRandomPort(); // nothing listens here, so the first attempt connects the rejecting proxy
-        DummySslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey());
+        RejectingSslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey(), GATE);
         try {
             RESOLVER.plan(List.of(
                     List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
@@ -151,7 +154,7 @@ class SoapProxyRetryTest {
         startContext(true);
         int badPort = findRandomPort();
         int decoyPort = findRandomPort();
-        DummySslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey());
+        RejectingSslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey(), GATE);
         try {
             // a retry would succeed against the real server proxy and produce a normal response,
             // so a fault here proves no retry was attempted
@@ -160,10 +163,10 @@ class SoapProxyRetryTest {
                     List.of(uri(badPort), uri(decoyPort)),
                     List.of(uri(HELPER.proxyPort))));
 
-            // the rejecting server reads no application data before rejecting, so the large
-            // attachment dies mid-write with a plain connection error (no SSLHandshakeException
-            // in the chain - the alert is never read while writing) and the strict retry gate
-            // deliberately does not retry it
+            // the rejecting server reads no application data, so the large attachment fills the
+            // transport buffers and wedges mid-write; the rejection then kills the write with a
+            // plain connection error (no SSLHandshakeException in the chain - the alert is never
+            // read while writing) and the strict retry gate deliberately does not retry it
             assertTrue(bigAttachmentTestCase().execute(ctx));
 
             // op-monitoring lookup + the single attempt
@@ -178,8 +181,8 @@ class SoapProxyRetryTest {
         startContext(true);
         int badPort1 = findRandomPort();
         int badPort2 = findRandomPort();
-        DummySslServerProxy badProxy1 = startRejectingProxy(badPort1, ctx.getKeyConfProvider().getAuthKey());
-        DummySslServerProxy badProxy2 = startRejectingProxy(badPort2, ctx.getKeyConfProvider().getAuthKey());
+        RejectingSslServerProxy badProxy1 = startRejectingProxy(badPort1, ctx.getKeyConfProvider().getAuthKey(), GATE);
+        RejectingSslServerProxy badProxy2 = startRejectingProxy(badPort2, ctx.getKeyConfProvider().getAuthKey(), GATE);
         try {
             RESOLVER.plan(List.of(List.of(uri(badPort1), uri(badPort2))));
 
@@ -200,7 +203,7 @@ class SoapProxyRetryTest {
         startContext(false);
         int badPort = findRandomPort();
         int decoyPort = findRandomPort();
-        DummySslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey());
+        RejectingSslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey(), GATE);
         try {
             // a retry would succeed against the real server proxy and produce a normal response,
             // so a fault here proves no retry was attempted
@@ -221,7 +224,8 @@ class SoapProxyRetryTest {
     private void startContext(boolean retryEnabled) {
         PROPS.put("xroad.proxy.client-proxy.enable-request-retry", valueOf(retryEnabled));
         HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
-        ctx = new TestContext(HELPER, true, mock(org.niis.xroad.monitor.rpc.MonitorRpcClient.class), RESOLVER);
+        ctx = new TestContext(HELPER, true, mock(org.niis.xroad.monitor.rpc.MonitorRpcClient.class), RESOLVER,
+                GATE::clientPastConnect);
         MessageLog.init(logManager);
     }
 

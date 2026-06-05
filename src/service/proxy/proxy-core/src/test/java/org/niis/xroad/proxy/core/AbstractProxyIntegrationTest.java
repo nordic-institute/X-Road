@@ -135,6 +135,14 @@ public abstract class AbstractProxyIntegrationTest {
      */
     protected static ServiceAddressResolver serviceAddressResolverOverride;
 
+    /**
+     * Optional listener invoked each time the client proxy finishes verifying a newly
+     * established server proxy connection (i.e. {@code AuthTrustVerifier.verify(...)}
+     * returned). Subclasses set this in a static initializer or {@code @BeforeAll};
+     * cleared after the test class finishes.
+     */
+    protected static Runnable authTrustVerifiedListener;
+
     protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServiceServerConf());
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
     protected static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
@@ -289,6 +297,7 @@ public abstract class AbstractProxyIntegrationTest {
         RESERVED_PORTS.clear();
         ADDITIONAL_PROPERTIES.clear();
         serviceAddressResolverOverride = null;
+        authTrustVerifiedListener = null;
         serverProxy.destroy();
         clientProxy.destroy();
     }
@@ -365,6 +374,9 @@ public abstract class AbstractProxyIntegrationTest {
                 verifiedCertificates.add(peerCerts[0]);
             }
             super.verify(context, sslSession, selectedAddress);
+            if (authTrustVerifiedListener != null) {
+                authTrustVerifiedListener.run();
+            }
         }
 
         public void clearVerifiedCertificates() {

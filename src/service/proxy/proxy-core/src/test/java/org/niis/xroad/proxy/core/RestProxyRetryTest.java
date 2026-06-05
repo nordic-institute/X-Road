@@ -33,6 +33,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.CountingLogManager;
+import org.niis.xroad.proxy.core.RestRetryTestUtil.HandshakeOrderGate;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.TestAddressResolver;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 
@@ -54,11 +55,13 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
 
     private static final TestAddressResolver RESOLVER = new TestAddressResolver();
     private static final CountingLogManager LOG_MANAGER = new CountingLogManager(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
+    private static final HandshakeOrderGate GATE = new HandshakeOrderGate();
 
     @BeforeAll
     static void useScriptedResolverAndMessageLogCapture() throws Exception {
         // xroad.proxy.client-proxy.enable-request-retry left at its default (true)
         serviceAddressResolverOverride = RESOLVER;
+        authTrustVerifiedListener = GATE::clientPastConnect;
         restartProxies();
         MessageLog.init(LOG_MANAGER);
     }
@@ -67,13 +70,14 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
     void resetRetryTestState() {
         RESOLVER.reset();
         LOG_MANAGER.reset();
+        GATE.reset();
     }
 
     @Test
     void shouldRetryWithNextSecurityServerWhenHandshakeFailsMidRequest() throws Exception {
         int badPort = getFreePort();
         int decoyPort = getFreePort(); // nothing listens here, so the first attempt connects the rejecting proxy
-        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey());
+        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey(), GATE);
         try {
             RESOLVER.plan(List.of(
                     List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
@@ -96,8 +100,8 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
     void shouldPreserveErrorContractWhenRetriesExhausted() throws Exception {
         int badPort1 = getFreePort();
         int badPort2 = getFreePort();
-        var badProxy1 = startRejectingProxy(badPort1, serverKeyConf.getAuthKey());
-        var badProxy2 = startRejectingProxy(badPort2, serverKeyConf.getAuthKey());
+        var badProxy1 = startRejectingProxy(badPort1, serverKeyConf.getAuthKey(), GATE);
+        var badProxy2 = startRejectingProxy(badPort2, serverKeyConf.getAuthKey(), GATE);
         try {
             RESOLVER.plan(List.of(List.of(uri(badPort1), uri(badPort2))));
 
@@ -118,7 +122,7 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
     @Test
     void shouldNotRetryOrEnterCooldownWithSingleAddress() throws Exception {
         int badPort = getFreePort();
-        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey());
+        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey(), GATE);
         try {
             RESOLVER.plan(List.of(List.of(uri(badPort)), List.of(uri(badPort))));
 

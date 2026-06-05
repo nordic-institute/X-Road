@@ -31,6 +31,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.proxy.core.RestRetryTestUtil.HandshakeOrderGate;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.TestAddressResolver;
 
 import java.util.List;
@@ -49,24 +50,27 @@ class RestProxyRetryDisabledTest extends AbstractProxyIntegrationTest {
     private static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
 
     private static final TestAddressResolver RESOLVER = new TestAddressResolver();
+    private static final HandshakeOrderGate GATE = new HandshakeOrderGate();
 
     @BeforeAll
     static void disableRetryAndUseScriptedResolver() throws Exception {
         ADDITIONAL_PROPERTIES.put("xroad.proxy.client-proxy.enable-request-retry", "false");
         serviceAddressResolverOverride = RESOLVER;
+        authTrustVerifiedListener = GATE::clientPastConnect;
         restartProxies();
     }
 
     @BeforeEach
     void resetResolver() {
         RESOLVER.reset();
+        GATE.reset();
     }
 
     @Test
     void shouldNotRetryWhenRetryIsDisabled() throws Exception {
         int badPort = getFreePort();
         int decoyPort = getFreePort();
-        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey());
+        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey(), GATE);
         try {
             // a retry would succeed against the real server proxy and turn the response into 200,
             // so a 500 here proves no retry was attempted
