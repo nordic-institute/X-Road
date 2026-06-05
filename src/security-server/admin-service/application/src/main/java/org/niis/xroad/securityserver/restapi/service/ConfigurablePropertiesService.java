@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
@@ -54,6 +55,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ConfigurablePropertiesService {
+
+    private static final Consumer<String> NOOP_VALUE_CONSUMER = _ -> { };
 
     private final ConfigurablePropertiesDefinition configurableProperties;
     private final ConfigurationPropertyRepository repository;
@@ -88,7 +91,7 @@ public class ConfigurablePropertiesService {
      * @param scope         scope of the property (service name or null)
      */
     public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
-        updateConfigurableProperty(propertyKey, propertyValue, scope, ConfigurationPropertyAuditListener.NOOP);
+        updateConfigurableProperty(propertyKey, propertyValue, scope, NOOP_VALUE_CONSUMER);
     }
 
     /**
@@ -99,19 +102,18 @@ public class ConfigurablePropertiesService {
      * Otherwise, a new {@link ConfigurationPropertyEntity} is created and persisted.
      * </p>
      * <p>
-     * This variant allows the caller to provide a {@link ConfigurationPropertyAuditListener}
-     * that will be notified after the update operation is completed. The listener receives
-     * the property key, new value, scope (if any), and the previous value (if any).
+     * This variant allows the caller to provide a consumer for the existing value before the update.
      * </p>
      *
-     * @param propertyKey   unique key of the system property
-     * @param propertyValue new value for the system property
-     * @param scope         scope of the property (service name or null)
-     * @param auditListener listener invoked after successful update to handle audit or side effects;
-     *                      use {@link ConfigurationPropertyAuditListener#NOOP} if no action is required
+     * @param propertyKey           unique key of the system property
+     * @param propertyValue         new value for the system property
+     * @param scope                 scope of the property (service name or null)
+     * @param existingValueConsumer callback that consumes the existing persisted property value
+     *                              before the update, not invoked if the property does not exist
+     *                              or has a {@code null} value
      */
     public void updateConfigurableProperty(
-            String propertyKey, String propertyValue, String scope, ConfigurationPropertyAuditListener auditListener) {
+            String propertyKey, String propertyValue, String scope, Consumer<String> existingValueConsumer) {
 
         if (!isPropertyConfigurable(propertyKey, scope)) {
             throw new NotFoundException(
@@ -120,13 +122,11 @@ public class ConfigurablePropertiesService {
         }
 
         var existing = repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope);
-        var propertyOldValue = existing.map(ConfigurationPropertyEntity::getPropertyValue).orElse(null);
+        existing.map(ConfigurationPropertyEntity::getPropertyValue).ifPresent(existingValueConsumer);
 
         var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey, scope));
         entity.setPropertyValue(propertyValue);
         repository.saveOrUpdate(entity);
-
-        auditListener.onUpdate(propertyKey, propertyValue, scope, propertyOldValue);
     }
 
     private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(

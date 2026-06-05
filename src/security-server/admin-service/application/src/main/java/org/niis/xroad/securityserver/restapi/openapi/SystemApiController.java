@@ -65,7 +65,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritization
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.ConfigurablePropertiesService;
-import org.niis.xroad.securityserver.restapi.service.ConfigurationPropertyAuditListener;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
@@ -160,12 +159,10 @@ public class SystemApiController implements SystemApi {
         auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE, value);
         auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, ObjectUtils.getIfNull(scope, StringUtils.EMPTY));
 
-        ConfigurationPropertyAuditListener auditListener = (_, _, _, oldValue) ->
-                auditDataHelper.put(
-                        RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE,
-                        ObjectUtils.getIfNull(oldValue, StringUtils.EMPTY));
+        configurablePropertiesService.updateConfigurableProperty(
+                name, value, scope, (oldValue) ->
+                        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE, oldValue));
 
-        configurablePropertiesService.updateConfigurableProperty(name, value, scope, auditListener);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

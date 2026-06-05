@@ -40,12 +40,14 @@ import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -211,11 +213,11 @@ class ConfigurablePropertiesServiceTest {
         entity.setPropertyKey(PROPERTY_NAME);
         entity.setPropertyValue(PROPERTY_VALUE);
         entity.setScope(SCOPE);
-        var auditListener = mock(ConfigurationPropertyAuditListener.class);
+        Consumer<String> existingValueConsumer = mock(Consumer.class);
         when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
         when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, auditListener);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, existingValueConsumer);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -225,16 +227,16 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_VALUE_2, capturedEntity.getPropertyValue());
 
-        verify(auditListener).onUpdate(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, PROPERTY_VALUE);
+        verify(existingValueConsumer).accept(PROPERTY_VALUE);
     }
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabaseWithAuditListener() {
-        var auditListener = mock(ConfigurationPropertyAuditListener.class);
+        Consumer<String> existingValueConsumer = mock(Consumer.class);
         when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
         when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, auditListener);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, existingValueConsumer);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -246,7 +248,7 @@ class ConfigurablePropertiesServiceTest {
         assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
         assertEquals(SCOPE, capturedEntity.getScope());
 
-        verify(auditListener).onUpdate(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, null);
+        verifyNoInteractions(existingValueConsumer);
     }
 
     private static void assertCommonConfigurablePropertyDtoFields(SecurityServerConfigurablePropertyDto parameter) {
