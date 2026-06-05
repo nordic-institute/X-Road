@@ -347,7 +347,7 @@
     "traffic": {
       "client": "Client",
       "date": "Date",
-      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install xroad-opmonitor and enable operational monitoring in the Security Server configuration.",
+      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-opmonitor) and enable operational monitoring in the Security Server configuration.",
       "disabledTitle": "Operational Data Monitoring Is Disabled",
       "exchangeRole": "Exchange role",
       "exchangeRoleInfo": "Producer or Consumer",

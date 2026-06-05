@@ -289,7 +289,7 @@
     "traffic": {
       "client": "Cliente",
       "date": "Fecha",
-      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instale xroad-opmonitor y habilite la monitorización de datos operativos en la configuración del Servidor de Seguridad.",
+      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instale el complemento de monitorización de datos operativos (xroad-opmonitor) y habilite la monitorización de datos operativos en la configuración del Servidor de Seguridad.",
       "disabledTitle": "La monitorización de datos operativos está deshabilitada",
       "exchangeRole": "Rol de intercambio",
       "exchangeRoleInfo": "Productor o Consumidor",
