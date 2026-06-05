@@ -39,14 +39,18 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 
 /**
  * Replaces the default EDC {@link OkHttpClient} with a TLS-aware version that trusts the
- * certificate specified by {@code QUARKUS_VAULT_TLS_CA_CERT} (the same env var used by the
- * Quarkus vault client). Required when EDC services communicate with OpenBao over HTTPS using
- * a self-signed certificate that is not in the JVM default trust store.
+ * certificate(s) specified by {@code QUARKUS_VAULT_TLS_CA_CERT} (the same env var used by the
+ * Quarkus vault client) in addition to the JVM default trust anchors. Required when EDC services
+ * communicate with OpenBao over HTTPS using a self-signed certificate that is not in the JVM
+ * default trust store — while still being able to reach other TLS peers (DID documents, issuer
+ * services) whose certificates chain to regular trust anchors.
  *
  * <p>The {@code @Inject RetryPolicy} field forces EDC's dependency resolver to run this extension
  * after {@code RuntimeDefaultCoreServicesExtension}, whose {@code @Provider OkHttpClient} would
@@ -73,15 +77,8 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
             return new OkHttpClient.Builder().build();
         }
         try {
-            var cf = CertificateFactory.getInstance("X.509");
-            var cert = cf.generateCertificate(new FileInputStream(certPath));
-
-            var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(null, null);
-            keyStore.setCertificateEntry("openbao", cert);
-
             var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init(keyStore);
+            tmf.init(combinedTrustStore(certPath));
 
             var sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, tmf.getTrustManagers(), null);
@@ -96,5 +93,29 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
                             .formatted(certPath, e.getMessage()));
             return new OkHttpClient.Builder().build();
         }
+    }
+
+    private static KeyStore combinedTrustStore(String certPath) throws GeneralSecurityException, IOException {
+        var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null, null);
+
+        var index = 0;
+        var cf = CertificateFactory.getInstance("X.509");
+        try (var in = new FileInputStream(certPath)) {
+            for (var cert : cf.generateCertificates(in)) {
+                keyStore.setCertificateEntry("vault-ca-" + index++, cert);
+            }
+        }
+
+        var defaultTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        defaultTmf.init((KeyStore) null);
+        for (var trustManager : defaultTmf.getTrustManagers()) {
+            if (trustManager instanceof X509TrustManager x509) {
+                for (var issuer : x509.getAcceptedIssuers()) {
+                    keyStore.setCertificateEntry("default-" + index++, issuer);
+                }
+            }
+        }
+        return keyStore;
     }
 }

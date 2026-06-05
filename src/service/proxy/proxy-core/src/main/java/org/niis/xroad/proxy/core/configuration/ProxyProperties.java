@@ -57,6 +57,10 @@ public interface ProxyProperties {
     @WithDefault("true")
     boolean sslEnabled();
 
+    @WithName("dsp-enabled")
+    @WithDefault("true")
+    boolean dspEnabled();
+
     @WithName("health-check-enabled")
     @WithDefault("false")
     boolean healthCheckEnabled();

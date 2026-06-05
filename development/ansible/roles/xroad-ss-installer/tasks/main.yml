@@ -132,12 +132,24 @@
         flat: true
       when: installer_logs.files | length > 0
 
+- name: Discover installed DS units on RHEL
+  become: true
+  ansible.builtin.shell: >-
+    systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'
+  register: rhel_ds_units
+  changed_when: false
+  when: ansible_facts['os_family'] == "RedHat"
+
+# The deb postinst auto-starts xroad services on Ubuntu; the RHEL installer does
+# not, so proxy and the enabled-but-stopped DS units (control-plane, identity-hub)
+# must be started explicitly or the DSP federation endpoints never come up.
 - name: Start xroad services on RHEL (installer does not auto-start)
   become: true
   systemd:
-    name: xroad-proxy
+    name: "{{ item }}"
     state: started
     enabled: true
+  loop: "{{ ['xroad-proxy'] + (rhel_ds_units.stdout_lines | default([])) }}"
   when: ansible_facts['os_family'] == "RedHat"
 
 - name: Wait for X-Road UI port

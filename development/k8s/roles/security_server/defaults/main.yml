@@ -21,6 +21,11 @@ openbao_tls_secret_name: openbao-server-tls
 
 configuration_client_update_interval: "10"
 
+proxy_dsp_enabled: true
+
+trusted_issuer_host: xrd-cs
+xrd_ca_external_host: xrd-ca.lxd
+
 serverconf_db:
   name: db-serverconf
   database: serverconf
@@ -39,6 +44,32 @@ opmonitor_db:
   name: db-opmonitor
   database: op-monitor
   username: opmonitor
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+
+# DSP-scoped databases — provisioned by the CNPG role alongside
+# serverconf/messagelog/opmonitor. The chart consumes the app-user Secret
+# (`db-<name>` with key `password`) and the bare Service DNS published by
+# the CNPG role's ExternalName alias.
+ds_control_plane_db:
+  name: db-ds-control-plane
+  database: ds-control-plane
+  username: ds_control_plane
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+ds_identity_hub_db:
+  name: db-ds-identity-hub
+  database: ds-identity-hub
+  username: ds_identity_hub
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+ds_issuer_service_db:
+  name: db-ds-issuer-service
+  database: ds-issuer-service
+  username: ds_issuer_service
   password: secret
   postgres_password: admin_secret
   storage_size: 1Gi

@@ -42,6 +42,7 @@ DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$DIR"
 
 mkdir -p build/xroad/redhat
+rm -rf build/xroad/redhat
 cp -a src/xroad/redhat build/xroad
 
 if [[ -z "$SNAPSHOT" ]]; then

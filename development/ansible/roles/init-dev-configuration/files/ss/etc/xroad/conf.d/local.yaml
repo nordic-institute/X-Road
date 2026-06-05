@@ -1,4 +1,13 @@
 ---
+quarkus:
+  log:
+    level: INFO
+    category:
+      "org.niis.xroad":
+        level: DEBUG
+      "io.quarkus":
+        level: INFO
+
 xroad:
   common-global-conf:
     source: REMOTE

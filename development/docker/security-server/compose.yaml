@@ -252,6 +252,11 @@ services:
     environment:
       - DEBUG=true
       - XROAD_HOST=proxy
+      - XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID=${DSP_PARTICIPANT_ID:-xrd-ss}
+      - XROAD_PROXY_DSP_CONTROL_PLANE_ENDPOINT=https://ds-control-plane:8184/api/v1/control
+      - XROAD_PROXY_DSP_LISTEN_ADDRESS=0.0.0.0
+      - XROAD_PROXY_DSP_DATA_FLOW_ENDPOINT=http://proxy:5590/full/api/v1/dataflows
+      - XROAD_COMMON_RPC_CHANNEL_ASSET_ACCESS_HOST=ds-control-plane
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
@@ -266,12 +271,15 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:5588/q/health" ]
     networks:
       - xrd-ss-network
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -360,6 +368,9 @@ services:
     depends_on:
       openbao:
         condition: service_healthy
+volumes:
+  ds-https-keystore:
+
 networks:
   xrd-ss-network:
     driver: bridge

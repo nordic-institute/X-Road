@@ -37,7 +37,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
@@ -87,12 +86,27 @@ public class ClientRequestPreparationService {
         }
     }
 
+    public void recordServiceSecurityServerAddress(ServiceId requestServiceId,
+                                                   SecurityServerId securityServerId,
+                                                   ProxyRequestContext ctx,
+                                                   OpMonitoringData opMonitoringData) {
+        if (opMonitoringData == null) {
+            return;
+        }
+        try {
+            var candidates = serviceAddressResolver.resolve(requestServiceId, securityServerId, ctx);
+            if (!candidates.isEmpty()) {
+                opMonitoringData.setServiceSecurityServerAddress(candidates.getFirst().getHost());
+            }
+        } catch (RuntimeException e) {
+            log.debug("Failed to resolve service security server address for op-monitoring", e);
+        }
+    }
+
     /**
-     * Prepares an {@link HttpSender} for a client proxy request: resolves target addresses,
-     * sets SSL attributes, connection pool user token, timeouts, and common request headers.
-     *
-     * <p>When {@code originalSoapAction} is non-null (SOAP path), the
-     * {@code HEADER_ORIGINAL_SOAP_ACTION} header is also added.
+     * Prepares an {@link HttpSender} for a client proxy request using legacy target resolution:
+     * resolves provider security-server addresses from global configuration, then sets SSL
+     * attributes, connection pool user token, timeouts, and common request headers.
      *
      * @param httpSender         the HTTP sender to configure
      * @param requestServiceId   the service identifier for the outgoing request
@@ -101,19 +115,44 @@ public class ClientRequestPreparationService {
      * @param opMonitoringData   operational monitoring data to update, or null if not collected
      * @param originalSoapAction the original SOAP action header value (SOAP path only), or null for REST
      * @return the resolved array of target URIs
-     * @throws XrdRuntimeException if no addresses can be resolved
      */
     public URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId,
                                 SecurityServerId securityServerId, ProxyRequestContext ctx,
                                 OpMonitoringData opMonitoringData,
                                 @Nullable String originalSoapAction) {
+        var tmp = serviceAddressResolver.resolve(requestServiceId, securityServerId, ctx);
+        Collections.shuffle(tmp);
+        return configureSender(httpSender, requestServiceId, tmp.toArray(new URI[0]),
+                ctx, opMonitoringData, originalSoapAction);
+    }
+
+    /**
+     * Prepares an {@link HttpSender} for a client proxy request targeting the DSP-negotiated
+     * data-plane endpoint, then sets SSL attributes, connection pool user token, timeouts, and
+     * common request headers.
+     *
+     * @param httpSender         the HTTP sender to configure
+     * @param requestServiceId   the service identifier for the outgoing request
+     * @param dataPlaneEndpoint  the DSP-negotiated endpoint to send the request to
+     * @param ctx                the per-request proxy context
+     * @param opMonitoringData   operational monitoring data to update, or null if not collected
+     * @param originalSoapAction the original SOAP action header value (SOAP path only), or null for REST
+     * @return the single-element array holding the data-plane endpoint
+     */
+    public URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId,
+                                URI dataPlaneEndpoint, ProxyRequestContext ctx,
+                                OpMonitoringData opMonitoringData,
+                                @Nullable String originalSoapAction) {
+        return configureSender(httpSender, requestServiceId, new URI[]{dataPlaneEndpoint},
+                ctx, opMonitoringData, originalSoapAction);
+    }
+
+    private URI[] configureSender(HttpSender httpSender, ServiceId requestServiceId, URI[] addresses,
+                                  ProxyRequestContext ctx, OpMonitoringData opMonitoringData,
+                                  @Nullable String originalSoapAction) {
         if (proxyProperties.sslEnabled()) {
             httpSender.setAttribute(AuthTrustVerifier.ID_PROVIDERNAME, requestServiceId);
         }
-
-        var tmp = serviceAddressResolver.resolve(requestServiceId, securityServerId, ctx);
-        Collections.shuffle(tmp);
-        URI[] addresses = tmp.toArray(new URI[0]);
 
         opMonitoringDataHelper.updateOpMonitoringServiceSecurityServerAddress(addresses, httpSender, opMonitoringData);
 

@@ -135,6 +135,7 @@ include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")
 include("service:proxy:proxy-rpc-client")
 include("service:proxy:proxy-monitoring-api")
+include("service:proxy:proxy-dsp-core")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")

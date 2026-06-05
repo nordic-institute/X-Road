@@ -48,6 +48,7 @@
         exec </dev/null
         nohup kubectl --kubeconfig {{ kubeconfig_path | quote }} \
           port-forward \
+          {% if item.address is defined %}--address {{ item.address | quote }} {% endif %}\
           -n {{ item.namespace | quote }} \
           {{ item.resource }} \
           {{ item.ports }} \

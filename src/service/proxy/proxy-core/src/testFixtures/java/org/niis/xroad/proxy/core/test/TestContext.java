@@ -45,6 +45,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
@@ -59,6 +60,7 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
@@ -131,7 +133,8 @@ public class TestContext {
             var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
             var serviceAddressResolver = serviceAddressResolverOverride != null
                     ? serviceAddressResolverOverride
-                    : new DefaultServiceAddressResolver(globalConfProvider, proxyProperties);
+                    : new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
+                            new ProviderSecurityServerResolver(globalConfProvider));
             var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
                     globalConfProvider, proxyProperties, certHelper);
 
@@ -147,7 +150,7 @@ public class TestContext {
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
-                    ocspVerifierFactory, clientRequestPreparationService, identifierValidationService);
+                    ocspVerifierFactory, clientRequestPreparationService, mock(DspRequestProcessor.class), identifierValidationService);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);

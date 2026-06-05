@@ -74,23 +74,37 @@
   tags:
     - netdata
 
-- name: Configure local repositories
-  hosts: ss_servers, cs_servers, cp_servers
+- name: Build local package repository (single shared, served over HTTP)
+  hosts: repo_servers
+  become: true
   strategy: free
   pre_tasks:
     - name: Check host connectivity
       ping:
-    - name: Show target hosts
-      debug:
-        msg: "Target hosts in group: {{ groups['ss_servers'] + groups['cs_servers'] + groups['cp_servers'] }}"
   roles:
-    - packages-to-local-repo
+    - xroad-repo
+  tags:
+    - repo
+    - install
+
+# CA installs first because xroad-cs and xroad-ss both need xrd-ca's signing
+# endpoint up to provision ds-https TLS keystores (see ds-https-keystore.yml).
+- name: Install CA servers
+  hosts: ca_servers
+  become: true
+  strategy: free
+  roles:
+    - xroad-ca
+  tags:
+    - ca
+    - install
 
 - name: Install CS servers
   hosts: cs_servers
   become: true
   strategy: free
   roles:
+    - xroad-mock-jwks-server
     - xroad-cs
   tags:
     - cs
@@ -111,16 +125,6 @@
   vars_files:
     - vars_files/local_repo.yml
     - vars_files/cp_database.yml
-
-- name: Install CA servers
-  hosts: ca_servers
-  become: true
-  strategy: free
-  roles:
-    - xroad-ca
-  tags:
-    - ca
-    - install
 
 - name: Configure HW tokens (SoftHSM2) for SS
   hosts: ubuntu_hsm_ss
@@ -144,16 +148,22 @@
 - name: Install SS servers
   hosts: ss_servers
   become: true
-  strategy: free
+  # linear (not free): the installer's run_once "Stage installer on controller"
+  # step rewrites a shared build/xroad-installer dir (rm -rf + cp -R). Under free,
+  # a second SS host races into the per-host "Sync staged installer" copy while
+  # that rewrite is mid-flight and fails with "chmod: cannot access .source".
+  # linear barriers the staging step ahead of the parallel syncs.
+  strategy: linear
   vars:
     xroad_installer_local_mode: true
     # LXD dev containers are below the installer's OS/RAM/CPU floor.
     skip_requirements_check: true
-    # Ubuntu apt expects "file:///xroad /", RHEL dnf expects "file:///xroad" —
-    # mirrors vars_files/local_repo.yml (ubuntu_apt_repo / rhel_repo_baseurl).
+    # Ubuntu apt expects "http://xrd-repo/deb /", RHEL dnf expects "http://xrd-repo/rpm" —
+    # mirrors vars_files/local_repo.yml (ubuntu_apt_repo / rhel_repo_baseurl). Packages are
+    # served by the shared xrd-repo nginx container, not a per-host file:// repo.
     xroad_repo_url_override: >-
-      {{ 'file:///xroad /' if ansible_facts['os_family'] == 'Debian'
-         else 'file:///xroad' }}
+      {{ 'http://xrd-repo/deb /' if ansible_facts['os_family'] == 'Debian'
+         else 'http://xrd-repo/rpm' }}
     xroad_tls_hostname: "{{ inventory_hostname }}.lxd"
     xroad_tls_alt_names: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ inventory_hostname }}.lxd,DNS:{{ inventory_hostname }}"
   vars_files:
@@ -166,6 +176,22 @@
     # dependency is NOT run — the installer already set up repos/packages/user.
     - name: Apply SS postinstall tweaks (db_property, postgres_remote_dev, opmonitor)
       include_tasks: roles/xroad-ss/tasks/postinstall.yml
+    # The xroad-ss-installer flow does not run the xroad-ss role's pre-ss-install
+    # hook, so DSP runtime config + the ds-https TLS keystore never land and the
+    # DS services come up on plain http. Preseed them here, then restart the DS
+    # units (and proxy, which gets local-dsp.yaml) so they pick up TLS + config.
+    - name: Preseed DSP config + provision DS TLS keystore
+      include_tasks: roles/xroad-ss/tasks/pre-ss-install.yml
+    - name: Discover installed DS units
+      ansible.builtin.shell: >-
+        systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'
+      register: ss_ds_units
+      changed_when: false
+    - name: Restart DS units and proxy to apply preseeded TLS + runtime config
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop: "{{ (ss_ds_units.stdout_lines | default([])) + ['xroad-proxy'] }}"
   handlers:
     # postinstall.yml notifies xroad-ss handlers; register them at play level
     # since we no longer enter the role via include_role.

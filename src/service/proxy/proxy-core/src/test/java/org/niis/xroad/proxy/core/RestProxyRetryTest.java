@@ -76,6 +76,7 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
         var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey());
         try {
             RESOLVER.plan(List.of(
+                    List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
                     List.of(uri(badPort), uri(decoyPort)),
                     List.of(uri(proxyServerPort))));
 
@@ -83,7 +84,8 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
                     .statusCode(200)
                     .body("value", Matchers.equalTo(42));
 
-            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
+            // op-monitoring lookup + initial attempt + one retry
+            assertThat(RESOLVER.resolveCount()).isEqualTo(3);
             assertThat(LOG_MANAGER.clientRequestLogCount()).isEqualTo(1);
         } finally {
             badProxy.destroy();
@@ -103,8 +105,9 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
                     .statusCode(500)
                     .header("X-Road-Error", Matchers.containsString("ssl_authentication_failed"));
 
-            // initial attempt + one retry; after both addresses are in cooldown the retry aborts
-            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
+            // op-monitoring lookup + initial attempt + one retry; after both addresses are in
+            // cooldown the retry aborts
+            assertThat(RESOLVER.resolveCount()).isEqualTo(3);
             assertThat(LOG_MANAGER.clientRequestLogCount()).isEqualTo(1);
         } finally {
             badProxy1.destroy();
@@ -124,7 +127,8 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
                     .statusCode(500)
                     .header("X-Road-Error", Matchers.containsString("ssl_authentication_failed"));
 
-            assertThat(RESOLVER.resolveCount()).isEqualTo(1);
+            // op-monitoring lookup + the single attempt
+            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
             assertThat(LOG_MANAGER.clientRequestLogCount()).isEqualTo(1);
 
             // the single address is not put in cooldown: the next request attempts a real
@@ -134,7 +138,7 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
                     .statusCode(500)
                     .header("X-Road-Error", Matchers.containsString("ssl_authentication_failed"));
 
-            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
+            assertThat(RESOLVER.resolveCount()).isEqualTo(4);
             assertThat(LOG_MANAGER.clientRequestLogCount()).isEqualTo(2);
         } finally {
             badProxy.destroy();

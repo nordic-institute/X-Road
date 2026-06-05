@@ -28,8 +28,8 @@
 
 - name: download acme2certifier
   get_url:
-    url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
-    dest: "/tmp/acme2certifier_{{ a2c_ver }}-1_all.deb"
+    url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-{{ a2c_deb_release }}_all.deb"
+    dest: "/tmp/acme2certifier_{{ a2c_ver }}-{{ a2c_deb_release }}_all.deb"
   when:
     - not cache_marker.stat.exists
     - ansible_facts['distribution_release'] in ["noble", "resolute"]
@@ -220,6 +220,18 @@
     owner: "www-data"
   loop:
     - "openssl_ca_handler.py"
+  when:
+    - not cache_marker.stat.exists
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
+
+- name: copy acme2certifier renewalinfo (patched)
+  copy:
+    src: "../../../acme2certifier/{{ item }}"
+    dest: /var/www/acme2certifier/acme_srv/renewalinfo.py
+    group: "www-data"
+    owner: "www-data"
+  loop:
+    - "renewalinfo.py"
   when:
     - not cache_marker.stat.exists
     - ansible_facts['distribution_release'] in ["noble", "resolute"]

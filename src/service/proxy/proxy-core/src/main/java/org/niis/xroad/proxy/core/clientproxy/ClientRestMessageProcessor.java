@@ -59,6 +59,8 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.DspRequest;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
@@ -114,6 +116,7 @@ public class ClientRestMessageProcessor {
     private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ClientRequestPreparationService clientRequestPreparationService;
+    private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
 
     /**
@@ -169,6 +172,10 @@ public class ClientRestMessageProcessor {
                 && !response.getRestResponse().isErrorResponse();
     }
 
+    boolean isManagementRequest(ServiceId serviceId) {
+        return serviceId.getClientId().equals(globalConfProvider.getManagementRequestService());
+    }
+
     private void checkRequestIdentifiers(RestRequest restRequest) {
         identifierValidationService.checkIdentifier(restRequest.getClientId());
         identifierValidationService.checkIdentifier(restRequest.getServiceId());
@@ -182,6 +189,8 @@ public class ClientRestMessageProcessor {
             restRequest.setQueryId(globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
         opMonitoringDataHelper.updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
+        clientRequestPreparationService.recordServiceSecurityServerAddress(
+                requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData);
 
         ProxyMessage response;
         var sentRequest = executeWithRetry(jRequest, opMonitoringData, restRequest, senderId,
@@ -263,8 +272,17 @@ public class ClientRestMessageProcessor {
                              ProxyRequestContext ctx) throws Exception {
         log.trace("sendRequest()");
 
-        final URI[] addresses = clientRequestPreparationService.prepareRequest(
-                httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
+        // MANAGEMENT requests target the mgmt participant context; all others use the host context.
+        final URI[] addresses;
+        if (proxyProperties.dspEnabled()) {
+            var assetAccess = consumerSideDspProcessor.execute(new DspRequest(requestServiceId,
+                    restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
+            addresses = clientRequestPreparationService.prepareRequest(
+                    httpSender, requestServiceId, URI.create(assetAccess.endpoint()), ctx, opMonitoringData, null);
+        } else {
+            addresses = clientRequestPreparationService.prepareRequest(
+                    httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
+        }
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 

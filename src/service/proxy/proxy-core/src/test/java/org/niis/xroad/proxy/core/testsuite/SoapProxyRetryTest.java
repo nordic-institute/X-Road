@@ -132,12 +132,14 @@ class SoapProxyRetryTest {
         DummySslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey());
         try {
             RESOLVER.plan(List.of(
+                    List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
                     List.of(uri(badPort), uri(decoyPort)),
                     List.of(uri(HELPER.proxyPort))));
 
             assertTrue(normalTestCase().execute(ctx));
 
-            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
+            // op-monitoring lookup + initial attempt + one retry
+            assertThat(RESOLVER.resolveCount()).isEqualTo(3);
             assertThat(logManager.clientRequestLogCount()).isEqualTo(1);
         } finally {
             badProxy.destroy();
@@ -154,6 +156,7 @@ class SoapProxyRetryTest {
             // a retry would succeed against the real server proxy and produce a normal response,
             // so a fault here proves no retry was attempted
             RESOLVER.plan(List.of(
+                    List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
                     List.of(uri(badPort), uri(decoyPort)),
                     List.of(uri(HELPER.proxyPort))));
 
@@ -163,7 +166,8 @@ class SoapProxyRetryTest {
             // deliberately does not retry it
             assertTrue(bigAttachmentTestCase().execute(ctx));
 
-            assertThat(RESOLVER.resolveCount()).isEqualTo(1);
+            // op-monitoring lookup + the single attempt
+            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
         } finally {
             badProxy.destroy();
         }
@@ -181,8 +185,9 @@ class SoapProxyRetryTest {
 
             assertTrue(sslAuthFailureTestCase().execute(ctx));
 
-            // initial attempt + one retry; after both addresses are in cooldown the retry aborts
-            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
+            // op-monitoring lookup + initial attempt + one retry; after both addresses are in
+            // cooldown the retry aborts
+            assertThat(RESOLVER.resolveCount()).isEqualTo(3);
             assertThat(logManager.clientRequestLogCount()).isEqualTo(1);
         } finally {
             badProxy1.destroy();
@@ -200,12 +205,14 @@ class SoapProxyRetryTest {
             // a retry would succeed against the real server proxy and produce a normal response,
             // so a fault here proves no retry was attempted
             RESOLVER.plan(List.of(
+                    List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
                     List.of(uri(badPort), uri(decoyPort)),
                     List.of(uri(HELPER.proxyPort))));
 
             assertTrue(clientProxyFaultTestCase().execute(ctx));
 
-            assertThat(RESOLVER.resolveCount()).isEqualTo(1);
+            // op-monitoring lookup + the single attempt
+            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
         } finally {
             badProxy.destroy();
         }

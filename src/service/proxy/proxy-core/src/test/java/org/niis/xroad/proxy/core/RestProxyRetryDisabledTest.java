@@ -71,6 +71,7 @@ class RestProxyRetryDisabledTest extends AbstractProxyIntegrationTest {
             // a retry would succeed against the real server proxy and turn the response into 200,
             // so a 500 here proves no retry was attempted
             RESOLVER.plan(List.of(
+                    List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
                     List.of(uri(badPort), uri(decoyPort)),
                     List.of(uri(proxyServerPort))));
 
@@ -88,7 +89,8 @@ class RestProxyRetryDisabledTest extends AbstractProxyIntegrationTest {
                     // both are the pre-retry-feature behavior
                     .header("X-Road-Error", Matchers.notNullValue());
 
-            assertThat(RESOLVER.resolveCount()).isEqualTo(1);
+            // op-monitoring lookup + the single attempt
+            assertThat(RESOLVER.resolveCount()).isEqualTo(2);
         } finally {
             badProxy.destroy();
         }

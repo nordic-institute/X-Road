@@ -15,7 +15,7 @@ Description: Monitoring client configuration for X-Road central
 Package: xroad-centralserver
 Conflicts: xroad-securityserver
 Architecture: all
-Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version}), xroad-center-registration-service (=${binary:Version}), xroad-center-management-service (=${binary:Version})
+Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version}), xroad-center-registration-service (=${binary:Version}), xroad-center-management-service (=${binary:Version}), xroad-ds-issuer-service (=${binary:Version})
 Description: X-Road central server
  This is meta-package of X-Road central server.
 
@@ -193,3 +193,10 @@ Package: xroad-ds-identity-hub
 Architecture: all
 Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
 Description: X-Road DS Identity Hub
+
+Package: xroad-ds-issuer-service
+Architecture: all
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
+Description: X-Road DS Issuer Service
+ X-Road Data Space Issuer Service component for the Central Server.
