@@ -45,9 +45,6 @@ import org.springframework.core.annotation.Order;
 
 import java.util.List;
 
-import static org.niis.xroad.restapi.auth.securityconfigurer.ApiWebSecurityConfig.API_URL;
-import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.LOGIN_URL;
-import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.LOGOUT_URL;
 import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
 
 /**
@@ -69,7 +66,7 @@ public class SecurityServerConfiguration {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
-        bean.addUrlPatterns(API_URL, LOGIN_URL, LOGOUT_URL);
+        bean.addUrlPatterns(IpThrottlingFilter.ADMIN_UI_PATTERNS);
         return bean;
     }
 
