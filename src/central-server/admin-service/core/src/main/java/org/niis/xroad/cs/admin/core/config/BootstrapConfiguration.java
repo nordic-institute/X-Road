@@ -36,6 +36,7 @@ import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
+import org.niis.xroad.restapi.auth.securityconfigurer.ApiWebSecurityConfig;
 import org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
@@ -47,6 +48,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.vault.core.VaultTemplate;
+
+import static org.niis.xroad.restapi.auth.securityconfigurer.ApiWebSecurityConfig.API_URL;
+import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.LOGIN_URL;
+import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.LOGOUT_URL;
 
 @Import({SpringGlobalConfConfig.class,
         SpringOcspVerifierConfig.class,
@@ -77,8 +82,7 @@ public class BootstrapConfiguration {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
-        // Throttle only the API and login; static assets (SPA, /assets, fonts, css, js) are not rate-limited.
-        bean.addUrlPatterns("/api/*", FormLoginWebSecurityConfig.LOGIN_URL);
+        bean.addUrlPatterns(API_URL, LOGIN_URL, LOGOUT_URL);
         return bean;
     }
 

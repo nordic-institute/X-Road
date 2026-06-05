@@ -29,7 +29,6 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
-import org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
@@ -46,6 +45,9 @@ import org.springframework.core.annotation.Order;
 
 import java.util.List;
 
+import static org.niis.xroad.restapi.auth.securityconfigurer.ApiWebSecurityConfig.API_URL;
+import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.LOGIN_URL;
+import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.LOGOUT_URL;
 import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
 
 /**
@@ -67,8 +69,7 @@ public class SecurityServerConfiguration {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
-        // Throttle only the API and login; static assets (SPA, /assets, fonts, css, js) are not rate-limited.
-        bean.addUrlPatterns("/api/*", FormLoginWebSecurityConfig.LOGIN_URL);
+        bean.addUrlPatterns(API_URL, LOGIN_URL, LOGOUT_URL);
         return bean;
     }
 

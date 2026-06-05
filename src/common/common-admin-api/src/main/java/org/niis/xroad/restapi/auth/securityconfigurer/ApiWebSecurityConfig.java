@@ -52,6 +52,7 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerP
 @Configuration
 public class ApiWebSecurityConfig {
     private static final String PRINCIPAL_REQUEST_HEADER = "Authorization";
+    public static final String API_URL = "/api/**";
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
@@ -67,7 +68,7 @@ public class ApiWebSecurityConfig {
         // would cause http 500, we want http 401
 
         return http
-                .securityMatcher("/api/**")
+                .securityMatcher(API_URL)
                 .addFilter(filter)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.NEVER))
                 .authorizeHttpRequests(customizer -> customizer.anyRequest().authenticated())

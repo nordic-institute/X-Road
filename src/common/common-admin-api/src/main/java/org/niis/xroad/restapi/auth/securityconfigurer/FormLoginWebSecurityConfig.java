@@ -56,6 +56,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static org.niis.xroad.restapi.auth.securityconfigurer.ApiWebSecurityConfig.API_URL;
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.csrfTokenRequestAttributeHandler;
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
@@ -70,6 +71,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
 @Slf4j
 public class FormLoginWebSecurityConfig {
     public static final String LOGIN_URL = "/login";
+    public static final String LOGOUT_URL = "/logout";
 
     public static final String FORM_LOGIN_AUTHENTICATION = "formLoginAuthentication";
 
@@ -88,8 +90,8 @@ public class FormLoginWebSecurityConfig {
                 .authorizeHttpRequests(customizer -> customizer
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(LOGIN_URL).permitAll()
-                        .requestMatchers("/logout").fullyAuthenticated()
-                        .requestMatchers("/api/**").denyAll()
+                        .requestMatchers(LOGOUT_URL).fullyAuthenticated()
+                        .requestMatchers(API_URL).denyAll()
                         .anyRequest().denyAll()
                 )
                 .csrf(customizer -> customizer
