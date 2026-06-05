@@ -58,6 +58,36 @@ services:
         condition: service_healthy
       ssl-keystore-init:
         condition: service_completed_successfully
+      db-serverconf-proxy-config-seed:
+        condition: service_completed_successfully
+
+  # Seeds the proxy's config overrides into configuration_properties so the proxy resolves them
+  # via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
+  # scope='proxy' matches the proxy's quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
+  db-serverconf-proxy-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+             ('xroad.proxy.ssl-enabled', 'false', 'proxy', now(), now()),
+             ('xroad.proxy.health-check-port', '5558', 'proxy', now(), now()),
+             ('xroad.proxy.memory-usage-threshold', '77', 'proxy', now(), now()),
+             ('xroad.proxy.message-log.timestamping-prioritization-strategy', 'PAID_FIRST', 'proxy', now(), now()),
+             ('xroad.proxy.addon.op-monitor.enabled', 'true', 'proxy', now(), now()),
+             ('xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds', '1', 'proxy', now(), now()),
+             ('xroad.proxy.addon.op-monitor.connection.host', 'op-monitor', 'proxy', now(), now()),
+             ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', 'proxy', now(), now()),
+             ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', 'proxy', now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
 
   ui:
     environment:

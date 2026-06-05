@@ -20,21 +20,9 @@ xroad:
       hwtoken:
         enabled: true
     ocsp-prioritization-strategy: ONLY_FREE
-  proxy:
-    ssl-enabled: false # Can be removed once UI system tests configure a functional AUTH certificate
-    health-check-port: 5558
-    memory-usage-threshold: 77
-    message-log:
-      timestamping-prioritization-strategy: PAID_FIRST
-    addon:
-      op-monitor:
-        enabled: true
-        buffer:
-          socket-timeout-seconds: 1
-        connection:
-          host: op-monitor
-          scheme: https
-          socket-timeout-seconds: 1
+  # xroad.proxy.* overrides moved to the DB-override layer (configuration_properties, scope='proxy'),
+  # seeded by the db-serverconf-proxy-config-seed service in compose.systemtest.yaml. ProxyProperties
+  # now resolves via XRoadConfig (DB overrides + DSL defaults), so local.yaml no longer affects them.
   proxy-ui-api:
     rate-limit-enabled: true
     rate-limit-requests-per-second: 10000
