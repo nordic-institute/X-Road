@@ -21,8 +21,15 @@ services:
   configuration-client:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     volumes:
       - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
+    depends_on:
+      db-serverconf-confclient-config-seed:
+        condition: service_completed_successfully
 
   signer:
     environment:
@@ -82,6 +89,28 @@ services:
              ('xroad.proxy.addon.op-monitor.connection.host', 'op-monitor', 'proxy', now(), now()),
              ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', 'proxy', now(), now()),
              ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', 'proxy', now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+
+  # Seeds the configuration-client's config overrides into configuration_properties so the confclient
+  # resolves them via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
+  # scope='configuration-client' matches its quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
+  db-serverconf-confclient-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+             ('xroad.configuration-client.update-interval', '3', 'configuration-client', now(), now()),
+             ('xroad.configuration-client.global-conf-tls-cert-verification', 'false', 'configuration-client', now(), now()),
+             ('xroad.configuration-client.global-conf-hostname-verification', 'false', 'configuration-client', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - xrd-ss-network

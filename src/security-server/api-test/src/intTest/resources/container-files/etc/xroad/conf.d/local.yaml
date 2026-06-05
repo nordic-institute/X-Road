@@ -10,10 +10,9 @@ xroad:
       # To ensure vault-powered mTLS certificate rotation
       ttl: 120S
       refresh-interval: 60S
-  configuration-client:
-    update-interval: 3
-    global-conf-tls-cert-verification: false
-    global-conf-hostname-verification: false
+  # xroad.configuration-client.* overrides moved to the DB-override layer (configuration_properties,
+  # scope='configuration-client'), seeded by db-serverconf-confclient-config-seed in compose.systemtest.yaml.
+  # ConfigurationClientProperties now resolves via XRoadConfig (DB overrides + DSL defaults), not local.yaml.
   signer:
     enforce-token-pin-policy: true
     addon:
