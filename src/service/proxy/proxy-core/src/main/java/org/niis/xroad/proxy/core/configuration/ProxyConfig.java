@@ -87,6 +87,11 @@ class ProxyConfig {
     }
 
     @ApplicationScoped
+    ProxyTlsProperties proxyTlsProperties(XRoadConfig xRoadConfig) {
+        return new ProxyTlsProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
     ProxyProperties.ClientProxyProperties clientProxyProperties(ProxyProperties proxyProperties) {
         return proxyProperties.clientProxy();
     }

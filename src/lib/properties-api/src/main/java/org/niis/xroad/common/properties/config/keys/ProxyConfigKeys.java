@@ -55,6 +55,8 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     private static final Scope ADDON_OP_MONITOR = ADDON.child("op-monitor");
     private static final Scope ADDON_OP_MONITOR_BUFFER = ADDON_OP_MONITOR.child("buffer");
     private static final Scope ADDON_OP_MONITOR_CONNECTION = ADDON_OP_MONITOR.child("connection");
+    private static final Scope TLS = PROXY.child("tls");
+    private static final Scope TLS_CERT_PROVISIONING = TLS.child("certificate-provisioning");
 
     private static final ProxyConfigKeys INSTANCE = new ProxyConfigKeys();
 
@@ -319,6 +321,30 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.addon.op-monitor.connection.xroad-tls-ciphers}. */
     public static final ConfigKey<String[]> ADDON_OP_MONITOR_CONNECTION_XROAD_TLS_CIPHERS = ADDON_OP_MONITOR_CONNECTION
             .stringArray("xroad-tls-ciphers").withDefaultValue(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING).build();
+
+    /** {@code xroad.proxy.tls.certificate-provisioning.issuance-role-name}. */
+    public static final ConfigKey<String> TLS_CERT_PROVISIONING_ISSUANCE_ROLE_NAME = TLS_CERT_PROVISIONING
+            .string("issuance-role-name").withDefaultValue("xrd-internal").build();
+
+    /** {@code xroad.proxy.tls.certificate-provisioning.common-name}. */
+    public static final ConfigKey<String> TLS_CERT_PROVISIONING_COMMON_NAME = TLS_CERT_PROVISIONING
+            .string("common-name").withDefaultValue("localhost").build();
+
+    /** {@code xroad.proxy.tls.certificate-provisioning.alt-names}. */
+    public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_ALT_NAMES = TLS_CERT_PROVISIONING
+            .stringArray("alt-names").withDefaultValue("").build();
+
+    /** {@code xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names}. */
+    public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = TLS_CERT_PROVISIONING
+            .stringArray("ip-subject-alt-names").withDefaultValue("").build();
+
+    /** {@code xroad.proxy.tls.certificate-provisioning.ttl}. */
+    public static final ConfigKey<java.time.Duration> TLS_CERT_PROVISIONING_TTL = TLS_CERT_PROVISIONING
+            .keyDuration("ttl").withDefaultValue(java.time.Duration.ofDays(3650)).build();
+
+    /** {@code xroad.proxy.tls.certificate-provisioning.secret-store-pki-path}. */
+    public static final ConfigKey<String> TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH = TLS_CERT_PROVISIONING
+            .string("secret-store-pki-path").withDefaultValue("xrd-pki").build();
 
     private ProxyConfigKeys() {
     }

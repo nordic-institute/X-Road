@@ -46,6 +46,7 @@ public final class ConfigKeyProviders {
         return List.of(
                 CommonConfigKeys.instance(),
                 ProxyConfigKeys.instance(),
-                ConfClientConfigKeys.instance());
+                ConfClientConfigKeys.instance(),
+                OpMonitorConfigKeys.instance());
     }
 }

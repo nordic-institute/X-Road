@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.common.vault.config;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import java.time.Duration;
+import java.util.List;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
-
-@RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
-
-    private final XRoadConfig xRoadConfig;
-
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
-    }
-
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
+/**
+ * Constructible {@link CertificateProvisioningProperties} carrier — values supplied via the
+ * canonical constructor rather than a framework config mapping. Lets callers build the
+ * cert-provisioning config from any source (e.g. resolved {@code XRoadConfig} values) and reuse it
+ * wherever a {@link CertificateProvisioningProperties} is consumed.
+ *
+ * @param issuanceRoleName   PKI issuance role name
+ * @param commonName         certificate common name
+ * @param altNames           DNS subject alternative names
+ * @param ipSubjectAltNames  IP subject alternative names
+ * @param ttl                certificate time-to-live
+ * @param secretStorePkiPath secret store PKI mount path
+ */
+public record CertificateProvisioningConfig(
+        String issuanceRoleName,
+        String commonName,
+        List<String> altNames,
+        List<String> ipSubjectAltNames,
+        Duration ttl,
+        String secretStorePkiPath) implements CertificateProvisioningProperties {
 }

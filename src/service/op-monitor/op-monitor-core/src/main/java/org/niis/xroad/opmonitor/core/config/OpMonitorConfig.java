@@ -31,7 +31,12 @@ import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -48,6 +53,30 @@ import static java.util.Arrays.stream;
 
 @Slf4j
 public class OpMonitorConfig {
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .register(OpMonitorConfigKeys.instance())
+                .dbOverrides(appName)
+                .build();
+    }
+
+    @ApplicationScoped
+    OpMonitorProperties opMonitorProperties(XRoadConfig xRoadConfig) {
+        return new OpMonitorProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    OpMonitorServerProperties opMonitorServerProperties(XRoadConfig xRoadConfig) {
+        return new OpMonitorServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    OpMonitorTlsProperties opMonitorTlsProperties(XRoadConfig xRoadConfig) {
+        return new OpMonitorTlsProperties(xRoadConfig);
+    }
 
     @ApplicationScoped
     public VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, OpMonitorTlsProperties tlsProperties) {
