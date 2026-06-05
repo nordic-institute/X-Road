@@ -336,7 +336,7 @@
     "traffic": {
       "client": "Klient",
       "date": "Kuupäev",
-      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring).",
+      "disabledMessage": "Operatiivandmete jälgimine on sellel turvaserveril keelatud. Selle kasutamiseks paigaldage xroad-opmonitor pakett ja lubage operatiivandmete jälgimine turvaserveri konfiguratsioonis.",
       "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
       "exchangeRole": "Roll",
       "exchangeRoleInfo": "Teenusepakkuja või Klient",
@@ -512,6 +512,11 @@
       "malformed_csr": "CSR andmete vorming on vale"
     },
     "token_not_active": "Krüptomoodul pole aktiivne",
+    "tr": {
+      "op_monitor": {
+        "network_error": "Võrguühenduse viga: operatiivandmete jälgimine pole saadaval"
+      }
+    },
     "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
     "url_already_exists": "URL on juba olemas",
     "warnings_detected": "Tuvastati hoiatused",

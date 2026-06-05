@@ -289,7 +289,7 @@
     "traffic": {
       "client": "Cliente",
       "date": "Fecha",
-      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring).",
+      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instale xroad-opmonitor y habilite la monitorización de datos operativos en la configuración del Servidor de Seguridad.",
       "disabledTitle": "La monitorización de datos operativos está deshabilitada",
       "exchangeRole": "Rol de intercambio",
       "exchangeRoleInfo": "Productor o Consumidor",
@@ -460,6 +460,11 @@
       "malformed_csr": "Los datos de CSR están malformados"
     },
     "token_not_active": "El token no está activo",
+    "tr": {
+      "op_monitor": {
+        "network_error": "Error de red: la monitorización de datos operativos no está disponible"
+      }
+    },
     "unsupported_openapi_version": "Versión OpenAPI no soportada. Solo las versiones 3.0.x y 3.1.0 son actualmente compatibles.",
     "url_already_exists": "URL ya existe",
     "warnings_detected": "Advertencias detectadas",

@@ -265,7 +265,7 @@
     "traffic": {
       "client": "Müşderi",
       "date": "Sene",
-      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň.",
+      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlaryň gözegçiligi öçürilen. Ony işjeňleşdirmek üçin xroad-opmonitor paketini guruň we operasion maglumatlaryň gözegçiligini Howpsuzlyk Serweriniň sazlamalarynda işjeňleşdiriň.",
       "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
       "exchangeRole": "Alyş-çalyş roly",
       "exchangeRoleInfo": "Öndüriji ýa-da Sarp ediji",
@@ -447,6 +447,11 @@
       "malformed_csr": "CSR maglumat nädogry"
     },
     "token_not_active": "Token aktiw däl",
+    "tr": {
+      "op_monitor": {
+        "network_error": "Tor ýalňyşlygy: operasion maglumatlaryň gözegçiligi elýeterli däl"
+      }
+    },
     "unsupported_openapi_version": "Goldanmaýan OpenAPI wersiýasy. Diňe 3.0.x and 3.1.0 wersiýalary häzirki wagtda goldanýar.",
     "url_already_exists": "URL eýýäm bar",
     "warnings_detected": "Duýduryşlar tapyldy",
