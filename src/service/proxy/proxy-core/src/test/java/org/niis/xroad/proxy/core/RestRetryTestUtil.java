@@ -99,8 +99,24 @@ public final class RestRetryTestUtil {
      */
     public static RejectingSslServerProxy startRejectingProxy(int port, AuthKey authKey, HandshakeOrderGate gate)
             throws Exception {
+        return new RejectingSslServerProxy("127.0.0.1", port, authKeyManager(authKey), gate, false);
+    }
+
+    /**
+     * Starts a TLS endpoint that presents the given auth key and accepts the client certificate,
+     * but resets the TCP connection — without a TLS alert — once the client proxy has finished
+     * establishing the connection. The resulting failure surfaces during request execution as a
+     * plain connection error with no {@code SSLHandshakeException} in the chain, on any platform,
+     * regardless of how much of the request the transport buffers absorb.
+     */
+    public static RejectingSslServerProxy startResettingProxy(int port, AuthKey authKey, HandshakeOrderGate gate)
+            throws Exception {
+        return new RejectingSslServerProxy("127.0.0.1", port, authKeyManager(authKey), gate, true);
+    }
+
+    private static KeyManager authKeyManager(AuthKey authKey) {
         var certChain = authKey.certChain().getAllCertsWithoutTrustedRoot().toArray(new X509Certificate[0]);
-        var keyManager = new DummySslServerProxy.DummyAuthKeyManager() {
+        return new DummySslServerProxy.DummyAuthKeyManager() {
             @Override
             public X509Certificate[] getCertificateChain(String alias) {
                 return certChain;
@@ -111,15 +127,14 @@ public final class RestRetryTestUtil {
                 return authKey.key();
             }
         };
-        return new RejectingSslServerProxy("127.0.0.1", port, keyManager, gate);
     }
 
     /**
-     * Orders the rejecting proxy's TLS alert relative to the connecting client proxy's progress.
+     * Orders the rejecting proxy's failure relative to the connecting client proxy's progress.
      * The client side releases a permit each time the client proxy finishes establishing a
-     * connection (after {@code AuthTrustVerifier.verify(...)} returns); the rejecting proxy's
-     * trust manager takes a permit before rejecting the client certificate. This guarantees the
-     * rejection never interrupts connection establishment, without betting on a wall-clock delay.
+     * connection (after {@code AuthTrustVerifier.verify(...)} returns); the rejecting proxy
+     * takes a permit before failing the request (TLS alert or connection reset). This guarantees
+     * the failure never interrupts connection establishment, without betting on a wall-clock delay.
      */
     @Slf4j
     public static final class HandshakeOrderGate {
@@ -147,25 +162,28 @@ public final class RestRetryTestUtil {
     }
 
     /**
-     * Minimal TLS server that performs the proxy-proxy handshake but rejects the client
-     * certificate, reproducing the TLS 1.3 deferred client authentication failure. Unlike a
-     * Jetty-based dummy, it keeps a handle on the plain TCP socket, so the rejection can be
-     * held until the connecting client has gone quiet — i.e. has written the request as far
-     * as it ever will — making the phase in which the failure surfaces deterministic instead
-     * of timing-dependent.
+     * Minimal TLS server that performs the proxy-proxy handshake and then fails the request in
+     * one of two ways: it either rejects the client certificate (reproducing the TLS 1.3 deferred
+     * client authentication failure) or completes the handshake and resets the TCP connection
+     * (producing a plain, non-handshake connection failure). Unlike a Jetty-based dummy, it keeps
+     * a handle on the plain TCP socket, so the rejection can be held until the connecting client
+     * has gone quiet — i.e. has written the request as far as it ever will — making the phase in
+     * which the failure surfaces deterministic instead of timing-dependent.
      */
     @Slf4j
     public static final class RejectingSslServerProxy {
 
         private final KeyManager keyManager;
         private final HandshakeOrderGate gate;
+        private final boolean resetWithoutAlert;
         private final ServerSocket serverSocket;
         private final Set<Socket> openSockets = ConcurrentHashMap.newKeySet();
 
-        RejectingSslServerProxy(String host, int port, KeyManager keyManager, HandshakeOrderGate gate)
-                throws IOException {
+        RejectingSslServerProxy(String host, int port, KeyManager keyManager, HandshakeOrderGate gate,
+                                boolean resetWithoutAlert) throws IOException {
             this.keyManager = keyManager;
             this.gate = gate;
+            this.resetWithoutAlert = resetWithoutAlert;
             serverSocket = new ServerSocket();
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(host, port));
@@ -191,24 +209,34 @@ public final class RestRetryTestUtil {
         }
 
         /**
-         * Drives the TLS handshake into the client certificate rejection; the handshake
-         * failing is the expected outcome.
+         * Fails the connection: either the TLS handshake runs into the client certificate
+         * rejection (the handshake failing is the expected outcome), or the handshake completes
+         * and the connection is reset without a TLS alert.
          */
         private void rejectConnection(Socket plainSocket) {
             try (plainSocket) {
                 layerSslSocket(plainSocket).startHandshake();
-                log.warn("The TLS handshake unexpectedly succeeded");
+                if (resetWithoutAlert) {
+                    gate.awaitClientPastConnect();
+                    plainSocket.setSoLinger(true, 0); // close() now resets the connection instead of closing it gracefully
+                } else {
+                    log.warn("The TLS handshake unexpectedly succeeded");
+                }
             } catch (GeneralSecurityException | IOException e) {
                 log.trace("Rejected a connection", e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             } finally {
                 openSockets.remove(plainSocket);
             }
         }
 
         private SSLSocket layerSslSocket(Socket plainSocket) throws GeneralSecurityException, IOException {
+            TrustManager trustManager = resetWithoutAlert
+                    ? new DummySslServerProxy.DummyAuthTrustManager()
+                    : new RejectingClientTrustManager(gate, plainSocket);
             SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(new KeyManager[]{keyManager},
-                    new TrustManager[]{new RejectingClientTrustManager(gate, plainSocket)}, new SecureRandom());
+            ctx.init(new KeyManager[]{keyManager}, new TrustManager[]{trustManager}, new SecureRandom());
             var sslSocket = (SSLSocket) ctx.getSocketFactory().createSocket(
                     plainSocket, plainSocket.getInetAddress().getHostAddress(), plainSocket.getPort(), false);
             sslSocket.setUseClientMode(false);

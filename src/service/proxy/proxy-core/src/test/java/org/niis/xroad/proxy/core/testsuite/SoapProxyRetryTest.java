@@ -73,8 +73,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 import static org.niis.xroad.proxy.core.RestRetryTestUtil.startRejectingProxy;
+import static org.niis.xroad.proxy.core.RestRetryTestUtil.startResettingProxy;
 import static org.niis.xroad.proxy.core.RestRetryTestUtil.uri;
-import static org.niis.xroad.proxy.core.test.MessageTestCase.QUERIES_DIR;
 
 /**
  * Tests the client proxy retry of SOAP requests when a TLS handshake failure surfaces
@@ -154,7 +154,7 @@ class SoapProxyRetryTest {
         startContext(true);
         int badPort = findRandomPort();
         int decoyPort = findRandomPort();
-        RejectingSslServerProxy badProxy = startRejectingProxy(badPort, ctx.getKeyConfProvider().getAuthKey(), GATE);
+        RejectingSslServerProxy badProxy = startResettingProxy(badPort, ctx.getKeyConfProvider().getAuthKey(), GATE);
         try {
             // a retry would succeed against the real server proxy and produce a normal response,
             // so a fault here proves no retry was attempted
@@ -163,10 +163,10 @@ class SoapProxyRetryTest {
                     List.of(uri(badPort), uri(decoyPort)),
                     List.of(uri(HELPER.proxyPort))));
 
-            // the rejecting server reads no application data, so the large attachment fills the
-            // transport buffers and wedges mid-write; the rejection then kills the write with a
-            // plain connection error (no SSLHandshakeException in the chain - the alert is never
-            // read while writing) and the strict retry gate deliberately does not retry it
+            // the resetting server kills the TCP connection without a TLS alert once the request
+            // transfer is underway, so the large attachment dies with a plain connection error
+            // (no SSLHandshakeException in the chain) and the strict retry gate deliberately
+            // does not retry it
             assertTrue(bigAttachmentTestCase().execute(ctx));
 
             // op-monitoring lookup + the single attempt
