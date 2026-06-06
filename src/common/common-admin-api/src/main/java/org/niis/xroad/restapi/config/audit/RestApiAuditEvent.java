@@ -96,6 +96,7 @@ public enum RestApiAuditEvent {
     DELETE_TSP("Delete timestamping service"),
     EDIT_TIMESTAMP_SERVICE("Edit timestamping service"),
     GENERATE_INTERNAL_TLS_KEY_CERT("Generate new internal TLS key and certificate"),
+    PROVISION_DATASPACE("Provision data space membership credentials"),
     EDIT_CENTRAL_SERVER_ADDRESS("Edit central server address"),
     ENABLE_MAINTENANCE_MODE("Enable maintenance mode of the security server"),
     DISABLE_MAINTENANCE_MODE("Disable maintenance mode of the security server"),

@@ -56,6 +56,9 @@ web:
 
 edc:
   hostname: ${HOSTNAME}
+  issuance:
+    anonymous:
+      allowed: true
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"

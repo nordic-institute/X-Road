@@ -13,7 +13,8 @@ HTTP 200
 [Captures]
 cs_xsrf_token: cookie "XSRF-TOKEN"
 
-# Initialize Central Server
+# Initialize Central Server (idempotent: already initialized by 00-cs-init.hurl,
+# which must run first so aux anchor-init can download a signed global conf).
 POST https://{{cs_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
@@ -23,9 +24,9 @@ Content-Type: application/json
   "central_server_address": "{{cs_host}}"
 }
 
-# TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":
-# https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1344
-HTTP 200
+HTTP *
+[Asserts]
+status < 500
 
 
 # Add member classes to Central Server
@@ -74,9 +75,10 @@ Content-Type: application/json
   "token_id": 0
 }
 
-# TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":
-# https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1051
-HTTP 200
+# Tolerant: 00-cs-init.hurl already generated the configuration signing keys.
+HTTP *
+[Asserts]
+status < 500
 
 # Add external signing key to Central Server
 POST https://{{cs_host}}:4000/api/v1/configuration-sources/EXTERNAL/signing-keys
@@ -87,9 +89,10 @@ Content-Type: application/json
   "token_id": 0
 }
 
-# TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":
-# https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1051
-HTTP 200
+# Tolerant: 00-cs-init.hurl already generated the configuration signing keys.
+HTTP *
+[Asserts]
+status < 500
 
 # Add member to Central Server
 POST https://{{cs_host}}:4000/api/v1/members
@@ -817,6 +820,38 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 }
 
 HTTP 201
+
+# =============================================================================
+# Provision X-Road membership credentials via the proxy-ui-api data space endpoint.
+# Runs AFTER the SIGN certs above, BEFORE the client/service registration below:
+# the registration steps perform DSP catalog requests that require the member's
+# membership credential. The endpoint is idempotent and re-submits failed
+# credential requests with a fresh holder request id, so retrying here converges
+# to ISSUED once the SIGN cert OCSP response and global conf have propagated.
+# =============================================================================
+
+# Gate: issuer DID document is published (200 with full JSON, not 204).
+GET https://{{is_host}}:{{is_did_port}}/issuer/did.json
+
+HTTP 200
+[Asserts]
+jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
+
+# ss0 host + management-subsystem credentials
+POST https://{{ss0_host}}:4000/api/v1/system/dataspace-provisioning
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "ISSUED"
+
+# ss1 host credential
+POST https://{{ss1_host}}:4000/api/v1/system/dataspace-provisioning
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "ISSUED"
 
 # Add TestClient to SS1 Security Server
 POST https://{{ss1_host}}:4000/api/v1/clients

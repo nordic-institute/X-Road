@@ -115,6 +115,8 @@ xroad:
     regular-api-whitelist: 0.0.0.0/0, ::/0
     acme-key-length: 2048
     configurable-properties-path: "classpath:configurable-properties.yaml"
+    dataspace:
+      enabled: false
 
 file-upload-endpoints:
   endpoint-definitions:

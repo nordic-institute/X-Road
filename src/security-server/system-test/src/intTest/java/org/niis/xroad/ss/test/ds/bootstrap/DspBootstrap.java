@@ -185,7 +185,7 @@ public class DspBootstrap {
                     ],
                     "rules": [],
                     "format": "VC1_0_JWT",
-                    "validity": "604800"
+                    "validity": "2592000"
                 }
                 """;
         var response = issuerServiceAdminApi.createCredentialDefinition(IS_PARTICIPANT, "issuer", body);

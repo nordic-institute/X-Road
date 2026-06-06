@@ -145,7 +145,7 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                     ],
                     "rules": [],
                     "format": "%s",
-                    "validity": "604800"
+                    "validity": "2592000"
                 }
                 """.formatted(attestationId, credType, credDefId, credType, format);
 

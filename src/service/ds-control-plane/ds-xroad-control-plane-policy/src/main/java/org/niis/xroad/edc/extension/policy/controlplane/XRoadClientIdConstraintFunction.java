@@ -64,7 +64,7 @@ public class XRoadClientIdConstraintFunction<C extends ParticipantAgentPolicyCon
                         }
                     }).orElse(false);
         } finally {
-            monitor.debug("RoadClientIdConstraintFunction took " + stopWatch.getTime() + " ms");
+             monitor.debug("RoadClientIdConstraintFunction took " + stopWatch.getTime() + " ms");
         }
     }
 }
