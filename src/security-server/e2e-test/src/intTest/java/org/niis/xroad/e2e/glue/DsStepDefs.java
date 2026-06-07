@@ -245,8 +245,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     contractAgreementId = (String) body.get("contractAgreementId");
                     assertNotNull(contractAgreementId, "Contract agreement ID should be present when finalized");
                 });
-        testReportService.attachJson("Contract Negotiation", doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK)
-                .extract().body().asString());
+        testReportService.attachJson("Contract Negotiation",
+                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
     }
 
     @Step("Transfer process is started using participant context {string} on {string} with provider {string} on {string}")
@@ -289,8 +289,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     Map<String, Object> body = response.extract().body().as(Map.class);
                     assertEquals(processState, body.get("state"));
                 });
-        testReportService.attachJson("Transfer Process", doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK)
-                .extract().body().asString());
+        testReportService.attachJson("Transfer Process",
+                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
     }
 
     @Step("Asset access response is retrieved on {string}")
@@ -429,21 +429,21 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 + "bVLLhYh3HEg-71R0tO9eytzbHkMZMY353aKF0bUqK4UrKnstDT55yo5j5oLpP0xGA9KGai6Kg";
 
         // Participant-role tokens bound to each SS's control-plane participant context (xrd-ss0 / xrd-ss1).
-        static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZX"
-                + "N0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBz"
-                + "czAiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIjoieHJkLXNzMCIsInNjb3BlIjoibWFuYWdlbWVudC1hcG"
-                + "k6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.L6PuH7KMc-LCktTGDkKvkmmJbsiR9ugjsnR6_vDiidSSKkja8Lx5C8ZKibiLC3ooFofNB0V"
-                + "vFXYL5hkya8487xHIZqUmlLiUIjXYQzmjaeMZPa_nPai4BMtL1wNZOk-TuyE-5rMNK8u1aikxFB82LW1qSR0eixoMIg6PD-xTlSCetWOfaFhpr"
-                + "BBrucjUxpfqJqMbEl6MAtCE37uwamMwqR2WqS-GFuwUsM-5z1XFZnDedVBRSpUi_p5IYTdjIXQULGOn8JCklwNt3yQqWUEpenCGNW3WQm5huUj"
-                + "lDH2LAePXFfrd7EhWl0nWuu4PPcVayrtAKtdXIikRu-VkfAnSqA";
+        static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
+                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
+                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczAiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
+                + "oieHJkLXNzMCIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.L6PuH7KMc-LCktTGDkKvkmmJbsiR9"
+                + "ugjsnR6_vDiidSSKkja8Lx5C8ZKibiLC3ooFofNB0VvFXYL5hkya8487xHIZqUmlLiUIjXYQzmjaeMZPa_nPai4BMtL1wNZOk-TuyE-5rMNK8u1a"
+                + "ikxFB82LW1qSR0eixoMIg6PD-xTlSCetWOfaFhprBBrucjUxpfqJqMbEl6MAtCE37uwamMwqR2WqS-GFuwUsM-5z1XFZnDedVBRSpUi_p5IYTdjI"
+                + "XQULGOn8JCklwNt3yQqWUEpenCGNW3WQm5huUjlDH2LAePXFfrd7EhWl0nWuu4PPcVayrtAKtdXIikRu-VkfAnSqA";
 
-        static final String PARTICIPANT_SS1 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZX"
-                + "N0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBz"
-                + "czEiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIjoieHJkLXNzMSIsInNjb3BlIjoibWFuYWdlbWVudC1hcG"
-                + "k6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.kYZXfJCy-9Wg_Ej0mK3kXu7XHtW9_WV1yZ_CAwLSV9srpjXXo2rtz6lVx7dFYGmKZRuBZ0t"
-                + "N8qhSesPknYKimvPZhqKZIUwa7EkohQLPWy5_SkkDKUD-i6-ppH6UqksSQhGE46XETaDt4aqH34Jh8Ewk4j8K_IeyGmoWpzC150hNlGOgDd6xh"
-                + "5wD0_tP4UpN6QweEMgno1-LT-2FLzVRPwTENafUC7BlZLjWSMuueZ02-tkvlHVcLesgr07EBe7fh6XFzFSpbf1hsRUlSJWfnvA5ccBPhOq9aY8"
-                + "xOYFeThklSZhmW0N9M55QDaxAaVXrMdX6s3o-qWt-uXHj9Yax6A";
+        static final String PARTICIPANT_SS1 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
+                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
+                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczEiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
+                + "oieHJkLXNzMSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.kYZXfJCy-9Wg_Ej0mK3kXu7XHtW9_"
+                + "WV1yZ_CAwLSV9srpjXXo2rtz6lVx7dFYGmKZRuBZ0tN8qhSesPknYKimvPZhqKZIUwa7EkohQLPWy5_SkkDKUD-i6-ppH6UqksSQhGE46XETaDt4"
+                + "aqH34Jh8Ewk4j8K_IeyGmoWpzC150hNlGOgDd6xh5wD0_tP4UpN6QweEMgno1-LT-2FLzVRPwTENafUC7BlZLjWSMuueZ02-tkvlHVcLesgr07EB"
+                + "e7fh6XFzFSpbf1hsRUlSJWfnvA5ccBPhOq9aY8xOYFeThklSZhmW0N9M55QDaxAaVXrMdX6s3o-qWt-uXHj9Yax6A";
 
         static String forContext(String participantContext) {
             return switch (participantContext) {

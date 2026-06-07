@@ -89,6 +89,7 @@ public class DataspaceProvisioningService {
     private static final String IDENTITY_API = "/api/identity/v1alpha/participants";
     private static final String MANAGEMENT_API = "/api/management/v5beta/participants";
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
+    private static final String BEARER = "Bearer ";
     private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "MembershipCredential";
@@ -183,7 +184,7 @@ public class DataspaceProvisioningService {
                     }
                 }""".formatted(credentialService, did, memberId, participantId, did, did, did);
         HttpPost post = new HttpPost(ds.getIdentityHubUrl() + IDENTITY_API);
-        post.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + ds.getIdentityToken());
+        post.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getIdentityToken());
         post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
         executeWrite(client, post, "IH participant context " + participantId);
     }
@@ -197,7 +198,7 @@ public class DataspaceProvisioningService {
                     "@id": "%s"
                 }""".formatted(did, participantId);
         HttpPost post = new HttpPost(ds.getControlPlaneUrl() + MANAGEMENT_API);
-        post.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + ds.getControlPlaneToken());
+        post.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getControlPlaneToken());
         post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
         executeWrite(client, post, "CP participant context " + participantId);
     }
@@ -219,7 +220,7 @@ public class DataspaceProvisioningService {
                     "privateEntries": {}
                 }""".formatted(did, did, stsTokenUrl, did, participantId);
         HttpPut put = new HttpPut(ds.getControlPlaneUrl() + MANAGEMENT_API + "/" + participantId + "/config");
-        put.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + ds.getControlPlaneToken());
+        put.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getControlPlaneToken());
         put.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
         executeWrite(client, put, "CP participant context config " + participantId);
     }
@@ -295,7 +296,7 @@ public class DataspaceProvisioningService {
     private String fetchRequestState(CloseableHttpClient client, Dataspace ds, String participantId, String holderPid) {
         String url = ds.getIdentityHubUrl() + IDENTITY_API + "/" + participantId + "/credentials/request/" + holderPid;
         HttpGet get = new HttpGet(url);
-        get.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + ds.getIdentityToken());
+        get.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getIdentityToken());
         try (CloseableHttpResponse response = client.execute(get)) {
             int code = response.getStatusLine().getStatusCode();
             if (code == HttpStatus.SC_NOT_FOUND) {
@@ -320,7 +321,7 @@ public class DataspaceProvisioningService {
                 {"issuerDid":"%s","holderPid":"%s","credentials":[{"format":"%s","type":"%s","id":"%s"}]}"""
                 .formatted(ds.getIssuerDid(), holderPid, CREDENTIAL_FORMAT, CREDENTIAL_TYPE, ds.getCredentialDefinitionId());
         HttpPost post = new HttpPost(url);
-        post.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + ds.getIdentityToken());
+        post.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getIdentityToken());
         post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
         executeWrite(client, post, "credential request " + holderPid + " for " + participantId);
     }
