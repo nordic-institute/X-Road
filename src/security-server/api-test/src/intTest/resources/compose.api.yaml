@@ -236,7 +236,10 @@ services:
              ('xroad.op-monitor.listen-address', '0.0.0.0', 'op-monitor-daemon', now(), now()),
              ('xroad.op-monitor.scheme', 'https', 'op-monitor-daemon', now(), now()),
              ('xroad.op-monitor.tls.client-certificate-refresh-interval', 'PT60S', 'op-monitor-daemon', now(), now()),
-             ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', 'op-monitor-daemon', now(), now())
+             ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', 'op-monitor-daemon', now(), now()),
+             ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', 'op-monitor-daemon', now(), now()),
+             ('xroad.op-monitor.tls.certificate-provisioning.common-name', 'op-monitor', 'op-monitor-daemon', now(), now()),
+             ('xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names', '127.0.0.1', 'op-monitor-daemon', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - xrd-ss-network
