@@ -118,6 +118,35 @@ services:
       db-serverconf-init:
         condition: service_completed_successfully
 
+  # Seeds the admin-service (proxy-ui-api) config overrides into configuration_properties so the UI
+  # resolves them via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml/env.
+  # scope='proxy-ui-api' matches its spring.application.name (DB filter: scope IS NULL OR scope=<app>).
+  # authentication-provider/enforce-user-password-policy replace the application.yml '%containerized'
+  # profile overrides, and proxy-server-url the XROAD_PROXY_UI_API_PROXY_SERVER_URL env, that the DSL
+  # migration no longer reads (the SS runs the containerized profile and authenticates against the DB).
+  db-serverconf-proxy-ui-api-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+             ('xroad.proxy-ui-api.authentication-provider', 'DATABASE', 'proxy-ui-api', now(), now()),
+             ('xroad.proxy-ui-api.enforce-user-password-policy', 'true', 'proxy-ui-api', now(), now()),
+             ('xroad.proxy-ui-api.rate-limit-requests-per-second', '10000', 'proxy-ui-api', now(), now()),
+             ('xroad.proxy-ui-api.rate-limit-requests-per-minute', '30000', 'proxy-ui-api', now(), now()),
+             ('xroad.proxy-ui-api.acme-challenge-port-enabled', 'true', 'proxy-ui-api', now(), now()),
+             ('xroad.proxy-ui-api.automatic-activate-acme-sign-certificate', 'true', 'proxy-ui-api', now(), now()),
+             ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', 'proxy-ui-api', now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+
   ui:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
@@ -135,6 +164,8 @@ services:
     depends_on:
       testca:
         condition: service_healthy
+      db-serverconf-proxy-ui-api-config-seed:
+        condition: service_completed_successfully
 
   auxiliary-service:
     environment:

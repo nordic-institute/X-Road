@@ -22,13 +22,10 @@ xroad:
   # xroad.proxy.* overrides moved to the DB-override layer (configuration_properties, scope='proxy'),
   # seeded by the db-serverconf-proxy-config-seed service in compose.systemtest.yaml. ProxyProperties
   # now resolves via XRoadConfig (DB overrides + DSL defaults), so local.yaml no longer affects them.
-  proxy-ui-api:
-    rate-limit-enabled: true
-    rate-limit-requests-per-second: 10000
-    rate-limit-requests-per-minute: 30000
-    acme-challenge-port-enabled: true
-    automatic-activate-acme-sign-certificate: true
-    key-management-api-whitelist: 0.0.0.0/0, ::/0
+  # xroad.proxy-ui-api.* overrides moved to the DB-override layer (configuration_properties,
+  # scope='proxy-ui-api'), seeded by the db-serverconf-proxy-ui-api-config-seed service in
+  # compose.systemtest.yaml. AdminServiceProperties now resolves via XRoadConfig (DB overrides + DSL
+  # defaults), so local.yaml no longer affects them.
   message-log-encryption:
     db:
       encryption-enabled: true
