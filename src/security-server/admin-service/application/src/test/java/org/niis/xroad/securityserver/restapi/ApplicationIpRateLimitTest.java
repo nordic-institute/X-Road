@@ -32,6 +32,10 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -40,8 +44,12 @@ import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.MockMvcPrint;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -53,6 +61,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -65,15 +74,30 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * application test
  */
 @SuppressWarnings("java:S2925")
-@SpringBootTest(properties = {
-        "xroad.proxy-ui-api.rate-limit-requests-per-minute=10",
-        "xroad.proxy-ui-api.rate-limit-requests-per-second=5"})
+@SpringBootTest
 @ActiveProfiles({"nontest", "test"})
 @AutoConfigureTestDatabase
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
+@Import(ApplicationIpRateLimitTest.RateLimitConfig.class)
 class ApplicationIpRateLimitTest {
     private static final int RUNS_PER_MINUTE = 11;
     private static final int RUNS_PER_SECOND = 6;
+
+    /** Supplies the low rate limits via the XRoadConfig resolver (AdminServiceProperties no longer reads the Spring env). */
+    @TestConfiguration
+    static class RateLimitConfig {
+        @Bean
+        @Primary
+        XRoadConfig rateLimitXRoadConfig() {
+            return XRoadConfigBuilder.create()
+                    .register(CommonConfigKeys.instance())
+                    .register(AdminServiceConfigKeys.instance())
+                    .overrides(Map.of(
+                            "xroad.proxy-ui-api.rate-limit-requests-per-minute", "10",
+                            "xroad.proxy-ui-api.rate-limit-requests-per-second", "5"))
+                    .build();
+        }
+    }
 
     @Autowired
     private MockMvc mvc;

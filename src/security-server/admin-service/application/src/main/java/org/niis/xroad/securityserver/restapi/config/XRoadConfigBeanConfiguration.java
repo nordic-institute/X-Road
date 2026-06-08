@@ -26,31 +26,37 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
-import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
-import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
-import java.util.List;
+/**
+ * Wires the {@link XRoadConfig} resolver and the admin-service property beans that resolve through it
+ * (DB overrides via the {@code configuration_properties} table + packaged DSL defaults).
+ */
+@Configuration(proxyBeanMethods = false)
+public class XRoadConfigBeanConfiguration {
 
-@RequiredArgsConstructor
-public class AdminServiceTlsProperties {
-
-    private final XRoadConfig xRoadConfig;
-
-    public CertificateProvisioningProperties getCertificateProvisioning() {
-        return new CertificateProvisioningConfig(
-                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_ISSUANCE_ROLE_NAME),
-                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_COMMON_NAME),
-                toList(xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_ALT_NAMES)),
-                toList(xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES)),
-                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_TTL),
-                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH));
+    @Bean
+    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .register(AdminServiceConfigKeys.instance())
+                .dbOverrides(appName)
+                .build();
     }
 
-    private static List<String> toList(String[] values) {
-        return Arrays.stream(values).filter(value -> !value.isBlank()).toList();
+    @Bean
+    AdminServiceProperties adminServiceProperties(XRoadConfig xRoadConfig) {
+        return new AdminServiceProperties(xRoadConfig);
+    }
+
+    @Bean
+    AdminServiceTlsProperties adminServiceTlsProperties(XRoadConfig xRoadConfig) {
+        return new AdminServiceTlsProperties(xRoadConfig);
     }
 }

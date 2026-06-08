@@ -47,6 +47,7 @@ public final class ConfigKeyProviders {
                 CommonConfigKeys.instance(),
                 ProxyConfigKeys.instance(),
                 ConfClientConfigKeys.instance(),
-                OpMonitorConfigKeys.instance());
+                OpMonitorConfigKeys.instance(),
+                AdminServiceConfigKeys.instance());
     }
 }

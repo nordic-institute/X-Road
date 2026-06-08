@@ -37,6 +37,10 @@ import org.junit.Test;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
@@ -63,13 +67,14 @@ import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.IOException;
@@ -106,9 +111,18 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     private static final int UNBOUND_PROXY_PORT = pickClosedPort();
 
-    @DynamicPropertySource
-    static void overrideProxyServerUrl(DynamicPropertyRegistry registry) {
-        registry.add("xroad.proxy-ui-api.proxy-server-url", () -> "https://localhost:" + UNBOUND_PROXY_PORT);
+    /** Supplies the test proxy-server-url via the XRoadConfig resolver (AdminServiceProperties no longer reads the Spring env). */
+    @TestConfiguration
+    static class ProxyServerUrlConfig {
+        @Bean
+        @Primary
+        XRoadConfig proxyServerUrlXRoadConfig() {
+            return XRoadConfigBuilder.create()
+                    .register(CommonConfigKeys.instance())
+                    .register(AdminServiceConfigKeys.instance())
+                    .overrides(Map.of("xroad.proxy-ui-api.proxy-server-url", "https://localhost:" + UNBOUND_PROXY_PORT))
+                    .build();
+        }
     }
 
     private static int pickClosedPort() {
