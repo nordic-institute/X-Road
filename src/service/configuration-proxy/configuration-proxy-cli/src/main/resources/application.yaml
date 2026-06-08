@@ -19,6 +19,10 @@ quarkus:
       format: "%-5p [X-Road Configuration Proxy CLI] %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} - %m"
 
 xroad:
+  config:
+    # only the shared common defaults are published into this app's config tree;
+    # confproxy maps xroad.configuration-client.* itself via @ConfigMapping defaults
+    defaults-scopes: xroad.common
   db:
     confproxy:
       hibernate:

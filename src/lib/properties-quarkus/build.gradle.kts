@@ -10,4 +10,6 @@ dependencies {
 
   api(project(":lib:properties-core"))
   api(libs.bundles.quarkus.core)
+
+  testImplementation(libs.assertj.core)
 }
