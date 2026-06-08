@@ -1,0 +1,56 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ns="http://test.niis.org" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://test.niis.org">
+    <wsdl:documentation>Calculator</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://test.niis.org">
+            <xs:element name="testOp">
+            </xs:element>
+            <xs:element name="testOpResponse">
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="testOpRequest">
+        <wsdl:part name="parameters" element="ns:testOp" />
+    </wsdl:message>
+    <wsdl:message name="testOpResponse">
+        <wsdl:part name="parameters" element="ns:testOpResponse" />
+    </wsdl:message>
+    <wsdl:portType name="TestOpPortType">
+        <wsdl:operation name="testOpX">
+            <wsdl:input message="ns:testOpRequest" wsaw:Action="urn:add" />
+            <wsdl:output message="ns:testOpResponse" wsaw:Action="urn:addResponse" />
+        </wsdl:operation>
+        <wsdl:operation name="testOp2">
+            <wsdl:input message="ns:testOpRequest" wsaw:Action="urn:add" />
+            <wsdl:output message="ns:testOpResponse" wsaw:Action="urn:addResponse" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="TestOpBinding" type="ns:TestOpPortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+        <wsdl:operation name="testOp2">
+            <soap12:operation soapAction="urn:add" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="testOpX">
+            <soap12:operation soapAction="urn:add" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="TestOpService">
+        <wsdl:port name="TestOpHttpEndpoint" binding="ns:TestOpBinding">
+            <soap12:address location="http://www.niis.org/nosuch2/" />
+        </wsdl:port>
+        <wsdl:port name="TestOpHttpsEndpoint" binding="ns:TestOpBinding">
+            <soap12:address location="https://www.niis.org/nosuch2/" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

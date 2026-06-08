@@ -1,0 +1,10 @@
+test-framework:
+  selenide:
+    enabled: false
+
+"%cli":
+  test-framework:
+    working-dir: "test-framework-working-dir/"
+    resource-dir: "test-framework-working-dir/resources/"
+    allure:
+      results-directory: "test-framework-working-dir/allure-results"

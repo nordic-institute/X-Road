@@ -174,6 +174,7 @@ include("tool:asic-verifier-cli")
 include("tool:migration-cli")
 include("tool:messagelog-archive-verifier")
 include("tool:test-framework-core")
+include("tool:api-test-core")
 include("tool:liquibase-executor")
 include("tool:otel-javaagent-dist")
 
@@ -209,6 +210,7 @@ include("security-server:admin-service")
 include("security-server:admin-service:application")
 include("security-server:admin-service:ui")
 include("security-server:system-test")
+include("security-server:api-test")
 include("security-server:e2e-test")
 
 // Tests
