@@ -76,58 +76,77 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         this.config = config;
     }
 
+    @Override
+    public boolean isRateLimitEnabled() {
+        return config.value(AdminServiceConfigKeys.RATE_LIMIT_ENABLED);
+    }
+
+    @Override
     public int getRateLimitRequestsPerSecond() {
         return config.value(AdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_SECOND);
     }
 
+    @Override
     public int getRateLimitRequestsPerMinute() {
         return config.value(AdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_MINUTE);
     }
 
+    @Override
     public int getRateLimitCacheSize() {
         return config.value(AdminServiceConfigKeys.RATE_LIMIT_CACHE_SIZE);
     }
 
+    @Override
     public int getRateLimitExpireAfterAccessMinutes() {
         return config.value(AdminServiceConfigKeys.RATE_LIMIT_EXPIRE_AFTER_ACCESS_MINUTES);
     }
 
+    @Override
     public List<String> getAllowedHostnames() {
         return optionalList(config.value(AdminServiceConfigKeys.ALLOWED_HOSTNAMES));
     }
 
+    @Override
     public int getCacheDefaultTtl() {
         return config.value(AdminServiceConfigKeys.CACHE_DEFAULT_TTL);
     }
 
+    @Override
     public int getCacheApiKeyTtl() {
         return config.value(AdminServiceConfigKeys.CACHE_API_KEY_TTL);
     }
 
+    @Override
     public boolean isStrictIdentifierChecks() {
         return config.value(AdminServiceConfigKeys.STRICT_IDENTIFIER_CHECKS);
     }
 
+    @Override
     public DataSize getRequestSizeLimitRegular() {
         return DataSize.parse(config.value(AdminServiceConfigKeys.REQUEST_SIZE_LIMIT_REGULAR));
     }
 
+    @Override
     public DataSize getRequestSizeLimitBinaryUpload() {
         return DataSize.parse(config.value(AdminServiceConfigKeys.REQUEST_SIZE_LIMIT_BINARY_UPLOAD));
     }
 
+    @Override
     public KeyAlgorithm getAuthenticationKeyAlgorithm() {
         return KeyAlgorithm.valueOf(config.value(AdminServiceConfigKeys.AUTHENTICATION_KEY_ALGORITHM));
     }
 
+    @Override
     public KeyAlgorithm getSigningKeyAlgorithm() {
         return KeyAlgorithm.valueOf(config.value(AdminServiceConfigKeys.SIGNING_KEY_ALGORITHM));
     }
 
+    @Override
     public AuthenticationProviderType getAuthenticationProvider() {
         return AuthenticationProviderType.valueOf(config.value(AdminServiceConfigKeys.AUTHENTICATION_PROVIDER));
     }
 
+    @Override
     public boolean isEnforceUserPasswordPolicy() {
         return config.value(AdminServiceConfigKeys.ENFORCE_USER_PASSWORD_POLICY);
     }
@@ -140,82 +159,102 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return config.value(AdminServiceConfigKeys.AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE);
     }
 
+    @Override
     public boolean isAcmeRenewalSuccessNotificationEnabled() {
         return config.value(AdminServiceConfigKeys.ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED);
     }
 
+    @Override
     public boolean isAcmeRenewalFailureNotificationEnabled() {
         return config.value(AdminServiceConfigKeys.ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED);
     }
 
+    @Override
     public boolean isAuthCertRegisteredNotificationEnabled() {
         return config.value(AdminServiceConfigKeys.AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED);
     }
 
+    @Override
     public boolean isCertAutoActivationNotificationEnabled() {
         return config.value(AdminServiceConfigKeys.CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED);
     }
 
+    @Override
     public boolean isCertAutoActivationFailureNotificationEnabled() {
         return config.value(AdminServiceConfigKeys.CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED);
     }
 
+    @Override
     public String getMailNotificationLocale() {
         return config.value(AdminServiceConfigKeys.MAIL_NOTIFICATION_LOCALE);
     }
 
+    @Override
     public boolean isAcmeRenewalActive() {
         return config.value(AdminServiceConfigKeys.ACME_RENEWAL_ACTIVE);
     }
 
+    @Override
     public int getAcmeRenewalRetryDelay() {
         return config.value(AdminServiceConfigKeys.ACME_RENEWAL_RETRY_DELAY);
     }
 
+    @Override
     public int getAcmeRenewalInterval() {
         return config.value(AdminServiceConfigKeys.ACME_RENEWAL_INTERVAL);
     }
 
+    @Override
     public int getAcmeRenewalTimeBeforeExpirationDate() {
         return config.value(AdminServiceConfigKeys.ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE);
     }
 
+    @Override
     public int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
         return config.value(AdminServiceConfigKeys.ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE);
     }
 
+    @Override
     public boolean isAutomaticActivateAcmeSignCertificate() {
         return config.value(AdminServiceConfigKeys.AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE);
     }
 
+    @Override
     public int getAcmeAuthorizationWaitAttempts() {
         return config.value(AdminServiceConfigKeys.ACME_AUTHORIZATION_WAIT_ATTEMPTS);
     }
 
+    @Override
     public int getAcmeAuthorizationWaitInterval() {
         return config.value(AdminServiceConfigKeys.ACME_AUTHORIZATION_WAIT_INTERVAL);
     }
 
+    @Override
     public int getAcmeCertificateWaitAttempts() {
         return config.value(AdminServiceConfigKeys.ACME_CERTIFICATE_WAIT_ATTEMPTS);
     }
 
+    @Override
     public int getAcmeCertificateWaitInterval() {
         return config.value(AdminServiceConfigKeys.ACME_CERTIFICATE_WAIT_INTERVAL);
     }
 
+    @Override
     public int getAcmeCertificateAccountKeyPairExpiration() {
         return config.value(AdminServiceConfigKeys.ACME_CERTIFICATE_ACCOUNT_KEY_PAIR_EXPIRATION);
     }
 
+    @Override
     public boolean isAcmeChallengePortEnabled() {
         return config.value(AdminServiceConfigKeys.ACME_CHALLENGE_PORT_ENABLED);
     }
 
+    @Override
     public int getAcmeChallengePort() {
         return config.value(AdminServiceConfigKeys.ACME_CHALLENGE_PORT);
     }
 
+    @Override
     public int getAcmeKeyLength() {
         return config.value(AdminServiceConfigKeys.ACME_KEY_LENGTH);
     }
@@ -224,6 +263,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return config.value(AdminServiceConfigKeys.ACME_ACCOUNT_KEYSTORE_PATH);
     }
 
+    @Override
     public String getAcmeChallengePath() {
         return config.value(AdminServiceConfigKeys.ACME_CHALLENGE_PATH);
     }
@@ -260,10 +300,12 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return config.value(AdminServiceConfigKeys.PROXY_TLS_CIPHER_SUITES);
     }
 
+    @Override
     public String getKeyManagementApiWhitelist() {
         return config.value(AdminServiceConfigKeys.KEY_MANAGEMENT_API_WHITELIST);
     }
 
+    @Override
     public String getRegularApiWhitelist() {
         return config.value(AdminServiceConfigKeys.REGULAR_API_WHITELIST);
     }

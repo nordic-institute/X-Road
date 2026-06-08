@@ -59,7 +59,7 @@ public class ManagementServiceProperties implements AdminServiceClientPropertyPr
      * If the service is exposed directly, it must not use forwarded headers (can be spoofed by clients), and the
      * corresponding configuration (server.forward-headers-strategy) needs to be disabled.
      */
-    private boolean rateLimitEnabled;
+    private boolean rateLimitEnabled = true;
 
     /**
      * Controls how many requests from an IP address are allowed per minute.

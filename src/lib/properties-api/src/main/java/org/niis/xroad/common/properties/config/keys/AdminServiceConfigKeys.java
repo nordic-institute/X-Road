@@ -52,6 +52,9 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     private static final AdminServiceConfigKeys INSTANCE = new AdminServiceConfigKeys();
 
     // --- rate limiting ---
+    /** {@code xroad.proxy-ui-api.rate-limit-enabled}. */
+    public static final ConfigKey<Boolean> RATE_LIMIT_ENABLED = ADMIN
+            .bool("rate-limit-enabled").withDefaultValue(true).build();
     /** {@code xroad.proxy-ui-api.rate-limit-requests-per-second}. */
     public static final ConfigKey<Integer> RATE_LIMIT_REQUESTS_PER_SECOND = ADMIN
             .integer("rate-limit-requests-per-second").withDefaultValue(20).build();
