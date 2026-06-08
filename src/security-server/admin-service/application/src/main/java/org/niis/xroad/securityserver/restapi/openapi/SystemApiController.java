@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -145,14 +147,22 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
+    @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CONFIGURATION_PROPERTY)
     public ResponseEntity<Void> updateConfigurableProperty(
             SecurityServerPropertyUpdateDto securityServerSystemParameterUpdateDto
     ) {
+        var name = securityServerSystemParameterUpdateDto.getPropertyName();
+        var value = securityServerSystemParameterUpdateDto.getPropertyValue();
+        var scope = securityServerSystemParameterUpdateDto.getScope();
+
+        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_NAME, name);
+        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE, value);
+        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, ObjectUtils.getIfNull(scope, StringUtils.EMPTY));
+
         configurablePropertiesService.updateConfigurableProperty(
-                securityServerSystemParameterUpdateDto.getPropertyName(),
-                securityServerSystemParameterUpdateDto.getPropertyValue(),
-                securityServerSystemParameterUpdateDto.getScope()
-        );
+                name, value, scope, oldValue ->
+                        auditDataHelper.put(RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE, oldValue));
+
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
