@@ -2,10 +2,8 @@
 node_modules
 /dist
 
-/tests/e2e/testdata/
-/tests/e2e/reports/
-/tests/e2e/screenshots/
-selenium-debug.log
+# vitest output (screenshots on failure, attachments, junit report)
+/tests/results/
 
 # local env files
 .env.local

@@ -14,11 +14,16 @@
     "baseUrl": ".",
     "types": [
       "vite/client",
-      "vuetify"
+      "vuetify",
+      "@vitest/browser/context",
+      "vitest-browser-vue"
     ],
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "vitest/browser": [
+        "../../../node_modules/vitest/browser/context.d.ts"
       ]
     },
     "rootDirs": [
