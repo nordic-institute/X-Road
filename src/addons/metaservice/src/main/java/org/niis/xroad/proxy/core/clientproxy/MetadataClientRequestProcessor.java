@@ -35,7 +35,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Streams;
 import com.google.common.net.MediaType;
@@ -74,7 +74,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     static {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         MAPPER = mapper;
     }
 
