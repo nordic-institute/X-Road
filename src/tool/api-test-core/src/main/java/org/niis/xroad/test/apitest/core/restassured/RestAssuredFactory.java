@@ -27,8 +27,14 @@
 package org.niis.xroad.test.apitest.core.restassured;
 
 import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.mapper.ObjectMapper;
+import io.restassured.mapper.ObjectMapperDeserializationContext;
+import io.restassured.mapper.ObjectMapperSerializationContext;
 import io.restassured.specification.RequestSpecification;
 import org.niis.xroad.test.apitest.core.report.NamedHttpAttachmentFilter;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Produces RestAssured request specifications pre-wired for the API tier.
@@ -43,6 +49,24 @@ import org.niis.xroad.test.apitest.core.report.NamedHttpAttachmentFilter;
  */
 public final class RestAssuredFactory {
 
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
+
+    private static final ObjectMapper JACKSON_MAPPER = new ObjectMapper() {
+        @Override
+        public Object deserialize(ObjectMapperDeserializationContext context) {
+            return JSON_MAPPER.readValue(context.getDataToDeserialize().asString(),
+                    JSON_MAPPER.constructType(context.getType()));
+        }
+
+        @Override
+        public Object serialize(ObjectMapperSerializationContext context) {
+            return JSON_MAPPER.writeValueAsString(context.getObjectToSerialize());
+        }
+    };
+
+    private static final RestAssuredConfig CONFIG = RestAssuredConfig.config()
+            .objectMapperConfig(ObjectMapperConfig.objectMapperConfig().defaultObjectMapper(JACKSON_MAPPER));
+
     private RestAssuredFactory() {
     }
 
@@ -52,6 +76,7 @@ public final class RestAssuredFactory {
      */
     public static RequestSpecification given() {
         return RestAssured.given()
+                .config(CONFIG)
                 .relaxedHTTPSValidation()
                 .filter(new NamedHttpAttachmentFilter());
     }
@@ -62,6 +87,7 @@ public final class RestAssuredFactory {
      */
     public static RequestSpecification givenSilent() {
         return RestAssured.given()
+                .config(CONFIG)
                 .relaxedHTTPSValidation();
     }
 }

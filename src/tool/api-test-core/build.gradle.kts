@@ -30,6 +30,8 @@ dependencies {
 
     api(libs.assertj.core)
 
+    api(platform(libs.jackson.bom))
+    api("tools.jackson.core:jackson-databind")
     api(libs.jackson.annotations)
     api(libs.apache.commonsCompress)
 }
