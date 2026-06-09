@@ -37,7 +37,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.CountingLogManager;
@@ -103,10 +102,7 @@ class SoapProxyRetryTest {
         PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
         PROPS.put("xroad.proxy.ssl-enabled", "true");
         HELPER.setPropsIfNotSet(PROPS);
-
-        HELPER.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-                "temp-files-path", "build/"
-        ));
+        
         HELPER.startTestServices();
     }
 

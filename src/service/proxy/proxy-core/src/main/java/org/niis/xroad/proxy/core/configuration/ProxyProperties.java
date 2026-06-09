@@ -52,7 +52,9 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIEN
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_TLS_PROTOCOLS;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_USE_IDLE_CONNECTION_MONITOR;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_ENABLE_REQUEST_RETRY;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_UNUSABLE_PERIOD;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_JETTY_CONFIGURATION_FILE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_ENABLE_CONNECTION_REUSE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_TOTAL_DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
@@ -241,9 +243,9 @@ public class ProxyProperties {
             return xRoadConfig.value(CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD);
         }
 
-        @WithName("fastest-connecting-ssl-uri-unusable-period")
-        @WithDefault("180s")
-        Duration clientProxyFastestConnectingSslUriUnusablePeriod();
+        public Duration clientProxyFastestConnectingSslUriUnusablePeriod() {
+            return xRoadConfig.value(CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_UNUSABLE_PERIOD);
+        }
 
         public boolean useSslSocketAutoClose() {
             return xRoadConfig.value(CLIENT_PROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE);
@@ -261,9 +263,9 @@ public class ProxyProperties {
             return xRoadConfig.value(CLIENT_PROXY_POOL_ENABLE_CONNECTION_REUSE);
         }
 
-        @WithName("enable-request-retry")
-        @WithDefault("true")
-        boolean enableRequestRetry();
+        public boolean enableRequestRetry() {
+            return xRoadConfig.value(CLIENT_PROXY_ENABLE_REQUEST_RETRY);
+        }
     }
 
     @RequiredArgsConstructor

@@ -122,7 +122,6 @@ public class ClientRestMessageProcessor {
 
     /**
      * Processes a REST message exchange described by the given request context.
-     *
      * @param ctx the per-request context carrying request, response, and monitoring data
      * @return {@code true} if the response was present and not an error response
      * @throws Exception if processing fails
@@ -255,7 +254,7 @@ public class ClientRestMessageProcessor {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
         }
         return new SigningProxyMessageEntity(contentType, messageSigningService, restRequest, senderId,
-                jRequest, commonProperties.tempFilesPath(), opMonitoringData, xRequestId, retryEnabled);
+                jRequest, xRoadConfig.value(TEMP_FILES_PATH), opMonitoringData, xRequestId, retryEnabled);
     }
 
     /**

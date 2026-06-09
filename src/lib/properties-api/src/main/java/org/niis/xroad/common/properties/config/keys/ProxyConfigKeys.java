@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Scope;
 
 
+import java.time.Duration;
+
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
@@ -188,6 +190,9 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = CLIENT_PROXY
             .integer("fastest-connecting-ssl-uri-cache-period").withDefaultValue(3600).build();
 
+    public static final ConfigKey<Duration> CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_UNUSABLE_PERIOD = CLIENT_PROXY
+            .keyDuration("fastest-connecting-ssl-uri-unusable-period").withDefaultValue(Duration.ofSeconds(180)).build();
+
     /** {@code xroad.proxy.client-proxy.use-fastest-connecting-ssl-socket-autoclose}. */
     public static final ConfigKey<Boolean> CLIENT_PROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = CLIENT_PROXY
             .bool("use-fastest-connecting-ssl-socket-autoclose").withDefaultValue(true).build();
@@ -203,6 +208,9 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.client-proxy.pool-enable-connection-reuse}. */
     public static final ConfigKey<Boolean> CLIENT_PROXY_POOL_ENABLE_CONNECTION_REUSE = CLIENT_PROXY
             .bool("pool-enable-connection-reuse").withDefaultValue(false).build();
+
+    public static final ConfigKey<Boolean> CLIENT_PROXY_ENABLE_REQUEST_RETRY = CLIENT_PROXY
+            .bool("enable-request-retry").withDefaultValue(true).build();
 
     // --- xroad.proxy.server --------------------------------------------------
 
