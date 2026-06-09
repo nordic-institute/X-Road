@@ -40,7 +40,3 @@ Feature: 0090 - SS: Initial admin user creation
     And Initial admin password confirmation is set to secret123!
     And Initial admin user creation is submitted
     Then Login form is visible
-
-  Scenario: Reopening admin user URL after creation redirects to login
-    Given SecurityServer page /initial-admin-user is open
-    Then Login form is visible

@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     intTestImplementation(project(":tool:api-test-core"))
+    intTestImplementation(project(":security-server:openapi-model"))
 }
 
 intTestComposeEnv {
@@ -40,9 +41,11 @@ tasks.register<Test>("intTest") {
     dependsOn(provider { tasks.named("generateIntTestEnv") })
     dependsOn(copyMainComposeFile)
 
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags("destructive")
+    }
 
-    description = "Runs functional API tests."
+    description = "Runs functional API tests (excludes destructive-lifecycle tests)."
     group = "verification"
 
     testClassesDirs = sourceSets["intTest"].output.classesDirs
@@ -50,6 +53,37 @@ tasks.register<Test>("intTest") {
 
     systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
     project.findProperty("apiTestFailFastThreshold")?.let {
+        systemProperty("test-framework.fail-fast.threshold", it.toString())
+    }
+
+    maxHeapSize = "256m"
+
+    testLogging {
+        showStackTraces = true
+        showExceptions = true
+        showCauses = true
+        showStandardStreams = true
+    }
+}
+
+tasks.register<Test>("apiTestDestructive") {
+    dependsOn(provider { tasks.named("generateIntTestEnv") })
+    dependsOn(copyMainComposeFile)
+
+    useJUnitPlatform {
+        includeTags("destructive")
+    }
+
+    description = "Runs destructive-lifecycle API tests on an isolated disposable compose stack."
+    group = "verification"
+
+    testClassesDirs = sourceSets["intTest"].output.classesDirs
+    classpath = sourceSets["intTest"].runtimeClasspath
+
+    systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+    systemProperty("allure.results.directory", "build/allure-results-destructive")
+    systemProperty("test-framework.allure.results-directory", "build/allure-results-destructive")
+    project.findProperty("apiTestDestructiveFailFastThreshold")?.let {
         systemProperty("test-framework.fail-fast.threshold", it.toString())
     }
 

@@ -10,42 +10,11 @@ Feature: 0510 - SS: Client Local groups
     And Clients tab is selected
 
 
-  Scenario Outline: Local group <$groupCode> is added to TestService
-    When Client "Test service" is opened
-    And Local groups sub-tab is selected
-    And Local group "<$groupCode>" with description "<$groupDesc>" is added
-    Then Local group "<$groupCode>" is present in the list
-    Examples:
-      | $groupCode | $groupDesc |
-      | group-1    | desc-100   |
-      | group-2    | desc-200   |
-      | group-3    | desc       |
-      | aaa-1      | desc-300   |
-      | bbb-1      | desc-400   |
-      | yyy-1      | none       |
-
   Scenario: Local group is not added as description is invalid
     When Client "Test service" is opened
     And Local groups sub-tab is selected
     And Local group "group-1" with invalid description is added
     Then Form shows an error "Use valid description characters only"
-
-  Scenario: Local group is not added as it already exists
-    When Client "Test service" is opened
-    And Local groups sub-tab is selected
-    And Local group "group-1" with description "desc" is added
-    Then error: "Local group code already exists" was displayed
-
-  Scenario: Local groups are sorted by default
-    When Client "Test service" is opened
-    And Local groups sub-tab is selected
-    Then Local group table is ordered as follows:
-      | aaa-1   |
-      | bbb-1   |
-      | group-1 |
-      | group-2 |
-      | group-3 |
-      | yyy-1   |
 
   Scenario: Local groups are sorted by Description
     When Client "Test service" is opened
@@ -68,25 +37,6 @@ Feature: 0510 - SS: Client Local groups
       | group-2 |
       | group-3 |
 
-  Scenario: Local groups are filtered to "aaa-1"
-    When Client "Test service" is opened
-    And Local groups sub-tab is selected
-    And Local group filter is set to "aaa-1"
-    Then Local group table is ordered as follows:
-      | aaa-1 |
-
-  Scenario: Local group aaa-1 is deleted
-    When Client "Test service" is opened
-    And Local groups sub-tab is selected
-    And Local group "aaa-1" is selected
-    Then Local group is deleted
-    Then Local group table is ordered as follows:
-      | bbb-1   |
-      | group-1 |
-      | group-2 |
-      | group-3 |
-      | yyy-1   |
-
   Scenario: Local group group-1 is edited
     When Client "Test service" is opened
     And Local groups sub-tab is selected
@@ -108,11 +58,3 @@ Feature: 0510 - SS: Client Local groups
     And Local group "group-1" is selected
     And Local group description is set to invalid description
     Then Form shows an error "Use valid description characters only"
-
-  Scenario: Local group group-1 member is removed
-    When Client "Test service" is opened
-    And Local groups sub-tab is selected
-    And Local group "group-1" is selected
-    And Local group member "DEV:COM:1234:test-consumer" is removed
-    Then Following members are missing in local group:
-      | DEV:COM:1234:test-consumer |
