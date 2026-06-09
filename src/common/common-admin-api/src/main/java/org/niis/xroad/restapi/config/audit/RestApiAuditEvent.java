@@ -100,6 +100,7 @@ public enum RestApiAuditEvent {
     EDIT_CENTRAL_SERVER_ADDRESS("Edit central server address"),
     ENABLE_MAINTENANCE_MODE("Enable maintenance mode of the security server"),
     DISABLE_MAINTENANCE_MODE("Disable maintenance mode of the security server"),
+    UPDATE_CONFIGURATION_PROPERTY("Update configuration property"),
 
     // keys and certificates events
     LOGIN_TOKEN("Log in to token"),

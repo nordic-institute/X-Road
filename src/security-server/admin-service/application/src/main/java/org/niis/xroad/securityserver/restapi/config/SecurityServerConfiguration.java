@@ -66,6 +66,7 @@ public class SecurityServerConfiguration {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        bean.addUrlPatterns(IpThrottlingFilter.ADMIN_UI_PATTERNS);
         return bean;
     }
 
