@@ -39,6 +39,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -71,16 +72,12 @@ class ClientDetailsTest extends SsApiTest {
             assertThat(client.getMemberCode()).isEqualTo(SsBaselineSeeder.SS_OWNER_CODE);
         });
 
-        and("the sign-certificates endpoint returns a list for the owner (empty in baseline — no sign cert seeded)", () -> {
-            var certs = session.given()
-                    .get("/clients/{id}/sign-certificates", OWNER_CLIENT_ID)
-                    .then()
-                    .statusCode(200)
-                    .extract()
-                    .jsonPath()
-                    .getList("$", Object.class);
-            assertThat(certs).isNotNull().isInstanceOf(List.class);
-        });
+        and("the sign-certificates endpoint returns a JSON list for the owner", () ->
+                session.given()
+                        .get("/clients/{id}/sign-certificates", OWNER_CLIENT_ID)
+                        .then()
+                        .statusCode(200)
+                        .body("$", instanceOf(List.class)));
     }
 
     // MIGRATED-FROM: 0520-ss-client-details.feature :: "Client Disable button is clicked"

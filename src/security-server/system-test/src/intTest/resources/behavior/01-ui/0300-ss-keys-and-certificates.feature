@@ -35,20 +35,6 @@ Feature: 0300 - SS: Keys and certificates
     When Token: softToken-0 edit page is opened
     Then Token Alert about token policy being enforced is present
 
-  @Download
-  Scenario Outline: New key with with empty label is created
-    Given Keys and certificates tab is selected
-    And Token: <$token> is present and expanded
-    When Token: <$token> - Add key wizard is opened
-    And Key Label is set to "<$label>"
-    And CSR details Usage is set to "<$usage>", Client set to "<$client>", Certification Service to "<$certService>" and CSR format "PEM"
-    And Generate "<$usage>" CSR is set to DNS "<$dns>" and Organization "ui-test"
-    And CSR with extension "pem" successfully generated
-    And Token: <$token> - has <$authKeyAmount> auth keys, <$signKeyAmount> sign keys
-    Examples:
-      | $token      | $usage         | $label | $client      | $dns | $certService | $authKeyAmount | $signKeyAmount |
-      | softToken-0 | SIGNING        |        | DEV:COM:1234 | ui  | Test CA      | 1              | 2              |
-      | softToken-0 | AUTHENTICATION |        |              | ui  | Test CA      | 2              | 2              |
 
   Scenario: Add key wizard is navigable
     Given Keys and certificates tab is selected
@@ -61,27 +47,7 @@ Feature: 0300 - SS: Keys and certificates
     And Add key wizard Generate CSR step is closed
     And Token: softToken-0 - has 2 auth keys, 2 sign keys
 
-  Scenario: CSR can be deleted
-    Given Keys and certificates tab is selected
-    And Token: softToken-0 is present and expanded
-    When Token: softToken-0 - "AUTHENTICATION" CSR in position 1 is deleted
-    Then Token: softToken-0 - has 1 auth keys, 2 sign keys
-    When Token: softToken-0 - "SIGNING" CSR in position 1 is deleted
-    Then Token: softToken-0 - has 1 auth keys, 1 sign keys
 
-  @Download
-  Scenario: Generating multiple CSR for key
-    Given Keys and certificates tab is selected
-    And Token: softToken-0 is present and expanded
-    When Token: softToken-0 - Add key wizard is opened
-    And Key Label is set to "key for multiple csr"
-    And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "Test CA" and CSR format "PEM"
-    And Generate "AUTHENTICATION" CSR is set to DNS "ui" and Organization "ui-test"
-    And CSR with extension "pem" successfully generated
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
-    Then Token "softToken-0", key "key for multiple csr" has 4 certificate signing requests
 
   Scenario: Certificate format is preselected
     Given Keys and certificates tab is selected
@@ -92,23 +58,3 @@ Feature: 0300 - SS: Keys and certificates
     And Generate "AUTHENTICATION" CSR is set to DNS "ss0" and Organization "ui-test"
     And CSR with extension "pem" successfully generated
 
-  Scenario: Token PIN can be changed
-    Given Keys and certificates tab is selected
-    And Token: softToken-0 edit page is opened
-    And Change the pin section is expanded
-    When PIN is changed from "T0ken1zer3" to "T0ken1zer3New"
-    Then Token: softToken-0 is logged-out
-    And User logs in token: softToken-0 with PIN: T0ken1zer3New
-    And Token: softToken-0 is logged-in
-    When Token: softToken-0 edit page is opened
-    And Change the pin section is expanded
-    And PIN is changed from "T0ken1zer3New" to "T0ken1zer3"
-    Then Token: softToken-0 is logged-out
-    And User logs in token: softToken-0 with PIN: T0ken1zer3
-    And Token: softToken-0 is logged-in
-
-  Scenario: Inactive token can be deleted
-    Given Predefined inactive signer token is inserted
-    And Keys and certificates tab is selected
-    When Token: hsmToken-for-deletion edit page is opened
-    Then Inactive token hsmToken-for-deletion is successfully deleted

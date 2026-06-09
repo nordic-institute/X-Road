@@ -37,10 +37,3 @@ Feature: 0505 - SS: ACME
     And Token: softToken-0 - ACME order dialog is opened for key "sign key for eab"
     Then ACME order dialog Order button is disabled
 
-  Scenario: Certificate is ordered on existing CSR
-    Given Keys and certificates tab is selected
-    And Token: softToken-0 is present and expanded
-    When Token: softToken-0 - CSR of key "key for multiple csr" is used to order certificate from "Test CA"
-    Then Token: softToken-0 - has key "key for multiple csr" with status "Saved" and ocsp status "Disabled"
-    Then Token: softToken-0 - has "AUTHENTICATION" key "key for multiple csr" with correct ARI automatic renewal status
-
