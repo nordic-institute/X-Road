@@ -124,12 +124,12 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 + "dGJawEYhtqSUps2q0yT-LWYm7JBGTKX0BBD4N7joWIM_c1W8QfwRSVW_JurrknVqEuyyNDFkAykJv0pEpA6l2U6SDdFWUbuS7IcnHpnM2ZcRKSxceH"
                 + "EaQGAQQbi1g";
 
-        static final String PARTICIPANT = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1Y"
-                + "Tc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTU"
-                + "wZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOiJ0ZXN0LXBhc"
-                + "nQtY3R4Iiwic2NvcGUiOiJtYW5hZ2VtZW50LWFwaTp3cml0ZSBtYW5hZ2VtZW50LWFwaTpyZWFkIn0.i7YQln4cjB2xXT5X5Nl48wys-me-HAP"
-                + "jfdiVEyRAB-thKDTqODHksijPQFVMQnb5FppbUHdYiO_G2JYBwFYk36fWhpBveRKRMBaurKZZS5tXAV7bsGr9z1jcEUM45tF__kZLCV9VZ0IRp"
-                + "ni4B4_AP7vc0YUqLyJ7WZXQfP-N2bBYPf8loi3No_AFEFI7mcknuxOp_oZnD6jRmwjeCdih_Nu-9rNsCpa3BM6L_EozzK3Y61X7D7cWXU7xCtG"
-                + "YDcYoRka8AtBTlihXPah3lbTRKwGP1IBDZzfKqSOZDDZK2g8Em3GjuOp6_sOsVL0UwAqlZZiMfyGnPaIkACtszimIjw";
+        static final String PARTICIPANT = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODh"
+                + "lN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3Z"
+                + "DM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOiJzczA"
+                + "iLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOndyaXRlIG1hbmFnZW1lbnQtYXBpOnJlYWQifQ.A46bvId4X3RF7UFCrrhKqcaAMiSjije0Qab1ao"
+                + "RtEMW_OikA4MVlBnEEj8n_FwS1i0RXor08C2IAf8yEM036X86QMcOv1I8eUsOg_yBVbHfd6nw3HDtI1fJvyuIDJ2FbDAQsDj6UxXoUTe1KjXml"
+                + "ry0184cnRTDDg3OGwFpMWOMedeMdWeHb7NQ9tqUm47WmPecNnB4JeRNkUPiVSay6XpSKtok9yizv-BDVDPh8mxt91CxWt6Eh1Rz4FNNNWKHlH2"
+                + "oejyQsMz76bxf_7P3X5gSE8Q5q1KIM8ZrhzfNig4ZMhrBwxYYNexBvviVoKYb1NJhJHrepBwCMw9hlefVMPQ";
     }
 }

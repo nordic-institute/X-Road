@@ -30,23 +30,31 @@ package org.niis.xroad.ss.test.ds.glue;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.addons.glue.BaseStepDefs;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.ObjectMapper;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import java.net.CookieManager;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.security.cert.X509Certificate;
-import java.time.Duration;
+import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -58,7 +66,6 @@ public class DataspaceProvisioningStepDefs extends BaseStepDefs {
     private static final int MAX_ATTEMPTS = 30;
     private static final long POLL_INTERVAL_MILLIS = 3000L;
 
-    private final CookieManager cookieManager = new CookieManager();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -72,25 +79,25 @@ public class DataspaceProvisioningStepDefs extends BaseStepDefs {
     public void dataSpaceProvisioningIsRequested() {
         var mapping = containerSetup.getContainerMapping(SsSystemTestContainerSetup.UI, Port.UI);
         var baseUrl = "https://" + mapping.host() + ":" + mapping.port();
-        var httpClient = buildTrustAllHttpClient();
+        var cookieStore = new BasicCookieStore();
 
-        login(httpClient, baseUrl);
-        var xsrfToken = readXsrfToken();
+        try (var httpClient = buildTrustAllHttpClient(cookieStore)) {
+            login(httpClient, baseUrl);
+            var xsrfToken = readXsrfToken(cookieStore);
 
-        var provisioningUri = URI.create(baseUrl + "/api/v1/system/dataspace-provisioning");
-        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            var request = HttpRequest.newBuilder(provisioningUri)
-                    .header("X-XSRF-TOKEN", xsrfToken)
-                    .POST(HttpRequest.BodyPublishers.noBody())
-                    .build();
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            provisioningStatus = extractStatus(response);
-            log.info("Data space provisioning attempt {}/{}: HTTP {}, status {}",
-                    attempt, MAX_ATTEMPTS, response.statusCode(), provisioningStatus);
-            if (STATUS_ISSUED.equals(provisioningStatus)) {
-                return;
+            var provisioningUrl = baseUrl + "/api/v1/system/dataspace-provisioning";
+            for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+                var request = new HttpPost(provisioningUrl);
+                request.addHeader("X-XSRF-TOKEN", xsrfToken);
+                var response = httpClient.execute(request, this::toResponse);
+                provisioningStatus = extractStatus(response.body());
+                log.info("Data space provisioning attempt {}/{}: HTTP {}, status {}",
+                        attempt, MAX_ATTEMPTS, response.status(), provisioningStatus);
+                if (STATUS_ISSUED.equals(provisioningStatus)) {
+                    return;
+                }
+                Thread.sleep(POLL_INTERVAL_MILLIS);
             }
-            Thread.sleep(POLL_INTERVAL_MILLIS);
         }
     }
 
@@ -99,25 +106,30 @@ public class DataspaceProvisioningStepDefs extends BaseStepDefs {
         assertEquals(expectedStatus, provisioningStatus);
     }
 
-    private void login(HttpClient httpClient, String baseUrl) throws Exception {
-        var request = HttpRequest.newBuilder(URI.create(baseUrl + "/login"))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString("username=xrd&password=secret123!"))
-                .build();
-        var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        log.info("Security server login responded with HTTP {}", response.statusCode());
+    private void login(CloseableHttpClient httpClient, String baseUrl) throws IOException {
+        var request = new HttpPost(baseUrl + "/login");
+        request.setEntity(new UrlEncodedFormEntity(List.of(
+                new BasicNameValuePair("username", "xrd"),
+                new BasicNameValuePair("password", "secret123!"))));
+        var response = httpClient.execute(request, this::toResponse);
+        log.info("Security server login responded with HTTP {}", response.status());
     }
 
-    private String readXsrfToken() {
-        return cookieManager.getCookieStore().getCookies().stream()
+    private String readXsrfToken(BasicCookieStore cookieStore) {
+        return cookieStore.getCookies().stream()
                 .filter(cookie -> "XSRF-TOKEN".equals(cookie.getName()))
-                .map(java.net.HttpCookie::getValue)
+                .map(Cookie::getValue)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("XSRF-TOKEN cookie not present after login"));
     }
 
-    private String extractStatus(HttpResponse<String> response) {
-        var body = response.body();
+    private HttpResult toResponse(ClassicHttpResponse response) throws IOException, ParseException {
+        var entity = response.getEntity();
+        var body = entity != null ? EntityUtils.toString(entity) : null;
+        return new HttpResult(response.getCode(), body);
+    }
+
+    private String extractStatus(String body) {
         if (body == null || body.isBlank()) {
             return null;
         }
@@ -133,24 +145,24 @@ public class DataspaceProvisioningStepDefs extends BaseStepDefs {
 
     @SneakyThrows
     @SuppressWarnings("checkstyle:SneakyThrowsCheck")
-    private HttpClient buildTrustAllHttpClient() {
-        var trustAll = new X509TrustManager() {
-            public void checkClientTrusted(X509Certificate[] chain, String authType) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] chain, String authType) {
-            }
-
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        };
-        var sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[]{trustAll}, null);
-        return HttpClient.newBuilder()
-                .sslContext(sslContext)
-                .cookieHandler(cookieManager)
-                .connectTimeout(Duration.ofSeconds(5))
+    private CloseableHttpClient buildTrustAllHttpClient(BasicCookieStore cookieStore) {
+        var sslContext = SSLContexts.custom()
+                .loadTrustMaterial((chain, authType) -> true)
                 .build();
+        var connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(5))
+                .build();
+        var connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setTlsSocketStrategy(
+                        new DefaultClientTlsStrategy(sslContext, HostnameVerificationPolicy.CLIENT, NoopHostnameVerifier.INSTANCE))
+                .setDefaultConnectionConfig(connectionConfig)
+                .build();
+        return HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultCookieStore(cookieStore)
+                .build();
+    }
+
+    private record HttpResult(int status, String body) {
     }
 }
