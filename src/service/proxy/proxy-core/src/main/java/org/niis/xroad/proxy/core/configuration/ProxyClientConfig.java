@@ -60,6 +60,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
+import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
@@ -114,7 +115,8 @@ public class ProxyClientConfig {
         @Named(CLIENT_PROXY_HTTP_CLIENT)
         public CloseableHttpClient proxyHttpClient(ProxyProperties proxyProperties,
                                                    AuthTrustVerifier authTrustVerifier,
-                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
+                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory,
+                                                   UnusableAddressTracker unusableAddressTracker) {
             log.trace("createClient()");
 
             int timeout = proxyProperties.clientProxy().clientProxyTimeout();
@@ -126,7 +128,7 @@ public class ProxyClientConfig {
 
             HttpClientBuilder cb = HttpClients.custom();
             HttpClientConnectionManager connectionManager = getClientConnectionManager(proxyProperties,
-                    authTrustVerifier, reloadingSSLSocketFactory);
+                    authTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
             cb.setConnectionManager(connectionManager);
 
             if (proxyProperties.clientProxy().clientUseIdleConnectionMonitor()) {
@@ -154,14 +156,15 @@ public class ProxyClientConfig {
 
         private HttpClientConnectionManager getClientConnectionManager(ProxyProperties proxyProperties,
                                                                        AuthTrustVerifier authTrustVerifier,
-                                                                       ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
+                                                                       ReloadingSSLSocketFactory reloadingSSLSocketFactory,
+                                                                       UnusableAddressTracker unusableAddressTracker) {
             RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
             if (proxyProperties.sslEnabled()) {
                 sfr.register("https", createSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                        proxyProperties));
+                        proxyProperties, unusableAddressTracker));
             }
 
             SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
@@ -181,9 +184,10 @@ public class ProxyClientConfig {
 
         private SSLConnectionSocketFactory createSSLSocketFactory(AuthTrustVerifier authTrustVerifier,
                                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory,
-                                                                  ProxyProperties proxyProperties) {
+                                                                  ProxyProperties proxyProperties,
+                                                                  UnusableAddressTracker unusableAddressTracker) {
             return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                    proxyProperties);
+                    proxyProperties, unusableAddressTracker);
         }
     }
 

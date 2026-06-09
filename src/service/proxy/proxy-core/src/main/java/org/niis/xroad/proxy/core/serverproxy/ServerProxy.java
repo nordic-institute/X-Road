@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
 import io.quarkus.runtime.Startup;
@@ -54,6 +53,8 @@ import org.niis.xroad.proxy.core.util.SSLContextUtil;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+
+import static org.niis.xroad.common.properties.DefaultTlsProperties.PROXY_TLS_PROTOCOLS;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -174,7 +175,7 @@ public class ServerProxy {
     private ServerConnector createClientProxySslConnector() throws NoSuchAlgorithmException, KeyManagementException {
         sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setNeedClientAuth(true);
-        sslContextFactory.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        sslContextFactory.setIncludeProtocols(PROXY_TLS_PROTOCOLS);
         sslContextFactory.setIncludeCipherSuites(proxyProperties.xroadTlsCiphers());
         sslContextFactory.setSessionCachingEnabled(true);
         sslContextFactory.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
