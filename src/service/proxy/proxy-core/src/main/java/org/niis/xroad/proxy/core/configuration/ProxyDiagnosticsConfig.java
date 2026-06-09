@@ -28,18 +28,16 @@ package org.niis.xroad.proxy.core.configuration;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
-import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 
 public class ProxyDiagnosticsConfig {
 
     @ApplicationScoped
     AddOnStatusDiagnostics addOnStatusDiagnostics(AbstractLogManager logManager,
-                                                  OpMonitoringBuffer opMonitoringBuffer) {
+                                                  ProxyProperties proxyProperties) {
         return new AddOnStatusDiagnostics(NullLogManager.class != logManager.getClass(),
-                NoOpMonitoringBuffer.class != opMonitoringBuffer.getClass());
+                proxyProperties.addon().opMonitor().enabled());
     }
 
 }
