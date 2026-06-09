@@ -336,7 +336,7 @@
     "traffic": {
       "client": "Cliente",
       "date": "Data",
-      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-opmonitor) e habilite o monitoramento de dados operacionais na configuração do Servidor de Segurança.",
+      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, habilite o monitoramento de dados operacionais na configuração do Servidor de Segurança.",
       "disabledTitle": "Monitoramento de dados operacionais desativado",
       "exchangeRole": "Função de troca",
       "exchangeRoleInfo": "Produtor ou Consumidor",

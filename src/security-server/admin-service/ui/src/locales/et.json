@@ -336,7 +336,7 @@
     "traffic": {
       "client": "Klient",
       "date": "Kuupäev",
-      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-opmonitor) ja lubage operatiivandmete jälgimine turvaserveri konfiguratsioonis.",
+      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks lubage operatiivandmete jälgimine turvaserveri konfiguratsioonis.",
       "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
       "exchangeRole": "Roll",
       "exchangeRoleInfo": "Teenusepakkuja või Klient",

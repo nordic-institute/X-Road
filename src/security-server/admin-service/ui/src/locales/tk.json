@@ -265,7 +265,7 @@
     "traffic": {
       "client": "Müşderi",
       "date": "Sene",
-      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlaryň gözegçiligi öçürilen. Ony işjeňleşdirmek üçin operasion maglumatlaryň gözegçilik goşmaçasyny (xroad-opmonitor) guruň we operasion maglumatlaryň gözegçiligini Howpsuzlyk Serweriniň sazlamalarynda işjeňleşdiriň.",
+      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlaryň gözegçiligi öçürilen. Ony işjeňleşdirmek üçin operasion maglumatlaryň gözegçiligini Howpsuzlyk Serweriniň sazlamalarynda işjeňleşdiriň.",
       "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
       "exchangeRole": "Alyş-çalyş roly",
       "exchangeRoleInfo": "Öndüriji ýa-da Sarp ediji",
