@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
@@ -54,6 +55,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ConfigurablePropertiesService {
+
+    private static final Consumer<String> NOOP_VALUE_CONSUMER = _ -> { };
 
     private final ConfigurablePropertiesDefinition configurableProperties;
     private final ConfigurationPropertyRepository repository;
@@ -88,16 +91,42 @@ public class ConfigurablePropertiesService {
      * @param scope         scope of the property (service name or null)
      */
     public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
+        updateConfigurableProperty(propertyKey, propertyValue, scope, NOOP_VALUE_CONSUMER);
+    }
+
+    /**
+     * Updates the value of an existing system parameter or creates a new one
+     * if the property does not yet exist in the repository.
+     * <p>
+     * If a configuration property with the given key and scope is found, its value is updated.
+     * Otherwise, a new {@link ConfigurationPropertyEntity} is created and persisted.
+     * </p>
+     * <p>
+     * This variant allows the caller to provide a consumer for the existing value before the update.
+     * </p>
+     *
+     * @param propertyKey           unique key of the system property
+     * @param propertyValue         new value for the system property
+     * @param scope                 scope of the property (service name or null)
+     * @param existingValueConsumer callback that consumes the existing persisted property value
+     *                              before the update, not invoked if the property does not exist
+     *                              or has a {@code null} value
+     */
+    public void updateConfigurableProperty(
+            String propertyKey, String propertyValue, String scope, Consumer<String> existingValueConsumer) {
+
         if (!isPropertyConfigurable(propertyKey, scope)) {
             throw new NotFoundException(
                     "Configurable property '%s' with scope '%s' is not defined".formatted(propertyKey, scope),
                     NOT_FOUND.build());
         }
-        repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope)
-                .ifPresentOrElse(entity -> {
-                    entity.setPropertyValue(propertyValue);
-                    repository.saveOrUpdate(entity);
-                }, () -> repository.saveOrUpdate(createConfigurationProperty(propertyKey, propertyValue, scope)));
+
+        var existing = repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope);
+        existing.map(ConfigurationPropertyEntity::getPropertyValue).ifPresent(existingValueConsumer);
+
+        var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey, scope));
+        entity.setPropertyValue(propertyValue);
+        repository.saveOrUpdate(entity);
     }
 
     private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(
@@ -121,10 +150,9 @@ public class ConfigurablePropertiesService {
                 .anyMatch(p -> p.getPropertyName().equals(propertyKey) && Objects.equals(p.getScope(), scope));
     }
 
-    private static ConfigurationPropertyEntity createConfigurationProperty(String propertyKey, String propertyValue, String scope) {
+    private static ConfigurationPropertyEntity createEmptyConfigurationProperty(String propertyKey, String scope) {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(propertyKey);
-        entity.setPropertyValue(propertyValue);
         entity.setScope(scope);
         return entity;
     }
