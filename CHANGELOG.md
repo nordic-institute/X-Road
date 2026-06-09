@@ -1,5 +1,17 @@
 # Change Log
 
+## 7.8.1 - 2026-06-09
+- XRDDEV-3071: As a Developer I want to review our rate-limiting functionality to make sure it works
+- XRDDEV-3108: Security Server: proxy_ui_api_access.log not created in version 7.8.0
+- XRDDEV-3109: Signer-console logging not configured (logs not written to signer-console.log or audit.log)
+- XRDDEV-3116: As a Developer I want to update the default TLS cipher suite lists to remove deprecated ciphers from SS-SS communication and add modern recommended ciphers to all communication paths to improve security
+- XRDDEV-3120: As a Security Officer I want the native passwordstore to implement memory-safe credential handling so that passwords are not exposed or corrupted in system memory
+- XRDDEV-3125: As a Central Server Administrator I want the service to be able to handle certificates without CN fields so that latest recommendations can be taken into account
+- XRDDEV-3127: Pricing does not update on already-configured timestamping services
+- XRDDEV-3147: As a Developer I want to improve our CSP configuration so that it is more secure
+- XRDDEV-3184: The ACME renewal job shouldn't run on secondary nodes in a Security Server cluster
+- XRDDEV-3186: Insufficient loading indicators on Security Server connection testing page
+
 ## 7.8.0 - 2026-02-02
 - XRDDEV-2734: Improve the method by which the operational monitoring component on the Security Server resolves its internal IP.
 - XRDDEV-2919: Allow ACME HTTP challenge port to be customised. This helps in cases where the host or container doesn’t have port 80 available to bind to, but the user still wants to use ACME.
