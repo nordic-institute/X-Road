@@ -20,7 +20,7 @@ dependencies {
     api(libs.testcontainers.core)
 
     api(libs.test.allure.junitPlatform)
-    api(libs.test.allure.restAssured)
+    api(libs.test.allure.attachments)
     api(libs.test.allure.commandline) {
         exclude(group = "ru.qatools.commons")
     }

@@ -26,23 +26,42 @@
  */
 package org.niis.xroad.test.apitest.core.restassured;
 
-import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
+import org.niis.xroad.test.apitest.core.report.NamedHttpAttachmentFilter;
 
 /**
- * Produces RestAssured request specifications pre-wired for the API tier: relaxed TLS validation
- * for self-signed test certificates and the {@link AllureRestAssured} adapter so every call attaches its
- * request, response, and headers to the Allure report.
+ * Produces RestAssured request specifications pre-wired for the API tier.
+ *
+ * <p>{@link #given()} — relaxed TLS validation for self-signed test certificates and the
+ * {@link NamedHttpAttachmentFilter} so every call attaches its request, response, and headers to
+ * the Allure report with names in the form {@code Request: <METHOD> <path>} /
+ * {@code Response: <METHOD> <path>}.
+ *
+ * <p>{@link #givenSilent()} — relaxed TLS validation only; no Allure attachment. Use for
+ * infrastructure-level calls (baseline seeding, bootstrap) that must not appear on any test report.
  */
 public final class RestAssuredFactory {
 
     private RestAssuredFactory() {
     }
 
+    /**
+     * Returns a {@link RequestSpecification} with relaxed HTTPS validation and the Allure attachment
+     * filter. Use for all per-test HTTP calls.
+     */
     public static RequestSpecification given() {
         return RestAssured.given()
                 .relaxedHTTPSValidation()
-                .filter(new AllureRestAssured());
+                .filter(new NamedHttpAttachmentFilter());
+    }
+
+    /**
+     * Returns a {@link RequestSpecification} with relaxed HTTPS validation and no Allure filter.
+     * Use for baseline/infrastructure calls that must not attach to any test report.
+     */
+    public static RequestSpecification givenSilent() {
+        return RestAssured.given()
+                .relaxedHTTPSValidation();
     }
 }

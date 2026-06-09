@@ -36,6 +36,7 @@ import org.niis.xroad.test.apitest.core.logging.ComposeLoggerFactory;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.utility.MountableFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -118,6 +119,30 @@ public abstract class BaseComposeSetup {
         return new ContainerMapping(
                 env.getServiceHost(service, originalPort),
                 env.getServicePort(service, originalPort));
+    }
+
+    /**
+     * Restarts the named service container (stop + start in one Docker operation).
+     */
+    public void restartService(String containerName) {
+        var container = env.getContainerByServiceName(containerName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + containerName));
+        var containerId = container.getContainerId();
+        log.info("Restarting container: {}", containerName);
+        container.getDockerClient().restartContainerCmd(containerId).exec();
+        log.info("Container restarted: {}", containerName);
+    }
+
+    /**
+     * Copies a classpath resource directory into a running container. The source is resolved by
+     * {@link MountableFile#forClasspathResource(String)} and the entire tree is copied to
+     * {@code targetPath} inside the named container.
+     */
+    public void copyFilesToContainer(String containerName, String classpathResource, String targetPath) {
+        var files = MountableFile.forClasspathResource(classpathResource);
+        env.getContainerByServiceName(containerName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + containerName))
+                .copyFileToContainer(files, targetPath);
     }
 
     @SneakyThrows
