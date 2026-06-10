@@ -43,40 +43,59 @@ public final class ConfClientConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.configuration-client.allowed-federations}. */
     public static final ConfigKey<String> ALLOWED_FEDERATIONS = CONFIGURATION_CLIENT
-            .string("allowed-federations").withDefaultValue("NONE").build();
+            .string("allowed-federations")
+            .withDefaultValue("NONE")
+            .build();
 
     /** {@code xroad.configuration-client.global-conf-hostname-verification}. */
     public static final ConfigKey<Boolean> GLOBAL_CONF_HOSTNAME_VERIFICATION = CONFIGURATION_CLIENT
-            .bool("global-conf-hostname-verification").withDefaultValue(true).build();
+            .bool("global-conf-hostname-verification")
+            .withDefaultValue(true)
+            .build();
 
     /** {@code xroad.configuration-client.global-conf-tls-cert-verification}. */
     public static final ConfigKey<Boolean> GLOBAL_CONF_TLS_CERT_VERIFICATION = CONFIGURATION_CLIENT
-            .bool("global-conf-tls-cert-verification").withDefaultValue(true).build();
+            .bool("global-conf-tls-cert-verification")
+            .withDefaultValue(true)
+            .build();
 
     /** {@code xroad.configuration-client.downloader-connect-timeout}. */
     public static final ConfigKey<Integer> DOWNLOADER_CONNECT_TIMEOUT = CONFIGURATION_CLIENT
-            .integer("downloader-connect-timeout").withDefaultValue(10000).build();
+            .integer("downloader-connect-timeout")
+            .withDefaultValue(10000)
+            .build();
 
     /** {@code xroad.configuration-client.downloader-read-timeout}. */
     public static final ConfigKey<Integer> DOWNLOADER_READ_TIMEOUT = CONFIGURATION_CLIENT
-            .integer("downloader-read-timeout").withDefaultValue(30000).build();
+            .integer("downloader-read-timeout")
+            .withDefaultValue(30000)
+            .build();
 
     /** {@code xroad.configuration-client.global-conf-dir}. */
     public static final ConfigKey<String> GLOBAL_CONF_DIR = CONFIGURATION_CLIENT
-            .string("global-conf-dir").withValidator(nonEmpty()).withDefaultValue("/etc/xroad/globalconf").build();
+            .string("global-conf-dir")
+            .withValidator(nonEmpty())
+            .withDefaultValue("/etc/xroad/globalconf")
+            .build();
 
     /** {@code xroad.configuration-client.update-interval}. */
     public static final ConfigKey<Integer> UPDATE_INTERVAL = CONFIGURATION_CLIENT
-            .integer("update-interval").withDefaultValue(60).build();
+            .integer("update-interval")
+            .withDefaultValue(60)
+            .build();
 
     /** {@code xroad.configuration-client.configuration-anchor-file}. */
     public static final ConfigKey<String> CONFIGURATION_ANCHOR_FILE = CONFIGURATION_CLIENT
-            .string("configuration-anchor-file").withValidator(nonEmpty())
-            .withDefaultValue("/etc/xroad/configuration-anchor.xml").build();
+            .string("configuration-anchor-file")
+            .withValidator(nonEmpty())
+            .withDefaultValue("/etc/xroad/configuration-anchor.xml")
+            .build();
 
     /** {@code xroad.configuration-client.configuration-anchor-storage} — {@code FILE} or {@code DB}. */
     public static final ConfigKey<String> CONFIGURATION_ANCHOR_STORAGE = CONFIGURATION_CLIENT
-            .string("configuration-anchor-storage").withDefaultValue("DB").build();
+            .string("configuration-anchor-storage")
+            .withDefaultValue("DB")
+            .build();
 
     private ConfClientConfigKeys() {
     }
