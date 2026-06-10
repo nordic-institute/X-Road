@@ -30,9 +30,11 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
@@ -54,17 +56,20 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests to verify configuration parser functionality.
  */
+@Execution(ExecutionMode.SAME_THREAD)
 class ConfigurationParserTest {
 
-    @BeforeAll
-    static void pinClockBeforeFixtureExpiry() {
-        // Signed fixtures (test-conf-simple) carry Expire-date 2026-05-20T17:42:55Z.
+    private Clock previousClock;
+
+    @BeforeEach
+    void pinClockBeforeFixtureExpiry() {
+        previousClock = TimeUtils.getClock();
         TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
     }
 
-    @AfterAll
-    static void restoreClock() {
-        TimeUtils.setClock(Clock.systemDefaultZone());
+    @AfterEach
+    void restoreClock() {
+        TimeUtils.setClock(previousClock);
     }
 
     /**
