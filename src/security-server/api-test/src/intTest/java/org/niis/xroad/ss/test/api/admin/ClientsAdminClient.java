@@ -32,6 +32,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAddDto;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -76,9 +77,8 @@ public class ClientsAdminClient {
                 .then()
                 .statusCode(200)
                 .extract()
-                .jsonPath()
-                .getList("$", ClientDto.class);
-        return clients.stream()
+                .as(ClientDto[].class);
+        return Arrays.stream(clients)
                 .filter(c -> clientId.equals(c.getId()))
                 .findFirst()
                 .orElse(null);

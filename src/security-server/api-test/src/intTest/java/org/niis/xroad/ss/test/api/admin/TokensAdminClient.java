@@ -39,6 +39,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TokenDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenPasswordDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenPinUpdateDto;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -58,13 +59,12 @@ public class TokensAdminClient {
      * Lists all tokens on the Security Server.
      */
     public List<TokenDto> listTokens() {
-        return session.given()
+        return Arrays.asList(session.given()
                 .get("/tokens")
                 .then()
                 .statusCode(200)
                 .extract()
-                .jsonPath()
-                .getList("$", TokenDto.class);
+                .as(TokenDto[].class));
     }
 
     /**
