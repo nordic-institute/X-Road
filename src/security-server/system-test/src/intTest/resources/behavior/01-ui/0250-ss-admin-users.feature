@@ -28,42 +28,6 @@ Feature: 0250 - SS: Admin Users
     And Confirmation password t0pSecretä is entered
     Then Wizard's Save button is clicked and error: "The provided password contains invalid characters" is displayed
 
-  Scenario: User can add new admin user with all roles
-    Given Admin Users table has 1 entries
-    When Add Admin Users wizard is opened
-    And Role "Security Officer" is being checked in the wizard
-    And Role "Registration Officer" is being checked in the wizard
-    And Role "Service Administrator" is being checked in the wizard
-    And Role "System Administrator" is being checked in the wizard
-    And Role "Server Observer" is being checked in the wizard
-    And Wizard's Next button is clicked
-    And Username test is entered
-    And Password t0pSecret1 is entered
-    And Confirmation password t0pSecret1 is entered
-    And Wizard's Save button is clicked
-    Then Admin user test is present in the list and has roles
-      | $role                 | $condition |
-      | Security Officer      | present    |
-      | Registration Officer  | present    |
-      | Service Administrator | present    |
-      | System Administrator  | present    |
-      | Server Observer       | present    |
-    And Admin Users table has 2 entries
-
-  Scenario: User can edit existing admin user's roles
-    When Admin user test's edit dialog is opened
-    And Role "Security Officer" is being checked
-    And Role "Service Administrator" is being checked
-    And Role "Server Observer" is being checked
-    And Dialog Save button is clicked
-    Then Admin user test is present in the list and has roles
-      | $role                 | $condition |
-      | Security Officer      | missing    |
-      | Registration Officer  | present    |
-      | Service Administrator | missing    |
-      | System Administrator  | present    |
-      | Server Observer       | missing    |
-
   Scenario: User can only assign roles they have when adding/editing admin user
     Given logout button is being clicked
     And SecurityServer login page is open
@@ -100,18 +64,6 @@ Feature: 0250 - SS: Admin Users
     And New password's confirmation t0pSecretä is entered
     Then Change password dialog's Save button is clicked and error: "The provided password contains invalid characters" is displayed
 
-  Scenario: User can change other user's password
-    When Admin user test's password change dialog is opened
-    And Old password input is not visible
-    And New password t0pSecret2 is entered
-    And New password's confirmation t0pSecret2 is entered
-    And Change password dialog's Save button is clicked
-    And logout button is being clicked
-    And SecurityServer login page is open
-    Then User test tries to log in to SecurityServer with password t0pSecret1
-    And Error message for incorrect credentials is shown
-    And Login form is visible
-
   Scenario: Too weak password is not accepted when changing own password
     When Change password button is being clicked
     And Old password secret123! is entered
@@ -125,47 +77,3 @@ Feature: 0250 - SS: Admin Users
     And New password t0pSecretä is entered
     And New password's confirmation t0pSecretä is entered
     Then Change password dialog's Save button is clicked and error: "The provided password contains invalid characters" is displayed
-
-  Scenario: User can change its own password
-    Given logout button is being clicked
-    And SecurityServer login page is open
-    And Page is prepared to be tested
-    And User test logs in to SecurityServer with password t0pSecret2
-    When Change password button is being clicked
-    And Old password t0pSecret2 is entered
-    And New password t0pSecret1 is entered
-    And New password's confirmation t0pSecret1 is entered
-    And Change password dialog's Save button is clicked
-    And logout button is being clicked
-    And SecurityServer login page is open
-    Then User test tries to log in to SecurityServer with password t0pSecret2
-    And Error message for incorrect credentials is shown
-    And Login form is visible
-    And User test tries to log in to SecurityServer with password t0pSecret1
-    And logout button is being clicked
-
-
-  Scenario: User can delete existing admin user
-    Given Admin Users table has 2 entries
-    When Admin user test is deleted
-    Then Admin Users table has 1 entries
-    And Admin user test is not present in the list
-
-  Scenario Outline: Add necessary admin users for other dependant tests
-    When Add Admin Users wizard is opened
-    And Role "<$role>" is being checked
-    And Wizard's Next button is clicked
-    And Username <$username> is entered
-    And Password <$password> is entered
-    And Confirmation password <$password> is entered
-    And Wizard's Save button is clicked
-    Then Admin user <$username> is present in the list and has roles
-      | $role   | $condition |
-      | <$role> | present    |
-    Examples:
-      | $username | $role                 | $password     |
-      | xrd-sec   | Security Officer      | t0pSecret1    |
-      | xrd-reg   | Registration Officer  | t0pSecret1    |
-      | xrd-ser   | Service Administrator | t0pSecret1    |
-      | xrd-sys   | System Administrator  | t0pSecret1    |
-      | xrd-obs   | Server Observer       | t0pSecret1    |

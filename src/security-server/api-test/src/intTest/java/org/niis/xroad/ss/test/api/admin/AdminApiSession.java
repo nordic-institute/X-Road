@@ -56,7 +56,15 @@ public class AdminApiSession {
     private String xsrfToken;
 
     public AdminApiSession(String baseUrl) {
-        this(baseUrl, true);
+        this(baseUrl, ADMIN_USERNAME, ADMIN_PASSWORD, true);
+    }
+
+    /**
+     * Creates a session authenticated as a specific user.
+     * Useful for tests that need to act as a non-default admin user.
+     */
+    public AdminApiSession(String baseUrl, String username, String password) {
+        this(baseUrl, username, password, true);
     }
 
     /**
@@ -64,14 +72,14 @@ public class AdminApiSession {
      * Use for infrastructure-level sessions (baseline seeding) that must not appear on any test report.
      */
     public static AdminApiSession silent(String baseUrl) {
-        return new AdminApiSession(baseUrl, false);
+        return new AdminApiSession(baseUrl, ADMIN_USERNAME, ADMIN_PASSWORD, false);
     }
 
-    private AdminApiSession(String baseUrl, boolean reporting) {
+    private AdminApiSession(String baseUrl, String username, String password, boolean reporting) {
         this.baseUrl = baseUrl;
         this.sessionFilter = new SessionFilter();
         this.reporting = reporting;
-        login();
+        login(username, password);
     }
 
     /**
@@ -95,12 +103,12 @@ public class AdminApiSession {
         return reporting ? RestAssuredFactory.given() : RestAssuredFactory.givenSilent();
     }
 
-    private void login() {
-        log.debug("Logging in to admin API at {}", baseUrl);
+    private void login(String username, String password) {
+        log.debug("Logging in to admin API at {} as {}", baseUrl, username);
         Response loginResponse = spec()
                 .filter(sessionFilter)
-                .formParam("username", ADMIN_USERNAME)
-                .formParam("password", ADMIN_PASSWORD)
+                .formParam("username", username)
+                .formParam("password", password)
                 .post(baseUrl + "/login");
 
         loginResponse.then().statusCode(200);
