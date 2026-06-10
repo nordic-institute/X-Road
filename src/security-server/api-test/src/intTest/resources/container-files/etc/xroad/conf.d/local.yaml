@@ -41,6 +41,7 @@ xroad:
     rate-limit-requests-per-minute: 20000
     acme-challenge-port-enabled: true
     automatic-activate-acme-sign-certificate: true
+    key-management-api-whitelist: 0.0.0.0/0, ::/0
   message-log-encryption:
     db:
       encryption-enabled: true
