@@ -70,15 +70,18 @@ class ConfigurationClientTest {
     @TempDir
     File tempDir;
 
+    private static Clock previousClock;
+
     @BeforeAll
     static void pinClockBeforeFixtureExpiry() {
+        previousClock = TimeUtils.getClock();
         // Signed fixtures (test-conf-simple, test-conf-detached) carry Expire-date 2026-05-20T17:42:55Z.
         TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
     }
 
     @AfterAll
     static void restoreClock() {
-        TimeUtils.setClock(Clock.systemDefaultZone());
+        TimeUtils.setClock(previousClock);
     }
 
     /**
@@ -122,7 +125,6 @@ class ConfigurationClientTest {
         assertEquals(2, receivedParts.size());
         assertTrue(receivedParts.contains(CONTENT_ID_PRIVATE_PARAMETERS));
         assertTrue(receivedParts.contains(CONTENT_ID_SHARED_PARAMETERS));
-
     }
 
     /**
@@ -142,7 +144,6 @@ class ConfigurationClientTest {
 
         try {
             client.execute();
-
             fail("Should fail to download");
         } catch (CodedException expected) {
             assertEquals(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE.code(), expected.getFaultCode());
@@ -198,7 +199,7 @@ class ConfigurationClientTest {
                         int idx = downloadURL.lastIndexOf("?");
 
                         if (idx != -1) {
-                            downloadURL = downloadURL.substring(0, downloadURL.lastIndexOf("?"));
+                            downloadURL = downloadURL.substring(0, idx);
                         }
 
                         return new FileInputStream(downloadURL);
