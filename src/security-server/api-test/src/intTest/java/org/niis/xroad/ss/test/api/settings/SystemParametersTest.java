@@ -155,7 +155,7 @@ class SystemParametersTest extends SsApiTest {
 
     // MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Approved CA component has correct values"
     @Test
-    @DisplayName("Approved CAs list row 0 has expected distinguished name, OCSP url, cost type, and ONLY_FREE strategy")
+    @DisplayName("Approved CAs list contains 'Test CA' with expected distinguished name, OCSP url, cost type, and ONLY_FREE strategy")
     void approvedCaHasCorrectValues(SsBaselineSeeder seeder) {
         var systemParams = new SystemParametersAdminClient(seeder.newSession());
 
@@ -165,16 +165,22 @@ class SystemParametersTest extends SsApiTest {
         then("the list is non-empty", () ->
                 assertThat(cas).isNotEmpty());
 
-        and("row 0 has distinguished name 'CN=Test CA, O=Test'", () -> {
-            var firstCa = cas.get(0);
-            var subjectDn = (String) firstCa.get("subject_distinguished_name");
+        and("the 'Test CA' entry has distinguished name containing 'CN=Test CA' and 'O=Test'", () -> {
+            var testCa = cas.stream()
+                    .filter(ca -> "Test CA".equals(ca.get("name")))
+                    .findFirst()
+                    .orElseThrow(() -> new AssertionError("No approved CA named 'Test CA' found in " + cas));
+            var subjectDn = (String) testCa.get("subject_distinguished_name");
             assertThat(subjectDn).contains("CN=Test CA").contains("O=Test");
         });
 
-        and("row 0 has an OCSP responder at 'http://testca:8888' with cost type FREE", () -> {
-            var firstCa = cas.get(0);
+        and("the 'Test CA' entry has an OCSP responder at 'http://testca:8888' with cost type FREE", () -> {
+            var testCa = cas.stream()
+                    .filter(ca -> "Test CA".equals(ca.get("name")))
+                    .findFirst()
+                    .orElseThrow(() -> new AssertionError("No approved CA named 'Test CA' found in " + cas));
             @SuppressWarnings("unchecked")
-            var ocspResponders = (List<Map<String, Object>>) firstCa.get("ocsp_responders");
+            var ocspResponders = (List<Map<String, Object>>) testCa.get("ocsp_responders");
             assertThat(ocspResponders).isNotEmpty();
             var firstOcsp = ocspResponders.get(0);
             assertThat(firstOcsp.get("url")).isEqualTo("http://testca:8888");

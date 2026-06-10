@@ -54,6 +54,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 class GlobalConfRotationTest extends SsApiTest {
 
     private static final String ROTATED_KEYS_CLASSPATH = "files/global_conf_signed_with_rotated_keys";
+    private static final String BASELINE_GLOBALCONF_CLASSPATH = "nginx-container-files/var/lib/xroad/public";
+    private static final String NGINX_PUBLIC_PATH = "/var/lib/xroad/public";
     private static final String SHARED_PARAMS_METADATA_PATH =
             "/etc/xroad/globalconf/DEV/shared-params.xml.metadata";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(3);
@@ -70,21 +72,36 @@ class GlobalConfRotationTest extends SsApiTest {
             assertThat(expiry).isEqualTo(INITIAL_EXPIRY);
         });
 
-        when("the nginx-served globalconf is replaced with a version signed by rotated keys", () ->
-                stack.copyFilesToContainer(
-                        SsApiTestContainerSetup.NGINX,
-                        ROTATED_KEYS_CLASSPATH,
-                        "/var/lib/xroad/public"));
+        try {
+            when("the nginx-served globalconf is replaced with a version signed by rotated keys", () ->
+                    stack.copyFilesToContainer(
+                            SsApiTestContainerSetup.NGINX,
+                            ROTATED_KEYS_CLASSPATH,
+                            NGINX_PUBLIC_PATH));
 
-        then("the SS re-fetches the globalconf and the expiration date advances to the rotated value", () ->
-                await()
-                        .pollDelay(Duration.ZERO)
-                        .pollInterval(POLL_INTERVAL)
-                        .atMost(POLL_TIMEOUT)
-                        .untilAsserted(() -> {
-                            var expiry = readGlobalConfExpiry(stack);
-                            assertThat(expiry).isEqualTo(ROTATED_EXPIRY);
-                        }));
+            then("the SS re-fetches the globalconf and the expiration date advances to the rotated value", () ->
+                    await()
+                            .pollDelay(Duration.ZERO)
+                            .pollInterval(POLL_INTERVAL)
+                            .atMost(POLL_TIMEOUT)
+                            .untilAsserted(() -> {
+                                var expiry = readGlobalConfExpiry(stack);
+                                assertThat(expiry).isEqualTo(ROTATED_EXPIRY);
+                            }));
+        } finally {
+            stack.copyFilesToContainer(
+                    SsApiTestContainerSetup.NGINX,
+                    BASELINE_GLOBALCONF_CLASSPATH,
+                    NGINX_PUBLIC_PATH);
+            await()
+                    .pollDelay(Duration.ZERO)
+                    .pollInterval(POLL_INTERVAL)
+                    .atMost(POLL_TIMEOUT)
+                    .untilAsserted(() -> {
+                        var expiry = readGlobalConfExpiry(stack);
+                        assertThat(expiry).isEqualTo(INITIAL_EXPIRY);
+                    });
+        }
     }
 
     @SneakyThrows
