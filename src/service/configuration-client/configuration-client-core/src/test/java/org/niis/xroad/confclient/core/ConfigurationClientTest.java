@@ -32,10 +32,12 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
@@ -65,22 +67,23 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_
  * Tests to verify configuration downloading procedure.
  */
 @Slf4j
+@Execution(ExecutionMode.SAME_THREAD)
 class ConfigurationClientTest {
 
     @TempDir
     File tempDir;
 
-    private static Clock previousClock;
+    private Clock previousClock;
 
-    @BeforeAll
-    static void pinClockBeforeFixtureExpiry() {
+    @BeforeEach
+    void pinClockBeforeFixtureExpiry() {
         previousClock = TimeUtils.getClock();
-        // Signed fixtures (test-conf-simple, test-conf-detached) carry Expire-date 2026-05-20T17:42:55Z.
+        // Signed fixtures carry Expire-date 2026-05-20T17:42:55Z.
         TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
     }
 
-    @AfterAll
-    static void restoreClock() {
+    @AfterEach
+    void restoreClock() {
         TimeUtils.setClock(previousClock);
     }
 
