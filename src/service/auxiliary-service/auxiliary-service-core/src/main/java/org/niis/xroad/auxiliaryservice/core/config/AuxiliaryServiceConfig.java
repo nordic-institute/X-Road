@@ -31,14 +31,40 @@ import ee.ria.xroad.common.util.BackupMetadataHandler;
 import ee.ria.xroad.common.util.process.BlockingProcessRunner;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Typed;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
 
 import java.nio.file.Path;
 
 public class AuxiliaryServiceConfig {
 
     private static final String EXPECTED_BACKUP_SERVER_TYPE = "security";
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(AuxiliaryServiceConfigKeys.instance())
+                .deploymentMode(deploymentMode())
+                .dbOverrides(appName)
+                .build();
+    }
+
+    @ApplicationScoped
+    BackupProperties backupProperties(XRoadConfig xRoadConfig) {
+        return new BackupProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    MessageLogJobsProperties messageLogJobsProperties(XRoadConfig xRoadConfig) {
+        return new MessageLogJobsProperties(xRoadConfig);
+    }
 
     @ApplicationScoped
     ExternalProcessRunner externalProcessRunner() {
@@ -49,6 +75,11 @@ public class AuxiliaryServiceConfig {
     @Typed(BlockingProcessRunner.class)
     BlockingProcessRunner blockingProcessRunner() {
         return new BlockingProcessRunner();
+    }
+
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
     }
 
     @ApplicationScoped

@@ -43,7 +43,8 @@ import org.niis.xroad.auxiliaryservice.core.backup.FileSystemBackupHandler;
 import org.niis.xroad.auxiliaryservice.core.backup.job.repository.BackupRepository;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
 import org.niis.xroad.restapi.util.FormatUtils;
 
 import java.nio.file.Path;
@@ -84,8 +85,10 @@ class FileSystemBackupHandlerTest {
 
     @BeforeEach
     void setUp() {
-        backupProperties = ConfigUtils.initConfiguration(BackupProperties.class,
-                Map.of("xroad.auxiliary-service.backup.script-path", "/var/backup-script.sh"));
+        backupProperties = new BackupProperties(XRoadConfigBuilder.create()
+                .register(AuxiliaryServiceConfigKeys.instance())
+                .overrides(Map.of("xroad.auxiliary-service.backup.script-path", "/var/backup-script.sh"))
+                .build());
 
         fileSystemBackupHandler = new FileSystemBackupHandler(externalProcessRunner, backupProperties,
                 backupRepository, backupMetadataService);
