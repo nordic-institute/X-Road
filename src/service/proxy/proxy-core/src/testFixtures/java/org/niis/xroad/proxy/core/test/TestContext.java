@@ -128,7 +128,7 @@ public class TestContext {
             keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
 
             var signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider, proxyTestSuiteHelper);
-            var xRoadConfig = proxyTestSuiteHelper.xRoadConfig;
+            var commonProperties = proxyTestSuiteHelper.commonProperties;
             var proxyProperties = proxyTestSuiteHelper.proxyProperties;
 
             CertHelper certHelper = new CertHelper(globalConfProvider, ocspVerifierFactory);
@@ -172,7 +172,7 @@ public class TestContext {
             var clientSoapMessageProcessor = new ClientSoapMessageProcessor(
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
-                    globalConfProvider, proxyProperties, xRoadConfig,
+                    globalConfProvider, proxyProperties, commonProperties,
                     ocspVerifierFactory, clientRequestPreparationService, mock(DspRequestProcessor.class), identifierValidationService);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
@@ -186,19 +186,19 @@ public class TestContext {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
 
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
-                        serverConfProvider, globalConfProvider, proxyProperties, xRoadConfig,
+                        serverConfProvider, globalConfProvider, proxyProperties, commonProperties,
                         new NoopVaultClient(), monitorRpcClient,
                         httpSenderProvider, httpClientCreator.getHttpClient());
                 serviceHandlerLoader.init();
 
                 var serverRestMessageProcessor = new ServerRestMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,
-                        globalConfProvider, serverConfProvider, proxyProperties, xRoadConfig,
+                        globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
                         ocspVerifierFactory, serviceHandlerLoader, identifierValidationService);
 
                 var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,
-                        globalConfProvider, serverConfProvider, proxyProperties, xRoadConfig,
+                        globalConfProvider, serverConfProvider, proxyProperties, commonProperties,
                         ocspVerifierFactory, serviceHandlerLoader, identifierValidationService);
 
 

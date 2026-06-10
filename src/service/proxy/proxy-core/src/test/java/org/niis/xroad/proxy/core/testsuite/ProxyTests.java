@@ -36,6 +36,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -87,10 +88,10 @@ class ProxyTests {
         PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(PROPS);
 
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
-        PROXY_TEST_SUITE_HELPER.xRoadConfig = XRoadConfigBuilder.create()
+        PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
-                .build();
+                .build());
         PROXY_TEST_SUITE_HELPER.startTestServices();
         PROXY_TEST_SUITE_HELPER.startDummyProxy();
     }

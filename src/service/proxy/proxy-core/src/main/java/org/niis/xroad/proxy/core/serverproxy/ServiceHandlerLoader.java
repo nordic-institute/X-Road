@@ -31,7 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -58,7 +58,7 @@ public class ServiceHandlerLoader {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties proxyProperties;
-    private final XRoadConfig xRoadConfig;
+    private final CommonProperties commonProperties;
     private final VaultClient vaultClient;
     private final MonitorRpcClient monitorRpcClient;
     private final HttpSenderProvider httpSenderProvider;
@@ -102,9 +102,9 @@ public class ServiceHandlerLoader {
     private List<RestServiceHandler> buildRestHandlers() {
         var handlers = new ArrayList<RestServiceHandler>();
         if (proxyProperties.addon().metaservices().enabled()) {
-            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties, xRoadConfig));
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties, commonProperties));
         }
-        handlers.add(new DefaultRestServiceHandlerImpl(serverConfProvider, serverProxyHttpClient, xRoadConfig));
+        handlers.add(new DefaultRestServiceHandlerImpl(serverConfProvider, serverProxyHttpClient, commonProperties));
         return List.copyOf(handlers);
     }
 

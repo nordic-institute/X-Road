@@ -34,9 +34,10 @@ import ee.ria.xroad.common.util.CacheInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
@@ -79,10 +80,10 @@ abstract class AbstractMessageLogTest {
 
     ProxyProperties proxyProperties;
     ProxyMessageLogProperties messageLogProperties;
-    XRoadConfig xRoadConfig = XRoadConfigBuilder.create()
+    CommonProperties commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
             .register(CommonConfigKeys.instance())
             .overrides(Map.of("xroad.common.temp-files-path", "build/tmp"))
-            .build();
+            .build());
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
@@ -182,7 +183,6 @@ abstract class AbstractMessageLogTest {
 
     /**
      * Sends time stamping status message to LogManager
-     *
      * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {

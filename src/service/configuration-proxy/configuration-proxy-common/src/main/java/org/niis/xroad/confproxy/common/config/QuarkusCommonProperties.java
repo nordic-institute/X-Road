@@ -24,22 +24,20 @@
  */
 package org.niis.xroad.confproxy.common.config;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.confclient.common.service.ConfigurationClientService;
-import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
 
-public class ConfProxyConfig {
+/**
+ * {@link CommonProperties} backed by a SmallRye {@code @ConfigMapping} — the legacy Quarkus style
+ * configuration-proxy keeps using until it migrates to the XRoadConfig DSL.
+ */
+@ConfigMapping(prefix = "xroad.common")
+public interface QuarkusCommonProperties extends CommonProperties {
 
-    @ApplicationScoped
-    HttpUrlConnectionConfigurer httpUrlConnectionConfigurer(ConfClientProperties confClientProperties) {
-        return new HttpUrlConnectionConfigurer(confClientProperties);
-    }
-
-    @ApplicationScoped
-    ConfigurationClientService configurationClientService(HttpUrlConnectionConfigurer httpUrlConnectionConfigurer,
-                                                          ConfClientProperties confClientProperties,
-                                                          CommonProperties commonProperties) {
-        return new ConfigurationClientService(httpUrlConnectionConfigurer, confClientProperties, commonProperties::tempFilesPath);
-    }
+    @WithName("temp-files-path")
+    @WithDefault("/var/tmp/xroad/")
+    @Override
+    String tempFilesPath();
 }

@@ -45,7 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -86,7 +86,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SOAP;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_DISABLED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
-import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 @Slf4j
 @ApplicationScoped
@@ -100,7 +99,7 @@ public class ServerSoapMessageProcessor {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties proxyProperties;
-    private final XRoadConfig xRoadConfig;
+    private final CommonProperties commonProperties;
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final IdentifierValidationService identifierValidationService;
@@ -166,7 +165,7 @@ public class ServerSoapMessageProcessor {
         log.trace("readMessage()");
 
         var requestMessage = new VerifyingProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE),
-                xRoadConfig.value(TEMP_FILES_PATH), clientSslCerts, opMonitoringData);
+                commonProperties.tempFilesPath(), clientSslCerts, opMonitoringData);
 
         var decoder = new ProxyMessageDecoder(globalConfProvider, ocspVerifierFactory,
                 requestMessage, jRequest.getContentType(), false,
@@ -299,7 +298,7 @@ public class ServerSoapMessageProcessor {
 
         var responseContentType = handlerResult.responseContentType();
         var responseDecoder = new ServerSoapRequestDecoder(opMonitoringData,
-                xRoadConfig.value(TEMP_FILES_PATH), encoder);
+                commonProperties.tempFilesPath(), encoder);
         try {
             var soapMessageDecoder = new SoapMessageDecoder(responseContentType, responseDecoder,
                     new ResponseStaxSoapParserImpl(requestMessage));

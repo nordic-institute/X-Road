@@ -10,7 +10,6 @@ dependencies {
   implementation(project(":service:configuration-proxy:configuration-proxy-jpa"))
   implementation(project(":service:configuration-client:configuration-client-common"))
   implementation(project(":service:signer:signer-client"))
-  implementation(project(":lib:properties-api"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:vault-quarkus"))
 

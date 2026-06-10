@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -120,7 +121,7 @@ class ClientSoapMessageProcessorTest {
                 mock(OpMonitoringDataHelper.class),
                 globalConfProvider,
                 mock(ProxyProperties.class),
-                XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build(),
+                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build()),
                 mock(OcspVerifierFactory.class),
                 mock(ClientRequestPreparationService.class),
                 mock(DspRequestProcessor.class),

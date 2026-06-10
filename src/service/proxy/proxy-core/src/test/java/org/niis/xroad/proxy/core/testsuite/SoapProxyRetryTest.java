@@ -37,7 +37,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.CountingLogManager;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.HandshakeOrderGate;
@@ -102,7 +105,7 @@ class SoapProxyRetryTest {
         PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
         PROPS.put("xroad.proxy.ssl-enabled", "true");
         HELPER.setPropsIfNotSet(PROPS);
-        
+
         HELPER.startTestServices();
     }
 
@@ -222,7 +225,14 @@ class SoapProxyRetryTest {
         PROPS.put("xroad.proxy.client-proxy.enable-request-retry", valueOf(retryEnabled));
         PROPS.put("xroad.proxy.server.listen-port", "0");
         PROPS.put("xroad.proxy.client-proxy.client-http-port", "0");
-        HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
+        HELPER.proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(PROPS)
+                .build());
+        HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .overrides(Map.of("xroad.common.temp-files-path", "build/"))
+                .build());
         ctx = new TestContext(HELPER, true, mock(org.niis.xroad.monitor.rpc.MonitorRpcClient.class), RESOLVER,
                 GATE::clientPastConnect);
         serverProxyPort = ctx.getServerProxyListenPort();

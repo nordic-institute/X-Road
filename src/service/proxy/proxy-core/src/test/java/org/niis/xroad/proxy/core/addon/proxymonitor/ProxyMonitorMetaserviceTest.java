@@ -36,6 +36,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -90,10 +91,10 @@ public class ProxyMonitorMetaserviceTest {
                 .register(ProxyConfigKeys.instance())
                 .overrides(proxyProps)
                 .build());
-        PROXY_TEST_SUITE_HELPER.xRoadConfig = XRoadConfigBuilder.create()
+        PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
-                .build();
+                .build());
 
         PROXY_TEST_SUITE_HELPER.startTestServices();
         monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),

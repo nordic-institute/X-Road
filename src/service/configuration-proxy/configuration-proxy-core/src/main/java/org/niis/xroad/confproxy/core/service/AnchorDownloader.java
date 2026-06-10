@@ -28,7 +28,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
 
 import java.io.IOException;
@@ -41,7 +41,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 
-import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 import static org.niis.xroad.confproxy.common.domain.ConfProxyInstance.ANCHOR_XML;
 import static org.niis.xroad.confproxy.common.exceptions.ConfClientErrorCode.DOWNLOAD_ERROR;
 
@@ -51,13 +50,13 @@ import static org.niis.xroad.confproxy.common.exceptions.ConfClientErrorCode.DOW
 public class AnchorDownloader {
     private static final String ANCHOR_DIR_NAME = "anchors";
 
-    private final XRoadConfig xRoadConfig;
+    private final CommonProperties commonProperties;
     private final HttpUrlConnectionConfigurer httpUrlConnectionConfigurer;
 
     public Path downloadAnchor(String uri) {
         try {
             var sourceUri = URI.create(uri);
-            var targetDir = Paths.get(xRoadConfig.value(TEMP_FILES_PATH), ANCHOR_DIR_NAME, Instant.now().getEpochSecond() + "");
+            var targetDir = Paths.get(commonProperties.tempFilesPath(), ANCHOR_DIR_NAME, Instant.now().getEpochSecond() + "");
             Files.createDirectories(targetDir);
             var targetPath = targetDir.resolve(ANCHOR_XML);
 

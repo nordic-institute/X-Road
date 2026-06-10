@@ -93,7 +93,7 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
                 new AsicContainerClientRequestProcessor(proxyProperties, globalConfProvider,
                         mock(ClientAuthenticationService.class),
                         encryptionConfigProvider, confClientRpcClient, messageRecordEncryption,
-                        logRecordManager, xRoadConfig);
+                        logRecordManager, commonProperties);
 
         byte[] mockZipResponse = new byte[]{'v', 'e', 'r', 'i', 'f', 'i', 'c', 'a', 't', 'i', 'o', 'n', 'c', 'o', 'n', 'f', 'z', 'i', 'p'};
 
@@ -139,7 +139,7 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
                 new AsicContainerClientRequestProcessor(proxyProperties, globalConfProvider,
                         mock(ClientAuthenticationService.class),
                         encryptionConfigProvider, confClientRpcClient, messageRecordEncryption,
-                        logRecordManager, xRoadConfig);
+                        logRecordManager, commonProperties);
 
         processor.process(new AddonRequestContext("/asic", request, response));
 
@@ -196,7 +196,7 @@ class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
                 new AsicContainerClientRequestProcessor(proxyProperties, globalConfProvider,
                         mock(ClientAuthenticationService.class),
                         encryptionConfigProvider, confClientRpcClient, messageRecordEncryption,
-                        logRecordManager, xRoadConfig);
+                        logRecordManager, commonProperties);
 
         processor.process(new AddonRequestContext("/asic", request, response));
 

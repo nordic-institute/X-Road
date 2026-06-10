@@ -40,8 +40,8 @@ import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -98,9 +98,9 @@ class ClientRestMessageProcessorTest {
         var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
                 .register(ProxyConfigKeys.instance())
                 .build());
-        XRoadConfig xRoadConfig = XRoadConfigBuilder.create()
+        var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
-                .build();
+                .build());
         var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
         var httpSenderProvider = mock(HttpSenderProvider.class);
         var messageSigningService = mock(MessageSigningService.class);
@@ -120,7 +120,7 @@ class ClientRestMessageProcessorTest {
                 opMonitoringDataHelper,
                 globalConfProvider,
                 proxyProperties,
-                xRoadConfig,
+                commonProperties,
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
                 consumerSideDspProcessor,

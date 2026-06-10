@@ -34,8 +34,10 @@ import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
@@ -79,6 +81,11 @@ class ProxyConfig {
                 .register(ProxyConfigKeys.instance())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    @ApplicationScoped
+    CommonProperties commonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadConfigCommonProperties(xRoadConfig);
     }
 
     @ApplicationScoped
