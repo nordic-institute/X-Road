@@ -52,9 +52,13 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
     public static final String NGINX = "nginx";
     public static final String OPENBAO = "openbao";
     public static final String UI = "ui";
+    public static final String DS_CONTROL_PLANE = "ds-control-plane";
+    public static final String DS_IDENTITY_HUB = "ds-identity-hub";
+    public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_API_FILE = "compose.api.yaml";
+    private static final String COMPOSE_API_DS_FILE = "compose.api.ds.yaml";
 
     public SsApiTestContainerSetup(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
@@ -64,7 +68,8 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
     public ComposeContainer initEnv() {
         return new ComposeContainer("ss-api-",
                 new File(coreProperties.resourceDir() + COMPOSE_SS_FILE),
-                new File(coreProperties.resourceDir() + COMPOSE_API_FILE))
+                new File(coreProperties.resourceDir() + COMPOSE_API_FILE),
+                new File(coreProperties.resourceDir() + COMPOSE_API_DS_FILE))
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(SIGNER, Port.QUARKUS_HEALTH, forListeningPort())
@@ -75,6 +80,11 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
+                .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY_DID, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
@@ -84,7 +94,10 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
                 .withLogConsumer(OPENBAO, createLogConsumer(OPENBAO))
                 .withLogConsumer(NGINX, createLogConsumer(NGINX))
-                .withLogConsumer(TESTCA, createLogConsumer(TESTCA));
+                .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
+                .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(DS_IDENTITY_HUB))
+                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer(DS_ISSUER_SERVICE));
     }
 
     @Override
@@ -92,6 +105,7 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         env.getContainerByServiceName(NGINX).orElseThrow()
                 .copyFileToContainer(nginxFiles, "/var/lib");
+        new DspBootstrap(this).bootstrap();
     }
 
 }

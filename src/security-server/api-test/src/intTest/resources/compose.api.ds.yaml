@@ -1,0 +1,293 @@
+services:
+  ds-https-keystore-init:
+    image: eclipse-temurin:21-jre-alpine
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        set -euo pipefail
+        cd /keystore
+        [ -f ds-https.p12 ] && [ -f cacerts ] && exit 0
+        apk add --no-cache openssl
+        openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+          -keyout ds-https-key.pem -out ds-https-cert.pem \
+          -subj "/CN=xrd-ds" \
+          -addext "subjectAltName=DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:localhost"
+        openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
+          -name ds-https -password pass:changeit
+        cp /opt/java/openjdk/lib/security/cacerts cacerts
+        chmod u+w cacerts
+        keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
+          -keystore cacerts -storepass changeit
+        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem
+    volumes:
+      - ds-https-keystore:/keystore
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  db-serverconf-ds-control-plane-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+           VALUES ('edc.iam.trusted-issuer.issuer.id', 'did:web:ds-issuer-service%3A6183:issuer', 'ds-control-plane', now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+
+  db-ds-control-plane:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=ds_control_plane_admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-control-plane
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  ds-control-plane:
+    image: ${DS_CONTROL_PLANE_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - HOSTNAME=ds-control-plane
+      - XROAD_HOST=ds-control-plane
+      - XROAD_DSP_PARTICIPANT_CONTEXT_ID=ss0
+      - XROAD_PROXY_DATAPLANE_URL=http://proxy:5590/full/api/v1/dataflows
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD=ds_control_plane_admin_secret
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - EDC_DSP_CALLBACK_ADDRESS=https://ds-control-plane:8183/api/dsp/%s
+      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
+      - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
+      - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
+      - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
+      - EDC_WEB_HTTPS_KEYMANAGER_PASSWORD=changeit
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:8181"
+      - "0:8182"
+      - "0:8183"
+      - "0:8184"
+      - "0:9999"
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+    depends_on:
+      db-ds-control-plane:
+        condition: service_healthy
+      db-serverconf-ds-control-plane-config-seed:
+        condition: service_completed_successfully
+      configuration-client:
+        condition: service_healthy
+      mock-jwks-server:
+        condition: service_healthy
+      ds-identity-hub:
+        condition: service_healthy
+      ds-https-keystore-init:
+        condition: service_completed_successfully
+
+  db-ds-identity-hub:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=ds_identity_hub_admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-identity-hub
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  ds-identity-hub:
+    image: ${DS_IDENTITY_HUB_IMG}
+    pull_policy: always
+    environment:
+      - HOSTNAME=ds-identity-hub
+      - XROAD_HOST=ds-identity-hub
+      - EDC_IH_DID_PUBLIC_HOSTNAME=ds-identity-hub
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub
+      - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=ds_identity_hub_admin_secret
+      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+      - EDC_ENCRYPTION_STRICT=false
+      - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
+      - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
+      - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
+      - EDC_WEB_HTTPS_KEYMANAGER_PASSWORD=changeit
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+      - DEBUG=true
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-fk", "https://localhost:7181/api/check/health" ]
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:7182"
+      - "0:7183"
+      - "0:7185"
+      - "0:9999"
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
+    depends_on:
+      db-ds-identity-hub:
+        condition: service_healthy
+      mock-jwks-server:
+        condition: service_healthy
+      ds-https-keystore-init:
+        condition: service_completed_successfully
+
+  db-ds-issuer-service:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=ds_issuer_service_admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-issuer-service
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  ds-issuer-service:
+    image: ${DS_ISSUER_SERVICE_IMG}
+    pull_policy: always
+    environment:
+      - HOSTNAME=ds-issuer-service
+      - XROAD_HOST=ds-issuer-service
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuer_service_admin_secret
+      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+      - EDC_ENCRYPTION_STRICT=false
+      - EDC_STATUSLIST_CALLBACK_ADDRESS=https://ds-issuer-service:6187/statuslist
+      - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
+      - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
+      - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
+      - EDC_WEB_HTTPS_KEYMANAGER_PASSWORD=changeit
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+      - DEBUG=true
+    healthcheck:
+      start_period: 60s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-fk", "https://localhost:6181/api/check/health" ]
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:6182"
+      - "0:6183"
+      - "0:6185"
+      - "0:6186"
+      - "0:6187"
+      - "0:9999"
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+    depends_on:
+      db-ds-issuer-service:
+        condition: service_healthy
+      mock-jwks-server:
+        condition: service_healthy
+      ds-https-keystore-init:
+        condition: service_completed_successfully
+
+  mock-jwks-server:
+    image: python:3.11-alpine
+    command: >
+      sh -c "
+        mkdir -p  /tmp/jwks &&
+        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
+        python3 -m http.server 8080 --directory /tmp/jwks
+      "
+    ports:
+      - "0:8080"
+    networks:
+      - xrd-ss-network
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
+    volumes:
+      - ./container-files/jwks/:/jwks

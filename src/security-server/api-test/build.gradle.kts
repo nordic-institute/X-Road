@@ -23,7 +23,10 @@ intTestComposeEnv {
         "PROXY_IMG" to "ss-proxy",
         "PROXY_UI_IMG" to "ss-proxy-ui-api",
         "AUXILIARY_SERVICE_IMG" to "ss-auxiliary-service",
-        "OP_MONITOR_IMG" to "ss-op-monitor"
+        "OP_MONITOR_IMG" to "ss-op-monitor",
+        "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
+        "DS_IDENTITY_HUB_IMG" to "ds-identity-hub",
+        "DS_ISSUER_SERVICE_IMG" to "ds-issuer-service"
     )
 }
 
