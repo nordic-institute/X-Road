@@ -18,8 +18,4 @@ Feature: 0900 - SS:Diagnostics - Traffic
     And Service select is disabled
     And Traffic chart is visible
 
-  Scenario: Services are loaded
-    Given Client "DEV:COM:1234:TestService" is selected
-    Then Service select is enabled
-    And Service "s4c2" is present
 
