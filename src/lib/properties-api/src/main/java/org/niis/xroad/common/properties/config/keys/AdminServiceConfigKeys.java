@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Scope;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
@@ -48,6 +50,10 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     private static final Scope ADMIN = Scope.of("xroad.proxy-ui-api");
     private static final Scope TLS_CERT_PROVISIONING = ADMIN.child("tls").child("certificate-provisioning");
     private static final Scope ROLE_MAPPINGS = ADMIN.child("complementary-user-role-mappings");
+
+    // admin-service config that lives at the top-level xroad.* namespace (not under xroad.proxy-ui-api),
+    // stored as a single YAML document per key and parsed by the consuming beans
+    private static final Scope XROAD = Scope.of("xroad");
 
     private static final AdminServiceConfigKeys INSTANCE = new AdminServiceConfigKeys();
 
@@ -381,6 +387,16 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue("")
             .build();
 
+    // --- top-level YAML-document config (parsed by the consuming beans) ---
+    /** {@code xroad.acme} — full ACME configuration as a YAML/JSON document; no default (unset = disabled). */
+    public static final ConfigKey<String> ACME = XROAD
+            .string("acme")
+            .build();
+    /** {@code xroad.mail-notification} — full mail-notification configuration as a YAML/JSON document; no default. */
+    public static final ConfigKey<String> MAIL_NOTIFICATION = XROAD
+            .string("mail-notification")
+            .build();
+
     private AdminServiceConfigKeys() {
     }
 
@@ -392,5 +408,10 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     @Override
     public Scope scope() {
         return ADMIN;
+    }
+
+    @Override
+    public List<ConfigKey<?>> keys() {
+        return Stream.concat(ADMIN.keys().stream(), XROAD.keys().stream()).toList();
     }
 }
