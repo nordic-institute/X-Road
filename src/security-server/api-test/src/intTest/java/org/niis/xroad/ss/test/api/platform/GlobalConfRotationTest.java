@@ -31,6 +31,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 
@@ -49,7 +50,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 // MIGRATED-FROM: 3000-global-conf-sign-key-rotation.feature :: "Global conf sign keys rotation"
 @DisplayName("Global conf sign key rotation")
-@ResourceLock("globalconf-rotation")
+@ResourceLock(Resources.GLOBAL)
 @SuppressWarnings("checkstyle:magicnumber")
 class GlobalConfRotationTest extends SsApiTest {
 

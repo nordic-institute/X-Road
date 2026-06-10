@@ -29,6 +29,9 @@ package org.niis.xroad.ss.test.api.destructive;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.test.apitest.core.report.AllureReportHook;
 
 /**
@@ -41,6 +44,8 @@ import org.niis.xroad.test.apitest.core.report.AllureReportHook;
  * <p>Tests obtain the stack by declaring a {@link DestructiveStackSetup} parameter.
  */
 @Tag("destructive")
+@Execution(ExecutionMode.SAME_THREAD)
+@ResourceLock("destructive-stack")
 @ExtendWith(DestructiveStackExtension.class)
 public abstract class SsDestructiveTest {
 

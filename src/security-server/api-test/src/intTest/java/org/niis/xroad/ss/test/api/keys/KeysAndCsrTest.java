@@ -30,6 +30,7 @@ import io.restassured.RestAssured;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
@@ -50,6 +51,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * API tests for key creation, CSR generation and deletion on the soft token.
  */
 @DisplayName("Keys and CSR — signer API persistence")
+@ResourceLock("softToken-0")
 @SuppressWarnings("checkstyle:magicnumber")
 class KeysAndCsrTest extends SsApiTest {
 

@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.api.keys;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
@@ -46,6 +47,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * API tests for ACME certificate ordering via the admin API.
  */
 @DisplayName("ACME certificate ordering")
+@ResourceLock("softToken-0")
 @SuppressWarnings("checkstyle:magicnumber")
 class AcmeOrderTest extends SsApiTest {
 
