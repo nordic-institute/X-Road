@@ -30,13 +30,25 @@ import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Singleton;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.messagelog.MessageLogDbProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.messagelog.archive.MessageLogEncryptionConfig;
 
 public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig {
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(MessageLogEncryptionConfigKeys.instance())
+                .dbOverrides(appName)
+                .build();
+    }
 
     @Singleton
     MessageLogDatabaseCtx databaseCtx(MessageLogDbProperties properties) {

@@ -45,6 +45,7 @@ import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
@@ -79,6 +80,7 @@ class ProxyConfig {
         return XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .register(ProxyConfigKeys.instance())
+                .register(MessageLogEncryptionConfigKeys.instance())
                 .dbOverrides(appName)
                 .build();
     }

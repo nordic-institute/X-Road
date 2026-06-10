@@ -45,6 +45,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.messagelog.MessageLogDbProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
@@ -111,8 +112,10 @@ abstract class AbstractMessageLogTest {
         messageLogProperties = configOverrides.isEmpty()
                 ? ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class)
                 : ConfigUtils.initConfiguration(ProxyMessageLogProperties.class, configOverrides);
-        messageLogEncryptionProperties = ConfigUtils.initConfiguration(
-                MessageLogEncryptionProperties.class, configOverrides);
+        messageLogEncryptionProperties = new MessageLogEncryptionProperties(XRoadConfigBuilder.create()
+                .register(MessageLogEncryptionConfigKeys.instance())
+                .overrides(configOverrides)
+                .build());
         messageLogArchiverProperties = ConfigUtils.initConfiguration(MessageLogArchiverProperties.class, configOverrides);
 
         globalConfProvider = getGlobalConf();
