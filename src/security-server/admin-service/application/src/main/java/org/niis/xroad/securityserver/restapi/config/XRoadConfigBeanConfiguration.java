@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -33,6 +34,7 @@ import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * Wires the {@link XRoadConfig} resolver and the admin-service property beans that resolve through it
@@ -42,10 +44,13 @@ import org.springframework.context.annotation.Configuration;
 public class XRoadConfigBeanConfiguration {
 
     @Bean
-    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName) {
+    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, Environment environment) {
+        var deploymentMode = environment.matchesProfiles("containerized")
+                ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
         return XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .register(AdminServiceConfigKeys.instance())
+                .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
     }

@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Country;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Value;
 import org.niis.xroad.common.properties.config.XRoadConfig;
@@ -53,6 +54,7 @@ public final class XRoadConfigBuilder {
 
     private final List<ConfigKeyProvider> providers = new ArrayList<>();
     private Map<String, String> overrides = Map.of();
+    private DeploymentMode deploymentMode = DeploymentMode.NATIVE;
 
     private XRoadConfigBuilder() {
     }
@@ -82,6 +84,19 @@ public final class XRoadConfigBuilder {
     }
 
     /**
+     * Sets the deployment mode. In {@link DeploymentMode#CONTAINERIZED} a key resolves to its
+     * container default (when declared) instead of the regular default; DB overrides still win.
+     * Defaults to {@link DeploymentMode#NATIVE}. Apps derive the value from their framework profile.
+     *
+     * @param mode deployment mode
+     * @return this builder
+     */
+    public XRoadConfigBuilder deploymentMode(DeploymentMode mode) {
+        this.deploymentMode = mode;
+        return this;
+    }
+
+    /**
      * Loads the DB-override layer from the {@code configuration_properties} table via the
      * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
      * its URL is unset, so callers fall back to packaged defaults. Reuses the framework-neutral
@@ -103,7 +118,7 @@ public final class XRoadConfigBuilder {
 
     /** @return resolved configuration with values cached at build time */
     public XRoadConfig build() {
-        return new DefaultXRoadConfig(providers, overrides);
+        return new DefaultXRoadConfig(providers, overrides, deploymentMode);
     }
 
     /**
@@ -115,11 +130,11 @@ public final class XRoadConfigBuilder {
 
         private final Map<ConfigKey<?>, Value<?>> resolved;
 
-        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides) {
+        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides, DeploymentMode deploymentMode) {
             var map = new LinkedHashMap<ConfigKey<?>, Value<?>>();
             for (var provider : providers) {
                 for (var key : provider.keys()) {
-                    map.put(key, resolve(key, overrides));
+                    map.put(key, resolve(key, overrides, deploymentMode));
                 }
             }
             this.resolved = map;
@@ -146,12 +161,14 @@ public final class XRoadConfigBuilder {
             return Optional.empty();
         }
 
-        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides) {
+        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides, DeploymentMode mode) {
             var raw = overrides.get(key.key());
             if (raw != null) {
                 return new Value<>(key, converAndValidate(raw, key), Source.DB);
             }
-            return new Value<>(key, key.convertedDefaultValue(), Source.DEFAULT);
+            var useContainerDefault = mode == DeploymentMode.CONTAINERIZED && key.containerDefaultValue() != null;
+            var converted = useContainerDefault ? key.convertedContainerDefaultValue() : key.convertedDefaultValue();
+            return new Value<>(key, converted, Source.DEFAULT);
         }
 
         private static <T> T converAndValidate(String raw, ConfigKey<T> key) {

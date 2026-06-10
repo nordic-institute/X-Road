@@ -148,12 +148,14 @@ public abstract sealed class Scope {
         private final String key;
         private final Class<T> type;
         private final String defaultValue;
+        private final String containerDefaultValue;
         private final Function<String, T> converter;
         private final Validator<T> validator;
 
         private DefaultConfigKey(String scopeName,
                                  String key, Class<T> type,
                                  String defaultValue,
+                                 String containerDefaultValue,
                                  Function<String, T> converter,
                                  Validator<T> validator) {
             if (key == null || key.isEmpty()) {
@@ -164,20 +166,27 @@ public abstract sealed class Scope {
             Objects.requireNonNull(converter, "converter is required for %s".formatted(key));
             Objects.requireNonNull(validator, "validator is required for %s".formatted(key));
 
-            if (defaultValue != null) {
-                var result = validator.validate(converter.apply(defaultValue));
-                if (!result.valid()) {
-                    throw new IllegalArgumentException(
-                            "Invalid default for %s: %s".formatted(key, result.message()));
-                }
-            }
+            validateDefault(key, defaultValue, converter, validator);
+            validateDefault(key, containerDefaultValue, converter, validator);
 
             this.scopeName = scopeName;
             this.key = key;
             this.type = type;
             this.defaultValue = defaultValue;
+            this.containerDefaultValue = containerDefaultValue;
             this.converter = converter;
             this.validator = validator;
+        }
+
+        private static <T> void validateDefault(String key, String rawDefault,
+                                                Function<String, T> converter, Validator<T> validator) {
+            if (rawDefault != null) {
+                var result = validator.validate(converter.apply(rawDefault));
+                if (!result.valid()) {
+                    throw new IllegalArgumentException(
+                            "Invalid default for %s: %s".formatted(key, result.message()));
+                }
+            }
         }
 
         @Override
@@ -198,6 +207,16 @@ public abstract sealed class Scope {
         @Override
         public T convertedDefaultValue() {
             return defaultValue == null ? null : convert(defaultValue);
+        }
+
+        @Override
+        public String containerDefaultValue() {
+            return containerDefaultValue;
+        }
+
+        @Override
+        public T convertedContainerDefaultValue() {
+            return containerDefaultValue == null ? null : convert(containerDefaultValue);
         }
 
         @Override
@@ -236,6 +255,7 @@ public abstract sealed class Scope {
         protected Validator<T> validator = Validator.none();
         protected Function<String, T> converter;
         protected String defaultValue;
+        protected String containerDefaultValue;
 
 
         @SuppressWarnings("unchecked")
@@ -250,10 +270,18 @@ public abstract sealed class Scope {
             return (KB) this;
         }
 
+        /** Container-mode default; resolvers in {@code CONTAINERIZED} mode prefer this over the regular default. */
+        @SuppressWarnings("unchecked")
+        public KB withContainerDefaultValue(String defValue) {
+            this.containerDefaultValue = defValue;
+            return (KB) this;
+        }
+
         public ConfigKey<T> build() {
             var key = scope.rootPath() + "." + shortKey;
 
-            var configKey = new DefaultConfigKey<>(scope.name().orElse(null), key, type, defaultValue, converter, validator);
+            var configKey = new DefaultConfigKey<>(scope.name().orElse(null), key, type, defaultValue,
+                    containerDefaultValue, converter, validator);
 
             if (defaultValue != null) {
                 var result = validator.validate(converter.apply(defaultValue));
@@ -356,6 +384,11 @@ public abstract sealed class Scope {
 
         public BooleanKeyBuilder withDefaultValue(Boolean defaultValue) {
             this.defaultValue = defaultValue == null ? null : String.valueOf(defaultValue);
+            return this;
+        }
+
+        public BooleanKeyBuilder withContainerDefaultValue(Boolean defaultValue) {
+            this.containerDefaultValue = defaultValue == null ? null : String.valueOf(defaultValue);
             return this;
         }
     }

@@ -27,26 +27,15 @@
 
 package org.niis.xroad.common.properties.config;
 
-import java.util.Optional;
-
-public sealed interface ConfigKey<T> permits Scope.DefaultConfigKey {
-    Optional<String> scopeName();
-
-    String key();
-
-    String defaultValue();
-
-    T convertedDefaultValue();
-
-    /** @return the raw container-mode default, or {@code null} when none is declared (falls back to {@link #defaultValue()}). */
-    String containerDefaultValue();
-
-    /** @return the converted container-mode default, or {@code null} when none is declared. */
-    T convertedContainerDefaultValue();
-
-    Class<T> type();
-
-    T convert(String rawValue);
-
-    Validator.Result validate(T value);
+/**
+ * Deployment mode a resolver runs under. Selects which packaged default a {@link ConfigKey}
+ * resolves to when no DB override is present: the native default, or the container default when
+ * one is declared. Apps derive this from their framework profile (Spring {@code containerized} /
+ * Quarkus {@code %containerized}).
+ */
+public enum DeploymentMode {
+    /** Package/native installs (DEB/RPM) — the regular default applies. */
+    NATIVE,
+    /** Containerized deployments (Docker/Kubernetes) — the container default applies when set. */
+    CONTAINERIZED
 }
