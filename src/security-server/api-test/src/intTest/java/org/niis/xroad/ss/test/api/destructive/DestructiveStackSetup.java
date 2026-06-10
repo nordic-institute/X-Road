@@ -108,6 +108,7 @@ class DestructiveStackSetup extends BaseComposeSetup {
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         env.getContainerByServiceName(NGINX).orElseThrow()
                 .copyFileToContainer(nginxFiles, "/var/lib");
+        execInContainer(AUXILIARY_SERVICE, "/etc/xroad/backup-keys/init_backup_encryption.sh");
     }
 
     /**
