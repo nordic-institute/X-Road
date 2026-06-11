@@ -26,12 +26,13 @@
  */
 package org.niis.xroad.ds.issuance.membership;
 
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jwt.JWTParser;
-import com.nimbusds.jwt.SignedJWT;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
+
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -39,8 +40,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
-import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -76,7 +77,7 @@ import java.util.Objects;
  *
  * <p>Cold-start: if {@code globalConf.verifyValidity()} throws (async load not yet
  * complete after a fresh boot, or confclient unreachable), the verifier returns
- * {@link MembershipVerificationReason#GLOBALCONF_UNAVAILABLE}. CRM retries naturally.
+ * {@link MembershipVerificationFailureReason#GLOBALCONF_UNAVAILABLE}. CRM retries naturally.
  */
 class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
 
@@ -113,10 +114,10 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
     @Override
     public Result<ClientId> verify(String compactJws, String expectedHolderDid, String expectedIssuerDid) {
         if (compactJws == null || compactJws.isBlank()) {
-            return Result.failure(MembershipVerificationReason.CLAIM_MISSING.name());
+            return Result.failure(MembershipVerificationFailureReason.CLAIM_MISSING.name());
         }
         if (!globalConfReady()) {
-            return Result.failure(MembershipVerificationReason.GLOBALCONF_UNAVAILABLE.name());
+            return Result.failure(MembershipVerificationFailureReason.GLOBALCONF_UNAVAILABLE.name());
         }
 
         SignedJWT signedJwt;
@@ -124,15 +125,15 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
         try {
             var parsed = JWTParser.parse(compactJws);
             if (!(parsed instanceof SignedJWT s)) {
-                return Result.failure(MembershipVerificationReason.CLAIM_MALFORMED.name() + ": JWS not a signed JWT");
+                return Result.failure(MembershipVerificationFailureReason.CLAIM_MALFORMED.name() + ": JWS not a signed JWT");
             }
             signedJwt = s;
             cert = extractLeafCertificate(signedJwt);
             if (cert == null) {
-                return Result.failure(MembershipVerificationReason.CLAIM_MALFORMED.name() + ": missing x5c header");
+                return Result.failure(MembershipVerificationFailureReason.CLAIM_MALFORMED.name() + ": missing x5c header");
             }
         } catch (ParseException | CertificateException e) {
-            return Result.failure(MembershipVerificationReason.CLAIM_MALFORMED.name() + ": " + e.getMessage());
+            return Result.failure(MembershipVerificationFailureReason.CLAIM_MALFORMED.name() + ": " + e.getMessage());
         }
 
         Result<Void> chainResult = certChainValidator.validate(cert);
@@ -193,12 +194,12 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
                     new SignCertificateProfileInfoParameters(dummyClientId, dummyMember);
             ClientId.Conf subjectId = globalConf.getSubjectName(signCertProfileInfoParameters, cert);
             if (subjectId == null) {
-                return Result.failure(MembershipVerificationReason.CERT_CHAIN_INVALID.name()
+                return Result.failure(MembershipVerificationFailureReason.CERT_CHAIN_INVALID.name()
                         + ": cert subject is not a valid X-Road ClientId");
             }
             return Result.success(subjectId);
         } catch (Exception e) {
-            return Result.failure(MembershipVerificationReason.CERT_CHAIN_INVALID.name() + ": " + e.getMessage());
+            return Result.failure(MembershipVerificationFailureReason.CERT_CHAIN_INVALID.name() + ": " + e.getMessage());
         }
     }
 
@@ -206,19 +207,19 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
         // Token-validation failures collapse into bucketed reasons; the detail message
         // distinguishes the specific cause in logs.
         if (detail == null) {
-            return MembershipVerificationReason.SIGNATURE_INVALID.name();
+            return MembershipVerificationFailureReason.SIGNATURE_INVALID.name();
         }
         var lower = detail.toLowerCase(Locale.ROOT);
         if (lower.contains("jwt id") || lower.contains("jti") || lower.contains("already used")) {
-            return MembershipVerificationReason.CLAIM_REPLAYED.name() + ": " + detail;
+            return MembershipVerificationFailureReason.CLAIM_REPLAYED.name() + ": " + detail;
         }
         if (lower.contains("aud") || lower.contains("audience") || lower.contains("sub ")) {
-            return MembershipVerificationReason.CLAIM_AUDIENCE_INVALID.name() + ": " + detail;
+            return MembershipVerificationFailureReason.CLAIM_AUDIENCE_INVALID.name() + ": " + detail;
         }
         if (lower.contains("expired") || lower.contains("expiration") || lower.contains("issued at") || lower.contains("iat")) {
-            return MembershipVerificationReason.CLAIM_EXPIRED.name() + ": " + detail;
+            return MembershipVerificationFailureReason.CLAIM_EXPIRED.name() + ": " + detail;
         }
-        return MembershipVerificationReason.SIGNATURE_INVALID.name() + ": " + detail;
+        return MembershipVerificationFailureReason.SIGNATURE_INVALID.name() + ": " + detail;
     }
 
     /**

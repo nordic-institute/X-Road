@@ -28,6 +28,7 @@
 package org.niis.xroad.ds.identityhub.claim;
 
 import ee.ria.xroad.common.identifier.ClientId;
+
 import org.eclipse.edc.spi.result.Result;
 
 /**

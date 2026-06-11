@@ -26,14 +26,15 @@
  */
 package org.niis.xroad.ds.identityhub.claim;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +68,7 @@ class JwsBuilderTest {
     }
 
     @Test
-    void builds_verifiable_rs256_jws_via_external_signer() throws Exception {
+    void buildsVerifiableRs256JwsViaExternalSigner() throws Exception {
         SignAlgorithm signAlgo = SignAlgorithm.ofDigestAndMechanism(DigestAlgorithm.SHA256, SignMechanism.CKM_RSA_PKCS);
         JWTClaimsSet claims = sampleClaims();
 
@@ -118,7 +119,7 @@ class JwsBuilderTest {
     }
 
     @Test
-    void omits_ocsp_header_when_bytes_null() throws Exception {
+    void omitsOcspHeaderWhenBytesNull() throws Exception {
         SignAlgorithm signAlgo = SignAlgorithm.ofDigestAndMechanism(DigestAlgorithm.SHA256, SignMechanism.CKM_RSA_PKCS);
         String jws = JwsBuilder.build(sampleClaims(), cert, signAlgo, "test-key",
                 (k, d) -> signDigestRsaPkcs1v15Sha256(d, keyPair),
@@ -129,7 +130,7 @@ class JwsBuilderTest {
     }
 
     @Test
-    void rejects_ecdsa_for_now() throws Exception {
+    void rejectsEcdsaForNow() throws Exception {
         SignAlgorithm ecdsa = SignAlgorithm.ofDigestAndMechanism(DigestAlgorithm.SHA256, SignMechanism.CKM_ECDSA);
         JWTClaimsSet claims = sampleClaims();
 
@@ -138,7 +139,7 @@ class JwsBuilderTest {
     }
 
     @Test
-    void rejects_null_signature_from_signer() {
+    void rejectsNullSignatureFromSigner() {
         SignAlgorithm signAlgo = SignAlgorithm.ofDigestAndMechanism(DigestAlgorithm.SHA256, SignMechanism.CKM_RSA_PKCS);
 
         assertThrows(JwsBuilder.JwsBuildException.class,
@@ -164,7 +165,7 @@ class JwsBuilderTest {
      * what JCA's {@code SHA256withRSA} would have produced for the original signing-input
      * bytes — so the JWS we assemble verifies against the cert's public key.
      */
-    private static byte[] signDigestRsaPkcs1v15Sha256(byte[] digest, KeyPair keyPair) {
+    private static byte[] signDigestRsaPkcs1v15Sha256(byte[] digest, KeyPair signingKeyPair) {
         try {
             byte[] sha256Prefix = new byte[]{
                     0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, (byte) 0x86, 0x48,
@@ -173,7 +174,7 @@ class JwsBuilderTest {
             System.arraycopy(sha256Prefix, 0, toSign, 0, sha256Prefix.length);
             System.arraycopy(digest, 0, toSign, sha256Prefix.length, digest.length);
             Signature signature = Signature.getInstance("NONEwithRSA");
-            signature.initSign(keyPair.getPrivate());
+            signature.initSign(signingKeyPair.getPrivate());
             signature.update(toSign);
             return signature.sign();
         } catch (Exception e) {

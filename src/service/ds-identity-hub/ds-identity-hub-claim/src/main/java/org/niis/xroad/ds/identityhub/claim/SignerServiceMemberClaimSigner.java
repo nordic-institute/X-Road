@@ -26,10 +26,11 @@
  */
 package org.niis.xroad.ds.identityhub.claim;
 
-import com.nimbusds.jwt.JWTClaimsSet;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
+
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.edc.spi.result.Result;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;

@@ -62,33 +62,33 @@ final class OcspVerifier {
      * @param pinnedOcspBase64 base64-encoded OCSP response DER bytes from the JWS
      *                         {@code ocsp} header
      * @param leafCert         the JWS signing certificate the OCSP response should cover
-     * @return success, or a failure carrying {@link MembershipVerificationReason#OCSP_INVALID}
+     * @return success, or a failure carrying {@link MembershipVerificationFailureReason#OCSP_INVALID}
      */
     Result<Void> verify(String pinnedOcspBase64, X509Certificate leafCert) {
         if (pinnedOcspBase64 == null || pinnedOcspBase64.isBlank()) {
-            return Result.failure(MembershipVerificationReason.OCSP_INVALID.name() + ": missing ocsp header");
+            return Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": missing ocsp header");
         }
         byte[] ocspDer;
         try {
             ocspDer = Base64.getDecoder().decode(pinnedOcspBase64);
         } catch (IllegalArgumentException e) {
-            return Result.failure(MembershipVerificationReason.OCSP_INVALID.name() + ": ocsp header is not base64");
+            return Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": ocsp header is not base64");
         }
         OCSPResp ocspResp;
         try {
             ocspResp = new OCSPResp(ocspDer);
         } catch (Exception e) {
-            return Result.failure(MembershipVerificationReason.OCSP_INVALID.name() + ": cannot parse OCSP response: "
+            return Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": cannot parse OCSP response: "
                     + e.getMessage());
         }
         X509Certificate issuerCert;
         try {
             issuerCert = globalConf.getCaCert(globalConf.getInstanceIdentifier(), leafCert);
             if (issuerCert == null) {
-                return Result.failure(MembershipVerificationReason.OCSP_INVALID.name() + ": no CA cert in globalconf for leaf");
+                return Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": no CA cert in globalconf for leaf");
             }
         } catch (Exception e) {
-            return Result.failure(MembershipVerificationReason.OCSP_INVALID.name()
+            return Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name()
                     + ": cannot resolve CA cert for leaf: " + e.getMessage());
         }
         try {
@@ -96,7 +96,7 @@ final class OcspVerifier {
                     .verifyValidityAndStatus(ocspResp, leafCert, issuerCert, Date.from(clock.instant()));
             return Result.success();
         } catch (Exception e) {
-            return Result.failure(MembershipVerificationReason.OCSP_INVALID.name() + ": " + e.getMessage());
+            return Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": " + e.getMessage());
         }
     }
 }

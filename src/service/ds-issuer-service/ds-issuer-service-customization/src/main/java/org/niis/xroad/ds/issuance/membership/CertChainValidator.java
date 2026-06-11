@@ -70,7 +70,7 @@ final class CertChainValidator {
             new CertChainVerifier(globalConf, ocspVerifierFactory, chain).verifyChainOnly(Date.from(clock.instant()));
             return Result.success();
         } catch (Exception e) {
-            return Result.failure(MembershipVerificationReason.CERT_CHAIN_INVALID.name() + ": " + e.getMessage());
+            return Result.failure(MembershipVerificationFailureReason.CERT_CHAIN_INVALID.name() + ": " + e.getMessage());
         }
     }
 }

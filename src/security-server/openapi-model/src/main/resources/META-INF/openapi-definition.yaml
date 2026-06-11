@@ -4727,8 +4727,8 @@ paths:
       tags:
         - system
       summary: provision data space membership credentials for this security server
-      operationId: provisionDataspaceCredentials
-      description: <h3>Administrator triggers issuance of the X-Road membership credentials for this security server's data space participant contexts. Idempotent - re-invoking re-submits failed credential requests and reports the current status.</h3>
+      operationId: provisionDataspace
+      description: <h3>Administrator triggers dataspace participant contexts provisioning and issuance of the X-Road membership credential(s) for this security server. Idempotent - re-invoking re-submits failed credential requests and reports the current status.</h3>
       responses:
         '200':
           description: data space provisioning status

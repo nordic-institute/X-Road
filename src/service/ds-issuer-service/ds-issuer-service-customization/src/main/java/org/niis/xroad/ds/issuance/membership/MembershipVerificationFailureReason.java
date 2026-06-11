@@ -35,7 +35,7 @@ package org.niis.xroad.ds.issuance.membership;
  * <p>Coarse buckets: precise cause lives in the failure log message. See
  * {@code PLAN-real-signing-and-verification.md} Q17 for rationale.
  */
-public enum MembershipVerificationReason {
+public enum MembershipVerificationFailureReason {
     /** Outer JWT did not carry an {@code xroadMemberClaim}. */
     CLAIM_MISSING,
     /** Inner JWS unparseable, headers or payload invalid. */

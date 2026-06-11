@@ -26,13 +26,14 @@
  */
 package org.niis.xroad.ds.identityhub.claim;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.common.identifier.ClientId;
+
 import com.google.protobuf.ByteString;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.common.identifier.ClientId;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +88,7 @@ class SignerServiceMemberClaimSignerTest {
     }
 
     @Test
-    void emits_jws_signed_by_signer_service_response_with_pinned_ocsp() throws Exception {
+    void emitsJwsSignedBySignerServiceResponseWithPinnedOcsp() throws Exception {
         ClientId memberId = ClientId.Conf.create("DEV", "COM", "SS0");
         stubMemberSigningInfo(memberId);
         byte[] ocspDer = "test-ocsp-der".getBytes(java.nio.charset.StandardCharsets.UTF_8);
@@ -120,7 +121,7 @@ class SignerServiceMemberClaimSignerTest {
     }
 
     @Test
-    void fails_when_signer_ocsp_cache_empty() {
+    void failsWhenSignerOcspCacheEmpty() {
         ClientId memberId = ClientId.Conf.create("DEV", "COM", "SS0");
         stubMemberSigningInfo(memberId);
         when(signerRpcClient.getOcspResponses(any(String[].class))).thenReturn(new String[]{null});
@@ -132,7 +133,7 @@ class SignerServiceMemberClaimSignerTest {
     }
 
     @Test
-    void fails_when_signer_lookup_throws() {
+    void failsWhenSignerLookupThrows() {
         ClientId memberId = ClientId.Conf.create("DEV", "COM", "UNKNOWN");
         when(signerRpcClient.getMemberSigningInfo(memberId)).thenThrow(new RuntimeException("no key"));
 
@@ -143,7 +144,7 @@ class SignerServiceMemberClaimSignerTest {
     }
 
     @Test
-    void fails_when_signer_sign_throws() {
+    void failsWhenSignerSignThrows() {
         ClientId memberId = ClientId.Conf.create("DEV", "COM", "SS0");
         stubMemberSigningInfo(memberId);
         stubOcspCacheHit("dummy".getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -156,7 +157,7 @@ class SignerServiceMemberClaimSignerTest {
     }
 
     @Test
-    void rejects_null_arguments() {
+    void rejectsNullArguments() {
         assertTrue(signer.sign(null, "did:web:holder", "did:web:issuer").failed());
         assertTrue(signer.sign(ClientId.Conf.create("DEV", "COM", "SS0"), null, "did:web:issuer").failed());
     }

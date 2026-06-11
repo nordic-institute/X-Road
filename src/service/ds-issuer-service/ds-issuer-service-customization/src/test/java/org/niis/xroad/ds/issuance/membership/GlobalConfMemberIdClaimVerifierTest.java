@@ -27,6 +27,8 @@
 
 package org.niis.xroad.ds.issuance.membership;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -34,7 +36,6 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import ee.ria.xroad.common.identifier.ClientId;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -103,70 +104,70 @@ class GlobalConfMemberIdClaimVerifierTest {
     }
 
     @Test
-    void returns_CLAIM_MISSING_for_null_or_blank_jws() {
+    void returnsClaimMissingForNullOrBlankJws() {
         Result<ClientId> r1 = verifier.verify(null, HOLDER_DID, ISSUER_DID);
         Result<ClientId> r2 = verifier.verify("  ", HOLDER_DID, ISSUER_DID);
 
-        assertEquals(MembershipVerificationReason.CLAIM_MISSING.name(), r1.getFailureDetail());
-        assertEquals(MembershipVerificationReason.CLAIM_MISSING.name(), r2.getFailureDetail());
+        assertEquals(MembershipVerificationFailureReason.CLAIM_MISSING.name(), r1.getFailureDetail());
+        assertEquals(MembershipVerificationFailureReason.CLAIM_MISSING.name(), r2.getFailureDetail());
     }
 
     @Test
-    void returns_GLOBALCONF_UNAVAILABLE_when_globalconf_not_ready() throws Exception {
+    void returnsGlobalconfUnavailableWhenGlobalconfNotReady() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, false);
         doThrowOnVerifyValidity();
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
-        assertEquals(MembershipVerificationReason.GLOBALCONF_UNAVAILABLE.name(), result.getFailureDetail());
+        assertEquals(MembershipVerificationFailureReason.GLOBALCONF_UNAVAILABLE.name(), result.getFailureDetail());
     }
 
     @Test
-    void returns_CLAIM_MALFORMED_for_unparseable_jws() {
+    void returnsClaimMalformedForUnparseableJws() {
         Result<ClientId> result = verifier.verify("not-a-jws", HOLDER_DID, ISSUER_DID);
 
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.CLAIM_MALFORMED.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_MALFORMED.name()));
     }
 
     @Test
-    void returns_CLAIM_MALFORMED_when_x5c_header_missing() throws Exception {
+    void returnsClaimMalformedWhenX5cHeaderMissing() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, false);
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.CLAIM_MALFORMED.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_MALFORMED.name()));
     }
 
     @Test
-    void returns_CERT_CHAIN_INVALID_when_certchain_validator_fails() throws Exception {
+    void returnsCertChainInvalidWhenCertchainValidatorFails() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any()))
-                .thenReturn(Result.failure(MembershipVerificationReason.CERT_CHAIN_INVALID.name() + ": untrusted"));
+                .thenReturn(Result.failure(MembershipVerificationFailureReason.CERT_CHAIN_INVALID.name() + ": untrusted"));
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.CERT_CHAIN_INVALID.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CERT_CHAIN_INVALID.name()));
     }
 
     @Test
-    void returns_OCSP_INVALID_when_ocsp_verifier_fails() throws Exception {
+    void returnsOcspInvalidWhenOcspVerifierFails() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(ocspVerifier.verify(any(), any()))
-                .thenReturn(Result.failure(MembershipVerificationReason.OCSP_INVALID.name() + ": stale"));
+                .thenReturn(Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": stale"));
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
         assertTrue(result.failed());
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.OCSP_INVALID.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.OCSP_INVALID.name()));
     }
 
     @Test
-    void returns_SIGNATURE_INVALID_when_token_validation_fails_generic() throws Exception {
+    void returnsSignatureInvalidWhenTokenValidationFailsGeneric() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
@@ -175,11 +176,11 @@ class GlobalConfMemberIdClaimVerifierTest {
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.SIGNATURE_INVALID.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.SIGNATURE_INVALID.name()));
     }
 
     @Test
-    void returns_CLAIM_REPLAYED_when_token_validation_reports_jti_reuse() throws Exception {
+    void returnsClaimReplayedWhenTokenValidationReportsJtiReuse() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
@@ -188,11 +189,11 @@ class GlobalConfMemberIdClaimVerifierTest {
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.CLAIM_REPLAYED.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_REPLAYED.name()));
     }
 
     @Test
-    void returns_CLAIM_EXPIRED_when_token_validation_reports_expired() throws Exception {
+    void returnsClaimExpiredWhenTokenValidationReportsExpired() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
@@ -201,11 +202,11 @@ class GlobalConfMemberIdClaimVerifierTest {
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.CLAIM_EXPIRED.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_EXPIRED.name()));
     }
 
     @Test
-    void returns_CLAIM_AUDIENCE_INVALID_when_token_validation_reports_aud_mismatch() throws Exception {
+    void returnsClaimAudienceInvalidWhenTokenValidationReportsAudMismatch() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
@@ -214,11 +215,11 @@ class GlobalConfMemberIdClaimVerifierTest {
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
-        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationReason.CLAIM_AUDIENCE_INVALID.name()));
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_AUDIENCE_INVALID.name()));
     }
 
     @Test
-    void returns_success_with_cert_subject_clientid_on_happy_path() throws Exception {
+    void returnsSuccessWithCertSubjectClientidOnHappyPath() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
@@ -235,7 +236,7 @@ class GlobalConfMemberIdClaimVerifierTest {
     }
 
     @Test
-    void passes_cert_public_key_to_token_validation_service() throws Exception {
+    void passesCertPublicKeyToTokenValidationService() throws Exception {
         TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
         String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());

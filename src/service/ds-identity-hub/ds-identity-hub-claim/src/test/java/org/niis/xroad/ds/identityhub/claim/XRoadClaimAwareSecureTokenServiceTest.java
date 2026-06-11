@@ -28,6 +28,7 @@
 package org.niis.xroad.ds.identityhub.claim;
 
 import ee.ria.xroad.common.identifier.ClientId;
+
 import org.eclipse.edc.identityhub.spi.authentication.ParticipantSecureTokenService;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext;
@@ -77,7 +78,7 @@ class XRoadClaimAwareSecureTokenServiceTest {
     }
 
     @Test
-    void parses_three_part_member_id_and_calls_signer_with_audience_from_claims() {
+    void parsesThreePartMemberIdAndCallsSignerWithAudienceFromClaims() {
         stubParticipantContextWithMemberId("DEV/COM/SS0");
         when(signer.sign(any(), anyString(), anyString())).thenReturn(Result.success("signed-jws"));
         Map<String, String> incoming = new HashMap<>();
@@ -97,7 +98,7 @@ class XRoadClaimAwareSecureTokenServiceTest {
     }
 
     @Test
-    void embeds_signed_jws_under_xroadMemberClaim_in_outer_claims() {
+    void embedsSignedJwsUnderXroadMemberClaimInOuterClaims() {
         stubParticipantContextWithMemberId("DEV/COM/SS0");
         when(signer.sign(any(), anyString(), any())).thenReturn(Result.success("signed-jws"));
 
@@ -110,7 +111,7 @@ class XRoadClaimAwareSecureTokenServiceTest {
     }
 
     @Test
-    void skips_signing_when_member_id_property_absent() {
+    void skipsSigningWhenMemberIdPropertyAbsent() {
         stubParticipantContextWithoutMemberId();
 
         wrapper.createToken(CONTEXT_ID, new HashMap<>(Map.of("aud", ISSUER_DID)), null);
@@ -123,7 +124,7 @@ class XRoadClaimAwareSecureTokenServiceTest {
     }
 
     @Test
-    void skips_signing_when_member_id_property_is_malformed() {
+    void skipsSigningWhenMemberIdPropertyIsMalformed() {
         stubParticipantContextWithMemberId("DEV/COM");
 
         wrapper.createToken(CONTEXT_ID, new HashMap<>(Map.of("aud", ISSUER_DID)), null);
@@ -132,7 +133,7 @@ class XRoadClaimAwareSecureTokenServiceTest {
     }
 
     @Test
-    void skips_signing_when_member_id_segment_is_blank() {
+    void skipsSigningWhenMemberIdSegmentIsBlank() {
         stubParticipantContextWithMemberId("DEV//SS0");
 
         wrapper.createToken(CONTEXT_ID, new HashMap<>(Map.of("aud", ISSUER_DID)), null);

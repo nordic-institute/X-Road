@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MembershipVerificationReasonTest {
+class MembershipVerificationFailureReasonTest {
 
     @Test
-    void enum_contains_exactly_the_nine_coarse_buckets() {
+    void enumContainsExactlyTheNineCoarseBuckets() {
         Set<String> expected = Set.of(
                 "CLAIM_MISSING",
                 "CLAIM_MALFORMED",
@@ -49,7 +49,7 @@ class MembershipVerificationReasonTest {
                 "CERT_CHAIN_INVALID",
                 "OCSP_INVALID",
                 "GLOBALCONF_UNAVAILABLE");
-        Set<String> actual = Arrays.stream(MembershipVerificationReason.values())
+        Set<String> actual = Arrays.stream(MembershipVerificationFailureReason.values())
                 .map(Enum::name)
                 .collect(Collectors.toSet());
         assertEquals(expected, actual);

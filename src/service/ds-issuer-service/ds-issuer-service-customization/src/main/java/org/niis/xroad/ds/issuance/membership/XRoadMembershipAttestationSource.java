@@ -28,6 +28,7 @@
 package org.niis.xroad.ds.issuance.membership;
 
 import ee.ria.xroad.common.identifier.ClientId;
+
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationContext;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSource;
@@ -47,7 +48,7 @@ import java.util.Map;
  * hands the JWS to a {@link MemberIdClaimVerifier} for cryptographic + freshness + replay
  * checks, and emits the verified X-Road MemberId for cred-def mappings.
  *
- * <p>Failure paths return {@link MembershipVerificationReason} names as the failure message
+ * <p>Failure paths return {@link MembershipVerificationFailureReason} names as the failure message
  * so EDC's ERROR state surfaces a stable reason code.
  */
 public class XRoadMembershipAttestationSource implements AttestationSource {
@@ -75,11 +76,11 @@ public class XRoadMembershipAttestationSource implements AttestationSource {
     public Result<Map<String, Object>> execute(AttestationContext context) {
         ClaimToken token = context.getClaimToken(JWT_CLAIM_TYPE);
         if (token == null) {
-            return reject(MembershipVerificationReason.CLAIM_MISSING.name(), "no 'jwt' claim token in attestation context");
+            return reject(MembershipVerificationFailureReason.CLAIM_MISSING.name(), "no 'jwt' claim token in attestation context");
         }
         Object raw = token.getClaim(CLAIM_KEY);
         if (!(raw instanceof String compactJws) || compactJws.isBlank()) {
-            return reject(MembershipVerificationReason.CLAIM_MISSING.name(), "outer JWT has no '" + CLAIM_KEY + "' claim");
+            return reject(MembershipVerificationFailureReason.CLAIM_MISSING.name(), "outer JWT has no '" + CLAIM_KEY + "' claim");
         }
         String holderDid = subjectOf(token);
         String issuerDid = resolveIssuerDid(issuerParticipantContextId(context));

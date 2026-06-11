@@ -27,6 +27,7 @@
 package org.niis.xroad.ds.identityhub.claim;
 
 import ee.ria.xroad.common.util.CryptoUtils;
+
 import org.eclipse.edc.spi.result.Result;
 import org.niis.xroad.signer.client.SignerRpcClient;
 

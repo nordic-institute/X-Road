@@ -28,6 +28,7 @@
 package org.niis.xroad.ds.issuance.membership;
 
 import ee.ria.xroad.common.identifier.ClientId;
+
 import org.eclipse.edc.spi.result.Result;
 
 /**
@@ -50,7 +51,7 @@ public interface MemberIdClaimVerifier {
      * @param expectedHolderDid  the holder DID from the outer JWT's {@code sub}; the inner assertion's {@code sub} must match
      * @param expectedIssuerDid  the issuer-service DID; the inner assertion's {@code aud} must match
      * @return the verified X-Road member identity from the cert subject, or a failure carrying a
-     *         {@link MembershipVerificationReason} in the message field
+     *         {@link MembershipVerificationFailureReason} in the message field
      */
     Result<ClientId> verify(String compactJws, String expectedHolderDid, String expectedIssuerDid);
 }

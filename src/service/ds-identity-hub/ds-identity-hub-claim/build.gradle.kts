@@ -14,10 +14,6 @@ dependencies {
   }
 }
 
-tasks.withType<Checkstyle>().configureEach {
-  isEnabled = false
-}
-
 archUnit {
   isSkip = true
 }

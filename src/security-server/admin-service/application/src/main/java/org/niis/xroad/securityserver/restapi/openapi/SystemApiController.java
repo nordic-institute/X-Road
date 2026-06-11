@@ -112,9 +112,9 @@ public class SystemApiController implements SystemApi {
     private final DataspaceProvisioningService dataspaceProvisioningService;
 
     @Override
-    @PreAuthorize("hasAuthority('IMPORT_SIGN_CERT')")
+    @PreAuthorize("hasAuthority('PROVISION_DATASPACE')")
     @AuditEventMethod(event = RestApiAuditEvent.PROVISION_DATASPACE)
-    public ResponseEntity<DataspaceProvisioningStatusDto> provisionDataspaceCredentials() {
+    public ResponseEntity<DataspaceProvisioningStatusDto> provisionDataspace() {
         String status = dataspaceProvisioningService.provision();
         return new ResponseEntity<>(new DataspaceProvisioningStatusDto().status(status), HttpStatus.OK);
     }

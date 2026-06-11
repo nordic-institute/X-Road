@@ -28,6 +28,7 @@
 package org.niis.xroad.ds.identityhub.claim;
 
 import ee.ria.xroad.common.identifier.ClientId;
+
 import org.eclipse.edc.identityhub.spi.authentication.ParticipantSecureTokenService;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext;
@@ -64,6 +65,9 @@ public class XRoadClaimAwareSecureTokenService implements ParticipantSecureToken
 
     /** Standard JWT registered-claim name for the audience. */
     private static final String AUDIENCE_CLAIM = "aud";
+
+    /** Number of segments in a canonical INSTANCE/CLASS/CODE member identifier. */
+    private static final int MEMBER_ID_SEGMENT_COUNT = 3;
 
     private final ParticipantSecureTokenService delegate;
     private final IdentityHubParticipantContextService participantContextService;
@@ -129,7 +133,7 @@ public class XRoadClaimAwareSecureTokenService implements ParticipantSecureToken
      */
     private static ClientId parseMemberId(String memberId) {
         String[] parts = memberId.split("/", -1);
-        if (parts.length != 3) {
+        if (parts.length != MEMBER_ID_SEGMENT_COUNT) {
             return null;
         }
         for (String part : parts) {

@@ -26,15 +26,16 @@
  */
 package org.niis.xroad.ds.identityhub.claim;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
