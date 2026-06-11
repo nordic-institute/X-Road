@@ -143,6 +143,25 @@ HTTP *
 [Asserts]
 status < 500
 
+# 1.3b Register holder = ss1's MANAGEMENT-subsystem DID (dual-ctx). Mirrors 1.3a for ss1.
+POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/holders
+Authorization: Bearer {{is_participant_token}}
+Content-Type: application/json
+
+{
+    "did": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt",
+    "holderId": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt",
+    "name": "SS1 Mgmt Holder (dev mock)",
+    "properties": {
+        "membershipType": "X-Road",
+        "xrdMemberIdentifier": "{{ss1_member_id}}"
+    }
+}
+
+HTTP *
+[Asserts]
+status < 500
+
 # 1.4 Create attestation definition "xroad-membership".
 # Production: attestation schema curated and versioned by NIIS.
 POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/attestations
@@ -410,6 +429,66 @@ HTTP 200
 jsonpath "$.status" != "ERROR"
 jsonpath "$.status" == "ISSUED"
 
+# 2b.4 Create IH participant context on ss1 for the MANAGEMENT-subsystem ctx. Mirrors 2a.4.
+POST https://{{ss1_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants
+Authorization: Bearer {{ih_provisioner_token}}
+Content-Type: application/json
+
+{
+    "roles": [],
+    "serviceEndpoints": [
+        {
+            "type": "CredentialService",
+            "serviceEndpoint": "https://{{ss1_ih_host}}:{{ih_cred_port}}/api/credentials/v1/participants/{{ss1_participant_id}}-mgmt",
+            "id": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt-credential-service"
+        }
+    ],
+    "active": true,
+    "participantContextId": "{{ss1_participant_id}}-mgmt",
+    "did": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt",
+    "key": {
+        "keyId": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt#key-1",
+        "privateKeyAlias": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt-key",
+        "keyGeneratorParams": {
+            "algorithm": "EdDSA"
+        }
+    }
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 2b.5 Submit credential request from issuer for ss1's mgmt ctx.
+POST https://{{ss1_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_participant_id}}-mgmt/credentials/request
+Authorization: Bearer {{ih_admin_token}}
+Content-Type: application/json
+
+{
+    "issuerDid": "did:web:{{is_host}}%3A{{is_did_port}}:issuer",
+    "holderPid": "xroad-membership-mgmt-credential-request",
+    "credentials": [
+        {
+            "format": "VC1_0_JWT",
+            "type": "MembershipCredential",
+            "id": "xroad-membership-credential-definition"
+        }
+    ]
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 2b.6 Poll mgmt-ctx credential request status; expect ISSUED.
+GET https://{{ss1_ih_host}}:{{ih_id_port}}/api/identity/v1alpha/participants/{{ss1_participant_id}}-mgmt/credentials/request/xroad-membership-mgmt-credential-request
+Authorization: Bearer {{ih_admin_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.status" != "ERROR"
+jsonpath "$.status" == "ISSUED"
+
 # =============================================================================
 # 3. CONTROL PLANE — participant ctx + STS-bound config (per SS)
 # =============================================================================
@@ -540,6 +619,44 @@ Content-Type: application/json
         "edc.iam.sts.oauth.token.url": "https://{{ss1_ih_host}}:{{ih_sts_port}}/api/sts/token",
         "edc.iam.sts.oauth.client.id": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}",
         "edc.iam.sts.oauth.client.secret.alias": "{{ss1_participant_id}}-sts-client-secret"
+    },
+    "privateEntries": {}
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 3b.3 Create CP participant context on ss1 for the MANAGEMENT subsystem. Mirrors 3a.3.
+POST https://{{ss1_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants
+Authorization: Bearer {{cp_provisioner_token}}
+Content-Type: application/json
+
+{
+    "@context": ["https://w3id.org/edc/connector/management/v2"],
+    "@type": "ParticipantContext",
+    "identity": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt",
+    "@id": "{{ss1_participant_id}}-mgmt"
+}
+
+HTTP *
+[Asserts]
+status < 500
+
+# 3b.4 PUT mgmt-ctx config on ss1 CP. STS client + secret alias match the IH provisioned in 2b.4.
+PUT https://{{ss1_cp_host}}:{{ds_cp_mgmt_port}}/api/management/v5beta/participants/{{ss1_participant_id}}-mgmt/config
+Authorization: Bearer {{cp_provisioner_token}}
+Content-Type: application/json
+
+{
+    "@context": ["https://w3id.org/edc/connector/management/v2"],
+    "@type": "ParticipantContextConfig",
+    "entries": {
+        "edc.participant.id": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.participant.did": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.iam.sts.oauth.token.url": "https://{{ss1_ih_host}}:{{ih_sts_port}}/api/sts/token",
+        "edc.iam.sts.oauth.client.id": "did:web:{{ss1_ih_host}}%3A{{ih_did_port}}:mgmt",
+        "edc.iam.sts.oauth.client.secret.alias": "{{ss1_participant_id}}-mgmt-sts-client-secret"
     },
     "privateEntries": {}
 }

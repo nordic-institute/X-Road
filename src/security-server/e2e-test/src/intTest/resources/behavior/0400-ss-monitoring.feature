@@ -16,23 +16,18 @@ Feature: 0400 - SS: Monitoring
     And REST request targeted at unsaved "/notexist/test" API endpoint is attempted on "ss1" "proxy"
 
   # MIGRATED-FROM: 2100-ss-proxymonitor.feature :: "Proxymonitor responds with correct response"
-  # @Skip: routed getSecurityServerMetrics needs DSP authorization (401 CatalogError) — tracked in issue 37
-  @Skip
   Scenario: Proxymonitor responds with correct response
     Given "ss1" owner client internal connection type is set to "HTTP"
     When proxymonitor getSecurityServerMetrics request is sent to "ss1" with queryId "PMID-E2E-1"
     Then proxymonitor response contains metricSet name "SERVER:DEV/COM/4321/SS1"
 
   # MIGRATED-FROM: 2100-ss-proxymonitor.feature :: "Proxymonitor responds with correct response for TotalPhysicalMemory request"
-  # @Skip: routed getSecurityServerMetrics needs DSP authorization (401 CatalogError) — tracked in issue 37
-  @Skip
   Scenario: Proxymonitor responds with correct response for TotalPhysicalMemory request
     Given "ss1" owner client internal connection type is set to "HTTP"
     When proxymonitor getSecurityServerMetrics request for metric "TotalPhysicalMemory" is sent to "ss1" with queryId "PMID-E2E-2"
     Then proxymonitor response contains a numeric value for metric "TotalPhysicalMemory"
 
   # MIGRATED-FROM: 2200-ss-messagelog.feature :: "Messagelog contains metrics requests"
-  # @Skip: self-seeds a getSecurityServerMetrics request — same DSP authorization gap — tracked in issue 37
   @Skip
   Scenario: Messagelog contains metrics requests
     Given "ss1" owner client internal connection type is set to "HTTP"

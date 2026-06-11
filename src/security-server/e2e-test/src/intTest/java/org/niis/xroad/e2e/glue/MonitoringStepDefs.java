@@ -29,6 +29,7 @@ import io.cucumber.java.en.Step;
 import io.restassured.response.Response;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.niis.xroad.e2e.EnvSetup;
 import org.niis.xroad.e2e.database.TestDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +39,10 @@ import org.xml.sax.InputSource;
 import javax.xml.xpath.XPathFactory;
 
 import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -125,11 +128,21 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Step("{string} messagelog contains {int} encrypted entries for queryId {string}")
     public void assertMessagelogEncryptedEntries(String env, int expectedCount, String queryId) {
-        var records = testDatabaseService.getMessagelogTemplate(env)
-                .queryForList(
-                        "SELECT id, keyid, message FROM logrecord WHERE queryid = :queryId",
-                        Map.of("queryId", queryId));
+        var recordsRef = new AtomicReference<List<Map<String, Object>>>(List.of());
+        Awaitility.await()
+                .pollDelay(Duration.ofSeconds(1))
+                .pollInterval(Duration.ofSeconds(2))
+                .timeout(Duration.ofSeconds(30))
+                .until(() -> {
+                    var rows = testDatabaseService.getMessagelogTemplate(env)
+                            .queryForList(
+                                    "SELECT id, keyid, message FROM logrecord WHERE queryid = :queryId",
+                                    Map.of("queryId", queryId));
+                    recordsRef.set(rows);
+                    return rows.size() >= expectedCount;
+                });
 
+        var records = recordsRef.get();
         assertThat(records)
                 .as("logrecord rows for queryId %s", queryId)
                 .hasSize(expectedCount);
