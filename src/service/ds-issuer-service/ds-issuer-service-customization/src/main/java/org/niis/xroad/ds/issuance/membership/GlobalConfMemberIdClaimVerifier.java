@@ -187,9 +187,11 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
 
     private Result<ClientId> extractSubjectIdentity(X509Certificate cert) {
         try {
-            var profileParams = new SignCertificateProfileInfoParameters(
-                    ClientId.Conf.create(globalConf.getInstanceIdentifier(), "PLACEHOLDER", "PLACEHOLDER"), "");
-            ClientId.Conf subjectId = globalConf.getSubjectName(profileParams, cert);
+            var dummyMember = "dummy";
+            ClientId.Conf dummyClientId = ClientId.Conf.create(globalConf.getInstanceIdentifier(), dummyMember, dummyMember);
+            SignCertificateProfileInfoParameters signCertProfileInfoParameters =
+                    new SignCertificateProfileInfoParameters(dummyClientId, dummyMember);
+            ClientId.Conf subjectId = globalConf.getSubjectName(signCertProfileInfoParameters, cert);
             if (subjectId == null) {
                 return Result.failure(MembershipVerificationReason.CERT_CHAIN_INVALID.name()
                         + ": cert subject is not a valid X-Road ClientId");

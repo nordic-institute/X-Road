@@ -13,8 +13,7 @@ HTTP 200
 [Captures]
 cs_xsrf_token: cookie "XSRF-TOKEN"
 
-# Initialize Central Server (idempotent: already initialized by 00-cs-init.hurl,
-# which must run first so aux anchor-init can download a signed global conf).
+# Initialize Central Server
 POST https://{{cs_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
@@ -24,9 +23,9 @@ Content-Type: application/json
   "central_server_address": "{{cs_host}}"
 }
 
-HTTP *
-[Asserts]
-status < 500
+# TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":
+# https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1344
+HTTP 200
 
 
 # Add member classes to Central Server
@@ -75,10 +74,9 @@ Content-Type: application/json
   "token_id": 0
 }
 
-# Tolerant: 00-cs-init.hurl already generated the configuration signing keys.
-HTTP *
-[Asserts]
-status < 500
+# TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":
+# https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1051
+HTTP 200
 
 # Add external signing key to Central Server
 POST https://{{cs_host}}:4000/api/v1/configuration-sources/EXTERNAL/signing-keys
@@ -89,10 +87,9 @@ Content-Type: application/json
   "token_id": 0
 }
 
-# Tolerant: 00-cs-init.hurl already generated the configuration signing keys.
-HTTP *
-[Asserts]
-status < 500
+# TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":
+# https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1051
+HTTP 200
 
 # Add member to Central Server
 POST https://{{cs_host}}:4000/api/v1/members
@@ -837,7 +834,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
 
-# ss0 host + management-subsystem credentials
+# SS0 DS provisioning
 POST https://{{ss0_host}}:4000/api/v1/system/dataspace-provisioning
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
@@ -845,7 +842,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.status" == "ISSUED"
 
-# ss1 host credential
+# SS1 DS provisioning
 POST https://{{ss1_host}}:4000/api/v1/system/dataspace-provisioning
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 

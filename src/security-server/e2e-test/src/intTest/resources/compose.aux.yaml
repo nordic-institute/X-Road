@@ -142,7 +142,6 @@ services:
       --variable ss0_participant_id=${PARTICIPANT_ID_0}
       --variable ss1_participant_id=${PARTICIPANT_ID_1}
       --file-root /hurl-files
-      /hurl-src/00-cs-init.hurl
       /hurl-src/00-setup-dsp.hurl
       /hurl-src/setup.hurl
       --very-verbose
@@ -268,8 +267,6 @@ services:
         condition: service_healthy
       ds-https-keystore-init:
         condition: service_completed_successfully
-      configuration-client:
-        condition: service_started
 
   mock-jwks-server:
     image: python:3.11-alpine
@@ -290,9 +287,11 @@ services:
     volumes:
       - ./jwks/:/jwks
 
-  # Fetches the configuration anchor from the Central Server (after it is
-  # initialized by 00-cs-init.hurl) so the configuration-client can download a
-  # signed global conf for the issuer's X-Road membership-claim verification.
+  # Downloads the configuration anchor from the Central Server for the
+  # configuration-client. The download is fault tolerant: it retries until the
+  # CS is initialised (login + signing keys) by setup.hurl in the hurl
+  # container, then exits so configuration-client can fetch a signed global conf
+  # for the issuer's X-Road membership-claim verification.
   anchor-init:
     image: ${OPENBAO_DEV_IMG}
     pull_policy: always
@@ -304,7 +303,8 @@ services:
         JAR="$$(mktemp)"
         echo "anchor-init: waiting for Central Server.."
         until curl -sfk -o /dev/null "$$CS"; do sleep 3; done
-        for i in $$(seq 1 60); do
+        echo "anchor-init: downloading anchor, retrying until the CS is initialised by setup.hurl.."
+        while true; do
           rm -f "$$JAR"
           curl -sk -c "$$JAR" -o /dev/null "$$CS" || { sleep 5; continue; }
           XSRF="$$(awk '/XSRF-TOKEN/{print $$7}' "$$JAR")"
@@ -318,10 +318,9 @@ services:
           if [ "$$code" = "200" ] && [ -s /anchor/configuration-anchor.xml ]; then
             echo "anchor-init: anchor downloaded"; exit 0
           fi
-          echo "anchor-init: anchor download HTTP $$code (signing key may not exist yet), retrying.."
+          echo "anchor-init: anchor download HTTP $$code (CS not initialised yet), retrying.."
           sleep 5
         done
-        echo "anchor-init: FAILED to download configuration anchor"; exit 1
     networks:
       - xroad-network
     volumes:
