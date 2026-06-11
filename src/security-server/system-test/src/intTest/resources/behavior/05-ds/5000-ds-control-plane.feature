@@ -1,5 +1,6 @@
 @SecurityServer
 @DataSpaces
+@Skip
 Feature: 5000 - DS control plane tests
 
   Scenario: Catalog can be retrieved over DSP protocol

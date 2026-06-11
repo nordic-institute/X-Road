@@ -1,6 +1,11 @@
+# Numbered 0450 so it runs before the client-lifecycle features (0500+). With DSP enabled, the
+# clientReg/clientDisable/clientRename management requests are routed through the dataspace and
+# require the security server's participant context to already exist on the control plane; if
+# provisioning has not run yet, their asset-access acquisition fails and no provider-side
+# operational-data records are produced.
 @SecurityServer
 @DataSpaces
-Feature: 0915 - SS: Data space provisioning
+Feature: 0450 - SS: Data space provisioning
 
   Scenario: Issuer Service is provisioned
     Given Issuer Service participant context "issuer" with DID "did:web:ds-issuer-service%3A6183:issuer" is initialized and keypair is generated with private key alias "issuer-key"
