@@ -179,6 +179,16 @@ public class StaxEventSoapParserImpl implements SoapParser {
         // noop
     }
 
+    /**
+     * Invoked while validating the parse result when the SOAP envelope contains no X-Road header.
+     * The default behavior rejects the message as malformed. Subclasses may override to permit and
+     * handle a missing header (for example, the server proxy response parser, which can synthesize
+     * the header from the originating request).
+     */
+    protected void onMissingHeader() {
+        throw XrdRuntimeException.systemException(MISSING_HEADER, MISSING_HEADER_MESSAGE);
+    }
+
     protected void afterDocument() throws XMLStreamException {
         // noop
     }
@@ -265,7 +275,11 @@ public class StaxEventSoapParserImpl implements SoapParser {
 
         if (result.fault == null) {
             if (!foundHeader) {
-                throw XrdRuntimeException.systemException(MISSING_HEADER, MISSING_HEADER_MESSAGE);
+                onMissingHeader();
+                // A subclass may permit a missing header (for example by synthesizing it into the
+                // output stream). When onMissingHeader() returns without throwing, there is no parsed
+                // header to validate further, so the result is returned as-is.
+                return result;
             }
             if (!foundBody) {
                 throw XrdRuntimeException.systemException(MISSING_BODY, MISSING_BODY_MESSAGE);

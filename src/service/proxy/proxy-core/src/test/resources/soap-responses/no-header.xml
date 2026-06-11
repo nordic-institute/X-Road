@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Body>
+        <ns1:getStateResponse xmlns:ns1="http://producer.x-road.eu">
+            <ns1:response>legacy-without-header</ns1:response>
+        </ns1:getStateResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
