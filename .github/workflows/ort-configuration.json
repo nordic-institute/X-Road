@@ -34,7 +34,14 @@
         "Yarn",
         "Yarn2",
         "Unmanaged"
-      ]
+      ],
+      "packageManagerOptions": {
+        "GradleInspector": {
+          "options": {
+            "javaVersion": "25"
+          }
+        }
+      }
     },
     "advisor": {
       "skipExcluded": true,
