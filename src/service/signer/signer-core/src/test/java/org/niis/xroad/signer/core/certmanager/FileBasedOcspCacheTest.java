@@ -34,9 +34,10 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.signer.core.config.SignerConfigKeys;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
@@ -62,7 +63,8 @@ public class FileBasedOcspCacheTest {
     static X509Certificate signer;
     static PrivateKey signerKey;
 
-    private final SignerProperties signerProperties = ConfigUtils.defaultConfiguration(SignerProperties.class);
+    private final SignerProperties signerProperties = new SignerProperties(
+            XRoadConfigBuilder.create().register(SignerConfigKeys.instance()).build());
     private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
 
     /**

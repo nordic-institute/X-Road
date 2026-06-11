@@ -44,6 +44,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
@@ -51,6 +52,7 @@ import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
+import org.niis.xroad.signer.core.config.SignerConfigKeys;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 
@@ -73,7 +75,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 
 /**
  * Tests the OCSP client.
@@ -94,7 +95,8 @@ class OcspClientTest {
     private final TokenLookup tokenManager = mock(TokenLookup.class);
     private final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     private final FileBasedOcspCache fileBasedOcspCache =
-            new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory, defaultConfiguration(SignerProperties.class));
+            new FileBasedOcspCache(globalConfProvider, ocspVerifierFactory,
+                    new SignerProperties(XRoadConfigBuilder.create().register(SignerConfigKeys.instance()).build()));
     private final OcspCacheManager ocspResponseManager =
             new OcspCacheManager(ocspClient, fileBasedOcspCache);
     private final OcspClientWorker ocspClientWorker =

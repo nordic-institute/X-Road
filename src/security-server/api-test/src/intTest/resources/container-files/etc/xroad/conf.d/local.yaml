@@ -13,12 +13,10 @@ xroad:
   # xroad.configuration-client.* overrides moved to the DB-override layer (configuration_properties,
   # scope='configuration-client'), seeded by db-serverconf-confclient-config-seed in compose.systemtest.yaml.
   # ConfigurationClientProperties now resolves via XRoadConfig (DB overrides + DSL defaults), not local.yaml.
-  signer:
-    enforce-token-pin-policy: true
-    addon:
-      hwtoken:
-        enabled: true
-    ocsp-prioritization-strategy: ONLY_FREE
+  # xroad.signer.* overrides (enforce-token-pin-policy, addon.hwtoken.enabled, ocsp-prioritization-strategy)
+  # moved to the DB-override layer (configuration_properties, scope='signer'), seeded by the
+  # db-serverconf-signer-config-seed service in compose.systemtest.yaml. SignerProperties now resolves
+  # via XRoadConfig (DB overrides + DSL defaults), so local.yaml no longer affects them.
   # xroad.proxy.* overrides moved to the DB-override layer (configuration_properties, scope='proxy'),
   # seeded by the db-serverconf-proxy-config-seed service in compose.systemtest.yaml. ProxyProperties
   # now resolves via XRoadConfig (DB overrides + DSL defaults), so local.yaml no longer affects them.

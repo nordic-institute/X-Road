@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,27 +25,36 @@
  */
 package org.niis.xroad.signer.common.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
 
 import static java.lang.Math.max;
 
-@ConfigMapping(prefix = "xroad.signer")
-public interface SignerKeyProperties {
+/**
+ * Key-generation parameters shared between signer and softtoken-signer.
+ *
+ * <p>Values are resolved from the XRoadConfig DSL by the producer in {@code SignerConfig}
+ * (signer-core), which registers {@code SignerConfigKeys} and passes the resolved values here.
+ */
+@RequiredArgsConstructor
+public class SignerKeyProperties {
 
-    int MIN_SIGNER_KEY_LENGTH = 2048;
+    private static final int MIN_SIGNER_KEY_LENGTH = 2048;
 
-    @WithName("key-length")
-    @WithDefault("2048")
-    int keyLength();
+    private final int rawKeyLength;
+    private final String keyNamedCurve;
 
-    default int getKeyLength() {
-        return max(MIN_SIGNER_KEY_LENGTH, keyLength());
+    /** @return raw configured key length (may be below the minimum) */
+    public int keyLength() {
+        return rawKeyLength;
     }
 
-    @WithName("key-named-curve")
-    @WithDefault("secp256r1")
-    String keyNamedCurve();
+    /** @return effective key length, clamped to at least {@value MIN_SIGNER_KEY_LENGTH} */
+    public int getKeyLength() {
+        return max(MIN_SIGNER_KEY_LENGTH, rawKeyLength);
+    }
 
+    /** @return named curve for EC keys */
+    public String keyNamedCurve() {
+        return keyNamedCurve;
+    }
 }

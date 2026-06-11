@@ -27,17 +27,61 @@ package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
 import io.quarkus.vault.VaultKVSecretEngine;
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.signer.common.config.SignerKeyProperties;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 
 @Slf4j
 public class SignerConfig {
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(SignerConfigKeys.instance())
+                .deploymentMode(deploymentMode())
+                .dbOverrides(appName)
+                .build();
+    }
+
+    @ApplicationScoped
+    SignerProperties signerProperties(XRoadConfig xRoadConfig) {
+        return new SignerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerAutologinProperties signerAutologinProperties(XRoadConfig xRoadConfig,
+                                                        SignerAutologinProperties.Tokens tokens) {
+        return new SignerAutologinProperties(xRoadConfig, tokens);
+    }
+
+    @ApplicationScoped
+    SignerHwTokenAddonProperties signerHwTokenAddonProperties(XRoadConfig xRoadConfig) {
+        return new SignerHwTokenAddonProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SoftwarePinHasherProperties softwarePinHasherProperties(XRoadConfig xRoadConfig) {
+        return new SoftwarePinHasherProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerKeyProperties signerKeyProperties(XRoadConfig xRoadConfig) {
+        return new SignerKeyProperties(
+                xRoadConfig.value(SignerConfigKeys.KEY_LENGTH),
+                xRoadConfig.value(SignerConfigKeys.KEY_NAMED_CURVE));
+    }
 
     @ApplicationScoped
     @Startup
@@ -58,4 +102,8 @@ public class SignerConfig {
         return new QuarkusVaultClient(kvSecretEngine);
     }
 
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
 }

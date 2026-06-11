@@ -34,10 +34,16 @@ services:
   signer:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
-      - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
       - QUARKUS_LOG_LEVEL=INFO
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     volumes:
       - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+    depends_on:
+      db-serverconf-signer-config-seed:
+        condition: service_completed_successfully
 
   proxy:
     environment:
@@ -113,6 +119,29 @@ services:
              ('xroad.configuration-client.update-interval', '3', 'configuration-client', now(), now()),
              ('xroad.configuration-client.global-conf-tls-cert-verification', 'false', 'configuration-client', now(), now()),
              ('xroad.configuration-client.global-conf-hostname-verification', 'false', 'configuration-client', now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+
+  # Seeds the signer's config overrides into configuration_properties so the signer resolves them
+  # via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
+  # scope='signer' matches its quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
+  db-serverconf-signer-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+             ('xroad.signer.enforce-token-pin-policy', 'true', 'signer', now(), now()),
+             ('xroad.signer.addon.hwtoken.enabled', 'true', 'signer', now(), now()),
+             ('xroad.signer.ocsp-prioritization-strategy', 'ONLY_FREE', 'signer', now(), now()),
+             ('xroad.signer.ocsp-response-retrieval-active', 'true', 'signer', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - xrd-ss-network

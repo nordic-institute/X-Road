@@ -14,6 +14,8 @@ dependencies {
   implementation(project(":service:signer:signer-api"))
   implementation(project(":service:signer:signer-common"))
   implementation(project(":lib:vault-quarkus"))
+  implementation(project(":lib:properties-api"))
+  implementation(project(":lib:properties-impl"))
 
   implementation(libs.quarkus.arc)
   implementation(libs.quarkus.scheduler)
@@ -27,5 +29,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":lib:properties-core")))
+  testImplementation(project(":lib:properties-impl"))
   testImplementation(libs.mockito.core)
 }
