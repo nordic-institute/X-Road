@@ -3,6 +3,7 @@ services:
     environment:
       - XROAD_PROXY_MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY=true
       - XROAD_PROXY_DSP_DATA_FLOW_ENDPOINT=http://${ENV_PREFIX:-}proxy:5590/full/api/v1/dataflows
+      - XROAD_PROXY_DSP_SERVERPROXY_ENDPOINT=https://${DSP_PARTICIPANT_ID:-xrd-ss}:5500
   db-messagelog:
     ports:
       - "0:5432"
