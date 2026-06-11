@@ -25,31 +25,26 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.config.keys;
+package org.niis.xroad.common.properties;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+/** Helpers for deriving packaged config-key defaults from the deployment environment. */
+public final class EnvProperties {
 
-import java.util.List;
+    private static final String XROAD_HOST = "XROAD_HOST";
 
-/**
- * Aggregator of every shipped {@link ConfigKeyProvider}. Used where the complete catalogue
- * is needed (admin-service UI/export, the Quarkus defaults config source). A single list to
- * maintain when a new {@code *ConfigKeys} provider is added.
- */
-public final class ConfigKeyProviders {
-
-    private ConfigKeyProviders() {
+    private EnvProperties() {
     }
 
-    /** @return all shipped providers (common scope + per-service scopes) */
-    public static List<ConfigKeyProvider> allProviders() {
-        return List.of(
-                CommonConfigKeys.instance(),
-                CommonRpcConfigKeys.instance(),
-                ProxyConfigKeys.instance(),
-                ConfClientConfigKeys.instance(),
-                OpMonitorConfigKeys.instance(),
-                AuxiliaryServiceConfigKeys.instance(),
-                AdminServiceConfigKeys.instance());
+    /**
+     * Resolves the {@code XROAD_HOST} environment variable (the service's own hostname),
+     * mirroring the legacy {@code ${XROAD_HOST:<default>}} config expression. Used as the packaged
+     * default for keys whose value is this host (e.g. RPC TLS certificate common names).
+     *
+     * @param defaultValue value to use when {@code XROAD_HOST} is unset or blank
+     * @return the {@code XROAD_HOST} value, or {@code defaultValue}
+     */
+    public static String xroadHost(String defaultValue) {
+        var value = System.getenv(XROAD_HOST);
+        return value == null || value.isBlank() ? defaultValue : value;
     }
 }

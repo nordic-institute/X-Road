@@ -32,6 +32,7 @@ dependencies {
   implementation(project(":lib:properties-api"))
   implementation(project(":lib:properties-impl"))
   implementation(project(":service:op-monitor:op-monitor-api"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:vault-quarkus"))
 
   testImplementation(libs.hsqldb)

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +23,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.signer.common.config;
 
-package org.niis.xroad.common.properties.config.keys;
-
+import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.Scope;
 
 import java.util.List;
 
-/**
- * Aggregator of every shipped {@link ConfigKeyProvider}. Used where the complete catalogue
- * is needed (admin-service UI/export, the Quarkus defaults config source). A single list to
- * maintain when a new {@code *ConfigKeys} provider is added.
- */
-public final class ConfigKeyProviders {
+@SuppressWarnings("checkstyle:MagicNumber")
+public final class SignerKeyConfigKeys implements ConfigKeyProvider {
 
-    private ConfigKeyProviders() {
+    private static final Scope SIGNER = Scope.of("xroad.signer", "signer");
+    private static final SignerKeyConfigKeys INSTANCE = new SignerKeyConfigKeys();
+
+    public static final ConfigKey<Integer> KEY_LENGTH = SIGNER
+            .integer("key-length")
+            .withDefaultValue(2048)
+            .build();
+
+    public static final ConfigKey<String> KEY_NAMED_CURVE = SIGNER
+            .string("key-named-curve")
+            .withDefaultValue("secp256r1")
+            .build();
+
+    private SignerKeyConfigKeys() {
     }
 
-    /** @return all shipped providers (common scope + per-service scopes) */
-    public static List<ConfigKeyProvider> allProviders() {
-        return List.of(
-                CommonConfigKeys.instance(),
-                CommonRpcConfigKeys.instance(),
-                ProxyConfigKeys.instance(),
-                ConfClientConfigKeys.instance(),
-                OpMonitorConfigKeys.instance(),
-                AuxiliaryServiceConfigKeys.instance(),
-                AdminServiceConfigKeys.instance());
+    public static SignerKeyConfigKeys instance() {
+        return INSTANCE;
+    }
+
+    @Override
+    public Scope scope() {
+        return SIGNER;
+    }
+
+    @Override
+    public List<ConfigKey<?>> keys() {
+        return List.of(KEY_LENGTH, KEY_NAMED_CURVE);
     }
 }

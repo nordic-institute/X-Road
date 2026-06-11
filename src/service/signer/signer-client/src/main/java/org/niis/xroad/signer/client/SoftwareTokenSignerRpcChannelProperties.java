@@ -25,12 +25,8 @@
  */
 package org.niis.xroad.signer.client;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-@ConfigMapping(prefix = SoftwareTokenSignerRpcChannelProperties.PREFIX)
 public interface SoftwareTokenSignerRpcChannelProperties extends RpcChannelProperties {
     String PREFIX = "xroad.common-rpc.channel.softtoken-signer";
 
@@ -38,20 +34,14 @@ public interface SoftwareTokenSignerRpcChannelProperties extends RpcChannelPrope
     String DEFAULT_PORT = "5561";
     String DEFAULT_DEADLINE_AFTER = "60000";
 
-    @WithName("enabled")
-    @WithDefault("false")
     boolean enabled();
 
     @Override
-    @WithDefault(DEFAULT_HOST)
     String host();
 
     @Override
-    @WithDefault(DEFAULT_PORT)
     int port();
 
     @Override
-    @WithName("deadline-after")
-    @WithDefault(DEFAULT_DEADLINE_AFTER)
     int deadlineAfter();
 }

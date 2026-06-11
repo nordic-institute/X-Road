@@ -26,15 +26,21 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Wires the {@link XRoadConfig} resolver and the admin-service property beans that resolve through it
@@ -47,12 +53,31 @@ public class XRoadConfigBeanConfiguration {
     XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, Environment environment) {
         var deploymentMode = environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+        var providers = List.<ConfigKeyProvider>of(
+                CommonRpcConfigKeys.instance(),
+                CommonConfigKeys.instance(),
+                AdminServiceConfigKeys.instance());
         return XRoadConfigBuilder.create()
+                .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
                 .register(AdminServiceConfigKeys.instance())
+                .overrides(springEnvironmentOverrides(providers, environment))
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
+    }
+
+    private static Map<String, String> springEnvironmentOverrides(List<ConfigKeyProvider> providers, Environment environment) {
+        var result = new HashMap<String, String>();
+        for (var provider : providers) {
+            for (var key : provider.keys()) {
+                var value = environment.getProperty(key.key());
+                if (value != null) {
+                    result.put(key.key(), value);
+                }
+            }
+        }
+        return result;
     }
 
     @Bean

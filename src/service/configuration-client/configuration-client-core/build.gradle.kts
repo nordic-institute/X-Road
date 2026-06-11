@@ -10,6 +10,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-common"))
   implementation(project(":lib:properties-api"))
   implementation(project(":lib:properties-impl"))
+  implementation(project(":lib:rpc-core"))
 
   implementation(libs.quarkus.arc)
   implementation(libs.quarkus.quartz)

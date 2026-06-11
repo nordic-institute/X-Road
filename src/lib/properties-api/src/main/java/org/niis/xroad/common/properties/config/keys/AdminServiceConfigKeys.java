@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
+import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 
 /**
  * Security Server admin-service keys ({@code xroad.proxy-ui-api.*}, incl. {@code .tls} and the
@@ -332,7 +333,7 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy-ui-api.tls.certificate-provisioning.common-name}. */
     public static final ConfigKey<String> TLS_CERT_PROVISIONING_COMMON_NAME = TLS_CERT_PROVISIONING
             .string("common-name")
-            .withDefaultValue("localhost")
+            .withDefaultValue(xroadHost("localhost"))
             .build();
     /** {@code xroad.proxy-ui-api.tls.certificate-provisioning.alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_ALT_NAMES = TLS_CERT_PROVISIONING

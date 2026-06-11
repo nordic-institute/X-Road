@@ -24,32 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.rpc.client;
 
-package org.niis.xroad.common.properties.config.keys;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+/** Base {@link RpcChannelProperties} implementation backed by the XRoadConfig DSL. */
+public class XRoadRpcChannelProperties implements RpcChannelProperties {
 
-import java.util.List;
+    private final XRoadConfig config;
+    private final ConfigKey<String> hostKey;
+    private final ConfigKey<Integer> portKey;
+    private final ConfigKey<Integer> deadlineAfterKey;
 
-/**
- * Aggregator of every shipped {@link ConfigKeyProvider}. Used where the complete catalogue
- * is needed (admin-service UI/export, the Quarkus defaults config source). A single list to
- * maintain when a new {@code *ConfigKeys} provider is added.
- */
-public final class ConfigKeyProviders {
-
-    private ConfigKeyProviders() {
+    public XRoadRpcChannelProperties(XRoadConfig config,
+                                     ConfigKey<String> hostKey,
+                                     ConfigKey<Integer> portKey,
+                                     ConfigKey<Integer> deadlineAfterKey) {
+        this.config = config;
+        this.hostKey = hostKey;
+        this.portKey = portKey;
+        this.deadlineAfterKey = deadlineAfterKey;
     }
 
-    /** @return all shipped providers (common scope + per-service scopes) */
-    public static List<ConfigKeyProvider> allProviders() {
-        return List.of(
-                CommonConfigKeys.instance(),
-                CommonRpcConfigKeys.instance(),
-                ProxyConfigKeys.instance(),
-                ConfClientConfigKeys.instance(),
-                OpMonitorConfigKeys.instance(),
-                AuxiliaryServiceConfigKeys.instance(),
-                AdminServiceConfigKeys.instance());
+    @Override
+    public String host() {
+        return config.value(hostKey);
+    }
+
+    @Override
+    public int port() {
+        return config.value(portKey);
+    }
+
+    @Override
+    public int deadlineAfter() {
+        return config.value(deadlineAfterKey);
     }
 }

@@ -27,29 +27,21 @@
 
 package org.niis.xroad.auxiliaryservice.proto;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-@ConfigMapping(prefix = AuxiliaryServiceRpcChannelProperties.PREFIX)
-public interface AuxiliaryServiceRpcChannelProperties extends RpcChannelProperties  {
+public interface AuxiliaryServiceRpcChannelProperties extends RpcChannelProperties {
     String PREFIX = "xroad.common-rpc.channel.auxiliary-service";
     String DEFAULT_HOST = "127.0.0.1";
     String DEFAULT_PORT = "7665";
     String DEFAULT_DEADLINE_AFTER = "60000";
 
     @Override
-    @WithDefault(DEFAULT_HOST)
     String host();
 
     @Override
-    @WithDefault(DEFAULT_PORT)
     int port();
 
     @Override
-    @WithName("deadline-after")
-    @WithDefault(DEFAULT_DEADLINE_AFTER)
     int deadlineAfter();
 
 }

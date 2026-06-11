@@ -34,6 +34,7 @@ import org.niis.xroad.common.properties.config.Scope;
 import java.time.Duration;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 
 /** Op-monitor keys ({@code xroad.op-monitor.*}, incl. {@code .rpc} and {@code .tls} sub-trees). */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
@@ -133,7 +134,7 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.op-monitor.tls.certificate-provisioning.common-name}. */
     public static final ConfigKey<String> CERT_PROVISIONING_COMMON_NAME = CERT_PROVISIONING
             .string("common-name")
-            .withDefaultValue("localhost")
+            .withDefaultValue(xroadHost("localhost"))
             .build();
 
     /** {@code xroad.op-monitor.tls.certificate-provisioning.alt-names}. */

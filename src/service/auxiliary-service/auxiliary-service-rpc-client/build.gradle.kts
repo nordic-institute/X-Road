@@ -5,9 +5,8 @@ plugins {
 }
 
 dependencies {
+  api(project(":lib:properties-api"))
   api(project(":lib:rpc-core"))
-
-  implementation(libs.smallrye.config.core)
 }
 
 

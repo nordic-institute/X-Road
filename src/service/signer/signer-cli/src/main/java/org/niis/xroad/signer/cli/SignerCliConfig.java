@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ds.controlplane.application;
+package org.niis.xroad.signer.cli;
 
-import io.quarkus.arc.Unremovable;
-import io.quarkus.vault.VaultKVSecretEngine;
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -39,18 +35,12 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
-import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
-import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfCommonProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
+import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
+import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
+import org.niis.xroad.signer.client.XRoadSoftwareTokenSignerRpcChannelProperties;
 
-@Slf4j
-class ControlPlaneBeansConfig {
+class SignerCliConfig {
 
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
@@ -72,23 +62,12 @@ class ControlPlaneBeansConfig {
     }
 
     @ApplicationScoped
-    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadSignerRpcChannelProperties(xRoadConfig);
     }
 
-    @Unremovable
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
-    }
-
-    @Unremovable
-    @ApplicationScoped
-    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
-                                          ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider,
-                                          VaultClient vaultClient) {
-        log.debug("Creating ServerConfProvider");
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
+    SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 }

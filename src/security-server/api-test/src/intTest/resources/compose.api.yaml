@@ -75,6 +75,8 @@ services:
         condition: service_completed_successfully
       db-serverconf-message-log-encryption-config-seed:
         condition: service_completed_successfully
+      db-serverconf-common-rpc-config-seed:
+        condition: service_completed_successfully
 
   # Seeds the proxy's config overrides into configuration_properties so the proxy resolves them
   # via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
@@ -182,11 +184,31 @@ services:
       db-serverconf-init:
         condition: service_completed_successfully
 
+  # Seeds global-scope (scope=NULL) common-rpc certificate-provisioning overrides into configuration_properties.
+  # scope=NULL means the DB ConfigSource returns these rows to every app (no scope filter).
+  # CommonRpcConfigKeys uses Scope.of("xroad.common-rpc") with no name arg → scopeName=null → DB filter: scope IS NULL.
+  db-serverconf-common-rpc-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+             ('xroad.common-rpc.certificate-provisioning.ttl', 'PT120S', NULL, now(), now()),
+             ('xroad.common-rpc.certificate-provisioning.refresh-interval', 'PT60S', NULL, now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+
   ui:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
-      - XROAD_COMMON_RPC_CHANNEL_OP_MONITOR_HOST=op-monitor
       - XROAD_PROXY_UI_API_DATASPACE_ENABLED=true
       - XROAD_PROXY_UI_API_DATASPACE_IDENTITY_HUB_URL=https://ds-identity-hub:7182
       - XROAD_PROXY_UI_API_DATASPACE_PARTICIPANT_ID=ss0
@@ -315,7 +337,6 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor

@@ -26,12 +26,8 @@
  */
 package org.niis.xroad.confclient.rpc;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-@ConfigMapping(prefix = ConfClientRpcChannelProperties.PREFIX)
 public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
     String PREFIX = "xroad.common-rpc.channel.configuration-client";
 
@@ -40,15 +36,11 @@ public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
     String DEFAULT_DEADLINE_AFTER = "60000";
 
     @Override
-    @WithDefault(DEFAULT_HOST)
     String host();
 
     @Override
-    @WithDefault(DEFAULT_PORT)
     int port();
 
     @Override
-    @WithName("deadline-after")
-    @WithDefault(DEFAULT_DEADLINE_AFTER)
     int deadlineAfter();
 }

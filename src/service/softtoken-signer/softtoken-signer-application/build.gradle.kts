@@ -12,6 +12,7 @@ dependencies {
   implementation(project(":service:signer:signer-common"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:properties-impl"))
 
   implementation(libs.smallrye.config.core)
   implementation(libs.bundles.quarkus.containerized)

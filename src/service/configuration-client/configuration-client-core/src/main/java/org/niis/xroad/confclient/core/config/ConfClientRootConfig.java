@@ -25,14 +25,19 @@
  */
 package org.niis.xroad.confclient.core.config;
 
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
 import org.niis.xroad.confclient.common.globalconf.FileBasedProvider;
 import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepository;
@@ -47,6 +52,9 @@ import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import javax.sql.DataSource;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 public class ConfClientRootConfig {
@@ -54,10 +62,31 @@ public class ConfClientRootConfig {
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
+                .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
                 .register(ConfClientConfigKeys.instance())
+                .deploymentMode(deploymentMode())
+                .overrides(smallryeRpcOverrides())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    private static Map<String, String> smallryeRpcOverrides() {
+        var overrides = new HashMap<String, String>();
+        ConfigProvider.getConfig()
+                .getOptionalValue("xroad.common-rpc.use-tls", String.class)
+                .ifPresent(v -> overrides.put("xroad.common-rpc.use-tls", v));
+        return overrides;
+    }
+
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
     }
 
     @ApplicationScoped

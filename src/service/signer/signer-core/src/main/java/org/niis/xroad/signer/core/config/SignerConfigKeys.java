@@ -30,6 +30,7 @@ import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -129,16 +130,10 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
             .build();
 
     /** {@code xroad.signer.key-length} */
-    public static final ConfigKey<Integer> KEY_LENGTH = SIGNER
-            .integer("key-length")
-            .withDefaultValue(2048)
-            .build();
+    public static final ConfigKey<Integer> KEY_LENGTH = SignerKeyConfigKeys.KEY_LENGTH;
 
     /** {@code xroad.signer.key-named-curve} */
-    public static final ConfigKey<String> KEY_NAMED_CURVE = SIGNER
-            .string("key-named-curve")
-            .withDefaultValue("secp256r1")
-            .build();
+    public static final ConfigKey<String> KEY_NAMED_CURVE = SignerKeyConfigKeys.KEY_NAMED_CURVE;
 
     /**
      * {@code xroad.signer.modules}: the entire hardware-module map as a single JSON/YAML document.

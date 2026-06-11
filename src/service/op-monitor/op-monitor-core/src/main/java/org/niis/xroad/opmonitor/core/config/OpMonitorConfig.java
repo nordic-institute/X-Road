@@ -29,18 +29,26 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
+import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -57,10 +65,27 @@ public class OpMonitorConfig {
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
+                .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
                 .register(OpMonitorConfigKeys.instance())
+                .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped

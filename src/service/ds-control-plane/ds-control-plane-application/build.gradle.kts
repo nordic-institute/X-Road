@@ -19,8 +19,11 @@ dependencies {
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:properties-impl"))
+  implementation(project(":lib:rpc-core"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:vault-quarkus"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
 
   implementation(libs.bundles.quarkus.containerized)
 

@@ -5,11 +5,9 @@ quarkus:
       "org.niis.xroad.proxy.core.healthcheck":
         level: DEBUG
 xroad:
-  common-rpc:
-    certificate-provisioning:
-      # To ensure vault-powered mTLS certificate rotation
-      ttl: 120S
-      refresh-interval: 60S
+  # xroad.common-rpc.certificate-provisioning.* overrides moved to the DB-override layer
+  # (configuration_properties, scope=NULL/global), seeded by db-serverconf-common-rpc-config-seed in
+  # compose.systemtest.yaml. CommonRpcConfigKeys resolves them via XRoadConfig (DB overrides + DSL defaults).
   # xroad.configuration-client.* overrides moved to the DB-override layer (configuration_properties,
   # scope='configuration-client'), seeded by db-serverconf-confclient-config-seed in compose.systemtest.yaml.
   # ConfigurationClientProperties now resolves via XRoadConfig (DB overrides + DSL defaults), not local.yaml.

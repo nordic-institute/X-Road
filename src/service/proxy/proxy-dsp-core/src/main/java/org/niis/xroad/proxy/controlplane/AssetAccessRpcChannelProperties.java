@@ -26,15 +26,9 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-/**
- * gRPC channel configuration for the asset access service connection.
- */
-@ConfigMapping(prefix = AssetAccessRpcChannelProperties.PREFIX)
+/** gRPC channel configuration for the asset access service connection. */
 public interface AssetAccessRpcChannelProperties extends RpcChannelProperties {
     String PREFIX = "xroad.common-rpc.channel.asset-access";
     String DEFAULT_HOST = "127.0.0.1";
@@ -42,15 +36,11 @@ public interface AssetAccessRpcChannelProperties extends RpcChannelProperties {
     String DEFAULT_DEADLINE_AFTER = "60000";
 
     @Override
-    @WithDefault(DEFAULT_HOST)
     String host();
 
     @Override
-    @WithDefault(DEFAULT_PORT)
     int port();
 
     @Override
-    @WithName("deadline-after")
-    @WithDefault(DEFAULT_DEADLINE_AFTER)
     int deadlineAfter();
 }

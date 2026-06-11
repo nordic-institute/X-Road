@@ -11,6 +11,7 @@ dependencies {
   implementation(project(":lib:properties-impl"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:auxiliary-service:auxiliary-service-rpc-client"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)

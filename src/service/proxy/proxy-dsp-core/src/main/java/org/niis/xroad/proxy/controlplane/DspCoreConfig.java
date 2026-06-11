@@ -24,32 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.proxy.controlplane;
 
-package org.niis.xroad.common.properties.config.keys;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+class DspCoreConfig {
 
-import java.util.List;
-
-/**
- * Aggregator of every shipped {@link ConfigKeyProvider}. Used where the complete catalogue
- * is needed (admin-service UI/export, the Quarkus defaults config source). A single list to
- * maintain when a new {@code *ConfigKeys} provider is added.
- */
-public final class ConfigKeyProviders {
-
-    private ConfigKeyProviders() {
+    @ApplicationScoped
+    AssetAccessRpcChannelProperties assetAccessRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadAssetAccessRpcChannelProperties(xRoadConfig);
     }
 
-    /** @return all shipped providers (common scope + per-service scopes) */
-    public static List<ConfigKeyProvider> allProviders() {
-        return List.of(
-                CommonConfigKeys.instance(),
-                CommonRpcConfigKeys.instance(),
-                ProxyConfigKeys.instance(),
-                ConfClientConfigKeys.instance(),
-                OpMonitorConfigKeys.instance(),
-                AuxiliaryServiceConfigKeys.instance(),
-                AdminServiceConfigKeys.instance());
-    }
 }

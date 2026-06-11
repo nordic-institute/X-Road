@@ -26,35 +26,34 @@
 package org.niis.xroad.signer.common.config;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import static java.lang.Math.max;
 
 /**
- * Key-generation parameters shared between signer and softtoken-signer.
- *
- * <p>Values are resolved from the XRoadConfig DSL by the producer in {@code SignerConfig}
- * (signer-core), which registers {@code SignerConfigKeys} and passes the resolved values here.
+ * Key-generation parameters shared between signer and softtoken-signer, resolved lazily from the
+ * XRoadConfig DSL ({@link SignerKeyConfigKeys}). Apps producing this bean must register
+ * {@code SignerKeyConfigKeys} on their {@link XRoadConfig}.
  */
 @RequiredArgsConstructor
 public class SignerKeyProperties {
 
     private static final int MIN_SIGNER_KEY_LENGTH = 2048;
 
-    private final int rawKeyLength;
-    private final String keyNamedCurve;
+    private final XRoadConfig config;
 
     /** @return raw configured key length (may be below the minimum) */
     public int keyLength() {
-        return rawKeyLength;
+        return config.value(SignerKeyConfigKeys.KEY_LENGTH);
     }
 
     /** @return effective key length, clamped to at least {@value MIN_SIGNER_KEY_LENGTH} */
     public int getKeyLength() {
-        return max(MIN_SIGNER_KEY_LENGTH, rawKeyLength);
+        return max(MIN_SIGNER_KEY_LENGTH, keyLength());
     }
 
     /** @return named curve for EC keys */
     public String keyNamedCurve() {
-        return keyNamedCurve;
+        return config.value(SignerKeyConfigKeys.KEY_NAMED_CURVE);
     }
 }

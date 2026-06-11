@@ -29,29 +29,41 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
+import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
+import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
+import org.niis.xroad.monitor.rpc.XRoadEnvMonitorRpcChannelProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
 import org.niis.xroad.proxy.core.signature.SimpleSigner;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.niis.xroad.proxy.proto.XRoadProxyRpcChannelProperties;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
@@ -59,6 +71,9 @@ import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
+import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
+import org.niis.xroad.signer.client.XRoadSoftwareTokenSignerRpcChannelProperties;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -79,10 +94,47 @@ class ProxyConfig {
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
+                .register(CommonRpcConfigKeys.instance())
                 .register(ProxyConfigKeys.instance())
                 .register(MessageLogEncryptionConfigKeys.instance())
+                .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadSignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadEnvMonitorRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyRpcChannelProperties proxyRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadProxyRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped

@@ -34,15 +34,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.monitor.rpc.XRoadEnvMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -66,9 +67,11 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ProxyMonitorMetaserviceTest {
 
-    public static EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties = ConfigUtils.initConfiguration(
-            EnvMonitorRpcChannelProperties.class,
-            Map.of(EnvMonitorRpcChannelProperties.PREFIX + ".port", String.valueOf(findRandomPort())));
+    public static EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties = new XRoadEnvMonitorRpcChannelProperties(
+            XRoadConfigBuilder.create()
+                    .register(CommonRpcConfigKeys.instance())
+                    .overrides(Map.of("xroad.common-rpc.channel.env-monitor.port", String.valueOf(findRandomPort())))
+                    .build());
 
     private static final ProxyTestSuiteHelper PROXY_TEST_SUITE_HELPER = new ProxyTestSuiteHelper();
 

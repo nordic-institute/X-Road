@@ -36,6 +36,7 @@ import java.time.Duration;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 
 /**
  * Keys for the {@code xroad.proxy} scope, mirroring the nested structure of the legacy
@@ -462,7 +463,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.tls.certificate-provisioning.common-name}. */
     public static final ConfigKey<String> TLS_CERT_PROVISIONING_COMMON_NAME = TLS_CERT_PROVISIONING
             .string("common-name")
-            .withDefaultValue("localhost")
+            .withDefaultValue(xroadHost("localhost"))
             .build();
 
     /** {@code xroad.proxy.tls.certificate-provisioning.alt-names}. */

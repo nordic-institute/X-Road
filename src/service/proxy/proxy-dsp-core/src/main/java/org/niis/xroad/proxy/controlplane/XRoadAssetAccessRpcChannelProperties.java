@@ -24,32 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.proxy.controlplane;
 
-package org.niis.xroad.common.properties.config.keys;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+/** XRoadConfig-backed implementation of {@link AssetAccessRpcChannelProperties}. */
+public class XRoadAssetAccessRpcChannelProperties extends XRoadRpcChannelProperties
+        implements AssetAccessRpcChannelProperties {
 
-import java.util.List;
-
-/**
- * Aggregator of every shipped {@link ConfigKeyProvider}. Used where the complete catalogue
- * is needed (admin-service UI/export, the Quarkus defaults config source). A single list to
- * maintain when a new {@code *ConfigKeys} provider is added.
- */
-public final class ConfigKeyProviders {
-
-    private ConfigKeyProviders() {
-    }
-
-    /** @return all shipped providers (common scope + per-service scopes) */
-    public static List<ConfigKeyProvider> allProviders() {
-        return List.of(
-                CommonConfigKeys.instance(),
-                CommonRpcConfigKeys.instance(),
-                ProxyConfigKeys.instance(),
-                ConfClientConfigKeys.instance(),
-                OpMonitorConfigKeys.instance(),
-                AuxiliaryServiceConfigKeys.instance(),
-                AdminServiceConfigKeys.instance());
+    public XRoadAssetAccessRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_HOST,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_PORT,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_DEADLINE_AFTER);
     }
 }

@@ -9,7 +9,9 @@ dependencies {
   implementation(project(":service:monitor:monitor-api"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:proxy:proxy-rpc-client"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:vault-quarkus"))
+  implementation(project(":lib:properties-impl"))
 
   implementation(libs.bundles.metrics)
   implementation(libs.quarkus.scheduler)
