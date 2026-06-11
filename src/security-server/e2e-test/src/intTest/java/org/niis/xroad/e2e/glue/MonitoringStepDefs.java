@@ -55,6 +55,11 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Step("{string} owner client internal connection type is set to {string}")
     public void setOwnerClientConnectionType(String env, String connectionType) {
+        var ownerClientId = switch (env) {
+            case "ss0" -> "DEV:COM:1234";
+            case "ss1" -> "DEV:COM:4321";
+            default -> throw new IllegalArgumentException("Unknown env for owner client: " + env);
+        };
         var mapping = envSetup.getContainerMapping(env, "ui", EnvSetup.Port.UI);
         var baseUrl = "https://%s:%s".formatted(mapping.host(), mapping.port());
 
@@ -74,7 +79,7 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
                 .header("X-XSRF-TOKEN", xsrfToken)
                 .header("Content-Type", "application/json")
                 .body("{\"connection_type\": \"%s\"}".formatted(connectionType))
-                .patch(baseUrl + "/api/v1/clients/DEV:COM:4321");
+                .patch(baseUrl + "/api/v1/clients/" + ownerClientId);
         assertThat(patchResponse.getStatusCode())
                 .as("update owner client connection type to %s", connectionType)
                 .isBetween(200, 299);

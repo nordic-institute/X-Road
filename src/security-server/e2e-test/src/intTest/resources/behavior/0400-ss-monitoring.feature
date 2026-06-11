@@ -38,3 +38,28 @@ Feature: 0400 - SS: Monitoring
     Given "ss1" owner client internal connection type is set to "HTTP"
     When proxymonitor getSecurityServerMetrics request is sent to "ss1" with queryId "MSGLOG-E2E-UNIQUE-9f3a"
     Then "ss1" messagelog contains 4 encrypted entries for queryId "MSGLOG-E2E-UNIQUE-9f3a"
+
+  # MIGRATED-FROM: 2400-ss-opmonitoring.feature :: "Retrieving Operational Data of Security Server"
+  Scenario: Retrieving Operational Data of Security Server
+    Given "ss0" owner client internal connection type is set to "HTTP"
+    When REST request is sent to "ss1" "proxy"
+    """json
+    {"data": 1.0, "service": "random"}
+    """
+    Then response is received with http status code 200 and body path "message" is equal to "Hello, world from POST service!"
+    When REST request targeted at "/api/members" API endpoint is sent to "ss1" "proxy"
+    Then response is received with http status code 200 and body path "[0].name" is equal to "MTÜ Nordic Institute for Interoperability Solutions"
+    And REST request targeted at unsaved "/notexist/test" API endpoint is attempted on "ss1" "proxy"
+    When getSecurityServerOperationalData request is sent to "ss0"
+    Then operational data response contains records with serviceSecurityServerAddress "xrd-ss0"
+
+  # MIGRATED-FROM: 2400-ss-opmonitoring.feature :: "Retrieving Health Data of Security Server"
+  Scenario: Retrieving Health Data of Security Server
+    Given "ss0" owner client internal connection type is set to "HTTP"
+    When REST request is sent to "ss1" "proxy"
+    """json
+    {"data": 1.0, "service": "random"}
+    """
+    Then response is received with http status code 200 and body path "message" is equal to "Hello, world from POST service!"
+    When getSecurityServerHealthData request is sent to "ss0"
+    Then health data response has statisticsPeriodSeconds 600 and at least 1 successfulRequestCount

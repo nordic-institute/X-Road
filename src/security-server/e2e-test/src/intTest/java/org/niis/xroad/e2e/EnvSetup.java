@@ -61,6 +61,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String COMPOSE_SS_SOFTTOKEN_SIGNER_FILE = "compose.ss-softtoken-signer-enabled.e2e.yaml";
     private static final String COMPOSE_SS_MSGLOG_ENCRYPTION = "compose.ss-msglog-encryption.e2e.yaml";
     private static final String COMPOSE_SS_MSGLOG_CLI = "compose.ss-msglog.e2e.yaml";
+    private static final String COMPOSE_SS_OPMONITOR_FILE = "compose.ss-opmonitor.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String OPENBAO = "openbao";
@@ -71,6 +72,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String CONFIGURATION_CLIENT = "configuration-client";
     private static final String AUX_SERVICE = "auxiliary-service";
     private static final String MESSAGE_LOG_CLI = "message-log-cli";
+    private static final String OP_MONITOR_SERVICE = "op-monitor";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
     public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
@@ -111,7 +113,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 
-        envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER));
+        envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER, Feature.OP_MONITOR));
 
         envSs1 = createSSEnvironment("ss1", Set.of(Feature.HSM, Feature.MESSAGE_LOG_ENCRYPTION));
 
@@ -184,6 +186,10 @@ public class EnvSetup extends BaseComposeSetup {
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
+        }
+
+        if (features.contains(Feature.OP_MONITOR)) {
+            env.withLogConsumer(OP_MONITOR_SERVICE, createLogConsumer(name, OP_MONITOR_SERVICE));
         }
 
         env.start();
@@ -289,7 +295,8 @@ public class EnvSetup extends BaseComposeSetup {
         HSM(COMPOSE_SS_HSM_FILE),
         BATCH_SIGNATURES(COMPOSE_SS_BATCH_SIGNATURES_FILE),
         SOFTTOKEN_SIGNER(COMPOSE_SS_SOFTTOKEN_SIGNER_FILE),
-        MESSAGE_LOG_ENCRYPTION(COMPOSE_SS_MSGLOG_ENCRYPTION);
+        MESSAGE_LOG_ENCRYPTION(COMPOSE_SS_MSGLOG_ENCRYPTION),
+        OP_MONITOR(COMPOSE_SS_OPMONITOR_FILE);
 
         private final String composeFile;
 
