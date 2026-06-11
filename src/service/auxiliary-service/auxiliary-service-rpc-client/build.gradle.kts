@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-  api(project(":lib:properties-api"))
+  api(project(":lib:properties-core"))
   api(project(":lib:rpc-core"))
 }
 

@@ -29,8 +29,6 @@ dependencies {
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:properties-core"))
-  implementation(project(":lib:properties-api"))
-  implementation(project(":lib:properties-impl"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:vault-quarkus"))

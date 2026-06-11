@@ -5,6 +5,6 @@ plugins {
 
 dependencies {
   api(project(":service:monitor:monitor-api"))
-  api(project(":lib:properties-api"))
+  api(project(":lib:properties-core"))
   api(project(":lib:rpc-core"))
 }

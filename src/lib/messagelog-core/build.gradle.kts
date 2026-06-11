@@ -11,7 +11,7 @@ dependencies {
   implementation(project(":common:common-db"))
   implementation(project(":common:common-message"))
   implementation(project(":lib:asic-core"))
-  implementation(project(":lib:properties-api"))
+  implementation(project(":lib:properties-core"))
 
   implementation(libs.mapstruct)
   implementation(libs.smallrye.config.core)
@@ -23,5 +23,5 @@ dependencies {
   api(project(":lib:vault-core"))
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(":lib:properties-impl"))
+  testImplementation(project(":lib:properties-core"))
 }

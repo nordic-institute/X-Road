@@ -9,6 +9,7 @@ dependencies {
   implementation(libs.smallrye.config.core)
   implementation(libs.hikariCP)
 
+  testImplementation(libs.assertj.core)
   testImplementation(libs.h2database)
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.systemStubs)

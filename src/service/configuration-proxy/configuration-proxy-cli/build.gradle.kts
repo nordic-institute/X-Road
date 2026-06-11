@@ -17,7 +17,7 @@ dependencies {
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:rpc-quarkus"))
-  implementation(project(":lib:properties-impl"))
+  implementation(project(":lib:properties-core"))
 
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))

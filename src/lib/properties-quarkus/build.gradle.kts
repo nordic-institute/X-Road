@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-core"))
-  implementation(project(":lib:properties-api"))
+  implementation(project(":lib:properties-core"))
   implementation(libs.smallrye.config.core)
   implementation(libs.slf4j.api)
 

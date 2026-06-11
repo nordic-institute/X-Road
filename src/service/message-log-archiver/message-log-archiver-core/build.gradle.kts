@@ -12,8 +12,7 @@ dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":lib:asic-core"))
   implementation(project(":lib:messagelog-core"))
-  implementation(project(":lib:properties-api"))
-  implementation(project(":lib:properties-impl"))
+  implementation(project(":lib:properties-core"))
   implementation(project(":lib:vault-quarkus"))
 
   implementation(libs.mapstruct)

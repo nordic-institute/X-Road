@@ -11,7 +11,7 @@ dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:vault-quarkus"))
-  implementation(project(":lib:properties-impl"))
+  implementation(project(":lib:properties-core"))
 
   implementation(libs.bundles.metrics)
   implementation(libs.quarkus.scheduler)

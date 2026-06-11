@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
   api(project(":common:common-core"))
-  api(project(":lib:properties-api"))
+  api(project(":lib:properties-core"))
   api(project(":lib:rpc-core"))
   api(project(":service:configuration-client:configuration-client-model"))
 }

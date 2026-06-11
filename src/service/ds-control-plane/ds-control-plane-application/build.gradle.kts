@@ -19,7 +19,7 @@ dependencies {
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
-  implementation(project(":lib:properties-impl"))
+  implementation(project(":lib:properties-core"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:vault-quarkus"))

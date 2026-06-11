@@ -17,8 +17,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:vault-quarkus"))
-  implementation(project(":lib:properties-api"))
-  implementation(project(":lib:properties-impl"))
+  implementation(project(":lib:properties-core"))
 
   implementation(libs.quarkus.arc)
   implementation(libs.quarkus.scheduler)
@@ -32,6 +31,6 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":lib:properties-core")))
-  testImplementation(project(":lib:properties-impl"))
+  testImplementation(project(":lib:properties-core"))
   testImplementation(libs.mockito.core)
 }

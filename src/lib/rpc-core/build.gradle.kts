@@ -7,7 +7,6 @@ plugins {
 dependencies {
   api(project(":common:common-domain"))
   api(project(":lib:properties-core"))
-  api(project(":lib:properties-api"))
   api(project(":lib:vault-core"))
 
   api(libs.slf4j.api)
