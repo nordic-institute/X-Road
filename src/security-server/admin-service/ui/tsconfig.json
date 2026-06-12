@@ -24,6 +24,9 @@
       ],
       "vitest/browser": [
         "../../../node_modules/vitest/browser/context.d.ts"
+      ],
+      "openapi-msw": [
+        "../../../node_modules/openapi-msw/dist/exports/main.d.ts"
       ]
     },
     "rootDirs": [

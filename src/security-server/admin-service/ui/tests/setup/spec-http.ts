@@ -24,16 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { setupWorker } from 'msw/browser';
-import { handlers } from './msw-handlers';
-import { beforeAll, afterEach } from 'vitest';
 
-export const worker = setupWorker(...handlers);
+/**
+ * Spec-bound MSW http wrapper.
+ *
+ * `specHttp` is created with `createOpenApiHttp<paths>()` so every handler path,
+ * HTTP method, and response status is checked against the OpenAPI spec at
+ * TYPE-CHECK time — an unknown path or a status the spec does not define fails
+ * `tsc`, not the test.
+ *
+ * `validateBody(schema, body)` runs AJV against an inline JSON Schema object
+ * (derived from the spec's `components/schemas` section) at RUNTIME, so a
+ * fixture body that drifts from the contract fails the test rather than silently
+ * serving wrong data.
+ */
 
-beforeAll(async () => {
-  await worker.start({ onUnhandledRequest: 'bypass' });
-});
+import { createOpenApiHttp } from 'openapi-msw';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
+import type { paths } from '@/openapi-msw-paths';
 
-afterEach(() => {
-  worker.resetHandlers();
-});
+const ajv = new Ajv({ allErrors: true, strict: false });
+addFormats(ajv);
+
+/**
+ * Validates `body` against `schema` using AJV. Throws with a descriptive
+ * message when the body does not conform, causing the test to fail immediately
+ * rather than serving invalid fixture data.
+ */
+export function validateBody(schema: object, body: unknown): void {
+  const valid = ajv.validate(schema, body);
+  if (!valid) {
+    const errors = ajv.errorsText(ajv.errors);
+    throw new Error(`Fixture body failed schema validation:\n${errors}`);
+  }
+}
+
+export const specHttp = createOpenApiHttp<paths>({ baseUrl: '/api/v1' });

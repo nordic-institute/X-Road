@@ -31,20 +31,28 @@ import { createRouter, createWebHashHistory, RouterView, type Router } from 'vue
 import { render } from 'vitest-browser-vue';
 import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
 import { i18n as sharedI18n } from '@niis/shared-ui/src/plugins/i18n';
-import { useAppState, XrdApp, Color, createXrdVuetify } from '@niis/shared-ui';
+import { useAppState, XrdApp, setupAddErrorNavigation } from '@niis/shared-ui';
 import axios from 'axios';
 import type { RequestHandler } from 'msw';
 import deepmerge from 'deepmerge';
 import { worker } from './browser-setup';
 
 import routes from '@/router/routes';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
+import { createFilters } from '@/filters';
+import vuetify from '@/plugins/vuetify';
 import { useUser } from '@/store/modules/user';
 import { TokenInitStatus } from '@/openapi-types';
 
 export interface RenderRouteOptions {
   msw?: RequestHandler[];
   permissions?: string[];
+  /**
+   * Session state to boot into.
+   * - `'alive'` (default): authenticated, session active.
+   * - `'expired'`: session marked dead; XrdApp renders the logout/session-expired dialog.
+   */
+  session?: 'alive' | 'expired';
 }
 
 const DEFAULT_PERMISSIONS: string[] = [
@@ -58,27 +66,17 @@ const DEFAULT_PERMISSIONS: string[] = [
   Permissions.ENABLE_DISABLE_WSDL,
 ];
 
-const VEE_VALIDATE_MESSAGES_EN: Record<string, string> = {
-  required: 'The {field} field is required',
-  email: 'The {field} field must be a valid email',
-  max: 'The {field} field may not be greater than 0:{length} characters',
-  min: 'The {field} field must be at least 0:{length} characters',
-  between: 'The {field} field must be between 0:{min} and 1:{max}',
-  confirmed: 'The {field} field confirmation does not match',
-  is: 'The {field} field is not valid',
-  url: 'The {field} field is not a valid URL',
-};
-
 async function loadMessages(): Promise<Record<string, unknown>> {
-  const [sharedUiEn, ssEn] = await Promise.all([
+  const [sharedUiEn, ssEn, veeValidateEn] = await Promise.all([
     import('@niis/shared-ui/src/locales/en.json'),
     import('@/locales/en.json'),
+    import('@vee-validate/i18n/dist/locale/en.json'),
   ]);
   return deepmerge.all([
     sharedUiEn.default as Record<string, unknown>,
     ssEn.default as Record<string, unknown>,
-    { validation: { messages: VEE_VALIDATE_MESSAGES_EN } },
-  ]);
+    { validation: veeValidateEn.default },
+  ]) as Record<string, unknown>;
 }
 
 let messagesPromise: Promise<void> | null = null;
@@ -91,11 +89,22 @@ function ensureMessages(): Promise<void> {
   return messagesPromise;
 }
 
+/*
+ * Deliberately stubbed bootstrap (not covered by this tier):
+ *   - Session/auth state: userStore.$patch replaces the real session-bootstrap fetch. Auth
+ *     behaviour is mocked by design; the real fetch flow is an e2e concern.
+ *   - Hash history: createWebHashHistory() avoids base-URL and reverse-proxy config. Web-
+ *     history / base-URL routing is a deploy-smoke concern.
+ *   - Vite dev build: specs run under Vite's dev transform, not a minified production bundle.
+ *     Bundle/CORS testing is a deploy-smoke concern.
+ *   - No client-side CSRF: the app uses cookie-session only (no axios interceptors, no
+ *     token-attach). CSRF testing is out of scope for this tier.
+ */
 export async function renderRoute(
   path: string,
   options: RenderRouteOptions = {},
 ): Promise<{ router: Router }> {
-  const { permissions = DEFAULT_PERMISSIONS } = options;
+  const { permissions = DEFAULT_PERMISSIONS, session = 'alive' } = options;
 
   await ensureMessages();
 
@@ -110,7 +119,7 @@ export async function renderRoute(
   setActivePinia(pinia);
 
   const appState = useAppState();
-  appState.setSessionAlive(true);
+  appState.setSessionAlive(session === 'alive');
 
   const userStore = useUser();
   userStore.$patch({
@@ -122,7 +131,7 @@ export async function renderRoute(
       is_server_code_initialized: true,
       is_server_owner_initialized: true,
       software_token_init_status: TokenInitStatus.INITIALIZED,
-      is_management_services_configured: true,
+      enforce_token_pin_policy: false,
     },
   });
 
@@ -131,7 +140,9 @@ export async function renderRoute(
     routes,
   });
 
-  const vuetify = createXrdVuetify(Color.B_600, Color.B_50, Color.B_100, Color.B_800);
+  setupAddErrorNavigation(router, {
+    404: { name: RouteName.NotFound },
+  });
 
   const AppShell = defineComponent({
     render: () =>
@@ -148,6 +159,7 @@ export async function renderRoute(
         pinia,
         router,
         vuetify,
+        createFilters() as unknown as Plugin,
         sharedI18n as unknown as Plugin,
         createValidators() as unknown as Plugin,
       ],
