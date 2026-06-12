@@ -39,6 +39,7 @@ import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -220,6 +221,30 @@ class AdminUsersTest extends SsApiTest {
         for (var pair : roleUserPairs) {
             users.deleteUser(pair.username()).statusCode(200);
         }
+    }
+
+    @Test
+    @DisplayName("Creating an admin user with a weak password is rejected with user_weak_password")
+    void createUserWithWeakPasswordIsRejected(SsBaselineSeeder seeder) {
+        var username = uniqueUsername("wp");
+        var users = new AdminUsersAdminClient(seeder.newSession());
+
+        then("POST /users with a password that fails the strength policy is rejected with 400 user_weak_password", () ->
+                users.createUser(username, "weakpass", List.of("XROAD_SECURITYSERVER_OBSERVER"))
+                        .statusCode(400)
+                        .body("error.code", equalTo("user_weak_password")));
+    }
+
+    @Test
+    @DisplayName("Creating an admin user with an illegal-character password is rejected with user_password_invalid_characters")
+    void createUserWithIllegalCharPasswordIsRejected(SsBaselineSeeder seeder) {
+        var username = uniqueUsername("ic");
+        var users = new AdminUsersAdminClient(seeder.newSession());
+
+        then("POST /users with a password containing a non-ASCII character is rejected with 400 user_password_invalid_characters", () ->
+                users.createUser(username, "T0pSecret!789", List.of("XROAD_SECURITYSERVER_OBSERVER"))
+                        .statusCode(400)
+                        .body("error.code", equalTo("user_password_invalid_characters")));
     }
 
     private static String uiBaseUrl(SsApiTestContainerSetup stack) {
