@@ -124,8 +124,6 @@ export async function renderRoute(
   const userStore = useUser();
   userStore.$patch({
     authenticated: true,
-    permissions,
-    bannedRoutes: [],
     initializationStatus: {
       is_anchor_imported: true,
       is_server_code_initialized: true,
@@ -134,6 +132,7 @@ export async function renderRoute(
       enforce_token_pin_policy: false,
     },
   });
+  userStore.setPermissions(permissions);
 
   const router = createRouter({
     history: createWebHashHistory(),

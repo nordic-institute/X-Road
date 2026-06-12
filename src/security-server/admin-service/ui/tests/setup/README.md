@@ -168,6 +168,38 @@ Use `toHaveAttribute('aria-busy', 'true')` to assert in-flight state;
 - `addError()` suppresses the notification for **401** responses regardless of
   the `navigate` flag — the session-expiry path is intentionally silent.
 
+### Role gating
+
+Pass a `permissions` array to `renderRoute`. The helper calls
+`useUser().setPermissions(permissions)` **before** mount, which computes
+`bannedRoutes` from `routePermissions`. Navigation to a banned route redirects
+away; `getAllowedTabs()` filters nav tabs accordingly.
+
+```ts
+import { Permissions } from '@/global';
+
+await renderRoute('/clients', {
+  permissions: [Permissions.VIEW_CLIENTS, Permissions.ADD_CLIENT],
+  msw: [clientsHandler],
+});
+
+// Assert DOM directly — no post-render setPermissions() call needed.
+const names = page
+  .getByTestId('main-navigation-item-name')
+  .elements()
+  .map((el) => el.textContent?.trim() ?? '');
+expect(names).toContain('Clients');
+expect(names).not.toContain('Settings');
+```
+
+Do **not** call `useUser().setPermissions()` after `renderRoute` — gating is
+already applied before the component mounts. Post-render calls are timing-fragile
+and redundant.
+
+When no `permissions` option is passed, `DEFAULT_PERMISSIONS` (defined in
+`render-route.ts`) is used — covers the VIEW_CLIENTS / VIEW_CLIENT_DETAILS /
+VIEW_CLIENT_SERVICES family needed by most client-flow specs.
+
 ### Session state option
 
 `renderRoute` accepts `session?: 'alive' | 'expired'` (default `'alive'`).
