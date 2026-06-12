@@ -11,6 +11,8 @@ dependencies {
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:properties-core"))
+  implementation(project(":lib:rpc-core"))
 
   implementation(libs.bundles.quarkus.containerized)
 
@@ -51,7 +53,7 @@ dependencies {
   runtimeOnly(libs.edc.vault.hashicorp)
 
   runtimeOnly(project(":lib:rpc-quarkus"))
-  runtimeOnly(project(":service:signer:signer-client"))
+  implementation(project(":service:signer:signer-client"))
 
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-xroad-claim"))
