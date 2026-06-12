@@ -24,14 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineComponent, h, type Plugin } from 'vue';
+import { defineComponent, h, nextTick, type Plugin } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createRouter, createWebHashHistory, RouterView, type Router } from 'vue-router';
 import { render } from 'vitest-browser-vue';
 import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
 import { i18n as sharedI18n } from '@niis/shared-ui/src/plugins/i18n';
-import { useAppState, XrdApp, setupAddErrorNavigation } from '@niis/shared-ui';
+import { useAppState, XrdApp, setupAddErrorNavigation, createXrdRouter } from '@niis/shared-ui';
 import axios from 'axios';
 import type { RequestHandler } from 'msw';
 import deepmerge from 'deepmerge';
@@ -42,6 +42,7 @@ import { Permissions, RouteName } from '@/global';
 import { createFilters } from '@/filters';
 import vuetify from '@/plugins/vuetify';
 import { useUser } from '@/store/modules/user';
+import { useInitializeServer } from '@/store/modules/initializeServer';
 import { TokenInitStatus } from '@/openapi-types';
 
 export interface RenderRouteOptions {
@@ -53,6 +54,14 @@ export interface RenderRouteOptions {
    * - `'expired'`: session marked dead; XrdApp renders the logout/session-expired dialog.
    */
   session?: 'alive' | 'expired';
+  /**
+   * When true, installs the real createXrdRouter beforeEach guard and boots with the
+   * user unauthenticated / session dead — enabling guard-redirect specs (e.g. bootstrap
+   * flow where /login or an arbitrary route redirects to /initial-admin-user).
+   * Requires an MSW handler for GET /initialization/admin-user/status.
+   * Normal authenticated navigation specs must NOT set this flag.
+   */
+  bootstrap?: boolean;
 }
 
 const DEFAULT_PERMISSIONS: string[] = [
@@ -104,7 +113,7 @@ export async function renderRoute(
   path: string,
   options: RenderRouteOptions = {},
 ): Promise<{ router: Router }> {
-  const { permissions = DEFAULT_PERMISSIONS, session = 'alive' } = options;
+  const { permissions = DEFAULT_PERMISSIONS, session = 'alive', bootstrap = false } = options;
 
   await ensureMessages();
 
@@ -119,35 +128,71 @@ export async function renderRoute(
   setActivePinia(pinia);
 
   const appState = useAppState();
-  appState.setSessionAlive(session === 'alive');
 
   const userStore = useUser();
-  userStore.$patch({
-    authenticated: true,
-    initializationStatus: {
-      is_anchor_imported: true,
-      is_server_code_initialized: true,
-      is_server_owner_initialized: true,
-      software_token_init_status: TokenInitStatus.INITIALIZED,
-      enforce_token_pin_policy: false,
-    },
-  });
-  userStore.setPermissions(permissions);
 
-  const router = createRouter({
-    history: createWebHashHistory(),
-    routes,
-  });
+  if (bootstrap) {
+    // Bootstrap mode: unauthenticated, session dead — the real guard fires and redirects.
+    appState.setSessionAlive(false);
+    userStore.$patch({ authenticated: false });
+  } else {
+    appState.setSessionAlive(session === 'alive');
+    userStore.$patch({
+      authenticated: true,
+      initializationStatus: {
+        is_anchor_imported: true,
+        is_server_code_initialized: true,
+        is_server_owner_initialized: true,
+        software_token_init_status: TokenInitStatus.INITIALIZED,
+        enforce_token_pin_policy: false,
+      },
+    });
+    userStore.setPermissions(permissions);
+  }
+
+  let router: Router;
+  if (bootstrap) {
+    // Install the real createXrdRouter guard so guard-redirect scenarios can be exercised.
+    // isAdminUserCreationRequired is wired to the real store action, which the MSW handler
+    // intercepts — same wiring as router.ts in production.
+    router = createXrdRouter({
+      forbiddenRouteName: RouteName.Forbidden,
+      initialisationRouteName: RouteName.InitialConfiguration,
+      initAdminRouteName: RouteName.InitialAdminUser,
+      loginRouteName: RouteName.Login,
+      hasAnyOfPermissions: (perms: string[]) => userStore.hasAnyOfPermissions(perms),
+      isAuthenticated: () => userStore.authenticated,
+      isServerInitialized: () => !userStore.needsInitialization,
+      isAdminUserCreationRequired: () =>
+        useInitializeServer()
+          .fetchInitialAdminUserStatus()
+          .then((resp) => resp.admin_user_creation_required),
+      routes,
+    });
+  } else {
+    router = createRouter({
+      history: createWebHashHistory(),
+      routes,
+    });
+  }
 
   setupAddErrorNavigation(router, {
     404: { name: RouteName.NotFound },
   });
 
+  // onLogout mirrors App.vue.logout(): call logoutUser then navigate to Login.
+  // nextTick defers the navigation to after Vue's click-event flush, so the click
+  // action in the spec completes before the dialog is unmounted by the navigation.
+  const onLogout = () => {
+    useUser().logoutUser(false);
+    nextTick(() => router.replace({ name: RouteName.Login }));
+  };
+
   const AppShell = defineComponent({
     render: () =>
       h(
         XrdApp,
-        { loginView: false, initialUserView: false, onLogout: () => {} },
+        { loginView: false, initialUserView: false, onLogout },
         { default: () => h(RouterView) },
       ),
   });
