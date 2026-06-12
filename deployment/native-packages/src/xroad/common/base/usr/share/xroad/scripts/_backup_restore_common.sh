@@ -19,7 +19,7 @@ COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
 
 # This version number must be increased when we introduce changes that make
 # earlier backup files incompatible with the current system.
-XROAD_VERSION_LABEL="XROAD_7.1"
+BACKUP_FORMAT_VERSION_LABEL="v1"
 
 die () {
     echo >&2 "$@"
@@ -105,15 +105,15 @@ check_server_type () {
   esac
 }
 
-# XXX The tarball label is simply an underscore-separated list of the input
-# parameters.
+# The tarball label encodes server type, backup format version, and server
+# identity: <server_type>_<format_version>_<identity>.
 make_tarball_label () {
   case ${SERVER_TYPE} in
     security)
-      TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
+      TARBALL_LABEL="security_${BACKUP_FORMAT_VERSION_LABEL}_${SECURITY_SERVER_ID}"
       ;;
     central)
-      TARBALL_LABEL="central_${XROAD_VERSION_LABEL}_${INSTANCE_ID}"
+      TARBALL_LABEL="central_${BACKUP_FORMAT_VERSION_LABEL}_${INSTANCE_ID}"
       if [ -n "${CENTRAL_SERVER_HA_NODE_NAME}" ] ; then
         TARBALL_LABEL="${TARBALL_LABEL}_${CENTRAL_SERVER_HA_NODE_NAME}"
       fi

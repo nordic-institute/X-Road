@@ -54,6 +54,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -62,6 +64,11 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FileSystemBackupHandlerTest {
+
+    private static final String SECURITY_SERVER_ID = "DEV/COM/1234/SS0";
+    private static final String BACKUP_FILE_NAME = "conf_backup_v1_20250515-010203.gpg";
+    private static final String BACKUP_FILE_PATH = "/var/tmp/backup/" + BACKUP_FILE_NAME;
+    private static final Instant BACKUP_TIMESTAMP = Instant.parse("2025-05-15T01:02:03Z");
 
     @Mock
     private ExternalProcessRunner externalProcessRunner;
@@ -88,50 +95,50 @@ class FileSystemBackupHandlerTest {
 
     @Test
     void performBackup() throws Exception {
-        Instant timestamp = Instant.parse("2025-05-15T01:02:03Z");
-        TimeUtils.setClock(Clock.fixed(timestamp, ZoneOffset.UTC));
+        TimeUtils.setClock(Clock.fixed(BACKUP_TIMESTAMP, ZoneOffset.UTC));
 
-        when(backupRepository.getAbsoluteBackupFilePath("conf_backup_20250515-010203.gpg"))
-                .thenReturn(Path.of("/var/tmp/backup/conf_backup_20250515-010203.gpg"));
+        when(backupRepository.getAbsoluteBackupFilePath(BACKUP_FILE_NAME))
+                .thenReturn(Path.of(BACKUP_FILE_PATH));
 
         when(externalProcessRunner.executeAndThrowOnFailure(anyString(), any(String[].class)))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("", 0, List.of("output")));
         when(backupRepository.listBackups()).thenReturn(List.of(
-                new BackupItem("conf_backup_20250515-010203.gpg", timestamp)));
+                new BackupItem(BACKUP_FILE_NAME, BACKUP_TIMESTAMP, true)));
 
-        fileSystemBackupHandler.performBackup("DEV/COM/1234/SS0");
+        BackupItem backupItem = fileSystemBackupHandler.performBackup(SECURITY_SERVER_ID);
+        assertEquals(BACKUP_FILE_NAME, backupItem.name());
+        assertTrue(backupItem.backupCompatible());
 
         verify(externalProcessRunner).
                 executeAndThrowOnFailure(cmdCaptor.capture(), argsCaptor.capture());
 
         assertThat(cmdCaptor.getValue()).isEqualTo(backupProperties.scriptPath());
-        assertThat(argsCaptor.getValue()).containsExactly("-s", "DEV/COM/1234/SS0",
-                "-f", "/var/tmp/backup/conf_backup_20250515-010203.gpg");
+        assertThat(argsCaptor.getValue()).containsExactly("-s", SECURITY_SERVER_ID,
+                "-f", BACKUP_FILE_PATH);
     }
 
     @Test
     void performRestore() throws Exception {
-        when(backupRepository.getAbsoluteBackupFilePath("conf_backup_20250515-010203.gpg"))
-                .thenReturn(Path.of("/var/tmp/backup/conf_backup_20250515-010203.gpg"));
+        when(backupRepository.getAbsoluteBackupFilePath(BACKUP_FILE_NAME))
+                .thenReturn(Path.of(BACKUP_FILE_PATH));
 
         when(externalProcessRunner.executeAndThrowOnFailure(anyString(), any(String[].class)))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("", 0, List.of("output")));
 
-        fileSystemBackupHandler.performRestore("conf_backup_20250515-010203.gpg", "DEV/COM/1234/SS0");
+        fileSystemBackupHandler.performRestore(BACKUP_FILE_NAME, SECURITY_SERVER_ID);
 
         verify(externalProcessRunner).
                 executeAndThrowOnFailure(cmdCaptor.capture(), argsCaptor.capture());
 
         assertThat(cmdCaptor.getValue()).isEqualTo(backupProperties.restoreScriptPath());
-        assertThat(argsCaptor.getValue()).containsExactly("-b", "-s", FormatUtils.encodeStringToBase64("DEV/COM/1234/SS0"),
-                "-f", FormatUtils.encodeStringToBase64("/var/tmp/backup/conf_backup_20250515-010203.gpg"));
+        assertThat(argsCaptor.getValue()).containsExactly("-b", "-s", FormatUtils.encodeStringToBase64(SECURITY_SERVER_ID),
+                "-f", FormatUtils.encodeStringToBase64(BACKUP_FILE_PATH));
     }
 
     @Test
     void deleteBackup() {
-        String name = "conf_backup_20250515-010203.gpg";
-        fileSystemBackupHandler.deleteBackup(name);
-        verify(backupRepository).deleteBackup(name);
+        fileSystemBackupHandler.deleteBackup(BACKUP_FILE_NAME);
+        verify(backupRepository).deleteBackup(BACKUP_FILE_NAME);
     }
 
     @Test
@@ -142,32 +149,29 @@ class FileSystemBackupHandlerTest {
 
     @Test
     void readBackup() {
-        String name = "conf_backup_20250515-010203.gpg";
-        fileSystemBackupHandler.readBackup(name);
-        verify(backupRepository).readBackupFile(name);
+        fileSystemBackupHandler.readBackup(BACKUP_FILE_NAME);
+        verify(backupRepository).readBackupFile(BACKUP_FILE_NAME);
     }
 
     @Test
     void saveBackup() {
-        String name = "conf_backup_20250515-010203.gpg";
         byte[] content = new byte[]{1, 2, 3};
-        fileSystemBackupHandler.saveBackup(name, content, false);
-        verify(backupRepository).storeBackup(name, content);
+        fileSystemBackupHandler.saveBackup(BACKUP_FILE_NAME, content, false);
+        verify(backupRepository).storeBackup(BACKUP_FILE_NAME, content);
     }
 
     @Test
     void saveBackupOverwriteExisting() {
-        String name = "conf_backup_20250515-010203.gpg";
         byte[] content = new byte[]{1, 2, 3};
 
-        when(backupRepository.listBackups()).thenReturn(List.of(new BackupItem(name, Instant.now())));
-        assertThatThrownBy(() -> fileSystemBackupHandler.saveBackup(name, content, false))
+        when(backupRepository.listBackups()).thenReturn(List.of(new BackupItem(BACKUP_FILE_NAME, Instant.now(), true)));
+        assertThatThrownBy(() -> fileSystemBackupHandler.saveBackup(BACKUP_FILE_NAME, content, false))
                 .isExactlyInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining("file_already_exists: Backup with this name already exists");
         verifyNoMoreInteractions(backupRepository);
 
-        fileSystemBackupHandler.saveBackup(name, content, true);
-        verify(backupRepository).storeBackup(name, content);
+        fileSystemBackupHandler.saveBackup(BACKUP_FILE_NAME, content, true);
+        verify(backupRepository).storeBackup(BACKUP_FILE_NAME, content);
     }
 
 }

@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
+import ee.ria.xroad.common.util.BackupUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
@@ -83,7 +85,10 @@ public class BackupRepository {
                     .filter(path -> backupValidator.isValidBackupFilename(path.getFileName().toString()))
                     .map(path -> {
                         var file = path.toFile();
-                        return new BackupFile(file.getName(), getCreatedAt(file.toPath()));
+                        return new BackupFile(
+                                file.getName(),
+                                getCreatedAt(file.toPath()),
+                                BackupUtils.isBackupCompatible(file.toPath()));
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
@@ -181,7 +186,6 @@ public class BackupRepository {
         }
         return resolved;
     }
-
 
     /**
      * Check if a backup file with the given name already exists

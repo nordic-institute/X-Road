@@ -141,4 +141,31 @@ public class BackupStepDefs extends BaseStepDefs {
                 .assertion(isTrue("body.hsmTokensLoggedOut"))
                 .execute();
     }
+
+    @Step("Response backup has backupCompatible: {}")
+    public void responseBackupHasBackupCompatible(String compatible) {
+        BackupDto backup = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+        validate(backup)
+                .assertion(equalsAssertion(Boolean.valueOf(compatible), "backupCompatible"))
+                .execute();
+    }
+
+    @Step("Backup {} in list has backupCompatible: {}")
+    public void backupInListHasBackupCompatible(String backupName, String compatible) {
+        List<BackupDto> backups = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+        BackupDto backup = backups.stream()
+                .filter(b -> b.getFilename().equals(backupName))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Backup not found in list: " + backupName));
+        validate(backup)
+                .assertion(equalsAssertion(Boolean.valueOf(compatible), "backupCompatible"))
+                .execute();
+    }
+
+    @Step("Created backup has backupCompatible: {}")
+    public void createdBackupHasBackupCompatible(String compatible) {
+        validate(newBackup)
+                .assertion(equalsAssertion(Boolean.valueOf(compatible), "body.backupCompatible"))
+                .execute();
+    }
 }

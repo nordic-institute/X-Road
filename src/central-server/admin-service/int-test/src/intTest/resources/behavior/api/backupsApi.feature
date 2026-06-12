@@ -43,9 +43,9 @@ Feature: Backups API
   @Modifying
   @ClearBackups
   Scenario: Backup can be deleted
-    Given Backup test_backup.gpg is uploaded
+    Given Backup test_v1_backup.gpg is uploaded
     And Response is of status code 201
-    When Backup test_backup.gpg is deleted
+    When Backup test_v1_backup.gpg is deleted
     Then Response is of status code 204
     And Backups are retrieved
     And Response is of status code 200
@@ -57,12 +57,12 @@ Feature: Backups API
 
   Scenario: Backup upload is forbidden for non privileged user
     Given Authentication header is set to REGISTRATION_OFFICER
-    When Backup test_backup.gpg is uploaded
+    When Backup test_v1_backup.gpg is uploaded
     Then Response is of status code 403
 
   Scenario: Backup download is forbidden for non privileged user
     Given Authentication header is set to REGISTRATION_OFFICER
-    When Backup named test_backup.gpg is downloaded
+    When Backup named test_v1_backup.gpg is downloaded
     Then Response is of status code 403
 
   Scenario: Backup listing is forbidden for non privileged user
@@ -77,12 +77,39 @@ Feature: Backups API
 
   Scenario: Backup deletion is forbidden for non privileged user
     Given Authentication header is set to REGISTRATION_OFFICER
-    When Backup test_backup.gpg is deleted
+    When Backup test_v1_backup.gpg is deleted
     Then Response is of status code 403
 
   @ClearBackups
   Scenario: Restore central server configuration from a backup
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
-    And Backup test_backup.gpg is uploaded
+    And Backup test_v1_backup.gpg is uploaded
     And Signer.getTokens response is mocked
     Then Central server is restored from test_backup.gpg
+
+  @Modifying
+  @ClearBackups
+  Scenario: Uploaded backup with compatible filename has backupCompatible set to true
+    When Backup test_v1_backup.gpg is uploaded
+    Then Response is of status code 201
+    And Response backup has backupCompatible: true
+    When Backups are retrieved
+    Then Response is of status code 200
+    And Backup test_v1_backup.gpg in list has backupCompatible: true
+
+  @Modifying
+  @ClearBackups
+  Scenario: Uploaded backup with incompatible filename has backupCompatible set to false
+    When Backup test_backup.gpg is uploaded
+    Then Response is of status code 201
+    And Response backup has backupCompatible: false
+    When Backups are retrieved
+    Then Response is of status code 200
+    And Backup test_backup.gpg in list has backupCompatible: false
+
+  @Modifying
+  @ClearBackups
+  Scenario: Created backup has backupCompatible set to true
+    When Backup is created
+    Then Response is of status code 201
+    And Created backup has backupCompatible: true

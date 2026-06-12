@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /usr/share/xroad/scripts/containerised/backup_common.sh
+
 db_addr="${XROAD_SERVERCONF_DB_HOST:-db-serverconf}"
 db_port="${XROAD_SERVERCONF_DB_PORT:-5432}"
 db_database="${XROAD_SERVERCONF_DB_DATABASE:-serverconf}"
@@ -21,7 +23,7 @@ EOF
 
 if [[ -n "${SECURITY_SERVER_ID}" ]] ; then
   SCRIPT="/usr/share/xroad/scripts/containerised/create_backup.sh"
-  FILENAME="/var/lib/xroad/backup/ss-automatic-backup-$(date +%Y_%m_%d_%H%M%S).gpg"
+  FILENAME="/var/lib/xroad/backup/ss-automatic-backup_${BACKUP_FORMAT_VERSION_LABEL}_$(date +%Y_%m_%d_%H%M%S).gpg"
   ${SCRIPT} -s "${SECURITY_SERVER_ID}" -f "${FILENAME}" "$@"
 fi
 

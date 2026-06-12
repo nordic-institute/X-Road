@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class BackupConverter {
 
     public BackupDto convert(BackupInfo backupInfo) {
-        return new BackupDto(backupInfo.name(), backupInfo.createdAt().atOffset(ZoneOffset.UTC));
+        return new BackupDto(backupInfo.name(), backupInfo.createdAt().atOffset(ZoneOffset.UTC), backupInfo.backupCompatible());
     }
 
     public Set<BackupDto> convert(Collection<BackupInfo> backupDto) {

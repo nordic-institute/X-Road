@@ -27,6 +27,8 @@
 
 package org.niis.xroad.auxiliaryservice.core.backup.job.repository;
 
+import ee.ria.xroad.common.util.BackupUtils;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +80,10 @@ public class FileSystemBackupRepository implements BackupRepository {
                     .filter(path -> backupValidator.isValidBackupFilename(path.getFileName().toString()))
                     .map(path -> {
                         var file = path.toFile();
-                        return new BackupItem(file.getName(), getCreatedAt(file.toPath()));
+                        return new BackupItem(
+                                file.getName(),
+                                getCreatedAt(file.toPath()),
+                                BackupUtils.isBackupCompatible(file.toPath()));
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
@@ -114,7 +119,10 @@ public class FileSystemBackupRepository implements BackupRepository {
         var path = getAbsoluteBackupFilePath(name);
         try {
             Files.write(path, content);
-            return new BackupItem(name, getCreatedAt(path));
+            return new BackupItem(
+                    name,
+                    getCreatedAt(path),
+                    BackupUtils.isBackupCompatible(path));
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
             throw XrdRuntimeException.systemException(INVALID_BACKUP_FILE, name);

@@ -6492,6 +6492,7 @@ components:
       required:
         - filename
         - created_at
+        - backup_compatible
       properties:
         filename:
           type: string
@@ -6507,6 +6508,9 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        backup_compatible:
+          type: boolean
+          description: backup compatibility status with the current server version
     BackupExt:
       allOf:
         - $ref: '#/components/schemas/Backup'

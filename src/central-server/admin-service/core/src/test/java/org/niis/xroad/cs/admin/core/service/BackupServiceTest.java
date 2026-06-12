@@ -208,8 +208,10 @@ class BackupServiceTest {
     }
 
     private List<BackupFile> createBackupList() {
-        var file1 = new BackupFile(BACKUP_FILE_1_NAME, ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
-        var file2 = new BackupFile(BACKUP_FILE_2_NAME, ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
+        var file1 = new BackupFile(BACKUP_FILE_1_NAME,
+                ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC), false);
+        var file2 = new BackupFile(BACKUP_FILE_2_NAME,
+                ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC), false);
         List<BackupFile> files = Lists.newArrayList(file1, file2);
 
         when(backupRepository.getBackupFiles()).thenReturn(files);

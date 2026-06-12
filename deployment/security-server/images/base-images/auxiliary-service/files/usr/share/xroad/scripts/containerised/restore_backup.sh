@@ -1,6 +1,6 @@
 #!/bin/bash
 
-XROAD_VERSION_LABEL="XROAD_8.0"
+source /usr/share/xroad/scripts/containerised/backup_common.sh
 
 RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
 RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
@@ -114,11 +114,6 @@ decrypt_tarball_if_encrypted () {
       fi
     fi
   fi
-}
-
-# from _backup_restore_common.sh, modified
-make_tarball_label () {
-  TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
 }
 
 create_pre_restore_backup () {

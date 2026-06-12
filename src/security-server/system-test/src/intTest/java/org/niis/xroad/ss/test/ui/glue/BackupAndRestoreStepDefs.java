@@ -30,8 +30,10 @@ import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
 import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -140,5 +142,24 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     @Step("Configuration backup filter is set to last created backup")
     public void configurationBackupCountIsEqualTo() {
         vTextField(backupAndRestorePageObj.inputSearch()).shouldBe(enabled).setValue(createdBackupName);
+    }
+
+    @Step("Configuration backup is shown as compatible")
+    public void configurationBackupIsShownAsCompatible() {
+        backupAndRestorePageObj.btnRestoreConfigurationFromBackup().shouldBe(enabled);
+    }
+
+    @Step("Configuration backup with incompatible filename is uploaded")
+    public void uploadIncompatibleConfigurationBackup() throws IOException {
+        File incompatibleBackup = new ClassPathResource("files/backups/ss-backup-incompatible.gpg").getFile();
+        backupAndRestorePageObj.btnUploadConfigurationBackup().shouldBe(enabled).click();
+        backupAndRestorePageObj.inputConfigurationBackupBackupFile().uploadFile(incompatibleBackup);
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("Configuration backup is shown as incompatible")
+    public void configurationBackupIsShownAsIncompatible() {
+        backupAndRestorePageObj.btnRestoreConfigurationFromBackup().shouldNotBe(enabled);
     }
 }

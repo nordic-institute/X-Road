@@ -64,3 +64,11 @@ Feature: 0600 - SS: Backup and Restore
     Then Configuration backup count is equal to 3
     When Configuration backup filter is set to last created backup
     Then Configuration backup count is equal to 1
+
+  Scenario: Uploaded backup with incompatible filename is shown as incompatible
+    Given Configuration backup count is equal to 3
+    When Configuration backup with incompatible filename is uploaded
+    Then Configuration backup count is equal to 4
+    And Configuration backup is shown as incompatible
+    When Configuration backup is deleted
+    Then Configuration backup count is equal to 3

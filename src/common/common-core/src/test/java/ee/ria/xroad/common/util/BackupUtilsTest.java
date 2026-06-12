@@ -24,14 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.common.util;
 
-package org.niis.xroad.auxiliaryservice.core.backup;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import java.nio.file.Path;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
-public record BackupItem(
-        String name,
-        Instant createdAt,
-        Boolean backupCompatible
-) {
+import static org.assertj.core.api.Assertions.assertThat;
+
+class BackupUtilsTest {
+
+    @Test
+    void generateBackupFileName() {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2025-05-15T01:02:03Z"), ZoneOffset.UTC));
+        assertThat(BackupUtils.generateBackupFileName()).isEqualTo("conf_backup_v1_20250515-010203.gpg");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "conf_backup_v1_20250515-010203.gpg",
+            "backup_v1_.gpg",
+            "_v1_file.gpg"
+    })
+    void isBackupCompatible(String filename) {
+        assertThat(BackupUtils.isBackupCompatible(filename)).isTrue();
+        assertThat(BackupUtils.isBackupCompatible(Path.of(filename))).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "conf_backup_v2_20250515-010203.gpg",
+            "conf_backup_20250515-010203.gpg",
+            "backup_v10_.gpg",
+            "backup_v1x_.gpg",
+            "backup.gpg"
+    })
+    void isBackupCompatibilityBackupIncompatible(String filename) {
+        assertThat(BackupUtils.isBackupCompatible(filename)).isFalse();
+        assertThat(BackupUtils.isBackupCompatible(Path.of(filename))).isFalse();
+    }
 }

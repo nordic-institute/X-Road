@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.util.BackupUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.WarningDeviation;
@@ -117,7 +119,7 @@ public class BackupServiceImpl implements BackupService {
 
         OffsetDateTime createdAt = backupRepository.writeBackupFile(filename, fileBytes);
 
-        return new BackupFile(filename, createdAt);
+        return new BackupFile(filename, createdAt, BackupUtils.isBackupCompatible(filename));
     }
 
     /**

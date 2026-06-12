@@ -136,6 +136,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
         builder.setName(item.name());
         builder.setCreatedAt(toTimestamp(item.createdAt()));
+        builder.setBackupCompatible(item.backupCompatible());
 
         return builder.build();
     }

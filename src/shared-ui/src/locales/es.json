@@ -138,6 +138,9 @@
         "title": "El archivo o fichero ya existe"
       },
       "success": "Copia de seguridad {archivo} cargada correctamente"
+    },
+    "compatibility": {
+      "notCompatibleHint": "La versión del backup no es compatible con la versión actual del servidor"
     }
   },
   "cert": {

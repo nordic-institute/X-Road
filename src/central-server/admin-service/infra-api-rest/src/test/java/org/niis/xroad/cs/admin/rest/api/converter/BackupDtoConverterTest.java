@@ -37,7 +37,7 @@ class BackupDtoConverterTest {
 
     @Test
     void shouldSuccessfullyMapToDto() {
-        var backupFile = new BackupFile("test.tar", TimeUtils.offsetDateTimeNow());
+        var backupFile = new BackupFile("test.tar", TimeUtils.offsetDateTimeNow(), false);
 
         var result = backupDtoConverter.toTarget(backupFile);
 

@@ -27,7 +27,7 @@
 
 package org.niis.xroad.auxiliaryservice.core.backup;
 
-import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.common.util.BackupUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
@@ -47,7 +47,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
@@ -65,8 +64,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.GPG_KEY_GENERATION_
 @RequiredArgsConstructor
 @Slf4j
 public class FileSystemBackupHandler {
-    private static final String BACKUP_FILENAME_DATE_TIME_FORMAT = "yyyyMMdd-HHmmss";
-
     private static final String AUTOMATIC_BACKUP_FILE_PREFIX = "ss-automatic-backup";
     private static final String AUTOMATIC_BACKUP_FILE_SUFFIX = ".gpg";
 
@@ -95,7 +92,6 @@ public class FileSystemBackupHandler {
         }
 
         return getBackupItem(name)
-                .map(backupItem -> new BackupItem(backupItem.name(), backupItem.createdAt()))
                 .orElseThrow(() -> XrdRuntimeException.systemException(BACKUP_GENERATION_FAILED).build());
     }
 
@@ -250,8 +246,7 @@ public class FileSystemBackupHandler {
     }
 
     private String generateBackupFileName() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
-        return "conf_backup_" + TimeUtils.localDateTimeNow().format(dtf) + ".gpg";
+        return BackupUtils.generateBackupFileName();
     }
 
     private String[] encryptionParams() {

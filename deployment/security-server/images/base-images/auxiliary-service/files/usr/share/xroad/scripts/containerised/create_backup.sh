@@ -1,6 +1,6 @@
 #!/bin/bash
 
-XROAD_VERSION_LABEL="XROAD_8.0"
+source /usr/share/xroad/scripts/containerised/backup_common.sh
 
 SERVERCONF_DATABASE_DUMP_FILENAME="/var/lib/xroad/serverconf_dbdump.dat"
 SERVERCONF_DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/containerised/backup_serverconf_db.sh"
@@ -47,12 +47,6 @@ create_openbao_db_backup () {
       die "Failed to execute OpenBao database backup script at ${OPENBAO_DATABASE_BACKUP_SCRIPT}"
     fi
   fi
-}
-
-# XXX The tarball label is simply an underscore-separated list of the input
-# parameters.
-make_tarball_label () {
-  TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
 }
 
 create_backup_tarball () {

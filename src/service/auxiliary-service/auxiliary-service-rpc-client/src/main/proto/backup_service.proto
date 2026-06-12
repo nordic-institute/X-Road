@@ -53,6 +53,7 @@ message ListBackupsResp {
 message BackupItem {
   string name = 1;
   google.protobuf.Timestamp created_at = 2;
+  bool backup_compatible = 3;
 }
 
 message DeleteBackupReq {
