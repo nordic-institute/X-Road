@@ -174,6 +174,7 @@ services:
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=ds_identity_hub_admin_secret
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
       - EDC_ENCRYPTION_STRICT=false # implicitly enabled - requires extra overhead of having AES key present in OpenBao
       - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
       - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12

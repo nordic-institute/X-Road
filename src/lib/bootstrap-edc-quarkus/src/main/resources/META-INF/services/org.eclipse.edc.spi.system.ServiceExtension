@@ -1,1 +1,2 @@
 org.niis.xroad.edc.extension.bridge.XRoadTlsOkHttpClientExtension
+org.niis.xroad.edc.extension.bridge.XRoadJettyRequestHeaderSizeExtension

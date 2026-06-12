@@ -155,6 +155,8 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
+      # X-Road membership-claim signing reaches the co-located SS signer over gRPC
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
       # admin permissions required to create schema on startup
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=postgres

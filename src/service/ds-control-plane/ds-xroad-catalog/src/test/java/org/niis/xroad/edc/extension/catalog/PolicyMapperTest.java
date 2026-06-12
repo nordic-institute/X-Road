@@ -67,8 +67,7 @@ class PolicyMapperTest {
     void clientIdSubjectProducesCorrectConstraintVocabulary() {
         var result = mapper.toPolicyDefinition(POLICY_ID, CLIENT_SUBJECT, List.of(), PARTICIPANT_CTX);
 
-        var rootAnd = extractRootAndConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
-        var clientConstraint = extractAtomicConstraint(rootAnd.getConstraints().getFirst());
+        var clientConstraint = extractRootClientConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
 
         assertThat(leftExpressionValue(clientConstraint)).isEqualTo(PolicyMapper.XROAD_CLIENT_ID_CONSTRAINT);
         assertThat(clientConstraint.getOperator()).isEqualTo(Operator.EQ);
@@ -80,8 +79,7 @@ class PolicyMapperTest {
         var policyId = ASSET_ID + ":" + GLOBAL_GROUP_SUBJECT.asEncodedId();
         var result = mapper.toPolicyDefinition(policyId, GLOBAL_GROUP_SUBJECT, List.of(), PARTICIPANT_CTX);
 
-        var rootAnd = extractRootAndConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
-        var clientConstraint = extractAtomicConstraint(rootAnd.getConstraints().getFirst());
+        var clientConstraint = extractRootClientConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
 
         assertThat(leftExpressionValue(clientConstraint)).isEqualTo(PolicyMapper.XROAD_GLOBALGROUP_CONSTRAINT);
         assertThat(rightExpressionValue(clientConstraint)).isEqualTo(GLOBAL_GROUP_SUBJECT.asEncodedId());
@@ -92,8 +90,7 @@ class PolicyMapperTest {
         var policyId = ASSET_ID + ":" + LOCAL_GROUP_SUBJECT.asEncodedId();
         var result = mapper.toPolicyDefinition(policyId, LOCAL_GROUP_SUBJECT, List.of(), PARTICIPANT_CTX);
 
-        var rootAnd = extractRootAndConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
-        var clientConstraint = extractAtomicConstraint(rootAnd.getConstraints().getFirst());
+        var clientConstraint = extractRootClientConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
 
         assertThat(leftExpressionValue(clientConstraint)).isEqualTo(PolicyMapper.XROAD_LOCALGROUP_CONSTRAINT);
         assertThat(rightExpressionValue(clientConstraint)).isEqualTo(LOCAL_GROUP_SUBJECT.asEncodedId());
@@ -122,7 +119,7 @@ class PolicyMapperTest {
     }
 
     @Test
-    void singleEndpointProducesOrConstraintWithSingleChild() {
+    void singleEndpointProducesDatapathConstraintWithoutOrWrapper() {
         var ep = new Endpoint("helloService", "GET", "/api/hello", false);
 
         var result = mapper.toPolicyDefinition(POLICY_ID, CLIENT_SUBJECT, List.of(ep), PARTICIPANT_CTX);
@@ -130,11 +127,8 @@ class PolicyMapperTest {
         var rootAnd = extractRootAndConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
         assertThat(rootAnd.getConstraints()).hasSize(2);
 
-        // Single endpoint still wrapped in OrConstraint per implementation
-        var orConstraint = (OrConstraint) rootAnd.getConstraints().get(1);
-        assertThat(orConstraint.getConstraints()).hasSize(1);
-
-        var pathConstraint = extractAtomicConstraint(orConstraint.getConstraints().getFirst());
+        var pathConstraint = extractAtomicConstraint(rootAnd.getConstraints().get(1));
+        assertThat(leftExpressionValue(pathConstraint)).isEqualTo(PolicyMapper.XROAD_DATAPATH_CONSTRAINT);
         assertThat(rightExpressionValue(pathConstraint)).isEqualTo("GET /api/hello");
     }
 
@@ -144,10 +138,7 @@ class PolicyMapperTest {
 
         var result = mapper.toPolicyDefinition(POLICY_ID, CLIENT_SUBJECT, List.of(baseEp), PARTICIPANT_CTX);
 
-        var rootAnd = extractRootAndConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
-        // Only client constraint, no OrConstraint for paths
-        assertThat(rootAnd.getConstraints()).hasSize(1);
-        var clientConstraint = extractAtomicConstraint(rootAnd.getConstraints().getFirst());
+        var clientConstraint = extractRootClientConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
         assertThat(leftExpressionValue(clientConstraint)).isEqualTo(PolicyMapper.XROAD_CLIENT_ID_CONSTRAINT);
     }
 
@@ -155,9 +146,7 @@ class PolicyMapperTest {
     void emptyEndpointListProducesClientConstraintOnly() {
         var result = mapper.toPolicyDefinition(POLICY_ID, CLIENT_SUBJECT, List.of(), PARTICIPANT_CTX);
 
-        var rootAnd = extractRootAndConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
-        assertThat(rootAnd.getConstraints()).hasSize(1);
-        var clientConstraint = extractAtomicConstraint(rootAnd.getConstraints().getFirst());
+        var clientConstraint = extractRootClientConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
         assertThat(leftExpressionValue(clientConstraint)).isEqualTo(PolicyMapper.XROAD_CLIENT_ID_CONSTRAINT);
     }
 
@@ -217,6 +206,11 @@ class PolicyMapperTest {
         assertThat(constraints).hasSize(1);
         assertThat(constraints.getFirst()).isInstanceOf(AndConstraint.class);
         return (AndConstraint) constraints.getFirst();
+    }
+
+    private static AtomicConstraint extractRootClientConstraint(List<Constraint> constraints) {
+        assertThat(constraints).hasSize(1);
+        return extractAtomicConstraint(constraints.getFirst());
     }
 
     private static AtomicConstraint extractAtomicConstraint(Constraint constraint) {

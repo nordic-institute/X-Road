@@ -163,10 +163,12 @@ include("service:ds-control-plane:ds-xroad-asset-access-api")
 include("service:ds-control-plane:ds-xroad-asset-access-protocol")
 include("service:ds-identity-hub")
 include("service:ds-identity-hub:ds-identity-hub-application")
-include("service:ds-identity-hub:ds-identity-hub-db")
+include("service:ds-identity-hub:ds-identity-hub-claim")
 include("service:ds-identity-hub:ds-identity-hub-customization")
+include("service:ds-identity-hub:ds-identity-hub-db")
 include("service:ds-issuer-service")
 include("service:ds-issuer-service:ds-issuer-service-application")
+include("service:ds-issuer-service:ds-issuer-service-customization")
 
 // Tool projects
 include("tool")

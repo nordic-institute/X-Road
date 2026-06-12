@@ -30,62 +30,24 @@ package org.niis.xroad.ss.test.ds.glue;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.addons.glue.BaseStepDefs;
 import org.niis.xroad.ss.test.ds.api.FeignControlPlaneManagementApi;
-import org.niis.xroad.ss.test.ds.api.FeignControlPlaneSecretsApi;
 import org.niis.xroad.test.framework.core.asserts.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.niis.xroad.ss.test.ui.container.Port.DS_IDENTITY_HUB_STS;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ControlPlaneStepDefs extends BaseStepDefs {
 
+    private static final String SERVERCONF_ASSET_ID_PREFIX = "DEV:COM:1234:TestService:";
+
     @Autowired
     private FeignControlPlaneManagementApi controlPlaneManagementApi;
-
-    @Autowired
-    private FeignControlPlaneSecretsApi feignControlPlaneSecretsApi;
-
-    @Step("Secret is created with key {string} and value {string}")
-    public void participantSecretIsCreated(String key, String value) {
-        String request = """
-                {
-                  "@context" : {
-                    "edc" : "https://w3id.org/edc/v0.0.1/ns/"
-                  },
-                  "@type" : "https://w3id.org/edc/v0.0.1/ns/Secret",
-                  "@id" : "%s",
-                  "https://w3id.org/edc/v0.0.1/ns/value": "%s"
-                }
-                """.formatted(key, value);
-        var response = feignControlPlaneSecretsApi.createSecret(AuthTokens.PROVISIONER, request);
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .execute();
-    }
-
-    @Step("Participant context {string} with DID {string} is created")
-    public void participantContextIsCreated(String participantContext, String did) {
-        String request = """
-                {
-                    "@context": [
-                        "https://w3id.org/edc/connector/management/v2"
-                    ],
-                    "@type": "ParticipantContext",
-                    "identity": "%s",
-                    "@id": "%s"
-                }
-                """.formatted(did, participantContext);
-        var response = controlPlaneManagementApi.createParticipantContext(AuthTokens.PROVISIONER, request);
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .execute();
-    }
 
     @Step("Participant context {string} can be retrieved")
     public void participantContextCanBeRetrieved(String participantContextId) {
@@ -93,114 +55,6 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(Assertions.equalsAssertion(participantContextId, "body['@id']"))
-                .execute();
-    }
-
-    @Step("Participant context {string} config with DID {string} is created")
-    public void participantContextConfigIsCreated(String participantContextId, String did) {
-        String request = """
-                {
-                     "@context": [
-                         "https://w3id.org/edc/connector/management/v2"
-                     ],
-                     "@type": "ParticipantContextConfig",
-                     "entries": {
-                         "edc.participant.id": "%s",
-                         "edc.participant.did": "%s",
-                         "edc.iam.sts.oauth.token.url": "http://ds-identity-hub:%s/api/sts/token",
-                         "edc.iam.sts.oauth.client.id": "%s",
-                         "edc.iam.sts.oauth.client.secret.alias": "%s-sts-client-secret"
-                     },
-                     "privateEntries": {}
-                 }
-                """.formatted(did, did, DS_IDENTITY_HUB_STS, did, participantContextId);
-        var response = controlPlaneManagementApi.createParticipantContextConfig(AuthTokens.PROVISIONER, participantContextId, request);
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
-                .execute();
-    }
-
-    @Step("Asset is created in participant context {string}")
-    public void assetIsCreatedInParticipantContext(String participantContextId) {
-        String request = """
-                {
-                    "@context": [
-                        "https://w3id.org/edc/connector/management/v2"
-                    ],
-                    "@id": "assetId-1",
-                    "@type": "Asset",
-                    "properties": {
-                        "name": "sample rest service description",
-                        "contenttype": "application/json"
-                    },
-                    "dataAddress": {
-                        "@type": "DataAddress",
-                        "type": "HttpData",
-                        "name": "Test asset",
-                        "baseUrl": "https://jsonplaceholder.typicode.com/users",
-                        "proxyPath": "true"
-                    }
-                }
-                """;
-
-        var response = controlPlaneManagementApi.createAsset(AuthTokens.PARTICIPANT, participantContextId, request);
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .execute();
-    }
-
-    @Step("Policy definition is created in participant context {string}")
-    public void policyDefinitionIsCreatedInParticipantContext(String participantContextId) {
-        String request = """
-                {
-                    "@context": [
-                        "https://w3id.org/edc/connector/management/v2"
-                    ],
-                    "@id": "policy-allow-all",
-                    "@type": "PolicyDefinition",
-                    "policy": {
-                        "@context": "http://www.w3.org/ns/odrl.jsonld",
-                        "@type": "Set",
-                        "permission": [
-                            {
-                                "action": "use"
-                            }
-                        ]
-                    }
-                }
-                """;
-
-        var response = controlPlaneManagementApi.createPolicyDefinition(AuthTokens.PARTICIPANT, participantContextId, request);
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .execute();
-    }
-
-    @Step("Contract definition is created in participant context {string}")
-    public void contractDefinitionIsCreatedInParticipantContext(String participantContextId) {
-        String request = """
-                {
-                    "@context": [
-                        "https://w3id.org/edc/connector/management/v2"
-                    ],
-                    "@id": "contract-def-1",
-                    "@type": "ContractDefinition",
-                    "accessPolicyId": "policy-allow-all",
-                    "contractPolicyId": "policy-allow-all",
-                    "assetsSelector": [
-                        {
-                            "@type": "Criterion",
-                            "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
-                            "operator": "=",
-                            "operandRight": "assetId-1"
-                        }
-                    ]
-                }
-                """;
-
-        var response = controlPlaneManagementApi.createContractDefinition(AuthTokens.PARTICIPANT, participantContextId, request);
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
                 .execute();
     }
 
@@ -213,7 +67,7 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "http://localhost:8183/api/dsp/%s/2025-1",
+                    "counterPartyAddress": "https://ds-control-plane:8183/api/dsp/%s/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
                 """.formatted(participantDid, participantContextId);
@@ -222,7 +76,35 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .execute();
-        assertEquals("assetId-1", ((LinkedHashMap) ((ArrayList) response.getBody().get("dataset")).getFirst()).get("id"));
+
+        var datasets = extractDatasets(response.getBody());
+        assertFalse(datasets.isEmpty(), "Catalog must contain at least one dataset");
+        assertTrue(datasets.stream().anyMatch(this::isServerconfService),
+                "Catalog must contain at least one serverconf-derived service with id prefix " + SERVERCONF_ASSET_ID_PREFIX);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> extractDatasets(Map<String, Object> catalogBody) {
+        assertNotNull(catalogBody, "Catalog response body must not be null");
+        Object datasetObj = catalogBody.get("dataset");
+        if (datasetObj == null) {
+            datasetObj = catalogBody.get("dcat:dataset");
+        }
+        if (datasetObj == null) {
+            return List.of();
+        }
+        if (datasetObj instanceof List<?> list) {
+            return list.stream().map(o -> (Map<String, Object>) o).toList();
+        }
+        return List.of((Map<String, Object>) datasetObj);
+    }
+
+    private boolean isServerconfService(Map<String, Object> dataset) {
+        var id = dataset.get("@id");
+        if (id == null) {
+            id = dataset.get("id");
+        }
+        return id != null && id.toString().startsWith(SERVERCONF_ASSET_ID_PREFIX);
     }
 
     static class AuthTokens {
@@ -242,13 +124,12 @@ public class ControlPlaneStepDefs extends BaseStepDefs {
                 + "dGJawEYhtqSUps2q0yT-LWYm7JBGTKX0BBD4N7joWIM_c1W8QfwRSVW_JurrknVqEuyyNDFkAykJv0pEpA6l2U6SDdFWUbuS7IcnHpnM2ZcRKSxceH"
                 + "EaQGAQQbi1g";
 
-        static final String PARTICIPANT = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1Y"
-                + "Tc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTU"
-                + "wZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOiJ0ZXN0LXBhc"
-                + "nQtY3R4Iiwic2NvcGUiOiJtYW5hZ2VtZW50LWFwaTp3cml0ZSBtYW5hZ2VtZW50LWFwaTpyZWFkIn0.i7YQln4cjB2xXT5X5Nl48wys-me-HAP"
-                + "jfdiVEyRAB-thKDTqODHksijPQFVMQnb5FppbUHdYiO_G2JYBwFYk36fWhpBveRKRMBaurKZZS5tXAV7bsGr9z1jcEUM45tF__kZLCV9VZ0IRp"
-                + "ni4B4_AP7vc0YUqLyJ7WZXQfP-N2bBYPf8loi3No_AFEFI7mcknuxOp_oZnD6jRmwjeCdih_Nu-9rNsCpa3BM6L_EozzK3Y61X7D7cWXU7xCtG"
-                + "YDcYoRka8AtBTlihXPah3lbTRKwGP1IBDZzfKqSOZDDZK2g8Em3GjuOp6_sOsVL0UwAqlZZiMfyGnPaIkACtszimIjw";
+        static final String PARTICIPANT = "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODh"
+                + "lN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3Z"
+                + "DM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOiJzczA"
+                + "iLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOndyaXRlIG1hbmFnZW1lbnQtYXBpOnJlYWQifQ.A46bvId4X3RF7UFCrrhKqcaAMiSjije0Qab1ao"
+                + "RtEMW_OikA4MVlBnEEj8n_FwS1i0RXor08C2IAf8yEM036X86QMcOv1I8eUsOg_yBVbHfd6nw3HDtI1fJvyuIDJ2FbDAQsDj6UxXoUTe1KjXml"
+                + "ry0184cnRTDDg3OGwFpMWOMedeMdWeHb7NQ9tqUm47WmPecNnB4JeRNkUPiVSay6XpSKtok9yizv-BDVDPh8mxt91CxWt6Eh1Rz4FNNNWKHlH2"
+                + "oejyQsMz76bxf_7P3X5gSE8Q5q1KIM8ZrhzfNig4ZMhrBwxYYNexBvviVoKYb1NJhJHrepBwCMw9hlefVMPQ";
     }
 }
-

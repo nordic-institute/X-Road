@@ -54,7 +54,7 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                     "serviceEndpoints": [
                         {
                             "type": "IssuerService",
-                            "serviceEndpoint": "http://ds-issuer-service:%s/api/issuance/v1alpha/participants/%s",
+                            "serviceEndpoint": "https://ds-issuer-service:6185/api/issuance/v1alpha/participants/%s",
                             "id": "%s-issuer-service"
                         }
                     ],
@@ -70,34 +70,11 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                     }
                 }
                 """.formatted(
-                participantId, did, participantId, did, did, privateKeyAlias);
+                participantId, participantId, participantId, did, did, privateKeyAlias);
 
         var response = issuerServiceIdentityApi.createParticipant(AuthTokens.PROVISIONER, request);
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .execute();
-    }
-
-    @Step("Holder {string} with DID {string} and member identifier {string} is created in issuer service participant {string}")
-    public void holderIsCreated(String holderId, String holderDid, String memberIdentifier, String participantId) {
-        String request = """
-                {
-                    "did": "%s",
-                    "holderId": "%s",
-                    "name": "Test Holder",
-                    "properties": {
-                        "membershipType": "X-Road",
-                        "xrdMemberIdentifier": "%s"
-                    }
-                }
-                """.formatted(holderDid, holderId, memberIdentifier);
-
-        var response = issuerServiceAdminApi.createHolder(
-                AuthTokens.PARTICIPANT,
-                participantId,
-                request);
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(CREATED))
                 .execute();
     }
 
@@ -145,7 +122,7 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                     ],
                     "rules": [],
                     "format": "%s",
-                    "validity": "604800"
+                    "validity": "2592000"
                 }
                 """.formatted(attestationId, credType, credDefId, credType, format);
 
