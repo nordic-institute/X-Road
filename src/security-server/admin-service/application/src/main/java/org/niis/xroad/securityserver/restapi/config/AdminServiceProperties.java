@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -71,6 +73,9 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         UserAuthenticationConfig {
 
     private final XRoadConfig config;
+
+    @Getter
+    private Dataspace dataspace = new Dataspace();
 
     public AdminServiceProperties(XRoadConfig config) {
         this.config = config;
@@ -351,13 +356,13 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private static List<String> optionalList(String[] values) {
         return values == null ? null : Arrays.stream(values).filter(value -> !value.isBlank()).toList();
     }
-    private Dataspace dataspace = new Dataspace();
 
     /**
      * Data space (EDC) membership credential provisioning configuration.
      */
     @Getter
     @Setter
+    @SuppressWarnings("checkstyle:MagicNumber")
     public static class Dataspace {
         private String identityHubUrl;
         private String participantId;
@@ -365,7 +370,5 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         private String credentialDefinitionId = "xroad-membership-credential-definition";
         private int maxHolderPidSlots = 20;
     }
-
-}
 
 }
