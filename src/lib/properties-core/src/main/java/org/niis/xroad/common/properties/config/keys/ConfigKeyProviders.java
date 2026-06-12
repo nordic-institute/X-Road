@@ -48,6 +48,7 @@ public final class ConfigKeyProviders {
                 CommonRpcConfigKeys.instance(),
                 ProxyConfigKeys.instance(),
                 ConfClientConfigKeys.instance(),
+                ConfProxyConfigKeys.instance(),
                 OpMonitorConfigKeys.instance(),
                 AuxiliaryServiceConfigKeys.instance(),
                 AdminServiceConfigKeys.instance());

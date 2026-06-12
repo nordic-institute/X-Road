@@ -26,15 +26,7 @@ quarkus:
 
 xroad:
   config:
-    # only the shared common defaults are published into this app's config tree;
-    # confproxy maps xroad.configuration-client.* itself via @ConfigMapping defaults
-    defaults-scopes: xroad.common
-  configuration-proxy:
-    tls:
-      certificate-provisioning:
-        common-name: ${XROAD_HOST:localhost}
-        ip-subject-alt-names:
-          - 127.0.0.1
+    defaults-scopes: xroad.common,xroad.configuration-proxy
   db:
     confproxy:
       hibernate:

@@ -20,9 +20,7 @@ quarkus:
 
 xroad:
   config:
-    # only the shared common defaults are published into this app's config tree;
-    # confproxy maps xroad.configuration-client.* itself via @ConfigMapping defaults
-    defaults-scopes: xroad.common
+    defaults-scopes: xroad.common,xroad.configuration-proxy
   db:
     confproxy:
       hibernate:

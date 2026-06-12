@@ -27,91 +27,123 @@
 
 package org.niis.xroad.confproxy.common.config;
 
-import ee.ria.xroad.common.DefaultFilepaths;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.ConfProxyInstanceConfig;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-@ConfigMapping(prefix = "xroad.configuration-proxy")
-public interface ConfigurationProxyProperties {
-    String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
-    String DEFAULT_MINIMUM_GLOBAL_CONFIGURATION_VERSION = "2";
-    String DEFAULT_CONFIGURATION_PATH = "/etc/xroad/confproxy";
-    String DEFAULT_GLOBAL_CONF_DOWNLOAD_PATH = "/etc/xroad/globalconf";
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.AUTO_INIT_SOFT_TOKEN;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.CONFIGURATION_PATH;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.GENERATED_CONF_PATH;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.GLOBAL_CONF_DOWNLOAD_PATH;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.HASH_ALGORITHM_URI;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.INSTANCES;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.MINIMUM_GLOBAL_CONFIGURATION_VERSION;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.SIGNATURE_DIGEST_ALGORITHM_ID;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.UPDATE_INTERVAL;
 
-    @WithName("minimum-global-configuration-version")
-    @WithDefault(DEFAULT_MINIMUM_GLOBAL_CONFIGURATION_VERSION)
-    int minimumGlobalConfigurationVersion();
+/**
+ * {@link XRoadConfig}-backed configuration properties for the configuration proxy service.
+ */
+@RequiredArgsConstructor
+public class ConfigurationProxyProperties {
 
-    @WithName("address")
-    @WithDefault(DEFAULT_CONNECTOR_HOST)
-    String address();
+    public static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
 
-    @WithName("hash-algorithm-uri")
-    Optional<String> hashAlgorithmUri();
+    private final XRoadConfig config;
 
-    @WithName("signature-digest-algorithm-id")
-    Optional<String> signatureDigestAlgorithmId();
+    public int minimumGlobalConfigurationVersion() {
+        return config.value(MINIMUM_GLOBAL_CONFIGURATION_VERSION);
+    }
 
-    @WithName("generated-conf-path")
-    @WithDefault(DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH)
-    String generatedConfPath();
+    public String address() {
+        return config.value(ADDRESS);
+    }
 
-    @WithName("configuration-path")
-    @WithDefault(DEFAULT_CONFIGURATION_PATH)
-    String configurationPath();
+    public Optional<String> hashAlgorithmUri() {
+        var raw = config.value(HASH_ALGORITHM_URI);
+        return (raw == null || raw.isBlank()) ? Optional.empty() : Optional.of(raw);
+    }
 
-    @WithName("update-interval")
-    @WithDefault("60s")
-    String updateInterval();
+    public Optional<String> signatureDigestAlgorithmId() {
+        var raw = config.value(SIGNATURE_DIGEST_ALGORITHM_ID);
+        return (raw == null || raw.isBlank()) ? Optional.empty() : Optional.of(raw);
+    }
 
-    @WithName("instances")
-    Map<String, Instance> instances();
+    public String generatedConfPath() {
+        return config.value(GENERATED_CONF_PATH);
+    }
 
-    @WithName("global-conf-download-path")
-    @WithDefault(DEFAULT_GLOBAL_CONF_DOWNLOAD_PATH)
-    String globalConfDownloadPath();
+    public String configurationPath() {
+        return config.value(CONFIGURATION_PATH);
+    }
 
-    @WithName("auto-init-soft-token")
-    Optional<String> autoInitSoftToken();
+    public String updateInterval() {
+        return config.value(UPDATE_INTERVAL);
+    }
 
-    default DigestAlgorithm getSignatureDigestAlgorithmId() {
+    public Map<String, Instance> instances() {
+        return config.value(INSTANCES).entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> new Instance(e.getValue())));
+    }
+
+    public String globalConfDownloadPath() {
+        return config.value(GLOBAL_CONF_DOWNLOAD_PATH);
+    }
+
+    public Optional<String> autoInitSoftToken() {
+        var raw = config.value(AUTO_INIT_SOFT_TOKEN);
+        return (raw == null || raw.isBlank()) ? Optional.empty() : Optional.of(raw);
+    }
+
+    public DigestAlgorithm getSignatureDigestAlgorithmId() {
         return signatureDigestAlgorithmId()
                 .filter(StringUtils::isNotEmpty)
                 .map(DigestAlgorithm::ofUri)
                 .orElse(DigestAlgorithm.SHA512);
     }
 
-    default DigestAlgorithm getHashAlgorithmUri() {
+    public DigestAlgorithm getHashAlgorithmUri() {
         return hashAlgorithmUri()
                 .filter(StringUtils::isNotEmpty)
                 .map(DigestAlgorithm::ofUri)
                 .orElse(DigestAlgorithm.SHA512);
     }
 
-    interface Instance {
-        @WithName("token-id")
-        Optional<String> tokenId();
+    /**
+     * View of a single configuration-proxy instance entry.
+     */
+    @RequiredArgsConstructor
+    public static class Instance {
 
-        @WithName("signing-key-id")
-        Optional<String> signingKeyId();
+        private final ConfProxyInstanceConfig delegate;
 
-        @WithName("key-algorithm")
-        @WithDefault("RSA")
-        KeyAlgorithm keyAlgorithm();
+        public Optional<String> tokenId() {
+            return delegate.tokenId();
+        }
 
-        @WithName("source-anchor-file-uri")
-        String sourceAnchorFileUri();
+        public Optional<String> signingKeyId() {
+            return delegate.signingKeyId();
+        }
 
-        @WithName("validity-interval")
-        @WithDefault("600")
-        int validityInterval();
+        public KeyAlgorithm keyAlgorithm() {
+            return KeyAlgorithm.valueOf(delegate.keyAlgorithm());
+        }
+
+        public String sourceAnchorFileUri() {
+            return delegate.sourceAnchorFileUri();
+        }
+
+        public int validityInterval() {
+            return delegate.validityInterval();
+        }
     }
 }

@@ -6,6 +6,7 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
+  implementation(project(":lib:properties-core"))
   implementation(project(":service:configuration-client:configuration-client-common"))
 
   implementation(project(":common:common-core"))

@@ -5,6 +5,9 @@ plugins {
 }
 
 dependencies {
+  implementation(platform(libs.jackson.bom))
+  implementation("tools.jackson.core:jackson-databind")
+
   implementation(libs.slf4j.api)
   implementation(libs.smallrye.config.core)
   implementation(libs.hikariCP)

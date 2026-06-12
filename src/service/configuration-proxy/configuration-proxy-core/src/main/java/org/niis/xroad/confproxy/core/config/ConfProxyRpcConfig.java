@@ -28,12 +28,18 @@ import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
+import org.niis.xroad.confproxy.common.config.ConfigurationProxyProperties;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
@@ -44,7 +50,10 @@ class ConfProxyRpcConfig {
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
                 .register(CommonRpcConfigKeys.instance())
+                .register(ConfClientConfigKeys.instance())
+                .register(ConfProxyConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
@@ -58,6 +67,21 @@ class ConfProxyRpcConfig {
     @ApplicationScoped
     RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
         return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    CommonProperties commonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadConfigCommonProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfigurationProxyProperties configurationProxyProperties(XRoadConfig xRoadConfig) {
+        return new ConfigurationProxyProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfProxyTlsProperties confProxyTlsProperties(XRoadConfig xRoadConfig) {
+        return new ConfProxyTlsProperties(xRoadConfig);
     }
 
     @ApplicationScoped
