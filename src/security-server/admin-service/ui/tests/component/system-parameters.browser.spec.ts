@@ -306,7 +306,7 @@ describe('System Parameters — property edited shows restart warning (Browser M
     await page.getByRole('button', { name: /save/i }).click();
 
     // Dialog closes and restart warning appears.
-    expect(page.getByTestId('configurable-property-value-field').query()).toBeNull();
+    await expect.element(page.getByTestId('configurable-property-value-field')).not.toBeInTheDocument();
     await expect.element(page.getByTestId('configurable-properties-restart-warning')).toBeVisible();
   });
 });
