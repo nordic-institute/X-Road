@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
@@ -43,6 +45,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
@@ -59,6 +62,7 @@ import org.niis.xroad.monitor.rpc.XRoadEnvMonitorRpcChannelProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
+import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
 import org.niis.xroad.proxy.core.signature.SimpleSigner;
@@ -97,6 +101,7 @@ class ProxyConfig {
                 .register(CommonRpcConfigKeys.instance())
                 .register(ProxyConfigKeys.instance())
                 .register(MessageLogEncryptionConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
@@ -140,6 +145,31 @@ class ProxyConfig {
     @ApplicationScoped
     CommonProperties commonProperties(XRoadConfig xRoadConfig) {
         return new XRoadConfigCommonProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    AntiDosConfiguration antiDosConfiguration(XRoadConfig xRoadConfig) {
+        return new AntiDosConfiguration(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyRpcServerProperties proxyRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new ProxyRpcServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyHealthCheckProperties proxyHealthCheckProperties(XRoadConfig xRoadConfig) {
+        return new ProxyHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyMessageLogProperties proxyMessageLogProperties(XRoadConfig xRoadConfig) {
+        return new ProxyMessageLogProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
     }
 
     @ApplicationScoped

@@ -24,34 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.auxiliaryservice.core.config;
+package org.niis.xroad.common.healthcheck;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_PORT;
+import java.util.Optional;
 
-/** Auxiliary-service RPC server properties ({@code xroad.auxiliary-service.rpc.*}). */
+import static org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys.MEMORY_THRESHOLD_PERCENT;
+
+/** XRoadConfig-backed implementation of {@link HealthCheckProperties}. */
 @RequiredArgsConstructor
-public class AuxiliaryServiceRpcServerProperties implements RpcServerProperties {
+public class XRoadHealthCheckProperties implements HealthCheckProperties {
 
     private final XRoadConfig xRoadConfig;
 
     @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+    public Memory memory() {
+        return new XRoadMemory(xRoadConfig);
     }
 
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
+    private record XRoadMemory(XRoadConfig xRoadConfig) implements Memory {
+        @Override
+        public Optional<Integer> thresholdPercent() {
+            return Optional.ofNullable(xRoadConfig.value(MEMORY_THRESHOLD_PERCENT));
+        }
     }
 }

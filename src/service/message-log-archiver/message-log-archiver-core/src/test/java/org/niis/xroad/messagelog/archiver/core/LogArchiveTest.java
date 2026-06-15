@@ -42,7 +42,6 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
-import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
@@ -53,6 +52,7 @@ import org.niis.xroad.messagelog.archive.DisabledEncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
 import java.io.IOException;
@@ -208,11 +208,15 @@ class LogArchiveTest {
     }
 
     private MessageLogArchiverProperties createArchiverProperties(long maxFilesize) {
-        return ConfigUtils.initConfiguration(MessageLogArchiverProperties.class,
-                Map.of("xroad.message-log-archiver.clean-transaction-batch-size", "100",
+        var xRoadConfig = XRoadConfigBuilder.create()
+                .register(MessageLogArchiverConfigKeys.instance())
+                .overrides(Map.of(
+                        "xroad.message-log-archiver.clean-transaction-batch-size", "100",
                         "xroad.message-log-archiver.transaction-batch-size", "100",
                         "xroad.message-log-archiver.archive-path", "build/slog",
-                        "xroad.message-log-archiver.max-filesize", String.valueOf(maxFilesize)));
+                        "xroad.message-log-archiver.max-filesize", String.valueOf(maxFilesize)))
+                .build();
+        return new MessageLogArchiverProperties(xRoadConfig);
     }
 
     private MessageLogEncryptionProperties.ArchiveEncryptionConfig createEncryptionProperties(GroupingStrategy groupingStrategy) {

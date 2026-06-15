@@ -29,6 +29,7 @@ import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 
 import java.io.File;
 

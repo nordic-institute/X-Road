@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Scope;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
@@ -59,6 +61,15 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     private static final Scope ADDON_OP_MONITOR_CONNECTION = ADDON_OP_MONITOR.child("connection");
     private static final Scope TLS = PROXY.child("tls");
     private static final Scope TLS_CERT_PROVISIONING = TLS.child("certificate-provisioning");
+    private static final Scope ANTI_DOS = Scope.of("xroad.anti-dos");
+    private static final Scope HEALTH_CHECK = PROXY.child("health-check");
+    private static final Scope HEALTH_CHECK_AUTH_KEY = HEALTH_CHECK.child("auth-key");
+    private static final Scope HEALTH_CHECK_HSM = HEALTH_CHECK.child("hsm");
+    private static final Scope MESSAGE_LOG = PROXY.child("message-log");
+    private static final Scope MESSAGE_LOG_TIMESTAMPER = MESSAGE_LOG.child("timestamper");
+    private static final Scope RPC = PROXY.child("rpc");
+    private static final Scope DSP = PROXY.child("dsp");
+    private static final Scope DSP_CACHE = DSP.child("cache");
 
     private static final ProxyConfigKeys INSTANCE = new ProxyConfigKeys();
 
@@ -490,6 +501,284 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .withDefaultValue("xrd-pki")
             .build();
 
+    // --- xroad.anti-dos ---------------------------------------------------------
+
+    /** {@code xroad.anti-dos.max-parallel-connections}. */
+    public static final ConfigKey<Integer> ANTI_DOS_MAX_PARALLEL_CONNECTIONS = ANTI_DOS
+            .integer("max-parallel-connections")
+            .withDefaultValue(5000)
+            .build();
+
+    /** {@code xroad.anti-dos.min-free-file-handles}. */
+    public static final ConfigKey<Integer> ANTI_DOS_MIN_FREE_FILE_HANDLES = ANTI_DOS
+            .integer("min-free-file-handles")
+            .withDefaultValue(100)
+            .build();
+
+    /** {@code xroad.anti-dos.max-cpu-load}. */
+    public static final ConfigKey<Double> ANTI_DOS_MAX_CPU_LOAD = ANTI_DOS
+            .key("max-cpu-load", Double.class)
+            .withConverter(Double::parseDouble)
+            .withDefaultValue("1.1")
+            .build();
+
+    /** {@code xroad.anti-dos.max-heap-usage}. */
+    public static final ConfigKey<Double> ANTI_DOS_MAX_HEAP_USAGE = ANTI_DOS
+            .key("max-heap-usage", Double.class)
+            .withConverter(Double::parseDouble)
+            .withDefaultValue("1.1")
+            .build();
+
+    /** {@code xroad.anti-dos.enabled}. */
+    public static final ConfigKey<Boolean> ANTI_DOS_ENABLED = ANTI_DOS
+            .bool("enabled")
+            .withDefaultValue(true)
+            .build();
+
+    // --- xroad.proxy.health-check.auth-key / .hsm --------------------------------
+
+    /** {@code xroad.proxy.health-check.auth-key.success-ttl}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_AUTH_KEY_SUCCESS_TTL = HEALTH_CHECK_AUTH_KEY
+            .keyDuration("success-ttl")
+            .withDefaultValue(Duration.parse("PT2S"))
+            .build();
+
+    /** {@code xroad.proxy.health-check.auth-key.error-ttl}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_AUTH_KEY_ERROR_TTL = HEALTH_CHECK_AUTH_KEY
+            .keyDuration("error-ttl")
+            .withDefaultValue(Duration.parse("PT5S"))
+            .build();
+
+    /** {@code xroad.proxy.health-check.auth-key.max-error-ttl}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_AUTH_KEY_MAX_ERROR_TTL = HEALTH_CHECK_AUTH_KEY
+            .keyDuration("max-error-ttl")
+            .withDefaultValue(Duration.parse("PT30S"))
+            .build();
+
+    /** {@code xroad.proxy.health-check.auth-key.backoff-multiplier}. */
+    public static final ConfigKey<Integer> HEALTH_CHECK_AUTH_KEY_BACKOFF_MULTIPLIER = HEALTH_CHECK_AUTH_KEY
+            .integer("backoff-multiplier")
+            .withDefaultValue(2)
+            .build();
+
+    /** {@code xroad.proxy.health-check.auth-key.timeout}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_AUTH_KEY_TIMEOUT = HEALTH_CHECK_AUTH_KEY
+            .keyDuration("timeout")
+            .withDefaultValue(Duration.parse("PT5S"))
+            .build();
+
+    /** {@code xroad.proxy.health-check.hsm.success-ttl}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_HSM_SUCCESS_TTL = HEALTH_CHECK_HSM
+            .keyDuration("success-ttl")
+            .withDefaultValue(Duration.parse("PT2S"))
+            .build();
+
+    /** {@code xroad.proxy.health-check.hsm.error-ttl}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_HSM_ERROR_TTL = HEALTH_CHECK_HSM
+            .keyDuration("error-ttl")
+            .withDefaultValue(Duration.parse("PT5S"))
+            .build();
+
+    /** {@code xroad.proxy.health-check.hsm.max-error-ttl}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_HSM_MAX_ERROR_TTL = HEALTH_CHECK_HSM
+            .keyDuration("max-error-ttl")
+            .withDefaultValue(Duration.parse("PT30S"))
+            .build();
+
+    /** {@code xroad.proxy.health-check.hsm.backoff-multiplier}. */
+    public static final ConfigKey<Integer> HEALTH_CHECK_HSM_BACKOFF_MULTIPLIER = HEALTH_CHECK_HSM
+            .integer("backoff-multiplier")
+            .withDefaultValue(2)
+            .build();
+
+    /** {@code xroad.proxy.health-check.hsm.timeout}. */
+    public static final ConfigKey<Duration> HEALTH_CHECK_HSM_TIMEOUT = HEALTH_CHECK_HSM
+            .keyDuration("timeout")
+            .withDefaultValue(Duration.parse("PT5S"))
+            .build();
+
+    // --- xroad.proxy.message-log ------------------------------------------------
+
+    /** {@code xroad.proxy.message-log.enabled}. */
+    public static final ConfigKey<Boolean> MESSAGE_LOG_ENABLED = MESSAGE_LOG
+            .bool("enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.proxy.message-log.message-body-logging}. */
+    public static final ConfigKey<Boolean> MESSAGE_LOG_MESSAGE_BODY_LOGGING = MESSAGE_LOG
+            .bool("message-body-logging")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.proxy.message-log.max-loggable-message-body-size}. */
+    public static final ConfigKey<Long> MESSAGE_LOG_MAX_LOGGABLE_MESSAGE_BODY_SIZE = MESSAGE_LOG
+            .longValue("max-loggable-message-body-size")
+            .withDefaultValue(10485760L)
+            .build();
+
+    /** {@code xroad.proxy.message-log.truncated-body-allowed}. */
+    public static final ConfigKey<Boolean> MESSAGE_LOG_TRUNCATED_BODY_ALLOWED = MESSAGE_LOG
+            .bool("truncated-body-allowed")
+            .withDefaultValue(false)
+            .build();
+
+    /** {@code xroad.proxy.message-log.hash-algo-id}. */
+    public static final ConfigKey<String> MESSAGE_LOG_HASH_ALGO_ID = MESSAGE_LOG
+            .string("hash-algo-id")
+            .withDefaultValue("SHA-512")
+            .build();
+
+    /** {@code xroad.proxy.message-log.timestamping-prioritization-strategy}. */
+    public static final ConfigKey<String> MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY = MESSAGE_LOG
+            .string("timestamping-prioritization-strategy")
+            .withDefaultValue("NONE")
+            .build();
+
+    /** {@code xroad.proxy.message-log.enabled-body-logging-local-producer-subsystems} — optional. */
+    public static final ConfigKey<String> MESSAGE_LOG_ENABLED_BODY_LOGGING_LOCAL_PRODUCER_SUBSYSTEMS = MESSAGE_LOG
+            .string("enabled-body-logging-local-producer-subsystems")
+            .build();
+
+    /** {@code xroad.proxy.message-log.enabled-body-logging-remote-producer-subsystems} — optional. */
+    public static final ConfigKey<String> MESSAGE_LOG_ENABLED_BODY_LOGGING_REMOTE_PRODUCER_SUBSYSTEMS = MESSAGE_LOG
+            .string("enabled-body-logging-remote-producer-subsystems")
+            .build();
+
+    /** {@code xroad.proxy.message-log.disabled-body-logging-local-producer-subsystems} — optional. */
+    public static final ConfigKey<String> MESSAGE_LOG_DISABLED_BODY_LOGGING_LOCAL_PRODUCER_SUBSYSTEMS = MESSAGE_LOG
+            .string("disabled-body-logging-local-producer-subsystems")
+            .build();
+
+    /** {@code xroad.proxy.message-log.disabled-body-logging-remote-producer-subsystems} — optional. */
+    public static final ConfigKey<String> MESSAGE_LOG_DISABLED_BODY_LOGGING_REMOTE_PRODUCER_SUBSYSTEMS = MESSAGE_LOG
+            .string("disabled-body-logging-remote-producer-subsystems")
+            .build();
+
+    /** {@code xroad.proxy.message-log.timestamper.client-connect-timeout}. */
+    public static final ConfigKey<Integer> MESSAGE_LOG_TIMESTAMPER_CLIENT_CONNECT_TIMEOUT = MESSAGE_LOG_TIMESTAMPER
+            .integer("client-connect-timeout")
+            .withDefaultValue(20000)
+            .build();
+
+    /** {@code xroad.proxy.message-log.timestamper.client-read-timeout}. */
+    public static final ConfigKey<Integer> MESSAGE_LOG_TIMESTAMPER_CLIENT_READ_TIMEOUT = MESSAGE_LOG_TIMESTAMPER
+            .integer("client-read-timeout")
+            .withDefaultValue(60000)
+            .build();
+
+    /** {@code xroad.proxy.message-log.timestamper.timestamp-immediately}. */
+    public static final ConfigKey<Boolean> MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY = MESSAGE_LOG_TIMESTAMPER
+            .bool("timestamp-immediately")
+            .withDefaultValue(false)
+            .build();
+
+    /** {@code xroad.proxy.message-log.timestamper.records-limit}. */
+    public static final ConfigKey<Integer> MESSAGE_LOG_TIMESTAMPER_RECORDS_LIMIT = MESSAGE_LOG_TIMESTAMPER
+            .integer("records-limit")
+            .withDefaultValue(10000)
+            .build();
+
+    /** {@code xroad.proxy.message-log.timestamper.retry-delay}. */
+    public static final ConfigKey<Integer> MESSAGE_LOG_TIMESTAMPER_RETRY_DELAY = MESSAGE_LOG_TIMESTAMPER
+            .integer("retry-delay")
+            .withDefaultValue(60)
+            .build();
+
+    /** {@code xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period}. */
+    public static final ConfigKey<Integer> MESSAGE_LOG_TIMESTAMPER_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = MESSAGE_LOG_TIMESTAMPER
+            .integer("acceptable-timestamp-failure-period")
+            .withDefaultValue(14400)
+            .build();
+
+    // --- xroad.proxy.rpc --------------------------------------------------------
+
+    /** {@code xroad.proxy.rpc.enabled}. */
+    public static final ConfigKey<Boolean> RPC_ENABLED = RPC
+            .bool("enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.proxy.rpc.listen-address}. */
+    public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
+            .string("listen-address")
+            .withDefaultValue("127.0.0.1")
+            .withContainerDefaultValue("0.0.0.0")
+            .build();
+
+    /** {@code xroad.proxy.rpc.port}. */
+    public static final ConfigKey<Integer> RPC_PORT = RPC
+            .integer("port")
+            .withDefaultValue(5567)
+            .build();
+
+    // --- xroad.proxy.dsp --------------------------------------------------------
+
+    /** {@code xroad.proxy.dsp.participant-context-id} — no default (must be set per SS). */
+    public static final ConfigKey<String> DSP_PARTICIPANT_CONTEXT_ID = DSP
+            .string("participant-context-id")
+            .build();
+
+    /** {@code xroad.proxy.dsp.protocol}. */
+    public static final ConfigKey<String> DSP_PROTOCOL = DSP
+            .string("protocol")
+            .withDefaultValue("http-dsp-profile-2025-1")
+            .build();
+
+    /** {@code xroad.proxy.dsp.listen-address}. */
+    public static final ConfigKey<String> DSP_LISTEN_ADDRESS = DSP
+            .string("listen-address")
+            .withDefaultValue("127.0.0.1")
+            .build();
+
+    /** {@code xroad.proxy.dsp.listen-port}. */
+    public static final ConfigKey<Integer> DSP_LISTEN_PORT = DSP
+            .integer("listen-port")
+            .withDefaultValue(5590)
+            .build();
+
+    /** {@code xroad.proxy.dsp.thread-pool-min}. */
+    public static final ConfigKey<Integer> DSP_THREAD_POOL_MIN = DSP
+            .integer("thread-pool-min")
+            .withDefaultValue(10)
+            .build();
+
+    /** {@code xroad.proxy.dsp.thread-pool-max}. */
+    public static final ConfigKey<Integer> DSP_THREAD_POOL_MAX = DSP
+            .integer("thread-pool-max")
+            .withDefaultValue(200)
+            .build();
+
+    /** {@code xroad.proxy.dsp.thread-pool-idle-timeout}. */
+    public static final ConfigKey<Integer> DSP_THREAD_POOL_IDLE_TIMEOUT = DSP
+            .integer("thread-pool-idle-timeout")
+            .withDefaultValue(60000)
+            .build();
+
+    /** {@code xroad.proxy.dsp.serverproxy-endpoint}. */
+    public static final ConfigKey<String> DSP_SERVERPROXY_ENDPOINT = DSP
+            .string("serverproxy-endpoint")
+            .withDefaultValue("https://localhost:5500")
+            .build();
+
+    /** {@code xroad.proxy.dsp.cache.enabled}. */
+    public static final ConfigKey<Boolean> DSP_CACHE_ENABLED = DSP_CACHE
+            .bool("enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.proxy.dsp.cache.default-ttl}. */
+    public static final ConfigKey<Duration> DSP_CACHE_DEFAULT_TTL = DSP_CACHE
+            .keyDuration("default-ttl")
+            .withDefaultValue(Duration.parse("PT5M"))
+            .build();
+
+    /** {@code xroad.proxy.dsp.cache.maximum-size}. */
+    public static final ConfigKey<Long> DSP_CACHE_MAXIMUM_SIZE = DSP_CACHE
+            .longValue("maximum-size")
+            .withDefaultValue(10000L)
+            .build();
+
     private ProxyConfigKeys() {
     }
 
@@ -501,5 +790,10 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     @Override
     public Scope scope() {
         return PROXY;
+    }
+
+    @Override
+    public List<ConfigKey<?>> keys() {
+        return Stream.concat(PROXY.keys().stream(), ANTI_DOS.keys().stream()).toList();
     }
 }

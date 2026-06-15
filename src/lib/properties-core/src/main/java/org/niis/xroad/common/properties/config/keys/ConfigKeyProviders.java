@@ -51,6 +51,7 @@ public final class ConfigKeyProviders {
                 ConfProxyConfigKeys.instance(),
                 OpMonitorConfigKeys.instance(),
                 AuxiliaryServiceConfigKeys.instance(),
-                AdminServiceConfigKeys.instance());
+                AdminServiceConfigKeys.instance(),
+                HealthCheckConfigKeys.instance());
     }
 }

@@ -24,34 +24,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.auxiliaryservice.core.config;
+package org.niis.xroad.monitor.core.configuration;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_PORT;
+import java.time.Duration;
 
-/** Auxiliary-service RPC server properties ({@code xroad.auxiliary-service.rpc.*}). */
+import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.CERTIFICATE_INFO_SENSOR_INTERVAL;
+import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.DISK_SPACE_SENSOR_INTERVAL;
+import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.EXEC_LISTING_SENSOR_INTERVAL;
+import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.LIMIT_REMOTE_DATA_SET;
+import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.SYSTEM_METRICS_SENSOR_INTERVAL;
+
+/** Env-monitor configuration ({@code xroad.env-monitor.*}). */
 @RequiredArgsConstructor
-public class AuxiliaryServiceRpcServerProperties implements RpcServerProperties {
+public class EnvMonitorProperties {
 
     private final XRoadConfig xRoadConfig;
 
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+    /** @return sensor interval for certificate info collection */
+    public Duration certificateInfoSensorInterval() {
+        return xRoadConfig.value(CERTIFICATE_INFO_SENSOR_INTERVAL);
     }
 
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
+    /** @return sensor interval for disk space collection */
+    public Duration diskSpaceSensorInterval() {
+        return xRoadConfig.value(DISK_SPACE_SENSOR_INTERVAL);
     }
 
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
+    /** @return sensor interval for executable listing */
+    public Duration execListingSensorInterval() {
+        return xRoadConfig.value(EXEC_LISTING_SENSOR_INTERVAL);
+    }
+
+    /** @return sensor interval for system metrics collection */
+    public Duration systemMetricsSensorInterval() {
+        return xRoadConfig.value(SYSTEM_METRICS_SENSOR_INTERVAL);
+    }
+
+    /** @return whether to limit the remote data set */
+    public boolean limitRemoteDataSet() {
+        return xRoadConfig.value(LIMIT_REMOTE_DATA_SET);
     }
 }

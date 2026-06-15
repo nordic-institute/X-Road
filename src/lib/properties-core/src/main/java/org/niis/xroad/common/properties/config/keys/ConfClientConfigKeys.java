@@ -38,6 +38,7 @@ import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 public final class ConfClientConfigKeys implements ConfigKeyProvider {
 
     private static final Scope CONFIGURATION_CLIENT = Scope.of("xroad.configuration-client");
+    private static final Scope RPC = CONFIGURATION_CLIENT.child("rpc");
 
     private static final ConfClientConfigKeys INSTANCE = new ConfClientConfigKeys();
 
@@ -95,6 +96,27 @@ public final class ConfClientConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> CONFIGURATION_ANCHOR_STORAGE = CONFIGURATION_CLIENT
             .string("configuration-anchor-storage")
             .withDefaultValue("DB")
+            .build();
+
+    // --- xroad.configuration-client.rpc -----------------------------------------
+
+    /** {@code xroad.configuration-client.rpc.enabled}. */
+    public static final ConfigKey<Boolean> RPC_ENABLED = RPC
+            .bool("enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.configuration-client.rpc.listen-address}. */
+    public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
+            .string("listen-address")
+            .withDefaultValue("127.0.0.1")
+            .withContainerDefaultValue("0.0.0.0")
+            .build();
+
+    /** {@code xroad.configuration-client.rpc.port}. */
+    public static final ConfigKey<Integer> RPC_PORT = RPC
+            .integer("port")
+            .withDefaultValue(5665)
             .build();
 
     private ConfClientConfigKeys() {

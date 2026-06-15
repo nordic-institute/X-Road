@@ -32,10 +32,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
@@ -62,6 +65,7 @@ public class SignerConfig {
                 .register(CommonRpcConfigKeys.instance())
                 .register(SignerConfigKeys.instance())
                 .register(SignerKeyConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
@@ -85,6 +89,16 @@ public class SignerConfig {
     @ApplicationScoped
     SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
         return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerRpcServerProperties signerRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new SignerRpcServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
     }
 
     @ApplicationScoped

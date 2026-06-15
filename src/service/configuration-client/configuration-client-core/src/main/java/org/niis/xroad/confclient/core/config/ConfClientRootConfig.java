@@ -36,6 +36,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
@@ -65,6 +66,7 @@ public class ConfClientRootConfig {
                 .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
                 .register(ConfClientConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .overrides(smallryeRpcOverrides())
                 .dbOverrides(appName)
@@ -87,6 +89,11 @@ public class ConfClientRootConfig {
     @ApplicationScoped
     RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
         return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfigurationClientRpcServerProperties configurationClientRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new ConfigurationClientRpcServerProperties(xRoadConfig);
     }
 
     @ApplicationScoped

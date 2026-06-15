@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.CertificateMonitoringInfo.CertificateType;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;

@@ -40,6 +40,9 @@ public final class AuxiliaryServiceConfigKeys implements ConfigKeyProvider {
     private static final Scope AUXILIARY_SERVICE = Scope.of("xroad.auxiliary-service", "auxiliary-service");
     private static final Scope BACKUP = AUXILIARY_SERVICE.child("backup");
     private static final Scope MESSAGE_LOG = AUXILIARY_SERVICE.child("message-log");
+    private static final Scope RPC = AUXILIARY_SERVICE.child("rpc");
+    private static final Scope READINESS_CHECK = AUXILIARY_SERVICE.child("readiness-check");
+    private static final Scope READINESS_CHECK_KUBERNETES = READINESS_CHECK.child("kubernetes");
 
     private static final AuxiliaryServiceConfigKeys INSTANCE = new AuxiliaryServiceConfigKeys();
 
@@ -134,6 +137,63 @@ public final class AuxiliaryServiceConfigKeys implements ConfigKeyProvider {
             .string("command-path")
             .withDefaultValue("/usr/share/xroad/bin/xroad-message-log-archiver")
             .withContainerDefaultValue("/usr/share/xroad/scripts/containerised/message_log_archiver.sh")
+            .build();
+
+    // --- xroad.auxiliary-service.rpc --------------------------------------------
+
+    /** {@code xroad.auxiliary-service.rpc.enabled}. */
+    public static final ConfigKey<Boolean> RPC_ENABLED = RPC
+            .bool("enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.auxiliary-service.rpc.listen-address}. */
+    public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
+            .string("listen-address")
+            .withDefaultValue("127.0.0.1")
+            .withContainerDefaultValue("0.0.0.0")
+            .build();
+
+    /** {@code xroad.auxiliary-service.rpc.port}. */
+    public static final ConfigKey<Integer> RPC_PORT = RPC
+            .integer("port")
+            .withDefaultValue(7665)
+            .build();
+
+    // --- xroad.auxiliary-service.readiness-check.kubernetes ---------------------
+
+    /** {@code xroad.auxiliary-service.readiness-check.kubernetes.service-host} — optional. */
+    public static final ConfigKey<String> READINESS_CHECK_KUBERNETES_SERVICE_HOST = READINESS_CHECK_KUBERNETES
+            .string("service-host")
+            .build();
+
+    /** {@code xroad.auxiliary-service.readiness-check.kubernetes.service-port} — optional. */
+    public static final ConfigKey<String> READINESS_CHECK_KUBERNETES_SERVICE_PORT = READINESS_CHECK_KUBERNETES
+            .string("service-port")
+            .build();
+
+    /** {@code xroad.auxiliary-service.readiness-check.kubernetes.token-path}. */
+    public static final ConfigKey<String> READINESS_CHECK_KUBERNETES_TOKEN_PATH = READINESS_CHECK_KUBERNETES
+            .string("token-path")
+            .withDefaultValue("/var/run/secrets/kubernetes.io/serviceaccount/token")
+            .build();
+
+    /** {@code xroad.auxiliary-service.readiness-check.kubernetes.ca-cert-path}. */
+    public static final ConfigKey<String> READINESS_CHECK_KUBERNETES_CA_CERT_PATH = READINESS_CHECK_KUBERNETES
+            .string("ca-cert-path")
+            .withDefaultValue("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+            .build();
+
+    /** {@code xroad.auxiliary-service.readiness-check.kubernetes.connect-timeout-ms}. */
+    public static final ConfigKey<Integer> READINESS_CHECK_KUBERNETES_CONNECT_TIMEOUT_MS = READINESS_CHECK_KUBERNETES
+            .integer("connect-timeout-ms")
+            .withDefaultValue(5000)
+            .build();
+
+    /** {@code xroad.auxiliary-service.readiness-check.kubernetes.read-timeout-ms}. */
+    public static final ConfigKey<Integer> READINESS_CHECK_KUBERNETES_READ_TIMEOUT_MS = READINESS_CHECK_KUBERNETES
+            .integer("read-timeout-ms")
+            .withDefaultValue(5000)
             .build();
 
     private AuxiliaryServiceConfigKeys() {

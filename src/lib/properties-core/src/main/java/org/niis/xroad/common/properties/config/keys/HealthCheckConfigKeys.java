@@ -24,34 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.auxiliaryservice.core.config;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+package org.niis.xroad.common.properties.config.keys;
 
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_PORT;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.Scope;
 
-/** Auxiliary-service RPC server properties ({@code xroad.auxiliary-service.rpc.*}). */
-@RequiredArgsConstructor
-public class AuxiliaryServiceRpcServerProperties implements RpcServerProperties {
+/**
+ * Keys for the {@code xroad.health-check} scope, shared across all apps that embed
+ * the health-check-core lib. Put in {@code ConfigKeyProviders.allProviders()} so the
+ * admin-service key catalogue stays complete.
+ */
+@SuppressWarnings("checkstyle:MagicNumber")
+public final class HealthCheckConfigKeys implements ConfigKeyProvider {
 
-    private final XRoadConfig xRoadConfig;
+    private static final Scope HEALTH_CHECK = Scope.of("xroad.health-check");
+    private static final Scope MEMORY = HEALTH_CHECK.child("memory");
 
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+    private static final HealthCheckConfigKeys INSTANCE = new HealthCheckConfigKeys();
+
+    /** {@code xroad.health-check.memory.threshold-percent} — optional, default 95. */
+    public static final ConfigKey<Integer> MEMORY_THRESHOLD_PERCENT = MEMORY
+            .integer("threshold-percent")
+            .withDefaultValue(95)
+            .build();
+
+    private HealthCheckConfigKeys() {
+    }
+
+    /** @return the provider singleton (pass to {@code XRoadConfigBuilder.register(...)}). */
+    public static HealthCheckConfigKeys instance() {
+        return INSTANCE;
     }
 
     @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
+    public Scope scope() {
+        return HEALTH_CHECK;
     }
 }

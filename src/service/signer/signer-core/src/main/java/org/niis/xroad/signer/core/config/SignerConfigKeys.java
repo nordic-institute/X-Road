@@ -60,6 +60,7 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
     private static final Scope AUTOLOGIN_RETRY = AUTOLOGIN.child("retry");
     private static final Scope HWTOKEN = SIGNER.child("addon").child("hwtoken");
     private static final Scope PIN_HASHER = SIGNER.child("pin-hasher");
+    private static final Scope RPC = SIGNER.child("rpc");
 
     private static final SignerConfigKeys INSTANCE = new SignerConfigKeys();
 
@@ -233,6 +234,27 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> PIN_HASHER_HASH_LENGTH = PIN_HASHER
             .integer("hash-length")
             .withDefaultValue(32)
+            .build();
+
+    // --- xroad.signer.rpc -------------------------------------------------------
+
+    /** {@code xroad.signer.rpc.enabled} */
+    public static final ConfigKey<Boolean> RPC_ENABLED = RPC
+            .bool("enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.signer.rpc.listen-address} */
+    public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
+            .string("listen-address")
+            .withDefaultValue("127.0.0.1")
+            .withContainerDefaultValue("0.0.0.0")
+            .build();
+
+    /** {@code xroad.signer.rpc.port} */
+    public static final ConfigKey<Integer> RPC_PORT = RPC
+            .integer("port")
+            .withDefaultValue(5560)
             .build();
 
     private SignerConfigKeys() {

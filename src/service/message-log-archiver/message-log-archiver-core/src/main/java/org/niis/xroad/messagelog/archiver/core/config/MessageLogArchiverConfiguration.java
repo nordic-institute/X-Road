@@ -46,8 +46,14 @@ public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig 
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(MessageLogEncryptionConfigKeys.instance())
+                .register(MessageLogArchiverConfigKeys.instance())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    @ApplicationScoped
+    MessageLogArchiverProperties messageLogArchiverProperties(XRoadConfig xRoadConfig) {
+        return new MessageLogArchiverProperties(xRoadConfig);
     }
 
     @Singleton

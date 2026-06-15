@@ -31,10 +31,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
@@ -60,6 +63,8 @@ public class MonitorConfig {
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
+                .register(MonitorConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
@@ -73,6 +78,21 @@ public class MonitorConfig {
     @ApplicationScoped
     RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
         return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    EnvMonitorProperties envMonitorProperties(XRoadConfig xRoadConfig) {
+        return new EnvMonitorProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    EnvMonitorServerProperties envMonitorServerProperties(XRoadConfig xRoadConfig) {
+        return new EnvMonitorServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
     }
 
     @ApplicationScoped

@@ -24,34 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.auxiliaryservice.core.config;
+package org.niis.xroad.opmonitor.application.config;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.RPC_PORT;
+class OpMonitorApplicationConfig {
 
-/** Auxiliary-service RPC server properties ({@code xroad.auxiliary-service.rpc.*}). */
-@RequiredArgsConstructor
-public class AuxiliaryServiceRpcServerProperties implements RpcServerProperties {
-
-    private final XRoadConfig xRoadConfig;
-
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
-    }
-
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
     }
 }

@@ -52,7 +52,6 @@ services:
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret
-      - XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID=ss0
     healthcheck:
       interval: 5s
       retries: 40
@@ -98,7 +97,8 @@ services:
              ('xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds', '1', 'proxy', now(), now()),
              ('xroad.proxy.addon.op-monitor.connection.host', 'op-monitor', 'proxy', now(), now()),
              ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', 'proxy', now(), now()),
-             ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', 'proxy', now(), now())
+             ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', 'proxy', now(), now()),
+             ('xroad.proxy.dsp.participant-context-id', 'ss0', 'proxy', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - xrd-ss-network

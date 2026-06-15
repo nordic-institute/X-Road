@@ -24,35 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.auxiliaryservice.application.config;
 
-package org.niis.xroad.monitor.core;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.auxiliaryservice.core.config.AuxiliaryServiceRpcServerProperties;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+class AuxiliaryServiceApplicationConfig {
 
-import java.time.Duration;
+    @ApplicationScoped
+    AuxiliaryServiceReadinessCheckProperties auxiliaryServiceReadinessCheckProperties(XRoadConfig xRoadConfig) {
+        return new AuxiliaryServiceReadinessCheckProperties(xRoadConfig);
+    }
 
-@ConfigMapping(prefix = "xroad.env-monitor")
-public interface EnvMonitorProperties {
+    @ApplicationScoped
+    AuxiliaryServiceRpcServerProperties auxiliaryServiceRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new AuxiliaryServiceRpcServerProperties(xRoadConfig);
+    }
 
-    @WithName("certificate-info-sensor-interval")
-    @WithDefault("1d")
-    Duration certificateInfoSensorInterval();
-
-    @WithName("disk-space-sensor-interval")
-    @WithDefault("60s")
-    Duration diskSpaceSensorInterval();
-
-    @WithName("exec-listing-sensor-interval")
-    @WithDefault("60s")
-    Duration execListingSensorInterval();
-
-    @WithName("system-metrics-sensor-interval")
-    @WithDefault("5s")
-    Duration systemMetricsSensorInterval();
-
-    @WithName("limit-remote-data-set")
-    @WithDefault("false")
-    boolean limitRemoteDataSet();
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
+    }
 }

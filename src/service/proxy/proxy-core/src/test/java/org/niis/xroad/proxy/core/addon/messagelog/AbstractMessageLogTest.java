@@ -56,6 +56,7 @@ import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.messagelog.archiver.core.TestLogArchiver;
 import org.niis.xroad.messagelog.archiver.core.TestLogCleaner;
+import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 import org.niis.xroad.proxy.core.configuration.MessageLogDatabaseConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
@@ -109,14 +110,18 @@ abstract class AbstractMessageLogTest {
                 .register(ProxyConfigKeys.instance())
                 .build());
 
-        messageLogProperties = configOverrides.isEmpty()
-                ? ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class)
-                : ConfigUtils.initConfiguration(ProxyMessageLogProperties.class, configOverrides);
+        messageLogProperties = new ProxyMessageLogProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(configOverrides)
+                .build());
         messageLogEncryptionProperties = new MessageLogEncryptionProperties(XRoadConfigBuilder.create()
                 .register(MessageLogEncryptionConfigKeys.instance())
                 .overrides(configOverrides)
                 .build());
-        messageLogArchiverProperties = ConfigUtils.initConfiguration(MessageLogArchiverProperties.class, configOverrides);
+        messageLogArchiverProperties = new MessageLogArchiverProperties(XRoadConfigBuilder.create()
+                .register(MessageLogArchiverConfigKeys.instance())
+                .overrides(configOverrides)
+                .build());
 
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);

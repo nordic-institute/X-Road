@@ -28,12 +28,23 @@ package org.niis.xroad.proxy.controlplane;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.proxy.dataplane.DataPlaneServerProperties;
 
 class DspCoreConfig {
 
     @ApplicationScoped
     AssetAccessRpcChannelProperties assetAccessRpcChannelProperties(XRoadConfig xRoadConfig) {
         return new XRoadAssetAccessRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    AssetAccessClientProperties assetAccessClientProperties(XRoadConfig xRoadConfig) {
+        return new AssetAccessClientProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    DataPlaneServerProperties dataPlaneServerProperties(XRoadConfig xRoadConfig) {
+        return new DataPlaneServerProperties(xRoadConfig);
     }
 
 }

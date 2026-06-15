@@ -35,6 +35,7 @@ import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 
 /**

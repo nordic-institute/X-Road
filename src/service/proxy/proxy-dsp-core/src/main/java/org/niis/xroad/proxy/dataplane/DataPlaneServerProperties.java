@@ -25,38 +25,49 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-/**
- * Configuration mapping for the data-plane listener.
- */
-@ConfigMapping(prefix = "xroad.proxy.dsp")
-public interface DataPlaneServerProperties {
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_LISTEN_ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_LISTEN_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_SERVERPROXY_ENDPOINT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_THREAD_POOL_IDLE_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_THREAD_POOL_MAX;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_THREAD_POOL_MIN;
 
-    @WithName("listen-address")
-    @WithDefault("127.0.0.1")
-    String listenAddress();
+/** Configuration for the data-plane listener ({@code xroad.proxy.dsp.*}). */
+@RequiredArgsConstructor
+public class DataPlaneServerProperties {
 
-    @WithName("listen-port")
-    @WithDefault("5590")
-    int listenPort();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("thread-pool-min")
-    @WithDefault("10")
-    int threadPoolMin();
+    /** @return listen address for the data-plane server */
+    public String listenAddress() {
+        return xRoadConfig.value(DSP_LISTEN_ADDRESS);
+    }
 
-    @WithName("thread-pool-max")
-    @WithDefault("200")
-    int threadPoolMax();
+    /** @return listen port for the data-plane server */
+    public int listenPort() {
+        return xRoadConfig.value(DSP_LISTEN_PORT);
+    }
 
-    @WithName("thread-pool-idle-timeout")
-    @WithDefault("60000")
-    int threadPoolIdleTimeout();
+    /** @return minimum thread pool size */
+    public int threadPoolMin() {
+        return xRoadConfig.value(DSP_THREAD_POOL_MIN);
+    }
 
-    @WithName("serverproxy-endpoint")
-    @WithDefault("https://localhost:${xroad.proxy.server-port:5500}")
-    String serverproxyEndpoint();
+    /** @return maximum thread pool size */
+    public int threadPoolMax() {
+        return xRoadConfig.value(DSP_THREAD_POOL_MAX);
+    }
 
+    /** @return thread pool idle timeout in milliseconds */
+    public int threadPoolIdleTimeout() {
+        return xRoadConfig.value(DSP_THREAD_POOL_IDLE_TIMEOUT);
+    }
+
+    /** @return server-proxy endpoint URL */
+    public String serverproxyEndpoint() {
+        return xRoadConfig.value(DSP_SERVERPROXY_ENDPOINT);
+    }
 }

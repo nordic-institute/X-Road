@@ -25,45 +25,52 @@
  */
 package org.niis.xroad.proxy.core.antidos;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-@ConfigMapping(prefix = "xroad.anti-dos")
-public interface AntiDosConfiguration {
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ANTI_DOS_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ANTI_DOS_MAX_CPU_LOAD;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ANTI_DOS_MAX_HEAP_USAGE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ANTI_DOS_MAX_PARALLEL_CONNECTIONS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ANTI_DOS_MIN_FREE_FILE_HANDLES;
 
-    /**
-     * @return the number of allowed parallel connections
-     */
-    @WithName("max-parallel-connections")
-    @WithDefault("5000")
-    int getMaxParallelConnections();
+/** Anti-DoS configuration ({@code xroad.anti-dos.*}). */
+@RequiredArgsConstructor
+public class AntiDosConfiguration {
+
+    private final XRoadConfig xRoadConfig;
+
+    /** @return the number of allowed parallel connections */
+    public int getMaxParallelConnections() {
+        return xRoadConfig.value(ANTI_DOS_MAX_PARALLEL_CONNECTIONS);
+    }
 
     /**
      * @return the minimum number of free file handles required to process
      * an incoming connection after it has been accepted
      */
-    @WithName("min-free-file-handles")
-    @WithDefault("100")
-    int getMinFreeFileHandles();
+    public int getMinFreeFileHandles() {
+        return xRoadConfig.value(ANTI_DOS_MIN_FREE_FILE_HANDLES);
+    }
 
     /**
      * @return the maximum allowed CPU load. If the CPU load is more than this
      * value, incoming connection is not processed.
      */
-    @WithName("max-cpu-load")
-    @WithDefault("1.1")
-    double getMaxCpuLoad();
+    public double getMaxCpuLoad() {
+        return xRoadConfig.value(ANTI_DOS_MAX_CPU_LOAD);
+    }
 
     /**
      * @return the maximum allowed heap usage. If the heap usage is more than
      * this value, incoming connection is not processed.
      */
-    @WithName("max-heap-usage")
-    @WithDefault("1.1")
-    double getMaxHeapUsage();
+    public double getMaxHeapUsage() {
+        return xRoadConfig.value(ANTI_DOS_MAX_HEAP_USAGE);
+    }
 
-    @WithName("enabled")
-    @WithDefault("true")
-    boolean enabled();
+    /** @return whether anti-DoS is enabled */
+    public boolean enabled() {
+        return xRoadConfig.value(ANTI_DOS_ENABLED);
+    }
 }

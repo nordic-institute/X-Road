@@ -30,10 +30,13 @@ import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
@@ -50,6 +53,8 @@ class SoftTokenSignerRpcConfig {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(SignerKeyConfigKeys.instance())
+                .register(SoftTokenSignerConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
@@ -58,6 +63,26 @@ class SoftTokenSignerRpcConfig {
     private static DeploymentMode deploymentMode() {
         var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
         return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @ApplicationScoped
+    SoftwareTokenSignerRpcServerProperties softwareTokenSignerRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new SoftwareTokenSignerRpcServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    KeySyncHealthCheckProperties keySyncHealthCheckProperties(XRoadConfig xRoadConfig) {
+        return new KeySyncHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SoftTokenSignerKeysProperties softTokenSignerKeysProperties(XRoadConfig xRoadConfig) {
+        return new SoftTokenSignerKeysProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
     }
 
     @ApplicationScoped
