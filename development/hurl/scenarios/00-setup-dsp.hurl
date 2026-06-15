@@ -11,8 +11,8 @@
 # attestation + credential definitions. No holders: the issuer runs with
 # `edc.issuance.anonymous.allowed=true`, so its DcpHolderTokenVerifier auto-creates
 # an anonymous holder per requesting DID. The X-Road membership credential derives
-# `xrdMemberIdentifier` from the verified `xroadMemberClaim`, not the holder record,
-# so a pre-registered holder is redundant.
+# its `xroadInstance`/`memberClass`/`memberCode` from the verified `xroadMemberClaim`,
+# not the holder record, so a pre-registered holder is redundant.
 #
 # Identity Hub + Control Plane participant contexts (+ STS config) and the
 # membership-credential issuance are provisioned per-SS by the proxy-ui-api
@@ -115,8 +115,18 @@ Content-Type: application/json
             "required": "true"
         },
         {
-            "input": "xrdMemberIdentifier",
-            "output": "credentialSubject.xrdMemberIdentifier",
+            "input": "xroadInstance",
+            "output": "credentialSubject.xroadInstance",
+            "required": "true"
+        },
+        {
+            "input": "memberClass",
+            "output": "credentialSubject.memberClass",
+            "required": "true"
+        },
+        {
+            "input": "memberCode",
+            "output": "credentialSubject.memberCode",
             "required": "true"
         }
     ],

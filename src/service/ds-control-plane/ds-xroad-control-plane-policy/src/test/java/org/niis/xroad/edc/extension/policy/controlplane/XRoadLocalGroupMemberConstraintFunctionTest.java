@@ -68,7 +68,7 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
     @Test
     void evaluateEqOperatorWhenMemberReturnsTrue() {
         when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, "myLocalGroup", permission, context);
 
@@ -78,7 +78,7 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
     @Test
     void evaluateInOperatorWhenMemberReturnsTrue() {
         when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.IN, "myLocalGroup", permission, context);
 
@@ -88,7 +88,7 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
     @Test
     void evaluateEqOperatorWhenNotMemberReturnsFalse() {
         when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(false);
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, "myLocalGroup", permission, context);
 
@@ -97,7 +97,7 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateUnsupportedOperatorReturnsFalse() {
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.NEQ, "myLocalGroup", permission, context);
 
@@ -107,7 +107,7 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateNonStringRightValueReturnsFalse() {
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, Integer.valueOf(42), permission, context);
 
@@ -115,8 +115,11 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
         assertThat(context.getProblems()).isNotEmpty();
     }
 
-    private CatalogPolicyContext contextWithMember(String memberId) {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.of("xrd:memberIdentifier", memberId));
+    private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {
+        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.of(
+                "xrd:xroadInstance", xroadInstance,
+                "xrd:memberClass", memberClass,
+                "xrd:memberCode", memberCode));
         return new CatalogPolicyContext(agent);
     }
 }

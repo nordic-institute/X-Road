@@ -49,7 +49,8 @@ class PolicyContextHelperTest {
 
     @Test
     void findMemberIdFromContextReturnsClientId() {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.of("xrd:memberIdentifier", "CS:ORG:1234"));
+        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(),
+                Map.of("xrd:xroadInstance", "CS", "xrd:memberClass", "ORG", "xrd:memberCode", "1234"));
         var context = new CatalogPolicyContext(agent);
 
         var result = PolicyContextHelper.findMemberIdFromContext(context);
@@ -70,8 +71,9 @@ class PolicyContextHelperTest {
     }
 
     @Test
-    void findMemberIdFromContextWithInvalidIdThrows() {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.of("xrd:memberIdentifier", "invalid"));
+    void findMemberIdFromContextWithMissingMemberAttributesThrows() {
+        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(),
+                Map.of("xrd:xroadInstance", "CS"));
         var context = new CatalogPolicyContext(agent);
 
         assertThatThrownBy(() -> PolicyContextHelper.findMemberIdFromContext(context))

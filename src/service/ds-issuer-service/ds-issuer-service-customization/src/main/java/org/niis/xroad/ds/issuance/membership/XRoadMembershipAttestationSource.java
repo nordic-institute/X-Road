@@ -57,7 +57,9 @@ public class XRoadMembershipAttestationSource implements AttestationSource {
     static final String JWT_CLAIM_TYPE = "jwt";
 
     static final String MEMBERSHIP_TYPE_CLAIM = "membershipType";
-    static final String MEMBER_IDENTIFIER_CLAIM = "xrdMemberIdentifier";
+    static final String XROAD_INSTANCE_CLAIM = "xroadInstance";
+    static final String MEMBER_CLASS_CLAIM = "memberClass";
+    static final String MEMBER_CODE_CLAIM = "memberCode";
     static final String MEMBERSHIP_TYPE = "X-Road";
 
     private final MemberIdClaimVerifier verifier;
@@ -119,9 +121,11 @@ public class XRoadMembershipAttestationSource implements AttestationSource {
     }
 
     private static Map<String, Object> toAttestationOutput(ClientId memberId) {
-        Map<String, Object> out = new LinkedHashMap<>(2);
+        Map<String, Object> out = new LinkedHashMap<>();
         out.put(MEMBERSHIP_TYPE_CLAIM, MEMBERSHIP_TYPE);
-        out.put(MEMBER_IDENTIFIER_CLAIM, memberId.asEncodedId());
+        out.put(XROAD_INSTANCE_CLAIM, memberId.getXRoadInstance());
+        out.put(MEMBER_CLASS_CLAIM, memberId.getMemberClass());
+        out.put(MEMBER_CODE_CLAIM, memberId.getMemberCode());
         return out;
     }
 }
