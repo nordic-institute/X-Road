@@ -44,7 +44,7 @@ import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContex
 
 /**
  * {@link ParticipantAgentServiceExtension} that extracts the X-Road member identity from a validated
- * {@code MembershipCredential} in the DCP claim token and exposes it as participant-agent attributes.
+ * {@code XRoadMembershipCredential} in the DCP claim token and exposes it as participant-agent attributes.
  *
  * <p>The credential carries the identity as the separate {@code credentialSubject} claims
  * {@code xroadInstance}, {@code memberClass} and {@code memberCode}, set by the issuer service from
@@ -53,13 +53,13 @@ import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContex
  * X-Road constraint functions assemble the {@link ee.ria.xroad.common.identifier.ClientId} from them
  * via {@code PolicyContextHelper}.
  *
- * <p>If no {@code MembershipCredential} is present, or any of the three claims is absent/blank, an
+ * <p>If no {@code XRoadMembershipCredential} is present, or any of the three claims is absent/blank, an
  * empty map is returned — no exception is thrown.
  */
 @Slf4j
 class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
 
-    static final String MEMBERSHIP_CREDENTIAL_TYPE = "MembershipCredential";
+    static final String MEMBERSHIP_CREDENTIAL_TYPE = "XRoadMembershipCredential";
     static final String XROAD_INSTANCE_CLAIM = "xroadInstance";
     static final String MEMBER_CLASS_CLAIM = "memberClass";
     static final String MEMBER_CODE_CLAIM = "memberCode";
@@ -89,7 +89,7 @@ class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
                 .map(VerifiableCredential.class::cast)
                 .peek(vc -> log.debug("extractMemberAttributes: candidate vc types={} subjects={}",
                         vc.getType(), vc.getCredentialSubject().size()))
-                .filter(this::isMembershipCredential)
+                .filter(this::isXRoadMembershipCredential)
                 .flatMap(credential -> credential.getCredentialSubject().stream())
                 .peek(subject -> log.debug("extractMemberAttributes: subject claims={}", subject.getClaims().keySet()))
                 .map(this::toMemberAttributes)
@@ -120,7 +120,7 @@ class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
         return asString.isBlank() ? null : asString;
     }
 
-    private boolean isMembershipCredential(VerifiableCredential credential) {
+    private boolean isXRoadMembershipCredential(VerifiableCredential credential) {
         return credential.getType().contains(MEMBERSHIP_CREDENTIAL_TYPE);
     }
 }

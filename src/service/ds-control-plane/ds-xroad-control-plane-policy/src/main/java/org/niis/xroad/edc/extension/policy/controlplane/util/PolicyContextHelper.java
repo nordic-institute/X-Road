@@ -42,7 +42,7 @@ public class PolicyContextHelper {
 
     /**
      * Participant-agent attribute keys carrying the consumer's X-Road member identity, set by
-     * {@code XRoadMemberIdAttributes} from the {@code MembershipCredential} VC claims. The
+     * {@code XRoadMemberIdAttributes} from the {@code XRoadMembershipCredential} VC claims. The
      * {@link ClientId} is assembled from them in {@link #findMemberIdFromContext}.
      */
     public static final String XRD_INSTANCE_ATTRIBUTE = "xrd:xroadInstance";

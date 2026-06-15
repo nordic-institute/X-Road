@@ -97,17 +97,17 @@ HTTP *
 [Asserts]
 status < 500
 
-# 1.5 Create credential definition "xroad-membership" -> emits MembershipCredential VCs.
+# 1.5 Create credential definition "xroad-membership" -> emits XRoadMembershipCredential VCs.
 POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/credentialdefinitions
 Authorization: Bearer {{is_participant_token}}
 Content-Type: application/json
 
 {
     "attestations": ["xroad-membership-attestation-definition"],
-    "credentialType": "MembershipCredential",
+    "credentialType": "XRoadMembershipCredential",
     "id": "xroad-membership-credential-definition",
     "jsonSchema": "{}",
-    "jsonSchemaUrl": "https://example.com/schema/MembershipCredential.json",
+    "jsonSchemaUrl": "https://example.com/schema/XRoadMembershipCredential.json",
     "mappings": [
         {
             "input": "membershipType",

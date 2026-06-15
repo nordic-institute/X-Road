@@ -51,7 +51,7 @@ class XRoadMemberIdAttributesTest {
     }
 
     @Test
-    void attributesForReturnsIdentifierWhenMembershipCredentialPresentWithClaim() {
+    void attributesForReturnsIdentifierWhenXRoadMembershipCredentialPresentWithClaim() {
         var token = buildTokenWithMembershipVc("CS", "ORG", "1234");
 
         var result = sut.attributesFor(token);
@@ -84,7 +84,7 @@ class XRoadMemberIdAttributesTest {
     }
 
     @Test
-    void attributesForReturnsEmptyMapWhenMembershipCredentialHasNoClaim() {
+    void attributesForReturnsEmptyMapWhenXRoadMembershipCredentialHasNoClaim() {
         var subject = CredentialSubject.Builder.newInstance()
                 .claim("membershipType", "X-Road")
                 .build();
@@ -113,7 +113,7 @@ class XRoadMemberIdAttributesTest {
     }
 
     @Test
-    void attributesForReturnsEmptyMapWhenVcListContainsNoMembershipCredential() {
+    void attributesForReturnsEmptyMapWhenVcListContainsNoXRoadMembershipCredential() {
         var subject = CredentialSubject.Builder.newInstance()
                 .claim(XRoadMemberIdAttributes.XROAD_INSTANCE_CLAIM, "CS")
                 .claim(XRoadMemberIdAttributes.MEMBER_CLASS_CLAIM, "ORG")
