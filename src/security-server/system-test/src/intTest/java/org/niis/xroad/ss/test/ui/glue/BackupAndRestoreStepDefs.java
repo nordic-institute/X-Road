@@ -30,10 +30,7 @@ import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
 import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-
 import java.io.File;
-import java.io.IOException;
 import java.time.Duration;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -150,10 +147,9 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Configuration backup with incompatible filename is uploaded")
-    public void uploadIncompatibleConfigurationBackup() throws IOException {
-        File incompatibleBackup = new ClassPathResource("files/backups/ss-backup-incompatible.gpg").getFile();
+    public void uploadIncompatibleConfigurationBackup() {
         backupAndRestorePageObj.btnUploadConfigurationBackup().shouldBe(enabled).click();
-        backupAndRestorePageObj.inputConfigurationBackupBackupFile().uploadFile(incompatibleBackup);
+        backupAndRestorePageObj.inputConfigurationBackupBackupFile().uploadFromClasspath("files/backups/ss-backup-incompatible.gpg");
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }

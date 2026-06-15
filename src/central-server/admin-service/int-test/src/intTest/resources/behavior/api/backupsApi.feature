@@ -85,7 +85,7 @@ Feature: Backups API
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
     And Backup test_v1_backup.gpg is uploaded
     And Signer.getTokens response is mocked
-    Then Central server is restored from test_backup.gpg
+    Then Central server is restored from test_v1_backup.gpg
 
   @Modifying
   @ClearBackups
