@@ -18,13 +18,13 @@
     <include file="serverconf/003-drop-unneeded-sequences.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/004-add-tps-cost.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/005-configuration-client.xml" relativeToChangelogFile="true"/>
-    <include file="serverconf/006-configuration-properties.xml" relativeToChangelogFile="true"/>
-    <include file="serverconf/007-globalconf-source.xml" relativeToChangelogFile="true"/>
-    <include file="serverconf/008-admin-users.xml" relativeToChangelogFile="true"/>
-    <include file="serverconf/009-drop-uiuser-table.xml" relativeToChangelogFile="true"/>
-    <include file="serverconf/010-identifiers-consolidation.xml" relativeToChangelogFile="true"/>
-    <include file="serverconf/011-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/006-globalconf-source.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/007-admin-users.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/008-drop-uiuser-table.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/009-identifiers-consolidation.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/010-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/>
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
+    <include file="configuration-properties/001-configuration-properties.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

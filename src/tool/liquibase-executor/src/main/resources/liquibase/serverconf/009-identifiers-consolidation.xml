@@ -3,9 +3,9 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
-    logicalFilePath="serverconf/010-identifiers-consolidation.xml">
+    logicalFilePath="serverconf/009-identifiers-consolidation.xml">
 
-    <changeSet author="niis" id="010-identifiers-consolidation-001">
+    <changeSet author="niis" id="009-identifiers-consolidation-001">
         <renameColumn tableName="identifier" oldColumnName="type" newColumnName="object_type"/>
         <renameColumn tableName="identifier" oldColumnName="xroadinstance" newColumnName="xroad_instance"/>
         <renameColumn tableName="identifier" oldColumnName="memberclass" newColumnName="member_class"/>
@@ -19,14 +19,14 @@
         <dropColumn tableName="identifier" columnName="discriminator"/>
     </changeSet>
 
-    <changeSet author="niis" id="010-identifiers-consolidation-002">
+    <changeSet author="niis" id="009-identifiers-consolidation-002">
         <addColumn tableName="identifier">
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
         </addColumn>
     </changeSet>
 
-    <changeSet author="niis" id="010-identifiers-consolidation-003">
+    <changeSet author="niis" id="009-identifiers-consolidation-003">
         <sql splitStatements="false"><![CDATA[
             WITH history_data AS (
                 SELECT h.record_id, min(h.timestamp) AS created_at, max(h.timestamp) AS updated_at
@@ -42,7 +42,7 @@
         ]]></sql>
     </changeSet>
 
-    <changeSet author="niis" id="010-identifiers-consolidation-004">
+    <changeSet author="niis" id="009-identifiers-consolidation-004">
         <sql splitStatements="false"><![CDATA[
             DROP TRIGGER IF EXISTS set_timestamps ON identifier;
             CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON identifier
@@ -53,7 +53,7 @@
         <addNotNullConstraint tableName="identifier" columnName="updated_at"/>
     </changeSet>
 
-    <changeSet author="niis" id="010-identifiers-consolidation-005">
+    <changeSet author="niis" id="009-identifiers-consolidation-005">
         <sql splitStatements="false"><![CDATA[
             CREATE SEQUENCE identifier_id_seq OWNED BY identifier.id;
             ALTER TABLE identifier ALTER COLUMN id SET DEFAULT nextval('identifier_id_seq');
@@ -61,7 +61,7 @@
             ]]></sql>
     </changeSet>
 
-    <changeSet author="niis" id="010-identifiers-consolidation-006">
+    <changeSet author="niis" id="009-identifiers-consolidation-006">
         <sql>ALTER TABLE identifier RENAME CONSTRAINT identifierpk TO identifier_pkey</sql>
     </changeSet>
 
