@@ -275,10 +275,15 @@ public class StaxEventSoapParserImpl implements SoapParser {
 
         if (result.fault == null) {
             if (!foundHeader) {
+                if (!foundBody) {
+                    throw XrdRuntimeException.systemException(MISSING_BODY, MISSING_BODY_MESSAGE);
+                }
                 onMissingHeader();
                 // A subclass may permit a missing header (for example by synthesizing it into the
-                // output stream). When onMissingHeader() returns without throwing, there is no parsed
-                // header to validate further, so the result is returned as-is.
+                // output stream). The synthetic header is injected at the SOAP body start, so a body
+                // is required; we reject a body-less response above before allowing the missing header.
+                // When onMissingHeader() returns without throwing, there is no parsed header to
+                // validate further, so the result is returned as-is.
                 return result;
             }
             if (!foundBody) {

@@ -51,7 +51,9 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_BODY;
 
 @ExtendWith(MockitoExtension.class)
 class ResponseStaxSoapParserImplTest {
@@ -172,6 +174,16 @@ class ResponseStaxSoapParserImplTest {
         assertThatThrownBy(() -> new ResponseStaxSoapParserImpl(request, false)
                 .parse(MimeTypes.TEXT_XML_UTF8, asInputStream("no-header")))
                 .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void autoInjectMissingHeaderWithoutBodyStillFailsWithMissingBody() {
+        // No <Header> and no <Body>: synthesis only triggers at the SOAP body start, so with no body
+        // nothing is injected. Even with auto-inject on, the response must still be rejected (MISSING_BODY)
+        // rather than passing through as an empty message.
+        var ex = assertThrows(XrdRuntimeException.class, () -> new ResponseStaxSoapParserImpl(request, true)
+                .parse(MimeTypes.TEXT_XML_UTF8, asInputStream("no-header-no-body")));
+        assertEquals(MISSING_BODY.code(), ex.getErrorCode());
     }
 
     private void stubRequestHeader(SoapHeader header) {

@@ -33,6 +33,7 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 
 import javax.xml.namespace.QName;
@@ -58,6 +59,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER_FIELD;
 
 /**
  * Streaming SOAP parser for service responses on the server proxy.
@@ -248,6 +250,14 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
     private void writeSyntheticHeader(String soapPrefix) throws XMLStreamException {
         SoapHeader header = requestMessage.getSoap().getHeader();
 
+        // The originating request header is normally fully populated and validated, but guard the
+        // fields dereferenced below so a malformed request fails with a clear MISSING_HEADER_FIELD
+        // fault rather than a NullPointerException while synthesizing the response header.
+        requireRequestField(header.getClient(), CLIENT);
+        requireRequestField(header.getService(), SERVICE);
+        requireRequestField(header.getQueryId(), QUERY_ID);
+        requireRequestField(header.getProtocolVersion(), PROTOCOL_VERSION);
+
         List<Namespace> namespaces = new ArrayList<>();
         namespaces.add(EVENT_FACTORY.createNamespace(SYNTHETIC_PREFIX_XROAD, SoapHeader.NS_XROAD));
         namespaces.add(EVENT_FACTORY.createNamespace(SYNTHETIC_PREFIX_IDENTIFIERS, NS_IDENTIFIERS));
@@ -276,6 +286,13 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
         writer.add(EVENT_FACTORY.createCharacters(INDENT_ELEMENT));
         writer.add(EVENT_FACTORY.createEndElement(soapPrefix, SoapUtils.NS_SOAPENV, "Header"));
         writer.add(EVENT_FACTORY.createCharacters(INDENT_ELEMENT));
+    }
+
+    private static void requireRequestField(Object value, String fieldName) {
+        if (value == null) {
+            throw XrdRuntimeException.systemException(MISSING_HEADER_FIELD,
+                    "Request header field '%s' is required to synthesize the response header".formatted(fieldName));
+        }
     }
 
     private void writeClientElement(ClientId client) throws XMLStreamException {
