@@ -30,6 +30,7 @@ import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
 import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.File;
 import java.time.Duration;
 
