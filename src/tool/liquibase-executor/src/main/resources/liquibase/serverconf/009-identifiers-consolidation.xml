@@ -44,6 +44,25 @@
 
     <changeSet author="niis" id="009-identifiers-consolidation-004">
         <sql splitStatements="false"><![CDATA[
+            CREATE OR REPLACE FUNCTION set_timestamps()
+            RETURNS TRIGGER
+            LANGUAGE plpgsql
+            AS $$
+            DECLARE
+            now_ts TIMESTAMP := CURRENT_TIMESTAMP;
+            BEGIN
+                IF TG_OP = 'INSERT' THEN
+                    NEW.created_at := now_ts;
+            END IF;
+                NEW.updated_at := now_ts;
+            RETURN NEW;
+            END;
+            $$;
+            ]]></sql>
+    </changeSet>
+
+    <changeSet author="niis" id="009-identifiers-consolidation-005">
+        <sql splitStatements="false"><![CDATA[
             DROP TRIGGER IF EXISTS set_timestamps ON identifier;
             CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON identifier
                 FOR EACH ROW EXECUTE FUNCTION set_timestamps();
@@ -53,7 +72,7 @@
         <addNotNullConstraint tableName="identifier" columnName="updated_at"/>
     </changeSet>
 
-    <changeSet author="niis" id="009-identifiers-consolidation-005">
+    <changeSet author="niis" id="009-identifiers-consolidation-006">
         <sql splitStatements="false"><![CDATA[
             CREATE SEQUENCE identifier_id_seq OWNED BY identifier.id;
             ALTER TABLE identifier ALTER COLUMN id SET DEFAULT nextval('identifier_id_seq');
@@ -61,7 +80,7 @@
             ]]></sql>
     </changeSet>
 
-    <changeSet author="niis" id="009-identifiers-consolidation-006">
+    <changeSet author="niis" id="009-identifiers-consolidation-007">
         <sql>ALTER TABLE identifier RENAME CONSTRAINT identifierpk TO identifier_pkey</sql>
     </changeSet>
 
