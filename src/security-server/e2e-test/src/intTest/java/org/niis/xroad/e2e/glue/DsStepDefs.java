@@ -113,7 +113,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(consumerDid);
         String celUrl = "https://%s:%d/api/management/v5beta/celexpressions".formatted(mapping.host(), mapping.port());
-        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
+        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, CREATED_OR_MANAGED);
 
         // Create policy with constraint referencing the CEL expression
         String request = """
