@@ -50,6 +50,8 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +59,8 @@ class PolicyDefinitionServerConfStoreTest {
 
     private static final String PARTICIPANT_CTX = "xroad-provider";
     private static final String MGMT_PARTICIPANT_CTX = "xroad-provider-mgmt";
+    private static final StoreEnumerationCache<PolicyDefinition> DISABLED_CACHE =
+            new StoreEnumerationCache<>(false, 60, 1000, "test");
 
     @Mock
     private ServerConfProvider serverConfProvider;
@@ -83,7 +87,7 @@ class PolicyDefinitionServerConfStoreTest {
     void setUp() {
         store = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                noBuiltins());
+                noBuiltins(), DISABLED_CACHE);
     }
 
     private BuiltinServiceCatalog allBuiltins() {
@@ -362,7 +366,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllIncludesBuiltinPolicies() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.none()).toList();
@@ -374,7 +378,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllBuiltinPoliciesTaggedWithMgmtContext() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.none()).toList();
@@ -387,7 +391,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var hostSpec = QuerySpec.Builder.newInstance()
@@ -403,7 +407,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findByIdReturnsBuiltinPolicy() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = builtinStore.findById(builtinAssetId);
@@ -417,7 +421,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findByIdReturnsNullForUnknownBuiltinId() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
 
         var result = builtinStore.findById("DEV:GOV:1234:nonExistentService");
 
@@ -472,12 +476,86 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllBuiltinPoliciesHavePermissivePolicy() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.none()).toList();
 
         result.forEach(pol -> assertThat(pol.getPolicy()).isNotNull());
+    }
+
+    @Test
+    void findAllCacheHitServesFromCache() {
+        var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
+
+        cachedStore.findAll(QuerySpec.none()).count();
+        cachedStore.findAll(QuerySpec.none()).count();
+
+        verify(serverConfProvider, times(1)).getMembers();
+    }
+
+    @Test
+    void findAllCacheMissAfterInvalidate() {
+        var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
+
+        cachedStore.findAll(QuerySpec.none()).count();
+        cache.invalidate();
+        cachedStore.findAll(QuerySpec.none()).count();
+
+        verify(serverConfProvider, times(2)).getMembers();
+    }
+
+    @Test
+    void findByIdCacheHitServesFromCache() {
+        var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
+
+        var policyId = AssetMapper.encodeAssetId(SERVICE_1)
+                + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+        cachedStore.findById(policyId);
+        cachedStore.findById(policyId);
+
+        verify(serverConfProvider, times(1)).serviceExists(SERVICE_1);
+    }
+
+    @Test
+    void findByIdCacheDoesNotCacheNotFound() {
+        var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        var unknownService = ServiceId.Conf.create("DEV", "GOV", "0000", "None", "noSvc", "v1");
+        when(serverConfProvider.serviceExists(unknownService)).thenReturn(false);
+
+        var policyId = AssetMapper.encodeAssetId(unknownService)
+                + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+        var r1 = cachedStore.findById(policyId);
+        var r2 = cachedStore.findById(policyId);
+
+        assertThat(r1).isNull();
+        assertThat(r2).isNull();
+        verify(serverConfProvider, times(2)).serviceExists(unknownService);
     }
 
     private static AccessRight createAccessRight(ee.ria.xroad.common.identifier.XRoadId subjectId, Endpoint endpoint) {

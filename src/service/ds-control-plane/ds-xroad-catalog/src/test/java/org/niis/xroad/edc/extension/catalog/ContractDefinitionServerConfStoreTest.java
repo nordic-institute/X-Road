@@ -49,6 +49,8 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,6 +58,8 @@ class ContractDefinitionServerConfStoreTest {
 
     private static final String PARTICIPANT_CTX = "xroad-provider";
     private static final String MGMT_PARTICIPANT_CTX = "xroad-provider-mgmt";
+    private static final StoreEnumerationCache<ContractDefinition> DISABLED_CACHE =
+            new StoreEnumerationCache<>(false, 60, 1000, "test");
 
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1234", "SubSys");
     private static final ClientId.Conf MEMBER_2 = ClientId.Conf.create("DEV", "GOV", "5678", "SubSys");
@@ -82,7 +86,7 @@ class ContractDefinitionServerConfStoreTest {
     void setUp() {
         store = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                noBuiltins());
+                noBuiltins(), DISABLED_CACHE);
     }
 
     private BuiltinServiceCatalog allBuiltins() {
@@ -398,7 +402,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllIncludesBuiltinContractDefinitions() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.max()).toList();
@@ -410,7 +414,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllBuiltinsTaggedWithMgmtContext() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.max()).toList();
@@ -423,7 +427,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var hostSpec = QuerySpec.Builder.newInstance()
@@ -439,7 +443,7 @@ class ContractDefinitionServerConfStoreTest {
     void findByIdReturnsBuiltinContractDefinition() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
         var contractId = builtinAssetId + ContractDefinitionMapper.getContractDefinitionSuffix();
 
@@ -455,7 +459,7 @@ class ContractDefinitionServerConfStoreTest {
     void findByIdReturnsNullForUnknownBuiltinId() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
 
         var result = builtinStore.findById("DEV:GOV:1234:nonExistentService-contract-definition");
 
@@ -515,7 +519,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllBuiltinDefinitionsHaveAcceptAllPolicyId() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.max()).toList();
@@ -524,6 +528,79 @@ class ContractDefinitionServerConfStoreTest {
             assertThat(def.getAccessPolicyId()).isNotBlank();
             assertThat(def.getContractPolicyId()).isEqualTo(def.getAccessPolicyId());
         });
+    }
+
+    @Test
+    void findAllCacheHitServesFromCache() {
+        var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
+
+        cachedStore.findAll(QuerySpec.max()).count();
+        cachedStore.findAll(QuerySpec.max()).count();
+
+        verify(serverConfProvider, times(1)).getMembers();
+    }
+
+    @Test
+    void findAllCacheMissAfterInvalidate() {
+        var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
+
+        cachedStore.findAll(QuerySpec.max()).count();
+        cache.invalidate();
+        cachedStore.findAll(QuerySpec.max()).count();
+
+        verify(serverConfProvider, times(2)).getMembers();
+    }
+
+    @Test
+    void findByIdCacheHitServesFromCache() {
+        var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
+
+        var contractId = AssetMapper.encodeAssetId(SERVICE_1)
+                + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId()
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+        cachedStore.findById(contractId);
+        cachedStore.findById(contractId);
+
+        verify(serverConfProvider, times(1)).serviceExists(SERVICE_1);
+    }
+
+    @Test
+    void findByIdCacheDoesNotCacheNotFound() {
+        var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
+        var cachedStore = new ContractDefinitionServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                noBuiltins(), cache);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(false);
+
+        var contractId = "DEV:GOV:1234:SubSys:svc1:v1:DEV:GOV:9999:Consumer-contract-definition";
+        var r1 = cachedStore.findById(contractId);
+        var r2 = cachedStore.findById(contractId);
+
+        assertThat(r1).isNull();
+        assertThat(r2).isNull();
+        verify(serverConfProvider, times(2)).serviceExists(SERVICE_1);
     }
 
     private static AccessRight createAccessRight(XRoadId subjectId, Endpoint endpoint) {

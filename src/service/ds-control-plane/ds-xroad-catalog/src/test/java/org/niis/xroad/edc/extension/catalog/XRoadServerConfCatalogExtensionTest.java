@@ -39,6 +39,8 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +70,8 @@ class XRoadServerConfCatalogExtensionTest {
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(context.getSetting(anyString(), anyString())).thenAnswer(inv -> inv.getArgument(1));
         when(context.getSetting(anyString(), anyBoolean())).thenAnswer(inv -> inv.getArgument(1));
+        when(context.getSetting(anyString(), anyInt())).thenAnswer(inv -> inv.getArgument(1));
+        when(context.getSetting(anyString(), anyLong())).thenAnswer(inv -> inv.getArgument(1));
         extension.initialize(context);
     }
 
