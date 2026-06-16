@@ -367,11 +367,7 @@ select_proxy_memory() {
 select_messagelog() {
   # If provided via config/CLI, normalise and validate it once
   if [[ -n "$XROAD_MESSAGELOG_ENABLED" ]]; then
-    case "${XROAD_MESSAGELOG_ENABLED,,}" in
-      true|yes|1|on)   XROAD_MESSAGELOG_ENABLED="true" ;;
-      false|no|0|off)  XROAD_MESSAGELOG_ENABLED="false" ;;
-      *) log_die "Invalid value for XROAD_MESSAGELOG_ENABLED: '$XROAD_MESSAGELOG_ENABLED' (expected true/false)" ;;
-    esac
+    normalize_bool XROAD_MESSAGELOG_ENABLED
     log_info "Message log enabled: $XROAD_MESSAGELOG_ENABLED"
     return
   fi

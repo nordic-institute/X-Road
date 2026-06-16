@@ -24,14 +24,14 @@ main() {
   # Check if running as root
   require_root
 
-  # Normalise the requested value
-  case "${XROAD_MESSAGELOG_ENABLED,,}" in
-    true|yes|1|on)   XROAD_MESSAGELOG_ENABLED="true" ;;
-    false|no|0|off)  XROAD_MESSAGELOG_ENABLED="false" ;;
-    *) log_die "Invalid value for XROAD_MESSAGELOG_ENABLED: '$XROAD_MESSAGELOG_ENABLED' (expected true/false)" ;;
-  esac
+  # Normalise the requested value (safe to call when already normalised)
+  normalize_bool XROAD_MESSAGELOG_ENABLED
 
-  # Ensure the configuration directory exists
+  if [[ ! -x "$YAML_HELPER" ]]; then
+    log_die "YAML helper not found or not executable: $YAML_HELPER"
+  fi
+
+  # Ensure the configuration directory exists (the xroad package is not installed yet)
   local conf_dir
   conf_dir=$(dirname "$CONFIG_FILE")
   if [[ ! -d "$conf_dir" ]]; then
@@ -41,12 +41,6 @@ main() {
 
   log_message "Setting $PROPERTY = $XROAD_MESSAGELOG_ENABLED"
   "$YAML_HELPER" set "$CONFIG_FILE" "$PROPERTY" "$XROAD_MESSAGELOG_ENABLED"
-
-  if [[ "$XROAD_MESSAGELOG_ENABLED" == "true" ]]; then
-    log_info "Message log enabled"
-  else
-    log_warn "Message log disabled"
-  fi
 
   log_message ""
   log_message "================================"
