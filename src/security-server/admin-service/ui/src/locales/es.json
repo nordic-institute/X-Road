@@ -453,6 +453,7 @@
     "service_not_found": "servicio no encontrado",
     "sign_cert_not_supported": "El certificado de firma no es compatible",
     "software_token_init_failed": "Error al inicializar el token de software",
+    "ssl_authentication_failed": "La autenticación SSL falló",
     "timestamping_service_already_configured": "El servicio de marca de tiempo ya está configurado",
     "timestamping_service_not_found": "Servicio de marca de tiempo no encontrado",
     "token": {
