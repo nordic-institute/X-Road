@@ -17,6 +17,8 @@ dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":lib:globalconf-impl"))
   implementation(libs.nimbus.jose.jwt)
+  implementation(libs.edc.core.jetty)
+  implementation(libs.jetty.server)
 
   constraints {
     implementation(libs.jakarta.validationApi)
