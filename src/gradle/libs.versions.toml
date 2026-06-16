@@ -12,24 +12,26 @@ hibernate = "7.1.4.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.4"
 mockito = "5.21.0"
-springBoot = "3.5.6"
+springBoot = "3.5.12"
 junitJupiter = "6.0.2"
 junitPlatform = "6.0.2"
 xmlUnit = "2.11.0"
-bouncyCastle = "1.83"
+bouncyCastle = "1.84"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.21"
-selenide="7.13.0"
+testcontainers = "1.21.4"
+selenide="7.16.1"
 protoc = "4.32.1"
 grpc = "1.76.0"
 swaggerParser = "2.1.37"
-logback = "1.5.24"
-logbackAccess = "2.0.7"
+logback = "1.5.27"
+logbackAccess = "2.0.9"
 apacheCxf = "4.1.4"
 archUnitPlugin = "4.0.0"
 checkstyle = "11.0.1"
 jacoco = "0.8.12"
 owaspDependencyCheck = "12.2.2"
+tomcat = "10.1.55"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -75,6 +77,7 @@ julOverSlf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j" }
 testAutomation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
 testAutomation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }
 testAutomation-containers = { module = "com.nortal.test:test-automation-containers", version.ref = "testAutomationFramework" }
+testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testAutomation-feign = { module = "com.nortal.test:test-automation-feign", version.ref = "testAutomationFramework" }
 testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
@@ -134,9 +137,13 @@ lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding"
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
+tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
+tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcat" }
+tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "tomcat" }
+
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.7" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.11" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "5.0.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
@@ -160,7 +167,7 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.20.1" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.28.1" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }

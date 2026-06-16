@@ -504,6 +504,7 @@
     "service_not_found": "teenust ei leitud",
     "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",
     "software_token_init_failed": "Tarkvaralise krüptomooduli lähtestamine ebaõnnestus",
+    "ssl_authentication_failed": "SSL-i autentimine ebaõnnestus",
     "timestamping_service_already_configured": "Ajatempli teenus on juba konfigureeritud",
     "timestamping_service_not_found": "Ajatempli teenust ei leitud",
     "token": {

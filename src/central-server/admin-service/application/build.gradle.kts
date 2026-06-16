@@ -29,6 +29,12 @@ dependencies {
   implementation(project(":common:common-db"))
   implementation(libs.logback.classic)
 
+  constraints {
+    implementation(libs.tomcat.embed.core)
+    implementation(libs.tomcat.embed.websocket)
+    implementation(libs.tomcat.embed.el)
+  }
+
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":common:common-api-throttling")))
   testImplementation("org.springframework.boot:spring-boot-starter-test")

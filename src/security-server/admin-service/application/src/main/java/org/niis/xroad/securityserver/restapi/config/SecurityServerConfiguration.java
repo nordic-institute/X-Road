@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
-import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -38,10 +37,15 @@ import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -56,16 +60,36 @@ import static org.niis.xroad.securityserver.restapi.service.CertificateAuthority
 @Configuration
 public class SecurityServerConfiguration {
 
+    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
+
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
     }
 
     @Bean
-    @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3)
+    @Conditional(RateLimitEnabledCondition.class)
     @Profile("nontest")
-    public Filter ipThrottlingFilter(AdminServiceProperties properties) {
-        return new IpThrottlingFilter(properties);
+    public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(AdminServiceProperties properties) {
+        var filter = new IpThrottlingFilter(properties);
+        var bean = new FilterRegistrationBean<>(filter);
+        bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        return bean;
+    }
+
+    static class RateLimitEnabledCondition implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            var env = context.getEnvironment();
+            boolean enabled = env.getProperty("xroad.proxy-ui-api.rate-limit-enabled", Boolean.class, true);
+            if (!enabled) {
+                return false;
+            }
+            int perSecond = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-second", Integer.class, 0);
+            int perMinute = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-minute", Integer.class, 0);
+            return perSecond > 0 || perMinute > 0;
+        }
     }
 
     @Bean

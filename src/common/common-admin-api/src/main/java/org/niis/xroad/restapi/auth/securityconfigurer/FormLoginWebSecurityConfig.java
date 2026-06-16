@@ -99,7 +99,7 @@ public class FormLoginWebSecurityConfig {
                         .ignoringRequestMatchers(LOGIN_URL)
                         .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite))
                 )
-                .headers(headerPolicyDirectives("default-src 'self'"))
+                .headers(headerPolicyDirectives("default-src 'self'; frame-ancestors 'none'; form-action 'self'"))
                 .formLogin(customizer -> customizer
                         .loginPage(LOGIN_URL)
                         .successHandler(formLoginStatusCodeSuccessHandler())
