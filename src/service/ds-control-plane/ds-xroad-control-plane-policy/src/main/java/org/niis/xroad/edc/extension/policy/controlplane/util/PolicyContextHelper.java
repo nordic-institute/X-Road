@@ -64,8 +64,8 @@ public class PolicyContextHelper {
         log.debug("findMemberIdFromContext: identity={} attributes={} instance={} class={} code={}",
                 participantAgent.getIdentity(), attributes.keySet(), xroadInstance, memberClass, memberCode);
         if (isBlank(xroadInstance) || isBlank(memberClass) || isBlank(memberCode)) {
-            throw new IllegalStateException("Invalid member identifier: instance=" + xroadInstance
-                    + ", memberClass=" + memberClass + ", memberCode=" + memberCode);
+            log.debug("findMemberIdFromContext: no X-Road membership attributes present, returning empty");
+            return Optional.empty();
         }
         return Optional.of(ClientId.Conf.create(xroadInstance, memberClass, memberCode));
     }

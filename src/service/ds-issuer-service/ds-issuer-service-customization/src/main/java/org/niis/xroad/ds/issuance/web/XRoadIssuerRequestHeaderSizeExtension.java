@@ -56,7 +56,7 @@ public class XRoadIssuerRequestHeaderSizeExtension implements ServiceExtension {
             description = "Maximum Jetty request header size in bytes for the issuer service connectors, sized to fit "
                     + "the X-Road membership claim (sign certificate + pinned OCSP) carried as a bearer token in DCP "
                     + "credential requests.",
-            defaultValue = "16384")
+            defaultValue = "32768")
     private int maxRequestHeaderSize;
 
     @Inject

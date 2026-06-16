@@ -85,7 +85,7 @@ public class SelenideConfiguration {
         // internal IP (se:cdp ws://<container-ip>:4444), unreachable from the host, so CDP
         // downloads fail with "JdkWebSocket initial request execution error". Grid downloads
         // are already enabled via ChromeOptions.setEnableDownloads(true) above.
-        Configuration.fileDownload = FileDownloadMode.FOLDER;
+        Configuration.fileDownload = FileDownloadMode.CDP;
         Configuration.webdriverLogsEnabled = selenideProperties.webdriverLogsEnabled();
         Configuration.headless = selenideProperties.headless();
 
