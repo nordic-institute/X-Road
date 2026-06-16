@@ -25,28 +25,39 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.bridge;
+package org.niis.xroad.ds.issuance.web;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 
-/**
- * Raises the Jetty request header size for all EDC web connectors. The DCP credential-request
- * carries the X-Road membership claim as a bearer token whose size exceeds Jetty's 8 KB default,
- * which the issuer otherwise rejects with HTTP 431. EDC's {@code JettyService} does not expose the
- * header size as configuration, so it is set through the connector configuration callback before
- * the connectors start.
- */
-@Extension(XRoadJettyRequestHeaderSizeExtension.NAME)
-public class XRoadJettyRequestHeaderSizeExtension implements ServiceExtension {
+import static org.niis.xroad.ds.issuance.web.XRoadIssuerRequestHeaderSizeExtension.NAME;
 
-    static final String NAME = "X-Road Jetty request header size";
-    private static final int MAX_REQUEST_HEADER_SIZE = 65536;
+/**
+ * Raises the Jetty request header size for the issuer service's web connectors. The DCP credential
+ * request carries the X-Road membership claim as a bearer token embedding the sign certificate and a
+ * pinned OCSP response, which exceeds Jetty's 8 KB default; the issuer would otherwise reject the
+ * request with HTTP 431. The issuer service is the only X-Road dataspace component that receives this
+ * claim, so the override is scoped to the issuer rather than applied to every EDC connector. EDC's
+ * {@code JettyService} does not expose the header size as configuration, so it is set through the
+ * connector configuration callback before the connectors start.
+ */
+@Extension(NAME)
+public class XRoadIssuerRequestHeaderSizeExtension implements ServiceExtension {
+
+    static final String NAME = "X-Road issuer request header size";
+
+    @Setting(key = "xroad.issuer.web.max-request-header-size",
+            description = "Maximum Jetty request header size in bytes for the issuer service connectors, sized to fit "
+                    + "the X-Road membership claim (sign certificate + pinned OCSP) carried as a bearer token in DCP "
+                    + "credential requests.",
+            defaultValue = "32768")
+    private int maxRequestHeaderSize;
 
     @Inject
     private WebServer webServer;
@@ -62,7 +73,7 @@ public class XRoadJettyRequestHeaderSizeExtension implements ServiceExtension {
             jettyService.addConnectorConfigurationCallback(connector -> connector.getConnectionFactories().stream()
                     .filter(HttpConnectionFactory.class::isInstance)
                     .map(HttpConnectionFactory.class::cast)
-                    .forEach(factory -> factory.getHttpConfiguration().setRequestHeaderSize(MAX_REQUEST_HEADER_SIZE)));
+                    .forEach(factory -> factory.getHttpConfiguration().setRequestHeaderSize(maxRequestHeaderSize)));
         } else {
             context.getMonitor().warning("WebServer is not a JettyService; request header size not raised");
         }

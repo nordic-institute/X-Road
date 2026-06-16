@@ -115,8 +115,18 @@ public class IssuerServiceStepDefs extends BaseStepDefs {
                             "required": "true"
                         },
                         {
-                            "input": "xrdMemberIdentifier",
-                            "output": "credentialSubject.xrdMemberIdentifier",
+                            "input": "xroadInstance",
+                            "output": "credentialSubject.xroadInstance",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberClass",
+                            "output": "credentialSubject.memberClass",
+                            "required": "true"
+                        },
+                        {
+                            "input": "memberCode",
+                            "output": "credentialSubject.memberCode",
                             "required": "true"
                         }
                     ],

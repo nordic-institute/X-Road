@@ -41,8 +41,9 @@ import static org.niis.xroad.edc.extension.policy.controlplane.participantagent.
  *
  * <p>On {@link #initialize}, the {@link XRoadMemberIdAttributes} instance is registered so that
  * EDC's {@code ParticipantAgentServiceImpl} invokes it on every authenticated DSP request,
- * merging the returned {@code xrd:memberIdentifier} attribute into the {@code ParticipantAgent}
- * that X-Road constraint functions subsequently read.
+ * merging the returned X-Road member attributes ({@code xrd:xroadInstance}, {@code xrd:memberClass},
+ * {@code xrd:memberCode}) into the {@code ParticipantAgent} that X-Road constraint functions
+ * subsequently read.
  */
 @Extension(value = EXTENSION_NAME)
 public class XRoadParticipantAgentExtension implements ServiceExtension {

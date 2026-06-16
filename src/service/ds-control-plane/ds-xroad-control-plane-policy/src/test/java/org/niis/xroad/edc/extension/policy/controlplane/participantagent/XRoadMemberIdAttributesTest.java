@@ -37,7 +37,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_MEMBER_IDENTIFIER_ATTRIBUTE;
+import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_INSTANCE_ATTRIBUTE;
+import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_MEMBER_CLASS_ATTRIBUTE;
+import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_MEMBER_CODE_ATTRIBUTE;
 
 class XRoadMemberIdAttributesTest {
 
@@ -49,18 +51,40 @@ class XRoadMemberIdAttributesTest {
     }
 
     @Test
-    void attributesForReturnsIdentifierWhenMembershipCredentialPresentWithClaim() {
-        var token = buildTokenWithMembershipVc("CS:ORG:1234");
+    void attributesForReturnsIdentifierWhenXRoadMembershipCredentialPresentWithClaim() {
+        var token = buildTokenWithMembershipVc("CS", "ORG", "1234");
 
         var result = sut.attributesFor(token);
 
-        assertThat(result).containsEntry(XRD_MEMBER_IDENTIFIER_ATTRIBUTE, "CS:ORG:1234");
+        assertThat(result)
+                .containsEntry(XRD_INSTANCE_ATTRIBUTE, "CS")
+                .containsEntry(XRD_MEMBER_CLASS_ATTRIBUTE, "ORG")
+                .containsEntry(XRD_MEMBER_CODE_ATTRIBUTE, "1234");
     }
 
     @Test
-    void attributesForReturnsEmptyMapWhenMembershipCredentialHasNoClaim() {
-        // CredentialSubject must have at least one claim; use an unrelated claim to simulate
-        // a VC that lacks xrdMemberIdentifier specifically.
+    void attributesForReturnsEmptyMapWhenMemberFieldIsMissing() {
+        var subject = CredentialSubject.Builder.newInstance()
+                .claim(XRoadMemberIdAttributes.XROAD_INSTANCE_CLAIM, "CS")
+                .claim(XRoadMemberIdAttributes.MEMBER_CLASS_CLAIM, "ORG")
+                .build();
+        var vc = VerifiableCredential.Builder.newInstance()
+                .type(XRoadMemberIdAttributes.MEMBERSHIP_CREDENTIAL_TYPE)
+                .issuer(new Issuer("did:web:test-issuer"))
+                .issuanceDate(java.time.Instant.now())
+                .credentialSubject(subject)
+                .build();
+        var token = ClaimToken.Builder.newInstance()
+                .claim("vc", List.of(vc))
+                .build();
+
+        var result = sut.attributesFor(token);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void attributesForReturnsEmptyMapWhenXRoadMembershipCredentialHasNoClaim() {
         var subject = CredentialSubject.Builder.newInstance()
                 .claim("membershipType", "X-Road")
                 .build();
@@ -89,9 +113,11 @@ class XRoadMemberIdAttributesTest {
     }
 
     @Test
-    void attributesForReturnsEmptyMapWhenVcListContainsNoMembershipCredential() {
+    void attributesForReturnsEmptyMapWhenVcListContainsNoXRoadMembershipCredential() {
         var subject = CredentialSubject.Builder.newInstance()
-                .claim("xrdMemberIdentifier", "CS:ORG:1234")
+                .claim(XRoadMemberIdAttributes.XROAD_INSTANCE_CLAIM, "CS")
+                .claim(XRoadMemberIdAttributes.MEMBER_CLASS_CLAIM, "ORG")
+                .claim(XRoadMemberIdAttributes.MEMBER_CODE_CLAIM, "1234")
                 .build();
         var vc = VerifiableCredential.Builder.newInstance()
                 .type("SomeOtherCredential")
@@ -108,9 +134,11 @@ class XRoadMemberIdAttributesTest {
         assertThat(result).isEmpty();
     }
 
-    private ClaimToken buildTokenWithMembershipVc(String memberIdentifier) {
+    private ClaimToken buildTokenWithMembershipVc(String xroadInstance, String memberClass, String memberCode) {
         var subject = CredentialSubject.Builder.newInstance()
-                .claim(XRoadMemberIdAttributes.XRD_MEMBER_IDENTIFIER_CLAIM, memberIdentifier)
+                .claim(XRoadMemberIdAttributes.XROAD_INSTANCE_CLAIM, xroadInstance)
+                .claim(XRoadMemberIdAttributes.MEMBER_CLASS_CLAIM, memberClass)
+                .claim(XRoadMemberIdAttributes.MEMBER_CODE_CLAIM, memberCode)
                 .build();
         var vc = VerifiableCredential.Builder.newInstance()
                 .type(XRoadMemberIdAttributes.MEMBERSHIP_CREDENTIAL_TYPE)

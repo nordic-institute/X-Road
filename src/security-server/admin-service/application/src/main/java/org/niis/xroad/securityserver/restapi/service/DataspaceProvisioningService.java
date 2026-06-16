@@ -72,7 +72,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
  *
  * <p>For each participant context (the host context, plus the MANAGEMENT context when enabled) the service
  * creates the IdentityHub participant context, the Control Plane participant context and its STS-bound config,
- * then requests the MembershipCredential. The creates are idempotent (re-runs tolerate conflicts) and the
+ * then requests the XRoadMembershipCredential. The creates are idempotent (re-runs tolerate conflicts) and the
  * credential is the success gate.</p>
  *
  * <p>The IdentityHub credential request reaches a terminal {@code ERROR} state when its prerequisites
@@ -92,7 +92,7 @@ public class DataspaceProvisioningService {
     private static final String BEARER = "Bearer ";
     private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
-    private static final String CREDENTIAL_TYPE = "MembershipCredential";
+    private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
     private static final int DID_PORT = 7183;
     private static final int STS_PORT = 7184;
     private static final int CREDENTIAL_PORT = 7185;

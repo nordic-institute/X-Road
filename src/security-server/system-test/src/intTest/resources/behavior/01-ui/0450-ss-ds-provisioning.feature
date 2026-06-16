@@ -10,7 +10,7 @@ Feature: 0450 - SS: Data space provisioning
   Scenario: Issuer Service is provisioned
     Given Issuer Service participant context "issuer" with DID "did:web:ds-issuer-service%3A6183:issuer" is initialized and keypair is generated with private key alias "issuer-key"
     And Attestation definition "xroad-membership-attestation-definition" of type "holder" is created in issuer service participant "issuer"
-    And Credential definition "xroad-membership-credential-definition" of type "MembershipCredential" with format "VC1_0_JWT" is created in issuer service participant "issuer" with attestation "xroad-membership-attestation-definition"
+    And Credential definition "xroad-membership-credential-definition" of type "XRoadMembershipCredential" with format "VC1_0_JWT" is created in issuer service participant "issuer" with attestation "xroad-membership-attestation-definition"
 
   Scenario: Identity Hub and Control Plane are provisioned and membership credential is issued
     When Data space provisioning is requested on the security server
