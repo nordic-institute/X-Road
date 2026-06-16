@@ -281,16 +281,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     public void transferProcessIsCompleted(String processState, String participantContext, String consumerEnv) {
         String url = getControlPlaneBaseUrl(consumerEnv)
                 + "/%s/transferprocesses/%s".formatted(participantContext, transferProcessId);
-
-        await().atMost(POLL_TIMEOUT)
-                .pollInterval(POLL_INTERVAL)
-                .untilAsserted(() -> {
-                    var response = doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK);
-                    Map<String, Object> body = response.extract().body().as(Map.class);
-                    assertEquals(processState, body.get("state"));
-                });
-        testReportService.attachJson("Transfer Process",
-                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
+        awaitResourceState(url, participantContext, processState, "Transfer Process");
     }
 
     @Step("Credential for X-Road member {string} is revoked at the issuer on {string}")
@@ -305,16 +296,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     public void contractNegotiationReachesTerminalState(String state, String participantContext, String consumerEnv) {
         String url = getControlPlaneBaseUrl(consumerEnv)
                 + "/%s/contractnegotiations/%s".formatted(participantContext, negotiationId);
-
-        await().atMost(POLL_TIMEOUT)
-                .pollInterval(POLL_INTERVAL)
-                .untilAsserted(() -> {
-                    var response = doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK);
-                    Map<String, Object> body = response.extract().body().as(Map.class);
-                    assertEquals(state, body.get("state"));
-                });
-        testReportService.attachJson("Contract Negotiation",
-                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
+        awaitResourceState(url, participantContext, state, "Contract Negotiation");
     }
 
     @Step("Asset access response is retrieved on {string}")
@@ -408,6 +390,18 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private String getControlPlaneBaseUrl(String env) {
         var mapping = envSetup.getContainerMapping(env, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         return MGMT_BASE_URL.formatted(mapping.host(), mapping.port());
+    }
+
+    private void awaitResourceState(String url, String participantContext, String expectedState, String reportName) {
+        await().atMost(POLL_TIMEOUT)
+                .pollInterval(POLL_INTERVAL)
+                .untilAsserted(() -> {
+                    var response = doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK);
+                    Map<String, Object> body = response.extract().body().as(Map.class);
+                    assertEquals(expectedState, body.get("state"));
+                });
+        testReportService.attachJson(reportName,
+                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
     }
 
     private String issuerCredentialsBaseUrl(String issuerEnv) {
