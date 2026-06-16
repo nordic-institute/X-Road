@@ -32,8 +32,12 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,6 +47,7 @@ import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,11 +61,27 @@ class StoreCacheBenchmarkTest {
 
     private static final int WARMUP = 50;
     private static final int K = 200;
+    private static final Logger CATALOG_LOGGER =
+            (Logger) LoggerFactory.getLogger("org.niis.xroad.edc.extension.catalog");
+    private static Level originalLevel;
 
     @Mock
     private GlobalConfProvider globalConfProvider;
 
+    @BeforeAll
+    static void silenceCatalogLogging() {
+        originalLevel = CATALOG_LOGGER.getLevel();
+        CATALOG_LOGGER.setLevel(Level.WARN);
+    }
+
+    @AfterAll
+    static void restoreCatalogLogging() {
+        CATALOG_LOGGER.setLevel(originalLevel);
+    }
+
     @Test
+    @SuppressWarnings("java:S2699")
+        // Add at least one assertion to this test case
     void benchmarkCatalogAndFindById() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
 
