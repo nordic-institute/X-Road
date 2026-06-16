@@ -11,14 +11,17 @@
     "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/ui-audit-ci.json"
   },
   "pnpm": {
+    "minimumReleaseAge": 4320,
     "overrides": {
       "@isaacs/brace-expansion": "5.0.1",
-      "axios": "~1.13.5",
+      "axios": "~1.16.0",
       "defu": "6.1.5",
+      "fast-uri": "^3.1.2",
       "flatted": "3.4.2",
       "glob": "^11.1.0",
       "handlebars": "4.7.9",
       "immutable": "5.1.5",
+      "js-cookie": "^3.0.7",
       "lodash": "4.18.0",
       "minimatch": "^10.2.3",
       "picomatch": "4.0.4",
@@ -51,7 +54,7 @@
     "typescript": "~5.9.3",
     "vite": "^7.3.2",
     "vite-plugin-vuetify": "^2.1.3",
-    "vitest": "^4.0.18",
+    "vitest": "^4.1.6",
     "vue-eslint-parser": "^10.2.0",
     "vue-i18n": "^11.2.8",
     "vue-tsc": "^3.2.4"

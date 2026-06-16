@@ -30,6 +30,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import io.grpc.Channel;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -87,11 +89,23 @@ public class OpMonitorClient {
                     ctx.getOpMonitorServiceBlockingStub().getOperationalDataIntervals(reqBuilder.build()));
 
             return response.getOperationalDataIntervalList().stream().map(OperationalDataInterval::new).toList();
+        } catch (XrdRuntimeException e) {
+            throw toOpMonitorOriginIfNetworkError(e);
         } catch (Exception e) {
             throw XrdRuntimeException.systemInternalError(
                     "Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
                     Instant.ofEpochMilli(recordsTo)), e);
         }
+    }
+
+    private XrdRuntimeException toOpMonitorOriginIfNetworkError(XrdRuntimeException e) {
+        if (e.isCausedBy(ErrorCode.NETWORK_ERROR)) {
+            return XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR)
+                    .origin(ErrorOrigin.OP_MONITOR)
+                    .details(e.getDetails())
+                    .build();
+        }
+        return e;
     }
 
 

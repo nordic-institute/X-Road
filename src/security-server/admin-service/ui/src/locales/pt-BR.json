@@ -504,6 +504,7 @@
     "service_not_found": "Serviço não encontrado",
     "sign_cert_not_supported": "Certificado de assinatura não suportado",
     "software_token_init_failed": "Falha ao inicializar o token de software",
+    "ssl_authentication_failed": "Falha na autenticação SSL",
     "timestamping_service_already_configured": "Serviço de carimbo de tempo já configurado",
     "timestamping_service_not_found": "Serviço de carimbo de tempo não encontrado",
     "token": {

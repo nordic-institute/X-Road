@@ -84,7 +84,7 @@ public class ApiWebSecurityConfig {
                         .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite)))
                 )
                 .anonymous(AbstractHttpConfigurer::disable)
-                .headers(headerPolicyDirectives("default-src 'none'"))
+                .headers(headerPolicyDirectives("default-src 'none'; frame-ancestors 'none'"))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .build();
     }

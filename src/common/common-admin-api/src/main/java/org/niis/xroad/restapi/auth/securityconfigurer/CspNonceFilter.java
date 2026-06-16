@@ -99,7 +99,9 @@ public class CspNonceFilter implements Filter {
                 + "script-src 'self' 'nonce-" + nonce + "'; "
                 + "img-src data: 'self'; "
                 + "font-src data: 'self'; "
-                + "connect-src 'self';";
+                + "connect-src 'self'; "
+                + "frame-ancestors 'none'; "
+                + "form-action 'self'; ";
     }
 
     private String generateNonce() {

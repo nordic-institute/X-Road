@@ -161,6 +161,9 @@
     "backup_generation_failed": "Не удалось создать резервную копию",
     "backup_restore_interrupted": "Восстановление резервной копии прервано",
     "core": {
+      "op_monitor": {
+        "network_error": "Ошибка сети: мониторинг операционных данных недоступен"
+      },
       "signer": {
         "cert_not_found": "Сертификация не найдена",
         "key_not_found": "Ключ не найден",
