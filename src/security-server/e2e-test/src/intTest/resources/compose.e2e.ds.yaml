@@ -103,7 +103,7 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       - EDC_DSP_CALLBACK_ADDRESS=https://${ENV_PREFIX:-}ds-control-plane:8183/api/dsp/%s
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-      - EDC_IAM_CREDENTIAL_REVOCATION_CACHE_VALIDITY=1000
+      - EDC_IAM_CREDENTIAL_REVOCATION_CACHE_VALIDITY=1
       - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf

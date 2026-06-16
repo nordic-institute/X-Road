@@ -419,12 +419,25 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private String findIssuedCredentialId(String credentialsBaseUrl, String memberId) {
         var response = sendRequest(POST, credentialsBaseUrl + "/query", IssuerAuthTokens.PARTICIPANT, "{}", HttpStatus.SC_OK);
         List<Map<String, Object>> resources = response.extract().body().as(List.class);
-        var mapper = JsonMapper.builder().build();
         return resources.stream()
-                .filter(resource -> mapper.writeValueAsString(resource).contains(memberId))
+                .filter(resource -> hasMemberIdentifier(resource, memberId))
                 .map(resource -> (String) resource.get("id"))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean hasMemberIdentifier(Map<String, Object> resource, String memberId) {
+        if (!(resource.get("credential") instanceof Map<?, ?> credential)) {
+            return false;
+        }
+        Object subjectObj = ((Map<String, Object>) credential).get("credentialSubject");
+        List<Map<String, Object>> subjects = switch (subjectObj) {
+            case List<?> list -> (List<Map<String, Object>>) list;
+            case Map<?, ?> single -> List.of((Map<String, Object>) single);
+            case null, default -> List.of();
+        };
+        return subjects.stream().anyMatch(subject -> memberId.equals(subject.get("xrdMemberIdentifier")));
     }
 
     @SuppressWarnings("unchecked")
