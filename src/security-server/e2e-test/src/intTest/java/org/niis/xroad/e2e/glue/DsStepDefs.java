@@ -55,6 +55,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private static final String MGMT_BASE_URL = "https://%s:%d/api/management/v5beta/participants";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
+    private static final int MEMBER_ID_PART_COUNT = 3;
 
     private String offerId;
     private String targetAssetId;
@@ -113,7 +114,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(consumerDid);
         String celUrl = "https://%s:%d/api/management/v5beta/celexpressions".formatted(mapping.host(), mapping.port());
-        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
+        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, CREATED_OR_MANAGED);
 
         // Create policy with constraint referencing the CEL expression
         String request = """
@@ -281,16 +282,22 @@ public class DsStepDefs extends BaseE2EStepDefs {
     public void transferProcessIsCompleted(String processState, String participantContext, String consumerEnv) {
         String url = getControlPlaneBaseUrl(consumerEnv)
                 + "/%s/transferprocesses/%s".formatted(participantContext, transferProcessId);
+        awaitResourceState(url, participantContext, processState, "Transfer Process");
+    }
 
-        await().atMost(POLL_TIMEOUT)
-                .pollInterval(POLL_INTERVAL)
-                .untilAsserted(() -> {
-                    var response = doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK);
-                    Map<String, Object> body = response.extract().body().as(Map.class);
-                    assertEquals(processState, body.get("state"));
-                });
-        testReportService.attachJson("Transfer Process",
-                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
+    @Step("Credential for X-Road member {string} is revoked at the issuer on {string}")
+    public void credentialForMemberIsRevoked(String memberId, String issuerEnv) {
+        String base = issuerCredentialsBaseUrl(issuerEnv);
+        String credentialId = findIssuedCredentialId(base, memberId);
+        assertNotNull(credentialId, "Issuer should hold an issued credential for member " + memberId);
+        sendRequest(POST, base + "/%s/revoke".formatted(credentialId), IssuerAuthTokens.PARTICIPANT, "", REVOKE_ACCEPTED);
+    }
+
+    @Step("Contract negotiation reaches terminal state {string} using participant context {string} on {string}")
+    public void contractNegotiationReachesTerminalState(String state, String participantContext, String consumerEnv) {
+        String url = getControlPlaneBaseUrl(consumerEnv)
+                + "/%s/contractnegotiations/%s".formatted(participantContext, negotiationId);
+        awaitResourceState(url, participantContext, state, "Contract Negotiation");
     }
 
     @Step("Asset access response is retrieved on {string}")
@@ -344,6 +351,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
     // so a create returns either 200 (created) or 409 (already managed).
     private static final Matcher<Integer> CREATED_OR_MANAGED = anyOf(is(HttpStatus.SC_OK), is(HttpStatus.SC_CONFLICT));
 
+    // Issuer revoke returns 204 (No Content) on success; tolerate 200 across EDC patch versions.
+    private static final Matcher<Integer> REVOKE_ACCEPTED = anyOf(is(HttpStatus.SC_OK), is(HttpStatus.SC_NO_CONTENT));
+
     private ValidatableResponse sendRequest(Method method, String url, String token, String body, Matcher<Integer> statusMatcher) {
         testReportService.attachJson(method + " " + url, body);
         var response = given()
@@ -381,6 +391,55 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private String getControlPlaneBaseUrl(String env) {
         var mapping = envSetup.getContainerMapping(env, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         return MGMT_BASE_URL.formatted(mapping.host(), mapping.port());
+    }
+
+    private void awaitResourceState(String url, String participantContext, String expectedState, String reportName) {
+        await().atMost(POLL_TIMEOUT)
+                .pollInterval(POLL_INTERVAL)
+                .untilAsserted(() -> {
+                    var response = doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK);
+                    Map<String, Object> body = response.extract().body().as(Map.class);
+                    assertEquals(expectedState, body.get("state"));
+                });
+        testReportService.attachJson(reportName,
+                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
+    }
+
+    private String issuerCredentialsBaseUrl(String issuerEnv) {
+        var mapping = envSetup.getContainerMapping(issuerEnv, EnvSetup.DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
+        return "https://%s:%d/api/admin/v1alpha/participants/issuer/credentials".formatted(mapping.host(), mapping.port());
+    }
+
+    @SuppressWarnings("unchecked")
+    private String findIssuedCredentialId(String credentialsBaseUrl, String memberId) {
+        var response = sendRequest(POST, credentialsBaseUrl + "/query", IssuerAuthTokens.PARTICIPANT, "{}", HttpStatus.SC_OK);
+        List<Map<String, Object>> resources = response.extract().body().as(List.class);
+        return resources.stream()
+                .filter(resource -> hasMemberIdentifier(resource, memberId))
+                .map(resource -> (String) resource.get("id"))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean hasMemberIdentifier(Map<String, Object> resource, String memberId) {
+        if (!(resource.get("credential") instanceof Map<?, ?> credential)) {
+            return false;
+        }
+        Object subjectObj = ((Map<String, Object>) credential).get("credentialSubject");
+        List<Map<String, Object>> subjects = switch (subjectObj) {
+            case List<?> list -> (List<Map<String, Object>>) list;
+            case Map<?, ?> single -> List.of((Map<String, Object>) single);
+            case null, default -> List.of();
+        };
+        var parts = memberId.split(":");
+        if (parts.length != MEMBER_ID_PART_COUNT) {
+            return false;
+        }
+        return subjects.stream().anyMatch(subject ->
+                parts[0].equals(subject.get("xroadInstance"))
+                        && parts[1].equals(subject.get("memberClass"))
+                        && parts[2].equals(subject.get("memberCode")));
     }
 
     @SuppressWarnings("unchecked")
@@ -452,6 +511,20 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 default -> throw new IllegalArgumentException("No participant token for context: " + participantContext);
             };
         }
+    }
+
+    // Issuer admin API token: participant role bound to the "issuer" participant context
+    // (scope: issuer-admin-api:write issuer-admin-api:read), signed by mock-jwks-server.
+    // Credential management endpoints require the participant-scoped token, not the provisioner one.
+    static class IssuerAuthTokens {
+        static final String PARTICIPANT = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YT"
+                + "c0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZD"
+                + "M1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOi"
+                + "Jpc3N1ZXIiLCJzY29wZSI6Imlzc3Vlci1hZG1pbi1hcGk6d3JpdGUgaXNzdWVyLWFkbWluLWFwaTpyZWFkIn0.dwRKoVpIwSO0DKX6YD"
+                + "QDVT-9ssYH4L93Iaea9PA4QISUIZZwvF-UvYPzvNHJ3VpJOQgSK35h-dMxbQ3aEdCs7dAV-3i0DKH4k1TNtV1ObDFcHIJ3d9Rl21Ob-U"
+                + "2K7Gj1zy9qDRE6_hh32Gc6xiXKWicy4wQkzN6Lsi1yyayLJlCHiCjPDrjneYl81c2lRrSJ2tsN6XYPvNE7ctjAnk9ubCu8j7od7XTGNp"
+                + "fcwblsr2PX1W6Il-vtCh8hWyZgOxn-NN4FU8Q6rHVMQ7bwaLXbw93mz3A4jvu_i3ID6PLnRGkWZEt3QiHIBwPUzCJ8PWgDem-BO7ck6G"
+                + "qvYvH64m1bYw";
     }
 
 }
