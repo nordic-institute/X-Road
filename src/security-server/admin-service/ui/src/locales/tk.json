@@ -439,6 +439,7 @@
     "sign_cert_not_supported": "Gol çekme şagadatnamasy goldanmaýar",
     "signer_not_reachable": "Gol çekiji şu wagt elýeterli däl. Has giňişleýin maglumat üçin gol çekijileriň loglaryna serediň.",
     "software_token_init_failed": "Programma tokeniň işe taýýar däl.",
+    "ssl_authentication_failed": "SSL hakykyyga barlap bolmady",
     "timestamping_service_already_configured": "Wagt belleme gullugy eýýäm sazlanan",
     "timestamping_service_not_found": "Wagt belleme gullugy gtapylmady",
     "token": {

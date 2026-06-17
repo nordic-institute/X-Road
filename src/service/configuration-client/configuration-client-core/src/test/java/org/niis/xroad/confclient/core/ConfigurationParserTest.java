@@ -27,9 +27,14 @@ package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
@@ -38,6 +43,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static ee.ria.xroad.common.TestExceptionUtils.codedException;
@@ -48,7 +56,21 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests to verify configuration parser functionality.
  */
+@Execution(ExecutionMode.SAME_THREAD)
 class ConfigurationParserTest {
+
+    private Clock previousClock;
+
+    @BeforeEach
+    void pinClockBeforeFixtureExpiry() {
+        previousClock = TimeUtils.getClock();
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
+    }
+
+    @AfterEach
+    void restoreClock() {
+        TimeUtils.setClock(previousClock);
+    }
 
     /**
      * Test to ensure the parser succeeds on a simple configuration.

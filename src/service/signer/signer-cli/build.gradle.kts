@@ -10,6 +10,7 @@ dependencies {
 
   implementation(project(":common:common-domain"))
   implementation(project(":service:signer:signer-client"))
+  implementation(libs.logback.classic)
 }
 
 val mainClassName = "org.niis.xroad.signer.cli.SignerCLI"

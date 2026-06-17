@@ -555,6 +555,7 @@
     "service_not_found": "Service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
     "software_token_init_failed": "Software token initialisation failed",
+    "ssl_authentication_failed": "SSL authentication failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "timestamping_service_not_found": "Timestamping service not found",
     "token": {

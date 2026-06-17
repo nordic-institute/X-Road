@@ -30,6 +30,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
@@ -47,7 +49,6 @@ import static ee.ria.xroad.common.crypto.NamedCurves.getCurveName;
 import static ee.ria.xroad.common.crypto.NamedCurves.getEncodedPoint;
 import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNames;
-import static ee.ria.xroad.common.util.CertUtils.getSubjectCommonName;
 import static java.lang.String.valueOf;
 
 @Component
@@ -121,7 +122,7 @@ public class CertificateConverter {
                 .setSubjectAlternativeNames(getSubjectAlternativeNames(certificate))
                 .setSignature(EncoderUtils.encodeHex(certificate.getSignature()))
                 .setIssuerCommonName(getIssuerCommonName(certificate))
-                .setSubjectCommonName(getSubjectCommonName(certificate))
+                .setSubjectCommonName(getSubjectCommonNameOrNull(certificate))
                 .setEncoded(cert);
 
         final PublicKey publicKey = certificate.getPublicKey();
@@ -136,5 +137,11 @@ public class CertificateConverter {
             }
             default -> throw new IllegalStateException("Unexpected type of public key: " + publicKey.getClass().getName());
         }
+    }
+
+    private String getSubjectCommonNameOrNull(X509Certificate certificate) {
+        return CertUtils.getRDNValue(
+                new X500Name(certificate.getSubjectX500Principal().getName()),
+                BCStyle.CN);
     }
 }

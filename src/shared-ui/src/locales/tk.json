@@ -161,6 +161,9 @@
     "backup_generation_failed": "Äiýaçlyk nusgasy döredilmedi",
     "backup_restore_interrupted": "Äiýaçlyk nusgasynyň dikeldilmegi bölündi",
     "core": {
+      "op_monitor": {
+        "network_error": "Tor ýalňyşlygy: operasion maglumatlaryň gözegçiligi elýeterli däl"
+      },
       "signer": {
         "cert_not_found": "Şahadatnama tapylmady",
         "key_not_found": "Açar tapylmady",
