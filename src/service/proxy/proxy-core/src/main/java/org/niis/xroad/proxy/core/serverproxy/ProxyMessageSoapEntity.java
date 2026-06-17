@@ -40,7 +40,7 @@ import java.io.OutputStream;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 
 @RequiredArgsConstructor
-class ProxyMessageSoapEntity extends AbstractHttpEntity {
+public class ProxyMessageSoapEntity extends AbstractHttpEntity {
     private final ProxyMessage proxyMessage;
 
     @Override

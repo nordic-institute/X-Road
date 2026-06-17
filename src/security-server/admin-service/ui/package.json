@@ -7,15 +7,16 @@
     "dev": "vite --host",
     "dev-ss0": "vite --host --mode ss0",
     "dev-ss1": "vite --host --mode ss1",
+    "dev-ss2": "vite --host --mode ss2",
     "build": "pnpm run generate-types && vitest --run && vite build",
     "preview": "vite preview",
     "build-only": "vite build",
     "test": "vitest run",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --fix",
-    "generate-types": "rm -rf src/openapi-types && openapi --input ../../openapi-model/src/main/resources/META-INF/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
-    "license-check": "license-check-and-add check -f license-check-and-add-config.json",
-    "license-add": "license-check-and-add add -f license-check-and-add-config.json"
+    "generate-types": "rm -rf src/openapi-types && openapi-ts",
+    "license-check": "license-check-and-add check -f ../../../shared-ui/license-check-and-add-config.json",
+    "license-add": "license-check-and-add add -f ../../../shared-ui/license-check-and-add-config.json"
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
@@ -25,10 +26,10 @@
   },
   "devDependencies": {
     "@pinia/testing": "^1.0.3",
-    "@typescript-eslint/eslint-plugin": "~8.53.1",
-    "@typescript-eslint/parser": "~8.53.1",
-    "@vue/test-utils": "^2.4.6",
-    "eslint-plugin-vue-scoped-css": "^2.12.0",
+    "@typescript-eslint/eslint-plugin": "~8.59.2",
+    "@typescript-eslint/parser": "~8.59.2",
+    "@vue/test-utils": "^2.4.10",
+    "eslint-plugin-vue-scoped-css": "^3.1.0",
     "resize-observer-polyfill": "^1.5.1"
   },
   "engines": {

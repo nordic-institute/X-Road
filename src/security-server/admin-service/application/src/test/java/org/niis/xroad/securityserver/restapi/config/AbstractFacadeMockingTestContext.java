@@ -25,18 +25,24 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+
 import org.junit.runner.RunWith;
-import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
+import org.niis.xroad.securityserver.restapi.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -55,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser
+@ActiveProfiles("test")
 public abstract class AbstractFacadeMockingTestContext {
     @MockitoBean
     protected GlobalConfProvider globalConfProvider;
@@ -71,5 +78,13 @@ public abstract class AbstractFacadeMockingTestContext {
     @MockitoSpyBean
     protected SubsystemNameStatus subsystemNameStatus;
     @MockitoBean
-    MonitorClient monitorClient;
+    MonitorRpcClient monitorClient;
+    @MockitoBean
+    protected ProxyRpcClient proxyRpcClient;
+    @MockitoBean
+    protected ConfClientRpcClient confClientRpcClient;
+    @MockitoBean
+    protected AuxiliaryServiceRpcClient auxiliaryServiceRpcClient;
+    @MockitoBean
+    protected ServerConfDatabaseCtx databaseCtx;
 }

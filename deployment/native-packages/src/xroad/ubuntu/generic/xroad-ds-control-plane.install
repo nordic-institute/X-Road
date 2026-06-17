@@ -1,0 +1,3 @@
+../../../../src/xroad/common/ds-control-plane/etc/* etc/
+../../../../src/xroad/common/ds-control-plane/usr/* usr/
+../../../../../../src/service/ds-control-plane/ds-control-plane-application/build/quarkus-app/* usr/share/xroad/jlib/ds-control-plane/

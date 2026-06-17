@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
-import ee.ria.xroad.common.util.JsonUtils;
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebElementCondition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.DiagnosticsPageObj;
+import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,13 +46,14 @@ import java.util.concurrent.TimeUnit;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.or;
 import static com.codeborne.selenide.Condition.partialText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.given;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class DiagnosticsStepDefs extends BaseUiStepDefs {
@@ -65,10 +66,13 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "OS version",
             "OCSP responders",
             "Global configuration",
-            "Configuration overrides from local.ini",
+            "Configuration overrides from local.yaml",
             "Authentication certificates",
             "Maintenance mode"
     };
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
     @Step("Diagnostics tab is {string}")
@@ -180,8 +184,8 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
         diagnosticsPage.proxyMemoryUsageMessage()
                 .scrollIntoView(false)
                 .shouldHave(partialText("ok"));
-        diagnosticsPage.proxyMemoryUsageMax().shouldHave(partialText("512.0MB"));
-        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("Not set"));
+        diagnosticsPage.proxyMemoryUsageMax().shouldHave(matchText("\\d{3}\\.\\dMB"));
+        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("77%"));
     }
 
     @Step("download diagnostic report button is clicked")
@@ -207,12 +211,12 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                 .hasExtension("json");
 
         try (InputStream in = new FileInputStream(report.get())) {
-            var json = JsonUtils.getObjectReader().readTree(in);
+            var json = objectMapper.readTree(in);
             assertThat(json.isArray()).isTrue();
             assertThat(json.size()).isEqualTo(EXPECTED_REPORT_ITEMS.length);
             var actualItems = new HashSet<String>();
             for (var item : json) {
-                String name = item.get("name").asText();
+                String name = item.get("name").asString();
                 assertThat(name).withFailMessage("Item should have name", name).isNotEmpty();
                 assertThat(item.get("value")).withFailMessage("Item \"%s\" should have value", name).isNotNull();
                 actualItems.add(name);

@@ -1,5 +1,7 @@
 # Change Log
 
+## 8.0.0 - UNRELEASED
+
 ## 7.8.1 - 2026-06-16
 - XRDDEV-3071: As a Developer I want to review our rate-limiting functionality to make sure it works
 - XRDDEV-3108: Security Server: proxy_ui_api_access.log not created in version 7.8.0

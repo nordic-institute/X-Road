@@ -25,9 +25,9 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -58,7 +58,7 @@ public abstract class SchemaValidator {
         }
     }
 
-    public static void validate(Schema schema, Source source, String errorCode) throws IOException {
+    public static void validate(Schema schema, Source source, ErrorCode errorCode) throws IOException {
         if (schema == null) {
             throw new IllegalStateException("Schema is not initialized");
         }
@@ -69,7 +69,7 @@ public abstract class SchemaValidator {
 
             validator.validate(source);
         } catch (SAXException e) {
-            throw new CodedException(errorCode, e);
+            throw XrdRuntimeException.systemException(errorCode, e);
         }
     }
 }

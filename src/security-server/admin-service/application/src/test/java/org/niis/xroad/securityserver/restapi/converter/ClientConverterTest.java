@@ -57,7 +57,7 @@ public class ClientConverterTest {
 
     @Before
     public void setup() {
-        GlobalConfProvider globalConfFacade = new GlobalConfImpl(null) {
+        GlobalConfProvider globalConfFacade = new GlobalConfImpl(null, null) {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();

@@ -27,13 +27,14 @@ package org.niis.xroad.securityserver.restapi.service.diagnostic;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.SingleMetrics;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 
 @RequiredArgsConstructor
 public class OsVersionCollector implements DiagnosticCollector<String> {
 
     public static final String OPERATING_SYSTEM = "OperatingSystem";
 
-    private final MonitorClient monitorClient;
+    private final MonitorRpcClient monitorClient;
 
     @Override
     public String name() {

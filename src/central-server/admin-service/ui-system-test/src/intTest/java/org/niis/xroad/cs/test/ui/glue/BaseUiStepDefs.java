@@ -27,46 +27,33 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.logevents.SelenideLogger;
-import com.nortal.test.core.report.TestReportService;
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.ScenarioContext;
-import io.qameta.allure.selenide.AllureSelenide;
-import io.qameta.allure.selenide.LogType;
-import jakarta.annotation.PostConstruct;
-import org.niis.xroad.common.test.ui.utils.SeleniumUtils;
-import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
-import org.niis.xroad.cs.test.ui.configuration.TestProperties;
 import org.niis.xroad.cs.test.ui.page.CommonPageObj;
 import org.niis.xroad.cs.test.ui.utils.ChromiumDevTools;
+import org.niis.xroad.test.framework.core.context.CucumberScenarioProvider;
+import org.niis.xroad.test.framework.core.context.ScenarioContext;
+import org.niis.xroad.test.framework.core.report.TestReportService;
+import org.niis.xroad.test.framework.core.ui.SelenideManager;
+import org.niis.xroad.test.framework.core.ui.utils.SeleniumUtils;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import java.util.Optional;
-import java.util.logging.Level;
 
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public abstract class BaseUiStepDefs {
     protected final CommonPageObj commonPageObj = new CommonPageObj();
 
     @Autowired
-    protected TestProperties testProperties;
-    @Autowired
     protected CucumberScenarioProvider scenarioProvider;
     @Autowired
     protected ScenarioContext scenarioContext;
     @Autowired
-    protected TargetHostUrlProvider targetHostUrlProvider;
-    @Autowired
     protected TestReportService testReportService;
     @Autowired
     protected ChromiumDevTools chromiumDevTools;
-
-    @PostConstruct
-    private void init() {
-        SelenideLogger.addListener("SS UI tests", new AllureSelenide().enableLogs(LogType.BROWSER, Level.ALL));
-    }
+    @Autowired
+    protected SelenideManager selenideManager;
 
     /**
      * Vue.JS adds additional elements on top of input and simple clear just does not work.

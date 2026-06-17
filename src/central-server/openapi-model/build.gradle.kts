@@ -52,7 +52,8 @@ openApiGenerate {
 
   additionalProperties.set(
     mapOf(
-      "generatedConstructorWithRequiredArgs" to false
+      "generatedConstructorWithRequiredArgs" to false,
+      "useSpringBoot4" to "true"
     )
   )
 

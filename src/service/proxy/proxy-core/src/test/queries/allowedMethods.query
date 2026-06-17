@@ -14,6 +14,7 @@
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>producer</id:memberCode>
             <id:serviceCode>allowedMethods</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
         </xroad:service>
         <xroad:userId>EE:PIN:abc4567</xroad:userId>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -21,6 +22,9 @@
         <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <xroad:allowedMethods />
+        <ns1:allowedMethods xmlns:ns1="http://test.x-road.fi/producer">
+            <ns1:request/>
+        </ns1:allowedMethods>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
+

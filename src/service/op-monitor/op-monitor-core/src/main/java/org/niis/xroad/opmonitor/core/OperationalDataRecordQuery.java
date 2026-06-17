@@ -37,7 +37,7 @@ import jakarta.persistence.criteria.Selection;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

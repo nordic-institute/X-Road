@@ -26,9 +26,9 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
+import org.niis.xroad.test.framework.core.ui.utils.SeleniumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.codeborne.selenide.Condition.text;
@@ -39,19 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class CommonStepDefs extends BaseUiStepDefs {
 
     @Autowired
-    private TestableApplicationContainerProvider containerProvider;
+    private SsSystemTestContainerSetup systemTestContainerSetup;
 
     @Step("Page is prepared to be tested")
     public void preparePage() {
-        Selenide.executeJavaScript("""
-                window.e2eTestingMode = true;
-                      const style = `
-                      <style>
-                        *, ::before, ::after {
-                            transition:none !important;
-                        }
-                      </style>`;
-                      document.head.insertAdjacentHTML('beforeend', style);""");
+        SeleniumUtils.preparePage();
     }
 
     @Step("error: {string} was displayed")
@@ -100,8 +92,8 @@ public class CommonStepDefs extends BaseUiStepDefs {
     }
 
     @Step("file {string} exists")
-    public void fileExists(String filePath) throws Exception {
-        var res = containerProvider.getContainer().execInContainer("stat", filePath);
+    public void fileExists(String filePath) {
+        var res = systemTestContainerSetup.execInContainer("stat", filePath);
 
         assertEquals(
                 0,

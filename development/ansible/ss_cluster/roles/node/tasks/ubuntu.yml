@@ -1,0 +1,12 @@
+---
+- name: create the database
+  become: true
+  become_user: postgres
+  command: pg_createcluster -p "{{ serverconf_db_port }}" "{{ postgresql_major_version }}" serverconf
+  args:
+    creates: "/var/lib/postgresql/{{ postgresql_major_version }}/serverconf"
+
+- set_fact:
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_major_version }}/serverconf"
+    postgresql_config_dir: "/etc/postgresql/{{ postgresql_major_version }}/serverconf"
+    postgresql_serverconf_service: "postgresql@{{ postgresql_major_version }}-serverconf"

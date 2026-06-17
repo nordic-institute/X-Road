@@ -1,0 +1,64 @@
+#!/bin/bash
+set -e
+. /usr/share/debconf/confmodule
+
+log () { echo >&2 "$@"; }
+
+get_prop() {
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+}
+
+prepare_tls_settings() {
+  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
+
+  if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.common-name') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.alt-names') && \
+        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy-ui-api.tls.certificate-provisioning.ip-subject-alt-names') ]]; then
+      log "Preparing proxy-ui-api TLS settings"
+
+      db_get xroad-common/proxy-ui-api-subject
+      cn="${RET#/CN=}"
+      db_get xroad-common/proxy-ui-api-altsubject
+      altn="$RET"
+
+      # Use the shared write_tls_config.sh script
+      . /usr/share/xroad/scripts/write_tls_config.sh
+      write_tls_settings "$CONFIG_FILE" "proxy-ui-api" "$cn" "$altn"
+  else
+    log "proxy-ui-api TLS settings exists, skipping"
+  fi
+}
+
+case "$1" in
+  configure | reconfigure)
+    prepare_tls_settings
+
+    RET=""
+    db_get xroad-common/username
+    AUSER="$RET"
+
+    if [ -n "$AUSER" ]; then
+      # Use the shared setup_xroad_admin_user.sh script
+      . /usr/share/xroad/scripts/setup_xroad_admin_user.sh
+      setup_xroad_admin_user "$AUSER"
+    else
+      log "WARNING: X-Road admin user not configured."
+    fi
+ ;;
+
+ abort-upgrade|abort-remove|abort-deconfigure)
+ ;;
+
+ *)
+    log "postinst called with unknown argument \`$1'" >&2
+    exit 1
+ ;;
+esac
+
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
+#DEBHELPER#
+
+exit 0

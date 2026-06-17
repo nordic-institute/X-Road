@@ -1,0 +1,119 @@
+---
+cluster_provider: kind
+kind_cluster_name: xroad-dev-cluster
+kind_worker_count: 2
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+security_server_namespace: ss
+monitoring_namespace: ss-monitoring
+
+xroad_image_registry: "localhost:5555"
+xroad_image_tag: "latest"
+serverconf_init_image: "localhost:5555/ss-db-init:latest"
+jvm_metrics_enabled: true
+
+charts_root: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts"
+
+openbao_init_chart_repo: ""
+openbao_init_chart: "{{ charts_root }}/openbao-init"
+openbao_init_chart_version: ""
+
+security_server_chart_repo: ""
+security_server_chart: "{{ charts_root }}/security-server"
+security_server_chart_version: ""
+
+external_service_bridge_chart_repo: ""
+external_service_bridge_chart: "{{ charts_root }}/external-service-bridge"
+external_service_bridge_chart_version: ""
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+openbao_chart_repo: "https://openbao.github.io/openbao-helm"
+openbao_chart: "openbao/openbao"
+openbao_chart_version: "0.25.6"
+
+prometheus_chart_repo: "https://prometheus-community.github.io/helm-charts"
+prometheus_chart: "prometheus-community/kube-prometheus-stack"
+prometheus_chart_version: "80.4.1"
+
+containerd_config_patches:
+  - |
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5555"]
+      endpoint = ["http://host.docker.internal:5555"]
+
+external_service_host: host.docker.internal
+
+# Pods resolve and route *.lxd hosts directly (lima socket_vmnet + LXD
+# dnsmasq), so bridges target container-canonical ports. The bare service
+# names exist for consumers that dial short hostnames — e.g. the
+# trusted-issuer DID did:web:xrd-cs%3A6183 resolved by ds-control-plane.
+external_service_bridges:
+  - name: xrd-cs
+    external_host: "xrd-cs.lxd"
+    ports:
+      - {name: http, port: 80, targetPort: 80}
+      - {name: https, port: 443, targetPort: 443}
+      - {name: registration, port: 4001, targetPort: 4001}
+      - {name: management, port: 4002, targetPort: 4002}
+      - {name: issuer-did, port: 6183, targetPort: 6183}
+      - {name: issuer-issuance, port: 6185, targetPort: 6185}
+      - {name: issuer-statuslist, port: 6187, targetPort: 6187}
+  - name: xrd-ca
+    external_host: "xrd-ca.lxd"
+    ports:
+      - {name: ca, port: 8888, targetPort: 8888}
+      - {name: tsa, port: 8899, targetPort: 8899}
+  - name: xrd-ss0
+    external_host: "xrd-ss0.lxd"
+    ports:
+      - {name: proxy, port: 5500, targetPort: 5500}
+      - {name: proxy-ocsp, port: 5577, targetPort: 5577}
+  - name: xrd-jaeger
+    # Jaeger runs as its own LXD container (xrd-jaeger.lxd, 10.10.10.x) on the same
+    # LXD bridge that the kind worker can route to. host.docker.internal would point
+    # at the lima VM eth0 where nothing listens on these ports — resolver Job inside
+    # the cluster CAN resolve xrd-jaeger.lxd via lima's inherited LXD DNS.
+    external_host: "xrd-jaeger.lxd"
+    ports:
+      - {name: otlp-grpc, port: 4317, targetPort: 4317}
+      - {name: otlp-http, port: 4318, targetPort: 4318}
+      - {name: ui, port: 80, targetPort: 80}
+      - {name: healthcheck, port: 13133, targetPort: 13133}
+
+otel_enabled: true
+otel_node_id: "ss2"
+otel_endpoint: "http://xrd-jaeger.{{ security_server_namespace }}.svc.cluster.local:4317"
+otel_sampler: "parentbased_always_on"
+otel_deployment_environment: "k8s-dev"
+
+deploy_prometheus: true
+deploy_netdata: true
+
+openbao_ha_replicas: 2
+openbao_global_tls_disable: false
+openbao_tls_mode: self_signed
+
+# Identity advertised to the LXD side for the k8s-hosted SS2. The host-record
+# lands in LXD's dnsmasq so xrd-ss0/xrd-ss1 control planes resolve it to the
+# mac, where the 0.0.0.0 port-forwards below terminate.
+ss2_advertised_host: xrd-ss2.lxd
+ss2_advertised_ip: 192.168.105.1
+lxd_lima_instance: xroad-lxd
+
+port_forwards:
+  - {name: proxy-ui-api, namespace: "{{ security_server_namespace }}", resource: svc/proxy-ui-api, ports: "4000:4000"}
+  - {name: proxy-http, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5500:5500"}
+  - {name: proxy-ocsp, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5577:5577"}
+  - {name: proxy-8080, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8080:8080"}
+  - {name: proxy-8443, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8443:8443"}
+  # DSP participant-context seeding (mac-local) + LXD-facing identity endpoints.
+  # 0.0.0.0 listeners back the dnsmasq host-record xrd-ss2.lxd -> {{ ss2_advertised_ip }},
+  # letting LXD-side control planes resolve ss2's DID document, credential
+  # service, and DSP protocol endpoint.
+  # All on 0.0.0.0: Jetty's sniHostCheck rejects IP-literal HTTPS, so even
+  # mac-local seeding goes through the xrd-ss2.lxd name (-> 192.168.105.1).
+  - {name: ih-identity, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7182:7182", address: "0.0.0.0"}
+  - {name: ih-did, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7183:7183", address: "0.0.0.0"}
+  - {name: ih-credentials, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7185:7185", address: "0.0.0.0"}
+  - {name: cp-mgmt, namespace: "{{ security_server_namespace }}", resource: svc/ds-control-plane, ports: "8182:8182", address: "0.0.0.0"}
+  - {name: cp-dsp, namespace: "{{ security_server_namespace }}", resource: svc/ds-control-plane, ports: "8183:8183", address: "0.0.0.0"}

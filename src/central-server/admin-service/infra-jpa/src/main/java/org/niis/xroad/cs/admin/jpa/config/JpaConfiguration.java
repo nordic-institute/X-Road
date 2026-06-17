@@ -26,11 +26,14 @@
  */
 package org.niis.xroad.cs.admin.jpa.config;
 
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@EntityScan(basePackages = {"org.niis.xroad.cs.admin.core.entity", "org.niis.xroad.restapi.entity"})
+@EntityScan(basePackages = {
+        "org.niis.xroad.common.identifiers.jpa.entity",
+        "org.niis.xroad.cs.admin.core.entity",
+        "org.niis.xroad.restapi.entity"})
 @EnableJpaRepositories(basePackages = "org.niis.xroad.cs.admin.jpa.repository",
         transactionManagerRef = "xRoadSettingsTransactionManager")
 @Configuration

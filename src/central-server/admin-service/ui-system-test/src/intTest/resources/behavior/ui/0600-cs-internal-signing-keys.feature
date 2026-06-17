@@ -1,4 +1,5 @@
 @CentralServer
+@InternalGlobalConfiguration
 @SigningKeys
 @LoadingTesting
 Feature: 0600 - CS: Global configuration: Internal configuration: Signing keys
@@ -6,7 +7,7 @@ Feature: 0600 - CS: Global configuration: Internal configuration: Signing keys
   Background:
     Given CentralServer login page is open
     Then Browser is set in CELLULAR2G network speed
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Global configuration tab is selected
     And Internal configuration sub-tab is selected
     And Details for Token: softToken-0 is expanded

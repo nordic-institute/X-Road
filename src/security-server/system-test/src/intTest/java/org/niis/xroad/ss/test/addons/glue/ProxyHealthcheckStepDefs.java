@@ -27,45 +27,55 @@
 
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
+import com.codeborne.selenide.Selenide;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.core.ThrowingRunnable;
-import org.niis.xroad.common.test.glue.BaseStepDefs;
+import org.niis.xroad.ss.test.SsSystemTestContainerSetup;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
+import org.niis.xroad.ss.test.addons.api.HealthResponse;
+import org.niis.xroad.ss.test.ui.glue.BaseUiStepDefs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.testcontainers.shaded.org.awaitility.core.ThrowingRunnable;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.given;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
 @Slf4j
-@SuppressWarnings("checkstyle:MagicNumber")
-public class ProxyHealthcheckStepDefs extends BaseStepDefs {
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:SneakyThrowsCheck"})
+public class ProxyHealthcheckStepDefs extends BaseUiStepDefs {
+
     @Autowired
-    private TestableApplicationContainerProvider containerProvider;
+    private SsSystemTestContainerSetup systemTestContainerSetup;
+
     @Autowired
     private FeignHealthcheckApi healthcheckApi;
 
+    private final JsonMapper jsonMapper = JsonMapper.builder().build();
+
+    @SneakyThrows
     @Step("^service \"(.*)\" is \"(stopped|started|restarted)\"$")
-    public void stopDatabase(String service, String state) throws Exception {
-
-        var action = "stopped".equals(state) ? "stop" : state.substring(0, state.length() - 2);
-        var result = containerProvider.getContainer().execInContainer("supervisorctl", action, service);
-        testReportService.attachText("supervisorctl output", result.toString());
-    }
-
-    @Step("^property \"(.*)\" is set to \"(.*)\"$")
-    public void setProperty(String property, String value) throws IOException, InterruptedException {
-        var group = "proxy";
-        var result = containerProvider.getContainer().execInContainer("crudini", "--set", "/etc/xroad/conf.d/local.ini",
-                group, property, value);
-        testReportService.attachText("crudini output", result.toString());
+    public void stopService(String service, String state) {
+        switch (state) {
+            case "restarted":
+                systemTestContainerSetup.restartContainer(service);
+                break;
+            case "stopped":
+                systemTestContainerSetup.stop(service);
+                break;
+            case "started":
+                systemTestContainerSetup.start(service, true);
+                break;
+            default:
+                throw new IllegalStateException("unexpected state: " + state);
+        }
+        log.info("Grace period after service {} {}", service, state);
+        Selenide.sleep(5000);
     }
 
     @Step("healthcheck has no errors")
@@ -73,28 +83,65 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
         assertWithWait(() -> {
             log.info("Polling for HealthCheck update..");
             try {
-                ResponseEntity<String> result = healthcheckApi.getHealthcheck();
+                var result = healthcheckApi.getHealthcheck();
                 assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-                log.info("HS had no error. {}. Body {}", result.getStatusCode(), result.getBody());
+                assertThat(result.getBody().isUp()).isTrue();
             } catch (FeignException e) {
                 throw new AssertionError("Healthcheck is in error state: " + e.contentUTF8());
             }
         });
     }
 
-    @Step("healthcheck has errors and error message is {string}")
-    public void validateHealthcheckErrors(String errorMessage) {
+    @Step("Proxy healthcheck check {string} is {string}")
+    public void validateHealthcheck(String checkName, String expectedStatus) {
         assertWithWait(() -> {
-            try {
-                var response = healthcheckApi.getHealthcheck();
-                throw new AssertionError("Healthcheck is not in error state: " + response);
-            } catch (FeignException feignException) {
-                log.info("Polling for HealthCheck update..");
-                assertThat(feignException.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-                assertThat(feignException.contentUTF8()).contains(errorMessage);
-                testReportService.attachText("successful error message", errorMessage);
-            }
+            HealthResponse response = getHealthcheckResponse();
+
+            var match = response.checks().stream()
+                    .filter(check -> checkName.equals(check.name()))
+                    .findFirst();
+            assertThat(match).as("check '%s' not found in healthcheck response", checkName).isPresent();
+            assertThat(match.get().status()).isEqualTo(expectedStatus);
         });
+    }
+
+    @Step("Proxy healthcheck check {string} is {string} with status {string}")
+    public void validateHealthcheckWithStatus(String checkName, String expectedStatus, String dataStatus) {
+        assertWithWait(() -> {
+            HealthResponse response = getHealthcheckResponse();
+
+            var match = response.checks().stream()
+                    .filter(check -> checkName.equals(check.name()))
+                    .findFirst();
+            assertThat(match).as("check '%s' not found in healthcheck response", checkName).isPresent();
+            assertThat(match.get().status()).isEqualTo(expectedStatus);
+            assertThat(match.get().data().get("status"))
+                    .as("data.status of check '%s'", checkName)
+                    .isEqualTo(dataStatus);
+        });
+    }
+
+    @Step("Proxy healthcheck check {string} data {string} is {int}")
+    public void validateHealthcheckCheckDataInt(String checkName, String dataKey, int expected) {
+        assertWithWait(() -> {
+            HealthResponse response = getHealthcheckResponse();
+
+            var match = response.checks().stream()
+                    .filter(check -> checkName.equals(check.name()))
+                    .findFirst();
+            assertThat(match).as("check '%s' not found in healthcheck response", checkName).isPresent();
+            assertThat(match.get().data())
+                    .as("data of check '%s'", checkName)
+                    .containsEntry(dataKey, expected);
+        });
+    }
+
+    private HealthResponse getHealthcheckResponse() {
+        try {
+            return healthcheckApi.getHealthcheck().getBody();
+        } catch (FeignException feignException) {
+            return jsonMapper.readerFor(HealthResponse.class).readValue(feignException.contentUTF8());
+        }
     }
 
     private void assertWithWait(ThrowingRunnable assertion) {
@@ -108,4 +155,15 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
                 .atMost(maxWaitTime, TimeUnit.SECONDS)
                 .await().untilAsserted(assertion);
     }
+
+    @Step("HSM health check is enabled on proxy")
+    public void hsmHealthCheckIsEnabled() {
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "true", "proxy");
+    }
+
+    @Step("HSM health check is disabled on proxy")
+    public void hsmHealthCheckIsDisabled() {
+        testDatabasePropertyService.putProperty("xroad.proxy.hsm-health-check-enabled", "false", "proxy");
+    }
+
 }

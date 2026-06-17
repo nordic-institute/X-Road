@@ -5,7 +5,7 @@ Feature: 0920 - SS:Diagnostics - Connection Testing
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
     And Diagnostics tab is selected
     And Connection Testing sub-tab is selected
 
@@ -27,6 +27,8 @@ Feature: 0920 - SS:Diagnostics - Connection Testing
     When Run test for Other Security Server
     Then Other Security Server error message should contain server.clientproxy.io_error
 
-  Scenario: Management Security Server test fails because member is unknown
+  Scenario: Management Security Server test fails
+    # MANAGEMENT is resolvable in global conf but not hosted as a service, so the DSP consumer fails at
+    # asset acquisition (client-side) instead of reaching the management serverproxy for its server-side fault.
     When Run test for Management Security Server
-    Then Management Security Server error message should contain server.serverproxy.service_failed.unknown_member
+    Then Management Security Server error message should contain server.clientproxy.io_error

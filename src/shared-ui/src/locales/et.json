@@ -63,7 +63,8 @@
           "assignedRoles": "Rollid määratud",
           "createKeyButton": "Loo võti",
           "name": "Võtme detailid",
-          "note": "MÄRKUS: salvestage API võti turvalisse paika. API võti on nähtav ainult võtme loomise ajal. Seda ei esitata uuesti ja seda ei saa hiljem välja otsida."
+          "note": "MÄRKUS: salvestage API võti turvalisse paika.",
+          "noteDetail": "API võti on nähtav ainult võtme loomise ajal. Seda ei esitata uuesti ja seda ei saa hiljem välja otsida."
         },
         "roles": {
           "description": "Valige API võtmega seotud rollid. Rollid määravad API võtmele antud load.",
@@ -127,7 +128,10 @@
         "confirmation": "Kas soovite kindlasti {file} taastada?",
         "title": "Kas olete kindel?"
       },
-      "success": "Konfiguratsioon {file} taastatud"
+      "success": "Konfiguratsioon {file} taastatud",
+      "restarting": {
+        "message": "Konfiguratsioon on taastatud. Teenus taaskäivitub. Teid suunatakse sisselogimise lehele, kui teenus on saadaval."
+      }
     },
     "uploadBackup": {
       "button": "Lae varukoopia üles",
@@ -156,6 +160,9 @@
     },
     "rsaExp": "RSA avaliku võtme eksponent",
     "rsaModulus": "RSA avaliku võtme moodul"
+  },
+  "common": {
+    "restartingService": "Teenus taaskäivitub"
   },
   "error_code": {
     "api_key_not_found": "API võtit ei leitud",
@@ -208,7 +215,7 @@
   "footer": {
     "copyright": {
       "company": "Nordic Institute for Interoperability Solutions  (NIIS)",
-      "licenceInfo": "Litsentsiteave",
+      "domain": "niis.org",
       "title": "Autoriõigus"
     },
     "software": {
@@ -247,6 +254,11 @@
     "noMatches": "Kriteeriumidele vastavad elemendid puuduvad",
     "noServices": "Teenused puuduvad",
     "noTokens": "Krüptomoodulid puuduvad"
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "tooltip": "Eristusnimi (DN) identifitseerib kordumatult üksuse X.509 sertifikaadis. DN sisaldab tavaliselt järgmisi atribuudi tüüpe: CN = Üldnimi, O = Organisatsiooni nimi, C = Maakood."
+    }
   },
   "type": "Tüüp",
   "validation": {

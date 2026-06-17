@@ -23,6 +23,4 @@ The contents of this directory:
 - requests: Sample SOAP requests that can be used for manual testing.
 
 - zabbix_api: Sample scripts, configuration and JSON-RPC requests for configuring
-  Zabbix over its API. The zabbix_api/examples/zabbix/ directory is included
-  in the .deb and .rpm packages of the Operational Monitoring Daemon. These scripts
-  do not (and should not) use the code in python_common, but should be self-contained.
+  Zabbix over its API.

@@ -26,15 +26,25 @@
  */
 package org.niis.xroad.ss.test.ui.container;
 
-import java.util.List;
-
 public final class Port {
-    public static final int UI = 4000, SERVICE = 8080, DB = 5432, HEALTHCHECK = 5588;
-
-    public static List<Integer> allSsPorts() {
-        return List.of(UI, SERVICE);
-    }
+    public static final int
+            UI = 4000,
+            PROXY_HTTP = 8080,
+            DB = 5432,
+            PROXY_HEALTHCHECK = 5558,
+            TEST_CA = 8888,
+            // Quarkus health endpoint port for services
+            QUARKUS_HEALTH = 4099,
+            DS_CONTROL_PLANE_MANAGEMENT = 8182,
+            DS_IDENTITY_HUB_IDENTITY = 7182,
+            DS_IDENTITY_HUB_STS = 7184,
+            DS_IDENTITY_HUB_CREDENTIALS = 7185,
+            DS_ISSUER_SERVICE_IDENTITY = 6182,
+            DS_ISSUER_SERVICE_IDENTITY_DID = 6183,
+            DS_ISSUER_SERVICE_ISSUANCE = 6185,
+            DS_ISSUER_SERVICE_ADMIN = 6186;
 
     private Port() {
     }
+
 }

@@ -1,0 +1,29 @@
+---
+argument_specs:
+  main:
+    short_description: Deploy OpenBao + backing Postgres + TLS secret
+    options:
+      security_server_namespace:
+        type: str
+        required: true
+      kubeconfig_path:
+        type: path
+        required: true
+      postgres_image: {type: str, required: true}
+      openbao_db: {type: dict, required: true}
+      openbao_chart_repo: {type: str, required: true}
+      openbao_chart: {type: str, required: true}
+      openbao_chart_version: {type: str, required: true}
+      openbao_init_chart_repo: {type: str, required: false}
+      openbao_init_chart: {type: str, required: true}
+      openbao_init_chart_version: {type: str, required: false}
+      openbao_ha_replicas: {type: int, default: 2}
+      openbao_global_tls_disable: {type: bool, default: false}
+      openbao_tls_mode:
+        type: str
+        default: self_signed
+        choices: [self_signed, cert_manager]
+      openbao_tls_secret_name: {type: str, default: openbao-server-tls}
+      openbao_tls_dir: {type: path, required: false}
+      openbao_tls_validity_days: {type: int, default: 1825}
+      openbao_helm_wait_timeout: {type: str, default: 10m}

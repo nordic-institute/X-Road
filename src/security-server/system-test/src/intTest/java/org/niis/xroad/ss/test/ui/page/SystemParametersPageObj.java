@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
@@ -37,6 +38,7 @@ public class SystemParametersPageObj {
     public final DialogAddTimestampingService dialogAddTimestampingService = new DialogAddTimestampingService();
     public final DialogEditServerAddress dialogEditServerAddress = new DialogEditServerAddress();
     public final ConfigurationAnchor configurationAnchor = new ConfigurationAnchor();
+    public final DialogEditConfigurableProperty dialogEditConfigurableProperty = new DialogEditConfigurableProperty();
 
     public SelenideElement btnAddTimestampingService() {
         return $x("//button[@data-test='system-parameters-timestamping-services-add-button']");
@@ -109,7 +111,8 @@ public class SystemParametersPageObj {
         }
     }
 
-    public static class DialogAddTimestampingService {
+    public static class DialogAddTimestampingService extends Dialog {
+
         public SelenideElement radioGroupTimestampingServices() {
             return $x("//div[@data-test='system-parameters-add-timestamping-service-dialog-radio-group']");
         }
@@ -119,12 +122,50 @@ public class SystemParametersPageObj {
         }
 
         public SelenideElement btnAdd() {
-            return $x("//button[@data-test='system-parameters-add-timestamping-service-dialog-add-button']");
+            return btnSave();
         }
+    }
 
-        public SelenideElement btnCancel() {
-            return $x("//button[@data-test='system-parameters-add-timestamping-service-dialog-cancel-button']");
-        }
+    public SelenideElement configurablePropertiesPanels() {
+        return $x("//div[@data-test='configurable-properties-panels']");
+    }
+
+    public SelenideElement configurablePropertiesPanel(String scope) {
+        return $x(format("//div[@data-test='configurable-properties-panel-%s']", scope));
+    }
+
+    public SelenideElement configurablePropertiesPanelTitle(String scope) {
+        return $x(format("//*[@data-test='configurable-properties-panel-title-%s']", scope));
+    }
+
+    public ElementsCollection configurablePropertiesTableRows(String scope) {
+        return $$x(format("//tbody[@data-test='configurable-properties-table-body-%s']"
+                + "//tr[@data-test='configurable-property-row']", scope));
+    }
+
+    public SelenideElement configurablePropertyRowByName(String scope, String propertyName) {
+        return $x(format("//tbody[@data-test='configurable-properties-table-body-%s']"
+                + "//tr[@data-test='configurable-property-row'][.//td[normalize-space()='%s']]", scope, propertyName));
+    }
+
+    public SelenideElement configurablePropertyCurrentValue(String scope, String propertyName) {
+        return $x(format("//tbody[@data-test='configurable-properties-table-body-%s']"
+                + "//tr[@data-test='configurable-property-row'][.//td[normalize-space()='%s']]"
+                + "/td[2]", scope, propertyName));
+    }
+
+    public SelenideElement configurablePropertyEditButton(String scope, String propertyName) {
+        return $x(format("//tbody[@data-test='configurable-properties-table-body-%s']"
+                + "//tr[@data-test='configurable-property-row'][.//td[normalize-space()='%s']]"
+                + "//button[@data-test='edit-configurable-property-button']", scope, propertyName));
+    }
+
+    public SelenideElement configurablePropertiesSearch() {
+        return $x("//div[@data-test='configurable-properties-search']");
+    }
+
+    public SelenideElement configurablePropertiesRestartWarning() {
+        return $x("//div[@data-test='configurable-properties-restart-warning']");
     }
 
     public static class ConfigurationAnchor {
@@ -136,5 +177,11 @@ public class SystemParametersPageObj {
             return $x("//button[@data-test='system-parameters-configuration-anchor-download-button']");
         }
 
+    }
+
+    public static class DialogEditConfigurableProperty extends Dialog {
+        public SelenideElement valueField() {
+            return $x("//div[@data-test='configurable-property-value-field']");
+        }
     }
 }

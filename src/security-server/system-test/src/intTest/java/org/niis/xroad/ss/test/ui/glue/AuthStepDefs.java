@@ -34,15 +34,16 @@ import org.niis.xroad.ss.test.ui.page.LoginPageObj;
 import java.time.Duration;
 
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class AuthStepDefs extends BaseUiStepDefs {
     private final LoginPageObj loginPageObj = new LoginPageObj();
 
     @Step("SecurityServer login page is open")
     public void openPage() {
-        Selenide.open(targetHostUrlProvider.getUrl());
+        selenideManager.open("https://ui:4000");
     }
 
     @Step("Login form is visible")
@@ -89,6 +90,12 @@ public class AuthStepDefs extends BaseUiStepDefs {
         commonPageObj.menu.logout().click();
     }
 
+    @Step("Change password button is being clicked")
+    public void changePasswordButtonIsClicked() {
+        commonPageObj.menu.usernameButton().click();
+        commonPageObj.menu.changePassword().click();
+    }
+
     @Given("User becomes idle")
     public void userBecomesIdle() {
         Selenide.sleep(1);
@@ -97,14 +104,15 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Given("after {} seconds, session timeout popup appears")
     public void errorMessageAboutTimeoutAppears(int duration) {
-        commonPageObj.btnSessionExpired()
-                .shouldBe(visible, Duration.ofSeconds(duration));
+        commonPageObj.dialog.btnConfirm()
+                .shouldBe(visible, Duration.ofSeconds(duration))
+                .shouldHave(text("Ok"));
 
     }
 
     @Given("OK is clicked on timeout notification popup")
     public void okIsClickedOnTimeoutNotificationPopup() {
-        commonPageObj.btnSessionExpired()
+        commonPageObj.dialog.btnConfirm()
                 .shouldBe(visible)
                 .shouldBe(enabled)
                 .click();

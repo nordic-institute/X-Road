@@ -35,8 +35,8 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vSwitch;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemParametersStepDefs extends BaseUiStepDefs {
     private final SystemParametersPageObj systemParametersPageObj = new SystemParametersPageObj();
@@ -142,6 +142,73 @@ public class SystemParametersStepDefs extends BaseUiStepDefs {
         vSwitch(systemParametersPageObj.toggleMaintenanceMode())
                 .shouldBe(visible)
                 .shouldBeDisabled();
+    }
+
+    @Step("Configurable properties panels are visible")
+    public void configurablePropertiesPanelsAreVisible() {
+        systemParametersPageObj.configurablePropertiesPanels().shouldBe(visible);
+    }
+
+    @Step("Configurable properties panel for scope {string} is present")
+    public void configurablePropertiesPanelForScopeIsPresent(String scope) {
+        systemParametersPageObj.configurablePropertiesPanel(scope).shouldBe(visible);
+    }
+
+    @Step("Configurable properties panel for scope {string} is expanded")
+    public void expandConfigurablePropertiesPanel(String scope) {
+        systemParametersPageObj.configurablePropertiesPanel(scope).shouldBe(visible);
+        systemParametersPageObj.configurablePropertiesPanelTitle(scope).shouldBe(visible).click();
+        systemParametersPageObj.configurablePropertiesTableRows(scope)
+                .shouldBe(CollectionCondition.sizeGreaterThan(0));
+    }
+
+    @Step("Edit button for property {string} in scope {string} is clicked")
+    public void clickEditButtonForProperty(String propertyName, String scope) {
+        systemParametersPageObj.configurablePropertyEditButton(scope, propertyName).shouldBe(visible).click();
+    }
+
+    @Step("Edit configurable property dialog is open")
+    public void editConfigurablePropertyDialogIsOpen() {
+        systemParametersPageObj.dialogEditConfigurableProperty.valueField().shouldBe(visible);
+    }
+
+    @Step("Configurable property value is changed to {string}")
+    public void changeConfigurablePropertyValue(String value) {
+        vTextField(systemParametersPageObj.dialogEditConfigurableProperty.valueField())
+                .clear()
+                .setValue(value);
+    }
+
+    @Step("Edit configurable property dialog is cancelled")
+    public void cancelEditConfigurablePropertyDialog() {
+        systemParametersPageObj.dialogEditConfigurableProperty.btnCancel().shouldBe(visible).click();
+    }
+
+    @Step("Edit configurable property dialog is not visible")
+    public void editConfigurablePropertyDialogIsNotVisible() {
+        systemParametersPageObj.dialogEditConfigurableProperty.valueField().shouldNotBe(visible);
+    }
+
+    @Step("Configurable properties restart warning is visible")
+    public void configurablePropertiesRestartWarningIsVisible() {
+        systemParametersPageObj.configurablePropertiesRestartWarning().shouldBe(visible);
+    }
+
+    @Step("Configurable properties search is used with {string}")
+    public void searchConfigurableProperties(String searchTerm) {
+        vTextField(systemParametersPageObj.configurablePropertiesSearch()).setValue(searchTerm);
+    }
+
+    @Step("Configurable property row {string} is visible in scope {string}")
+    public void configurablePropertyRowIsVisible(String propertyName, String scope) {
+        systemParametersPageObj.configurablePropertyRowByName(scope, propertyName).shouldBe(visible);
+    }
+
+    @Step("Configurable property {string} in scope {string} has current value {string}")
+    public void configurablePropertyHasCurrentValue(String propertyName, String scope, String value) {
+        systemParametersPageObj.configurablePropertyCurrentValue(scope, propertyName)
+                .shouldBe(visible)
+                .shouldHave(text(value));
     }
 
 }

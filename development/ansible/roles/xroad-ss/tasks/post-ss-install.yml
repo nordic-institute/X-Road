@@ -1,0 +1,25 @@
+---
+# TEMPORARY (dataspaces dev): remove stale systemd drop-in that set jwks.url
+# via Environment= (superseded by local-ds-control-plane.yaml placed by
+# pre-ss-install.yml). The drop-in dir is created by the package, so this
+# must run after install. Remove once the packages never shipped this drop-in.
+- name: drop legacy ds-control-plane systemd override (now in YAML)
+  file:
+    path: /etc/systemd/system/xroad-ds-control-plane.service.d/jwks.conf
+    state: absent
+
+# TEMPORARY (dataspaces dev): post-install safety net. The pre-install preseed
+# ensures DS services boot cleanly on a fresh install, but if an earlier run
+# left a unit in `inactive (dead)` state (e.g., from a prior StartLimitBurst
+# before the preseed was in place), the package install does NOT restart it.
+# `state: started` is idempotent — no-op when the service is already active,
+# brings it up otherwise. NOT `state: restarted` (which would churn working
+# services). Remove once the env is stable and re-runs always start from clean.
+- name: ensure DS units are running after install (idempotent — no restart)
+  systemd:
+    name: "{{ item }}"
+    state: started
+  loop:
+    - xroad-ds-identity-hub
+    - xroad-ds-control-plane
+    - xroad-proxy

@@ -34,7 +34,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
-import java.nio.file.Path;
+import java.time.Duration;
 
 /**
  * Registration service configuration properties.
@@ -90,16 +90,6 @@ public class RegistrationServiceProperties implements AdminServiceClientProperty
     private int rateLimitExpireAfterAccessMinutes;
 
     /**
-     * Path to a trust store containing certificates for the central server admin API
-     */
-    private Path apiTrustStore;
-
-    /**
-     * Password for the trust store
-     */
-    private String apiTrustStorePassword;
-
-    /**
      * Central server admin api base URL
      */
     private URI apiBaseUrl;
@@ -114,4 +104,21 @@ public class RegistrationServiceProperties implements AdminServiceClientProperty
      * HTTP client configuration.
      */
     private HttpClientProperties httpClientProperties = new HttpClientProperties();
+
+    /**
+     * Vault TLS credentials retry configuration.
+     */
+    private VaultRetry vaultRetry = new VaultRetry();
+
+    @Getter
+    @Setter
+    public static class VaultRetry {
+        private static final int DEFAULT_RETRY_MAX_ATTEMPTS = 5;
+        private static final Duration DEFAULT_RETRY_DELAY = Duration.ofSeconds(2);
+        private static final double DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = 2.0;
+
+        private int retryMaxAttempts = DEFAULT_RETRY_MAX_ATTEMPTS;
+        private Duration retryDelay = DEFAULT_RETRY_DELAY;
+        private double retryExponentialBackoffMultiplier = DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER;
+    }
 }

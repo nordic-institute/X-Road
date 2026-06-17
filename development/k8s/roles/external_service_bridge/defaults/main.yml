@@ -1,0 +1,9 @@
+---
+security_server_namespace: ss
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+external_service_bridge_chart_repo: ""
+external_service_bridge_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/external-service-bridge"
+external_service_bridge_chart_version: ""
+
+external_service_bridge_timeout: 3m

@@ -26,13 +26,12 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
@@ -47,10 +46,10 @@ class AuthCertDeletionRequestDecoderCallbackTest {
     private AuthCertDeletionRequestDecoderCallback callback;
 
     @Test
-    void shouldOnCompleteThrowCodedException() {
+    void shouldOnCompleteThrowXrdRuntimeException() {
         when(rootCallback.getSoapMessage()).thenThrow(new RuntimeException());
 
-        assertThatExceptionOfType(CodedException.class)
+        assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> callback.onCompleted());
     }
 

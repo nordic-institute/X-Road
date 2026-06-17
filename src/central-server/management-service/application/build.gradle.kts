@@ -34,14 +34,17 @@ dependencies {
     exclude(module = "spring-boot-starter-tomcat")
   }
 
-  implementation("org.springframework.boot:spring-boot-starter-web") {
+  implementation(libs.springBoot.starterWeb) {
     exclude(module = "spring-boot-starter-tomcat")
   }
 
-  implementation("org.springframework.boot:spring-boot-starter-jetty")
+  implementation(libs.springBoot.starterJetty)
+  implementation(libs.springBoot.starterSecurity)
+  implementation(project(":lib:properties-spring"))
   implementation(libs.logback.classic)
 
   testImplementation(project(":common:common-test"))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
+  testImplementation(libs.springBoot.starterWebmvcTest)
   testImplementation(testFixtures(project(":common:common-api-throttling")))
 }

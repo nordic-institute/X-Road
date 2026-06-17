@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.30
+Version: 1.33
 Doc. ID: IG-XLB
 
 
@@ -36,7 +36,10 @@ Doc. ID: IG-XLB
 | 02.04.2025 | 1.27    | Added Proxy memory health check paragraph                                                                                | Mikk-Erik Bachmann          |
 | 06.05.2025 | 1.28    | Added more details about the soft token status check result caching                                                      | Petteri Kivimäki            |
 | 01.08.2025 | 1.29    | Fix a broken link                                                                                                        | Petteri Kivimäki            |
-| 22.05.2026 | 1.30    | Added ACME HTTP challenge port clarification for secondaries                                                             | Mikk-Erik Bachmann          |
+| 25.02.2026 | 1.30    | Update PostgreSQL to version 15 on RHEL                                                                                  | Ričardas Bučiūnas           |
+| 02.03.2026 | 1.31    | Fix broken link                                                                                                          | Petteri Kivimäki            |
+| 22.04.2026 | 1.32    | Remove RHEL 8 and add RHEL 10 support                                                                                    | Eneli Reimets               |
+| 22.05.2026 | 1.33    | Added ACME HTTP challenge port clarification for secondaries                                                             | Mikk-Erik Bachmann          |
 
 ## Table of Contents
 
@@ -75,8 +78,6 @@ Doc. ID: IG-XLB
     - [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
     - [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
       - [4.2.1 on RHEL](#421-on-rhel)
-        - [4.2.1.1 on RHEL 7](#4211-on-rhel-7)
-        - [4.2.1.2 on RHEL 8 and 9](#4212-on-rhel-8-and-9)
       - [4.2.2 on Ubuntu](#422-on-ubuntu)
     - [4.3 Configuring the primary instance for replication](#43-configuring-the-primary-instance-for-replication)
     - [4.4 Configuring the secondary instance for replication](#44-configuring-the-secondary-instance-for-replication)
@@ -121,7 +122,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 |             Document Id              | Document                                                                                                                                   |
 | :----------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
-|            \[SS-CLUSTER\]            | [Readme: Security Server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/tree/develop/ansible/ss_cluster/README.md) |
+|            \[SS-CLUSTER\]            | [Readme: Security Server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/blob/develop/development/ansible/ss_cluster/README.md) |
 |              \[IG-SS\]               | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md)                                     |
 |              \[UG-SS\]               | [X-Road 7 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md)                                                     |
 | <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)                                                                               |
@@ -297,7 +298,6 @@ In order to properly set up the data replication, the secondary nodes must be ab
       ```
 9. Start the X-Road services.
 
-
 ### 3.3 Secondary installation
 1. Install Security Server packages using the normal installation procedure. Alternatively you can also install only the packages
    required for secondary nodes. `xroad-proxy-ui-api` package can be omitted, but the admin graphical user interface
@@ -313,7 +313,7 @@ In order to properly set up the data replication, the secondary nodes must be ab
 5. Set up SSH between the primary and the secondary (the secondary must be able to access `/etc/xroad` via ssh)
    * Create an SSH keypair for `xroad` user and copy the public key to authorized keys of the primary node
    (`/home/xroad-slave/.ssh/authorized_keys`)
-   > On RHEL 8, 9: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
+   > On RHEL 9, 10: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
       ```bash
       sudo -u xroad ssh-keygen -t ecdsa
       ```
@@ -321,7 +321,7 @@ In order to properly set up the data replication, the secondary nodes must be ab
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Make the initial synchronization between the primary and the secondary.
    ```bash
-   sudo -u xroad rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/gpghome" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
+   sudo -u xroad rsync -e ssh -avz --delete --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --exclude "/gpghome" --exclude "secret-store-client-token" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
    ```
    Where `<primary>` is the primary server's DNS or IP address.
 7. Configure the node type as `slave` in `/etc/xroad/conf.d/node.ini`.
@@ -472,16 +472,14 @@ Besides the health checks mentioned above, Proxy can also be configured to check
 ## 4. Database replication setup
 
 For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/current/high-availability.html).
-Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. At the time of writing, RHEL 7
-distributes PostgreSQL version 9.2 and 12, and RHEL 8 version 10 and 12; the replication configuration is the same
-for versions 9.2 and 10. RHEL 9, Ubuntu 20.04, 22.04 and 24.04 using PostgreSQL version 12 and later the configuration has some differences.
+Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. RHEL 9 uses PostgreSQL 15, RHEL 10 uses PostgreSQL 16, Ubuntu 22.04 uses version 14, and Ubuntu 24.04 uses version 16.
 
 ### 4.1 Setting up TLS certificates for database authentication
 
 This section describes how to create and set up certificate authentication between the secondary and primary database instances.
 
 For further details on the certificate authentication, see the
-[PostgreSQL documentation](https://www.postgresql.org/docs/10/auth-methods.html#AUTH-CERT).
+[PostgreSQL documentation](https://www.postgresql.org/docs/15/auth-methods.html#AUTH-CERT).
 
 1. Generate the Certificate Authority key and a self-signed certificate for the root-of-trust:
 
@@ -541,32 +539,10 @@ For further details on the certificate authentication, see the
 #### 4.2.1 on RHEL
 
 On RHEL, we assume that the PostgreSQL default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
->**Note:** If the location is different in your system (for example `/var/lib/pgsql/13/serverconf`), then directory `/var/lib/pgsql/serverconf` need to be replaced with your data directory (for example `/var/lib/pgsql/13/serverconf`) in the following scripts.
- 
-##### 4.2.1.1 on RHEL 7
-
-Create a new `systemctl` service unit for the new database. As root, execute the following command:
-
-```bash
-cat <<EOF >/etc/systemd/system/postgresql-serverconf.service
-.include /lib/systemd/system/postgresql.service
-[Service]
-Environment=PGPORT=5433
-Environment=PGDATA=/var/lib/pgsql/serverconf
-EOF
-```
-Create the database and configure SELinux:
-
-```bash
-PGSETUP_INITDB_OPTIONS="--auth-local=peer --auth-host=md5" postgresql-setup initdb postgresql-serverconf
-semanage port -a -t postgresql_port_t -p tcp 5433
-systemctl enable postgresql-serverconf
-```
-
-##### 4.2.1.2 on RHEL 8 and 9
+>**Note:** If the location is different in your system (for example `/var/lib/pgsql/15/serverconf`), then directory `/var/lib/pgsql/serverconf` need to be replaced with your data directory (for example `/var/lib/pgsql/15/serverconf`) in the following scripts.
 
 Create a new `systemctl` service unit for the new database. As root, make a copy for the new service
->**Note:** We assume that the default PostgreSQL database service file is `/lib/systemd/system/postgresql.service`, but depending on the PostgreSQL installation, the service file name can be a little bit different, for example `/lib/systemd/system/postgresql-13.service`.
+>**Note:** We assume that the default PostgreSQL database service file is `/lib/systemd/system/postgresql.service`, but depending on the PostgreSQL installation, the service file name can be a little bit different, for example `/lib/systemd/system/postgresql-15.service`.
 
 ```bash
 cp /lib/systemd/system/postgresql.service /etc/systemd/system/postgresql-serverconf.service 
@@ -595,7 +571,7 @@ exit
     # Init db
     sudo su postgres
     cd /tmp
-    /usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+    /usr/pgsql-15/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/15/serverconf/
     exit
     ```
 
@@ -617,8 +593,8 @@ In the above command, `16` is the *postgresql major version*. Use `pg_lsclusters
 
 Edit `postgresql.conf` and set the following options:
 >* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
->  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
->* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`.
+>  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/15/serverconf`.
+>* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/16/serverconf`.
 
 ```properties
 ssl = on
@@ -628,16 +604,6 @@ ssl_key_file  = '/etc/xroad/postgresql/server.key'
 
 listen_addresses  = '*'  # (default is localhost. Alternatively: localhost, <IP of the interface the secondaries connect to>")
 
-# PostgreSQL 9.2 (RHEL 7)
-wal_level = hot_standby
-
-# PostgreSQL 10 & 12 (RHEL 7, 8; Ubuntu 20.04)
-wal_level = replica
-
-max_wal_senders   = 3   # should be ~ number of secondaries plus some small number. Here, we assume there are two secondaries.
-wal_keep_segments = 8   # keep some wal segments so that secondaries that are offline can catch up.
-
-# PostgreSQL >=13 (RHEL 9, Ubuntu 22.04, 24.04)
 wal_level = replica
 
 max_wal_senders = 3   # should be ~ number of secondaries plus some small number. Here, we assume there are two secondaries.
@@ -645,7 +611,7 @@ wal_keep_size   = 8   # keep some wal size so that secondaries that are offline 
 ```
 
 For more information about the streaming replication configuration options,
-see the [PostgreSQL documentation](https://www.postgresql.org/docs/10/runtime-config-replication.html).
+see the [PostgreSQL documentation](https://www.postgresql.org/docs/15/runtime-config-replication.html).
 
 Edit `pg_hba.conf` and enable connections to the replication pseudo database using client certificates. See chapter
 [4.1](#41-setting-up-tls-certificates-for-database-authentication) for the authentication setup.
@@ -654,7 +620,7 @@ Edit `pg_hba.conf` and enable connections to the replication pseudo database usi
 hostssl     replication     +slavenode  samenet     cert
 ```
 **Note:** The CN field in the certificate subject must match a replication user name in postgresql. 
-See the [PostgreSQL documentation](https://www.postgresql.org/docs/10/auth-pg-hba-conf.html) for more details.
+See the [PostgreSQL documentation](https://www.postgresql.org/docs/15/auth-pg-hba-conf.html) for more details.
 
 The `samenet` above assumes that the secondaries will be in the same subnet as the primary.
 
@@ -682,6 +648,7 @@ Create a user named `serverconf` for local `serverconf` database access:
 
 ```bash
 sudo -u postgres psql -p 5433 -c "CREATE USER serverconf PASSWORD '<password>'";
+sudo -u postgres psql -p 5433 -c "CREATE USER serverconf_admin PASSWORD '<password>'";
 ```
 
 Copy the `serverconf` database from the default instance to the new instance:
@@ -704,7 +671,7 @@ Prerequisites:
 
 Go to the postgresql data directory:
  * RHEL: `/var/lib/pgsql/serverconf`
-    >**Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
+    >**Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/15/serverconf`.
  * Ubuntu: `/var/lib/postgresql/<postgresql major version>/serverconf`
 
 Clear the data directory:
@@ -724,20 +691,12 @@ Where `<primary>` is the DNS or IP address of the primary node and `<nodename>` 
 NOTICE: WAL archiving is not enabled; you must ensure that all required WAL segments are copied through other means to complete the backup
 ```
 
-On *RHEL 7/8 (PostgreSQL <12)*, add the following `recovery.conf` to the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
-```properties
-standby_mode = 'on'
-primary_conninfo = 'host=<primary> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
-trigger_file = '/var/lib/xroad/postgresql.trigger'
-```
-Where, as above, `<primary>` is the DNS or IP address of the primary node and `<nodename>` is the node name (the replication user name added to the primary database).
-
-On *Ubuntu, RHEL (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
+Create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
 
 Next, modify `postgresql.conf`:
->* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.
->  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
->* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`.
+>* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
+>  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/15/serverconf`.
+>* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/16/serverconf`.
 ```properties
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
@@ -749,14 +708,13 @@ listen_addresses = localhost
 # no need to send WAL logs
 # wal_level = replica
 # max_wal_senders = 3
-# wal_keep_segments = 8    # on PostgreSQL in 10, 12
-# wal_keep_size = 8        # on PostgreSQL >= 13
+# wal_keep_size = 8
 
 hot_standby = on
 hot_standby_feedback = on
 ```
 
-*On Ubuntu, RHEL (PostgreSQL >=12) only*, add the primary_conninfo to postgresql.conf:
+Add the primary_conninfo to postgresql.conf:
 ```properties
 primary_conninfo = 'host=<primary> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
 ```
@@ -838,7 +796,7 @@ Environment=MASTER=<primary_host>
 
 ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
 
-ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --exclude "/gpghome" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
+ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --exclude "/gpghome" --exclude "secret-store-client-token" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 [Install]
 WantedBy=multi-user.target
 WantedBy=xroad-proxy.service

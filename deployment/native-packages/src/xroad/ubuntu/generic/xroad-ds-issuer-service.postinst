@@ -1,0 +1,10 @@
+#!/bin/bash
+. /usr/share/debconf/confmodule
+
+if [[ "$1" == "configure" || "$1" == "reconfigure" ]]; then
+  /usr/share/xroad/scripts/setup_ds_issuerservice_db.sh
+fi
+
+#DEBHELPER#
+
+exit 0

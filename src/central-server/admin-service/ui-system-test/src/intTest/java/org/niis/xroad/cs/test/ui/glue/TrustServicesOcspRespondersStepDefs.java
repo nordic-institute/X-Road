@@ -38,9 +38,9 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
@@ -105,13 +105,13 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         tableHeader
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-up"))
+                .shouldHave(cssClass("arrow_upward"))
                 .click();
 
         tableHeader
                 .shouldHave(cssClass("v-data-table__th--sorted"))
                 .$x(".//i")
-                .shouldHave(cssClass("mdi-arrow-down"))
+                .shouldHave(cssClass("arrow_downward"))
                 .click();
     }
 
@@ -155,7 +155,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     public void userIsAbleViewTheCertificate() {
         ocspRespondersPageObj.addEditDialog.btnViewCertificate().click();
         ocspRespondersPageObj.certificateView.certificateDetails().shouldBe(visible);
-        ocspRespondersPageObj.certificateView.btnClose().click();
+        commonPageObj.elevatedView.btnClose().click();
     }
 
     @Step("User is able to change the certificate of OCSP responder with URL {}")

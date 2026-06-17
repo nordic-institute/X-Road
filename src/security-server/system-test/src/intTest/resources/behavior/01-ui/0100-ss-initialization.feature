@@ -1,4 +1,5 @@
 @SecurityServer
+@UI
 @Initialization
 Feature: 0100 - SS: Initialization
   Verify that SS can be initialized from fresh state.
@@ -6,10 +7,10 @@ Feature: 0100 - SS: Initialization
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
 
   Scenario: Security server is initialized
-    Given healthcheck has errors and error message is "Global configuration is expired"
+    Given Proxy healthcheck check "PROXY_GLOBALCONF_READINESS_CHECK" is "UP" with status "UNINITIALIZED"
     And Initial Configuration form is visible
     And Configuration anchor "configuration_anchor_CS_internal.xml" is uploaded
     And Configuration anchor details are confirmed

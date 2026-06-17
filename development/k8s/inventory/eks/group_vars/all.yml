@@ -1,0 +1,51 @@
+---
+# EKS deployment skeleton. See docs/EKS.md for the full guide.
+# Cluster provisioning (VPC, EKS, node groups) is out of scope — assume an
+# existing cluster with kubeconfig already pointing at it.
+
+cluster_provider: eks
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+security_server_namespace: ss
+monitoring_namespace: ss-monitoring
+
+# ECR registry — set AWS_ACCOUNT and AWS_REGION or override these directly.
+aws_account: "{{ lookup('env', 'AWS_ACCOUNT') | default('000000000000', true) }}"
+aws_region: "{{ lookup('env', 'AWS_REGION') | default('eu-west-1', true) }}"
+xroad_image_registry: "{{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com"
+xroad_image_tag: "8.0.0"
+
+xroad8_oci_repo: "oci://artifactory.niis.org/xroad8-release-helm"
+
+openbao_init_chart_repo: "{{ xroad8_oci_repo }}"
+openbao_init_chart: "openbao-init"
+openbao_init_chart_version: "0.1.0"
+
+security_server_chart_repo: "{{ xroad8_oci_repo }}"
+security_server_chart: "security-server"
+security_server_chart_version: "0.1.0"
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+openbao_chart_repo: "https://openbao.github.io/openbao-helm"
+openbao_chart: "openbao/openbao"
+openbao_chart_version: "0.25.6"
+
+# cert_manager is not yet implemented in the openbao role — use self_signed
+# for initial bring-up. Migrate once the cert_manager path lands.
+openbao_tls_mode: self_signed
+
+# No host bridges on real EKS — real X-Road CS/CA reachable via DNS.
+external_service_bridges: []
+
+deploy_prometheus: false
+deploy_netdata: true
+
+# Storage class for PersistentVolumeClaims. EBS gp3 recommended.
+storage_class: gp3
+
+# Service type for security-server & openbao. LoadBalancer for NLB, ClusterIP
+# if fronted by an Ingress controller (AWS Load Balancer Controller).
+service_type: LoadBalancer
+
+port_forwards: []

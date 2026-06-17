@@ -30,8 +30,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER_FIELD;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 
 /**
  * Client sends normal message. Server responds with multipart that
@@ -53,7 +53,7 @@ public class AttachmentFaultySoapResponse extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_SERVICE_FAILED_X,
-                X_MISSING_HEADER_FIELD);
+        assertErrorCode(SERVER_SERVERPROXY_X, SERVICE_FAILED.code(),
+                MISSING_HEADER_FIELD.code());
     }
 }

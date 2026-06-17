@@ -5,13 +5,13 @@ Feature: 2100 - SS: Proxymonitor
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
 
   Scenario: Proxymonitor responds with correct response
     Given Clients tab is selected
     And Client "Test member" is opened
     And Internal servers sub-tab is selected
-    Then Internal server connection type is set to "HTTP"
+    And Internal server connection type is "HTTP"
     When Security Server Metrics request was sent with queryId "ID1234"
     Then Valid Security Server Metrics response is returned
 

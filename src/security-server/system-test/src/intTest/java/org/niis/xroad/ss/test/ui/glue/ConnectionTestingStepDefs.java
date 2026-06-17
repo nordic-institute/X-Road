@@ -32,7 +32,7 @@ import org.niis.xroad.ss.test.ui.page.ConnectionTestingPageObj;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vRadio;
 
 public class ConnectionTestingStepDefs extends BaseUiStepDefs {
     private final ConnectionTestingPageObj page = new ConnectionTestingPageObj();
@@ -49,7 +49,7 @@ public class ConnectionTestingStepDefs extends BaseUiStepDefs {
 
     @Step("Central Server authentication certificate registration service status should be failed")
     public void centralServerAuthCertStatusFailed() {
-        page.centralServerAuthCertMessage().shouldHave(Condition.partialText("IO error"));
+        page.centralServerAuthCertMessage().shouldHave(Condition.partialText("SSL authentication failed"));
     }
 
     @Step("Central Server authentication certificate registration service Test button should be enabled")

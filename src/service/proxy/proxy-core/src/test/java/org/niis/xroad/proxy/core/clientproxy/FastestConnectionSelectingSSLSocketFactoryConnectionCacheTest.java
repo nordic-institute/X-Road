@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import com.google.common.base.Ticker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -101,7 +99,7 @@ public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
     public void testExpiration() throws URISyntaxException {
 
         FakeTicker ticker = new FakeTicker();
-        final int cachePeriod = SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod();
+        final int cachePeriod = 3600;
         final Cache<CacheKey, URI> cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(cachePeriod, TimeUnit.SECONDS)
                 .ticker(ticker)

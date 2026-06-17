@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Client Rename
+Feature: 080 - Management requests API: Client Rename
 
   Scenario: Client rename request is successful
     Given Admin api is mocked with a response with status-code 202, type CLIENT_RENAME_REQUEST and id 1122

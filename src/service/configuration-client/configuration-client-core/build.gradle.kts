@@ -1,18 +1,20 @@
 plugins {
   id("xroad.java-conventions")
+  alias(libs.plugins.jandex)
 }
 
 dependencies {
-  implementation(platform(libs.springBoot.bom))
-
   implementation(project(":lib:globalconf-core"))
-  implementation(project(":common:common-scheduler"))
-  implementation(project(":common:common-jetty"))
-  implementation(project(":common:common-rpc"))
-  implementation("org.springframework:spring-context-support")
 
-  implementation(libs.commons.cli)
+  implementation(project(":service:configuration-client:configuration-client-model"))
+  implementation(project(":service:configuration-client:configuration-client-common"))
+
+  implementation(libs.quarkus.arc)
+  implementation(libs.quarkus.quartz)
+  implementation(libs.quarkus.jdbc.postgresql)
+
+  api(libs.commons.cli)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.wiremock.standalone)
+  testImplementation(testFixtures(project(":lib:properties-core")))
 }

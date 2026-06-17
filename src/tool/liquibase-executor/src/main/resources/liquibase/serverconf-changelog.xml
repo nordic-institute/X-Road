@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="serverconf-changelog.xml">
+
+    <changeSet id="create-mandatory-extensions" author="niis">
+        <sql>
+            CREATE EXTENSION IF NOT EXISTS hstore;
+        </sql>
+    </changeSet>
+
+    <include file="serverconf/000-baseline.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/001-apikeys.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/002-drop-securitycategories.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/003-drop-unneeded-sequences.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/004-add-tps-cost.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/005-configuration-client.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/006-configuration-properties.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/007-globalconf-source.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/008-admin-users.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/009-drop-uiuser-table.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/010-identifiers-consolidation.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/011-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/>
+    <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
+
+    <!-- must be the last one -->
+    <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
+        <sql splitStatements="false"><![CDATA[
+        grant usage on schema "${db_schema}" to "${db_user}";
+        grant select,update,insert,delete on all tables in schema "${db_schema}" to "${db_user}";
+        grant select,usage on all sequences in schema "${db_schema}" to "${db_user}";
+        grant execute on all functions in schema "${db_schema}" to "${db_user}";
+        revoke insert,update,delete on databasechangelog, databasechangeloglock from "${db_user}";
+        revoke update,delete on history from "${db_user}";
+        ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

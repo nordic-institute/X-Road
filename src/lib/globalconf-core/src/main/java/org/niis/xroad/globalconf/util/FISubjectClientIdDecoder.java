@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.globalconf.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -38,6 +37,7 @@ import java.security.cert.X509Certificate;
 import java.util.regex.Pattern;
 
 import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
+import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
 
 /**
  * Helper class for decoding ClientId from Finnish X-Road instance signing certificates.
@@ -82,30 +82,30 @@ public final class FISubjectClientIdDecoder {
     private static ClientId.Conf parseClientId(X500Name x500name) {
         String c = getRDNValue(x500name, BCStyle.C);
         if (!"FI".equals(c)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain valid country code");
         }
 
         if (getRDNValue(x500name, BCStyle.O) == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain organization");
         }
 
         String memberCode = getRDNValue(x500name, BCStyle.CN);
         if (memberCode == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain common name");
         }
 
         String serialNumber = getRDNValue(x500name, BCStyle.SERIALNUMBER);
         if (serialNumber == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain serial number");
         }
 
         final String[] components = SPLIT_PATTERN.split(serialNumber);
         if (components.length != NUM_COMPONENTS) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name's attribute serialNumber has invalid value");
         }
 
@@ -130,25 +130,25 @@ public final class FISubjectClientIdDecoder {
     private static ClientId.Conf parseClientIdFromLegacyName(X500Name x500name) {
         String c = getRDNValue(x500name, BCStyle.C);
         if (!"FI".equals(c)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain valid country code");
         }
 
         String instanceId = getRDNValue(x500name, BCStyle.O);
         if (instanceId == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain organization");
         }
 
         String memberClass = getRDNValue(x500name, BCStyle.OU);
         if (memberClass == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain organization unit");
         }
 
         String memberCode = getRDNValue(x500name, BCStyle.CN);
         if (memberCode == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+            throw XrdRuntimeException.systemException(INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain common name");
         }
 

@@ -34,9 +34,9 @@ import org.assertj.core.api.Assertions;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.ClientPageObj;
 
-import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.test.framework.core.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientListStepDefs extends BaseUiStepDefs {
     private final ClientPageObj clientPageObj = new ClientPageObj();
@@ -97,8 +97,7 @@ public class ClientListStepDefs extends BaseUiStepDefs {
 
     @Step("Client filter is set to {string}")
     public void setFilter(String query) {
-        clientPageObj.btnSearch().shouldBe(visible).click();
-        vTextField(clientPageObj.inputSearch()).shouldBe(focused).setValue(query);
+        vTextField(clientPageObj.inputSearch()).shouldBe(enabled).setValue(query);
     }
 
     @Step("Client table is ordered as follows:")
@@ -109,7 +108,7 @@ public class ClientListStepDefs extends BaseUiStepDefs {
             for (var entry : values.get(i).entrySet()) {
                 switch (entry.getKey()) {
                     case "$memberName" -> rowTr
-                            .$x("./td[@data-test='client-name']//span[contains(@class, 'client-name')]")
+                            .$x("./td[@data-test='client-name']//span[@data-test='label']")
                             .shouldHave(Condition.text(entry.getValue()));
 
                     case "$id" -> rowTr

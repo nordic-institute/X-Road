@@ -27,21 +27,21 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -67,22 +67,22 @@ public class SecurityServerTypeTypeAdapterTest {
 
     @Test
     public void okType() throws IOException {
-        Type type = OBJECT_READER.readValue(OK_JSON_CLIENT, Type.class);
+        Type type = OBJECT_READER.forType(Type.class).readValue(OK_JSON_CLIENT);
         assertEquals("Client", type.getSecurityServerType());
 
-        type = OBJECT_READER.readValue(OK_JSON_PRODUCER, Type.class);
+        type = OBJECT_READER.forType(Type.class).readValue(OK_JSON_PRODUCER);
         assertEquals("Producer", type.getSecurityServerType());
     }
 
     @Test
     public void nokType() {
         String nokJson = "{\"securityServerType\":\"UNKNOWN\"}";
-        var err = assertThrows(JsonProcessingException.class, () -> OBJECT_READER.readValue(nokJson, Type.class));
+        var err = assertThrows(JacksonException.class, () -> OBJECT_READER.forType(Type.class).readValue(nokJson));
         assertTrue(err.getOriginalMessage().contains("Invalid value of securityServerType"));
     }
 
     @Test
-    public void serialize() throws JsonProcessingException {
+    public void serialize() throws JacksonException {
         Type type = new Type("Client");
         String json = OBJECT_WRITER.writeValueAsString(type);
         assertEquals(OK_JSON_CLIENT, json);

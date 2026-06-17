@@ -1,11 +1,12 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0520 - SS: Client Details
 
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
     And Clients tab is selected
 
   Scenario: Client details are displayed

@@ -1,0 +1,58 @@
+---
+- name: Remove old repo config
+  file:
+    path: /etc/apt/sources.list.d/xroad.list
+    state: absent
+
+- name: Install required packages
+  apt:
+    name: "{{ items }}"
+    state: present
+    update_cache: true
+    install_recommends: false
+  vars:
+    items:
+      - acl
+      - curl
+      - apt-transport-https
+      - locales
+      - aptitude
+      - software-properties-common
+      - postgresql-common
+
+- name: Configure PostgreSQL PGDG apt repository
+  command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+  args:
+    creates: /etc/apt/sources.list.d/pgdg.list
+
+- name: Disable automatic upgrades
+  copy:
+    src: 99override-auto
+    dest: /etc/apt/apt.conf.d/
+    owner: root
+    group: root
+  when: (disable_automatic_upgrades is defined) and (disable_automatic_upgrades)
+
+- name: Add X-Road apt repo key
+  shell: "curl -sL {{ ubuntu_apt_key }} | sudo gpg --dearmor --batch --yes -o {{ ubuntu_apt_key_file }}"
+  when: package_source == "remote" and (ansible_facts['distribution'] == "Ubuntu")
+
+- name: Configure OpenBao apt repository
+  script:
+    cmd: "{{ role_path }}/../../../../deployment/.scripts/configure-mirror-openbao-deb.sh"
+
+- name: xroad apt repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    filename: xroad
+    update_cache: true
+  loop:
+    - "{{ ubuntu_apt_repo_with_option }}"
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: enable UTF-8 locales
+  locale_gen:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ (['en_US.UTF-8'] + extra_locales | default([])) | unique }}"

@@ -1,11 +1,12 @@
 @SecurityServer
+@UI
 @Client
 Feature: 0540 - SS: Client OpenApi REST services
 
   Background:
     Given SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to SecurityServer with password secret
+    And User xrd logs in to SecurityServer with password secret123!
     And Clients tab is selected
 
   Scenario: Client service with invalid openApi spec is not added

@@ -31,11 +31,13 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
+import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -72,7 +74,11 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         IdentifierValidationConfiguration.Config,
         AllowedFilesConfig,
         UserRoleConfig,
-        KeyAlgorithmConfig {
+        KeyAlgorithmConfig,
+        UserAuthenticationConfig,
+        FederationConfig,
+        BackupConfig,
+        AllowListConfig {
 
     /**
      * Controls the rate of global configuration generation in seconds.
@@ -153,7 +159,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      * incompatible identifier.
      */
     private boolean strictIdentifierChecks;
-    /** Configures Api regular request size limit.  */
+    /** Configures Api regular request size limit. */
     private DataSize requestSizeLimitRegular;
 
     /** Configures Api file upload request size limit. */
@@ -168,6 +174,20 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private KeyAlgorithm externalKeyAlgorithm;
     /** Algorithm that will be used when creating internal configuration signing key. */
     private KeyAlgorithm internalKeyAlgorithm;
+
+    private AuthenticationProviderType authenticationProvider;
+
+    private boolean enforceUserPasswordPolicy;
+
+    /** Whether configuration of trusted anchors is enabled in the central server UI, 'true' by default. */
+    private boolean trustedAnchorsAllowed;
+    /** path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default. */
+    private String confBackupPath;
+
+    /** Default whitelist for key management API (allow only localhost access, ipv4 and ipv6) */
+    private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";
+    /** Default whitelist for regular APIs (allow all) */
+    private String regularApiWhitelist = "0.0.0.0/0, ::/0";
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {

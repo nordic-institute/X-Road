@@ -1,0 +1,31 @@
+---
+namespace: niis
+name: xroad_k8s
+version: 0.1.0
+readme: docs/README.md
+authors:
+  - Nordic Institute for Interoperability Solutions (NIIS)
+description: Provision X-Road Security Server Kubernetes dev/test environments
+license:
+  - MIT
+tags:
+  - xroad
+  - kubernetes
+  - kind
+  - eks
+  - security
+repository: https://github.com/nordic-institute/X-Road
+documentation: https://docs.x-road.global
+issues: https://github.com/nordic-institute/X-Road/issues
+dependencies:
+  # Helm 4 support is on kubernetes.core main (shipping in 6.4.0). Installed
+  # from git until the release lands; open upper bound accommodates 7.0.0-dev0.
+  kubernetes.core: ">=6.3.0"
+  community.crypto: ">=3.0.0,<4.0.0"
+  ansible.posix: ">=2.0.0,<3.0.0"
+  community.general: ">=10.0.0,<13.0.0"
+build_ignore:
+  - .ansible-lint
+  - .yamllint
+  - .state
+  - scripts

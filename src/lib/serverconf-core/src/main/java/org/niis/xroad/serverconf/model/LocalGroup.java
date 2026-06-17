@@ -43,6 +43,7 @@ public class LocalGroup {
     private Long id;
     private String groupCode;
     private String description;
+    private Client client;
     private final List<GroupMember> groupMembers = new ArrayList<>();
     private Date updated;
 }

@@ -1,12 +1,13 @@
 @CentralServer
 @CertificationService
 @IntermediateCA
+@IntermediateCAOCSPResponders
 Feature: 0550 - CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA OCSP Responders
 
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
 
     When TrustServices tab is selected
     And new certification service is added

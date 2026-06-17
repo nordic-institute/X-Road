@@ -1,0 +1,5 @@
+../../../../src/xroad/common/signer/etc/*  etc/
+../../../../src/xroad/common/signer/usr/*  usr/
+../../../../../../src/service/signer/signer-application/build/quarkus-app/* usr/share/xroad/jlib/signer/
+../../../../../../src/service/signer/signer-cli/build/quarkus-app/* usr/share/xroad/jlib/signer-console/
+../../../../../../src/libs/pkcs11wrapper/${DEB_HOST_ARCH}/libpkcs11wrapper.so usr/share/xroad/lib/

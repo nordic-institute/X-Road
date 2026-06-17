@@ -1,0 +1,5 @@
+# Runtime artifacts written by hurl scenarios (anchors, CSRs, signed certs).
+# These are downloaded from a running X-Road stack at test time and must not
+# be committed.
+scenarios/**/gconf_anchor.xml
+scenarios/**/*.pem

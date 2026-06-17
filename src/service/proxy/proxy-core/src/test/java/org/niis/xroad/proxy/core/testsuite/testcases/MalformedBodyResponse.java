@@ -30,8 +30,8 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 
 /**
  * Client sends normal request. Service responds with SOAP with invalid body.
@@ -49,7 +49,7 @@ public class MalformedBodyResponse extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_SERVICE_FAILED_X,
-                X_INVALID_BODY);
+        assertErrorCode(SERVER_SERVERPROXY_X, SERVICE_FAILED.code(),
+                INVALID_BODY.code());
     }
 }

@@ -1,11 +1,11 @@
 @CentralServer
-@Member
-Feature: 0460 - CS: management service provider registration
+@ManagementService
+Feature: 0460 - CS: Management service provider registration
 
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
 
   Scenario: Initial management services configuration is displayed
     Given CentralServer Settings tab is selected

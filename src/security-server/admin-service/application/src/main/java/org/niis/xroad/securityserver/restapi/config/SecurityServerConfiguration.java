@@ -28,12 +28,12 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
@@ -47,9 +47,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.List;
 
 import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
@@ -74,6 +71,7 @@ public class SecurityServerConfiguration {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        bean.addUrlPatterns(IpThrottlingFilter.ADMIN_UI_PATTERNS);
         return bean;
     }
 
@@ -104,28 +102,22 @@ public class SecurityServerConfiguration {
 
     @Bean
     @Profile("nontest")
-    public MonitorClient monitorClient() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        return new MonitorClient();
-    }
-
-    @Bean
-    @Profile("nontest")
     @Order(DiagnosticCollector.ORDER_GROUP1)
-    public OsVersionCollector osVersionCollector(MonitorClient monitorClient) {
+    public OsVersionCollector osVersionCollector(MonitorRpcClient monitorClient) {
         return new OsVersionCollector(monitorClient);
     }
 
     @Bean
     @Profile("nontest")
     @Order(DiagnosticCollector.ORDER_GROUP5)
-    public XrdPackagesCollector xrdPackagesCollector(MonitorClient monitorClient) {
+    public XrdPackagesCollector xrdPackagesCollector(MonitorRpcClient monitorClient) {
         return new XrdPackagesCollector(monitorClient);
     }
 
     @Bean
     @Profile("nontest")
     @Order(DiagnosticCollector.ORDER_GROUP5)
-    public XrdProcessesCollector xrdProcessesCollector(MonitorClient monitorClient) {
+    public XrdProcessesCollector xrdProcessesCollector(MonitorRpcClient monitorClient) {
         return new XrdProcessesCollector(monitorClient);
     }
 }

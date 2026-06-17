@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -45,7 +46,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -63,10 +64,11 @@ import java.util.List;
  * OCSP client downloads OCSP responses for specified certificates using responders defined in the Global Configuration.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public final class OcspClient {
     private final GlobalConfProvider globalConfProvider;
+    private final SignerProperties signerProperties;
 
     // TODO make it configurable
     private static final int CONNECT_TIMEOUT_MS = 20000;
@@ -102,7 +104,8 @@ public final class OcspClient {
     OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
                            X509Certificate signer, SignAlgorithm signAlgoId)
             throws CertificateEncodingException, IOException, OCSPException {
-        List<String> responderURIs = globalConfProvider.getOrderedOcspResponderAddresses(subject);
+        List<String> responderURIs =
+                globalConfProvider.getOrderedOcspResponderAddresses(subject, signerProperties.ocspPrioritizationStrategy());
 
         log.trace("responder URIs: {}", responderURIs);
 

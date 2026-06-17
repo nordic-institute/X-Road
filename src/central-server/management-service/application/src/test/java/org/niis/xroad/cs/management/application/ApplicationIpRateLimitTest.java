@@ -32,9 +32,9 @@ import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.MockMvcPrint;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -64,7 +64,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
                 "spring.main.banner-mode=off",
                 "logging.level.root=ERROR",
                 "xroad.management-service.rate-limit-requests-per-minute=10",
-                "xroad.management-service.rate-limit-requests-per-second=5"})
+                "xroad.management-service.rate-limit-requests-per-second=5",
+                "server.ssl.enabled=false"
+        })
 @ActiveProfiles({"test"})
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class ApplicationIpRateLimitTest {

@@ -1,0 +1,208 @@
+services:
+  ds-https-keystore-wait:
+    image: alpine:3.20
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        set -u
+        until [ -f /etc/xroad/ssl/ds-https.p12 ] && [ -f /etc/xroad/ssl/cacerts ]; do
+          sleep 1
+        done
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 8M
+        limits:
+          memory: 32M
+
+  db-serverconf-ds-control-plane-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+           VALUES ('edc.iam.trusted-issuer.issuer.id', 'did:web:ds-issuer-service%3A6183:issuer', 'ds-control-plane', now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+
+  db-ds-control-plane:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=ds_control_plane_admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-control-plane
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  db-ds-identity-hub:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=ds_identity_hub_admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=ds-identity-hub
+    networks:
+      - xrd-ss-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  ds-control-plane:
+    image: ${DS_CONTROL_PLANE_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - HOSTNAME=${ENV_PREFIX:-}ds-control-plane
+      - XROAD_HOST=ds-control-plane
+      - XROAD_DSP_PARTICIPANT_CONTEXT_ID=${DSP_PARTICIPANT_ID:-xrd-ss}
+      - XROAD_PROXY_DATAPLANE_URL=http://proxy:5590/full/api/v1/dataflows
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      # admin permissions required to create schema on startup
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD=ds_control_plane_admin_secret
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - EDC_DSP_CALLBACK_ADDRESS=https://${ENV_PREFIX:-}ds-control-plane:8183/api/dsp/%s
+      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
+      - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
+      - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
+      - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
+      - EDC_WEB_HTTPS_KEYMANAGER_PASSWORD=changeit
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "http://localhost:4099/q/health" ]
+    networks:
+      xrd-ss-network: {}
+      xroad-network:
+        aliases:
+          - ${ENV_PREFIX:-}ds-control-plane
+    ports:
+      - "0:8181"
+      - "0:8182" # management, /api/management
+      - "0:8183" # protocol, /api/dsp
+      - "0:8184" # control, /api/control
+      - "0:9999" # debug port
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+    depends_on:
+      db-ds-control-plane:
+        condition: service_healthy
+      db-serverconf-ds-control-plane-config-seed:
+        condition: service_completed_successfully
+      configuration-client:
+        condition: service_healthy
+      ds-https-keystore-wait:
+        condition: service_completed_successfully
+
+  ds-identity-hub:
+    image: ${DS_IDENTITY_HUB_IMG}
+    pull_policy: always
+    environment:
+      - HOSTNAME=${ENV_PREFIX:-}ds-identity-hub
+      - XROAD_HOST=ds-identity-hub
+      - EDC_IH_DID_PUBLIC_HOSTNAME=${ENV_PREFIX:-}ds-identity-hub
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      # X-Road membership-claim signing reaches the co-located SS signer over gRPC
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      # admin permissions required to create schema on startup
+      - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub
+      - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=postgres
+      - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=ds_identity_hub_admin_secret
+      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
+      - EDC_ENCRYPTION_STRICT=false # implicitly enabled - requires extra overhead of having AES key present in OpenBao
+      - DEBUG=true
+      - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
+      - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
+      - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
+      - EDC_WEB_HTTPS_KEYMANAGER_PASSWORD=changeit
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-fk", "https://localhost:7181/api/check/health" ]
+    networks:
+      xrd-ss-network: {}
+      xroad-network:
+        aliases:
+          - ${ENV_PREFIX:-}ds-identity-hub
+    ports:
+      - "0:7182" # identity API
+      - "0:7183" # DID resolution
+      - "0:7185" # credentials API
+      - "0:9999" # debug port
+    volumes:
+      - ds-https-keystore:/etc/xroad/ssl:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+    depends_on:
+      db-ds-identity-hub:
+        condition: service_healthy
+      ds-https-keystore-wait:
+        condition: service_completed_successfully
+
+volumes:
+  ds-https-keystore:
+    external: true
+    name: e2e-ds-https-keystore
+
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true

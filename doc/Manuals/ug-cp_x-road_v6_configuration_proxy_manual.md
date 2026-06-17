@@ -197,7 +197,7 @@ The installation is successful if the 'xroad-signer' service is started, the 'xr
   confproxy-generate-anchor
   ```
 
-### 2.7 Installing the Support for Hardware Tokens
+### 2.7 Installing the Support for Hardware Tokens (TODO this is outdated!!!)
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -460,7 +460,7 @@ Generated anchor xml to '/home/xroad/anchor.xml'
 
 ```bash
 mkdir test_download
-/usr/share/xroad/scripts/download_instance_configuration.sh anchor.xml test_download/
+confproxy-download-conf -a anchor.xml -d test_download/
 
 ... - Downloading configuration from http://1.2.3.4/PROXY/conf
 ... - Downloading content from http://1.2.3.4/PROXY/123/AA/shared-params.xml

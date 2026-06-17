@@ -1,0 +1,11 @@
+---
+kind_cluster_name: xroad-dev-cluster
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+kind_worker_count: 2
+containerd_config_patches: []
+kind_state_dir: "{{ playbook_dir }}/../.state"
+kind_wait_for_ready: "5m"
+# v1.35.x kindest/node has kubelet-start failures on macOS Docker Desktop.
+kind_node_image: "kindest/node:v1.33.1"
+kind_create_async_timeout: 900
+kind_create_poll_interval: 10
