@@ -55,6 +55,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private static final String MGMT_BASE_URL = "https://%s:%d/api/management/v5beta/participants";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
+    private static final int MEMBER_ID_PART_COUNT = 3;
 
     private String offerId;
     private String targetAssetId;
@@ -431,7 +432,14 @@ public class DsStepDefs extends BaseE2EStepDefs {
             case Map<?, ?> single -> List.of((Map<String, Object>) single);
             case null, default -> List.of();
         };
-        return subjects.stream().anyMatch(subject -> memberId.equals(subject.get("xrdMemberIdentifier")));
+        var parts = memberId.split(":");
+        if (parts.length != MEMBER_ID_PART_COUNT) {
+            return false;
+        }
+        return subjects.stream().anyMatch(subject ->
+                parts[0].equals(subject.get("xroadInstance"))
+                        && parts[1].equals(subject.get("memberClass"))
+                        && parts[2].equals(subject.get("memberCode")));
     }
 
     @SuppressWarnings("unchecked")
