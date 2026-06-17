@@ -159,6 +159,23 @@ class ResponseStaxSoapParserImplTest {
     }
 
     @Test
+    void autoInjectMissingHeaderRepresentedPartyWithoutPartyCode() throws IOException {
+        // partyCode is optional in the synthesized header (defensive guard): a represented party with
+        // only a class must not emit an empty/NPE-ing partyCode element.
+        SoapHeader header = fullRequestHeader();
+        header.setRepresentedParty(new RepresentedParty("COM", null));
+        stubRequestHeader(header);
+
+        var result = new ResponseStaxSoapParserImpl(request, true)
+                .parse(MimeTypes.TEXT_XML_UTF8, toInputStream(asString("no-header"), "utf-8"));
+
+        assertThat(result.getXml())
+                .contains("<repr:representedParty>")
+                .contains("<repr:partyClass>COM</repr:partyClass>")
+                .doesNotContain("<repr:partyCode>");
+    }
+
+    @Test
     void autoInjectMissingHeaderWritesExactlyOneRequestHash() throws IOException {
         stubRequestHeader(fullRequestHeader());
 

@@ -144,7 +144,12 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
      */
     @Override
     protected void onMissingHeader() {
-        if (!autoInjectMissingHeaders) {
+        // Defer to the base rejection unless auto-injection is enabled AND the synthetic header was
+        // actually written. injectMissingHeaderIfNeeded() runs at the SOAP body start, before this is
+        // called at end-of-stream, so missingHeaderInjected is already true on the normal auto-inject
+        // path. A false value here would mean nothing was synthesized (e.g. an unexpected state), so we
+        // let the original MISSING_HEADER fault stand rather than emit a header-less response.
+        if (!autoInjectMissingHeaders || !missingHeaderInjected) {
             super.onMissingHeader();
         }
     }
@@ -334,8 +339,10 @@ final class ResponseStaxSoapParserImpl extends StaxEventSoapParserImpl {
             writeTextElement(INDENT_PART, SYNTHETIC_PREFIX_REPRESENTATION, SoapHeader.NS_REPR, PARTY_CLASS,
                     representedParty.getPartyClass());
         }
-        writeTextElement(INDENT_PART, SYNTHETIC_PREFIX_REPRESENTATION, SoapHeader.NS_REPR, PARTY_CODE,
-                representedParty.getPartyCode());
+        if (representedParty.getPartyCode() != null) {
+            writeTextElement(INDENT_PART, SYNTHETIC_PREFIX_REPRESENTATION, SoapHeader.NS_REPR, PARTY_CODE,
+                    representedParty.getPartyCode());
+        }
         writer.add(EVENT_FACTORY.createCharacters(INDENT_FIELD));
         writer.add(EVENT_FACTORY.createEndElement(SYNTHETIC_PREFIX_REPRESENTATION, SoapHeader.NS_REPR, REPRESENTED_PARTY));
     }
