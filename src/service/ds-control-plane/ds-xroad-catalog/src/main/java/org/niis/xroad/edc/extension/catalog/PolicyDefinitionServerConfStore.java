@@ -66,6 +66,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final String participantContextId;
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
+    private final StoreEnumerationCache<PolicyDefinition> cache;
     private final QueryEvaluator<PolicyDefinition> queryEvaluator =
             new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
 
@@ -81,6 +82,11 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     @Nullable
     @WithSpan("dsp-find-acl")
     public PolicyDefinition findById(@SpanAttribute String policyId) {
+        return cache.findById(policyId, () -> findByIdInternal(policyId));
+    }
+
+    @Nullable
+    private PolicyDefinition findByIdInternal(String policyId) {
         log.trace("findById policyId={}", policyId);
         if (policyId == null || policyId.isBlank()) {
             log.trace("findById policyId blank, returning null");
@@ -132,8 +138,15 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             log.trace("findAll criteria={} offset={} limit={}",
                     spec.getFilterExpression(), spec.getOffset(), spec.getLimit());
         }
-        var policies = new ArrayList<PolicyDefinition>();
+        var snapshot = cache.getEnumeration(this::buildPolicyList);
+        if (log.isTraceEnabled()) {
+            log.trace("findAll collected={} policies before filtering", snapshot.size());
+        }
+        return queryEvaluator.evaluate(snapshot.stream(), spec);
+    }
 
+    private List<PolicyDefinition> buildPolicyList() {
+        var policies = new ArrayList<PolicyDefinition>();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 collectPoliciesForService(serviceId, policies);
@@ -147,11 +160,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
                         serviceId.getClientId(), managementParticipantContextId)));
-
-        if (log.isTraceEnabled()) {
-            log.trace("findAll collected={} policies before filtering", policies.size());
-        }
-        return queryEvaluator.evaluate(policies.stream(), spec);
+        return policies;
     }
 
     @Override
