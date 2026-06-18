@@ -33,7 +33,13 @@ import {i18n as sharedI18n} from '@niis/shared-ui/src/plugins/i18n';
 import {type Plugin} from 'vue';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
+import {beforeEach} from 'vitest';
 import {ensureMessages} from './i18n-messages';
+
+beforeEach(() => {
+  sessionStorage.clear();
+  localStorage.clear();
+});
 
 function buildPinia() {
   const pinia = createPinia();

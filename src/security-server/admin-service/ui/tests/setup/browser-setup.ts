@@ -36,4 +36,6 @@ beforeAll(async () => {
 
 afterEach(() => {
   worker.resetHandlers();
+  sessionStorage.clear();
+  localStorage.clear();
 });

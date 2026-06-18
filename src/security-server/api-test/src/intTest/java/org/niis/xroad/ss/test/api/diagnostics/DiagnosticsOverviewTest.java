@@ -30,6 +30,7 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.admin.DiagnosticsAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
@@ -68,6 +69,7 @@ class DiagnosticsOverviewTest extends SsApiTest {
 
     // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Diagnostics checks are successful"
     @Test
+    @ResourceLock("timestamping")
     @DisplayName("All diagnostic status endpoints report OK or expected non-error values")
     void diagnosticsChecksAreSuccessful(SsBaselineSeeder seeder) {
         var diag = new DiagnosticsAdminClient(seeder.newSession());

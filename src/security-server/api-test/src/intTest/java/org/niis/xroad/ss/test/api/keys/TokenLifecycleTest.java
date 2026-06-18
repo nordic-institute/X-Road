@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
@@ -106,6 +107,7 @@ class TokenLifecycleTest extends SsApiTest {
 
     // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "Inactive token can be deleted"
     @Test
+    @ResourceLock(Resources.GLOBAL)
     @DisplayName("An inactive HSM token inserted directly into the DB can be deleted via the API")
     void inactiveTokenCanBeDeleted(SsBaselineSeeder seeder, SsApiTestContainerSetup stack) {
         var tokenName = "hsmToken-for-deletion";
