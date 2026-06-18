@@ -48,10 +48,6 @@ dependencyResolutionManagement {
       mavenCentral()
     }
     mavenLocal()
-    maven {
-      //TODO Remove once EDC-V and org.eclipse.dataplane-core:dataplane-sdk artifacts are in Maven Central
-      url = uri("https://artifactory.niis.org/artifactory/xroad-external-snapshots/")
-    }
   }
 }
 
