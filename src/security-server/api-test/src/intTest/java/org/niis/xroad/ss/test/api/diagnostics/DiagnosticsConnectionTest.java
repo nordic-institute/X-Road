@@ -88,7 +88,7 @@ class DiagnosticsConnectionTest extends SsApiTest {
 
     // MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Other Security Server connection test can be run"
     @Test
-    @DisplayName("Other-SS REST connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT fails with a server.clientproxy error")
+    @DisplayName("Other-SS REST connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK with a server.clientproxy-family error code")
     void otherSecurityServerConnectionTestCanBeRun(SsBaselineSeeder seeder) {
         var diag = new DiagnosticsAdminClient(seeder.newSession());
 
@@ -108,7 +108,7 @@ class DiagnosticsConnectionTest extends SsApiTest {
                         .as("other-SS connection test must fail on a single-SS stack")
                         .isNotEqualTo("OK"));
 
-        and("the error code contains 'server.clientproxy.io_error'", () -> {
+        and("the error code starts with 'server.clientproxy'", () -> {
             @SuppressWarnings("unchecked")
             var error = (Map<String, Object>) status.get("error");
             assertThat(error).as("error field must be present").isNotNull();
@@ -121,7 +121,7 @@ class DiagnosticsConnectionTest extends SsApiTest {
 
     // MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Management Security Server test fails"
     @Test
-    @DisplayName("Management-SS SOAP connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT fails with a server.clientproxy error")
+    @DisplayName("Management-SS SOAP connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK with a server.clientproxy-family error code")
     void managementSecurityServerTestFails(SsBaselineSeeder seeder) {
         var diag = new DiagnosticsAdminClient(seeder.newSession());
 
@@ -141,7 +141,7 @@ class DiagnosticsConnectionTest extends SsApiTest {
                         .as("management-SS connection test must fail on a single-SS stack")
                         .isNotEqualTo("OK"));
 
-        and("the error code contains 'server.clientproxy.io_error'", () -> {
+        and("the error code starts with 'server.clientproxy'", () -> {
             @SuppressWarnings("unchecked")
             var error = (Map<String, Object>) status.get("error");
             assertThat(error).as("error field must be present").isNotNull();

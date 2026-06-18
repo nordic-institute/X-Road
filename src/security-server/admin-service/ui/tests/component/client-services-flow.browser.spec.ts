@@ -42,13 +42,42 @@ function submitDialogForm(): void {
 
 describe('Client Services page-flow (Browser Mode)', () => {
   it('navigates to Services, opens Add REST dialog, validates, submits, shows toast and new row', async () => {
+    let capturedServiceCode: string | null = null;
+
     await renderRoute(SERVICES_PATH, {
       msw: [
-        http.post('/api/v1/clients/:clientId/service-descriptions', () => {
-          return HttpResponse.json(createdServiceDescriptionFixture, { status: 201 });
+        http.post('/api/v1/clients/:clientId/service-descriptions', async ({ request }) => {
+          const body = await request.json() as Record<string, unknown>;
+          capturedServiceCode = (body['service_code'] as string | undefined) ?? null;
+          return HttpResponse.json(
+            {
+              ...createdServiceDescriptionFixture,
+              services: createdServiceDescriptionFixture.services.map((s) => ({
+                ...s,
+                service_code: capturedServiceCode ?? s.service_code,
+                full_service_code: capturedServiceCode ?? s.full_service_code,
+                id: `${createdServiceDescriptionFixture.client_id}:${capturedServiceCode ?? s.service_code}`,
+              })),
+            },
+            { status: 201 },
+          );
         }),
         http.get('/api/v1/clients/:clientId/service-descriptions', () => {
-          return HttpResponse.json([createdServiceDescriptionFixture]);
+          const serviceCode = capturedServiceCode;
+          if (serviceCode === null) {
+            return HttpResponse.json([]);
+          }
+          return HttpResponse.json([
+            {
+              ...createdServiceDescriptionFixture,
+              services: createdServiceDescriptionFixture.services.map((s) => ({
+                ...s,
+                service_code: serviceCode,
+                full_service_code: serviceCode,
+                id: `${createdServiceDescriptionFixture.client_id}:${serviceCode}`,
+              })),
+            },
+          ]);
         }),
       ],
     });

@@ -32,7 +32,10 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
+import static org.awaitility.Awaitility.await;
+import static org.niis.xroad.ss.test.api.destructive.ProxyHealthcheckSupport.assertHealthcheckCheckDataString;
 import static org.niis.xroad.ss.test.api.destructive.ProxyHealthcheckSupport.assertHealthcheckNoErrors;
+import static org.niis.xroad.ss.test.api.destructive.ProxyHealthcheckSupport.assertHealthcheckStatus;
 import static org.niis.xroad.ss.test.api.destructive.ProxyHealthcheckSupport.healthcheckUrl;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
@@ -130,7 +133,17 @@ class AuthKeyWipeReseedTest extends SsDestructiveTest {
             loginToken(session);
         });
 
-        then("the proxy healthcheck has no errors after key re-seed", () ->
+        then("PROXY_AUTH_KEY_OCSP_READINESS_CHECK recovers to UP with status OK after re-seed", () ->
+                await()
+                        .pollDelay(Duration.ZERO)
+                        .pollInterval(POLL_INTERVAL)
+                        .atMost(POLL_TIMEOUT)
+                        .untilAsserted(() -> {
+                            assertHealthcheckStatus(healthUrl, "PROXY_AUTH_KEY_OCSP_READINESS_CHECK", "UP");
+                            assertHealthcheckCheckDataString(healthUrl, "PROXY_AUTH_KEY_OCSP_READINESS_CHECK", "status", "OK");
+                        }));
+
+        and("the proxy healthcheck has no errors after key re-seed", () ->
                 assertHealthcheckNoErrors(healthUrl, POLL_INTERVAL, POLL_TIMEOUT));
     }
 

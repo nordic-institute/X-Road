@@ -84,4 +84,19 @@ final class ProxyHealthcheckSupport {
                 .as("data.%s of healthcheck '%s'", dataKey, checkName)
                 .isEqualTo(expectedValue);
     }
+
+    static void assertHealthcheckCheckDataString(String url, String checkName, String dataKey, String expectedValue) {
+        JsonPath json;
+        try {
+            var response = RestAssuredFactory.given().get(url);
+            json = response.jsonPath();
+        } catch (Exception e) {
+            throw new AssertionError("Healthcheck endpoint unreachable: " + e.getMessage(), e);
+        }
+        var actual = json.getString(
+                "checks.find { it.name == '%s' }.data.%s".formatted(checkName, dataKey));
+        assertThat(actual)
+                .as("data.%s of healthcheck '%s'", dataKey, checkName)
+                .isEqualTo(expectedValue);
+    }
 }

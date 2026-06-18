@@ -47,7 +47,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class SignerDownHealthcheckTest extends SsDestructiveTest {
 
-    private static final String CHECK_NAME = "SIGNER_CHANNEL_READINESS_CHECK";
+    private static final String SIGNER_CHANNEL_CHECK = "SIGNER_CHANNEL_READINESS_CHECK";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(90);
 
@@ -67,7 +67,8 @@ class SignerDownHealthcheckTest extends SsDestructiveTest {
                         .pollDelay(Duration.ZERO)
                         .pollInterval(POLL_INTERVAL)
                         .atMost(POLL_TIMEOUT)
-                        .untilAsserted(() -> assertHealthcheckStatus(url, CHECK_NAME, "DOWN")));
+                        .untilAsserted(() ->
+                                assertHealthcheckStatus(url, SIGNER_CHANNEL_CHECK, "DOWN")));
 
         when("the signer container is restarted", () ->
                 stack.startService(DestructiveStackSetup.SIGNER));
