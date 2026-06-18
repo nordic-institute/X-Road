@@ -211,6 +211,32 @@ describe('Client list (Browser Mode)', () => {
     expect(zebraSubsystemIdx).toBeLessThan(alphaSubsystemIdx);
   });
 
+  // MIGRATED-FROM: 0590-ss-client-list.feature :: "Client List search"
+  it('keeps the parent member row when search matches only its subsystem name', async () => {
+    await renderRoute('/clients', {
+      msw: [specHttp.get('/clients', ({ response }) => response(200).json(clientListFixture))],
+    });
+
+    await expect.element(page.getByTestId('client-name').first()).toBeVisible();
+
+    const searchField = page.getByTestId('search-query-field').getByRole('textbox');
+    await searchField.fill('SUBS1');
+
+    await expect.element(page.getByTestId('client-name').first()).toBeVisible();
+
+    const names = getColumnTexts('client-name');
+    const ids = getColumnTexts('client-id');
+    const joined = names.join('\n');
+
+    // Parent member row must still appear (the "keep parent on subsystem match" path)
+    expect(joined).toContain('Test member');
+    expect(ids).toContain('CS:GOV:1234');
+
+    // Non-matching members must not appear
+    expect(joined).not.toContain('Alpha Corp');
+    expect(joined).not.toContain('Beta Corp');
+  });
+
   // MIGRATED-FROM: 0590-ss-client-list.feature :: "Client List sorting by Status asc"
   it('sorts subsystems by status ascending within their member group when Status column is clicked', async () => {
     await renderRoute('/clients', {

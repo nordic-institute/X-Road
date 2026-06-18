@@ -203,6 +203,46 @@ describe('Service clients — search filter: two-sided assertion (Browser Mode)'
 
 // MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client list can be filtered and sorted"
 
+describe('Service clients — sort by Name descending: row positions change (Browser Mode, 2 clicks)', () => {
+  //
+  // Sort fixture proof:
+  //   Default (no explicit sort but must-sort triggers asc on first click):
+  //     After 1st click (name asc):  Security Server owners(0) < Test client(1) < Test consumer(2)
+  //     After 2nd click (name desc): Test consumer(0) > Test client(1) > Security Server owners(2)
+  //   Removing the second click leaves name-asc: consumerIdx(2) > clientIdx(1) → FAIL.
+  //
+  it('reorders rows by Name descending when the Name column header is clicked twice', async () => {
+    await renderRoute(serviceClientsRoute, {
+      permissions: serviceClientPermissions,
+      msw: [clientHandler, serviceClientsHandler],
+    });
+
+    await expect.element(page.getByTestId('service-clients-main-view-table')).toBeVisible();
+
+    const nameHeader = page.getByRole('columnheader', { name: /subsystem name/i });
+    await nameHeader.click();
+    await nameHeader.click();
+
+    await expect.element(page.getByTestId('service-clients-main-view-table')).toBeVisible();
+
+    const rows = getTableRowTexts();
+
+    const consumerIdx = rows.findIndex((r) => r.includes('Test consumer'));
+    const clientIdx = rows.findIndex((r) => r.includes('Test client'));
+    const ownersIdx = rows.findIndex((r) => r.includes('Security Server owners'));
+
+    expect(consumerIdx).toBeGreaterThanOrEqual(0);
+    expect(clientIdx).toBeGreaterThanOrEqual(0);
+    expect(ownersIdx).toBeGreaterThanOrEqual(0);
+
+    // By Name desc: Test consumer > Test client > Security Server owners
+    expect(consumerIdx).toBeLessThan(clientIdx);
+    expect(clientIdx).toBeLessThan(ownersIdx);
+  });
+});
+
+// MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client list can be filtered and sorted"
+
 describe('Service clients — sort by ID ascending: row positions change (Browser Mode)', () => {
   it('reorders rows by ID ascending when the ID column header is clicked', async () => {
     await renderRoute(serviceClientsRoute, {

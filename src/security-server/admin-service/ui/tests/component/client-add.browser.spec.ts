@@ -162,6 +162,67 @@ describe('Add client — cancelled (Browser Mode)', () => {
   });
 });
 
+// MIGRATED-FROM: 0500-ss-client-add.feature :: "Add client was cancelled"
+// (cancel at step 2 — Token page — no POST /clients must be sent)
+describe('Add client — cancelled at wizard step 2 (Browser Mode)', () => {
+  it('advances to Token step, cancels, and fires no POST /clients', async () => {
+    // Register a catching handler BEFORE renderRoute to ensure it is in place
+    // before any mount-time requests. If a POST /clients fires, this handler
+    // responds with 500 so the component shows an error — but more importantly
+    // the spy flag is set so the assertion below catches the accidental call.
+    let postClientsFired = false;
+    worker.use(
+      specHttp.post('/clients', ({ response }) => {
+        postClientsFired = true;
+        return response(500).empty();
+      }),
+    );
+
+    const { router } = await renderRoute('/clients', {
+      permissions: addClientPermissions,
+      msw: [
+        ...baseHandlers(),
+        specHttp.get('/tokens', ({ response }) => response(200).json([])),
+      ],
+    });
+
+    useUser().$patch({
+      currentSecurityServer: {
+        id: 'DEV:COM:1234:SS1',
+        instance_id: 'DEV',
+        member_class: 'COM',
+        member_code: '1234',
+        server_code: 'SS1',
+      },
+    });
+
+    await router.push({ name: 'add-client' });
+    await expect.element(page.getByTestId('select-client-button')).toBeVisible();
+
+    // Open the select-client dialog and pick the selectable client.
+    await page.getByTestId('select-client-button').click();
+    await expect.element(page.getByTestId('client-search-input')).toBeVisible();
+    await page.getByRole('radio').first().click();
+    await page.getByTestId('dialog-save-button').click();
+    await expect.element(page.getByTestId('client-search-input')).not.toBeInTheDocument();
+
+    // Advance to step 2 (Token page).
+    await expect.element(page.getByTestId('next-button')).not.toBeDisabled();
+    await page.getByTestId('next-button').click();
+    await expect.element(page.getByTestId('previous-button')).toBeVisible();
+
+    // Cancel from step 2 — wizard routes back to /clients.
+    // Both step-1 and step-2 render cancel buttons in DOM (v-stepper keeps inactive
+    // items hidden but not removed). TokenPage's cancel button is the second one.
+    await page.getByTestId('cancel-button').nth(1).click();
+    await expect.element(page.getByTestId('select-client-button')).not.toBeInTheDocument();
+    expect(router.currentRoute.value.path).toBe('/clients');
+
+    // No POST /clients must have been sent at any point.
+    expect(postClientsFired).toBe(false);
+  });
+});
+
 // MIGRATED-FROM: 0500-ss-client-add.feature :: "Existing client added (Outline)" — UI slice
 describe('Add client — existing client wizard flow (Browser Mode)', () => {
   it('opens select-client dialog, picks a client, fills form, next progresses wizard', async () => {

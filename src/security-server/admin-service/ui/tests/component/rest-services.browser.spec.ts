@@ -149,6 +149,43 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     await expect.element(saveBtn).toBeDisabled();
   });
 
+  // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service with Base Path is configured"
+  it('whitespace-only service code triggers "The Service Code field is required" error text', async () => {
+    await renderRoute(SERVICES_PATH, {
+      permissions: servicesPermissions,
+      msw: [
+        specHttp.post('/clients/{id}/service-descriptions', ({ response }) =>
+          response(201).json(createdServiceDescriptionFixture),
+        ),
+        specHttp.get('/clients/{id}/service-descriptions', ({ response }) =>
+          response(200).json([createdServiceDescriptionFixture]),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('add-rest-button')).toBeVisible();
+    await page.getByTestId('add-rest-button').click();
+
+    const saveBtn = page.getByTestId('dialog-save-button');
+    await expect.element(saveBtn).toBeVisible();
+
+    // Select REST radio.
+    await page.getByTestId('rest-radio-button').getByRole('radio').click();
+
+    const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
+    await urlInput.fill('http://example.com');
+
+    const codeInput = page.getByTestId('service-code-text-field').getByRole('textbox');
+    // Whitespace-only value triggers the required validator (String.trim() = "").
+    await codeInput.fill('   ');
+    await urlInput.click();
+
+    // The "required" validation message for the "Service Code" field must be visible.
+    await expect.element(page.getByText('The Service Code field is required')).toBeVisible();
+    // Save must remain blocked.
+    await expect.element(saveBtn).toBeDisabled();
+  });
+
   it('valid URL and non-empty service code enables save, submitting shows success toast', async () => {
     await renderRoute(SERVICES_PATH, {
       permissions: servicesPermissions,
