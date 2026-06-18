@@ -26,13 +26,20 @@
  */
 package org.niis.xroad.ss.test.api.platform;
 
+import io.restassured.http.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,13 +51,14 @@ import static org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory.gi
 /**
  * Verifies that all admin API endpoints return 401 when called without authentication.
  *
- * <p>The legacy 4000 test reflected over all {@code @FeignClient} beans (~143 operations). This test
- * enumerates every parameterless GET path from the OpenAPI spec plus one representative path per
- * resource area to achieve comparable breadth. Parameterized paths (containing {@code {id}} etc.)
- * are tested via their resource-root equivalents. POST/PUT/DELETE paths all require auth by the same
- * Spring Security filter chain; the GET set is sufficient to verify the chain is correctly applied.
- * Any future resource area added to the spec without a corresponding GET root would be missed —
- * see issue 43 for the known residual gap vs. the full 143-operation FeignClient reflection approach.
+ * <p>The path and verb set is derived at test runtime from the OpenAPI spec bundled in the
+ * {@code openapi-model} jar ({@code META-INF/openapi-definition.yaml}). Every operation listed
+ * in the spec is exercised across all HTTP verbs; adding a new endpoint to the spec automatically
+ * extends this sweep with no test edit required.
+ *
+ * <p>Path parameters (e.g. {@code {id}}) are replaced with {@code _} before the request is sent.
+ * Spring Security's filter chain evaluates authentication before routing, so the 401 is returned
+ * regardless of whether the resolved path maps to a real resource.
  *
  * <p>Intentionally-public paths (served without authentication by Spring Security's {@code ignoring()}
  * rule in {@code ApiWebSecurityConfig}) are excluded from the 401-sweep: {@code /api/v1/openapi.yaml},
@@ -61,55 +69,14 @@ import static org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory.gi
 @SuppressWarnings("checkstyle:magicnumber")
 class ApiSecurityTest extends SsApiTest {
 
+    private static final String API_BASE = "/api/v1";
+    private static final String OPENAPI_SPEC_RESOURCE = "META-INF/openapi-definition.yaml";
+    private static final List<String> HTTP_VERBS = List.of("get", "post", "put", "delete", "patch");
+
     private static final Set<String> PUBLIC_PATHS = Set.of(
             "/api/v1/openapi.yaml",
             "/api/v1/initialization/admin-user",
             "/api/v1/initialization/admin-user/status"
-    );
-
-    private static final List<String> ADMIN_API_PATHS = List.of(
-            "/api/v1/backups",
-            "/api/v1/backups/ext",
-            "/api/v1/backups/upload",
-            "/api/v1/token-certificates",
-            "/api/v1/clients",
-            "/api/v1/diagnostics/globalconf",
-            "/api/v1/diagnostics/ocsp-responders",
-            "/api/v1/diagnostics/timestamping-services",
-            "/api/v1/diagnostics/addon-status",
-            "/api/v1/diagnostics/backup-encryption-status",
-            "/api/v1/diagnostics/message-log-encryption-status",
-            "/api/v1/diagnostics/proxy-memory-usage-status",
-            "/api/v1/diagnostics/auth-cert-req-status",
-            "/api/v1/diagnostics/global-conf-status",
-            "/api/v1/diagnostics/other-security-server-status",
-            "/api/v1/diagnostics/operational-monitoring",
-            "/api/v1/diagnostics/info/download",
-            "/api/v1/initialization",
-            "/api/v1/initialization/status",
-            "/api/v1/member-classes",
-            "/api/v1/member-names",
-            "/api/v1/security-servers",
-            "/api/v1/service-descriptions",
-            "/api/v1/system/anchor",
-            "/api/v1/system/anchor/download",
-            "/api/v1/system/certificate",
-            "/api/v1/system/certificate/export",
-            "/api/v1/system/certificate/csr",
-            "/api/v1/system/property",
-            "/api/v1/system/server-address",
-            "/api/v1/system/timestamping-services",
-            "/api/v1/system/node-type",
-            "/api/v1/system/auth-provider-type",
-            "/api/v1/system/version",
-            "/api/v1/system/maintenance-mode",
-            "/api/v1/certificate-authorities",
-            "/api/v1/certificate-authorities/ocsp-prioritization-strategy",
-            "/api/v1/mail/mail-notification-status",
-            "/api/v1/mail/send-test-mail",
-            "/api/v1/timestamping-services",
-            "/api/v1/tokens",
-            "/api/v1/xroad-instances"
     );
 
     @Test
@@ -118,21 +85,23 @@ class ApiSecurityTest extends SsApiTest {
         var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
         var baseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
 
-        when("all admin API paths are called without authentication", () -> {
-        });
+        var operations = when("admin API operations are loaded from the OpenAPI spec", () ->
+                loadOperationsFromSpec());
 
-        then("every non-public path returns 401", () -> {
-            var failures = new java.util.ArrayList<String>();
-            for (var path : ADMIN_API_PATHS) {
-                if (PUBLIC_PATHS.contains(path)) {
+        then("every non-public operation returns 401 when called without authentication", () -> {
+            var failures = new ArrayList<String>();
+            for (var op : operations) {
+                var fullPath = API_BASE + op.specPath();
+                if (PUBLIC_PATHS.contains(fullPath)) {
                     continue;
                 }
+                var requestPath = resolvePathParams(fullPath);
                 int status = given()
                         .baseUri(baseUrl)
-                        .get(path)
+                        .request(op.method(), requestPath)
                         .statusCode();
                 if (status != 401) {
-                    failures.add("%s → %d (expected 401)".formatted(path, status));
+                    failures.add("%s %s → %d (expected 401)".formatted(op.method(), fullPath, status));
                 }
             }
             if (!failures.isEmpty()) {
@@ -140,5 +109,43 @@ class ApiSecurityTest extends SsApiTest {
             }
             assertThat(failures).isEmpty();
         });
+    }
+
+    private List<Operation> loadOperationsFromSpec() {
+        var specStream = getClass().getClassLoader().getResourceAsStream(OPENAPI_SPEC_RESOURCE);
+        if (specStream == null) {
+            throw new IllegalStateException("OpenAPI spec not found on classpath: " + OPENAPI_SPEC_RESOURCE);
+        }
+        try (InputStream stream = specStream) {
+            return parseOperations(stream);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to read OpenAPI spec", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Operation> parseOperations(InputStream stream) {
+        var yaml = new Yaml();
+        Map<String, Object> spec = yaml.load(stream);
+        Map<String, Object> paths = (Map<String, Object>) spec.get("paths");
+
+        var operations = new ArrayList<Operation>();
+        for (var pathEntry : paths.entrySet()) {
+            var specPath = pathEntry.getKey();
+            Map<String, Object> pathItem = (Map<String, Object>) pathEntry.getValue();
+            for (var verb : HTTP_VERBS) {
+                if (pathItem.containsKey(verb)) {
+                    operations.add(new Operation(Method.valueOf(verb.toUpperCase()), specPath));
+                }
+            }
+        }
+        return operations;
+    }
+
+    private String resolvePathParams(String path) {
+        return path.replaceAll("\\{[^}]+}", "_");
+    }
+
+    private record Operation(Method method, String specPath) {
     }
 }
