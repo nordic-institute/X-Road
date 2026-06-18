@@ -181,7 +181,7 @@ public class GlobalConfChecker {
         var globalTsps = globalConfProvider.getApprovedTsps(globalConfProvider.getInstanceIdentifier());
         var localTsps = serverConf.getTimestampingServices();
 
-        if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
+        if (adminServiceProperties.isAutoUpdateTimestampServiceUrl()) {
             updateTimestampServiceUrls(globalTsps, localTsps);
         }
         updateTimestampServiceCostTypes(globalTsps, localTsps);

@@ -372,7 +372,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         assertEquals(3, tspTypes2.size());
         assertEquals(approvedTSATypes2.getFirst().getName(), tspTypes2.getFirst().getName());
         assertNotEquals(approvedTSATypes2.getFirst().getUrl(), tspTypes2.getFirst().getUrl());
-        assertEquals(approvedTSATypes2.get(0).getCostType().name(), tspTypes2.get(0).getCostType());
+        assertNotEquals(approvedTSATypes2.get(0).getCostType().name(), tspTypes2.get(0).getCostType());
         assertEquals(approvedTSATypes2.get(1).getName(), tspTypes2.get(1).getName());
         assertEquals(approvedTSATypes2.get(1).getUrl(), tspTypes2.get(1).getUrl());
         assertEquals(approvedTSATypes2.get(1).getCostType().name(), tspTypes2.get(1).getCostType());

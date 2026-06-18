@@ -27,12 +27,6 @@ dependencies {
   implementation(project(":lib:properties-spring"))
   implementation(libs.logback.classic)
 
-  constraints {
-    implementation(libs.tomcat.embed.core)
-    implementation(libs.tomcat.embed.websocket)
-    implementation(libs.tomcat.embed.el)
-  }
-
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":common:common-api-throttling")))
   testImplementation(libs.springBoot.starterTest)

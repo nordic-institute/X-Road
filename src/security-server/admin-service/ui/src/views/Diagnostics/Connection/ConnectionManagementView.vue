@@ -85,8 +85,6 @@
             :label="$t('diagnostics.connection.securityServer.targetClient')"
             :disabled="true"
             :loading="subsystemsLoading"
-          ></v-combobox>
-            :loading="subsystemsLoading"
           />
         </v-col>
         <v-col cols="2">
@@ -98,9 +96,6 @@
             item-value="id"
             :return-object="false"
             :label="$t('diagnostics.connection.securityServer.securityServer')"
-            variant="outlined"
-            :loading="securityServerLoading"
-          ></v-combobox>
             :loading="securityServerLoading"
           />
         </v-col>
@@ -111,11 +106,9 @@
         </v-col>
         <v-col cols="1">
           <span v-if="!managementServiceStatus">
-            <xrd-status-icon :status="statusIconType(undefined)" />
             <StatusAvatar :status="statusIconType(undefined)" />
           </span>
           <span v-else>
-            <xrd-status-icon :status="statusIconType(managementServiceStatus?.status_class)" />
             <StatusAvatar :status="statusIconType(managementServiceStatus?.status_class)" />
           </span>
         </v-col>
@@ -217,13 +210,9 @@ export default defineComponent({
 
     if (this.selectedInstance) {
       try {
-        this.subsystemsLoading = true;
-        await this.fetchAllSubsystems(this.selectedInstance);
-        this.localAllSubsystems = this.allSubsystems.map(
-          (c: Client) => ({ ...c }),
-        );
-        this.selectedTargetSubsystemId = this.managementService || '';
-      } finally {
+        this.subsystemsLoading = true;await this.fetchAllSubsystems(this.selectedInstance);
+        this.localAllSubsystems = this.allSubsystems.map((c: Client) => ({ ...c }));
+        this.selectedTargetSubsystemId = this.managementService || '';} finally {
         this.subsystemsLoading = false;
       }
     }
@@ -235,9 +224,7 @@ export default defineComponent({
       } finally {
         this.securityServerLoading = false;
       }
-      this.localSecurityServers = this.securityServers.map(
-        (s: SecurityServer) => ({ ...s }),
-      );
+      this.localSecurityServers = this.securityServers.map((s: SecurityServer) => ({ ...s }));
       if (this.securityServers.length === 1) {
         this.selectedSecurityServerId = this.localSecurityServers[0].id;
       }

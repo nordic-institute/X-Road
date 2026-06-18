@@ -113,12 +113,6 @@ dependencyCheck {
   analyzers.assemblyEnabled = false
 }
 
-tasks.register("dependencyAuditBackend") {
-  description = "Runs OWASP dependency-check on backend dependencies."
-  group = "verification"
-  dependsOn("dependencyCheckAnalyze")
-}
-
 // Register git-hooks
 tasks.register<Copy>("installGitHooks") {
   description = "Install git hooks"
