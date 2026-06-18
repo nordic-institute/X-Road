@@ -30,9 +30,7 @@ import { page } from 'vitest/browser';
 import AddRestDialog from '@/views/Clients/Services/AddRestDialog.vue';
 import { configureGlobals } from '../setup/vue-test-utils';
 
-beforeAll(() => {
-  configureGlobals();
-});
+beforeAll(() => configureGlobals());
 
 describe('AddRestDialog — validation (Browser Mode)', () => {
   it('Save button is disabled when all fields are empty', async () => {
@@ -75,7 +73,7 @@ describe('AddRestDialog — validation (Browser Mode)', () => {
     await codeInput.fill('');
     await urlInput.click();
 
-    await expect.element(page.getByText('Service Code is required')).toBeVisible();
+    await expect.element(page.getByText('The Service Code field is required')).toBeVisible();
 
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).toBeDisabled();

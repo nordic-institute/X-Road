@@ -43,9 +43,7 @@ import { page } from 'vitest/browser';
 import { defineComponent, ref } from 'vue';
 import { configureGlobals } from '../setup/vue-test-utils';
 
-beforeAll(() => {
-  configureGlobals();
-});
+beforeAll(() => configureGlobals());
 
 // ── v-select ─────────────────────────────────────────────────────────────────
 

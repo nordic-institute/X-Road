@@ -24,34 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {config} from 'vitest-browser-vue';
-import {createPinia} from 'pinia';
-import {createPersistedState} from 'pinia-plugin-persistedstate';
-import {createVuetify} from 'vuetify';
-import {createValidators} from '@niis/shared-ui/src/plugins/vee-validate';
-import {i18n as sharedI18n} from '@niis/shared-ui/src/plugins/i18n';
-import {type Plugin} from 'vue';
-import * as components from 'vuetify/components';
-import * as directives from 'vuetify/directives';
-import {ensureMessages} from './i18n-messages';
+import deepmerge from 'deepmerge';
+import { i18n as sharedI18n } from '@niis/shared-ui/src/plugins/i18n';
 
-function buildPinia() {
-  const pinia = createPinia();
-  pinia.use(createPersistedState({storage: sessionStorage}));
-  return pinia;
+async function loadMessages(): Promise<Record<string, unknown>> {
+  const [sharedUiEn, ssEn, veeValidateEn] = await Promise.all([
+    import('@niis/shared-ui/src/locales/en.json'),
+    import('@/locales/en.json'),
+    import('@vee-validate/i18n/dist/locale/en.json'),
+  ]);
+  return deepmerge.all([
+    sharedUiEn.default as Record<string, unknown>,
+    ssEn.default as Record<string, unknown>,
+    { validation: veeValidateEn.default },
+  ]) as Record<string, unknown>;
 }
 
-function buildVuetify() {
-  return createVuetify({components, directives});
-}
+let messagesPromise: Promise<void> | null = null;
 
-export async function configureGlobals() {
-  await ensureMessages();
-
-  config.global.plugins = [
-    buildPinia(),
-    buildVuetify(),
-    sharedI18n as unknown as Plugin,
-    createValidators(),
-  ];
+export function ensureMessages(): Promise<void> {
+  if (messagesPromise) return messagesPromise;
+  messagesPromise = loadMessages().then((merged) => {
+    sharedI18n.global.setLocaleMessage('en', merged);
+  });
+  return messagesPromise;
 }

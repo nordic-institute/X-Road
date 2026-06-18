@@ -34,8 +34,8 @@ import { i18n as sharedI18n } from '@niis/shared-ui/src/plugins/i18n';
 import { useAppState, XrdApp, setupAddErrorNavigation, createXrdRouter } from '@niis/shared-ui';
 import axios from 'axios';
 import type { RequestHandler } from 'msw';
-import deepmerge from 'deepmerge';
 import { worker } from './browser-setup';
+import { ensureMessages } from './i18n-messages';
 
 import routes from '@/router/routes';
 import { Permissions, RouteName } from '@/global';
@@ -74,29 +74,6 @@ const DEFAULT_PERMISSIONS: string[] = [
   Permissions.ADD_OPENAPI3,
   Permissions.ENABLE_DISABLE_WSDL,
 ];
-
-async function loadMessages(): Promise<Record<string, unknown>> {
-  const [sharedUiEn, ssEn, veeValidateEn] = await Promise.all([
-    import('@niis/shared-ui/src/locales/en.json'),
-    import('@/locales/en.json'),
-    import('@vee-validate/i18n/dist/locale/en.json'),
-  ]);
-  return deepmerge.all([
-    sharedUiEn.default as Record<string, unknown>,
-    ssEn.default as Record<string, unknown>,
-    { validation: veeValidateEn.default },
-  ]) as Record<string, unknown>;
-}
-
-let messagesPromise: Promise<void> | null = null;
-
-function ensureMessages(): Promise<void> {
-  if (messagesPromise) return messagesPromise;
-  messagesPromise = loadMessages().then((merged) => {
-    sharedI18n.global.setLocaleMessage('en', merged);
-  });
-  return messagesPromise;
-}
 
 /*
  * Deliberately stubbed bootstrap (not covered by this tier):

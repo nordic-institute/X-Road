@@ -186,7 +186,7 @@ export const handlers = [
   }),
 
   specHttp.get('/clients/{id}', ({ params, response }) => {
-    const id = decodeURIComponent(params.id as string);
+    const id = decodeURIComponent(params.id);
     const client = clientsFixture.find((c) => c.id === id) ?? subsystemClientFixture;
     return response(200).json(client);
   }),
