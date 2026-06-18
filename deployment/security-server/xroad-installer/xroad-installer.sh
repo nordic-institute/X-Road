@@ -520,17 +520,8 @@ main() {
   select_proxy_memory
   log_message ""
 
-  # Step: Configure Message Log
+  # Step: Collect Message Log choice (applied after install, once the DB exists)
   select_messagelog
-
-  if [[ -f "$SCRIPT_DIR/tasks/configure_messagelog.sh" ]]; then
-    if ! XROAD_MESSAGELOG_ENABLED="$XROAD_MESSAGELOG_ENABLED" \
-       bash "$SCRIPT_DIR/tasks/configure_messagelog.sh"; then
-      log_die "Message log configuration failed"
-    fi
-  else
-    log_die "configure_messagelog.sh not found"
-  fi
   log_message ""
 
   if [[ -f "$SCRIPT_DIR/tasks/install_security_server.sh" ]]; then
@@ -545,6 +536,17 @@ main() {
     fi
   else
     log_die "install_security_server.sh not found"
+  fi
+  log_message ""
+
+  # Step: Apply Message Log choice to the configuration database (now provisioned)
+  if [[ -f "$SCRIPT_DIR/tasks/configure_messagelog.sh" ]]; then
+    if ! XROAD_MESSAGELOG_ENABLED="$XROAD_MESSAGELOG_ENABLED" \
+       bash "$SCRIPT_DIR/tasks/configure_messagelog.sh"; then
+      log_die "Message log configuration failed"
+    fi
+  else
+    log_die "configure_messagelog.sh not found"
   fi
   log_message ""
 

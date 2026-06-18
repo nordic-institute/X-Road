@@ -90,6 +90,7 @@ XROAD_SECRET_STORE_TYPE=local
 # 8. Message Log Configuration
 # Enable or disable the message log. The message log records exchanged
 # messages for non-repudiation. Accepts true/false. Defaults to "true".
+# Applied to the configuration database after install (only a disable is written; default "true").
 #XROAD_MESSAGELOG_ENABLED=true
 
 # 9. Other Options
