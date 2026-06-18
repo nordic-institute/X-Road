@@ -34,6 +34,7 @@ import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
 
+
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 
 @Slf4j
@@ -111,6 +112,30 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .copyFileToContainer(nginxFiles, "/var/lib");
         execInContainer(AUXILIARY_SERVICE, "/etc/xroad/backup-keys/init_backup_encryption.sh");
         new DspBootstrap(this).bootstrap();
+    }
+
+    /**
+     * Stops the named service container. The container is not removed and can be restarted via {@link #startService}.
+     */
+    public void stopService(String serviceName) {
+        var container = env.getContainerByServiceName(serviceName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + serviceName));
+        var containerId = container.getContainerId();
+        log.info("Stopping service container: {} ({})", serviceName, containerId);
+        container.getDockerClient().stopContainerCmd(containerId).exec();
+        log.info("Service container stopped: {}", serviceName);
+    }
+
+    /**
+     * Starts a previously stopped service container.
+     */
+    public void startService(String serviceName) {
+        var container = env.getContainerByServiceName(serviceName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + serviceName));
+        var containerId = container.getContainerId();
+        log.info("Starting service container: {} ({})", serviceName, containerId);
+        container.getDockerClient().startContainerCmd(containerId).exec();
+        log.info("Service container started: {}", serviceName);
     }
 
 }

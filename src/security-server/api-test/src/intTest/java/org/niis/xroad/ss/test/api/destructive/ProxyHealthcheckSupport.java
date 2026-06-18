@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.api.destructive;
 
 import io.restassured.path.json.JsonPath;
 import org.niis.xroad.ss.test.api.Port;
+import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
@@ -45,8 +46,8 @@ final class ProxyHealthcheckSupport {
     private ProxyHealthcheckSupport() {
     }
 
-    static String healthcheckUrl(DestructiveStackSetup stack) {
-        var mapping = stack.getContainerMapping(DestructiveStackSetup.PROXY, Port.PROXY_HEALTHCHECK);
+    static String healthcheckUrl(SsApiTestContainerSetup stack) {
+        var mapping = stack.getContainerMapping(SsApiTestContainerSetup.PROXY, Port.PROXY_HEALTHCHECK);
         return "http://%s:%d%s".formatted(mapping.host(), mapping.port(), HEALTHCHECK_PATH);
     }
 

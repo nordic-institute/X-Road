@@ -26,29 +26,27 @@
  */
 package org.niis.xroad.ss.test.api.destructive;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
-import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.niis.xroad.ss.test.api.ApiStackExtension;
+import org.niis.xroad.test.apitest.core.report.AllureReportHook;
 
 /**
- * Disposable Security Server stack for the destructive-lifecycle lane. Uses a distinct Docker Compose
- * project name ({@code ss-destructive-}) so it runs concurrently with the warm-substrate stack
- * ({@code ss-api-}) without port or state collisions.
- *
- * <p>Inherits the full stack recipe (compose files, exposed services, log consumers, DSP bootstrap)
- * from {@link SsApiTestContainerSetup}. Tests on this lane may stop, restart, or otherwise mutate
- * services without affecting the warm substrate.
+ * Base class for recoverable destructive-lifecycle tests that run on the shared warm stack.
+ * Tests obtain the stack by declaring a {@link org.niis.xroad.ss.test.api.SsApiTestContainerSetup} parameter.
  */
-@Slf4j
-class DestructiveStackSetup extends SsApiTestContainerSetup {
+@Tag("destructive")
+@Execution(ExecutionMode.SAME_THREAD)
+@ResourceLock("destructive-stack")
+@ExtendWith(ApiStackExtension.class)
+abstract class SsSharedStackDestructiveTest {
 
-    DestructiveStackSetup(ApiTestCoreProperties coreProperties) {
-        super(coreProperties);
+    @AfterAll
+    static void generateAllureReport() {
+        AllureReportHook.generateReport();
     }
-
-    @Override
-    protected String composeProjectName() {
-        return "ss-destructive-";
-    }
-
 }

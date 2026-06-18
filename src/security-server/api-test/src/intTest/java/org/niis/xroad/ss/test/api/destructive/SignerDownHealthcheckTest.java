@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.api.destructive;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 
 import java.time.Duration;
 
@@ -45,7 +46,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 // MIGRATED-FROM: 2300-ss-proxy-healthcheck.feature :: "Healthcheck is fails when signer is down"
 @DisplayName("Proxy healthcheck: signer-down scenario")
 @SuppressWarnings("checkstyle:magicnumber")
-class SignerDownHealthcheckTest extends SsDestructiveTest {
+class SignerDownHealthcheckTest extends SsSharedStackDestructiveTest {
 
     private static final String SIGNER_CHANNEL_CHECK = "SIGNER_CHANNEL_READINESS_CHECK";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
@@ -53,14 +54,14 @@ class SignerDownHealthcheckTest extends SsDestructiveTest {
 
     @Test
     @DisplayName("healthcheck reports DOWN when signer is stopped and recovers after restart")
-    void healthcheckGoesDownWhenSignerStopsAndRecoversAfterRestart(DestructiveStackSetup stack) {
+    void healthcheckGoesDownWhenSignerStopsAndRecoversAfterRestart(SsApiTestContainerSetup stack) {
         var url = healthcheckUrl(stack);
 
         given("the proxy healthcheck has no errors initially", () ->
                 assertHealthcheckNoErrors(url, POLL_INTERVAL, POLL_TIMEOUT));
 
         when("the signer container is stopped", () ->
-                stack.stopService(DestructiveStackSetup.SIGNER));
+                stack.stopService(SsApiTestContainerSetup.SIGNER));
 
         then("the SIGNER_CHANNEL_READINESS_CHECK is DOWN", () ->
                 await()
@@ -71,7 +72,7 @@ class SignerDownHealthcheckTest extends SsDestructiveTest {
                                 assertHealthcheckStatus(url, SIGNER_CHANNEL_CHECK, "DOWN")));
 
         when("the signer container is restarted", () ->
-                stack.startService(DestructiveStackSetup.SIGNER));
+                stack.startService(SsApiTestContainerSetup.SIGNER));
 
         then("the proxy healthcheck has no errors after signer recovers", () ->
                 assertHealthcheckNoErrors(url, POLL_INTERVAL, POLL_TIMEOUT));

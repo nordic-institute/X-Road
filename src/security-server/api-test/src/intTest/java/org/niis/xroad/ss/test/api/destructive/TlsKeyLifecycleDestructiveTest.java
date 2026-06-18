@@ -32,6 +32,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.ss.test.api.Port;
+import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
 import org.niis.xroad.ss.test.api.admin.SystemAdminClient;
 
@@ -42,21 +43,20 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
  * Destructive-lane TLS key lifecycle tests. Generating or importing the server-wide internal TLS
- * key/certificate replaces the certificate the admin endpoint is served over, which breaks the
- * sessions of any test sharing the warm substrate (observed as {@code 401} on subsequent calls).
- * These mutations therefore run on the disposable destructive stack, each with its own fresh
- * {@link AdminApiSession}; the read-only TLS certificate export stays on the warm substrate.
+ * key/certificate replaces the admin endpoint certificate, breaking any live admin session
+ * (observed as {@code 401} on subsequent calls). These run in the destructive phase after all
+ * non-destructive tests have finished; each test creates its own fresh {@link AdminApiSession}.
  */
 @DisplayName("TLS key lifecycle — generate and import (destructive)")
 @SuppressWarnings("checkstyle:magicnumber")
-class TlsKeyLifecycleDestructiveTest extends SsDestructiveTest {
+class TlsKeyLifecycleDestructiveTest extends SsSharedStackDestructiveTest {
 
     private static final int TEST_CA_PORT = 8888;
 
     // MIGRATED-FROM: 0360-ss-key-and-certificates-tls-key.feature :: "User can generate new TLS key and certificate"
     @Test
     @DisplayName("Generating a new TLS key and certificate succeeds and the cert info is retrievable")
-    void generateNewTlsKeyAndCertificate(DestructiveStackSetup stack) {
+    void generateNewTlsKeyAndCertificate(SsApiTestContainerSetup stack) {
         var system = new SystemAdminClient(adminSession(stack));
 
         when("a new TLS key and certificate is generated", () ->
@@ -75,9 +75,9 @@ class TlsKeyLifecycleDestructiveTest extends SsDestructiveTest {
     @Test
     @DisplayName("TLS certificate imported after CSR->test-CA signing is accepted and cert info is updated")
     @SneakyThrows
-    void importNewTlsCertificateViaCsrAndTestCa(DestructiveStackSetup stack) {
+    void importNewTlsCertificateViaCsrAndTestCa(SsApiTestContainerSetup stack) {
         var system = new SystemAdminClient(adminSession(stack));
-        var testCaMapping = stack.getContainerMapping(DestructiveStackSetup.TESTCA, TEST_CA_PORT);
+        var testCaMapping = stack.getContainerMapping(SsApiTestContainerSetup.TESTCA, TEST_CA_PORT);
         var testCaBaseUrl = "http://%s:%d/testca".formatted(testCaMapping.host(), testCaMapping.port());
 
         var csrBytes = given("a TLS CSR is generated for CN=localhost", () ->
@@ -104,8 +104,8 @@ class TlsKeyLifecycleDestructiveTest extends SsDestructiveTest {
         });
     }
 
-    private AdminApiSession adminSession(DestructiveStackSetup stack) {
-        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, Port.UI);
+    private AdminApiSession adminSession(SsApiTestContainerSetup stack) {
+        var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
         return new AdminApiSession("https://%s:%d".formatted(uiMapping.host(), uiMapping.port()));
     }
 

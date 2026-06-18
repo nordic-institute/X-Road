@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.api.destructive;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 
 import java.time.Duration;
 
@@ -39,15 +40,15 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * Infra smoke test for the destructive-lifecycle lane. Stops a core service on the disposable stack,
+ * Infra smoke test for the destructive-lifecycle lane. Stops a core service on the shared stack,
  * asserts the health endpoint goes away, restarts the service, and asserts health recovers.
  * Does not migrate any audit-ledger scenario — this is purely lane infrastructure validation.
  */
 @DisplayName("Destructive lane: service stop and restart recovers health")
 @SuppressWarnings("checkstyle:magicnumber")
-class ServiceRestartSmokeTest extends SsDestructiveTest {
+class ServiceRestartSmokeTest extends SsSharedStackDestructiveTest {
 
-    private static final String SERVICE = DestructiveStackSetup.TESTCA;
+    private static final String SERVICE = SsApiTestContainerSetup.TESTCA;
     private static final int TESTCA_PORT = 8888;
     private static final String TESTCA_HEALTH_PATH = "/testca/certs/";
 
@@ -56,7 +57,7 @@ class ServiceRestartSmokeTest extends SsDestructiveTest {
 
     @Test
     @DisplayName("testca stops, then restarts and health endpoint returns 200")
-    void testcaHealthRecoversAfterRestart(DestructiveStackSetup stack) {
+    void testcaHealthRecoversAfterRestart(SsApiTestContainerSetup stack) {
         var mapping = stack.getContainerMapping(SERVICE, TESTCA_PORT);
         var healthUrl = "http://%s:%d%s".formatted(mapping.host(), mapping.port(), TESTCA_HEALTH_PATH);
 

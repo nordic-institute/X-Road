@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.api.destructive;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 
 import java.time.Duration;
 
@@ -46,7 +47,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 // MIGRATED-FROM: 2300-ss-proxy-healthcheck.feature :: "Healthcheck is fails when database is down"
 @DisplayName("Proxy healthcheck: database-down scenario")
 @SuppressWarnings("checkstyle:magicnumber")
-class DatabaseDownHealthcheckTest extends SsDestructiveTest {
+class DatabaseDownHealthcheckTest extends SsSharedStackDestructiveTest {
 
     private static final String CHECK_NAME = "PROXY_SERVERCONF_DATABASE_READINESS_CHECK";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
@@ -54,14 +55,14 @@ class DatabaseDownHealthcheckTest extends SsDestructiveTest {
 
     @Test
     @DisplayName("healthcheck reports DOWN when db-serverconf is stopped and recovers after restart")
-    void healthcheckGoesDownWhenDatabaseStopsAndRecoversAfterRestart(DestructiveStackSetup stack) {
+    void healthcheckGoesDownWhenDatabaseStopsAndRecoversAfterRestart(SsApiTestContainerSetup stack) {
         var url = healthcheckUrl(stack);
 
         given("the proxy healthcheck has no errors initially", () ->
                 assertHealthcheckNoErrors(url, POLL_INTERVAL, POLL_TIMEOUT));
 
         when("the db-serverconf container is stopped", () ->
-                stack.stopService(DestructiveStackSetup.DB_SERVERCONF));
+                stack.stopService(SsApiTestContainerSetup.DB_SERVERCONF));
 
         then("the PROXY_SERVERCONF_DATABASE_READINESS_CHECK is DOWN", () ->
                 await()
@@ -71,7 +72,7 @@ class DatabaseDownHealthcheckTest extends SsDestructiveTest {
                         .untilAsserted(() -> assertHealthcheckStatus(url, CHECK_NAME, "DOWN")));
 
         when("the db-serverconf container is restarted", () ->
-                stack.startService(DestructiveStackSetup.DB_SERVERCONF));
+                stack.startService(SsApiTestContainerSetup.DB_SERVERCONF));
 
         then("the proxy healthcheck has no errors after the database recovers", () ->
                 assertHealthcheckNoErrors(url, POLL_INTERVAL, POLL_TIMEOUT));

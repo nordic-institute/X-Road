@@ -24,31 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api.destructive;
+package org.niis.xroad.ss.test.api;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
-import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
+import org.junit.platform.suite.api.DisableParentConfigurationParameters;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
 /**
- * Disposable Security Server stack for the destructive-lifecycle lane. Uses a distinct Docker Compose
- * project name ({@code ss-destructive-}) so it runs concurrently with the warm-substrate stack
- * ({@code ss-api-}) without port or state collisions.
- *
- * <p>Inherits the full stack recipe (compose files, exposed services, log consumers, DSP bootstrap)
- * from {@link SsApiTestContainerSetup}. Tests on this lane may stop, restart, or otherwise mutate
- * services without affecting the warm substrate.
+ * Runs the Security Server API test tier in two strictly ordered phases on one shared stack.
+ * Phase 1 ({@link SsApiNonDestructiveSuite}) runs all non-destructive tests in parallel; Phase 2
+ * ({@link SsApiDestructiveSuite}) runs all recoverable destructive tests serially after Phase 1
+ * completes. Declaration order in {@link SelectClasses} is the phase barrier.
  */
-@Slf4j
-class DestructiveStackSetup extends SsApiTestContainerSetup {
-
-    DestructiveStackSetup(ApiTestCoreProperties coreProperties) {
-        super(coreProperties);
-    }
-
-    @Override
-    protected String composeProjectName() {
-        return "ss-destructive-";
-    }
-
+@Suite
+@SelectClasses({SsApiNonDestructiveSuite.class, SsApiDestructiveSuite.class})
+@DisableParentConfigurationParameters
+public class SsApiPhasedSuite {
 }

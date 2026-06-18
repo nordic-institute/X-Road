@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.api.destructive;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 
 import java.time.Duration;
 
@@ -53,7 +54,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @Slf4j
 @DisplayName("Proxy healthcheck: AUTH key wipe and re-seed")
 @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:LineLength"})
-class AuthKeyWipeReseedTest extends SsDestructiveTest {
+class AuthKeyWipeReseedTest extends SsSharedStackDestructiveTest {
 
     private static final int UI_PORT = 4000;
     private static final String TOKEN_ID = "0";
@@ -90,9 +91,9 @@ class AuthKeyWipeReseedTest extends SsDestructiveTest {
 
     @Test
     @DisplayName("proxy healthcheck has no errors after key wipe and re-seed of auth/sign keys")
-    void healthcheckOkAfterKeyWipeAndReseed(DestructiveStackSetup stack) {
+    void healthcheckOkAfterKeyWipeAndReseed(SsApiTestContainerSetup stack) {
         var healthUrl = healthcheckUrl(stack);
-        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, UI_PORT);
+        var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, UI_PORT);
         var uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
 
         given("admin user is bootstrapped on the disposable stack", () ->
@@ -126,7 +127,7 @@ class AuthKeyWipeReseedTest extends SsDestructiveTest {
         });
 
         and("signer is restarted to pick up the new key set", () ->
-                stack.restartService(DestructiveStackSetup.SIGNER));
+                stack.restartService(SsApiTestContainerSetup.SIGNER));
 
         and("the software token is logged in via admin API", () -> {
             var session = new org.niis.xroad.ss.test.api.admin.AdminApiSession(uiBaseUrl);
@@ -147,14 +148,14 @@ class AuthKeyWipeReseedTest extends SsDestructiveTest {
                 assertHealthcheckNoErrors(healthUrl, POLL_INTERVAL, POLL_TIMEOUT));
     }
 
-    private void copyKeystoreAndCertFiles(DestructiveStackSetup stack) {
+    private void copyKeystoreAndCertFiles(SsApiTestContainerSetup stack) {
         stack.copyFilesToContainer(
-                DestructiveStackSetup.DB_SERVERCONF,
+                SsApiTestContainerSetup.DB_SERVERCONF,
                 "files/keystores",
                 "/tmp/keystores");
     }
 
-    private void insertKey(DestructiveStackSetup stack, String externalId, String friendlyName,
+    private void insertKey(SsApiTestContainerSetup stack, String externalId, String friendlyName,
                            String usage, String publicKey) {
         var sql = """
                 INSERT INTO signer_keys (external_id, token_id, type, public_key, keystore,
@@ -171,7 +172,7 @@ class AuthKeyWipeReseedTest extends SsDestructiveTest {
         execSql(stack, sql);
     }
 
-    private void insertCert(DestructiveStackSetup stack, String certExternalId,
+    private void insertCert(SsApiTestContainerSetup stack, String certExternalId,
                             String keyExternalId, String memberId) {
         var certFile = "/tmp/keystores/certs/%s.pem".formatted(certExternalId);
         String memberIdExpr;
@@ -199,10 +200,10 @@ class AuthKeyWipeReseedTest extends SsDestructiveTest {
         execSql(stack, sql);
     }
 
-    private void execSql(DestructiveStackSetup stack, String sql) {
+    private void execSql(SsApiTestContainerSetup stack, String sql) {
         try {
             var result = stack.execInContainer(
-                    DestructiveStackSetup.DB_SERVERCONF,
+                    SsApiTestContainerSetup.DB_SERVERCONF,
                     "psql", "-U", DB_USER, DB, "-c", sql);
             log.debug("psql output: {}", result.getStdout());
             if (result.getExitCode() != 0) {
