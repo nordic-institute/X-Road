@@ -4,9 +4,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
-    logicalFilePath="serverconf/009-drop-uiuser-table.xml">
+    logicalFilePath="serverconf/008-drop-uiuser-table.xml">
 
-    <changeSet author="niis" id="009-drop-uiuser-table">
+    <changeSet author="niis" id="008-drop-uiuser-table">
         <dropTable tableName="uiuser" />
     </changeSet>
 

@@ -41,6 +41,7 @@ public class IntTestComposeSetup extends BaseComposeSetup {
 
     public static final String CS = "cs-admin-service";
     public static final String MOCKSERVER = "mock-server";
+    public static final String POSTGRES = CS;
 
     private static final String COMPOSE_FILE = "compose.intTest.yaml";
 
@@ -52,6 +53,7 @@ public class IntTestComposeSetup extends BaseComposeSetup {
     public ComposeContainer initEnv() {
         return new ComposeContainer("cs-", new File(coreProperties.resourceDir() + "/" + COMPOSE_FILE))
                 .withExposedService(CS, Port.API, Wait.forHealthcheck().withStartupTimeout(STARTUP_TIMEOUT))
+                .withExposedService(POSTGRES, Port.DB, Wait.forListeningPort())
                 .withExposedService(MOCKSERVER, Port.MOCKSERVER, Wait.forLogMessage(".*started on port: 1080.*", 1))
                 .withLogConsumer(CS, createLogConsumer(CS));
     }
@@ -65,6 +67,7 @@ public class IntTestComposeSetup extends BaseComposeSetup {
 
     @UtilityClass
     public final class Port {
+        public static final int DB = 5432;
         public static final int API = 4002;
         public static final int MOCKSERVER = 1080;
     }
