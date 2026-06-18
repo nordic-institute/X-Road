@@ -101,17 +101,12 @@ class ClientDetailsTest extends SsApiTest {
 
         var cert = certs[0].getCertificateDetails();
 
-        and("the certificate version is 3", () ->
-                assertThat(cert.getVersion()).isEqualTo(3));
-
-        and("the signature algorithm is SHA256withRSA", () ->
-                assertThat(cert.getSignatureAlgorithm()).isEqualTo("SHA256withRSA"));
-
-        and("the issuer DN contains the expected Test CA issuer", () ->
-                assertThat(cert.getIssuerDistinguishedName()).contains("CN=Test CA"));
-
-        and("the subject DN is present and non-blank", () ->
-                assertThat(cert.getSubjectDistinguishedName()).isNotBlank());
+        and("the certificate has version 3, SHA256withRSA algorithm, Test CA issuer, and non-blank subject DN", () -> {
+            assertThat(cert.getVersion()).isEqualTo(3);
+            assertThat(cert.getSignatureAlgorithm()).isEqualTo("SHA256withRSA");
+            assertThat(cert.getIssuerDistinguishedName()).contains("CN=Test CA");
+            assertThat(cert.getSubjectDistinguishedName()).isNotBlank();
+        });
     }
 
     // MIGRATED-FROM: 0520-ss-client-details.feature :: "Client Disable button is clicked"

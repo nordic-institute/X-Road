@@ -141,9 +141,7 @@ class OpenApiServiceTest extends SsApiTest {
                         .statusCode(200));
 
         then("the updated parameters are persisted", () ->
-                session.given()
-                        .get("/services/{id}", serviceId)
-                        .then()
+                services.getService(serviceId)
                         .statusCode(200)
                         .body("url", equalTo("https://petstore.swagger.io/v3"))
                         .body("timeout", equalTo(30))

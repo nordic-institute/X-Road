@@ -33,6 +33,7 @@ import { specHttp, validateBody } from '../setup/spec-http';
 import { Permissions } from '@/global';
 import { useUser } from '@/store/modules/user';
 import type { AdminUser } from '@niis/shared-ui/src/openapi-types/types.gen';
+import type { RequestHandler } from 'msw';
 
 // ── AJV schema for /users list ───────────────────────────────────────────────
 
@@ -143,45 +144,24 @@ async function fillStep2Credentials(password: string): Promise<void> {
   await page.getByTestId('username-input').getByRole('textbox').click();
 }
 
-// ── Scenario 1 ───────────────────────────────────────────────────────────────
+// ── Scenarios 1–2 ────────────────────────────────────────────────────────────
 
 // MIGRATED-FROM: 0250-ss-admin-users.feature :: "Too weak password is not accepted when adding new user"
-describe('Admin Users — add user: too weak password rejected (Browser Mode)', () => {
-  it('shows "too weak" error after server rejects the weak password', async () => {
-    await renderRoute('/settings/users/add', {
-      permissions: [Permissions.ADD_ADMIN_USER, Permissions.VIEW_ADMIN_USERS, Permissions.VIEW_SYS_PARAMS],
-      msw: [postUserWeakPwHandler],
-    });
-
-    useUser().$patch({ roles: ['XROAD_REGISTRATION_OFFICER', 'XROAD_SYSTEM_ADMINISTRATOR'] });
-
-    await openAddUserWizardStep2();
-    await fillStep2Credentials('t0pSecret');
-
-    const addBtn = page.getByTestId('add-button');
-    await expect.element(addBtn).not.toBeDisabled();
-    suppressAxios4xxRejection();
-    await addBtn.click();
-
-    await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
-    await expect.element(page.getByText('The provided password was too weak')).toBeVisible();
-  });
-});
-
-// ── Scenario 2 ───────────────────────────────────────────────────────────────
-
 // MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when adding new user"
-describe('Admin Users — add user: illegal characters in password rejected (Browser Mode)', () => {
-  it('shows "invalid characters" error after server rejects the illegal-char password', async () => {
+describe('Admin Users — add user: server-side password rejection (Browser Mode)', () => {
+  it.each<[string, RequestHandler, string, string]>([
+    ['too weak', postUserWeakPwHandler, 't0pSecret', 'The provided password was too weak'],
+    ['invalid characters', postUserInvalidCharsHandler, 't0pSecretä', 'The provided password contains invalid characters'],
+  ])('%s password rejected on add', async (_label, handler, password, expectedMessage) => {
     await renderRoute('/settings/users/add', {
       permissions: [Permissions.ADD_ADMIN_USER, Permissions.VIEW_ADMIN_USERS, Permissions.VIEW_SYS_PARAMS],
-      msw: [postUserInvalidCharsHandler],
+      msw: [handler],
     });
 
     useUser().$patch({ roles: ['XROAD_REGISTRATION_OFFICER', 'XROAD_SYSTEM_ADMINISTRATOR'] });
 
     await openAddUserWizardStep2();
-    await fillStep2Credentials('t0pSecretä');
+    await fillStep2Credentials(password);
 
     const addBtn = page.getByTestId('add-button');
     await expect.element(addBtn).not.toBeDisabled();
@@ -189,7 +169,7 @@ describe('Admin Users — add user: illegal characters in password rejected (Bro
     await addBtn.click();
 
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
-    await expect.element(page.getByText('The provided password contains invalid characters')).toBeVisible();
+    await expect.element(page.getByText(expectedMessage)).toBeVisible();
   });
 });
 
@@ -238,14 +218,18 @@ describe('Admin Users — role gating: user sees only own roles (Browser Mode)',
   });
 });
 
-// ── Scenario 4 ───────────────────────────────────────────────────────────────
+// ── Scenarios 4–5 ────────────────────────────────────────────────────────────
 
 // MIGRATED-FROM: 0250-ss-admin-users.feature :: "Too weak password is not accepted when changing other user's password"
-describe("Admin Users — other user's password: too weak password rejected (Browser Mode)", () => {
-  it('shows "too weak" error after server rejects the weak password for another user', async () => {
+// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when changing user's password"
+describe("Admin Users — other user's password: server-side rejection (Browser Mode)", () => {
+  it.each<[string, RequestHandler, string, string]>([
+    ['too weak', putPasswordWeakHandler('test'), 't0pSecret', 'The provided password was too weak'],
+    ['invalid characters', putPasswordInvalidCharsHandler('test'), 't0pSecretä', 'The provided password contains invalid characters'],
+  ])('%s password rejected on other-user change', async (_label, handler, password, expectedMessage) => {
     await renderRoute('/settings/users', {
       permissions: adminUsersEditPermissions,
-      msw: [getUsersHandler, putPasswordWeakHandler('test')],
+      msw: [getUsersHandler, handler],
     });
 
     await expect.element(page.getByTestId('admin-user-row-test-change-password-button')).toBeVisible();
@@ -255,8 +239,8 @@ describe("Admin Users — other user's password: too weak password rejected (Bro
     // Old password field not visible because current user != 'test' (admin changing other user's pw)
     expect(page.getByTestId('old-password-input').query()).toBeNull();
 
-    await page.getByTestId('new-password-input').getByRole('textbox').fill('t0pSecret');
-    await page.getByTestId('new-password-confirm-input').getByRole('textbox').fill('t0pSecret');
+    await page.getByTestId('new-password-input').getByRole('textbox').fill(password);
+    await page.getByTestId('new-password-confirm-input').getByRole('textbox').fill(password);
     await page.getByTestId('new-password-input').getByRole('textbox').click();
 
     const saveBtn = page.getByTestId('dialog-save-button');
@@ -265,45 +249,19 @@ describe("Admin Users — other user's password: too weak password rejected (Bro
     await saveBtn.click();
 
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
-    await expect.element(page.getByText('The provided password was too weak')).toBeVisible();
+    await expect.element(page.getByText(expectedMessage)).toBeVisible();
   });
 });
 
-// ── Scenario 5 ───────────────────────────────────────────────────────────────
-
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when changing user's password"
-describe("Admin Users — other user's password: illegal characters rejected (Browser Mode)", () => {
-  it('shows "invalid characters" error after server rejects the illegal-char password for another user', async () => {
-    await renderRoute('/settings/users', {
-      permissions: adminUsersEditPermissions,
-      msw: [getUsersHandler, putPasswordInvalidCharsHandler('test')],
-    });
-
-    await expect.element(page.getByTestId('admin-user-row-test-change-password-button')).toBeVisible();
-    await page.getByTestId('admin-user-row-test-change-password-button').click();
-    await expect.element(page.getByTestId('dialog-simple')).toBeVisible();
-
-    expect(page.getByTestId('old-password-input').query()).toBeNull();
-
-    await page.getByTestId('new-password-input').getByRole('textbox').fill('t0pSecretä');
-    await page.getByTestId('new-password-confirm-input').getByRole('textbox').fill('t0pSecretä');
-    await page.getByTestId('new-password-input').getByRole('textbox').click();
-
-    const saveBtn = page.getByTestId('dialog-save-button');
-    await expect.element(saveBtn).not.toBeDisabled();
-    suppressAxios4xxRejection();
-    await saveBtn.click();
-
-    await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
-    await expect.element(page.getByText('The provided password contains invalid characters')).toBeVisible();
-  });
-});
-
-// ── Scenario 6 ───────────────────────────────────────────────────────────────
+// ── Scenarios 6–7 ────────────────────────────────────────────────────────────
 
 // MIGRATED-FROM: 0250-ss-admin-users.feature :: "Too weak password is not accepted when changing own password"
-describe('Admin Users — own password: too weak password rejected (Browser Mode)', () => {
-  it('shows "too weak" error after server rejects the weak password for own account', async () => {
+// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when changing own password"
+describe('Admin Users — own password: server-side rejection (Browser Mode)', () => {
+  it.each<[string, RequestHandler, string, string]>([
+    ['too weak', putPasswordWeakHandler('xrd'), 't0pSecret', 'The provided password was too weak'],
+    ['invalid characters', putPasswordInvalidCharsHandler('xrd'), 't0pSecretä', 'The provided password contains invalid characters'],
+  ])('%s password rejected on own-account change', async (_label, handler, password, expectedMessage) => {
     const xrdUser: AdminUser = { username: 'xrd', roles: ['XROAD_SYSTEM_ADMINISTRATOR'] };
     validateBody(adminUserSchema, xrdUser);
 
@@ -311,7 +269,7 @@ describe('Admin Users — own password: too weak password rejected (Browser Mode
 
     await renderRoute('/settings/users', {
       permissions: adminUsersEditPermissions,
-      msw: [xrdUsersHandler, putPasswordWeakHandler('xrd')],
+      msw: [xrdUsersHandler, handler],
     });
 
     // Set username to 'xrd' so the row's change-password dialog opens with old-password required
@@ -325,8 +283,8 @@ describe('Admin Users — own password: too weak password rejected (Browser Mode
     // Old password visible because changing own password (username matches logged-in user)
     await expect.element(page.getByTestId('old-password-input')).toBeVisible();
     await page.getByTestId('old-password-input').getByRole('textbox').fill('secret123!');
-    await page.getByTestId('new-password-input').getByRole('textbox').fill('t0pSecret');
-    await page.getByTestId('new-password-confirm-input').getByRole('textbox').fill('t0pSecret');
+    await page.getByTestId('new-password-input').getByRole('textbox').fill(password);
+    await page.getByTestId('new-password-confirm-input').getByRole('textbox').fill(password);
     await page.getByTestId('old-password-input').getByRole('textbox').click();
 
     const saveBtn = page.getByTestId('dialog-save-button');
@@ -335,43 +293,6 @@ describe('Admin Users — own password: too weak password rejected (Browser Mode
     await saveBtn.click();
 
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
-    await expect.element(page.getByText('The provided password was too weak')).toBeVisible();
-  });
-});
-
-// ── Scenario 7 ───────────────────────────────────────────────────────────────
-
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when changing own password"
-describe('Admin Users — own password: illegal characters rejected (Browser Mode)', () => {
-  it('shows "invalid characters" error after server rejects the illegal-char password for own account', async () => {
-    const xrdUser: AdminUser = { username: 'xrd', roles: ['XROAD_SYSTEM_ADMINISTRATOR'] };
-    validateBody(adminUserSchema, xrdUser);
-
-    const xrdUsersHandler = specHttp.untyped.get('/api/v1/users', () => HttpResponse.json([xrdUser]));
-
-    await renderRoute('/settings/users', {
-      permissions: adminUsersEditPermissions,
-      msw: [xrdUsersHandler, putPasswordInvalidCharsHandler('xrd')],
-    });
-
-    useUser().$patch({ username: 'xrd' });
-
-    await expect.element(page.getByTestId('admin-user-row-xrd-change-password-button')).toBeVisible();
-    await page.getByTestId('admin-user-row-xrd-change-password-button').click();
-    await expect.element(page.getByTestId('dialog-simple')).toBeVisible();
-
-    await expect.element(page.getByTestId('old-password-input')).toBeVisible();
-    await page.getByTestId('old-password-input').getByRole('textbox').fill('secret123!');
-    await page.getByTestId('new-password-input').getByRole('textbox').fill('t0pSecretä');
-    await page.getByTestId('new-password-confirm-input').getByRole('textbox').fill('t0pSecretä');
-    await page.getByTestId('old-password-input').getByRole('textbox').click();
-
-    const saveBtn = page.getByTestId('dialog-save-button');
-    await expect.element(saveBtn).not.toBeDisabled();
-    suppressAxios4xxRejection();
-    await saveBtn.click();
-
-    await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
-    await expect.element(page.getByText('The provided password contains invalid characters')).toBeVisible();
+    await expect.element(page.getByText(expectedMessage)).toBeVisible();
   });
 });

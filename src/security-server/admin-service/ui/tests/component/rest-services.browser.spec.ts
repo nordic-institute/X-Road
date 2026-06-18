@@ -29,6 +29,7 @@ import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
+import { submitDialogForm } from '../setup/dialog-helpers';
 import { Permissions } from '@/global';
 import { createdServiceDescriptionFixture } from '../setup/msw-handlers';
 
@@ -217,11 +218,7 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     // Save must now be enabled.
     await expect.element(saveBtn).not.toBeDisabled();
 
-    // Submit via form submit (mirrors client-services-flow pattern).
-    const form = document.querySelector('.v-overlay-container form') as HTMLFormElement | null;
-    if (!form) throw new Error('Dialog form not found');
-    const btn = form.querySelector('[data-test="dialog-save-button"]') as HTMLButtonElement | null;
-    form.requestSubmit(btn ?? undefined);
+    submitDialogForm();
 
     // Success toast must appear.
     await expect.element(page.getByTestId('success-snackbar')).toBeVisible();

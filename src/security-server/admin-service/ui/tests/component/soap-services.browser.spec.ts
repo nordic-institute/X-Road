@@ -29,6 +29,7 @@ import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
+import { clientSchema, serviceDescriptionSchema } from '../setup/schemas';
 import { Permissions } from '@/global';
 import type { Service, ServiceDescription, ServiceClient } from '@/openapi-types';
 
@@ -46,38 +47,6 @@ const serviceSchema = {
     ssl_auth: { type: 'boolean' },
     service_description_id: { type: 'string' },
     client_id: { type: 'string' },
-  },
-};
-
-const serviceDescriptionSchema = {
-  type: 'object',
-  required: ['id', 'url', 'type', 'disabled', 'disabled_notice', 'refreshed_at', 'services', 'client_id'],
-  properties: {
-    id: { type: 'string' },
-    url: { type: 'string' },
-    type: { type: 'string', enum: ['WSDL', 'REST', 'OPENAPI3'] },
-    disabled: { type: 'boolean' },
-    disabled_notice: { type: 'string' },
-    refreshed_at: { type: 'string', format: 'date-time' },
-    services: { type: 'array' },
-    client_id: { type: 'string' },
-  },
-};
-
-const clientSchema = {
-  type: 'object',
-  required: ['member_class', 'member_code'],
-  properties: {
-    id: { type: 'string' },
-    instance_id: { type: 'string' },
-    member_name: { type: 'string' },
-    member_class: { type: 'string' },
-    member_code: { type: 'string' },
-    subsystem_code: { type: 'string' },
-    owner: { type: 'boolean' },
-    has_valid_local_sign_cert: { type: 'boolean' },
-    connection_type: { type: 'string', enum: ['HTTP', 'HTTPS', 'HTTPS_NO_AUTH'] },
-    status: { type: 'string', enum: ['REGISTERED', 'SAVED', 'GLOBAL_ERROR', 'REGISTRATION_IN_PROGRESS', 'DELETION_IN_PROGRESS'] },
   },
 };
 

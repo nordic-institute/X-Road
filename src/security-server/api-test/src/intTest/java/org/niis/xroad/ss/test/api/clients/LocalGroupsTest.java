@@ -109,11 +109,7 @@ class LocalGroupsTest extends SsApiTest {
         var localGroups = new LocalGroupsAdminClient(session);
 
         var groupId = given("local group 'to-delete' is added to client %s".formatted(clientId), () ->
-                localGroups.addLocalGroup(clientId, new LocalGroupAddDto("to-delete", "will be removed"))
-                        .statusCode(201)
-                        .extract()
-                        .jsonPath()
-                        .getString("id"));
+                localGroups.createLocalGroup(clientId, new LocalGroupAddDto("to-delete", "will be removed")));
 
         when("the local group is deleted", () ->
                 localGroups.deleteLocalGroup(groupId).statusCode(204));
@@ -137,11 +133,7 @@ class LocalGroupsTest extends SsApiTest {
         var memberSubsystem = seeder.seedSubsystem(session, "lg12memrmsub");
 
         var groupId = given("local group 'grp-memrm' with a member is set up on client %s".formatted(clientId), () -> {
-            var id = localGroups.addLocalGroup(clientId, new LocalGroupAddDto("grp-memrm", "member-removal-test"))
-                    .statusCode(201)
-                    .extract()
-                    .jsonPath()
-                    .getString("id");
+            var id = localGroups.createLocalGroup(clientId, new LocalGroupAddDto("grp-memrm", "member-removal-test"));
             localGroups.addMembers(id, new MembersDto().items(List.of(memberSubsystem)))
                     .statusCode(201);
             return id;
@@ -169,11 +161,7 @@ class LocalGroupsTest extends SsApiTest {
         var memberSubsystem2 = seeder.seedSubsystem(session, "lg12memaddsub2");
 
         var groupId = given("local group 'grp-memadd' exists on client %s".formatted(clientId), () ->
-                localGroups.addLocalGroup(clientId, new LocalGroupAddDto("grp-memadd", "member-add-test"))
-                        .statusCode(201)
-                        .extract()
-                        .jsonPath()
-                        .getString("id"));
+                localGroups.createLocalGroup(clientId, new LocalGroupAddDto("grp-memadd", "member-add-test")));
 
         and("the group description is updated to 'edited'", () ->
                 localGroups.updateLocalGroup(groupId, new LocalGroupDescriptionDto("edited"))

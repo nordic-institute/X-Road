@@ -204,18 +204,14 @@ class SoapServiceTest extends SsApiTest {
                         .statusCode(200));
 
         then("testOp1 reflects the updated url, timeout and ssl_auth", () ->
-                session.given()
-                        .get("/services/{id}", testOp1Id)
-                        .then()
+                services.getService(testOp1Id)
                         .statusCode(200)
                         .body("url", equalTo("https://www.niis.org/nosuch-updated/"))
                         .body("timeout", equalTo(45))
                         .body("ssl_auth", equalTo(false)));
 
         and("testOpA was also updated because apply-all was set", () ->
-                session.given()
-                        .get("/services/{id}", testOpAId)
-                        .then()
+                services.getService(testOpAId)
                         .statusCode(200)
                         .body("url", equalTo("https://www.niis.org/nosuch-updated/"))
                         .body("timeout", equalTo(45))
@@ -231,18 +227,14 @@ class SoapServiceTest extends SsApiTest {
                         .statusCode(200));
 
         then("testOpA reflects the second update", () ->
-                session.given()
-                        .get("/services/{id}", testOpAId)
-                        .then()
+                services.getService(testOpAId)
                         .statusCode(200)
                         .body("url", equalTo("https://www.niis.org/second-update/"))
                         .body("timeout", equalTo(33))
                         .body("ssl_auth", equalTo(true)));
 
         and("testOp1 is unchanged from the first update", () ->
-                session.given()
-                        .get("/services/{id}", testOp1Id)
-                        .then()
+                services.getService(testOp1Id)
                         .statusCode(200)
                         .body("url", equalTo("https://www.niis.org/nosuch-updated/"))
                         .body("timeout", equalTo(45))

@@ -44,6 +44,15 @@ public class ServiceDescriptionsAdminClient {
     }
 
     /**
+     * Fetches a single service description by ID.
+     */
+    public ValidatableResponse getServiceDescription(String serviceDescriptionId) {
+        return session.given()
+                .get("/service-descriptions/{id}", serviceDescriptionId)
+                .then();
+    }
+
+    /**
      * Updates a service description URL and/or service code.
      */
     public ValidatableResponse updateServiceDescription(String serviceDescriptionId, ServiceDescriptionUpdateDto request) {

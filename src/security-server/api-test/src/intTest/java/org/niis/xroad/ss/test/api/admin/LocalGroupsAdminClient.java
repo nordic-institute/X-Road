@@ -76,6 +76,17 @@ public class LocalGroupsAdminClient {
     }
 
     /**
+     * Adds a new local group to the given client and returns its generated ID.
+     */
+    public String createLocalGroup(String clientId, LocalGroupAddDto request) {
+        return addLocalGroup(clientId, request)
+                .statusCode(201)
+                .extract()
+                .jsonPath()
+                .getString("id");
+    }
+
+    /**
      * Gets local group details by group ID, including the current member list.
      */
     public LocalGroupView getLocalGroup(String groupId) {

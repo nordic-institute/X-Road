@@ -29,27 +29,11 @@ import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
+import { clientWithSubsystemNameSchema } from '../setup/schemas';
 import { Permissions } from '@/global';
 import type { Client } from '@/openapi-types';
 import { ClientStatus, RenameStatus } from '@/openapi-types';
 import { useSystem } from '@/store/modules/system';
-
-// ── AJV schemas ───────────────────────────────────────────────────────────────
-
-const clientSchema = {
-  type: 'object',
-  required: ['member_class', 'member_code'],
-  properties: {
-    id: { type: 'string' },
-    instance_id: { type: 'string' },
-    member_class: { type: 'string' },
-    member_code: { type: 'string' },
-    subsystem_code: { type: 'string' },
-    subsystem_name: { type: 'string' },
-    status: { type: 'string' },
-    rename_status: { type: 'string' },
-  },
-};
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -78,8 +62,8 @@ const registeredClientFixture: Client = {
   rename_status: RenameStatus.NAME_SET,
 };
 
-validateBody(clientSchema, savedClientFixture);
-validateBody(clientSchema, registeredClientFixture);
+validateBody(clientWithSubsystemNameSchema, savedClientFixture);
+validateBody(clientWithSubsystemNameSchema, registeredClientFixture);
 
 // ── Permissions ───────────────────────────────────────────────────────────────
 

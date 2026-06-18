@@ -7,6 +7,7 @@ dependencies {
     intTestImplementation(project(":tool:api-test-core"))
     intTestImplementation(project(":security-server:openapi-model"))
     intTestImplementation(libs.bouncyCastle.bcpkix)
+    intTestImplementation(libs.junit.jupiter.params)
 }
 
 intTestComposeEnv {

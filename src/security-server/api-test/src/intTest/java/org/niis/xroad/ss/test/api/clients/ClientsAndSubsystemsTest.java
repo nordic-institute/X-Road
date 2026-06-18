@@ -28,12 +28,17 @@ package org.niis.xroad.ss.test.api.clients;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.anyOf;
@@ -104,44 +109,22 @@ class ClientsAndSubsystemsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "New Subsystem is added, but management registration fails"
-    @Test
-    @DisplayName("New subsystem is persisted as SAVED when management registration request fails")
-    void newSubsystemSavedWhenRegistrationFails(SsBaselineSeeder seeder) {
-        var session = seeder.newSession();
-        var clients = new ClientsAdminClient(session);
-
-        var subsystemCode = "sub12regfail1";
-        var clientId = "DEV:%s:%s:%s".formatted(SsBaselineSeeder.SS_OWNER_CLASS, SsBaselineSeeder.SS_OWNER_CODE,
-                subsystemCode);
-        var clientDto = new ClientDto(SsBaselineSeeder.SS_OWNER_CLASS, SsBaselineSeeder.SS_OWNER_CODE)
-                .subsystemCode(subsystemCode)
-                .connectionType(ConnectionTypeDto.HTTP);
-        var request = new ClientAddDto(clientDto).ignoreWarnings(true);
-
-        given("new subsystem %s is added".formatted(subsystemCode), () ->
-                clients.addClient(request).statusCode(201));
-
-        when("registration request is sent for the new subsystem", () ->
-                clients.registerClient(clientId)
-                        .statusCode(anyOf(equalTo(400), equalTo(500))));
-
-        then("the subsystem is still present in the client list (persisted as Saved)", () -> {
-            var found = clients.findClientByIdentifier(clientId);
-            assertThat(found).isNotNull();
-            assertThat(found.getId()).isEqualTo(clientId);
-        });
+    static Stream<Arguments> subsystemRegistrationFailureCases() {
+        return Stream.of(
+                Arguments.of("sub12regfail1", null),
+                Arguments.of("sub12regfail2", "Named sub12 regfail2")
+        );
     }
 
+    // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "New Subsystem is added, but management registration fails"
     // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "New Subsystem is added with name, but management registration fails"
-    @Test
-    @DisplayName("New subsystem with name is persisted as SAVED when management registration request fails")
-    void newSubsystemWithNameSavedWhenRegistrationFails(SsBaselineSeeder seeder) {
+    @ParameterizedTest(name = "subsystemCode={0}, subsystemName={1}")
+    @MethodSource("subsystemRegistrationFailureCases")
+    @DisplayName("New subsystem is persisted as SAVED when management registration request fails")
+    void newSubsystemSavedWhenRegistrationFails(String subsystemCode, String subsystemName, SsBaselineSeeder seeder) {
         var session = seeder.newSession();
         var clients = new ClientsAdminClient(session);
 
-        var subsystemCode = "sub12regfail2";
-        var subsystemName = "Named sub12 regfail2";
         var clientId = "DEV:%s:%s:%s".formatted(SsBaselineSeeder.SS_OWNER_CLASS, SsBaselineSeeder.SS_OWNER_CODE,
                 subsystemCode);
         var clientDto = new ClientDto(SsBaselineSeeder.SS_OWNER_CLASS, SsBaselineSeeder.SS_OWNER_CODE)
@@ -150,7 +133,7 @@ class ClientsAndSubsystemsTest extends SsApiTest {
                 .connectionType(ConnectionTypeDto.HTTP);
         var request = new ClientAddDto(clientDto).ignoreWarnings(true);
 
-        given("new subsystem %s with name '%s' is added".formatted(subsystemCode, subsystemName), () ->
+        given("new subsystem %s is added".formatted(subsystemCode), () ->
                 clients.addClient(request).statusCode(201));
 
         when("registration request is sent for the new subsystem", () ->

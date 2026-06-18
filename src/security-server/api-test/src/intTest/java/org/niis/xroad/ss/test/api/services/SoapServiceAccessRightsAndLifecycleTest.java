@@ -173,9 +173,7 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
                         .statusCode(200));
 
         then("testservice1 service description shows disabled=false", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", sd1Id)
-                        .then()
+                serviceDescriptions.getServiceDescription(sd1Id)
                         .statusCode(200)
                         .body("disabled", equalTo(false)));
 
@@ -184,17 +182,13 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
                         .statusCode(200));
 
         then("testservice1 service description shows disabled=true with the expected notice", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", sd1Id)
-                        .then()
+                serviceDescriptions.getServiceDescription(sd1Id)
                         .statusCode(200)
                         .body("disabled", equalTo(true))
                         .body("disabled_notice", equalTo("just disabled.")));
 
         and("testservice3 remains enabled", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", sd3Id)
-                        .then()
+                serviceDescriptions.getServiceDescription(sd3Id)
                         .statusCode(200)
                         .body("disabled", equalTo(false)));
     }
@@ -246,9 +240,7 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
                         .statusCode(200));
 
         then("the service description is still present and accessible", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", sdId)
-                        .then()
+                serviceDescriptions.getServiceDescription(sdId)
                         .statusCode(200)
                         .body("url", equalTo(WSDL1)));
     }

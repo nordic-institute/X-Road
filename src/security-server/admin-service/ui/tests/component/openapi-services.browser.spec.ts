@@ -29,6 +29,7 @@ import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
+import { serviceDescriptionSchema } from '../setup/schemas';
 import { Permissions } from '@/global';
 import type { Service, ServiceDescription } from '@/openapi-types';
 import { ServiceType } from '@/openapi-types';
@@ -58,21 +59,6 @@ const serviceSchema = {
     timeout: { type: 'number' },
     url: { type: 'string' },
     endpoints: { type: 'array', items: endpointSchema },
-  },
-};
-
-const serviceDescriptionSchema = {
-  type: 'object',
-  required: ['id', 'url', 'type', 'disabled', 'disabled_notice', 'refreshed_at', 'services', 'client_id'],
-  properties: {
-    id: { type: 'string' },
-    url: { type: 'string' },
-    type: { type: 'string' },
-    disabled: { type: 'boolean' },
-    disabled_notice: { type: 'string' },
-    refreshed_at: { type: 'string' },
-    services: { type: 'array' },
-    client_id: { type: 'string' },
   },
 };
 

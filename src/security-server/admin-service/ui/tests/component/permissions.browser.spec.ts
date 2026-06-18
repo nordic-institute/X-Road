@@ -113,6 +113,59 @@ const anchorSchema = {
   },
 };
 
+// ── Role-permission sets ───────────────────────────────────────────────────────
+
+const sysAdminPermissions = [
+  Permissions.VIEW_KEYS,
+  Permissions.VIEW_SYS_PARAMS,
+  Permissions.DIAGNOSTICS,
+  Permissions.GENERATE_KEY,
+  Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
+  Permissions.VIEW_INTERNAL_TLS_CERT,
+  Permissions.VIEW_ADMIN_USERS,
+];
+
+const regOfficerPermissions = [
+  Permissions.VIEW_CLIENTS,
+  Permissions.ADD_CLIENT,
+  Permissions.VIEW_CLIENT_DETAILS,
+  Permissions.VIEW_KEYS,
+  Permissions.VIEW_INTERNAL_TLS_CERT,
+  Permissions.EXPORT_INTERNAL_TLS_CERT,
+];
+
+const secOfficerPermissions = [
+  Permissions.VIEW_CLIENTS,
+  Permissions.VIEW_CLIENT_DETAILS,
+  Permissions.VIEW_KEYS,
+  Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+  Permissions.UPDATE_TOKEN_PIN,
+  Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
+  Permissions.VIEW_INTERNAL_TLS_CERT,
+  Permissions.EXPORT_INTERNAL_TLS_CERT,
+  Permissions.VIEW_SYS_PARAMS,
+];
+
+const observerPermissions = [
+  Permissions.VIEW_CLIENTS,
+  Permissions.VIEW_CLIENT_DETAILS,
+  Permissions.VIEW_CLIENT_LOCAL_GROUPS,
+  Permissions.VIEW_KEYS,
+  Permissions.VIEW_API_KEYS,
+  Permissions.DIAGNOSTICS,
+  Permissions.VIEW_SYS_PARAMS,
+];
+
+const serviceAdminPermissions = [
+  Permissions.VIEW_CLIENTS,
+  Permissions.VIEW_CLIENT_DETAILS,
+  Permissions.VIEW_KEYS,
+  Permissions.VIEW_CLIENT_LOCAL_GROUPS,
+  Permissions.ADD_LOCAL_GROUP,
+  Permissions.EDIT_LOCAL_GROUP_DESC,
+  Permissions.EDIT_LOCAL_GROUP_MEMBERS,
+];
+
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 const loggedInTokenFixture: Token = {
@@ -179,16 +232,6 @@ function mainNavTabNames(): string[] {
 // MIGRATED-FROM: 0700-ss-permissions.feature :: "System administrator sees only relevant pages"
 describe('Permissions — System administrator (Browser Mode)', () => {
   it('shows Keys, Diagnostics and Settings tabs but not Clients tab', async () => {
-    const sysAdminPermissions = [
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_SYS_PARAMS,
-      Permissions.DIAGNOSTICS,
-      Permissions.GENERATE_KEY,
-      Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.VIEW_ADMIN_USERS,
-    ];
-
     await renderRoute('/clients', {
       permissions: sysAdminPermissions,
       msw: [clientsHandler],
@@ -211,15 +254,6 @@ describe('Permissions — System administrator (Browser Mode)', () => {
 // MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
 describe('Permissions — Registration officer (Browser Mode)', () => {
   it('shows Clients and add-client button; hides Settings and Diagnostics', async () => {
-    const regOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.ADD_CLIENT,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-    ];
-
     await renderRoute('/clients', {
       permissions: regOfficerPermissions,
       msw: [clientsHandler],
@@ -237,15 +271,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
   it('keys sub-tabs: sign-and-auth and TLS present; api-key absent', async () => {
-    const regOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.ADD_CLIENT,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-    ];
-
     await renderRoute('/keys/sign-and-auth', {
       permissions: regOfficerPermissions,
       msw: [tokensHandler],
@@ -258,15 +283,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
   it('token login/logout buttons absent (two-sided: present for security officer)', async () => {
-    const regOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.ADD_CLIENT,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-    ];
-
     await renderRoute('/keys/sign-and-auth', {
       permissions: regOfficerPermissions,
       msw: [tokensHandler],
@@ -277,18 +293,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
     expect(page.getByTestId('token-logout-button').query()).toBeNull();
 
     // Contrast: security officer has ACTIVATE_DEACTIVATE_TOKEN → logout button appears
-    const secOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      Permissions.UPDATE_TOKEN_PIN,
-      Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/keys/sign-and-auth', {
       permissions: secOfficerPermissions,
       msw: [tokensHandler],
@@ -300,15 +304,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
   it('TLS sub-tab: generate-key button absent (two-sided: present for security officer); export present', async () => {
-    const regOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.ADD_CLIENT,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-    ];
-
     await renderRoute('/keys/tls-cert', {
       permissions: regOfficerPermissions,
       msw: [tlsCertHandler],
@@ -319,18 +314,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
     await expect.element(page.getByTestId('download-management-service-certificate')).toBeVisible();
 
     // Contrast: security officer has GENERATE_INTERNAL_TLS_KEY_CERT → generate-key button present
-    const secOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      Permissions.UPDATE_TOKEN_PIN,
-      Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/keys/tls-cert', {
       permissions: secOfficerPermissions,
       msw: [tlsCertHandler],
@@ -347,18 +330,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
 // MIGRATED-FROM: 0700-ss-permissions.feature :: "Security officer sees only relevant pages"
 describe('Permissions — Security officer (Browser Mode)', () => {
   it('shows Clients and Settings but not Diagnostics; no add-client button', async () => {
-    const secOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      Permissions.UPDATE_TOKEN_PIN,
-      Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/clients', {
       permissions: secOfficerPermissions,
       msw: [clientsHandler],
@@ -376,18 +347,6 @@ describe('Permissions — Security officer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Security officer sees only relevant pages"
   it('keys sub-tabs: api-key absent (two-sided: present for observer)', async () => {
-    const secOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      Permissions.UPDATE_TOKEN_PIN,
-      Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/keys/sign-and-auth', {
       permissions: secOfficerPermissions,
       msw: [tokensHandler],
@@ -397,16 +356,6 @@ describe('Permissions — Security officer (Browser Mode)', () => {
     expect(page.getByTestId('api-key-tab-button').query()).toBeNull();
 
     // Contrast: observer has VIEW_API_KEYS → api-key tab present
-    const observerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_API_KEYS,
-      Permissions.DIAGNOSTICS,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/keys/sign-and-auth', {
       permissions: observerPermissions,
       msw: [tokensHandler],
@@ -417,18 +366,6 @@ describe('Permissions — Security officer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Security officer sees only relevant pages"
   it('settings: backup-and-restore tab absent (two-sided: present for role with BACKUP_CONFIGURATION)', async () => {
-    const secOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      Permissions.UPDATE_TOKEN_PIN,
-      Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/settings', {
       permissions: secOfficerPermissions,
     });
@@ -458,16 +395,6 @@ describe('Permissions — Security officer (Browser Mode)', () => {
 // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
 describe('Permissions — Observer (Browser Mode)', () => {
   it('shows Clients, Settings and Diagnostics; no add-client button', async () => {
-    const observerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_API_KEYS,
-      Permissions.DIAGNOSTICS,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/clients', {
       permissions: observerPermissions,
       msw: [clientsHandler],
@@ -485,16 +412,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('local groups: add-local-group button absent (two-sided: present for service administrator)', async () => {
-    const observerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_API_KEYS,
-      Permissions.DIAGNOSTICS,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     const clientId = 'CS:GOV:1234:SUBS1';
     const encodedClientId = encodeURIComponent(clientId);
 
@@ -523,16 +440,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     expect(page.getByTestId('add-local-group-button').query()).toBeNull();
 
     // Contrast: service administrator has ADD_LOCAL_GROUP → button present
-    const serviceAdminPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.ADD_LOCAL_GROUP,
-      Permissions.EDIT_LOCAL_GROUP_DESC,
-      Permissions.EDIT_LOCAL_GROUP_MEMBERS,
-    ];
-
     await renderRoute(`/clients/subsystem/${encodedClientId}/local-groups`, {
       permissions: serviceAdminPermissions,
       msw: [clientHandler, clientsHandler, localGroupsHandler],
@@ -543,16 +450,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('token login/logout absent and add-key absent', async () => {
-    const observerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_API_KEYS,
-      Permissions.DIAGNOSTICS,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/keys/sign-and-auth', {
       permissions: observerPermissions,
       msw: [tokensHandler],
@@ -566,16 +463,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('add-key button present for system administrator (two-sided contrast for add-key absent above)', async () => {
-    const sysAdminPermissions = [
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_SYS_PARAMS,
-      Permissions.DIAGNOSTICS,
-      Permissions.GENERATE_KEY,
-      Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.VIEW_ADMIN_USERS,
-    ];
-
     await renderRoute('/keys/sign-and-auth', {
       permissions: sysAdminPermissions,
       msw: [tokensHandler],
@@ -609,15 +496,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     expect(page.getByTestId('download-management-service-certificate').query()).toBeNull();
 
     // Contrast: registration officer has EXPORT_INTERNAL_TLS_CERT → export present
-    const regOfficerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.ADD_CLIENT,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_INTERNAL_TLS_CERT,
-      Permissions.EXPORT_INTERNAL_TLS_CERT,
-    ];
-
     await renderRoute('/keys/tls-cert', {
       permissions: regOfficerPermissions,
       msw: [tlsCertHandler],
@@ -628,16 +506,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('settings: backup-and-restore tab absent', async () => {
-    const observerPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_API_KEYS,
-      Permissions.DIAGNOSTICS,
-      Permissions.VIEW_SYS_PARAMS,
-    ];
-
     await renderRoute('/settings', {
       permissions: observerPermissions,
     });
@@ -692,16 +560,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
 // MIGRATED-FROM: 0700-ss-permissions.feature :: "Service administrator sees only relevant pages"
 describe('Permissions — Service administrator (Browser Mode)', () => {
   it('shows Clients and Keys tabs; hides Settings and Diagnostics; no add-client button', async () => {
-    const serviceAdminPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.ADD_LOCAL_GROUP,
-      Permissions.EDIT_LOCAL_GROUP_DESC,
-      Permissions.EDIT_LOCAL_GROUP_MEMBERS,
-    ];
-
     await renderRoute('/clients', {
       permissions: serviceAdminPermissions,
       msw: [clientsHandler],
@@ -720,16 +578,6 @@ describe('Permissions — Service administrator (Browser Mode)', () => {
 
   // MIGRATED-FROM: 0700-ss-permissions.feature :: "Service administrator sees only relevant pages"
   it('client details navigation link is clickable with VIEW_CLIENT_DETAILS', async () => {
-    const serviceAdminPermissions = [
-      Permissions.VIEW_CLIENTS,
-      Permissions.VIEW_CLIENT_DETAILS,
-      Permissions.VIEW_KEYS,
-      Permissions.VIEW_CLIENT_LOCAL_GROUPS,
-      Permissions.ADD_LOCAL_GROUP,
-      Permissions.EDIT_LOCAL_GROUP_DESC,
-      Permissions.EDIT_LOCAL_GROUP_MEMBERS,
-    ];
-
     await renderRoute('/clients', {
       permissions: serviceAdminPermissions,
       msw: [clientsHandler],

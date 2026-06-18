@@ -253,9 +253,7 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
                         .statusCode(200));
 
         then("s3c1 service description shows disabled=true", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", sd1Id)
-                        .then()
+                serviceDescriptions.getServiceDescription(sd1Id)
                         .statusCode(200)
                         .body("disabled", equalTo(true))
                         .body("disabled_notice", equalTo("just disabled.")));
@@ -265,9 +263,7 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
                         .statusCode(200));
 
         then("s3c2 service description shows disabled=false", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", sd2Id)
-                        .then()
+                serviceDescriptions.getServiceDescription(sd2Id)
                         .statusCode(200)
                         .body("disabled", equalTo(false)));
 

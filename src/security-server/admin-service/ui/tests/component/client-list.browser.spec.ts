@@ -28,27 +28,8 @@ import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
+import { clientSchema } from '../setup/schemas';
 import type { Client } from '@/openapi-types';
-
-const clientSchema = {
-  type: 'object',
-  required: ['member_class', 'member_code'],
-  properties: {
-    id: { type: 'string' },
-    instance_id: { type: 'string' },
-    member_name: { type: 'string' },
-    member_class: { type: 'string' },
-    member_code: { type: 'string' },
-    subsystem_code: { type: 'string' },
-    owner: { type: 'boolean' },
-    has_valid_local_sign_cert: { type: 'boolean' },
-    connection_type: { type: 'string', enum: ['HTTP', 'HTTPS', 'HTTPS_NO_AUTH'] },
-    status: {
-      type: 'string',
-      enum: ['REGISTERED', 'SAVED', 'GLOBAL_ERROR', 'REGISTRATION_IN_PROGRESS', 'DELETION_IN_PROGRESS'],
-    },
-  },
-};
 
 const clientListFixture: Client[] = [
   {

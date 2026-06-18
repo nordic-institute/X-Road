@@ -37,6 +37,7 @@ import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.ss.test.api.admin.EndpointsAdminClient;
 import org.niis.xroad.ss.test.api.admin.ServiceDescriptionsAdminClient;
+import org.niis.xroad.ss.test.api.admin.ServicesAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
 import java.util.List;
@@ -188,9 +189,9 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
         });
 
         then("both service descriptions show disabled=false", () -> {
-            session.given().get("/service-descriptions/{id}", yamlSdId).then()
+            serviceDescriptions.getServiceDescription(yamlSdId)
                     .statusCode(200).body("disabled", equalTo(false));
-            session.given().get("/service-descriptions/{id}", jsonSdId).then()
+            serviceDescriptions.getServiceDescription(jsonSdId)
                     .statusCode(200).body("disabled", equalTo(false));
         });
 
@@ -199,17 +200,13 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
                         .statusCode(200));
 
         then("the JSON service description shows disabled=true with the expected notice", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", jsonSdId)
-                        .then()
+                serviceDescriptions.getServiceDescription(jsonSdId)
                         .statusCode(200)
                         .body("disabled", equalTo(true))
                         .body("disabled_notice", equalTo("just disabled.")));
 
         and("the YAML service description remains enabled", () ->
-                session.given()
-                        .get("/service-descriptions/{id}", yamlSdId)
-                        .then()
+                serviceDescriptions.getServiceDescription(yamlSdId)
                         .statusCode(200)
                         .body("disabled", equalTo(false)));
     }
@@ -282,6 +279,7 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
         var session = seeder.newSession();
         var clients = new ClientsAdminClient(session);
         var endpoints = new EndpointsAdminClient(session);
+        var services = new ServicesAdminClient(session);
         var clientId = seeder.seedSubsystem(session, "oas31");
         var serviceCode = "testOas31";
         var serviceId = clientId + ":" + serviceCode;
@@ -294,9 +292,7 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
                         .statusCode(201));
 
         then("the service URL is parsed from the spec's servers block", () ->
-                session.given()
-                        .get("/services/{id}", serviceId)
-                        .then()
+                services.getService(serviceId)
                         .statusCode(200)
                         .body("url", equalTo("https://example.org/api")));
 

@@ -52,18 +52,13 @@ import { page } from 'vitest/browser';
 import { delay } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
+import { serviceDescriptionSchema } from '../setup/schemas';
+import { submitDialogForm } from '../setup/dialog-helpers';
 import { clientsFixture, createdServiceDescriptionFixture, serviceDescriptionFixture } from '../setup/msw-handlers';
 import { worker } from '../setup/browser-setup';
 
 const CLIENT_ID = 'CS:GOV:1234:SUBS1';
 const SERVICES_PATH = `/clients/subsystem/${encodeURIComponent(CLIENT_ID)}/services`;
-
-function submitDialogForm(): void {
-  const form = document.querySelector('.v-overlay-container form') as HTMLFormElement | null;
-  if (!form) throw new Error('Dialog form not found');
-  const btn = form.querySelector('[data-test="dialog-save-button"]') as HTMLButtonElement | null;
-  form.requestSubmit(btn ?? undefined);
-}
 
 describe('Latency patterns — loading state (Browser Mode)', () => {
   it('Spec A: data table shows loading indicator while GET /clients is in-flight, then renders rows', async () => {
@@ -95,20 +90,6 @@ describe('Latency patterns — loading state (Browser Mode)', () => {
   });
 
   it('Spec B: save button shows aria-busy while POST is in-flight; XrdSimpleDialog guards re-submit', async () => {
-    const serviceDescriptionSchema = {
-      type: 'object',
-      required: ['id', 'url', 'type', 'disabled', 'disabled_notice', 'refreshed_at', 'services', 'client_id'],
-      properties: {
-        id: { type: 'string' },
-        url: { type: 'string' },
-        type: { type: 'string', enum: ['WSDL', 'REST', 'OPENAPI3'] },
-        disabled: { type: 'boolean' },
-        disabled_notice: { type: 'string' },
-        refreshed_at: { type: 'string', format: 'date-time' },
-        services: { type: 'array' },
-        client_id: { type: 'string' },
-      },
-    };
     validateBody(serviceDescriptionSchema, serviceDescriptionFixture);
 
     // The POST fires only on user action (not on mount), so worker.use()

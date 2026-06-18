@@ -24,40 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api.admin;
-
-import io.restassured.http.ContentType;
-import io.restassured.response.ValidatableResponse;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdateDto;
 
 /**
- * RestAssured client for the {@code /services/{id}} admin API resource.
+ * Submits the Vuetify dialog form via the native `requestSubmit` API so that
+ * vee-validate's submit handler fires (a plain `.click()` on the save button
+ * bypasses form submission in Vitest Browser Mode).
+ *
+ * Vuetify renders dialog content inside a `.v-overlay-container`; the form
+ * element is a direct descendant of that container.
  */
-public class ServicesAdminClient {
-
-    private final AdminApiSession session;
-
-    public ServicesAdminClient(AdminApiSession session) {
-        this.session = session;
-    }
-
-    /**
-     * Fetches a single service by ID.
-     */
-    public ValidatableResponse getService(String serviceId) {
-        return session.given()
-                .get("/services/{id}", serviceId)
-                .then();
-    }
-
-    /**
-     * Updates service parameters (URL, timeout, SSL authentication).
-     */
-    public ValidatableResponse updateService(String serviceId, ServiceUpdateDto request) {
-        return session.given()
-                .contentType(ContentType.JSON)
-                .body(request)
-                .patch("/services/{id}", serviceId)
-                .then();
-    }
+export function submitDialogForm(): void {
+  const form = document.querySelector('.v-overlay-container form') as HTMLFormElement | null;
+  if (!form) throw new Error('Dialog form not found');
+  const btn = form.querySelector('[data-test="dialog-save-button"]') as HTMLButtonElement | null;
+  form.requestSubmit(btn ?? undefined);
 }
