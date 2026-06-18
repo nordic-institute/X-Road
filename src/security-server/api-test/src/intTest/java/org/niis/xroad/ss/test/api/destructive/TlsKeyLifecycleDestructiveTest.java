@@ -31,6 +31,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
 import org.niis.xroad.ss.test.api.admin.SystemAdminClient;
 
@@ -104,7 +105,7 @@ class TlsKeyLifecycleDestructiveTest extends SsDestructiveTest {
     }
 
     private AdminApiSession adminSession(DestructiveStackSetup stack) {
-        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, DestructiveStackSetup.UI_PORT);
+        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, Port.UI);
         return new AdminApiSession("https://%s:%d".formatted(uiMapping.host(), uiMapping.port()));
     }
 

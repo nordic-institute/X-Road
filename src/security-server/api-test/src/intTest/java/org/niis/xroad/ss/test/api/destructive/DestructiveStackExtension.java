@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
 
@@ -70,7 +71,7 @@ public class DestructiveStackExtension implements ParameterResolver {
             this.setup = new DestructiveStackSetup(properties);
             log.info("Starting disposable destructive-lane Security Server stack");
             this.setup.start();
-            var uiMapping = setup.getContainerMapping(DestructiveStackSetup.UI, DestructiveStackSetup.UI_PORT);
+            var uiMapping = setup.getContainerMapping(DestructiveStackSetup.UI, Port.UI);
             var uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
             log.info("Seeding Security Server baseline on disposable stack");
             new SsBaselineSeeder(uiBaseUrl).ensureBaseline();

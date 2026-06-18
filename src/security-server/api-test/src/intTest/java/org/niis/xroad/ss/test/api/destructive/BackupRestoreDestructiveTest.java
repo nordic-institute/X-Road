@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
+import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
 import org.niis.xroad.ss.test.api.admin.BackupsAdminClient;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
@@ -77,7 +78,7 @@ class BackupRestoreDestructiveTest extends SsDestructiveTest {
     @Test
     @DisplayName("Configuration restored from backup reverts config changes made after the backup was created")
     void configurationRestoredFromBackupRevertsSubsequentChanges(DestructiveStackSetup stack) {
-        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, DestructiveStackSetup.UI_PORT);
+        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, Port.UI);
         var uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
 
         var session = new AdminApiSession(uiBaseUrl);

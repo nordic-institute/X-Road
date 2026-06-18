@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.api.destructive;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
 
 import java.time.Duration;
@@ -56,7 +57,7 @@ class HsmHealthcheckTest extends SsDestructiveTest {
     @Test
     @DisplayName("healthcheck has no errors after HSM health check is enabled and proxy is restarted")
     void healthcheckOkAfterHsmHealthCheckEnabled(DestructiveStackSetup stack) {
-        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, DestructiveStackSetup.UI_PORT);
+        var uiMapping = stack.getContainerMapping(DestructiveStackSetup.UI, Port.UI);
         var uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
         var session = new AdminApiSession(uiBaseUrl);
         var healthUrl = healthcheckUrl(stack);

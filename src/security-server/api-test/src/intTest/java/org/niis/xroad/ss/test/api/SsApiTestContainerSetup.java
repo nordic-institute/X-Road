@@ -64,9 +64,13 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
         super(coreProperties);
     }
 
+    protected String composeProjectName() {
+        return "ss-api-";
+    }
+
     @Override
     public ComposeContainer initEnv() {
-        return new ComposeContainer("ss-api-",
+        return new ComposeContainer(composeProjectName(),
                 new File(coreProperties.resourceDir() + COMPOSE_SS_FILE),
                 new File(coreProperties.resourceDir() + COMPOSE_API_FILE),
                 new File(coreProperties.resourceDir() + COMPOSE_API_DS_FILE))
