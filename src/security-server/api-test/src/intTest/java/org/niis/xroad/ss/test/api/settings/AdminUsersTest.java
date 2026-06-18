@@ -242,7 +242,7 @@ class AdminUsersTest extends SsApiTest {
         var users = new AdminUsersAdminClient(seeder.newSession());
 
         then("POST /users with a password containing a non-ASCII character is rejected with 400 user_password_invalid_characters", () ->
-                users.createUser(username, "T0pSecret!789", List.of("XROAD_SECURITYSERVER_OBSERVER"))
+                users.createUser(username, "T0pSecret!\u0080789", List.of("XROAD_SECURITYSERVER_OBSERVER"))
                         .statusCode(400)
                         .body("error.code", equalTo("user_password_invalid_characters")));
     }
