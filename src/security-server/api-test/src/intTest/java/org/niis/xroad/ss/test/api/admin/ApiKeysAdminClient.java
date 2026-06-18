@@ -49,9 +49,21 @@ public class ApiKeysAdminClient {
     private static final String ADMIN_PASSWORD = "secret123!";
 
     private final String baseUrl;
+    private final String username;
+    private final String password;
 
     public ApiKeysAdminClient(String baseUrl) {
+        this(baseUrl, ADMIN_USERNAME, ADMIN_PASSWORD);
+    }
+
+    /**
+     * Creates a client authenticated as the given user via HTTP Basic auth.
+     * Useful for testing role-enforcement behaviour with a less-privileged caller.
+     */
+    public ApiKeysAdminClient(String baseUrl, String username, String password) {
         this.baseUrl = baseUrl;
+        this.username = username;
+        this.password = password;
     }
 
     /**
@@ -117,7 +129,7 @@ public class ApiKeysAdminClient {
 
     private RequestSpecification spec() {
         return RestAssuredFactory.given()
-                .auth().preemptive().basic(ADMIN_USERNAME, ADMIN_PASSWORD)
+                .auth().preemptive().basic(username, password)
                 .baseUri(baseUrl)
                 .basePath("/api/v1");
     }

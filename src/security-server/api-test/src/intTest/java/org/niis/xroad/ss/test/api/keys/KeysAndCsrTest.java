@@ -41,6 +41,8 @@ import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.TokensAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
@@ -74,6 +76,32 @@ class KeysAndCsrTest extends SsApiTest {
             assertThat(token.getStatus()).isEqualTo(
                     org.niis.xroad.securityserver.restapi.openapi.model.TokenStatusDto.OK);
         });
+    }
+
+    // MIGRATED-FROM: 0100-ss-initialization.feature :: "Default token is initialized"
+    // Specifically the logout → logged-out → re-login → logged-in lifecycle dropped from the original migration.
+    @Test
+    @DisplayName("Default soft token can be logged out and logged back in with the correct PIN")
+    void defaultTokenLogoutAndRelogin(SsBaselineSeeder seeder) {
+        var session = seeder.newSession();
+        var tokens = new TokensAdminClient(session);
+
+        given("softToken-0 is logged in", () ->
+                assertThat(tokens.getToken(SOFT_TOKEN).getLoggedIn()).isTrue());
+
+        when("the token is logged out", () ->
+                tokens.logoutToken(SOFT_TOKEN)
+                        .statusCode(200));
+
+        then("the token reports logged-out state", () ->
+                assertThat(tokens.getToken(SOFT_TOKEN).getLoggedIn()).isFalse());
+
+        and("logging back in with the correct PIN succeeds", () ->
+                tokens.loginToken(SOFT_TOKEN, SsBaselineSeeder.SS_TOKEN_PIN)
+                        .statusCode(200));
+
+        and("the token is logged in again", () ->
+                assertThat(tokens.getToken(SOFT_TOKEN).getLoggedIn()).isTrue());
     }
 
     // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "New key with with empty label is created"
@@ -225,6 +253,80 @@ class KeysAndCsrTest extends SsApiTest {
             var cert = authKey.getCertificates().getFirst();
             assertThat(cert.getStatus()).isEqualTo(CertificateStatusDto.SAVED);
             assertThat(cert.getOcspStatus()).isEqualTo(CertificateOcspStatusDto.DISABLED);
+        });
+    }
+
+    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "New key with with empty label is created"
+    // Specifically the auth/sign key count split assertion.
+    @Test
+    @DisplayName("After adding a SIGN key with CSR and an AUTH key with CSR each type count increases independently")
+    void authSignKeySplitAfterAddingKeyWithCsr(SsBaselineSeeder seeder) {
+        var session = seeder.newSession();
+        var tokens = new TokensAdminClient(session);
+        var ns = Long.toHexString(System.nanoTime());
+
+        var tokenBefore = given("the current auth and sign key counts are recorded", () ->
+                tokens.getToken(SOFT_TOKEN));
+
+        var authCountBefore = tokenBefore.getKeys().stream()
+                .filter(k -> k.getUsage() == KeyUsageTypeDto.AUTHENTICATION)
+                .count();
+        var signCountBefore = tokenBefore.getKeys().stream()
+                .filter(k -> k.getUsage() == KeyUsageTypeDto.SIGNING)
+                .count();
+
+        when("a SIGN key with CSR and an AUTH key with CSR are created", () -> {
+            tokens.addKeyWithCsr(SOFT_TOKEN, "split-sign-" + ns, KeyUsageTypeDto.SIGNING,
+                    TEST_CA, CsrFormatDto.PEM, MEMBER_ID);
+            tokens.addKeyWithCsr(SOFT_TOKEN, "split-auth-" + ns, KeyUsageTypeDto.AUTHENTICATION,
+                    TEST_CA, CsrFormatDto.PEM, null);
+        });
+
+        then("both auth and sign key counts each increased by exactly 1", () -> {
+            var tokenAfter = tokens.getToken(SOFT_TOKEN);
+            var authCountAfter = tokenAfter.getKeys().stream()
+                    .filter(k -> k.getUsage() == KeyUsageTypeDto.AUTHENTICATION)
+                    .count();
+            var signCountAfter = tokenAfter.getKeys().stream()
+                    .filter(k -> k.getUsage() == KeyUsageTypeDto.SIGNING)
+                    .count();
+            assertThat(authCountAfter).isEqualTo(authCountBefore + 1);
+            assertThat(signCountAfter).isEqualTo(signCountBefore + 1);
+        });
+    }
+
+    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "<$label> key is added and imported"
+    // Specifically the "generate CSR button is disabled" postcondition — asserted via possible_actions.
+    @Test
+    @DisplayName("After importing a cert on a SIGN key, GENERATE_SIGN_CSR is absent from possible_actions")
+    @SneakyThrows
+    void generateCsrDisabledAfterCertImport(SsBaselineSeeder seeder, SsApiTestContainerSetup stack) {
+        var session = seeder.newSession();
+        var tokens = new TokensAdminClient(session);
+        var testCaMapping = stack.getContainerMapping(SsApiTestContainerSetup.TESTCA, Port.TEST_CA);
+        var testCaBaseUrl = "http://%s:%d/testca".formatted(testCaMapping.host(), testCaMapping.port());
+
+        var signView = given("a SIGN key with a CSR is created", () ->
+                tokens.addKeyWithCsr(SOFT_TOKEN, "csr-disabled-sign", KeyUsageTypeDto.SIGNING,
+                        TEST_CA, CsrFormatDto.PEM, MEMBER_ID));
+
+        var signCert = when("the SIGN CSR is signed by the test CA", () -> {
+            var csrBytes = tokens.downloadCsr(signView.keyId(), signView.csrId(), CsrFormatDto.PEM);
+            return signCsrAtTestCa(testCaBaseUrl, csrBytes, "sign");
+        });
+
+        and("the SIGN certificate is imported", () ->
+                tokens.importCertificate(signCert).statusCode(201));
+
+        then("GENERATE_SIGN_CSR is not present in the key's possible_actions", () -> {
+            List<String> actions = session.given()
+                    .get("/keys/{id}/possible-actions", signView.keyId())
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .jsonPath()
+                    .getList("$");
+            assertThat(actions).doesNotContain("GENERATE_SIGN_CSR");
         });
     }
 

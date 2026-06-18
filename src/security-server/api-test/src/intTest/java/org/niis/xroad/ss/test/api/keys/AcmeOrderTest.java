@@ -72,6 +72,35 @@ class AcmeOrderTest extends SsApiTest {
                 assertThat(status.getHasAcmeExternalAccountCredentials()).isFalse());
     }
 
+    // MIGRATED-FROM: 0505-ss-keys-and-certificates-acme.feature :: "New key is added certificate ordered and imported" (SIGNING row)
+    @Test
+    @DisplayName("ACME order on a SIGN key results in REGISTERED status and OCSP_RESPONSE_GOOD")
+    void acmeOrderOnSignKeyResultsInRegisteredAndOcspGood(SsBaselineSeeder seeder) {
+        var session = seeder.newSession();
+        var tokens = new TokensAdminClient(session);
+
+        var keyView = given("a SIGN key with a CSR is created for the ACME order", () ->
+                tokens.addKeyWithCsr(SOFT_TOKEN, "acme-order-sign-key", KeyUsageTypeDto.SIGNING,
+                        TEST_CA, CsrFormatDto.DER, "DEV:COM:1234"));
+
+        when("an ACME order is placed for the SIGN CSR", () ->
+                tokens.orderAcmeCertificate(TEST_CA, keyView.csrId(), KeyUsageTypeDto.SIGNING)
+                        .statusCode(204));
+
+        then("the SIGN key has a certificate with status REGISTERED and OCSP status OCSP_RESPONSE_GOOD", () -> {
+            var token = tokens.getToken(SOFT_TOKEN);
+            var key = token.getKeys().stream()
+                    .filter(k -> keyView.keyId().equals(k.getId()))
+                    .findFirst()
+                    .orElseThrow();
+            assertThat(key.getCertificates()).isNotEmpty();
+            var cert = key.getCertificates().getFirst();
+            assertThat(cert.getStatus()).isEqualTo(CertificateStatusDto.REGISTERED);
+            assertThat(cert.getOcspStatus()).isEqualTo(CertificateOcspStatusDto.OCSP_RESPONSE_GOOD);
+            assertThat(cert.getNextAutomaticRenewalTime()).isNotNull();
+        });
+    }
+
     // MIGRATED-FROM: 0505-ss-keys-and-certificates-acme.feature :: "Certificate is ordered on existing CSR"
     @Test
     @DisplayName("Certificate ordered via ACME on an existing CSR results in SAVED status and DISABLED OCSP")

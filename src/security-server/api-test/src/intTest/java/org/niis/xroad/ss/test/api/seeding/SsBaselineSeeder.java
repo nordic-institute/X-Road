@@ -26,12 +26,15 @@
  */
 package org.niis.xroad.ss.test.api.seeding;
 
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenInitStatusDto;
@@ -39,6 +42,7 @@ import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
+import org.niis.xroad.ss.test.api.admin.TokensAdminClient;
 import org.niis.xroad.test.apitest.core.junit.Step;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -67,17 +71,25 @@ public class SsBaselineSeeder {
     public static final String SS_TOKEN_PIN = "Secret1234";
 
     private static final String SUBSYSTEM_SEED_NS = "seed";
+    private static final String SOFT_TOKEN = "0";
+    private static final String TEST_CA = "Test CA";
+    private static final String OWNER_MEMBER_ID = "DEV:%s:%s".formatted(SS_OWNER_CLASS, SS_OWNER_CODE);
+    private static final String OWNER_CLIENT_ID = OWNER_MEMBER_ID;
 
     private final String uiBaseUrl;
+    private final String testCaBaseUrl;
     private volatile AdminApiSession session;
 
     public SsBaselineSeeder(SsApiTestContainerSetup stack) {
         var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
         this.uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
+        var caMapping = stack.getContainerMapping(SsApiTestContainerSetup.TESTCA, Port.TEST_CA);
+        this.testCaBaseUrl = "http://%s:%d/testca".formatted(caMapping.host(), caMapping.port());
     }
 
     public SsBaselineSeeder(String uiBaseUrl) {
         this.uiBaseUrl = uiBaseUrl;
+        this.testCaBaseUrl = null;
     }
 
     /**
@@ -115,6 +127,10 @@ public class SsBaselineSeeder {
 
         if (status.getSoftwareTokenInitStatus() != TokenInitStatusDto.INITIALIZED) {
             loginToken();
+        }
+
+        if (testCaBaseUrl != null) {
+            ensureOwnerSignCert();
         }
 
         log.info("Security Server baseline is ready");
@@ -217,6 +233,36 @@ public class SsBaselineSeeder {
 
             return new SeedResult(clientId, serviceDescriptionId);
         });
+    }
+
+    private void ensureOwnerSignCert() {
+        var certs = session.given()
+                .get("/clients/{id}/sign-certificates", OWNER_CLIENT_ID)
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .<Object>getList("$");
+        if (!certs.isEmpty()) {
+            log.debug("Owner sign certificate already present — skipping seed");
+            return;
+        }
+        log.info("Seeding sign certificate for owner member {}", OWNER_MEMBER_ID);
+        var tokens = new TokensAdminClient(session);
+        var signView = tokens.addKeyWithCsr(SOFT_TOKEN, "baseline-sign-key", KeyUsageTypeDto.SIGNING,
+                TEST_CA, CsrFormatDto.PEM, OWNER_MEMBER_ID);
+        var csrBytes = tokens.downloadCsr(signView.keyId(), signView.csrId(), CsrFormatDto.PEM);
+        var signedCert = RestAssured.given()
+                .relaxedHTTPSValidation()
+                .multiPart("certreq", "sign.pem", csrBytes, "application/octet-stream")
+                .multiPart("type", "sign")
+                .post(testCaBaseUrl + "/sign")
+                .then()
+                .statusCode(200)
+                .extract()
+                .asByteArray();
+        tokens.importCertificate(signedCert).statusCode(201);
+        log.info("Owner sign certificate seeded successfully");
     }
 
     private void bootstrapAdminUser(String baseUrl) {

@@ -161,6 +161,27 @@ services:
     networks:
       - xrd-ss-network
 
+  testmailserver:
+    image: axllent/mailpit:${MAILPIT_VERSION:-latest}
+    environment:
+      - MP_SMTP_BIND_ADDR=0.0.0.0:587
+      - MP_SMTP_REQUIRE_TLS=1
+      - MP_SMTP_TLS_KEY=/tls/testmailserver_key.pem
+      - MP_SMTP_TLS_CERT=/tls/testmailserver_cert.pem
+      - MP_SMTP_AUTH_FILE=/tls/password_file
+    networks:
+      xrd-ss-network:
+        aliases:
+          - testmailserver
+    volumes:
+      - ./container-files/mail-server:/tls
+    deploy:
+      resources:
+        reservations:
+          memory: 16M
+        limits:
+          memory: 64M
+
   nginx:
     image: nginx:latest
     networks:

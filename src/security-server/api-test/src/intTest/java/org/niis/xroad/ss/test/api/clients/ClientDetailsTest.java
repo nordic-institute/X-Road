@@ -30,6 +30,7 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateDto;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
@@ -72,12 +73,45 @@ class ClientDetailsTest extends SsApiTest {
             assertThat(client.getMemberCode()).isEqualTo(SsBaselineSeeder.SS_OWNER_CODE);
         });
 
-        and("the sign-certificates endpoint returns a JSON list for the owner", () ->
+        and("the sign-certificates endpoint returns a non-empty list for the owner", () ->
                 session.given()
                         .get("/clients/{id}/sign-certificates", OWNER_CLIENT_ID)
                         .then()
                         .statusCode(200)
                         .body("$", instanceOf(List.class)));
+    }
+
+    // MIGRATED-FROM: 0520-ss-client-details.feature :: "Client details are displayed"
+    // Specifically the cert-field sub-assertions: Version=3, signatureAlgorithm, issuerDN, subjectDN.
+    @Test
+    @DisplayName("Sign certificate of the owner client has the expected version, algorithm, issuer and subject DN")
+    void signCertFieldValuesMatchExpected(SsBaselineSeeder seeder) {
+        var session = seeder.newSession();
+
+        var certs = when("sign certificates are retrieved for the owner client", () ->
+                session.given()
+                        .get("/clients/{id}/sign-certificates", OWNER_CLIENT_ID)
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .as(TokenCertificateDto[].class));
+
+        then("at least one sign certificate is present", () ->
+                assertThat(certs).isNotEmpty());
+
+        var cert = certs[0].getCertificateDetails();
+
+        and("the certificate version is 3", () ->
+                assertThat(cert.getVersion()).isEqualTo(3));
+
+        and("the signature algorithm is SHA256withRSA", () ->
+                assertThat(cert.getSignatureAlgorithm()).isEqualTo("SHA256withRSA"));
+
+        and("the issuer DN contains the expected Test CA issuer", () ->
+                assertThat(cert.getIssuerDistinguishedName()).contains("CN=Test CA"));
+
+        and("the subject DN is present and non-blank", () ->
+                assertThat(cert.getSubjectDistinguishedName()).isNotBlank());
     }
 
     // MIGRATED-FROM: 0520-ss-client-details.feature :: "Client Disable button is clicked"

@@ -31,11 +31,14 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
+import org.niis.xroad.ss.test.api.admin.AdminUsersAdminClient;
 import org.niis.xroad.ss.test.api.admin.ApiKeysAdminClient;
+import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
@@ -55,7 +58,8 @@ class ApiKeysTest extends SsApiTest {
             "XROAD_SECURITYSERVER_OBSERVER"
     );
 
-    // MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature :: "User can create API key with all privileges" (API slice only — POST creates key with all 5 roles)
+    // MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature
+    // :: "User can create API key with all privileges" (API slice only — POST creates key with all 5 roles)
     @Test
     @DisplayName("API key created with all 5 roles is persisted with all roles present")
     void apiKeyCreatedWithAllPrivileges(SsApiTestContainerSetup stack) {
@@ -143,6 +147,48 @@ class ApiKeysTest extends SsApiTest {
             assertThat(roles).containsExactlyInAnyOrderElementsOf(updatedRoles);
             assertThat(roles).doesNotContain("XROAD_REGISTRATION_OFFICER");
         });
+    }
+
+    // MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature :: "User can only assign roles they have when creating/editing API key"
+    @Test
+    @DisplayName("PUT /api-keys/{id} adding a role the caller does not hold is rejected with 403")
+    void apiKeyEditRejectsAddingRoleCallerDoesNotHold(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {
+        var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
+        var uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
+        var adminUsers = new AdminUsersAdminClient(seeder.newSession());
+
+        var sysadminUsername = "ak-sysadmin-" + Long.toString(System.nanoTime(), 36);
+        var sysadminPassword = "T0pSecret!789";
+
+        given("a SYSTEM_ADMINISTRATOR-only admin user is created", () ->
+                adminUsers.createUser(sysadminUsername, sysadminPassword,
+                                List.of("XROAD_SYSTEM_ADMINISTRATOR"))
+                        .statusCode(201));
+
+        var sysAdminApiKeys = new ApiKeysAdminClient(uiBaseUrl, sysadminUsername, sysadminPassword);
+
+        var keyId = and("that user creates a key holding only its own role", () ->
+                sysAdminApiKeys.createKey(List.of("XROAD_SYSTEM_ADMINISTRATOR"))
+                        .statusCode(200)
+                        .extract()
+                        .jsonPath()
+                        .getLong("id"));
+
+        when("the user tries to ADD XROAD_SECURITY_OFFICER (a role it does not hold) via update", () ->
+                sysAdminApiKeys.updateKey(keyId, List.of("XROAD_SYSTEM_ADMINISTRATOR", "XROAD_SECURITY_OFFICER"))
+                        .statusCode(403));
+
+        then("the key is unchanged — still only XROAD_SYSTEM_ADMINISTRATOR", () -> {
+            var roles = apiKeysClient(stack).getKey(keyId)
+                    .statusCode(200)
+                    .extract()
+                    .jsonPath()
+                    .<String>getList("roles");
+            assertThat(roles).containsExactly("XROAD_SYSTEM_ADMINISTRATOR");
+            assertThat(roles).doesNotContain("XROAD_SECURITY_OFFICER");
+        });
+
+        adminUsers.deleteUser(sysadminUsername).statusCode(200);
     }
 
     private ApiKeysAdminClient apiKeysClient(SsApiTestContainerSetup stack) {

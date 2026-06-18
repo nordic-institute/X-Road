@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.ss.test.api.diagnostics;
 
+import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -192,6 +193,28 @@ class DiagnosticsOverviewTest extends SsApiTest {
                         .isNotNull();
             }
         });
+    }
+
+    // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Diagnostics checks are successful"
+    // Specifically the "Sending test mail is a success" step — zero migrated tests called PUT /mail/send-test-mail before this.
+    @Test
+    @DisplayName("Sending a test mail via PUT /mail/send-test-mail returns status 200 with result 'success'")
+    void sendingTestMailIsSuccess(SsBaselineSeeder seeder) {
+        var session = seeder.newSession();
+
+        var result = when("a test mail is sent to the configured recipient", () ->
+                session.given()
+                        .contentType(ContentType.JSON)
+                        .body("{\"mail_address\":\"test@example.org\"}")
+                        .put("/mail/send-test-mail")
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .jsonPath()
+                        .getString("status"));
+
+        then("the response status field is 'success'", () ->
+                assertThat(result).isEqualTo("success"));
     }
 
     // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Message log archive encryption should have per member configuration"
