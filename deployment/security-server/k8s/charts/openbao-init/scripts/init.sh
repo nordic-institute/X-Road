@@ -139,12 +139,6 @@ else
   }
 fi
 
-# Idempotent: skips when the key already exists, so re-runs never rotate it
-# under live ds-* services. Mirrors native secret-store-init.sh.
-seed_ds_aes_key "$BAO_ADDR" "$ROOT_TOKEN" || {
-  echo "[SETUP] Failed to seed ds AES key" >&2
-  exit 1
-}
 
 NEEDS_NEW_TOKEN=true
 if EXISTING_SECRET=$(k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${XROAD_TOKEN_SECRET_NAME}" "" "Retrieving X-Road client token") && [ -n "$EXISTING_SECRET" ]; then

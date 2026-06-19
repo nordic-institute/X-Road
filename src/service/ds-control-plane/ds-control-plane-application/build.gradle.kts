@@ -52,7 +52,6 @@ dependencies {
   runtimeOnly(libs.edc.core.policy.monitor)
   runtimeOnly(libs.edc.api.observability)
   runtimeOnly(libs.edc.core.dataplane.selector)
-  runtimeOnly(libs.edc.encryption.aes)
   runtimeOnly(libs.edc.configuration.filesystem)
 
   runtimeOnly(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))

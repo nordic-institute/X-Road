@@ -18,7 +18,6 @@ dependencies {
   runtimeOnly(libs.edc.core.participantcontext.config)
 
   runtimeOnly(libs.edc.vault.hashicorp)
-  runtimeOnly(libs.edc.encryption.aes)
 
   runtimeOnly(project(":lib:rpc-quarkus"))
   runtimeOnly(project(":service:signer:signer-client"))
