@@ -46,14 +46,24 @@ tasks.register<Test>("intTest") {
     dependsOn(provider { tasks.named("generateIntTestEnv") })
     dependsOn(copyMainComposeFile)
 
-    description = "Runs the full phased Security Server API test suite (non-destructive parallel first, destructive serial last)."
+    description = "Runs the full phased Security Server API test suite (non-destructive parallel first, destructive serial last). " +
+            "Pass --tests <pattern> to run a single class/method directly (IDE-friendly); the stack still boots via @ExtendWith."
     group = "verification"
 
     testClassesDirs = sourceSets["intTest"].output.classesDirs
     classpath = sourceSets["intTest"].runtimeClasspath
 
-    useJUnitPlatform {
-        include("**/SsApiPhasedSuite.class")
+    useJUnitPlatform()
+
+    val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
+        request.args.any { it == "--tests" || it.startsWith("--tests=") }
+    }
+    include(if (singleTestFromCli) "**/*Test.class" else "**/SsApiPhasedSuite.class")
+    doFirst {
+        val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+        if (testFilter.commandLineIncludePatterns.isNotEmpty() || testFilter.includePatterns.isNotEmpty()) {
+            setIncludes(setOf("**/*Test.class"))
+        }
     }
 
     maxParallelForks = 1
