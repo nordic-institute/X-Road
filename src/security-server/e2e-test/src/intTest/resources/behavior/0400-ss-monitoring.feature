@@ -24,7 +24,6 @@ Feature: 0400 - SS: Monitoring
     When proxymonitor getSecurityServerMetrics request for metric "TotalPhysicalMemory" is sent to "ss1" with queryId "PMID-E2E-2"
     Then proxymonitor response contains a numeric value for metric "TotalPhysicalMemory"
 
-  @Skip
   Scenario: Messagelog contains metrics requests
     Given "ss1" owner client internal connection type is set to "HTTP"
     When proxymonitor getSecurityServerMetrics request is sent to "ss1" with queryId "MSGLOG-E2E-UNIQUE-9f3a"

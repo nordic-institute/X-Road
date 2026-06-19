@@ -36,23 +36,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
-    private HikariDataSource messagelogDataSource;
-    private NamedParameterJdbcTemplate messagelogNamedParameterJdbcTemplate;
+    private final Map<String, HikariDataSource> messagelogDataSources = new HashMap<>();
+    private final Map<String, NamedParameterJdbcTemplate> messagelogTemplates = new HashMap<>();
 
     @Autowired
     private EnvSetup envSetup;
 
     @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate(String env) {
-        if (messagelogNamedParameterJdbcTemplate == null) {
-            messagelogDataSource = createDataSource(env, EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog");
-            messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(messagelogDataSource);
+        var existing = messagelogTemplates.get(env);
+        if (existing != null) {
+            return existing;
         }
-        return messagelogNamedParameterJdbcTemplate;
+        var dataSource = createDataSource(env, EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog");
+        var template = new NamedParameterJdbcTemplate(dataSource);
+        messagelogDataSources.put(env, dataSource);
+        messagelogTemplates.put(env, template);
+        return template;
     }
 
     private HikariDataSource createDataSource(String env, String service, String database, String username) {
@@ -76,8 +83,6 @@ public class TestDatabaseService implements DisposableBean {
 
     @Override
     public void destroy() {
-        if (messagelogDataSource != null) {
-            messagelogDataSource.close();
-        }
+        messagelogDataSources.values().forEach(HikariDataSource::close);
     }
 }
