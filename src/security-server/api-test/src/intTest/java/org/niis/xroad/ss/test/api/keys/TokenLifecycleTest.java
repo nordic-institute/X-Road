@@ -58,7 +58,6 @@ class TokenLifecycleTest extends SsApiTest {
     private static final String SOFT_TOKEN = "0";
     private static final String ORIGINAL_PIN = SsBaselineSeeder.SS_TOKEN_PIN;
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "Token PIN can be changed"
     @Test
     @DisplayName("Token PIN can be changed and the token is left logged in with the original PIN restored")
     void tokenPinCanBeChanged(SsBaselineSeeder seeder) {
@@ -105,7 +104,6 @@ class TokenLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "Inactive token can be deleted"
     @Test
     @ResourceLock(Resources.GLOBAL)
     @DisplayName("An inactive HSM token inserted directly into the DB can be deleted via the API")

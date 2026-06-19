@@ -103,16 +103,12 @@ const clientFixture = {
   status: 'REGISTERED' as const,
 };
 
-// Full candidate set returned when no filter is applied (3 items).
-// Two-sided requirement: "Beta Corp" is filtered OUT by "Alpha" query;
-// "Alpha Corp" is present while filtered; all 3 are back after clear.
 const allCandidates: ServiceClient[] = [
   { id: 'DEV:COM:1234:test-service', name: 'Alpha Corp', service_client_type: 'SUBSYSTEM', rights_given_at: undefined },
   { id: 'DEV:COM:4321:other-service', name: 'Beta Corp', service_client_type: 'SUBSYSTEM', rights_given_at: undefined },
   { id: 'DEV:security-server-owners', name: 'Security Server owners', service_client_type: 'GLOBALGROUP', rights_given_at: undefined },
 ];
 
-// Filtered set returned when member_name_group_description contains "Alpha".
 const filteredCandidates: ServiceClient[] = [
   { id: 'DEV:COM:1234:test-service', name: 'Alpha Corp', service_client_type: 'SUBSYSTEM', rights_given_at: undefined },
 ];
@@ -151,22 +147,6 @@ function getDialogRowTexts(): string[] {
     .map((el) => el.textContent?.trim() ?? '');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Subjects search filter: fill → two-sided assert → clear → restore assert
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// The AccessRightsDialog performs a server-side search via
-//   GET /clients/{id}/service-client-candidates?member_name_group_description=...
-// The MSW handler inspects the query param and returns either the full set or
-// the filtered set.  Two-sided assertion:
-//   - while filtered: "Alpha Corp" present, "Beta Corp" absent
-//   - after clear:    "Beta Corp" present, "Alpha Corp" present
-// Removing the name fill (skip the filter step) leaves member_name_group_description
-// empty on the first search → the handler returns allCandidates → "Beta Corp"
-// is present → the absence assertion fails.
-//
-// MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client service access rights subjects search filter clearing restore initial state"
-
 describe('SOAP services — subjects search filter: fill, two-sided assert, clear, restore (Browser Mode)', () => {
   it('filters subjects when a name is entered and restores all subjects after the filter is cleared', async () => {
     const candidatesHandler = specHttp.get('/clients/{id}/service-client-candidates', ({ request, response }) => {
@@ -196,7 +176,6 @@ describe('SOAP services — subjects search filter: fill, two-sided assert, clea
 
     await expect.element(page.getByTestId('add-subjects-dialog')).toBeVisible();
 
-    // First search: no filter — full set expected.
     await page.getByTestId('search-button').click();
 
     await expect.element(page.getByTestId('add-subjects-dialog').getByRole('row').nth(1)).toBeVisible();
@@ -207,7 +186,6 @@ describe('SOAP services — subjects search filter: fill, two-sided assert, clea
     expect(beforeJoined).toContain('Beta Corp');
     expect(beforeJoined).toContain('Security Server owners');
 
-    // Fill filter name → search → two-sided assert (filtered-out absent, match present).
     const nameField = page.getByTestId('name-text-field').getByRole('textbox');
     await nameField.fill('Alpha');
     await page.getByTestId('search-button').click();
@@ -219,7 +197,6 @@ describe('SOAP services — subjects search filter: fill, two-sided assert, clea
     expect(filteredJoined).toContain('Alpha Corp');
     expect(filteredJoined).not.toContain('Beta Corp');
 
-    // Clear the name field → search → assert all subjects are restored.
     await nameField.clear();
     await page.getByTestId('search-button').click();
 

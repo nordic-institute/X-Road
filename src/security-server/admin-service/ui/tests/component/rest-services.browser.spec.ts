@@ -34,8 +34,6 @@ import { Permissions } from '@/global';
 import { createdServiceDescriptionFixture } from '../setup/msw-handlers';
 
 // ── Schema validation ─────────────────────────────────────────────────────────
-// createdServiceDescriptionFixture is already AJV-validated in msw-handlers.ts.
-// Inline-validate the shape we care about for the success path.
 
 const serviceDescriptionListSchema = {
   type: 'array',
@@ -72,12 +70,6 @@ const servicesPermissions = [
 
 // ── Specs ─────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service with Base Path is configured"
-// Split slice — API/persistence assertions DONE (RestServiceConflictTest).
-// This spec covers the UI slice: client-side form validation errors in the Add REST dialog.
-// CLIENT-SIDE validation: URL format check (`invalidUrl` rule) and required service code
-// are both enforced by vee-validate BEFORE any server call — the save button is blocked
-// and specific error messages are shown. No server interaction is needed to assert these.
 describe('REST Services — add REST dialog form validation errors (Browser Mode)', () => {
   it('invalid URL triggers "URL is not valid" error and save button stays disabled', async () => {
     await renderRoute(SERVICES_PATH, {
@@ -98,17 +90,13 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).toBeVisible();
 
-    // Select REST (base-path) radio.
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
-    // Enter an invalid URL and blur.
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
     await urlInput.fill('invalid-url');
     await page.getByTestId('service-code-text-field').getByRole('textbox').click();
 
-    // The specific error message must be visible.
     await expect.element(page.getByText('URL is not valid')).toBeVisible();
-    // Save must remain blocked.
     await expect.element(saveBtn).toBeDisabled();
   });
 
@@ -131,7 +119,6 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).toBeVisible();
 
-    // Select REST radio.
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
@@ -141,16 +128,13 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     await codeInput.fill('s3c1');
     await urlInput.click();
 
-    // Save must now be enabled (valid URL + code).
     await expect.element(saveBtn).not.toBeDisabled();
 
-    // Clear service code — save must become disabled (required field empty).
     await codeInput.fill('');
     await urlInput.click();
     await expect.element(saveBtn).toBeDisabled();
   });
 
-  // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service with Base Path is configured"
   it('whitespace-only service code triggers "The Service Code field is required" error text', async () => {
     await renderRoute(SERVICES_PATH, {
       permissions: servicesPermissions,
@@ -170,20 +154,16 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).toBeVisible();
 
-    // Select REST radio.
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
     await urlInput.fill('http://example.com');
 
     const codeInput = page.getByTestId('service-code-text-field').getByRole('textbox');
-    // Whitespace-only value triggers the required validator (String.trim() = "").
     await codeInput.fill('   ');
     await urlInput.click();
 
-    // The "required" validation message for the "Service Code" field must be visible.
     await expect.element(page.getByText('The Service Code field is required')).toBeVisible();
-    // Save must remain blocked.
     await expect.element(saveBtn).toBeDisabled();
   });
 
@@ -205,7 +185,6 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
 
     const saveBtn = page.getByTestId('dialog-save-button');
 
-    // Select REST radio.
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
@@ -215,12 +194,10 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     await codeInput.fill('s3c1');
     await urlInput.click();
 
-    // Save must now be enabled.
     await expect.element(saveBtn).not.toBeDisabled();
 
     submitDialogForm();
 
-    // Success toast must appear.
     await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
     await expect.element(page.getByText('REST service added')).toBeVisible();
   });

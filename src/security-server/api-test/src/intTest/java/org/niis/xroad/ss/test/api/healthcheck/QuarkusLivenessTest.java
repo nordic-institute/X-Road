@@ -49,7 +49,6 @@ class QuarkusLivenessTest extends SsApiTest {
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(60);
 
-    // MIGRATED-FROM: 6100-ss-liveness-check.feature :: "Signer service liveness checks are UP"
     @Test
     @DisplayName("signer liveness endpoint reports overall UP with DEADLOCK and HEAP_MEMORY checks UP")
     void signerLivenessIsUp(SsApiTestContainerSetup stack) {
@@ -63,7 +62,6 @@ class QuarkusLivenessTest extends SsApiTest {
                 assertCheckUp(liveness, "HEAP_MEMORY_CHECK"));
     }
 
-    // MIGRATED-FROM: 6100-ss-liveness-check.feature :: "Configuration-client service liveness checks are UP"
     @Test
     @DisplayName("configuration-client liveness endpoint reports overall UP with DEADLOCK and HEAP_MEMORY checks UP")
     void configurationClientLivenessIsUp(SsApiTestContainerSetup stack) {
@@ -77,7 +75,6 @@ class QuarkusLivenessTest extends SsApiTest {
                 assertCheckUp(liveness, "HEAP_MEMORY_CHECK"));
     }
 
-    // MIGRATED-FROM: 6100-ss-liveness-check.feature :: "Op-monitor service liveness checks are UP"
     @Test
     @DisplayName("op-monitor liveness endpoint reports overall UP with DEADLOCK and HEAP_MEMORY checks UP")
     void opMonitorLivenessIsUp(SsApiTestContainerSetup stack) {
@@ -91,7 +88,6 @@ class QuarkusLivenessTest extends SsApiTest {
                 assertCheckUp(liveness, "HEAP_MEMORY_CHECK"));
     }
 
-    // MIGRATED-FROM: 6100-ss-liveness-check.feature :: "Auxiliary-service service liveness checks are UP"
     @Test
     @DisplayName("auxiliary-service liveness endpoint reports overall UP with DEADLOCK and HEAP_MEMORY checks UP")
     void auxiliaryServiceLivenessIsUp(SsApiTestContainerSetup stack) {

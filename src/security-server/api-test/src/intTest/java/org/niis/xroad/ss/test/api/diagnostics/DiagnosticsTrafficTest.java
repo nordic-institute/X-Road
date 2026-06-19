@@ -46,7 +46,6 @@ class DiagnosticsTrafficTest extends SsApiTest {
 
     private static final String JSON_SPEC_URL = "http://mock-server:1080/test-services/testopenapi2.json";
 
-    // MIGRATED-FROM: 0910-ss-diagnostics-traffic.feature :: "Services are loaded"
     @Test
     @DisplayName("Service selector for a client lists a seeded service code after adding a service description")
     void servicesAreLoaded(SsBaselineSeeder seeder) {

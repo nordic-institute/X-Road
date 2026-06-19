@@ -25,18 +25,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * Role gating: pass `{ permissions }` to `renderRoute`. `renderRoute` calls
- * `useUser().setPermissions()` before mount, which computes `bannedRoutes` from
- * `routePermissions`. Assertions target the rendered DOM only — no store internals.
- *
- * Main nav tabs: `[data-test="main-navigation-item"]` elements; their text
- *   is in a child `[data-test="main-navigation-item-name"]`.
- * Keys sub-tabs: `[data-test="sign-and-auth-keys-tab-button"]`,
- *   `[data-test="api-key-tab-button"]`, `[data-test="ss-tls-certificate-tab-button"]`.
- * Settings sub-tabs: `[data-test="backup-and-restore-tab-button"]`.
- * Add-client button: `[data-test="add-client-button"]`.
- */
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
@@ -229,7 +217,6 @@ function mainNavTabNames(): string[] {
 // System administrator
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// MIGRATED-FROM: 0700-ss-permissions.feature :: "System administrator sees only relevant pages"
 describe('Permissions — System administrator (Browser Mode)', () => {
   it('shows Keys, Diagnostics and Settings tabs but not Clients tab', async () => {
     await renderRoute('/clients', {
@@ -251,7 +238,6 @@ describe('Permissions — System administrator (Browser Mode)', () => {
 // Registration officer — nav tabs (existing) + deep gating (new)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
 describe('Permissions — Registration officer (Browser Mode)', () => {
   it('shows Clients and add-client button; hides Settings and Diagnostics', async () => {
     await renderRoute('/clients', {
@@ -269,7 +255,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
     await expect.element(page.getByTestId('add-client-button')).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
   it('keys sub-tabs: sign-and-auth and TLS present; api-key absent', async () => {
     await renderRoute('/keys/sign-and-auth', {
       permissions: regOfficerPermissions,
@@ -281,7 +266,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
     expect(page.getByTestId('api-key-tab-button').query()).toBeNull();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
   it('token login/logout buttons absent (two-sided: present for security officer)', async () => {
     await renderRoute('/keys/sign-and-auth', {
       permissions: regOfficerPermissions,
@@ -302,7 +286,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
     await expect.element(page.getByTestId('token-logout-button').first()).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Registration officer sees only relevant pages"
   it('TLS sub-tab: generate-key button absent (two-sided: present for security officer); export present', async () => {
     await renderRoute('/keys/tls-cert', {
       permissions: regOfficerPermissions,
@@ -327,7 +310,6 @@ describe('Permissions — Registration officer (Browser Mode)', () => {
 // Security officer — nav tabs (existing) + deep gating (new)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// MIGRATED-FROM: 0700-ss-permissions.feature :: "Security officer sees only relevant pages"
 describe('Permissions — Security officer (Browser Mode)', () => {
   it('shows Clients and Settings but not Diagnostics; no add-client button', async () => {
     await renderRoute('/clients', {
@@ -345,7 +327,6 @@ describe('Permissions — Security officer (Browser Mode)', () => {
     expect(page.getByTestId('add-client-button').query()).toBeNull();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Security officer sees only relevant pages"
   it('keys sub-tabs: api-key absent (two-sided: present for observer)', async () => {
     await renderRoute('/keys/sign-and-auth', {
       permissions: secOfficerPermissions,
@@ -364,7 +345,6 @@ describe('Permissions — Security officer (Browser Mode)', () => {
     await expect.element(page.getByTestId('api-key-tab-button')).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Security officer sees only relevant pages"
   it('settings: backup-and-restore tab absent (two-sided: present for role with BACKUP_CONFIGURATION)', async () => {
     await renderRoute('/settings', {
       permissions: secOfficerPermissions,
@@ -392,7 +372,6 @@ describe('Permissions — Security officer (Browser Mode)', () => {
 // Observer — nav tabs (existing) + deep gating (new)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
 describe('Permissions — Observer (Browser Mode)', () => {
   it('shows Clients, Settings and Diagnostics; no add-client button', async () => {
     await renderRoute('/clients', {
@@ -410,7 +389,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     expect(page.getByTestId('add-client-button').query()).toBeNull();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('local groups: add-local-group button absent (two-sided: present for service administrator)', async () => {
     const clientId = 'CS:GOV:1234:SUBS1';
     const encodedClientId = encodeURIComponent(clientId);
@@ -448,7 +426,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     await expect.element(page.getByTestId('add-local-group-button')).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('token login/logout absent and add-key absent', async () => {
     await renderRoute('/keys/sign-and-auth', {
       permissions: observerPermissions,
@@ -461,7 +438,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     expect(page.getByTestId('token-add-key-button').query()).toBeNull();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('add-key button present for system administrator (two-sided contrast for add-key absent above)', async () => {
     await renderRoute('/keys/sign-and-auth', {
       permissions: sysAdminPermissions,
@@ -473,7 +449,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     await expect.element(page.getByTestId('token-add-key-button').first()).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('TLS sub-tab: generate-key absent and export absent (two-sided: export present for registration officer)', async () => {
     const observerPermissions = [
       Permissions.VIEW_CLIENTS,
@@ -504,7 +479,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     await expect.element(page.getByTestId('download-management-service-certificate').first()).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('settings: backup-and-restore tab absent', async () => {
     await renderRoute('/settings', {
       permissions: observerPermissions,
@@ -514,7 +488,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
     expect(page.getByTestId('backup-and-restore-tab-button').query()).toBeNull();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Observer sees only relevant pages"
   it('system-parameters: configuration anchor download/upload buttons absent (two-sided: download present with DOWNLOAD_ANCHOR)', async () => {
     const observerPermissions = [
       Permissions.VIEW_CLIENTS,
@@ -557,7 +530,6 @@ describe('Permissions — Observer (Browser Mode)', () => {
 // Service administrator — nav tabs (existing) + deep gating (new)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// MIGRATED-FROM: 0700-ss-permissions.feature :: "Service administrator sees only relevant pages"
 describe('Permissions — Service administrator (Browser Mode)', () => {
   it('shows Clients and Keys tabs; hides Settings and Diagnostics; no add-client button', async () => {
     await renderRoute('/clients', {
@@ -576,7 +548,6 @@ describe('Permissions — Service administrator (Browser Mode)', () => {
     expect(page.getByTestId('add-client-button').query()).toBeNull();
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Service administrator sees only relevant pages"
   it('client details navigation link is clickable with VIEW_CLIENT_DETAILS', async () => {
     await renderRoute('/clients', {
       permissions: serviceAdminPermissions,
@@ -591,7 +562,6 @@ describe('Permissions — Service administrator (Browser Mode)', () => {
     expect(isClickable).toBe(true);
   });
 
-  // MIGRATED-FROM: 0700-ss-permissions.feature :: "Service administrator sees only relevant pages"
   it('client details navigation link is not clickable without VIEW_CLIENT_DETAILS', async () => {
     const withoutDetailsPermissions = [
       Permissions.VIEW_CLIENTS,

@@ -55,7 +55,7 @@ const existingSubsystemsFixture: Client[] = [];
 validateBody({ type: 'array', items: clientSchema }, selectableSubsystemsFixture);
 validateBody({ type: 'array', items: clientSchema }, existingSubsystemsFixture);
 
-// ── Route params matching the legacy feature's "Test member" / COM / 1234 ─────
+// ── Route params ──────────────────────────────────────────────────────────────
 
 const INSTANCE_ID = 'DEV';
 const MEMBER_CLASS = 'COM';
@@ -75,13 +75,11 @@ const addSubsystemPermissions = [
 
 function baseHandlers() {
   return [
-    // fetchData: selectable subsystems (global, exclude_local=true, show_members=false)
     specHttp.get('/clients', ({ request, response }) => {
       const url = new URL(request.url);
       if (url.searchParams.get('exclude_local') === 'true') {
         return response(200).json(selectableSubsystemsFixture);
       }
-      // fetchData: existing subsystems (internal_search=true)
       return response(200).json(existingSubsystemsFixture);
     }),
   ];
@@ -89,7 +87,6 @@ function baseHandlers() {
 
 // ── Specs ─────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "Add subsystem was cancelled"
 describe('Add subsystem — cancelled (Browser Mode)', () => {
   it('renders prefilled member fields, then cancel navigates back to clients list', async () => {
     const { router } = await renderRoute(ADD_SUBSYSTEM_PATH, {
@@ -97,37 +94,29 @@ describe('Add subsystem — cancelled (Browser Mode)', () => {
       msw: baseHandlers(),
     });
 
-    // The form is visible: select-subsystem-button confirms AddSubsystem rendered
     await expect.element(page.getByTestId('select-subsystem-button')).toBeVisible();
 
-    // Member name field is pre-populated from route params
     const memberNameField = page.getByTestId('selected-member-name').getByRole('textbox');
     await expect.element(memberNameField).toBeVisible();
     const memberNameValue = (await memberNameField.element() as HTMLInputElement).value;
     expect(memberNameValue).toBe('Test member');
 
-    // Member class field is pre-populated
     const memberClassField = page.getByTestId('selected-member-class').getByRole('textbox');
     await expect.element(memberClassField).toBeVisible();
     const memberClassValue = (await memberClassField.element() as HTMLInputElement).value;
     expect(memberClassValue).toBe('COM');
 
-    // Member code field is pre-populated
     const memberCodeField = page.getByTestId('selected-member-code').getByRole('textbox');
     await expect.element(memberCodeField).toBeVisible();
     const memberCodeValue = (await memberCodeField.element() as HTMLInputElement).value;
     expect(memberCodeValue).toBe('1234');
 
-    // Cancel button is visible
     await expect.element(page.getByTestId('cancel-button')).toBeVisible();
 
-    // Click Cancel — router navigates back to /clients
     await page.getByTestId('cancel-button').click();
 
-    // The form is gone (navigated away)
     await expect.element(page.getByTestId('select-subsystem-button')).not.toBeInTheDocument();
 
-    // No POST was fired — client list remains the same, route is /clients
     expect(router.currentRoute.value.path).toBe('/clients');
   });
 });

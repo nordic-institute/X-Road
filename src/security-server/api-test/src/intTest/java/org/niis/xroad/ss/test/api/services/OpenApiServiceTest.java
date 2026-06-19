@@ -64,7 +64,6 @@ class OpenApiServiceTest extends SsApiTest {
     private static final String SUBJECT_TEST_CONSUMER = "DEV:COM:1234:test-consumer";
     private static final String SUBJECT_TEST_SERVICE = "DEV:COM:1234:TestService";
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service with invalid openApi spec is not added"
     @Test
     @DisplayName("Adding an OPENAPI3 service with an unreachable or invalid spec is rejected with openapi_parsing_error")
     void invalidOpenApiSpecIsRejected(SsBaselineSeeder seeder) {
@@ -80,7 +79,6 @@ class OpenApiServiceTest extends SsApiTest {
                         .body("error.code", equalTo("openapi_parsing_error")));
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service with openApi yaml spec is added"
     @Test
     @DisplayName("Adding an OPENAPI3 service via a YAML spec persists the service description")
     void openApiYamlSpecAdded(SsBaselineSeeder seeder) {
@@ -103,7 +101,6 @@ class OpenApiServiceTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service with openApi json spec is added"
     @Test
     @DisplayName("Adding an OPENAPI3 service via a JSON spec persists the service description")
     void openApiJsonSpecAdded(SsBaselineSeeder seeder) {
@@ -126,7 +123,6 @@ class OpenApiServiceTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service is edited"
     @Test
     @DisplayName("Editing an OPENAPI3 service's URL, timeout and TLS flag is persisted")
     void openApiServiceEdited(SsBaselineSeeder seeder) {
@@ -148,7 +144,6 @@ class OpenApiServiceTest extends SsApiTest {
                         .body("ssl_auth", equalTo(false)));
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service has access rights added to it"
     @Test
     @DisplayName("Access rights added to an OPENAPI3 service are persisted")
     void accessRightsAddedToOpenApiService(SsBaselineSeeder seeder) {
@@ -167,7 +162,6 @@ class OpenApiServiceTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service has one access rights removed"
     @Test
     @DisplayName("Removing one access right from an OPENAPI3 service leaves the remaining subject in place")
     void removingOneAccessRightFromOpenApiService(SsBaselineSeeder seeder) {
@@ -195,7 +189,6 @@ class OpenApiServiceTest extends SsApiTest {
                         .body("id", hasItem(SUBJECT_TEST_CONSUMER)));
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service has all access rights removed"
     @Test
     @DisplayName("Removing all access rights from an OPENAPI3 service leaves the ACL empty")
     void removingAllAccessRightsFromOpenApiService(SsBaselineSeeder seeder) {

@@ -48,7 +48,6 @@ class SecurityHeaderTest extends SsApiTest {
 
     private static final Pattern NONCE_PATTERN = Pattern.compile("'nonce-([A-Za-z0-9+/=]+)'");
 
-    // MIGRATED-FROM: 0230-ss-security-header.feature :: "Verify that content security headers are set correctly"
     @Test
     @DisplayName("Login page response contains a Content-Security-Policy header with a well-formed nonce")
     void loginPageResponseHasValidCspNonce(SsApiTestContainerSetup stack) {

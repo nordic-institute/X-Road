@@ -95,7 +95,6 @@ public abstract class BaseComposeSetup {
      * additional setup (e.g. nginx config injection).
      */
     protected void onPostStart() {
-        // can be overridden
     }
 
     /**

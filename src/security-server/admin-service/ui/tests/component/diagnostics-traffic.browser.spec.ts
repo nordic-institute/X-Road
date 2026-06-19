@@ -77,7 +77,6 @@ const operationalMonitoringHandler = specHttp.get('/diagnostics/operational-moni
 
 // ── Specs ─────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0910-ss-diagnostics-traffic.feature :: "Default filter and traffic chart is displayed"
 describe('Diagnostics Traffic — default filter state and chart render (Browser Mode)', () => {
   it('renders with all filter selects empty, service select disabled, and chart element present', async () => {
     await renderRoute('/diagnostics/traffic', {

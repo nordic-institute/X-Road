@@ -69,7 +69,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
     private static final String YAML_SERVICE_CODE = "s4c1";
     private static final String JSON_SERVICE_CODE = "s4c2";
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service has new endpoint added to it"
     @Test
     @DisplayName("Adding an endpoint to an OPENAPI3 service persists it; a duplicate method+path is rejected with 409")
     void newEndpointAddedAndDuplicateRejected(SsBaselineSeeder seeder) {
@@ -94,7 +93,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
                         .statusCode(409));
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Only manually added endpoints can be edited"
     @Test
     @DisplayName("Editing a manually added OPENAPI3 endpoint path is persisted; original path is gone")
     void manualEndpointEdited(SsBaselineSeeder seeder) {
@@ -128,7 +126,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Manually added endpoints can be deleted"
     @Test
     @DisplayName("Deleting a manually added OPENAPI3 endpoint removes it from the list")
     void manualEndpointsDeleted(SsBaselineSeeder seeder) {
@@ -155,7 +152,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Newly added services are enabled and one of them disabled"
     @Test
     @DisplayName("Enabling both OPENAPI3 service descriptions then disabling one persists state correctly")
     void openApiServicesEnabledAndOneDisabled(SsBaselineSeeder seeder) {
@@ -211,7 +207,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
                         .body("disabled", equalTo(false)));
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Newly added service is edited"
     @Test
     @DisplayName("Editing an OPENAPI3 service description's URL and code is persisted; old URL disappears from the list")
     void newlyAddedOpenApiServiceEdited(SsBaselineSeeder seeder) {
@@ -249,7 +244,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Newly added service is deleted"
     @Test
     @DisplayName("Deleting an OPENAPI3 service description removes it from the client list")
     void newlyAddedOpenApiServiceDeleted(SsBaselineSeeder seeder) {
@@ -272,7 +266,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Client service with openApi 3.1 json is added"
     @Test
     @DisplayName("Adding an OPENAPI3 3.1 JSON spec parses the server URL and all declared endpoints correctly")
     void openApi31JsonSpecAdded(SsBaselineSeeder seeder) {
@@ -304,7 +297,6 @@ class OpenApiServiceEndpointsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Adding service with invalid openApi version fails"
     @Test
     @DisplayName("Adding an OPENAPI3 service with an unsupported version is rejected with unsupported_openapi_version")
     void invalidOpenApiVersionRejected(SsBaselineSeeder seeder) {

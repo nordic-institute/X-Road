@@ -47,7 +47,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class InternalServersTest extends SsApiTest {
 
-    // MIGRATED-FROM: 0530-ss-client-internal-servers.feature :: "Client Internal server connection type is changed"
     @Test
     @DisplayName("Connection type change is persisted via the API")
     void connectionTypeChangePersists(SsBaselineSeeder seeder) {
@@ -71,7 +70,6 @@ class InternalServersTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0530-ss-client-internal-servers.feature :: "Client Internal servers are configured"
     @Test
     @DisplayName("TLS certificate can be uploaded, retrieved, deleted, and the server certificate can be exported")
     @SneakyThrows

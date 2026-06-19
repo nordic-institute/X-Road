@@ -132,7 +132,6 @@ const addonStatusHandler = specHttp.get('/diagnostics/addon-status', ({ response
 
 // ── Specs ─────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Administrator cannot turn on maintenance mode for management services provider"
 describe('System Parameters — maintenance mode disabled for management services provider (Browser Mode)', () => {
   it('toggle is disabled when this server is the management services provider', async () => {
     await renderRoute('/settings/system-parameters', {
@@ -140,12 +139,8 @@ describe('System Parameters — maintenance mode disabled for management service
       msw: [maintenanceModeDisabledMgmtHandler, propertiesHandler],
     });
 
-    // Widget shows toggle in the header area once the maintenance-mode fetch resolves.
-    // Vuetify v-switch: the outer div carries data-test; the inner input is type="checkbox".
     const switchContainer = page.getByTestId('maintenance-mode-switch');
     await expect.element(switchContainer).toBeVisible();
-    // disabled attribute lands on the outer selection-control div; use aria-disabled or the
-    // CSS pointer-events approach — assert the input is not checked and carries disabled.
     const toggle = switchContainer.getByRole('checkbox');
     await expect.element(toggle).not.toBeChecked();
     await expect.element(toggle).toBeDisabled();
@@ -165,7 +160,6 @@ describe('System Parameters — maintenance mode disabled for management service
   });
 });
 
-// MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Configurable properties section is visible with scope panels"
 describe('System Parameters — configurable properties panels visible (Browser Mode)', () => {
   it('renders the panels container and the proxy-ui-api scope panel', async () => {
     await renderRoute('/settings/system-parameters', {
@@ -178,7 +172,6 @@ describe('System Parameters — configurable properties panels visible (Browser 
   });
 });
 
-// MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Configurable properties panel can be expanded and shows property rows"
 describe('System Parameters — panel expand shows rows (Browser Mode)', () => {
   it('rows are hidden before expand and visible after clicking the panel title', async () => {
     await renderRoute('/settings/system-parameters', {
@@ -188,19 +181,15 @@ describe('System Parameters — panel expand shows rows (Browser Mode)', () => {
 
     await expect.element(page.getByTestId('configurable-properties-panel-proxy-ui-api')).toBeVisible();
 
-    // Before expand: the table body for the scope does not exist in DOM (XrdExpandable uses v-if).
     expect(page.getByTestId('configurable-properties-table-body-proxy-ui-api').query()).toBeNull();
 
-    // Expand by clicking the panel title.
     await page.getByTestId('configurable-properties-panel-title-proxy-ui-api').click();
 
-    // After expand: at least one property row is visible.
     const rows = page.getByTestId('configurable-properties-table-body-proxy-ui-api').getByTestId('configurable-property-row');
     await expect.element(rows.first()).toBeVisible();
   });
 });
 
-// MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Edit configurable property dialog can be cancelled without changes"
 describe('System Parameters — edit dialog cancelled (Browser Mode)', () => {
   it('dialog opens, cancel closes it, and the row value is unchanged', async () => {
     await renderRoute('/settings/system-parameters', {
@@ -208,10 +197,8 @@ describe('System Parameters — edit dialog cancelled (Browser Mode)', () => {
       msw: [maintenanceModeDisabledHandler, propertiesHandler],
     });
 
-    // Expand the panel first.
     await page.getByTestId('configurable-properties-panel-title-proxy-ui-api').click();
 
-    // Locate the specific row by its displayed property name.
     const targetRow = page
       .getByTestId('configurable-properties-table-body-proxy-ui-api')
       .getByTestId('configurable-property-row')
@@ -219,25 +206,19 @@ describe('System Parameters — edit dialog cancelled (Browser Mode)', () => {
 
     await expect.element(targetRow).toBeVisible();
 
-    // Confirm dialog is not open yet.
     expect(page.getByTestId('configurable-property-value-field').query()).toBeNull();
 
-    // Open the edit dialog.
     await targetRow.getByTestId('edit-configurable-property-button').click();
     await expect.element(page.getByTestId('configurable-property-value-field')).toBeVisible();
 
-    // Cancel.
     await page.getByRole('button', { name: /cancel/i }).click();
 
-    // Dialog is gone.
     expect(page.getByTestId('configurable-property-value-field').query()).toBeNull();
 
-    // Row still shows the original value.
     await expect.element(targetRow).toHaveTextContent(/20/);
   });
 });
 
-// MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Configurable properties can be filtered by search term"
 describe('System Parameters — properties filtered by search (Browser Mode)', () => {
   it('matched row is present and non-matching scope rows are absent after filtering', async () => {
     await renderRoute('/settings/system-parameters', {
@@ -245,17 +226,13 @@ describe('System Parameters — properties filtered by search (Browser Mode)', (
       msw: [maintenanceModeDisabledHandler, propertiesHandler],
     });
 
-    // Before search: both scopes are visible.
     await expect.element(page.getByTestId('configurable-properties-panel-proxy-ui-api')).toBeVisible();
     await expect.element(page.getByTestId('configurable-properties-panel-common')).toBeVisible();
 
-    // Apply search term via the inner text input — only proxy-ui-api property matches.
     await page.getByTestId('configurable-properties-search').getByRole('textbox').fill('rate-limit-requests-per-second');
 
-    // Matched scope and row are present.
     await expect.element(page.getByTestId('configurable-properties-panel-proxy-ui-api')).toBeVisible();
 
-    // The proxy-ui-api panel auto-expands on search — row is visible.
     await expect.element(
       page
         .getByTestId('configurable-properties-table-body-proxy-ui-api')
@@ -263,14 +240,10 @@ describe('System Parameters — properties filtered by search (Browser Mode)', (
         .filter({ hasText: 'xroad.proxy-ui-api.rate-limit-requests-per-second' }),
     ).toBeVisible();
 
-    // Non-matching scope is filtered out.
     expect(page.getByTestId('configurable-properties-panel-common').query()).toBeNull();
   });
 });
 
-// MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Configurable property can be edited and restart warning is shown"
-// Split-slice: API/persistence slice is DONE (SystemParametersTest#configurablePropertyUpdatedPersists).
-// This spec covers the UI slice only: after a mocked successful PUT the restart warning renders.
 describe('System Parameters — property edited shows restart warning (Browser Mode)', () => {
   it('restart warning absent before edit and visible after a successful save', async () => {
     await renderRoute('/settings/system-parameters', {
@@ -282,13 +255,10 @@ describe('System Parameters — property edited shows restart warning (Browser M
       ],
     });
 
-    // Expand the panel.
     await page.getByTestId('configurable-properties-panel-title-proxy-ui-api').click();
 
-    // Restart warning is absent before any edit.
     expect(page.getByTestId('configurable-properties-restart-warning').query()).toBeNull();
 
-    // Open edit dialog for the rate-limit property.
     const targetRow = page
       .getByTestId('configurable-properties-table-body-proxy-ui-api')
       .getByTestId('configurable-property-row')
@@ -297,15 +267,12 @@ describe('System Parameters — property edited shows restart warning (Browser M
     await targetRow.getByTestId('edit-configurable-property-button').click();
     await expect.element(page.getByTestId('configurable-property-value-field')).toBeVisible();
 
-    // Change the value so the form becomes dirty and valid.
     const input = page.getByTestId('configurable-property-value-field').getByRole('textbox');
     await input.clear();
     await input.fill('25');
 
-    // Save.
     await page.getByRole('button', { name: /save/i }).click();
 
-    // Dialog closes and restart warning appears.
     await expect.element(page.getByTestId('configurable-property-value-field')).not.toBeInTheDocument();
     await expect.element(page.getByTestId('configurable-properties-restart-warning')).toBeVisible();
   });

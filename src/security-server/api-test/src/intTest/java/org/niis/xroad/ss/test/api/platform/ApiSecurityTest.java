@@ -64,7 +64,6 @@ import static org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory.gi
  * rule in {@code ApiWebSecurityConfig}) are excluded from the 401-sweep: {@code /api/v1/openapi.yaml},
  * {@code /api/v1/initialization/admin-user}, and {@code /api/v1/initialization/admin-user/status}.
  */
-// MIGRATED-FROM: 4000-api-security-check.feature :: "Verify all endpoints fail when called without authorization"
 @DisplayName("All admin API endpoints require authentication")
 @SuppressWarnings("checkstyle:magicnumber")
 class ApiSecurityTest extends SsApiTest {

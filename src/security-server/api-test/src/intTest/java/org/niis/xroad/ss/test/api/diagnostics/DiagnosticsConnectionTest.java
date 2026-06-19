@@ -53,7 +53,6 @@ class DiagnosticsConnectionTest extends SsApiTest {
     private static final String MGMT_SECURITY_SERVER_ID = "DEV:COM:1234:SS0";
     private static final String EXPECTED_ERROR_CODE = "server.clientproxy";
 
-    // MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Central Server connection check tests should run"
     @Test
     @DisplayName("CS global-conf download URLs report FAIL and auth-cert registration service reports FAIL on single-SS stack")
     void centralServerConnectionCheckTestsShouldRun(SsBaselineSeeder seeder) {
@@ -86,7 +85,6 @@ class DiagnosticsConnectionTest extends SsApiTest {
                         .isNotEqualTo("OK"));
     }
 
-    // MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Other Security Server connection test can be run"
     @Test
     @DisplayName("Other-SS REST connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK with a server.clientproxy-family error code")
     void otherSecurityServerConnectionTestCanBeRun(SsBaselineSeeder seeder) {
@@ -119,7 +117,6 @@ class DiagnosticsConnectionTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Management Security Server test fails"
     @Test
     @DisplayName("Management-SS SOAP connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK with a server.clientproxy-family error code")
     void managementSecurityServerTestFails(SsBaselineSeeder seeder) {

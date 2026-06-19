@@ -48,32 +48,6 @@ const serviceClientSchema = {
 };
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
-//
-// Sort fixture design:
-//   The service-clients table sorts by the "Name" column (key: "name") by default
-//   (Vuetify must-sort).  Sort by "ID" column (key: "id") is triggered by clicking
-//   the column header.
-//
-//   Three items with IDs that sort in a different order by name vs by id:
-//     By name asc:  "Security Server owners" < "Test client" < "Test consumer"
-//     By id  asc:   "DEV:COM:1234:test-consumer" < "DEV:COM:4321:TestClient" < "DEV:security-server-owners"
-//
-//   After an id-asc sort click:
-//     row[0] = "Test consumer"  (DEV:COM:1234:test-consumer)
-//     row[1] = "Test client"    (DEV:COM:4321:TestClient)
-//     row[2] = "Security Server owners" (DEV:security-server-owners)
-//
-//   consumerIdx < clientIdx proves sort fired (they are adjacent and in a different
-//   relative order from their name-sort order).  Removing the column header click
-//   leaves name-sort: clientIdx(1) < consumerIdx(2) → consumerIdx < clientIdx fails.
-//
-// Filter fixture design:
-//   Filtering by "consumer" (client-side :search on VDataTable):
-//     present: "Test consumer" (id contains "test-consumer", name contains "consumer")
-//     absent:  "Security Server owners", "Test client"
-//   Two-sided: filtered-out absent AND match present.
-//   Removing the fill() call leaves search empty → all rows visible → the absence
-//   assertion fails.
 
 const clientId = 'DEV:COM:1234:test-service';
 const encodedClientId = encodeURIComponent(clientId);
@@ -145,12 +119,6 @@ function getTableRowTexts(): string[] {
     .map((el) => el.textContent?.trim() ?? '');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spec 1: Filter — two-sided assertion
-// ─────────────────────────────────────────────────────────────────────────────
-
-// MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client list can be filtered and sorted"
-
 describe('Service clients — search filter: two-sided assertion (Browser Mode)', () => {
   it('shows matching service client and hides non-matching ones when filter is applied', async () => {
     await renderRoute(serviceClientsRoute, {
@@ -174,27 +142,7 @@ describe('Service clients — search filter: two-sided assertion (Browser Mode)'
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spec 2: Sort — relative row positions assert
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// Sort fixture proof (see top comment):
-//   Default (name asc): Security Server owners(0) < Test client(1) < Test consumer(2)
-//   After ID-asc click: test-consumer(0) < TestClient(1) < security-server-owners(2)
-//   consumerIdx(0) < clientIdx(1): assertion holds.
-//   Without the click the name-sort applies:
-//     Test client is at index ~1, Test consumer at index ~2 → consumerIdx > clientIdx → FAIL.
-
-// MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client list can be filtered and sorted"
-
 describe('Service clients — sort by Name descending: row positions change (Browser Mode, 2 clicks)', () => {
-  //
-  // Sort fixture proof:
-  //   Default (no explicit sort but must-sort triggers asc on first click):
-  //     After 1st click (name asc):  Security Server owners(0) < Test client(1) < Test consumer(2)
-  //     After 2nd click (name desc): Test consumer(0) > Test client(1) > Security Server owners(2)
-  //   Removing the second click leaves name-asc: consumerIdx(2) > clientIdx(1) → FAIL.
-  //
   it('reorders rows by Name descending when the Name column header is clicked twice', async () => {
     await renderRoute(serviceClientsRoute, {
       permissions: serviceClientPermissions,
@@ -224,8 +172,6 @@ describe('Service clients — sort by Name descending: row positions change (Bro
     expect(clientIdx).toBeLessThan(ownersIdx);
   });
 });
-
-// MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client list can be filtered and sorted"
 
 describe('Service clients — sort by ID ascending: row positions change (Browser Mode)', () => {
   it('reorders rows by ID ascending when the ID column header is clicked', async () => {

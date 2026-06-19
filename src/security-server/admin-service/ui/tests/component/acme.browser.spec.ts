@@ -139,45 +139,32 @@ const eabPresentHandler = specHttp.get('/certificate-authorities/{ca_name}/has-a
 // ── Helper: drive wizard to step 3 (GenerateCsr page) ─────────────────────────
 
 async function driveWizardToStep3(): Promise<void> {
-  // Step 1 — enter a key label.
   await expect.element(page.getByTestId('key-label-input')).toBeVisible();
   await page.getByTestId('key-label-input').getByRole('textbox').fill('auth key for eab');
   await page.getByTestId('next-button').click();
 
-  // Step 2 — CSR Details. Use AUTHENTICATION: no client field required, so form is
-  // valid once usage + CA + format are selected.
   await expect.element(page.getByTestId('csr-usage-select')).toBeVisible();
 
   await page.getByTestId('csr-usage-select').click();
   await expect.element(page.getByRole('option', { name: 'AUTHENTICATION' })).toBeVisible();
   await page.getByRole('option', { name: 'AUTHENTICATION' }).click();
 
-  // Select "Test CA" (the ACME-capable one).
   await page.getByTestId('csr-certification-service-select').click();
   await expect.element(page.getByRole('option', { name: 'Test CA' })).toBeVisible();
   await page.getByRole('option', { name: 'Test CA' }).click();
 
-  // Select DER format.
   await page.getByTestId('csr-format-select').click();
   await expect.element(page.getByRole('option', { name: CsrFormat.DER })).toBeVisible();
   await page.getByRole('option', { name: CsrFormat.DER }).click();
 
-  // Advance to step 3.
   await expect.element(page.getByTestId('save-button')).not.toBeDisabled();
   await page.getByTestId('save-button').click();
 
-  // Step 3 must be visible.
   await expect.element(page.getByTestId('generate-csr-button')).toBeVisible();
 }
 
 // ── Specs ─────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0505-ss-keys-and-certificates-acme.feature :: "New key is added certificate ordered and imported"
-// Split slice — API/status assertions DONE (AcmeOrderTest#certificateOrderedOnExistingCsr).
-// This spec covers the UI slice: wizard driven to step 3 with an ACME-capable CA; the
-// ACME order button section is visible, proving the wizard surfaces ACME ordering when
-// the selected CA is ACME-capable. The button starts disabled before CSR generation
-// (correct UX — CSR must be generated first), which is expected and not the slice concern.
 describe('ACME — add-key wizard UI slice: ACME section reachable (Browser Mode)', () => {
   it('drives wizard to step 3 with ACME-capable CA, order button section is visible', async () => {
     await renderRoute('/add-key/softToken-0/SOFTWARE', {
@@ -187,23 +174,11 @@ describe('ACME — add-key wizard UI slice: ACME section reachable (Browser Mode
 
     await driveWizardToStep3();
 
-    // The ACME order button is the observable outcome: it renders only when acmeCapable is true.
-    // (acmeCapable = certificationServiceList.find(ca => ca.name === certificationService)?.acme_capable)
-    // Visibility proves the ACME section rendered; disabled state before CSR generation is expected UX.
     const orderBtn = page.getByTestId('acme-order-certificate-button');
     await expect.element(orderBtn).toBeVisible();
   });
 });
 
-// MIGRATED-FROM: 0505-ss-keys-and-certificates-acme.feature :: "Certificate ordering is disabled when external account binding credentials are required but missing"
-// Split slice — API/backend assertions DONE (AcmeOrderTest#acmeOrderFailsWhenEabCredentialsMissing).
-// This spec covers the UI slice: two-sided EAB gating in the wizard generate step.
-// CLIENT-SIDE gating: WizardPageGenerateCsr computes externalAccountBindingRequiredButMissing
-// from the CSR store's acmeEabCredentialsStatus. When EAB is required but absent, a v-alert
-// renders and the order button carries the additional disable reason.
-// Two-sided: (1) EAB missing → alert visible; (2) EAB present → alert absent.
-// Note: the button itself is always disabled before CSR generation (correct UX);
-// the EAB-specific gate is surfaced through the alert presence/absence.
 describe('ACME — EAB gating: alert visible when credentials missing (Browser Mode)', () => {
   it('EAB-missing alert is visible and order button is visible when EAB required but missing', async () => {
     await renderRoute('/add-key/softToken-0/SOFTWARE', {
@@ -211,20 +186,11 @@ describe('ACME — EAB gating: alert visible when credentials missing (Browser M
       msw: [certAuthoritiesHandler, membersHandler, csrSubjectFieldsHandler, eabMissingHandler],
     });
 
-    // driveWizardToStep3 clicks "Continue" on step 2, which calls hasAcmeEabCredentials()
-    // that fetches GET /certificate-authorities/{ca_name}/has-acme-eab-credentials.
-    // eabMissingHandler returns { acme_eab_required: true, has_acme_external_account_credentials: false },
-    // which sets acmeEabCredentialsStatus in the CSR store — externalAccountBindingRequiredButMissing = true.
     await driveWizardToStep3();
 
-    // The ACME order button must be visible (acmeCapable section rendered).
     const orderBtn = page.getByTestId('acme-order-certificate-button');
     await expect.element(orderBtn).toBeVisible();
 
-    // The EAB-missing v-alert must be visible.
-    // WizardPageGenerateCsr renders it when externalAccountBindingRequiredButMissing is true.
-    // Use partial text to avoid strict-mode collision with Vuetify input error divs that
-    // also carry role="alert"; target the specific csr.eabCredRequired message content.
     await expect.element(page.getByText('credentials are missing from the configuration', { exact: false })).toBeVisible();
   });
 
@@ -234,16 +200,10 @@ describe('ACME — EAB gating: alert visible when credentials missing (Browser M
       msw: [certAuthoritiesHandler, membersHandler, csrSubjectFieldsHandler, eabPresentHandler],
     });
 
-    // eabPresentHandler returns { acme_eab_required: true, has_acme_external_account_credentials: true }.
-    // After driveWizardToStep3, acmeEabCredentialsStatus.has_acme_external_account_credentials = true
-    // => externalAccountBindingRequiredButMissing = false => v-alert does NOT render.
     await driveWizardToStep3();
 
-    // ACME section renders.
     await expect.element(page.getByTestId('acme-order-certificate-button')).toBeVisible();
 
-    // No EAB-missing alert when credentials are present — the specific csr.eabCredRequired
-    // text must not be in the DOM.
     await expect.poll(() => page.getByText('credentials are missing from the configuration', { exact: false }).query()).toBeNull();
   });
 });

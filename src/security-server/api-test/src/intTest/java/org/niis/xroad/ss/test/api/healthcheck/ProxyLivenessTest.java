@@ -49,7 +49,6 @@ class ProxyLivenessTest extends SsApiTest {
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(60);
 
-    // MIGRATED-FROM: 6100-ss-liveness-check.feature :: "Proxy service liveness checks are UP"
     @Test
     @DisplayName("proxy liveness endpoint reports overall UP with DEADLOCK and HEAP_MEMORY checks UP")
     void proxyLivenessIsUp(SsApiTestContainerSetup stack) {

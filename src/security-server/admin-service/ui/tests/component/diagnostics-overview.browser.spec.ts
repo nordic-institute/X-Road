@@ -25,8 +25,6 @@
  * THE SOFTWARE.
  */
 
-// MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Administrator can download diagnostics report"
-
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';

@@ -55,7 +55,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class RestServiceConflictTest extends SsApiTest {
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service with Base Path is configured"
     @Test
     @DisplayName("REST services with base path are persisted and visible in service description list")
     void basePathConfiguredServiceIsPersisted(SsBaselineSeeder seeder) {
@@ -84,7 +83,6 @@ class RestServiceConflictTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client Rest service with duplicate service code is not added"
     @Test
     @DisplayName("Adding a REST service with a duplicate service code is rejected")
     void duplicateServiceCodeIsRejected(SsBaselineSeeder seeder) {
@@ -106,7 +104,6 @@ class RestServiceConflictTest extends SsApiTest {
                         .body("error.code", equalTo("service_code_already_exists")));
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client Rest service with duplicate url is not added"
     @Test
     @DisplayName("Adding a REST service with a duplicate URL is rejected")
     void duplicateUrlIsRejected(SsBaselineSeeder seeder) {
@@ -128,7 +125,6 @@ class RestServiceConflictTest extends SsApiTest {
                         .body("error.code", equalTo("url_already_exists")));
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Updating service url to duplicate url is not allowed"
     @Test
     @DisplayName("Updating a service URL to one already in use is rejected with url_already_exists")
     void updateToDuplicateUrlIsRejected(SsBaselineSeeder seeder) {
@@ -165,7 +161,6 @@ class RestServiceConflictTest extends SsApiTest {
                         .body("error.code", equalTo("url_already_exists")));
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service is edited"
     @Test
     @DisplayName("REST service parameters (URL, timeout, TLS) are persisted after edit, and updating to a duplicate URL fails")
     void serviceParametersArePersistedAndDuplicateUpdateFails(SsBaselineSeeder seeder) {

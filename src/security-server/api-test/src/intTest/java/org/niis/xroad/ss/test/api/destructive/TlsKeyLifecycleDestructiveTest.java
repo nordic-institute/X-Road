@@ -53,7 +53,6 @@ class TlsKeyLifecycleDestructiveTest extends SsSharedStackDestructiveTest {
 
     private static final int TEST_CA_PORT = 8888;
 
-    // MIGRATED-FROM: 0360-ss-key-and-certificates-tls-key.feature :: "User can generate new TLS key and certificate"
     @Test
     @DisplayName("Generating a new TLS key and certificate succeeds and the cert info is retrievable")
     void generateNewTlsKeyAndCertificate(SsApiTestContainerSetup stack) {
@@ -71,7 +70,6 @@ class TlsKeyLifecycleDestructiveTest extends SsSharedStackDestructiveTest {
         });
     }
 
-    // MIGRATED-FROM: 0360-ss-key-and-certificates-tls-key.feature :: "User can import new TLS certificate"
     @Test
     @DisplayName("TLS certificate imported after CSR->test-CA signing is accepted and cert info is updated")
     @SneakyThrows

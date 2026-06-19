@@ -121,13 +121,6 @@ const endpointsPermissions = [
 
 // ── Specs ─────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0540-ss-client-openapi-services.feature :: "Only manually added endpoints can be edited"
-// Split slice — API/persistence assertions DONE (OpenApiServiceEndpointsAndLifecycleTest#manualEndpointEdited).
-// This spec covers the UI slice: two-sided gating — generated endpoints do NOT have an
-// edit button; manual endpoints DO have an edit button.
-// CLIENT-SIDE gating: EndpointsView renders the edit button only when `!item.generated`.
-// The `generated` flag is carried on each Endpoint from the API response (included in
-// the service fixture). No additional server interaction is needed to verify the gating.
 describe('OpenAPI Services — endpoint editability gating: generated vs manual (Browser Mode)', () => {
   it('generated endpoint has no edit button; manual endpoint has edit button', async () => {
     const encodedServiceId = encodeURIComponent(SERVICE_ID);
@@ -142,21 +135,14 @@ describe('OpenAPI Services — endpoint editability gating: generated vs manual 
       msw: [serviceHandler, serviceDescriptionHandler],
     });
 
-    // Wait for the endpoints table to be rendered by polling for the first row.
-    // The table renders once the service fetch resolves.
     await expect.element(page.getByRole('row').nth(1)).toBeVisible();
 
-    // All rows in the endpoints table.
     const rows = page.getByRole('row');
 
-    // ── Generated endpoint (PUT /pet) — NO edit button ────────────────────────
-    // Find the row containing "PUT" and "/pet" — these are distinct enough to be unique.
     const generatedRow = rows.filter({ hasText: 'PUT' }).filter({ hasText: '/pet' });
     await expect.element(generatedRow).toBeVisible();
-    // The edit button must not be present for generated endpoints.
     expect(generatedRow.getByTestId('endpoint-edit').query()).toBeNull();
 
-    // ── Manual endpoint (PATCH /new/path/) — HAS edit button ─────────────────
     const manualRow = rows.filter({ hasText: 'PATCH' }).filter({ hasText: '/new/path/' });
     await expect.element(manualRow).toBeVisible();
     await expect.element(manualRow.getByTestId('endpoint-edit')).toBeVisible();

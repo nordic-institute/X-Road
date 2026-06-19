@@ -47,7 +47,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class BackupsTest extends SsApiTest {
 
-    // MIGRATED-FROM: 0600-ss-backup-and-restore.feature :: "Configuration can be backed up and deleted"
     @Test
     @ResourceLock("backups")
     @DisplayName("Backup created via API is present in list; deleting it removes it from the list")
@@ -77,7 +76,6 @@ class BackupsTest extends SsApiTest {
         }
     }
 
-    // MIGRATED-FROM: 0600-ss-backup-and-restore.feature :: "Configuration backup can be downloaded and uploaded"
     @Test
     @ResourceLock("backups")
     @DisplayName("Backup downloaded then re-uploaded is present in the list again by its filename")
@@ -116,7 +114,6 @@ class BackupsTest extends SsApiTest {
         }
     }
 
-    // MIGRATED-FROM: 0600-ss-backup-and-restore.feature :: "Already existing configuration backup is overwritten on upload"
     @Test
     @ResourceLock("backups")
     @DisplayName("Uploading a backup with an already-existing filename and ignore_warnings=true succeeds and the backup remains once")
@@ -153,8 +150,6 @@ class BackupsTest extends SsApiTest {
         }
     }
 
-    // MIGRATED-FROM: 0600-ss-backup-and-restore.feature :: "Configuration backups can be filtered"
-    // SPLIT: API create-slice only (filter render stays in legacy scenario for UI integration, slice 23)
     @Test
     @ResourceLock("backups")
     @DisplayName("Backup created via API is present in the list (API create-slice of filtered-view scenario)")

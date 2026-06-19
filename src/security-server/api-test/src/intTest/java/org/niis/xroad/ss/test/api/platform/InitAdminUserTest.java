@@ -44,7 +44,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class InitAdminUserTest extends SsApiTest {
 
-    // MIGRATED-FROM: 0090-ss-initial-admin-user.feature :: "Reopening admin user URL after creation redirects to login"
     @Test
     @DisplayName("After admin user is created the creation endpoint reports admin_user_creation_required=false")
     void reopeningAdminUrlAfterCreationReturnsNotRequired(SsApiTestContainerSetup stack) {

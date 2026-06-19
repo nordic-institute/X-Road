@@ -25,51 +25,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * 0100 — Security Server initialisation wizard UI-integration scenarios.
- *
- * Setup strategy:
- *   - renderRoute('/initial-configuration') with a normal authenticated session.
- *     In non-bootstrap mode renderRoute uses a plain createRouter (no guard), so
- *     navigating to /initial-configuration works unconditionally.
- *   - InitialConfigurationView.created() calls fetchInitializationStatus()
- *     → GET /initialization/status. Every test mocks this endpoint.
- *   - When is_anchor_imported is false the wizard starts at the anchor step
- *     (anchorStep = 1). When is_anchor_imported is true it is skipped
- *     (anchorStep = 0, falsy) and the wizard opens directly at the owner-member
- *     step (memberStep = 1).
- *   - Permissions: INIT_CONFIG (required to access the init wizard view) and
- *     UPLOAD_ANCHOR (required for the upload button inside ConfigurationAnchorStep).
- *
- * Anchor-upload interaction:
- *   - The real file-chooser + preview + confirm + multipart-upload chain is an
- *     OS-level interaction (file-picker API). Exercising it end-to-end is an e2e
- *     concern. The anchor-step test therefore focuses on the observable pre-upload
- *     state: the wizard renders the anchor step header and the Continue button is
- *     disabled until an anchor has been loaded.
- *   - The owner-member → token-PIN → submit flow is tested with is_anchor_imported
- *     set to true so the wizard skips the anchor step.
- *
- * POST /initialization success:
- *   - The success handler calls setInitializationStatus() (marks init done),
- *     fetchCurrentSecurityServer() (GET /security-servers), checkAlertStatus()
- *     (GET /notifications/alerts — default handler from msw-handlers.ts), then
- *     router.replace(firstAllowedTab.to). DEFAULT_PERMISSIONS includes VIEW_CLIENTS,
- *     so firstAllowedTab resolves to { name: RouteName.Clients }. The Clients view
- *     fires GET /clients — also covered by the default handler.
- *
- * PIN validation:
- *   - The vee-validate schema on TokenPinStep is:
- *       pin: 'required'
- *       confirmPin: 'required|confirmed:@pin'
- *     Mismatched pins make meta.valid false → token-pin-save-button is disabled.
- *   - Matching pins make meta.valid true → button enabled.
- *
- * 4xx rejection suppression:
- *   - The member-names lookup (GET /member-names) may return 404 when the
- *     synthetic member does not exist in the mocked global conf; OwnerMemberStep
- *     silently swallows 404s. No suppression needed.
- */
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
@@ -166,7 +121,6 @@ const initPermissions = [Permissions.INIT_CONFIG, Permissions.UPLOAD_ANCHOR, Per
 
 // ── Specs ──────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0100-ss-initialization.feature :: "Security server is initialized"
 describe('0100 — Security Server initialisation wizard (Browser Mode)', () => {
   it('Anchor step renders and Continue is disabled before anchor is loaded', async () => {
     await renderRoute('/initial-configuration', {

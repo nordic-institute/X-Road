@@ -49,7 +49,6 @@ class ProxyReadinessTest extends SsApiTest {
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(60);
 
-    // MIGRATED-FROM: 6000-ss-readiness-checks.feature :: "Proxy service readiness checks are UP"
     @Test
     @DisplayName("proxy readiness endpoint reports overall UP with all expected checks UP")
     void proxyReadinessIsUp(SsApiTestContainerSetup stack) {

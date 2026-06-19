@@ -49,7 +49,6 @@ class MonitoringAddonTest extends SsApiTest {
 
     private static final String PROXY = SsApiTestContainerSetup.PROXY;
 
-    // MIGRATED-FROM: 2200-ss-messagelog.feature :: "Get verification configuration for the asicverifier tool"
     @Test
     @DisplayName("Verification configuration ZIP can be downloaded from the proxy and contains expected entries")
     void messagelogVerificationConfDownloadable(SsApiTestContainerSetup stack) {

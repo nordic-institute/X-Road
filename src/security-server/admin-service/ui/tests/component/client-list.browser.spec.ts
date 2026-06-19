@@ -125,7 +125,6 @@ function getColumnTexts(testId: string): string[] {
 }
 
 describe('Client list (Browser Mode)', () => {
-  // MIGRATED-FROM: 0590-ss-client-list.feature :: "Client List search"
   it('filters the table when search text is entered', async () => {
     await renderRoute('/clients', {
       msw: [specHttp.get('/clients', ({ response }) => response(200).json(clientListFixture))],
@@ -145,7 +144,6 @@ describe('Client list (Browser Mode)', () => {
     expect(joined).not.toContain('Beta Corp');
   });
 
-  // MIGRATED-FROM: 0590-ss-client-list.feature :: "Client List default sorting by name"
   it('renders clients sorted by name ascending by default — owner member first', async () => {
     await renderRoute('/clients', {
       msw: [specHttp.get('/clients', ({ response }) => response(200).json(clientListFixture))],
@@ -165,7 +163,6 @@ describe('Client list (Browser Mode)', () => {
     expect(alphaIdx).toBeLessThan(betaIdx);
   });
 
-  // MIGRATED-FROM: 0590-ss-client-list.feature :: "Client List sorting by ID desc"
   it('sorts subsystem IDs descending within their member group when ID column is clicked twice', async () => {
     await renderRoute('/clients', {
       msw: [specHttp.get('/clients', ({ response }) => response(200).json(clientListFixture))],
@@ -192,7 +189,6 @@ describe('Client list (Browser Mode)', () => {
     expect(zebraSubsystemIdx).toBeLessThan(alphaSubsystemIdx);
   });
 
-  // MIGRATED-FROM: 0590-ss-client-list.feature :: "Client List search"
   it('keeps the parent member row when search matches only its subsystem name', async () => {
     await renderRoute('/clients', {
       msw: [specHttp.get('/clients', ({ response }) => response(200).json(clientListFixture))],
@@ -209,16 +205,13 @@ describe('Client list (Browser Mode)', () => {
     const ids = getColumnTexts('client-id');
     const joined = names.join('\n');
 
-    // Parent member row must still appear (the "keep parent on subsystem match" path)
     expect(joined).toContain('Test member');
     expect(ids).toContain('CS:GOV:1234');
 
-    // Non-matching members must not appear
     expect(joined).not.toContain('Alpha Corp');
     expect(joined).not.toContain('Beta Corp');
   });
 
-  // MIGRATED-FROM: 0590-ss-client-list.feature :: "Client List sorting by Status asc"
   it('sorts subsystems by status ascending within their member group when Status column is clicked', async () => {
     await renderRoute('/clients', {
       msw: [specHttp.get('/clients', ({ response }) => response(200).json(clientListFixture))],

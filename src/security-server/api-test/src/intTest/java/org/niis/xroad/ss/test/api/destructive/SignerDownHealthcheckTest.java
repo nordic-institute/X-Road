@@ -43,7 +43,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 /**
  * Verifies that the proxy healthcheck reports DOWN when signer is stopped and recovers after restart.
  */
-// MIGRATED-FROM: 2300-ss-proxy-healthcheck.feature :: "Healthcheck is fails when signer is down"
 @DisplayName("Proxy healthcheck: signer-down scenario")
 @SuppressWarnings("checkstyle:magicnumber")
 class SignerDownHealthcheckTest extends SsSharedStackDestructiveTest {

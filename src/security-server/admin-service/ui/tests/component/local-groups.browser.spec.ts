@@ -62,24 +62,6 @@ const localGroupDetailSchema = {
 };
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
-//
-// Sort fixture design (for the "Sorted by Description" spec):
-// Default getter `sortedLocalGroups` sorts by CODE (ascending). When the user
-// clicks the "Description" column header in the VDataTable, Vuetify sorts by
-// the description field instead.
-//
-// Requirements:
-//   - ≥2 items with DIFFERENT descriptions
-//   - natural code-sort order != description-sort order
-//     (so the sort click actually changes row positions — the spec would fail
-//      without the click)
-//
-// Items sorted by code (default):   aaa-group (Zebra Desc), bbb-group (Alpha Desc)
-// Items sorted by description asc:  bbb-group (Alpha Desc), aaa-group (Zebra Desc)
-//
-// Before click (code order):  row[0]=aaa-group, row[1]=bbb-group
-// After click  (desc order):  row[0]=bbb-group, row[1]=aaa-group
-// → asserting row[0] code == "bbb-group" proves the sort fired.
 
 const localGroupsFixture: LocalGroup[] = [
   {
@@ -184,11 +166,6 @@ function getColumnTexts(columnDataTest: string): string[] {
     .map((el) => el.textContent?.trim() ?? '');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spec 1: "Not added - description invalid"
-// ─────────────────────────────────────────────────────────────────────────────
-
-// MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group is not added as description is invalid"
 describe('Local Groups — add dialog: invalid description blocked (Browser Mode)', () => {
   it('shows validation error and keeps save disabled when description contains invalid characters', async () => {
     await renderRoute(localGroupsRoute, {
@@ -213,22 +190,6 @@ describe('Local Groups — add dialog: invalid description blocked (Browser Mode
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spec 2: "Sorted by Description"
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// Fixture variety proof:
-//   Default sort (by code): aaa-group < bbb-group → row[0].code = "aaa-group"
-//   After Description click (by desc): "Alpha Desc" < "Zebra Desc"
-//     → row[0].code = "bbb-group" (which has "Alpha Desc")
-//
-// The assertion checks relative ROW POSITIONS, not mere presence:
-//   bbbIdx < aaaIdx after the sort click.
-//
-// Removing the sort-header click leaves the default code-order intact:
-//   row[0]=aaa-group, row[1]=bbb-group → bbbIdx(1) > aaaIdx(0) → assertion fails.
-
-// MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local groups are sorted by Description"
 describe('Local Groups — table sorted by Description column (Browser Mode)', () => {
   it('reorders rows so that description-alphabetically-first group appears at index 0 after sort click', async () => {
     await renderRoute(localGroupsRoute, {
@@ -260,19 +221,6 @@ describe('Local Groups — table sorted by Description column (Browser Mode)', (
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spec 3: "Filtered to group"
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// Two-sided assertion:
-//   - "group-match" (code contains "group") IS present after filtering
-//   - "unrelated" (code "unrelated", desc "No Match Here") IS ABSENT after filtering
-//
-// The VDataTable :search prop is bound to the search model in LocalGroupsView.
-// Removing the fill() call leaves search empty → both rows present → the
-// absence assertion fails.
-
-// MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local groups are filtered to \"group\""
 describe('Local Groups — search filter two-sided (Browser Mode)', () => {
   it('shows matching rows and hides non-matching rows when filter is applied', async () => {
     await renderRoute(localGroupsRoute, {
@@ -305,11 +253,6 @@ describe('Local Groups — search filter two-sided (Browser Mode)', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spec 4: "Edited with invalid description" (local group detail view)
-// ─────────────────────────────────────────────────────────────────────────────
-
-// MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group group-1 is edited with invalid description"
 describe('Local Group detail — edit description: invalid characters blocked (Browser Mode)', () => {
   it('shows validation error when description input contains invalid characters', async () => {
     await renderRoute(localGroupDetailRoute, {
@@ -330,21 +273,6 @@ describe('Local Group detail — edit description: invalid characters blocked (B
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spec 5: Empty description error (UI slice of "Group group-1 is edited" split)
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// Split: API slice (member add persists) is DONE in LocalGroupsTest#memberAddedToLocalGroupIsPersisted.
-// This spec covers only the UI slice: empty description → client-side "required" error.
-//
-// The LocalGroup.vue uses `useField('description', 'required|max:255|validDescription')`.
-// The `required` rule fires when the field is empty and the user leaves it (change event).
-// The error message rendered is the vee-validate i18n "required" message:
-//   "The {field} field is required" → with field label from the form context it renders
-//   as "The Description field is required" but since useField has no explicit field name
-//   it outputs "The description field is required" (lowercase, matching the key 'description').
-
-// MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group group-1 is edited"
 describe('Local Group detail — edit description: empty description shows required error (Browser Mode)', () => {
   it('shows required validation error and does not save when description is cleared', async () => {
     await renderRoute(localGroupDetailRoute, {

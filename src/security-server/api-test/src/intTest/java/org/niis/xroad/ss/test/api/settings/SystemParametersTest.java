@@ -57,7 +57,6 @@ class SystemParametersTest extends SsApiTest {
     private static final String RATE_LIMIT_PROP = "xroad.proxy-ui-api.rate-limit-requests-per-second";
     private static final String RATE_LIMIT_SCOPE = "proxy-ui-api";
 
-    // MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Security server address is update fails"
     @Test
     @DisplayName("Attempting to change SS address to 'new.address' fails with management request error")
     void securityServerAddressUpdateFails(SsBaselineSeeder seeder) {
@@ -75,7 +74,6 @@ class SystemParametersTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Timestamping service is selected and deleted"
     @Test
     @ResourceLock("timestamping")
     @DisplayName("Timestamping service added then deleted leaves the configured list empty")
@@ -114,7 +112,6 @@ class SystemParametersTest extends SsApiTest {
         }
     }
 
-    // MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Timestamping service is selected"
     @Test
     @ResourceLock("timestamping")
     @DisplayName("Timestamping service added persists expected name, url, cost type, and PAID_FIRST strategy")
@@ -153,7 +150,6 @@ class SystemParametersTest extends SsApiTest {
         }
     }
 
-    // MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Approved CA component has correct values"
     @Test
     @DisplayName("Approved CAs list contains 'Test CA' with expected distinguished name, OCSP url, cost type, and ONLY_FREE strategy")
     void approvedCaHasCorrectValues(SsBaselineSeeder seeder) {
@@ -193,7 +189,6 @@ class SystemParametersTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0400-ss-system-parameters.feature :: "Configurable property can be edited and restart warning is shown"
     @Test
     @ResourceLock("configurable-property")
     @DisplayName("Configurable property updated via API persists the new value (API slice; restart-warning render is UI integration)")

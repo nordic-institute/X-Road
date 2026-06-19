@@ -44,7 +44,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * Verifies that the proxy healthcheck reports DOWN when the serverconf database is stopped
  * and recovers after the database is restarted.
  */
-// MIGRATED-FROM: 2300-ss-proxy-healthcheck.feature :: "Healthcheck is fails when database is down"
 @DisplayName("Proxy healthcheck: database-down scenario")
 @SuppressWarnings("checkstyle:magicnumber")
 class DatabaseDownHealthcheckTest extends SsSharedStackDestructiveTest {

@@ -56,7 +56,6 @@ class ClientDetailsTest extends SsApiTest {
     private static final String OWNER_CLIENT_ID = "DEV:%s:%s".formatted(
             SsBaselineSeeder.SS_OWNER_CLASS, SsBaselineSeeder.SS_OWNER_CODE);
 
-    // MIGRATED-FROM: 0520-ss-client-details.feature :: "Client details are displayed"
     @Test
     @DisplayName("Client details and sign certificate information are returned by the API")
     void clientDetailsAndSignCertDisplayed(SsBaselineSeeder seeder) {
@@ -81,8 +80,6 @@ class ClientDetailsTest extends SsApiTest {
                         .body("$", instanceOf(List.class)));
     }
 
-    // MIGRATED-FROM: 0520-ss-client-details.feature :: "Client details are displayed"
-    // Specifically the cert-field sub-assertions: Version=3, signatureAlgorithm, issuerDN, subjectDN.
     @Test
     @DisplayName("Sign certificate of the owner client has the expected version, algorithm, issuer and subject DN")
     void signCertFieldValuesMatchExpected(SsBaselineSeeder seeder) {
@@ -109,7 +106,6 @@ class ClientDetailsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0520-ss-client-details.feature :: "Client Disable button is clicked"
     @Test
     @DisplayName("Disabling a registered client triggers a management request that fails without a CS")
     void disableClientTriggersManagementRequestFailure(SsBaselineSeeder seeder) {
@@ -129,7 +125,6 @@ class ClientDetailsTest extends SsApiTest {
                         .statusCode(409));
     }
 
-    // MIGRATED-FROM: 0520-ss-client-details.feature :: "Subsystem rename allowed multiple times on saved client"
     @Test
     @DisplayName("Subsystem can be renamed multiple times on a saved client — each rename is accepted (API backend slice)")
     void subsystemRenamedMultipleTimesPersists(SsBaselineSeeder seeder) {
@@ -159,7 +154,6 @@ class ClientDetailsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0520-ss-client-details.feature :: "Subsystem rename request is sent imidiately"
     @Test
     @DisplayName("Rename API on a saved client returns a pending rename status (API backend slice)")
     void renameRequestSetsRenameStatus(SsBaselineSeeder seeder) {

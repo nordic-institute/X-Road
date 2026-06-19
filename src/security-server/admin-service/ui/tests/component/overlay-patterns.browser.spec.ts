@@ -25,18 +25,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * Part 5 — Overlay patterns (v-menu / v-select, dialog, snackbar).
- *
- * All three overlay families teleport their content to document.body
- * (inside the iframe). page.getByRole(...) and page.getByTestId(...)
- * reach that body, so no special selector scoping is needed.
- *
- * Viewport: 1920×1080 (set in vitest.config.ts). Overlay positioning is
- * viewport-dependent — Vuetify opens dropdowns downward when there is
- * space below the anchor. At 1920×1080 there is always enough room, so
- * item assertions are stable.
- */
 import { describe, it, beforeAll, expect } from 'vitest';
 import { render } from 'vitest-browser-vue';
 import { page } from 'vitest/browser';
@@ -143,17 +131,13 @@ describe('Overlay patterns — v-select / v-menu / dialog / snackbar (Browser Mo
   it('v-select: opens dropdown and selecting an item updates the model', async () => {
     await render(SelectHost);
 
-    // Click the select control to open the dropdown overlay (teleported to body).
     await page.getByTestId('demo-select').click();
 
-    // The listbox is teleported to body — getByRole reaches it.
     const listbox = page.getByRole('listbox');
     await expect.element(listbox).toBeVisible();
 
-    // Click the item by its visible text.
     await page.getByRole('option', { name: 'Beta' }).click();
 
-    // Confirm the model updated.
     await expect.element(page.getByTestId('selected-value')).toHaveTextContent('Beta');
   });
 
@@ -162,7 +146,6 @@ describe('Overlay patterns — v-select / v-menu / dialog / snackbar (Browser Mo
 
     await page.getByTestId('menu-trigger').click();
 
-    // Menu list teleports to body.
     await expect.element(page.getByTestId('menu-item-option a')).toBeVisible();
     await page.getByTestId('menu-item-option a').click();
 
@@ -174,7 +157,6 @@ describe('Overlay patterns — v-select / v-menu / dialog / snackbar (Browser Mo
 
     await page.getByTestId('open-dialog-btn').click();
 
-    // Dialog content teleported to body.
     await expect.element(page.getByTestId('dialog-heading')).toBeVisible();
     await expect.element(page.getByTestId('dialog-confirm-btn')).toBeVisible();
 
@@ -186,12 +168,10 @@ describe('Overlay patterns — v-select / v-menu / dialog / snackbar (Browser Mo
   it('snackbar: appears after trigger click, content teleports to overlay container', async () => {
     await render(SnackbarHost);
 
-    // Before trigger, snackbar content is not in the DOM.
     expect(page.getByText('Action completed').query()).toBeNull();
 
     await page.getByTestId('show-snackbar-btn').click();
 
-    // After trigger, snackbar content is visible in the overlay container (teleported to body).
     await expect.element(page.getByText('Action completed')).toBeVisible();
     await expect.element(page.getByTestId('snackbar-close-btn')).toBeVisible();
   });

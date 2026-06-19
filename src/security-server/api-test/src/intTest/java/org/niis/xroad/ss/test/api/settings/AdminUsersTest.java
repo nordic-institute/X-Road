@@ -67,7 +67,6 @@ class AdminUsersTest extends SsApiTest {
         return tag + Long.toString(System.nanoTime(), 36);
     }
 
-    // MIGRATED-FROM: 0250-ss-admin-users.feature :: "User can add new admin user with all roles"
     @Test
     @DisplayName("Admin user created with all 5 roles is persisted with all roles present")
     void adminUserCreatedWithAllRolesPersists(SsBaselineSeeder seeder) {
@@ -89,7 +88,6 @@ class AdminUsersTest extends SsApiTest {
         users.deleteUser(username).statusCode(200);
     }
 
-    // MIGRATED-FROM: 0250-ss-admin-users.feature :: "User can edit existing admin user's roles"
     @Test
     @DisplayName("Admin user roles updated to a reduced set persists the new role set")
     void adminUserRolesEditedPersists(SsBaselineSeeder seeder) {
@@ -116,7 +114,6 @@ class AdminUsersTest extends SsApiTest {
         users.deleteUser(username).statusCode(200);
     }
 
-    // MIGRATED-FROM: 0250-ss-admin-users.feature :: "User can change other user's password"
     @Test
     @DisplayName("Sysadmin changes another user's password; old password rejected, new accepted on login")
     void sysadminChangesOtherUserPassword(SsBaselineSeeder seeder, SsApiTestContainerSetup stack) {
@@ -141,7 +138,6 @@ class AdminUsersTest extends SsApiTest {
         users.deleteUser(username).statusCode(200);
     }
 
-    // MIGRATED-FROM: 0250-ss-admin-users.feature :: "User can change its own password"
     @Test
     @DisplayName("User changes their own password; old password rejected, new accepted on login")
     void userChangesOwnPassword(SsBaselineSeeder seeder, SsApiTestContainerSetup stack) {
@@ -169,7 +165,6 @@ class AdminUsersTest extends SsApiTest {
         sysAdminUsers.deleteUser(username).statusCode(200);
     }
 
-    // MIGRATED-FROM: 0250-ss-admin-users.feature :: "User can delete existing admin user"
     @Test
     @DisplayName("Admin user deleted via API is removed from the user list")
     void adminUserDeletedIsRemovedFromList(SsBaselineSeeder seeder) {
@@ -190,7 +185,6 @@ class AdminUsersTest extends SsApiTest {
                 assertThat(users.userExists(username)).isFalse());
     }
 
-    // MIGRATED-FROM: 0250-ss-admin-users.feature :: "Add necessary admin users for other dependant tests"
     @Test
     @DisplayName("One admin user per role can be created via API with distinct namespaced usernames")
     void perRoleAdminUsersCreatedViaApi(SsBaselineSeeder seeder) {

@@ -48,7 +48,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * the nginx-served globalconf files), the Security Server re-fetches the new configuration and the
  * expiration date stored on the configuration-client advances.
  */
-// MIGRATED-FROM: 3000-global-conf-sign-key-rotation.feature :: "Global conf sign keys rotation"
 @DisplayName("Global conf sign key rotation")
 @ResourceLock(Resources.GLOBAL)
 @SuppressWarnings("checkstyle:magicnumber")

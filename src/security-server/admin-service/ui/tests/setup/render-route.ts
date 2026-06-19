@@ -75,17 +75,6 @@ const DEFAULT_PERMISSIONS: string[] = [
   Permissions.ENABLE_DISABLE_WSDL,
 ];
 
-/*
- * Deliberately stubbed bootstrap (not covered by this tier):
- *   - Session/auth state: userStore.$patch replaces the real session-bootstrap fetch. Auth
- *     behaviour is mocked by design; the real fetch flow is an e2e concern.
- *   - Hash history: createWebHashHistory() avoids base-URL and reverse-proxy config. Web-
- *     history / base-URL routing is a deploy-smoke concern.
- *   - Vite dev build: specs run under Vite's dev transform, not a minified production bundle.
- *     Bundle/CORS testing is a deploy-smoke concern.
- *   - No client-side CSRF: the app uses cookie-session only (no axios interceptors, no
- *     token-attach). CSRF testing is out of scope for this tier.
- */
 export async function renderRoute(
   path: string,
   options: RenderRouteOptions = {},
@@ -109,7 +98,6 @@ export async function renderRoute(
   const userStore = useUser();
 
   if (bootstrap) {
-    // Bootstrap mode: unauthenticated, session dead — the real guard fires and redirects.
     appState.setSessionAlive(false);
     userStore.$patch({ authenticated: false });
   } else {
@@ -129,9 +117,6 @@ export async function renderRoute(
 
   let router: Router;
   if (bootstrap) {
-    // Install the real createXrdRouter guard so guard-redirect scenarios can be exercised.
-    // isAdminUserCreationRequired is wired to the real store action, which the MSW handler
-    // intercepts — same wiring as router.ts in production.
     router = createXrdRouter({
       forbiddenRouteName: RouteName.Forbidden,
       initialisationRouteName: RouteName.InitialConfiguration,
@@ -157,9 +142,6 @@ export async function renderRoute(
     404: { name: RouteName.NotFound },
   });
 
-  // onLogout mirrors App.vue.logout(): call logoutUser then navigate to Login.
-  // nextTick defers the navigation to after Vue's click-event flush, so the click
-  // action in the spec completes before the dialog is unmounted by the navigation.
   const onLogout = () => {
     useUser().logoutUser(false);
     nextTick(() => router.replace({ name: RouteName.Login }));

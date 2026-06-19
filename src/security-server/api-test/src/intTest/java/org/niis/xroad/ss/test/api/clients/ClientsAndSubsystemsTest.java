@@ -56,7 +56,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class ClientsAndSubsystemsTest extends SsApiTest {
 
-    // MIGRATED-FROM: 0500-ss-client-add.feature :: "Already existing client <Test client subsystem> is added"
     @Test
     @DisplayName("Existing registered client added via API is persisted in the client list")
     void existingClientAddedIsPersisted(SsBaselineSeeder seeder) {
@@ -82,9 +81,6 @@ class ClientsAndSubsystemsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "Already existing Subsystem <DEV:COM:1234:TestService> is added"
-    // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "Already existing Subsystem <DEV:COM:1234:TestSaved> is added"
-    // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "Already existing Subsystem <DEV:COM:1234:test-consumer> is added"
     @Test
     @DisplayName("Existing subsystem added via API is persisted with correct identifier and status")
     void existingSubsystemAddedIsPersisted(SsBaselineSeeder seeder) {
@@ -116,8 +112,6 @@ class ClientsAndSubsystemsTest extends SsApiTest {
         );
     }
 
-    // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "New Subsystem is added, but management registration fails"
-    // MIGRATED-FROM: 0500-ss-client-subsystems.feature :: "New Subsystem is added with name, but management registration fails"
     @ParameterizedTest(name = "subsystemCode={0}, subsystemName={1}")
     @MethodSource("subsystemRegistrationFailureCases")
     @DisplayName("New subsystem is persisted as SAVED when management registration request fails")

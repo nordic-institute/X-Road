@@ -62,7 +62,6 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
     private static final String SUBJECT_TEST_CONSUMER = "DEV:COM:1234:test-consumer";
     private static final String SUBJECT_TEST_SERVICE = "DEV:COM:1234:TestService";
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client service has access rights added to it"
     @Test
     @DisplayName("Access rights added to a WSDL service operation are persisted")
     void accessRightsAddedToWsdlService(SsBaselineSeeder seeder) {
@@ -81,7 +80,6 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client service has one access rights removed"
     @Test
     @DisplayName("Removing one access right from a WSDL service operation leaves the remaining subject in place")
     void removingOneAccessRightFromWsdlService(SsBaselineSeeder seeder) {
@@ -109,7 +107,6 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
                         .body("id", hasItem(SUBJECT_TEST_CONSUMER)));
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client service has all access rights removed"
     @Test
     @DisplayName("Removing all access rights from a WSDL service operation leaves the ACL empty")
     void removingAllAccessRightsFromWsdlService(SsBaselineSeeder seeder) {
@@ -141,7 +138,6 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Newly added services are enabled and one of them disabled"
     @Test
     @DisplayName("Enabling both WSDL service descriptions then disabling one persists state correctly")
     void wsdlServicesEnabledAndOneDisabled(SsBaselineSeeder seeder) {
@@ -193,7 +189,6 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
                         .body("disabled", equalTo(false)));
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Newly added service is deleted"
     @Test
     @DisplayName("Deleting a WSDL service description removes it from the client list")
     void newlyAddedWsdlServiceDeleted(SsBaselineSeeder seeder) {
@@ -226,7 +221,6 @@ class SoapServiceAccessRightsAndLifecycleTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Service is refreshed"
     @Test
     @DisplayName("Refreshing a WSDL service description re-fetches the WSDL and returns 200")
     void wsdlServiceRefreshed(SsBaselineSeeder seeder) {

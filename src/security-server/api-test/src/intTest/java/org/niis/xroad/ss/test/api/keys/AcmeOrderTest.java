@@ -54,7 +54,6 @@ class AcmeOrderTest extends SsApiTest {
     private static final String SOFT_TOKEN = "0";
     private static final String TEST_CA = "Test CA";
 
-    // MIGRATED-FROM: 0505-ss-keys-and-certificates-acme.feature :: "Certificate ordering is disabled when external account binding credentials are required but missing"
     @Test
     @DisplayName("EAB credentials status endpoint reports EAB required and credentials absent for a member without configured credentials")
     void acmeOrderFailsWhenEabCredentialsMissing(SsBaselineSeeder seeder) {
@@ -72,7 +71,6 @@ class AcmeOrderTest extends SsApiTest {
                 assertThat(status.getHasAcmeExternalAccountCredentials()).isFalse());
     }
 
-    // MIGRATED-FROM: 0505-ss-keys-and-certificates-acme.feature :: "New key is added certificate ordered and imported" (SIGNING row)
     @Test
     @DisplayName("ACME order on a SIGN key results in REGISTERED status and OCSP_RESPONSE_GOOD")
     void acmeOrderOnSignKeyResultsInRegisteredAndOcspGood(SsBaselineSeeder seeder) {
@@ -101,7 +99,6 @@ class AcmeOrderTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0505-ss-keys-and-certificates-acme.feature :: "Certificate is ordered on existing CSR"
     @Test
     @DisplayName("Certificate ordered via ACME on an existing CSR results in SAVED status and DISABLED OCSP")
     void certificateOrderedOnExistingCsr(SsBaselineSeeder seeder) {

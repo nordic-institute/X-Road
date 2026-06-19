@@ -65,7 +65,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
     private static final String SUBJECT_TEST_CONSUMER = "DEV:COM:1234:test-consumer";
     private static final String SUBJECT_TEST_SERVICE = "DEV:COM:1234:TestService";
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service has access rights added to it"
     @Test
     @DisplayName("Access rights added to a REST service are persisted")
     void accessRightsAddedToServiceArePersisted(SsBaselineSeeder seeder) {
@@ -84,7 +83,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service has one access rights removed"
     @Test
     @DisplayName("Removing one access right leaves the remaining subject in place")
     void removingOneAccessRightLeavesOthers(SsBaselineSeeder seeder) {
@@ -112,7 +110,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
                         .body("id", hasItem(SUBJECT_TEST_CONSUMER)));
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service has all access rights removed"
     @Test
     @DisplayName("Removing all access rights leaves the ACL empty")
     void removingAllAccessRightsLeavesEmptyAcl(SsBaselineSeeder seeder) {
@@ -135,7 +132,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Client service has new endpoint added to it"
     @Test
     @DisplayName("Adding an endpoint persists it; duplicate method+path is rejected")
     void newEndpointAddedAndDuplicateRejected(SsBaselineSeeder seeder) {
@@ -160,7 +156,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
                         .statusCode(409));
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Manually added endpoints can be edited"
     @Test
     @DisplayName("Editing an endpoint's path is persisted")
     void manualEndpointCanBeEdited(SsBaselineSeeder seeder) {
@@ -194,7 +189,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Manually added endpoints can be deleted"
     @Test
     @DisplayName("Deleting an endpoint removes it from the list")
     void manualEndpointCanBeDeleted(SsBaselineSeeder seeder) {
@@ -221,7 +215,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Newly added one service is disabled and the second is enabled with one added endpoint"
     @Test
     @DisplayName("Disabling one service description and enabling another, then adding an endpoint, persists state correctly")
     void serviceDisableEnableAndEndpointAdd(SsBaselineSeeder seeder) {
@@ -277,7 +270,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Newly added service is edited"
     @Test
     @DisplayName("Editing a REST service's URL and code is persisted; old URL disappears from the list")
     void newlyAddedServiceCanBeEdited(SsBaselineSeeder seeder) {
@@ -320,7 +312,6 @@ class RestServiceAccessRightsAndEndpointsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0550-ss-client-rest-services.feature :: "Newly added service is deleted"
     @Test
     @DisplayName("Deleting a REST service description removes it from the client list")
     void newlyAddedServiceCanBeDeleted(SsBaselineSeeder seeder) {

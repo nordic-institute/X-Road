@@ -140,7 +140,6 @@ const membersHandler = specHttp.get('/clients', ({ response }) => response(200).
 
 // ── Specs ─────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "Token edit page is navigable"
 describe('Keys and Certificates — token edit page navigable (Browser Mode)', () => {
   it('opens token details dialog and shows policy alert when enforce_token_pin_policy is enabled', async () => {
     await renderRoute('/keys/sign-and-auth', {
@@ -148,7 +147,6 @@ describe('Keys and Certificates — token edit page navigable (Browser Mode)', (
       msw: [tokensHandler, certAuthoritiesWithTestCaHandler],
     });
 
-    // Patch enforce_token_pin_policy on the user store so the alert renders.
     useUser().$patch({
       initializationStatus: {
         is_anchor_imported: true,
@@ -159,27 +157,20 @@ describe('Keys and Certificates — token edit page navigable (Browser Mode)', (
       },
     });
 
-    // Seed the token into the tokens store so TokenDetailsDialog can look it up by id.
     useTokens().$patch({ tokens: [softTokenFixture] });
 
-    // The token row must be visible on the Keys page.
     await expect.element(page.getByText('softToken-0').first()).toBeVisible();
 
-    // Click the edit (pencil) icon button on the token row.
     await page.getByTestId('token-icon-button').first().click();
 
-    // The token details dialog opens.
     await expect.element(page.getByTestId('token-friendly-name')).toBeVisible();
 
-    // Expand the change-PIN section to reveal the policy alert.
     await page.getByTestId('token-open-pin-change-link').click();
 
-    // The token policy alert must be present.
     await expect.element(page.getByTestId('alert-token-policy-enabled')).toBeVisible();
   });
 });
 
-// MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "Add key wizard is navigable"
 describe('Keys and Certificates — add key wizard navigable (Browser Mode)', () => {
   it('wizard opens on step 1, cancel closes it, re-open navigates to step 2 and back, close exits', async () => {
     await renderRoute('/add-key/softToken-0/SOFTWARE', {
@@ -187,44 +178,32 @@ describe('Keys and Certificates — add key wizard navigable (Browser Mode)', ()
       msw: [certAuthoritiesWithTestCaHandler, membersHandler],
     });
 
-    // Step 1 (Key Label) is the first step — cancel button and next button are present.
     await expect.element(page.getByTestId('cancel-button').first()).toBeVisible();
     await expect.element(page.getByTestId('next-button')).toBeVisible();
 
-    // Close by clicking Cancel on step 1.
     await page.getByTestId('cancel-button').first().click();
 
-    // After cancel the router navigates away; the wizard step is no longer rendered.
-    // The add-key page (XrdElevatedViewSimple) title is gone.
-    // Use query() for absence check — not.toBeVisible() times out when the element leaves the DOM.
     await expect.poll(() => page.getByTestId('next-button').query()).toBeNull();
 
-    // Re-navigate to the wizard.
     await renderRoute('/add-key/softToken-0/SOFTWARE', {
       permissions: keysPermissions,
       msw: [certAuthoritiesWithTestCaHandler, membersHandler],
     });
 
-    // Step 1 visible.
     await expect.element(page.getByTestId('next-button')).toBeVisible();
 
-    // Move to step 2 (CSR Details) by clicking Next.
     await page.getByTestId('next-button').click();
 
-    // Step 2: CSR usage select and certification service select are visible.
     await expect.element(page.getByTestId('csr-usage-select')).toBeVisible();
     await expect.element(page.getByTestId('csr-certification-service-select')).toBeVisible();
 
-    // Navigate back to step 1 via Previous.
     await page.getByTestId('previous-button').click();
 
-    // Step 1 controls are visible again.
     await expect.element(page.getByTestId('next-button')).toBeVisible();
     await expect.element(page.getByTestId('key-label-input')).toBeVisible();
   });
 });
 
-// MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "Certificate format is preselected"
 describe('Keys and Certificates — certificate format preselected (Browser Mode)', () => {
   it('CSR format field is disabled and shows PEM when a CA with default_csr_format=PEM is selected', async () => {
     await renderRoute('/add-key/softToken-0/SOFTWARE', {
@@ -232,36 +211,23 @@ describe('Keys and Certificates — certificate format preselected (Browser Mode
       msw: [certAuthoritiesWithNewCaHandler, membersHandler],
     });
 
-    // Navigate from step 1 to step 2.
     await page.getByTestId('next-button').click();
 
-    // Step 2 visible.
     await expect.element(page.getByTestId('csr-certification-service-select')).toBeVisible();
 
-    // Select "New CA" which has default_csr_format: PEM.
     await page.getByTestId('csr-certification-service-select').click();
     await expect.element(page.getByRole('option', { name: 'New CA' })).toBeVisible();
     await page.getByRole('option', { name: 'New CA' }).click();
 
-    // The format select must show PEM and be disabled (format is locked by the CA default).
     const formatSelect = page.getByTestId('csr-format-select');
     await expect.element(formatSelect).toBeVisible();
 
-    // The selected value is visible in the Vuetify select control text.
     await expect.element(formatSelect).toHaveTextContent('PEM');
 
-    // The field must be disabled because default_csr_format is set.
-    // Vuetify renders a disabled v-select with the v-field--disabled CSS class on the outer div.
-    // The <input type="text" disabled> also carries disabled. Both confirm the field is locked.
-    // We assert on the outer wrapper which also carries aria-disabled semantics.
     await expect.element(page.getByRole('combobox', { name: 'CSR Format' })).toBeDisabled();
   });
 });
 
-// MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "<$label> key is added and imported"
-// Split slice — API/status assertions: DONE (KeysAndCsrTest#keyAddedAndImportedStatusAssertions).
-// This spec covers the UI slice: wizard driven through all three steps with a mocked backend;
-// asserts the generate-CSR step renders (observable wizard outcome).
 describe('Keys and Certificates — add key wizard UI slice: wizard driven to generate step (Browser Mode)', () => {
   it('completes steps 1 and 2 and reaches the generate-CSR step with generate button visible', async () => {
     const csrSubjectFieldsHandler = specHttp.get('/certificate-authorities/{ca_name}/csr-subject-fields', ({ response }) =>
@@ -277,34 +243,27 @@ describe('Keys and Certificates — add key wizard UI slice: wizard driven to ge
       msw: [certAuthoritiesWithTestCaHandler, membersHandler, csrSubjectFieldsHandler],
     });
 
-    // Step 1 — enter a key label and proceed.
     await expect.element(page.getByTestId('key-label-input')).toBeVisible();
     await page.getByTestId('key-label-input').getByRole('textbox').fill('test auth key');
     await page.getByTestId('next-button').click();
 
-    // Step 2 — CSR Details.
     await expect.element(page.getByTestId('csr-usage-select')).toBeVisible();
 
-    // Select AUTHENTICATION usage.
     await page.getByTestId('csr-usage-select').click();
     await expect.element(page.getByRole('option', { name: 'AUTHENTICATION' })).toBeVisible();
     await page.getByRole('option', { name: 'AUTHENTICATION' }).click();
 
-    // Select "Test CA".
     await page.getByTestId('csr-certification-service-select').click();
     await expect.element(page.getByRole('option', { name: 'Test CA' })).toBeVisible();
     await page.getByRole('option', { name: 'Test CA' }).click();
 
-    // Select DER format.
     await page.getByTestId('csr-format-select').click();
     await expect.element(page.getByRole('option', { name: 'DER' })).toBeVisible();
     await page.getByRole('option', { name: 'DER' }).click();
 
-    // Proceed to step 3 (save-button on step 2 = Continue/Next).
     await expect.element(page.getByTestId('save-button')).not.toBeDisabled();
     await page.getByTestId('save-button').click();
 
-    // Step 3 — Generate CSR step renders; the generate-csr-button is the observable outcome.
     await expect.element(page.getByTestId('generate-csr-button')).toBeVisible();
   });
 });

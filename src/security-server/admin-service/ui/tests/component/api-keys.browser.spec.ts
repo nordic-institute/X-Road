@@ -42,7 +42,6 @@ const apiKeyPermissions = [
   Permissions.VIEW_INTERNAL_TLS_CERT,
 ];
 
-// MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature :: "User can create API key with all privileges"
 describe('API Keys — create wizard: Next button enable on role selection (Browser Mode)', () => {
   it('Next button is disabled before any role is selected and enabled after selecting one role', async () => {
     await renderRoute(CREATE_API_KEY_PATH, {
@@ -63,7 +62,6 @@ describe('API Keys — create wizard: Next button enable on role selection (Brow
   });
 });
 
-// MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature :: "User can only assign roles they have when creating/editing API key"
 describe('API Keys — create wizard: role gating shows only held roles (Browser Mode)', () => {
   it('only roles the current user holds appear as checkboxes; roles they lack are absent', async () => {
     await renderRoute(CREATE_API_KEY_PATH, {

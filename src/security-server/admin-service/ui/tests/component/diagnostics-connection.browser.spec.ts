@@ -187,10 +187,6 @@ validateBody({ type: 'array', items: globalConfConnectionStatusSchema }, globalC
 const diagnosticsPermissions = [Permissions.DIAGNOSTICS];
 
 // ── Base handlers for ConnectionContainer mount ───────────────────────────────
-//
-// ConnectionContainer.created() fires fetchXRoadInstances() + fetchClients() in parallel.
-// ConnectionCentralServerView.created() fires fetchAuthCertReqStatus() + fetchGlobalConfStatuses().
-// ConnectionSecurityServerView watches localInstance (immediate) → fetchAllSubsystems().
 
 function baseHandlers() {
   return [
@@ -213,7 +209,6 @@ function baseHandlers() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Central Server connection check tests should run"
 describe('Diagnostics connection — Central Server Test buttons always enabled (Browser Mode)', () => {
   it('global conf test button and auth cert test button are enabled on page load', async () => {
     await renderRoute('/diagnostics/connection', {
@@ -221,7 +216,6 @@ describe('Diagnostics connection — Central Server Test buttons always enabled 
       msw: baseHandlers(),
     });
 
-    // Both central-server buttons are always enabled (no form to fill).
     await expect.element(page.getByTestId('central-server-global-conf-test-button')).toBeVisible();
     await expect
       .element(page.getByTestId('central-server-global-conf-test-button'))
@@ -234,7 +228,6 @@ describe('Diagnostics connection — Central Server Test buttons always enabled 
   });
 });
 
-// MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Other Security Server connection test can be run"
 describe('Diagnostics connection — Other-SS Test button gating (Browser Mode)', () => {
   it('Other-SS Test button is disabled until client, protocol and server are selected', async () => {
     await renderRoute('/diagnostics/connection', {
@@ -247,34 +240,25 @@ describe('Diagnostics connection — Other-SS Test button gating (Browser Mode)'
       ],
     });
 
-    // Initially disabled: no client / protocol / server selected.
     await expect.element(page.getByTestId('other-security-server-test-button')).toBeVisible();
     await expect.element(page.getByTestId('other-security-server-test-button')).toBeDisabled();
 
-    // Select a client by opening the combobox and picking an option.
-    // fetchClients() (triggered by ConnectionContainer.created) populates the items list.
     await page.getByTestId('other-security-server-client-id').click();
     await expect.element(page.getByRole('option', { name: 'DEV:COM:1234:TestSubs' })).toBeVisible();
     await page.getByRole('option', { name: 'DEV:COM:1234:TestSubs' }).click();
-    // Still disabled — no protocol and no server yet.
     await expect.element(page.getByTestId('other-security-server-test-button')).toBeDisabled();
 
-    // Select REST protocol.
     await page.getByTestId('other-security-server-rest-radio-button').getByRole('radio').click();
-    // Still disabled — no server selected.
     await expect.element(page.getByTestId('other-security-server-test-button')).toBeDisabled();
 
-    // Select a target subsystem to trigger fetchSecurityServers.
     await page.getByTestId('other-security-server-target-client-id').click();
     await expect.element(page.getByRole('option', { name: 'DEV:COM:1234:MANAGEMENT' })).toBeVisible();
     await page.getByRole('option', { name: 'DEV:COM:1234:MANAGEMENT' }).click();
 
-    // The fixture returns one server, so selectedSecurityServerId auto-fills → button enabled.
     await expect.element(page.getByTestId('other-security-server-test-button')).not.toBeDisabled();
   });
 });
 
-// MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Other Security Server connection test can be run"
 describe('Diagnostics connection — target instance prefilling (Browser Mode)', () => {
   it('target instance v-select is prefilled with the local instance identifier', async () => {
     await renderRoute('/diagnostics/connection', {
@@ -282,17 +266,13 @@ describe('Diagnostics connection — target instance prefilling (Browser Mode)',
       msw: baseHandlers(),
     });
 
-    // The xRoadInstances fixture has DEV with local=true.
-    // ConnectionSecurityServerView watches localInstance (immediate) and sets selectedInstance = 'DEV'.
     const instanceSelect = page.getByTestId('other-security-server-target-instance');
     await expect.element(instanceSelect).toBeVisible();
 
-    // The v-select renders its current value as visible text inside the element.
     await expect.element(instanceSelect.getByText('DEV')).toBeVisible();
   });
 });
 
-// MIGRATED-FROM: 0920-ss-diagnostics-connection-testing.feature :: "Other Security Server connection test can be run"
 describe('Diagnostics connection — target server auto-prefill on single result (Browser Mode)', () => {
   it('security server field is auto-filled when fetchSecurityServers returns exactly one result', async () => {
     await renderRoute('/diagnostics/connection', {
@@ -307,14 +287,10 @@ describe('Diagnostics connection — target server auto-prefill on single result
 
     await expect.element(page.getByTestId('other-security-server-target-client-id')).toBeVisible();
 
-    // Select a target subsystem by opening the combobox and picking an option.
-    // fetchAllSubsystems() (triggered by selectedInstance watch) populates allSubsystems from subsystemsFixture.
     await page.getByTestId('other-security-server-target-client-id').click();
     await expect.element(page.getByRole('option', { name: 'DEV:COM:1234:MANAGEMENT' })).toBeVisible();
     await page.getByRole('option', { name: 'DEV:COM:1234:MANAGEMENT' }).click();
 
-    // The fixture returns exactly one security server (SS0).
-    // The watch auto-sets selectedSecurityServerId to the only result's id.
     const serverCombo = page.getByTestId('other-security-server-id');
     await expect.element(serverCombo.getByText('SS0')).toBeVisible();
   });

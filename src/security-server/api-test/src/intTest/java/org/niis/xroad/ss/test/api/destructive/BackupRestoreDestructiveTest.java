@@ -58,7 +58,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p>Runs on the disposable-stack lane only — restore reruns the restore script and restarts the
  * admin service, which would disrupt any test sharing the warm substrate.
  */
-// MIGRATED-FROM: 0600-ss-backup-and-restore.feature :: "Configuration can be restored from backup"
 @Slf4j
 @Disabled("Restore reverts serverconf via pg_restore -x (no GRANTs) and the Compose api-test stack skips the "
         + "post-restore Liquibase re-grant, so admin-service login stays broken after restore and the shared "

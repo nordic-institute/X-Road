@@ -46,7 +46,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  *
  * <p>Runs in the destructive phase because the proxy restart would disrupt any concurrent test.
  */
-// MIGRATED-FROM: 2300-ss-proxy-healthcheck.feature :: "HSM healthcheck has no errors when HSM health check is enabled"
 @DisplayName("Proxy healthcheck: HSM check enabled via configurable property")
 @SuppressWarnings("checkstyle:magicnumber")
 class HsmHealthcheckTest extends SsSharedStackDestructiveTest {

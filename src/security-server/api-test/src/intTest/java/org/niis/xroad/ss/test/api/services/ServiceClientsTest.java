@@ -59,7 +59,6 @@ class ServiceClientsTest extends SsApiTest {
     private static final String SUBJECT_B = "DEV:COM:4321:TestClient";
     private static final String SUBJECT_C = "DEV:security-server-owners";
 
-    // MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Multiple Service clients are added"
     @Test
     @DisplayName("Multiple service clients added via different services are persisted and visible on the client")
     void multipleServiceClientsAdded(SsBaselineSeeder seeder) {
@@ -97,7 +96,6 @@ class ServiceClientsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client can be edited with additional access rights"
     @Test
     @DisplayName("Adding additional service codes to an existing service client is persisted")
     void serviceClientEditedWithAdditionalAccessRights(SsBaselineSeeder seeder) {
@@ -133,7 +131,6 @@ class ServiceClientsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client can be can have all of its service codes removed and re-added"
     @Test
     @DisplayName("Removing all service codes from a service client and re-adding them is persisted correctly")
     void allServiceCodesRemovedAndReAdded(SsBaselineSeeder seeder) {
@@ -174,7 +171,6 @@ class ServiceClientsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client can be can have single service code removed"
     @Test
     @DisplayName("Removing a single service code from a service client leaves the remaining code intact")
     void singleServiceCodeRemoved(SsBaselineSeeder seeder) {
@@ -205,7 +201,6 @@ class ServiceClientsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client can have all of its service codes removed and member is not present anymore"
     @Test
     @DisplayName("Removing all service codes from a service client removes that subject from the client's service-clients list")
     void allServiceCodesRemovedMemberGone(SsBaselineSeeder seeder) {
@@ -228,7 +223,6 @@ class ServiceClientsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0570-ss-client-service-clients.feature :: "Service client is removed if its service is deleted"
     @Test
     @DisplayName("Deleting a service description removes its service clients from the client's service-clients list (cascade)")
     void serviceClientRemovedWhenServiceDeleted(SsBaselineSeeder seeder) {

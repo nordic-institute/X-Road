@@ -39,21 +39,18 @@ import org.niis.xroad.ss.test.api.SsApiTest;
 @DisplayName("DS control-plane scenarios (skipped — DS stack not wired)")
 class DsControlPlaneSkippedTest extends SsApiTest {
 
-    // MIGRATED-FROM: 5000-ds-control-plane.feature :: "Issuer Service is provisioned"
     @Test
     @Disabled("DS stack not wired — requires issuer service + identity hub")
     @DisplayName("Issuer Service is provisioned")
     void issuerServiceIsProvisioned() {
     }
 
-    // MIGRATED-FROM: 5000-ds-control-plane.feature :: "Identity Hub is provisioned"
     @Test
     @Disabled("DS stack not wired — requires issuer service + identity hub")
     @DisplayName("Identity Hub is provisioned")
     void identityHubIsProvisioned() {
     }
 
-    // MIGRATED-FROM: 5000-ds-control-plane.feature :: "Catalog can be retrieved over DSP protocol"
     @Test
     @Disabled("DS stack not wired — requires DSP catalog endpoint")
     @DisplayName("Catalog can be retrieved over DSP protocol")

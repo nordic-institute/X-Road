@@ -58,8 +58,6 @@ class ApiKeysTest extends SsApiTest {
             "XROAD_SECURITYSERVER_OBSERVER"
     );
 
-    // MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature
-    // :: "User can create API key with all privileges" (API slice only — POST creates key with all 5 roles)
     @Test
     @DisplayName("API key created with all 5 roles is persisted with all roles present")
     void apiKeyCreatedWithAllPrivileges(SsApiTestContainerSetup stack) {
@@ -82,7 +80,6 @@ class ApiKeysTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature :: "API key is created and revoked"
     @Test
     @DisplayName("API key created and then revoked is no longer in the key list")
     void apiKeyCreatedAndRevoked(SsApiTestContainerSetup stack) {
@@ -114,7 +111,6 @@ class ApiKeysTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature :: "API key is created and edited"
     @Test
     @DisplayName("API key created with one role and then updated to a different role set reflects the new roles")
     void apiKeyCreatedAndEdited(SsApiTestContainerSetup stack) {
@@ -149,7 +145,6 @@ class ApiKeysTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0350-ss-keys-and-certificates-api-keys.feature :: "User can only assign roles they have when creating/editing API key"
     @Test
     @DisplayName("PUT /api-keys/{id} adding a role the caller does not hold is rejected with 403")
     void apiKeyEditRejectsAddingRoleCallerDoesNotHold(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {

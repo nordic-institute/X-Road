@@ -50,7 +50,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p>This test runs on the disposable-stack destructive lane — it directly mutates the signer key
  * registry in the database.
  */
-// MIGRATED-FROM: 2300-ss-proxy-healthcheck.feature :: "Valid and registered AUTH key is forcibly enabled"
 @Slf4j
 @DisplayName("Proxy healthcheck: AUTH key wipe and re-seed")
 @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:LineLength"})

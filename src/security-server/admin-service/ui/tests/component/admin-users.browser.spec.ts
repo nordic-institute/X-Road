@@ -146,8 +146,6 @@ async function fillStep2Credentials(password: string): Promise<void> {
 
 // ── Scenarios 1–2 ────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Too weak password is not accepted when adding new user"
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when adding new user"
 describe('Admin Users — add user: server-side password rejection (Browser Mode)', () => {
   it.each<[string, RequestHandler, string, string]>([
     ['too weak', postUserWeakPwHandler, 't0pSecret', 'The provided password was too weak'],
@@ -175,7 +173,6 @@ describe('Admin Users — add user: server-side password rejection (Browser Mode
 
 // ── Scenario 3 ───────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "User can only assign roles they have when adding/editing admin user"
 describe('Admin Users — role gating: user sees only own roles (Browser Mode)', () => {
   it('hides roles the current user lacks in the add wizard and edit dialog', async () => {
     await renderRoute('/settings/users', {
@@ -190,23 +187,19 @@ describe('Admin Users — role gating: user sees only own roles (Browser Mode)',
 
     await expect.element(page.getByTestId('add-admin-user-step-1')).toBeVisible();
 
-    // Roles the user has — MUST be present
     await expect.element(page.getByTestId('role-XROAD_REGISTRATION_OFFICER-checkbox')).toBeVisible();
     await expect.element(page.getByTestId('role-XROAD_SYSTEM_ADMINISTRATOR-checkbox')).toBeVisible();
 
-    // Roles the user lacks — MUST be absent (two-sided: query() null = not in DOM)
     expect(page.getByTestId('role-XROAD_SECURITY_OFFICER-checkbox').query()).toBeNull();
     expect(page.getByTestId('role-XROAD_SERVICE_ADMINISTRATOR-checkbox').query()).toBeNull();
     expect(page.getByTestId('role-XROAD_SECURITYSERVER_OBSERVER-checkbox').query()).toBeNull();
 
     await page.getByTestId('cancel-button').click();
 
-    // Edit dialog for the test user
     await expect.element(page.getByTestId('admin-user-row-test-edit-button')).toBeVisible();
     await page.getByTestId('admin-user-row-test-edit-button').click();
     await expect.element(page.getByTestId('dialog-simple')).toBeVisible();
 
-    // In the edit dialog the visible roles are those the current user has (union with user's existing roles)
     await expect.element(page.getByTestId('role-XROAD_REGISTRATION_OFFICER-checkbox')).toBeVisible();
     await expect.element(page.getByTestId('role-XROAD_SYSTEM_ADMINISTRATOR-checkbox')).toBeVisible();
 
@@ -220,8 +213,6 @@ describe('Admin Users — role gating: user sees only own roles (Browser Mode)',
 
 // ── Scenarios 4–5 ────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Too weak password is not accepted when changing other user's password"
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when changing user's password"
 describe("Admin Users — other user's password: server-side rejection (Browser Mode)", () => {
   it.each<[string, RequestHandler, string, string]>([
     ['too weak', putPasswordWeakHandler('test'), 't0pSecret', 'The provided password was too weak'],
@@ -236,7 +227,6 @@ describe("Admin Users — other user's password: server-side rejection (Browser 
     await page.getByTestId('admin-user-row-test-change-password-button').click();
     await expect.element(page.getByTestId('dialog-simple')).toBeVisible();
 
-    // Old password field not visible because current user != 'test' (admin changing other user's pw)
     expect(page.getByTestId('old-password-input').query()).toBeNull();
 
     await page.getByTestId('new-password-input').getByRole('textbox').fill(password);
@@ -255,8 +245,6 @@ describe("Admin Users — other user's password: server-side rejection (Browser 
 
 // ── Scenarios 6–7 ────────────────────────────────────────────────────────────
 
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Too weak password is not accepted when changing own password"
-// MIGRATED-FROM: 0250-ss-admin-users.feature :: "Password containing illegal characters is not accepted when changing own password"
 describe('Admin Users — own password: server-side rejection (Browser Mode)', () => {
   it.each<[string, RequestHandler, string, string]>([
     ['too weak', putPasswordWeakHandler('xrd'), 't0pSecret', 'The provided password was too weak'],
@@ -272,15 +260,12 @@ describe('Admin Users — own password: server-side rejection (Browser Mode)', (
       msw: [xrdUsersHandler, handler],
     });
 
-    // Set username to 'xrd' so the row's change-password dialog opens with old-password required
     useUser().$patch({ username: 'xrd' });
 
-    // canEdit() requires UPDATE_ADMIN_USER; the row button should appear
     await expect.element(page.getByTestId('admin-user-row-xrd-change-password-button')).toBeVisible();
     await page.getByTestId('admin-user-row-xrd-change-password-button').click();
     await expect.element(page.getByTestId('dialog-simple')).toBeVisible();
 
-    // Old password visible because changing own password (username matches logged-in user)
     await expect.element(page.getByTestId('old-password-input')).toBeVisible();
     await page.getByTestId('old-password-input').getByRole('textbox').fill('secret123!');
     await page.getByTestId('new-password-input').getByRole('textbox').fill(password);

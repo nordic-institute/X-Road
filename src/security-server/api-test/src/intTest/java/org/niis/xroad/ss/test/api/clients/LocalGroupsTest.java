@@ -54,12 +54,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class LocalGroupsTest extends SsApiTest {
 
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group <group-1> is added to TestService"
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group <group-2> is added to TestService"
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group <group-3> is added to TestService"
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group <aaa-1> is added to TestService"
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group <bbb-1> is added to TestService"
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group <yyy-1> is added to TestService"
     @Test
     @DisplayName("Local groups added to a client are persisted and visible in the group list")
     void localGroupsAddedArePersisted(SsBaselineSeeder seeder) {
@@ -82,7 +76,6 @@ class LocalGroupsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group is not added as it already exists"
     @Test
     @DisplayName("Adding a local group with a code that already exists is rejected")
     void duplicateLocalGroupIsRejected(SsBaselineSeeder seeder) {
@@ -100,7 +93,6 @@ class LocalGroupsTest extends SsApiTest {
                         .body("error.code", equalTo("local_group_code_already_exists")));
     }
 
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group aaa-1 is deleted"
     @Test
     @DisplayName("Deleting a local group removes it from the client group list")
     void localGroupDeletedIsRemovedFromList(SsBaselineSeeder seeder) {
@@ -122,7 +114,6 @@ class LocalGroupsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group group-1 member is removed"
     @Test
     @DisplayName("Removing a member from a local group is persisted")
     void memberRemovedFromLocalGroupIsPersisted(SsBaselineSeeder seeder) {
@@ -149,7 +140,6 @@ class LocalGroupsTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0510-ss-client-local-groups.feature :: "Local group group-1 is edited"
     @Test
     @DisplayName("Adding a member to a local group is persisted (API member-add slice)")
     void memberAddedToLocalGroupIsPersisted(SsBaselineSeeder seeder) {

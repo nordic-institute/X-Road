@@ -25,29 +25,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * Part 4 — Auth / session / error-nav patterns.
- *
- * Auth model:
- *   - Cookie-session only. No client-side CSRF/XSRF token attach. No axios
- *     interceptors. CSRF testing is out of scope for this tier.
- *   - 401 responses are intentionally suppressed: addError() does not add a
- *     notification when the Axios error status is 401 (session-expiry path).
- *   - setupAddErrorNavigation(router, { 404: NotFound }) is wired inside
- *     renderRoute so the real nav-on-error code runs in all specs.
- *   - Session state is controlled by renderRoute's `session` option ('alive'
- *     | 'expired'). Default is 'alive'.
- *
- * Specs:
- *   A — API 404 on GET /clients/{id} while navigate:true is set triggers
- *       router.replace to the NotFound route.
- *   B — fetchSessionStatus() with { valid: false } marks the session dead and
- *       the app renders the session-expired dialog.
- *   C — API 401 on GET /clients does NOT surface an error notification (the
- *       suppress-on-401 path). A one-time delayed 401 is pre-registered via
- *       worker.use({ once: true }) to assert the loading state before the 401
- *       lands and clears clientsLoading.
- */
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { delay, HttpResponse } from 'msw';
@@ -58,10 +35,6 @@ import { useUser } from '@/store/modules/user';
 
 describe('Auth / session / error-nav patterns (Browser Mode)', () => {
   it('Spec A: GET /clients/{id} returns 404 with navigate:true → router replaces to NotFound', async () => {
-    // SubsystemView watches the `id` prop and calls fetchClient(id), catching
-    // with addError(error, { navigate: true }). With setupAddErrorNavigation
-    // wired and a 404 rule pointing to RouteName.NotFound, the router is
-    // replaced to the not-found route.
     const unknownId = 'CS:GOV:UNKNOWN:MISSING';
     const encodedId = encodeURIComponent(unknownId);
 
@@ -78,10 +51,6 @@ describe('Auth / session / error-nav patterns (Browser Mode)', () => {
   });
 
   it('Spec B: fetchSessionStatus returns { valid: false } → app shows session-expired dialog', async () => {
-    // Start with a live session (default). Override the session-status endpoint
-    // to return { valid: false }. Calling fetchSessionStatus() from the user
-    // store exercises the real code path that calls appState.setSessionAlive(false),
-    // which makes XrdApp render XrdLogoutDialog.
     await renderRoute('/clients', {
       msw: [
         specHttp.untyped.get('/api/v1/notifications/session-status', () => {
@@ -99,22 +68,6 @@ describe('Auth / session / error-nav patterns (Browser Mode)', () => {
   });
 
   it('Spec C: GET /clients returns 401 → no error notification is surfaced', async () => {
-    // The addError() helper explicitly skips 401 responses (session-expiry).
-    // ClientsListView.fetchData() calls addError(error) — without navigate:true —
-    // so the routing context is not involved. The 401 is simply discarded and
-    // no contextual-alert banner should appear.
-    //
-    // Pre-register a one-time delayed handler before renderRoute to avoid a
-    // race where the mount-time GET fires before the Service Worker has the
-    // override. { once: true } ensures only the first request gets the 401;
-    // subsequent requests fall through to the base handler.
-    //
-    // addError() always returns Promise.reject(), even for suppressed 401s.
-    // In browser mode, unhandled promise rejections inside the Playwright page
-    // never reach the Vitest runner and never fail the suite regardless of any
-    // listener here. This listener's only purpose is to call e.preventDefault()
-    // and suppress the expected-401 console.error noise so the run output
-    // stays clean. It provides no suite-level protection.
     const absorb401 = (e: PromiseRejectionEvent) => {
       if (e.reason?.response?.status === 401) {
         e.preventDefault();
@@ -136,14 +89,10 @@ describe('Auth / session / error-nav patterns (Browser Mode)', () => {
 
       await renderRoute('/clients');
 
-      // While the 401 is in-flight, v-data-table renders VProgressLinear (role="progressbar").
       await expect.element(page.getByRole('progressbar')).toBeVisible();
 
-      // After the 200ms delay the 401 lands, clientsLoading → false, and the
-      // progress bar element is removed from the DOM entirely.
       await expect.element(page.getByRole('progressbar')).not.toBeInTheDocument();
 
-      // No contextual-alert should be present in the DOM — 401 is suppressed.
       expect(page.getByTestId('contextual-alert').query()).toBeNull();
     } finally {
       window.removeEventListener('unhandledrejection', absorb401);
@@ -151,8 +100,6 @@ describe('Auth / session / error-nav patterns (Browser Mode)', () => {
   });
 
   it('Spec D (session boot): session:"expired" option renders session-expired dialog on mount', async () => {
-    // The { session: 'expired' } option calls appState.setSessionAlive(false)
-    // during bootstrap, causing XrdApp to show XrdLogoutDialog immediately.
     await renderRoute('/clients', { session: 'expired' });
 
     await expect.element(page.getByTestId('dialog-title')).toBeVisible();

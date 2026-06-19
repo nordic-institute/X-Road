@@ -67,7 +67,6 @@ class DiagnosticsOverviewTest extends SsApiTest {
             "Maintenance mode"
     };
 
-    // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Diagnostics checks are successful"
     @Test
     @ResourceLock("timestamping")
     @DisplayName("All diagnostic status endpoints report OK or expected non-error values")
@@ -143,7 +142,6 @@ class DiagnosticsOverviewTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Message log encryption is enabled"
     @Test
     @DisplayName("Message log archive and database encryption are enabled with grouping NONE")
     void messageLogEncryptionIsEnabled(SsBaselineSeeder seeder) {
@@ -162,9 +160,6 @@ class DiagnosticsOverviewTest extends SsApiTest {
                 assertThat(status.get("message_log_grouping_rule")).isEqualTo("NONE"));
     }
 
-    // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Administrator can download diagnostics report"
-    // API slice: GET /diagnostics/info/download returns 200 with a non-empty JSON array containing expected items.
-    // The browser download-trigger half stays in the legacy feature (UI integration, slice 23).
     @Test
     @DisplayName("Diagnostics report download returns 200 with a JSON array containing the expected section names (API slice)")
     void administratorCanDownloadDiagnosticsReport(SsBaselineSeeder seeder) {
@@ -197,8 +192,6 @@ class DiagnosticsOverviewTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Diagnostics checks are successful"
-    // Specifically the "Sending test mail is a success" step — zero migrated tests called PUT /mail/send-test-mail before this.
     @Test
     @DisplayName("Sending a test mail via PUT /mail/send-test-mail returns status 200 with result 'success'")
     void sendingTestMailIsSuccess(SsBaselineSeeder seeder) {
@@ -219,13 +212,9 @@ class DiagnosticsOverviewTest extends SsApiTest {
                 assertThat(result).isEqualTo("success"));
     }
 
-    // MIGRATED-FROM: 0900-ss-diagnostics-overview.feature :: "Message log archive encryption should have per member configuration"
-    // Kept skipped — per-member archive encryption requires stack-level configuration not present in the baseline.
     @Disabled("per-member archive encryption — kept skipped, see audit")
     @Test
     @DisplayName("Message log archive encryption has per-member configuration")
     void messageLogArchiveEncryptionPerMemberConfiguration(SsBaselineSeeder seeder) {
-        // This scenario requires the message_log_grouping_rule to be MEMBER and at least one
-        // member to have an explicit encryption key configured — stack setup not in baseline.
     }
 }

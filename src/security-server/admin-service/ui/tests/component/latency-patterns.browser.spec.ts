@@ -25,28 +25,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * Part 3 — Latency / async-state patterns.
- *
- * Spec A uses a finite MSW `delay()` to let the component reach its loading
- * state before the response lands. The handler is pre-registered with
- * `worker.use({ once: true })` before `renderRoute` so the Service Worker has
- * the override in place before the component fires its mount-time GET. The
- * `{ once: true }` flag ensures only the first request is delayed; subsequent
- * fetches fall through to the base handler. After the loading indicator
- * appears the test waits for it to disappear, confirming the loading→data cycle.
- *
- * Spec B uses a finite `delay()` on a POST that fires only on user action
- * (not on mount), so there is no race condition. The in-flight POST keeps the
- * save button in aria-busy state; the test waits for it to resolve and for the
- * success snackbar to appear.
- *
- * Note on POST in-flight (Spec B): when XrdBtn has :loading="true", Vuetify
- * sets aria-busy="true" on the underlying <button> rather than setting the
- * HTML disabled attribute. The submit-guard inside XrdSimpleDialog checks
- * props.loading and does not re-invoke save() while in-flight. The spec
- * therefore asserts aria-busy rather than toBeDisabled().
- */
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { delay } from 'msw';
@@ -62,11 +40,6 @@ const SERVICES_PATH = `/clients/subsystem/${encodeURIComponent(CLIENT_ID)}/servi
 
 describe('Latency patterns — loading state (Browser Mode)', () => {
   it('Spec A: data table shows loading indicator while GET /clients is in-flight, then renders rows', async () => {
-    // Pre-register a one-time delayed handler BEFORE calling renderRoute so
-    // the Service Worker has the override in place before the component mounts
-    // and fires the request in its created() hook. { once: true } ensures only
-    // the first request is delayed; subsequent requests fall through to the
-    // base handler and resolve immediately.
     worker.use(
       specHttp.get(
         '/clients',
@@ -80,11 +53,8 @@ describe('Latency patterns — loading state (Browser Mode)', () => {
 
     await renderRoute('/clients');
 
-    // While the request is in-flight, no client rows are rendered.
-    // The v-data-table shows a loading progress indicator (role="progressbar").
     await expect.element(page.getByRole('progressbar')).toBeVisible();
 
-    // After the delayed response lands, the first client row appears.
     await expect.element(page.getByTestId('client-name').first()).toBeVisible();
     expect(page.getByRole('progressbar').query()).toBeNull();
   });
@@ -92,9 +62,6 @@ describe('Latency patterns — loading state (Browser Mode)', () => {
   it('Spec B: save button shows aria-busy while POST is in-flight; XrdSimpleDialog guards re-submit', async () => {
     validateBody(serviceDescriptionSchema, serviceDescriptionFixture);
 
-    // The POST fires only on user action (not on mount), so worker.use()
-    // inside renderRoute is fine — no race condition. A finite delay keeps the
-    // button in aria-busy state long enough to assert it, then the POST resolves.
     await renderRoute(SERVICES_PATH, {
       msw: [
         specHttp.post('/clients/{id}/service-descriptions', async ({ response }) => {
@@ -119,15 +86,10 @@ describe('Latency patterns — loading state (Browser Mode)', () => {
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).not.toBeDisabled();
 
-    // Submit the form — saving ref goes true synchronously before POST lands.
     submitDialogForm();
 
-    // XrdBtn :loading="saving" sets aria-busy="true" on the button (Vuetify 4
-    // does not set the HTML disabled attribute for :loading alone).
     await expect.element(saveBtn).toHaveAttribute('aria-busy', 'true');
 
-    // After the delayed POST resolves, the dialog closes (save succeeded) and
-    // the success snackbar appears.
     await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
   });
 });

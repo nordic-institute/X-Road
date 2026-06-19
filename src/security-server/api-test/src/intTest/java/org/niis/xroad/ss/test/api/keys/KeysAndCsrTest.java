@@ -61,7 +61,6 @@ class KeysAndCsrTest extends SsApiTest {
     private static final String TEST_CA = "Test CA";
     private static final String MEMBER_ID = "DEV:COM:1234";
 
-    // MIGRATED-FROM: 0100-ss-initialization.feature :: "Default token is initialized"
     @Test
     @DisplayName("Default soft token reports initialized and logged-in via the signer API")
     void defaultTokenIsInitialized(SsBaselineSeeder seeder) {
@@ -78,8 +77,6 @@ class KeysAndCsrTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0100-ss-initialization.feature :: "Default token is initialized"
-    // Specifically the logout → logged-out → re-login → logged-in lifecycle dropped from the original migration.
     @Test
     @DisplayName("Default soft token can be logged out and logged back in with the correct PIN")
     void defaultTokenLogoutAndRelogin(SsBaselineSeeder seeder) {
@@ -104,7 +101,6 @@ class KeysAndCsrTest extends SsApiTest {
                 assertThat(tokens.getToken(SOFT_TOKEN).getLoggedIn()).isTrue());
     }
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "New key with with empty label is created"
     @Test
     @DisplayName("Adding keys increments key counts on softToken-0")
     void newKeyWithEmptyLabelIncrementsCounts(SsBaselineSeeder seeder) {
@@ -127,7 +123,6 @@ class KeysAndCsrTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "CSR can be deleted"
     @Test
     @DisplayName("A generated CSR can be deleted and the key no longer lists it")
     void csrCanBeDeleted(SsBaselineSeeder seeder) {
@@ -169,7 +164,6 @@ class KeysAndCsrTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "Generating multiple CSR for key"
     @Test
     @DisplayName("Multiple CSRs can be generated for a single key and all are listed")
     void generatingMultipleCsrForKey(SsBaselineSeeder seeder) {
@@ -196,7 +190,6 @@ class KeysAndCsrTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "<$label> key is added and imported"
     @Test
     @DisplayName("Signing CSR and importing cert: SIGN cert gets REGISTERED/OCSP_RESPONSE_GOOD, AUTH cert gets SAVED/DISABLED")
     @SneakyThrows
@@ -256,8 +249,6 @@ class KeysAndCsrTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "New key with with empty label is created"
-    // Specifically the auth/sign key count split assertion.
     @Test
     @DisplayName("After adding a SIGN key with CSR and an AUTH key with CSR each type count increases independently")
     void authSignKeySplitAfterAddingKeyWithCsr(SsBaselineSeeder seeder) {
@@ -295,8 +286,6 @@ class KeysAndCsrTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0300-ss-keys-and-certificates.feature :: "<$label> key is added and imported"
-    // Specifically the "generate CSR button is disabled" postcondition — asserted via possible_actions.
     @Test
     @DisplayName("After importing a cert on a SIGN key, GENERATE_SIGN_CSR is absent from possible_actions")
     @SneakyThrows

@@ -58,7 +58,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 @SuppressWarnings("checkstyle:magicnumber")
 class TlsKeyTest extends SsApiTest {
 
-    // MIGRATED-FROM: 0360-ss-key-and-certificates-tls-key.feature :: "User can export TLS key certificate"
     @Test
     @DisplayName("TLS certificate export returns a non-empty gzip archive")
     void tlsCertificateExportedAsGzipArchive(SsBaselineSeeder seeder) {
@@ -73,7 +72,6 @@ class TlsKeyTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0360-ss-key-and-certificates-tls-key.feature :: "User can export TLS key certificate"
     @Test
     @DisplayName("TLS certificate export tar contains cert.cer and cert.pem entries, each parseable as X.509")
     @SneakyThrows
@@ -96,7 +94,6 @@ class TlsKeyTest extends SsApiTest {
                 parseX509Certificate(entries.get("./cert.pem")));
     }
 
-    // MIGRATED-FROM: 0360-ss-key-and-certificates-tls-key.feature :: "User can import new TLS certificate"
     @Test
     @DisplayName("TLS CSR export is a PEM-armored PKCS10 request whose decoded DER begins with ASN.1 SEQUENCE")
     @SneakyThrows

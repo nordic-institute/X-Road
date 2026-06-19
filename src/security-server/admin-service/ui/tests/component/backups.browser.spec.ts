@@ -25,15 +25,6 @@
  * THE SOFTWARE.
  */
 
-// Filter fixture design:
-//   Three backups in the fixture:
-//     "configuration_backup_20230101.gpg"   — will be matched by the filter term "20230101"
-//     "configuration_backup_20221215.gpg"   — absent after filtering (different date)
-//     "configuration_backup_20220601.gpg"   — absent after filtering (different date)
-//   Two-sided: filtered-out absent AND match present.
-//   Removing the fill() call leaves search empty → all three rows visible → the absence
-//   assertions fail, which proves the filter is exercised.
-
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
@@ -89,10 +80,6 @@ function getTableRowTexts(): string[] {
     .slice(1)
     .map((el) => el.textContent?.trim() ?? '');
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MIGRATED-FROM: 0600-ss-backup-and-restore.feature :: "Configuration backups can be filtered"
-// ─────────────────────────────────────────────────────────────────────────────
 
 describe('Backups — filter render: two-sided assertion (Browser Mode)', () => {
   it('shows matching backup and hides non-matching ones when filter is applied', async () => {

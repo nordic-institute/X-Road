@@ -25,47 +25,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * 0090 — Initial admin user creation (bootstrap) UI integration scenarios.
- *
- * Bootstrap state setup:
- *   - The "Bootstrap view on login URL" and "Bootstrap view on arbitrary URL" specs use
- *     renderRoute({ bootstrap: true }), which installs the real createXrdRouter beforeEach
- *     guard and boots unauthenticated. The guard-redirect chain is exercised end-to-end:
- *     /login → guard detects isAdminUserCreationRequired → redirects to /initial-admin-user;
- *     /clients → guard finds unauthenticated → redirects to /login → guard on /login detects
- *     isAdminUserCreationRequired → redirects to /initial-admin-user.
- *   - The "Bootstrap view on admin user URL" spec navigates directly; no guard redirect needed.
- *   - The remaining specs (password validation, success flow) use normal renderRoute (authenticated)
- *     so the form renders without guard interference.
- *
- * Password validation — client vs server (FINDING):
- *   - The vee-validate schema on InitialAdminUserView is:
- *       password: 'required|min:6|max:255|confirmed:@passwordConfirm'
- *     "secret" (6 chars) satisfies min:6, so the submit button is ENABLED and the form
- *     submits. The weak-password rejection comes from the SERVER (400 response with ErrorInfo).
- *     There is no client-side password STRENGTH check beyond min:6 length.
- *   - This spec asserts only the error DISPLAY on a mocked 400. The real complexity rule
- *     lives at the API tier.
- *   - API coverage gap: password complexity policy is not validated by any UI-integration
- *     test. It belongs at the API tier (see audit: 0090 API slice, slice 42 area).
- *
- * Confirmation mismatch:
- *   - vee-validate confirmed:@passwordConfirm fires client-side when password ≠
- *     passwordConfirm. meta.valid is false → submit button is disabled. Pure UI, no
- *     server call required.
- *
- * Strong password succeeds:
- *   - POST /initialization/admin-user returns 201 (mocked). InitialAdminUserView calls
- *     router.replace({ name: RouteName.Login }) on success. Real bootstrap validation is
- *     a facade/hurl concern — not tested here.
- *
- * 4xx rejection suppression:
- *   - createInitialAdminUser() ends with .catch(addError). addError() shows the
- *     notification but also returns Promise.reject(err), which propagates and surfaces as
- *     an unhandled rejection. The error-path specs suppress these expected 4xx rejections
- *     to keep the suite exit code clean.
- */
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
 import { HttpResponse } from 'msw';
@@ -106,10 +65,6 @@ function suppressAxios4xxRejection(): void {
 }
 
 describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
-  // MIGRATED-FROM: 0090-ss-initial-admin-user.feature :: "Bootstrap view is shown when navigating to login URL"
-  //
-  // bootstrap:true installs the real createXrdRouter guard + boots unauthenticated.
-  // Guard path: to.name === Login → isAdminUserCreationRequired() → true → redirect to InitialAdminUser.
   it('Bootstrap view on login URL — guard redirects /login to InitialAdminUser', async () => {
     const { router } = await renderRoute('/login', {
       msw: [adminUserCreationRequiredHandler],
@@ -121,11 +76,6 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
     await expect.element(page.getByTestId('admin-username-input')).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0090-ss-initial-admin-user.feature :: "Bootstrap view is shown when navigating to an arbitrary URL"
-  //
-  // bootstrap:true installs the real createXrdRouter guard + boots unauthenticated.
-  // Guard path: /clients → unauthenticated → redirect to Login → Login guard →
-  // isAdminUserCreationRequired() → true → redirect to InitialAdminUser.
   it('Bootstrap view on arbitrary URL — guard redirects /clients to InitialAdminUser', async () => {
     const { router } = await renderRoute('/clients', {
       msw: [adminUserCreationRequiredHandler],
@@ -137,7 +87,6 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
     expect(page.getByTestId('client-name').query()).toBeNull();
   });
 
-  // MIGRATED-FROM: 0090-ss-initial-admin-user.feature :: "Bootstrap view is shown when navigating directly to admin user URL"
   it('Bootstrap view on admin user URL — form renders on direct navigation', async () => {
     await renderRoute('/initial-admin-user', {
       msw: [adminUserCreationRequiredHandler],
@@ -150,11 +99,6 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
     await expect.element(page.getByTestId('admin-user-save-button')).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0090-ss-initial-admin-user.feature :: "Weak password is rejected"
-  //
-  // See module-level comment: validation is SERVER-SIDE. "secret" (6 chars) passes
-  // the client-side min:6 rule, the form submits, and the mocked 400 surfaces an error banner.
-  // API coverage gap: password complexity policy belongs at the API tier.
   it('Weak password rejected — server 400 triggers error banner', async () => {
     suppressAxios4xxRejection();
 
@@ -175,7 +119,6 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
   });
 
-  // MIGRATED-FROM: 0090-ss-initial-admin-user.feature :: "Password confirmation mismatch blocks submission"
   it('Confirmation mismatch blocks submit — button disabled when passwords differ', async () => {
     await renderRoute('/initial-admin-user', {
       msw: [adminUserCreationRequiredHandler],
@@ -192,7 +135,6 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
     await expect.element(page.getByTestId('admin-user-save-button')).toBeDisabled();
   });
 
-  // MIGRATED-FROM: 0090-ss-initial-admin-user.feature :: "Strong password succeeds and redirects to login"
   it('Strong password succeeds — POST 201 causes redirect to login route', async () => {
     const { router } = await renderRoute('/initial-admin-user', {
       msw: [adminUserCreationRequiredHandler, adminUserCreatedHandler],

@@ -49,7 +49,6 @@ class QuarkusReadinessTest extends SsApiTest {
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(60);
 
-    // MIGRATED-FROM: 6000-ss-readiness-checks.feature :: "Signer service readiness checks are UP"
     @Test
     @DisplayName("signer readiness endpoint reports overall UP with SIGNER_DATABASE and TOKEN_REGISTRY checks UP")
     void signerReadinessIsUp(SsApiTestContainerSetup stack) {
@@ -63,7 +62,6 @@ class QuarkusReadinessTest extends SsApiTest {
                 assertCheckUp(readiness, "TOKEN_REGISTRY_READINESS_CHECK"));
     }
 
-    // MIGRATED-FROM: 6000-ss-readiness-checks.feature :: "Configuration-client service readiness checks are UP"
     @Test
     @DisplayName("configuration-client readiness endpoint reports overall UP with GLOBALCONF_READINESS_CHECK UP")
     void configurationClientReadinessIsUp(SsApiTestContainerSetup stack) {
@@ -75,7 +73,6 @@ class QuarkusReadinessTest extends SsApiTest {
                 assertCheckUp(readiness, "GLOBALCONF_READINESS_CHECK"));
     }
 
-    // MIGRATED-FROM: 6000-ss-readiness-checks.feature :: "Op-monitor service readiness checks are UP"
     @Test
     @DisplayName("op-monitor readiness endpoint reports overall UP with OP_MONITOR_DATABASE_READINESS_CHECK UP")
     void opMonitorReadinessIsUp(SsApiTestContainerSetup stack) {
@@ -87,7 +84,6 @@ class QuarkusReadinessTest extends SsApiTest {
                 assertCheckUp(readiness, "OP_MONITOR_DATABASE_READINESS_CHECK"));
     }
 
-    // MIGRATED-FROM: 6000-ss-readiness-checks.feature :: "Auxiliary-service service readiness checks are UP"
     @Test
     @DisplayName("auxiliary-service readiness endpoint reports overall UP")
     void auxiliaryServiceReadinessIsUp(SsApiTestContainerSetup stack) {

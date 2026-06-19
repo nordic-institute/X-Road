@@ -61,7 +61,6 @@ class SoapServiceTest extends SsApiTest {
     private static final String WSDL_MISSING = "http://mock-server:1080/test-services/missing.wsdl";
     private static final String WSDL_INVALID = "https://www.niis.org/";
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client WSDL service is configured"
     @Test
     @DisplayName("WSDL services added to a client are listed in the service description list")
     void wsdlServiceConfiguredAndListedCorrectly(SsBaselineSeeder seeder) {
@@ -87,7 +86,6 @@ class SoapServiceTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client WSDL service is not duplicated"
     @Test
     @DisplayName("Adding a WSDL service description with a URL already in use is rejected with wsdl_exists")
     void duplicateWsdlIsRejected(SsBaselineSeeder seeder) {
@@ -107,7 +105,6 @@ class SoapServiceTest extends SsApiTest {
                         .body("error.code", equalTo("wsdl_exists")));
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client WSDL service is not valid"
     @Test
     @DisplayName("Adding a WSDL service description pointing to a non-WSDL URL is rejected with invalid_wsdl")
     void invalidWsdlIsRejected(SsBaselineSeeder seeder) {
@@ -122,7 +119,6 @@ class SoapServiceTest extends SsApiTest {
                         .body("error.code", equalTo("invalid_wsdl")));
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client WSDL service url does not respond"
     @Test
     @DisplayName("Adding a WSDL service description with a URL that returns 404 is rejected with wsdl_download_failed")
     void nonRespondingWsdlUrlIsRejected(SsBaselineSeeder seeder) {
@@ -137,7 +133,6 @@ class SoapServiceTest extends SsApiTest {
                         .body("error.code", equalTo("wsdl_download_failed")));
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client WSDL service url is updated"
     @Test
     @DisplayName("Updating a WSDL service description URL swaps the old URL for the new one in the list")
     void wsdlUrlCanBeUpdated(SsBaselineSeeder seeder) {
@@ -183,7 +178,6 @@ class SoapServiceTest extends SsApiTest {
         });
     }
 
-    // MIGRATED-FROM: 0560-ss-client-soap-services.feature :: "Client WSDL service service testOp1 is edited"
     @Test
     @DisplayName("Editing a WSDL operation with apply-all propagates the update to all sibling operations")
     void wsdlOperationEditedWithApplyAllPropagates(SsBaselineSeeder seeder) {

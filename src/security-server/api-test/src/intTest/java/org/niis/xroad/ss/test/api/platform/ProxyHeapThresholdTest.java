@@ -43,7 +43,6 @@ import static org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory.gi
  * Verifies that the proxy liveness endpoint reports the HEAP_MEMORY_CHECK threshold
  * overridden in local.yaml (77%).
  */
-// MIGRATED-FROM: 2300-ss-proxy-healthcheck.feature :: "Proxy heap-memory liveness threshold reflects local.yaml override"
 @DisplayName("Proxy heap-memory threshold reflects local.yaml override")
 @SuppressWarnings("checkstyle:magicnumber")
 class ProxyHeapThresholdTest extends SsApiTest {
