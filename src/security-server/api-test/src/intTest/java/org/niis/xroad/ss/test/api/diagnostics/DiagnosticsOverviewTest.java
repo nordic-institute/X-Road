@@ -27,7 +27,6 @@
 package org.niis.xroad.ss.test.api.diagnostics;
 
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
@@ -212,9 +211,4 @@ class DiagnosticsOverviewTest extends SsApiTest {
                 assertThat(result).isEqualTo("success"));
     }
 
-    @Disabled("per-member archive encryption — kept skipped, see audit")
-    @Test
-    @DisplayName("Message log archive encryption has per-member configuration")
-    void messageLogArchiveEncryptionPerMemberConfiguration(SsBaselineSeeder seeder) {
-    }
 }
