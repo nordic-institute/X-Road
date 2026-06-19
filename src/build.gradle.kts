@@ -99,6 +99,20 @@ tasks.withType<Jar>().configureEach {
   enabled = false
 }
 
+dependencyCheck {
+  formats = listOf("HTML", "JSON")
+  failBuildOnCVSS = 11f // Never fail the build (max CVSS is 10.0) — report only
+  suppressionFile = "config/owasp/suppressions.xml"
+  autoUpdate = (project.findProperty("nvdAutoUpdate")?.toString() ?: "true").toBoolean()
+
+  nvd.apiKey = System.getenv("NVD_API_KEY") ?: ""
+
+  analyzers.ossIndex.enabled = false
+  analyzers.nodeAudit.enabled = false
+  analyzers.nodeAudit.pnpmEnabled = false
+  analyzers.assemblyEnabled = false
+}
+
 // Register git-hooks
 tasks.register<Copy>("installGitHooks") {
   description = "Install git hooks"

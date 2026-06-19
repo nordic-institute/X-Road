@@ -165,6 +165,9 @@
     "backup_generation_failed": "Falha ao gerar backup",
     "backup_restore_interrupted": "Restauração de backup interrompida",
     "core": {
+      "op_monitor": {
+        "network_error": "Erro de rede: o monitoramento de dados operacionais não está disponível"
+      },
       "signer": {
         "cert_not_found": "Certificado não encontrado",
         "key_not_found": "Chave não encontrada",

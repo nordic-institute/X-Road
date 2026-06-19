@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.108
+Version: 2.109
 Doc. ID: UG-SS
 
 ---
@@ -137,6 +137,7 @@ Doc. ID: UG-SS
 | 29.01.2026 | 2.106   | Added information on how to delete a subsystem from the Security Server                                                                                                                                                                                                                                                                                                                                     | Raido Kaju           |
 | 02.03.2026 | 2.107   | Fix broken link                                                                                                                                                                                                                                                                                                                                                                                             | Petteri Kivimäki     |
 | 13.05.2026 | 2.108   | Correct tab placement for managing services                                                                                                                                                                                                                                                                                                                                                                 | Urmet Jänes          |
+| 22.05.2026 | 2.109   | Added ACME automatic certificate renewal clarification in a clustered setup                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -3603,6 +3604,8 @@ The ACME protocol can be used only if the Certificate Authority (CA) issuing the
 Authentication and sign certificates issued by a CA that supports ACME can be automatically renewed. Automatic renewal is enabled by default, but the Security Server administrator can turn it off.
 
 The Security Server runs an automatic renewal job periodically and tries to renew certificates ready for renewal. If the server supports the ACME ARI extension (\[[ACME-ARI](#Ref_ACME-ARI)\]), the time when a certificate is ready for renewal is determined by the ACME server. Otherwise, the time is defined by the `proxy-ui-api.acme-renewal-time-before-expiration-date` system property. The default value of the property is 14 days, which means that the Security Server starts trying to renew a certificate 14 days before it expires. The renewal job configuration can be managed by the `proxy-ui-api.acme-renewal-*` configuration properties.
+
+In a clustered Security Server setup, the automatic certificate renewal job runs only on the primary node. Secondary nodes skip the job to avoid parallel renewal attempts. Renewed certificates and keys reach the secondaries through the regular cluster state replication.
 
 The renewal status of ACME supported certificates can be seen on the Keys and certificates page:
 * **"N/A"** - certificate is not `REGISTERED` or not issued by ACME supported CA and therefore, it is ignored by the automatic certificate renewal job.
