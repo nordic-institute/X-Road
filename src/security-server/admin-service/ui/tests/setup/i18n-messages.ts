@@ -28,15 +28,17 @@ import deepmerge from 'deepmerge';
 import { i18n as sharedI18n } from '@niis/shared-ui/src/plugins/i18n';
 
 async function loadMessages(): Promise<Record<string, unknown>> {
-  const [sharedUiEn, ssEn, veeValidateEn] = await Promise.all([
+  const [sharedUiEn, ssEn, veeValidateEn, vuetifyLocale] = await Promise.all([
     import('@niis/shared-ui/src/locales/en.json'),
     import('@/locales/en.json'),
     import('@vee-validate/i18n/dist/locale/en.json'),
+    import('vuetify/locale'),
   ]);
   return deepmerge.all([
     sharedUiEn.default as Record<string, unknown>,
     ssEn.default as Record<string, unknown>,
     { validation: veeValidateEn.default },
+    { $vuetify: vuetifyLocale.en },
   ]) as Record<string, unknown>;
 }
 
