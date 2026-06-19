@@ -5,9 +5,7 @@
 MSW handlers in this directory are spec-bound: every path, HTTP method, and
 response status is checked against the OpenAPI spec at type-check time.
 Response body shapes are validated against the spec's JSON schemas at module
-load time (AJV). Fixture values are real-shape, schema-valid, synthetic values;
-refresh them from a live Security Server stack via `capture.sh` when one is
-available.
+load time (AJV). Fixture values are real-shape, schema-valid, synthetic values.
 
 ## Adding a spec-bound handler
 
@@ -71,27 +69,11 @@ client actually has a cert) — that is the API tier's job.
 
 Fixture JSON files live in `tests/setup/golden/`. They have real shape and
 pass AJV schema validation; their values are synthetic (not captured from a
-live backend). Run `capture.sh` against a live Security Server stack to
-refresh fixture values with real backend responses when a stack is available
-(see `tests/setup/golden/capture.sh`).
+live backend).
 
-To refresh fixtures when the backend response shape changes:
-
-1. Boot the Security Server API-test stack:
-   ```sh
-   # From core/src/security-server/api-test:
-   ./gradlew intTest
-   ```
-2. Run the capture script (requires a running stack at `$SS_HOST`):
-   ```sh
-   SS_HOST=https://localhost:4200 \
-   SS_USER=xrd \
-   SS_PASS=secret123! \
-   bash tests/setup/golden/capture.sh
-   ```
-   The script records responses to `tests/setup/golden/*.json`.
-
-3. Verify the module-load validation still passes: `pnpm run test`.
+When the backend response shape changes, edit the JSON files by hand to match
+the updated OpenAPI schema, then run `pnpm run test` — the module-load AJV
+validation fails on any fixture that no longer matches its schema.
 
 If no live stack is available, update the JSON files manually to match the
 new spec shape and ensure `validateBody` passes (a failing validation surfaces
