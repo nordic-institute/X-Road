@@ -48,7 +48,10 @@ describe('Client Services page-flow (Browser Mode)', () => {
       msw: [
         http.post('/api/v1/clients/:clientId/service-descriptions', async ({ request }) => {
           const body = await request.json() as Record<string, unknown>;
-          capturedServiceCode = (body['service_code'] as string | undefined) ?? null;
+          capturedServiceCode =
+            (body['rest_service_code'] as string | undefined) ??
+            (body['service_code'] as string | undefined) ??
+            null;
           return HttpResponse.json(
             {
               ...createdServiceDescriptionFixture,
