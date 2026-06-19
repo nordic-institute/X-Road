@@ -26,14 +26,12 @@
  */
 package org.niis.xroad.ss.test.api.destructive;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.ss.test.api.ApiStackExtension;
-import org.niis.xroad.test.apitest.core.report.AllureReportHook;
 
 /**
  * Base class for recoverable destructive-lifecycle tests that run on the shared warm stack.
@@ -44,9 +42,4 @@ import org.niis.xroad.test.apitest.core.report.AllureReportHook;
 @ResourceLock("destructive-stack")
 @ExtendWith(ApiStackExtension.class)
 abstract class SsSharedStackDestructiveTest {
-
-    @AfterAll
-    static void generateAllureReport() {
-        AllureReportHook.generateReport();
-    }
 }

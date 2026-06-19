@@ -43,8 +43,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Utility for generating the Allure report after test execution. Called from JUnit5 {@code @AfterAll}
- * in the base test class (Spring-free — no Cucumber hook).
+ * Utility for generating the Allure report after test execution. Called once per JVM from the
+ * launcher session-close hook (Spring-free — no Cucumber hook).
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

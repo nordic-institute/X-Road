@@ -32,6 +32,7 @@ import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.report.AllureReportHook;
 
 /**
  * Boots the Security Server stack once per JVM launcher session and tears it down when the session
@@ -56,6 +57,7 @@ public class SsApiStackSessionListener implements LauncherSessionListener {
 
     @Override
     public void launcherSessionClosed(@Nonnull LauncherSession session) {
+        AllureReportHook.generateReport();
         if (setup != null) {
             log.info("Stopping browserless Security Server stack");
             setup.stop();

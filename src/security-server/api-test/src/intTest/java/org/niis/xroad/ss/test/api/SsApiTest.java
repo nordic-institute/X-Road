@@ -26,9 +26,7 @@
  */
 package org.niis.xroad.ss.test.api;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.niis.xroad.test.apitest.core.report.AllureReportHook;
 
 /**
  * Base class for API tests. Boots the warm browserless Security Server stack once per JVM;
@@ -36,9 +34,4 @@ import org.niis.xroad.test.apitest.core.report.AllureReportHook;
  */
 @ExtendWith(ApiStackExtension.class)
 public abstract class SsApiTest {
-
-    @AfterAll
-    static void generateAllureReport() {
-        AllureReportHook.generateReport();
-    }
 }
