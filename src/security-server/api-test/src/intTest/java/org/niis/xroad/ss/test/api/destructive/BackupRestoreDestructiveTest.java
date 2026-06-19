@@ -27,7 +27,6 @@
 package org.niis.xroad.ss.test.api.destructive;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
@@ -55,14 +54,11 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * waits for the Security Server admin UI to restart, and asserts that config added after the backup
  * was created is absent post-restore.
  *
- * <p>Runs on the disposable-stack lane only — restore reruns the restore script and restarts the
- * admin service, which would disrupt any test sharing the warm substrate.
+ * <p>Runs last in the destructive phase of the shared phased intTest suite. With the post-restore
+ * grant re-apply in place the serverconf DB is left healthy, so subsequent tests in the same stack
+ * are not affected.
  */
 @Slf4j
-@Disabled("Restore reverts serverconf via pg_restore -x (no GRANTs) and the Compose api-test stack skips the "
-        + "post-restore Liquibase re-grant, so admin-service login stays broken after restore and the shared "
-        + "destructive stack is poisoned for subsequent tests. Re-enable once the lane re-applies DB grants "
-        + "post-restore or runs restore on a throwaway stack.")
 @DisplayName("Backup restore — config-revert via API (destructive lane)")
 @SuppressWarnings("checkstyle:magicnumber")
 class BackupRestoreDestructiveTest extends SsDestructiveTest {
