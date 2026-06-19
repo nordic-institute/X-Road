@@ -68,35 +68,24 @@ describe('Auth / session / error-nav patterns (Browser Mode)', () => {
   });
 
   it('Spec C: GET /clients returns 401 → no error notification is surfaced', async () => {
-    const absorb401 = (e: PromiseRejectionEvent) => {
-      if (e.reason?.response?.status === 401) {
-        e.preventDefault();
-      }
-    };
-    window.addEventListener('unhandledrejection', absorb401);
+    worker.use(
+      specHttp.get(
+        '/clients',
+        async ({ response }) => {
+          await delay(200);
+          return response(401).empty();
+        },
+        { once: true },
+      ),
+    );
 
-    try {
-      worker.use(
-        specHttp.get(
-          '/clients',
-          async ({ response }) => {
-            await delay(200);
-            return response(401).empty();
-          },
-          { once: true },
-        ),
-      );
+    await renderRoute('/clients');
 
-      await renderRoute('/clients');
+    await expect.element(page.getByRole('progressbar')).toBeVisible();
 
-      await expect.element(page.getByRole('progressbar')).toBeVisible();
+    await expect.element(page.getByRole('progressbar')).not.toBeInTheDocument();
 
-      await expect.element(page.getByRole('progressbar')).not.toBeInTheDocument();
-
-      expect(page.getByTestId('contextual-alert').query()).toBeNull();
-    } finally {
-      window.removeEventListener('unhandledrejection', absorb401);
-    }
+    expect(page.getByTestId('contextual-alert').query()).toBeNull();
   });
 
   it('Spec D (session boot): session:"expired" option renders session-expired dialog on mount', async () => {

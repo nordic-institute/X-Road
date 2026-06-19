@@ -108,26 +108,6 @@ const adminUsersEditPermissions = [
   Permissions.VIEW_SYS_PARAMS,
 ];
 
-// ── Error-path rejection suppression ─────────────────────────────────────────
-//
-// XrdAdminUserPasswordChangeDialog and XrdAddAdminUser call adminUsersHandler methods
-// that end with .catch((err) => addError(err)). addError() (shared-ui) shows the
-// notification but also returns Promise.reject(err), so the rejection propagates through
-// the component's .finally() and surfaces as an unhandled rejection. The tests ARE
-// green (assertions pass), but vitest exits with code 1 when unhandled rejections occur.
-// Suppress only AxiosError 4xx rejections that are expected in these error-path specs.
-
-function suppressAxios4xxRejection(): void {
-  const handler = (e: PromiseRejectionEvent) => {
-    const status: number | undefined = (e.reason as { response?: { status?: number } })?.response?.status;
-    if (status !== undefined && status >= 400 && status < 500) {
-      e.preventDefault();
-      window.removeEventListener('unhandledrejection', handler);
-    }
-  };
-  window.addEventListener('unhandledrejection', handler);
-}
-
 // ── Shared add-user wizard helpers ───────────────────────────────────────────
 
 async function openAddUserWizardStep2(): Promise<void> {
@@ -163,7 +143,6 @@ describe('Admin Users — add user: server-side password rejection (Browser Mode
 
     const addBtn = page.getByTestId('add-button');
     await expect.element(addBtn).not.toBeDisabled();
-    suppressAxios4xxRejection();
     await addBtn.click();
 
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
@@ -235,7 +214,6 @@ describe("Admin Users — other user's password: server-side rejection (Browser 
 
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).not.toBeDisabled();
-    suppressAxios4xxRejection();
     await saveBtn.click();
 
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
@@ -274,7 +252,6 @@ describe('Admin Users — own password: server-side rejection (Browser Mode)', (
 
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).not.toBeDisabled();
-    suppressAxios4xxRejection();
     await saveBtn.click();
 
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();

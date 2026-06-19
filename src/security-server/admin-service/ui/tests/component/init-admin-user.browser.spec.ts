@@ -53,17 +53,6 @@ validateBody(
   { admin_user_creation_required: true },
 );
 
-function suppressAxios4xxRejection(): void {
-  const handler = (e: PromiseRejectionEvent) => {
-    const status: number | undefined = (e.reason as { response?: { status?: number } })?.response?.status;
-    if (status !== undefined && status >= 400 && status < 500) {
-      e.preventDefault();
-      window.removeEventListener('unhandledrejection', handler);
-    }
-  };
-  window.addEventListener('unhandledrejection', handler);
-}
-
 describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
   it('Bootstrap view on login URL — guard redirects /login to InitialAdminUser', async () => {
     const { router } = await renderRoute('/login', {
@@ -100,8 +89,6 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
   });
 
   it('Weak password rejected — server 400 triggers error banner', async () => {
-    suppressAxios4xxRejection();
-
     await renderRoute('/initial-admin-user', {
       msw: [adminUserCreationRequiredHandler, adminUserWeakPasswordHandler],
     });
