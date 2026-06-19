@@ -26,25 +26,18 @@
  */
 package org.niis.xroad.ss.test.api;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
-import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
 
 /**
- * Boots the browserless Security Server stack once per JVM and tears it down at the end of the test run.
- * The stack is a warm shared substrate: it is never reset between tests (per the test isolation philosophy).
- * Tests obtain the stack or the seeding facade by declaring a {@link SsApiTestContainerSetup} or
- * {@link SsBaselineSeeder} parameter.
+ * Injects the shared Security Server stack into test parameters. The stack lifecycle is managed by
+ * {@link SsApiStackSessionListener}, which boots it once per JVM launcher session and tears it down
+ * at session close. Tests declare a {@link SsApiTestContainerSetup} or {@link SsBaselineSeeder}
+ * parameter to obtain the stack or the seeding facade.
  */
-@Slf4j
 public class ApiStackExtension implements ParameterResolver {
-
-    private static final ExtensionContext.Namespace NAMESPACE =
-            ExtensionContext.Namespace.create(ApiStackExtension.class);
-    private static final String KEY = "ss-api-stack";
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
@@ -54,40 +47,10 @@ public class ApiStackExtension implements ParameterResolver {
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        var resource = extensionContext.getRoot().getStore(NAMESPACE)
-                .getOrComputeIfAbsent(KEY, key -> new StackResource(), StackResource.class);
         var type = parameterContext.getParameter().getType();
         if (type == SsBaselineSeeder.class) {
-            return resource.seeder();
+            return SsApiStackSessionListener.getSeeder();
         }
-        return resource.setup();
-    }
-
-    private static final class StackResource implements ExtensionContext.Store.CloseableResource {
-        private final SsApiTestContainerSetup setup;
-        private final SsBaselineSeeder seeder;
-
-        private StackResource() {
-            var properties = ApiTestConfigSource.getInstance().getCoreProperties();
-            this.setup = new SsApiTestContainerSetup(properties);
-            log.info("Starting browserless Security Server stack");
-            this.setup.start();
-            this.seeder = new SsBaselineSeeder(setup);
-            this.seeder.ensureBaseline();
-        }
-
-        private SsApiTestContainerSetup setup() {
-            return setup;
-        }
-
-        private SsBaselineSeeder seeder() {
-            return seeder;
-        }
-
-        @Override
-        public void close() {
-            log.info("Stopping browserless Security Server stack");
-            setup.stop();
-        }
+        return SsApiStackSessionListener.getSetup();
     }
 }
